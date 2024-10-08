@@ -1,4 +1,6 @@
 # coding: utf-8
+import time
+
 import constance
 import requests
 from django.conf import settings
@@ -11,11 +13,7 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import (
-    ExportTask,
-    ImportTask,
-    ProjectViewExportTask,
-)
+from kpi.models.import_export_task import ExportTask, ImportTask, ProjectViewExportTask
 
 
 @celery_app.task
@@ -73,7 +71,15 @@ def sync_kobocat_xforms(
 
 @celery_app.task
 def sync_media_files(asset_uid):
-    asset = Asset.objects.get(uid=asset_uid)
+    asset = Asset.objects.defer('content').get(uid=asset_uid)
+    if not asset.has_deployment:
+        # 🙈 Race condition: Celery task starts too fast and does not see
+        # the deployment data, even if asset has been saved prior to call this
+        # task
+        # TODO Find why the race condition happens and remove `time.sleep(1)`
+        time.sleep(1)
+        asset.refresh_from_db(fields=['_deployment_data'])
+
     asset.deployment.sync_media_files()
 
 
@@ -93,7 +99,6 @@ def enketo_flush_cached_preview(server_url, form_id):
         data=dict(server_url=server_url, form_id=form_id),
     )
     response.raise_for_status()
-
 
 
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)

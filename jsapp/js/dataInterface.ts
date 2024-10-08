@@ -355,7 +355,6 @@ interface ExportSettingSettings {
  */
 export interface SurveyRow {
   /** This is a unique identifier that includes both name and path (names of parents). */
-  $qpath: string;
   $xpath: string;
   $autoname: string;
   $kuid: string;
@@ -562,7 +561,7 @@ export interface AnalysisFormJsonField {
   type: string;
   language: string;
   source: string;
-  qpath: string;
+  xpath: string;
   settings: {
     mode: string;
     engine: string;

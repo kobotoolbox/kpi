@@ -1,4 +1,4 @@
-from .models import AuditLog
+from .models import AccessLog
 
 
 class RequiresAccessLogMixin:
@@ -7,7 +7,4 @@ class RequiresAccessLogMixin:
     """
 
     def create_access_log(self, request, user, auth_type):
-        log = AuditLog.create_access_log_for_request(
-            request, user, authentication_type=auth_type
-        )
-        log.save()
+        AccessLog.create_from_request(request, user, authentication_type=auth_type)

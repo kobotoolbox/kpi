@@ -1,14 +1,11 @@
 # coding: utf-8
 import os
 
-import pytest
 from django.conf import settings
-from kobo_service_account.utils import get_request_headers
-from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
-    TestAbstractViewSet
+    TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
@@ -80,23 +77,6 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
     def test_retrieve_view(self):
         self._retrieve_view(self.extra)
-
-    def test_retrieve_view_with_service_account(self):
-        extra = {'HTTP_AUTHORIZATION': f'Token {self.alice.auth_token}'}
-        # Alice cannot view bob's attachment and should receive a 404.
-        # The first assertion is `response.status_code == 200`, thus it should
-        # raise an error
-        assertion_pattern = (
-            f'{status.HTTP_404_NOT_FOUND} != {status.HTTP_200_OK}'
-        )
-        with pytest.raises(AssertionError, match=assertion_pattern) as e:
-            self._retrieve_view(extra)
-
-        # Try the same request with service account user on behalf of alice
-        extra = self.get_meta_from_headers(get_request_headers(self.alice.username))
-        # Test server does not provide `host` header
-        extra['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        self._retrieve_view(extra)
 
     def test_list_view(self):
         self._submit_transport_instance_w_attachment()
@@ -171,8 +151,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         self.assertEqual(response.status_code, 404)
 
     def test_direct_image_link_uppercase(self):
-        self._submit_transport_instance_w_attachment(
-            media_file="1335783522564.JPG")
+        self._submit_transport_instance_w_attachment(media_file='1335783522564.JPG')
 
         filename = self.attachment.media_file.name
         file_base, file_extension = os.path.splitext(filename)
@@ -323,13 +302,13 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'transport_with_attachment',
             'IMG_2235.JPG'
         )
+
         # Edit are only allowed with service account
         with open(media_file_path, 'rb') as media_file:
             self._make_submission(
                 xml_path,
                 media_file=media_file,
-                auth=False,
-                use_service_account=True,
+                use_api=False,
             )
 
         # Validate counters are up-to-date and instances count is still one.

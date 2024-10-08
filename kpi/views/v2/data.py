@@ -8,12 +8,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import (
-    renderers,
-    serializers,
-    status,
-    viewsets,
-)
+from rest_framework import renderers, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -22,16 +17,21 @@ from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
-from kpi.exceptions import ObjectDeploymentDoesNotExist
+from kpi.exceptions import (
+    InvalidXFormException,
+    MissingXFormException,
+    ObjectDeploymentDoesNotExist,
+)
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
@@ -41,23 +41,20 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import (
-    SubmissionGeoJsonRenderer,
-    SubmissionXMLRenderer,
-)
+from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import (
-    edit_submission_xml,
     fromstring_preserve_root_xmlns,
     get_or_create_element,
     xml_tostring,
 )
-from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
-class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.GenericViewSet):
+class DataViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+):
     """
     ## List of submissions for a specific asset
 
@@ -336,61 +333,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
-        deployment = self._get_deployment()
-        kwargs = {
-            'data': request.data,
-            'context': self.get_serializer_context(),
-        }
         if request.method == 'DELETE':
-            action_ = deployment.delete_submissions
-            kwargs['perm'] = PERM_DELETE_SUBMISSIONS
+            response = self._bulk_delete(request)
         elif request.method == 'PATCH':
-            action_ = deployment.bulk_update_submissions
-            kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
+            response = self._bulk_update(request)
 
-        bulk_actions_validator = DataBulkActionsValidator(**kwargs)
-        bulk_actions_validator.is_valid(raise_exception=True)
-        audit_logs = []
-        if request.method == 'DELETE':
-            # Prepare audit logs
-            data = copy.deepcopy(bulk_actions_validator.data)
-            # Retrieve all submissions matching `submission_ids` or `query`.
-            # If user is not allowed to see some of the submissions (i.e.: user
-            # with partial permissions), the request will be rejected
-            # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
-            submissions = deployment.get_submissions(
-                user=request.user,
-                submission_ids=data['submission_ids'],
-                query=data['query'],
-                fields=['_id', '_uuid']
-            )
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
-            for submission in submissions:
-                audit_logs.append(AuditLog(
-                    app_label=app_label,
-                    model_name=model_name,
-                    object_id=submission['_id'],
-                    user=request.user,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': self.asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                    log_type=AuditType.SUBMISSION_MANAGEMENT,
-                ))
-
-        # Send request to KC
-        json_response = action_(bulk_actions_validator.data, request.user)
-
-        # If requests has succeeded, let's log deletions (if any)
-        if json_response['status'] == status.HTTP_200_OK and audit_logs:
-            AuditLog.objects.bulk_create(audit_logs)
-
-        return Response(**json_response)
+        return Response(**response)
 
     def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
@@ -404,18 +352,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             fields=['_id', '_uuid']
         )
 
-        json_response = deployment.delete_submission(
-            submission_id, user=request.user
-        )
-
-        if json_response['status'] == status.HTTP_204_NO_CONTENT:
-            (
-                app_label,
-                model_name,
-            ) = deployment.submission_model.get_app_label_and_model_name()
+        if deployment.delete_submission(submission_id, user=request.user):
             AuditLog.objects.create(
-                app_label=app_label,
-                model_name=model_name,
+                app_label='logger',
+                model_name='instance',
                 object_id=pk,
                 user=request.user,
                 metadata={
@@ -425,8 +365,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 action=AuditAction.DELETE,
                 log_type=AuditType.SUBMISSION_MANAGEMENT,
             )
-
-        return Response(**json_response)
+            response = {
+                'content_type': 'application/json',
+                'status': status.HTTP_204_NO_CONTENT,
+            }
+        else:
+            response = {
+                'data': {'detail': 'Submission not found'},
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+            }
+        return Response(**response)
 
     @action(
         detail=True,
@@ -439,18 +388,35 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
+        # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         original_submission = deployment.get_submission(
-            submission_id, request.user, fields=['_uuid']
+            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
         )
-        duplicate_response = deployment.duplicate_submission(
-            submission_id=submission_id, user=request.user
-        )
-        deployment.copy_submission_extras(
-            original_submission['_uuid'], duplicate_response['_uuid']
-        )
-        return Response(duplicate_response, status=status.HTTP_201_CREATED)
+
+        with http_open_rosa_error_handler(
+            lambda: deployment.duplicate_submission(
+                submission_id=submission_id, request=request
+            ),
+            request,
+        ) as handler:
+            if handler.http_error_response:
+                response = {
+                    'data': handler.error,
+                    'content_type': 'application/json',
+                    'status': handler.status_code,
+                }
+            else:
+                duplicate_submission = handler.func_return
+                deployment.copy_submission_extras(
+                    original_submission['_uuid'], duplicate_submission['_uuid']
+                )
+                response = {
+                    'data': duplicate_submission,
+                    'content_type': 'application/json',
+                    'status': status.HTTP_201_CREATED,
+                }
+            return Response(**response)
 
     @action(
         detail=True,
@@ -507,10 +473,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         try:
-            submissions = deployment.get_submissions(request.user,
-                                                    format_type=format_type,
-                                                    request=request,
-                                                    **filters)
+            submissions = deployment.get_submissions(
+                request.user, format_type=format_type, request=request, **filters
+            )
         except OperationFailure as err:
             message = str(err)
             # Don't show just any raw exception message out of fear of data leaking
@@ -570,16 +535,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
 
-        # The `get_submissions()` is a generator in KobocatDeploymentBackend
-        # class but a list in MockDeploymentBackend. We cast the result as a list
-        # no matter what is the deployment back-end class to make it work with
-        # both. Since the number of submissions is be very small, it should not
-        # have a big impact on memory (i.e. list vs generator)
-        submissions = list(deployment.get_submissions(**params))
+        submissions = deployment.get_submissions(**params)
         if not submissions:
             raise Http404
 
-        submission = submissions[0]
+        submission = list(submissions)[0]
         return Response(submission)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
@@ -620,6 +580,90 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
+    def _bulk_delete(self, request: Request) -> dict:
+        deployment = self._get_deployment()
+        serializer_params = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+            'perm': PERM_DELETE_SUBMISSIONS,
+        }
+        bulk_actions_validator = DataBulkActionsValidator(**serializer_params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+
+        # Prepare audit logs
+        data = copy.deepcopy(bulk_actions_validator.data)
+        # Retrieve all submissions matching `submission_ids` or `query`.
+        # If user is not allowed to see some of the submissions (i.e.: user
+        # with partial permissions), the request will be rejected
+        # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+        submissions = deployment.get_submissions(
+            user=request.user,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+            fields=['_id', '_uuid'],
+        )
+
+        # Prepare logs before deleting all submissions.
+        audit_logs = []
+        for submission in submissions:
+            audit_logs.append(
+                AuditLog(
+                    app_label='logger',
+                    model_name='instance',
+                    object_id=submission['_id'],
+                    user=request.user,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': self.asset.uid,
+                        'uuid': submission['_uuid'],
+                    },
+                    action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
+                )
+            )
+
+        try:
+            deleted = deployment.delete_submissions(
+                bulk_actions_validator.data, request.user, request=request
+            )
+        except (MissingXFormException, InvalidXFormException):
+            return {
+                'data': {'detail': 'Could not delete submissions'},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
+
+        # If requests has succeeded, let's log deletions (if any)
+        if audit_logs and deleted:
+            AuditLog.objects.bulk_create(audit_logs)
+
+        return {
+            'data': {'detail': f'{deleted} submissions have been deleted'},
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+        }
+
+    def _bulk_update(self, request: Request) -> dict:
+        deployment = self._get_deployment()
+        serializer_params = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+            'perm': PERM_CHANGE_SUBMISSIONS,
+        }
+        bulk_actions_validator = DataBulkActionsValidator(**serializer_params)
+        bulk_actions_validator.is_valid(raise_exception=True)
+
+        try:
+            return deployment.bulk_update_submissions(
+                bulk_actions_validator.data, request.user, request=request
+            )
+        except (MissingXFormException, InvalidXFormException):
+            return {
+                'data': {'detail': 'Could not updated submissions'},
+                'content_type': 'application/json',
+                'status': status.HTTP_400_BAD_REQUEST,
+            }
+
     def _filter_mongo_query(self, request):
         """
         Build filters to pass to Mongo query.
@@ -630,7 +674,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         filters = {}
 
-        if request.method == "GET":
+        if request.method == 'GET':
             filters = request.GET.dict()
 
         # Remove `format` from filters. No need to use it
