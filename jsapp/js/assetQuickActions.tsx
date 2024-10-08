@@ -220,6 +220,9 @@ export function unarchiveAsset(
           dialog.destroy();
         }
       );
+      // Prevent the default alertify behaviour of trying to close the dialog.
+      // See similar comment in `archiveAsset` for more details.
+      return false;
     },
     oncancel: () => {
       dialog.destroy();
