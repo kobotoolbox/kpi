@@ -23,6 +23,7 @@ from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
 from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,
+    SessionAuthentication,
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
