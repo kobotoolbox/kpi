@@ -39,6 +39,10 @@ class PageStateStore extends Reflux.Store {
     this.trigger(_changes);
   }
 
+  /**
+   * Displays the modal, or updates the data in current modal (useful only if
+   * you're not changing modal types - see `switchModal` function below).
+   */
   showModal(params: PageStateModalParams) {
     this.setState({
       modal: params
@@ -57,7 +61,8 @@ class PageStateStore extends Reflux.Store {
    */
   switchModal(params: PageStateModalParams) {
     this.hideModal();
-    // HACK switch to setState callback after updating to React 16+
+    // HACK setState's second parameter callback doesn't exist in Reflux.Store,
+    // so we can't use it here
     window.setTimeout(() => {
       this.showModal(params);
     }, 0);
