@@ -162,7 +162,7 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
 
         if media_files_to_update:
             AssetFile.objects.bulk_update(
-                media_files_to_update, update_fields=['content', 'metadata']
+                media_files_to_update, fields=['content', 'metadata']
             )
 
     _mark_task_as_successful(transfer, async_task_type)
