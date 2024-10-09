@@ -24,24 +24,22 @@ class LogThingsViewSet(viewsets.GenericViewSet):
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
             split = field.split('.')
-            logging.info(f'{split=}')
             thing = getattr(obj, split[0], {})
             if len(split) >= 1:
                 for smaller_field in split[1:]:
-                    logging.info(f'{smaller_field=}')
-                    logging.info(f'{thing=}')
                     thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
             audit_log_data[field] = thing
         self.request._request.audit_log_data_initial = audit_log_data
         return obj
 
     def perform_update(self, serializer):
-        stuff = self.fancy_perform_update(serializer)
+        self.fancy_perform_update(serializer)
+        logging.info(f'{serializer.instance}')
+
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
-            audit_log_data[field] = serializer.data.get(field)
+            audit_log_data[field] = getattr(serializer.instance, field)
         self.request._request.audit_log_data = audit_log_data
-        return stuff
 
     def perform_create(self, serializer):
         self.fancy_perform_create(serializer)
@@ -49,13 +47,9 @@ class LogThingsViewSet(viewsets.GenericViewSet):
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
             split = field.split('.')
-            logging.info(f'{split=}')
-            logging.info(f'{serializer.data.keys()}')
             thing = serializer.data.get(split[0],{})
             if len(split) >= 1:
                 for smaller_field in split[1:]:
-                    logging.info(f'{smaller_field=}')
-                    logging.info(f'{thing=}')
                     thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
             audit_log_data[field] = thing
         self.request._request.audit_log_data = audit_log_data

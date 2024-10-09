@@ -965,4 +965,4 @@ class AssetViewSet(
         return is_valid
 
     def get_fields_we_care_about(self):
-        return ['content', 'settings']
+        return ['content', 'settings', 'data_sharing', 'latest_version', 'latest_deployed_version_uid']
