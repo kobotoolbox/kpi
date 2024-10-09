@@ -81,14 +81,16 @@ chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 
 # `chown -R` becomes very slow once a fair amount of media has been collected,
 # so reset ownership of the media directory *only* (i.e., non-recursive)
-echo 'Resetting ownership of media directory...'
+echo 'Resetting ownership of media directories...'
 chown "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+chown "${UWSGI_USER}:${UWSGI_GROUP}" "${OPENROSA_MEDIA_DIR}"
 echo 'Done.'
 echo '%%%%%%% NOTICE %%%%%%%'
 echo '% To avoid long delays, we no longer reset ownership *recursively*'
 echo '% every time this container starts. If you have trouble with'
 echo '% permissions, please run the following command inside the KPI container:'
 echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${KPI_MEDIA_DIR}\""
+echo "% chown -R \"${UWSGI_USER}:${UWSGI_GROUP}\" \"${OPENROSA_MEDIA_DIR}\""
 echo '%%%%%%%%%%%%%%%%%%%%%%'
 
 echo 'KPI initialization completed.'
