@@ -16,10 +16,11 @@ from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.views.no_update_model import LogThingsModelViewSet
 
 
 class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.ModelViewSet):
+                  LogThingsModelViewSet):
     """
 
     ## External services
@@ -165,8 +166,11 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         queryset = queryset.select_related('asset')
         return queryset
 
-    def perform_create(self, serializer):
+    def fancy_perform_create(self, serializer):
         serializer.save(asset=self.asset)
+
+    def get_fields_we_care_about(self):
+        return ['endpoint', 'active']
 
     @action(detail=True, methods=['PATCH'])
     def retry(self, request, uid=None, *args, **kwargs):

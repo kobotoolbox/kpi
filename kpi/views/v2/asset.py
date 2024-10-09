@@ -45,12 +45,15 @@ from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.log import logging
+
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.views.no_update_model import LogThingsModelViewSet
 
 
 class AssetViewSet(
-    ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    ObjectPermissionViewSetMixin, NestedViewSetMixin, LogThingsModelViewSet
 ):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
@@ -379,7 +382,7 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    def get_object(self):
+    def fancy_get_object(self):
         if self.request.method in ['PATCH', 'GET']:
             try:
                 asset = Asset.objects.get(uid=self.kwargs['uid'])
@@ -387,6 +390,7 @@ class AssetViewSet(
                 raise Http404
 
             self.check_object_permissions(self.request, asset)
+
 
             # Cope with kobotoolbox/formpack#322, which wrote invalid content
             # into the database. For performance, consider only the current
@@ -959,3 +963,6 @@ class AssetViewSet(
                 is_valid = False
 
         return is_valid
+
+    def get_fields_we_care_about(self):
+        return ['content', 'settings']

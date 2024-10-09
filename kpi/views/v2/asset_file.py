@@ -10,11 +10,11 @@ from kpi.models import AssetFile
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.permissions import AssetEditorPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.views.no_update_model import NoUpdateModelViewSet
+from kpi.views.no_update_model import NoUpdateModelViewSet, LogThingsNoUpdateModelViewSet
 
 
 class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                       NoUpdateModelViewSet):
+                       LogThingsNoUpdateModelViewSet):
     """
     This endpoint shows uploaded files related to an asset.
 
@@ -139,11 +139,14 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         return _queryset
 
-    def perform_create(self, serializer):
+    def fancy_perform_create(self, serializer):
         serializer.save(
             asset=self.asset,
             user=self.request.user
         )
+
+    def get_fields_we_care_about(self):
+        return ['uid', 'metadata.filename', 'metadata.hash']
 
     class PrivateContentView(PrivateStorageDetailView):
         model = AssetFile
