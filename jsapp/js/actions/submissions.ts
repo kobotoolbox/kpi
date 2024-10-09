@@ -142,8 +142,14 @@ submissionsActions.bulkPatchValues.failed.listen(() => {
 
 submissionsActions.bulkDelete.listen((uid: string, data: BulkSubmissionsRequest) => {
   dataInterface.bulkDeleteSubmissions(uid, data)
-    .done(submissionsActions.bulkDelete.completed)
-    .fail(submissionsActions.bulkDelete.failed);
+    .done(() => {
+      notify(t('submissions deleted'));
+      submissionsActions.bulkDelete.completed();
+    })
+    .fail(() => {
+      notify.error(t('failed to delete submissions'));
+      submissionsActions.bulkDelete.failed();
+    });
 });
 submissionsActions.bulkDelete.failed.listen(() => {
   notify(t('Failed to delete submissions.'), 'error');

@@ -160,6 +160,30 @@ interface SetAssetPublicCompletedDefinition extends Function {
   listen: (callback: (assetUid: string, shouldSetAnonPerms: boolean) => void) => Function;
 }
 
+interface ReportsSetStyleDefinition extends Function {
+  (assetId: string, details: AssetResponseReportStyles): void;
+  listen: (callback: (assetId: string, details: AssetResponseReportStyles) => void) => Function;
+  completed: ReportsSetStyleCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface ReportsSetStyleCompletedDefinition extends Function {
+  (response: AssetResponse): void;
+  listen: (callback: (response: AssetResponse) => void) => Function;
+}
+
+interface ReportsSetCustomDefinition extends Function {
+  (assetId: string, details: {[crid: string]: CustomReport}, crid: string): void;
+  listen: (callback: (assetId: string, details: {[crid: string]: CustomReport}, crid: string) => void) => Function;
+  completed: ReportsSetCustomCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+
+interface ReportsSetCustomCompletedDefinition extends Function {
+  (response: AssetResponse): void;
+  listen: (callback: (response: AssetResponse, crid: string) => void) => Function;
+}
+
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export namespace actions {
@@ -196,7 +220,10 @@ export namespace actions {
     const misc: {
       getUser: GetUserDefinition;
     };
-    const reports: object;
+    const reports: {
+      setStyle: ReportsSetStyleDefinition;
+      setCustom: ReportsSetCustomDefinition;
+    };
     const table: {
       updateSettings: TableUpdateSettingsDefinition;
     };

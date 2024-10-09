@@ -372,8 +372,8 @@ export function getSubmissionDisplayData(
         );
         parentGroup.addChild(rowObj);
 
-        const rowqpath = flatPaths[rowName].replace(/\//g, '-');
-        supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
+        const rowxpath = flatPaths[rowName];
+        supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
             new DisplayResponse(
               null,

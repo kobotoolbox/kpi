@@ -259,7 +259,7 @@ actions.reports = Reflux.createActions({
   }
 });
 
-actions.reports.setStyle.listen(function(assetId, details){
+actions.reports.setStyle.listen((assetId, details) => {
   dataInterface.patchAsset(assetId, {report_styles: details})
     .done((asset) => {
       actions.reports.setStyle.completed(asset);
@@ -268,10 +268,10 @@ actions.reports.setStyle.listen(function(assetId, details){
     .fail(actions.reports.setStyle.failed);
 });
 
-actions.reports.setCustom.listen(function(assetId, details){
+actions.reports.setCustom.listen((assetId, details, crid) => {
   dataInterface.patchAsset(assetId, {report_custom: details})
     .done((asset) => {
-      actions.reports.setCustom.completed(asset);
+      actions.reports.setCustom.completed(asset, crid);
       actions.resources.updateAsset.completed(asset);
     })
     .fail(actions.reports.setCustom.failed);

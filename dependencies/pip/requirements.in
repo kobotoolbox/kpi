@@ -2,10 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@451df4cd2a0d614be69a3b3309259c67369f7efb#egg=formpack
-
-# service-account
--e git+https://github.com/kobotoolbox/kobo-service-account.git@cb52c6221b68af9b13237d0a1157e3f1965a82b1#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/formpack.git@5a8cda8cc37a56a2313c98b88fcacc18049ef477#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -40,6 +37,7 @@ django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
 django-extensions
 django-oauth-toolkit
 django-organizations
@@ -112,6 +110,3 @@ modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
 pandas
-
-# Python 3.8 support
-backports.zoneinfo; python_version < '3.9'
