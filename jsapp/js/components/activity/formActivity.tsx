@@ -1,21 +1,19 @@
-import {useMemo, useState} from 'react';
+import type {ReactNode} from 'react';
+import {useState} from 'react';
 import '../../../scss/components/_kobo.form-view.scss';
 import type {KoboSelectOption} from '../common/koboSelect';
 import KoboSelect from '../common/koboSelect';
 import './formActivity.scss';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
-import UniversalTable from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
-import {useGetFormActivities} from './useActivity';
-import LoadingSpinner from '../common/loadingSpinner';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import type {ActivityLogItem} from 'jsapp/js/query/queries/activityLog.query';
+import {useActivityLogQuery} from 'jsapp/js/query/queries/activityLog.query';
+import moment from 'moment';
 
-interface Activity {
-  id: number;
-  who: string;
-  action: string;
-  what: string;
-  date: Date;
+interface TableDataItem {
+  description: ReactNode;
+  date: ReactNode;
 }
 
 const mockOptions: KoboSelectOption[] = [
@@ -55,11 +53,7 @@ const EventDescription = ({
   </div>
 );
 
-const EventDate = ({dateTime}: {dateTime: Date}) => {
-  // TODO: Apply formatting
-  const formattedDate = dateTime.toLocaleDateString();
-  return formattedDate;
-};
+const EventDate = ({dateTime}: {dateTime: string}) => moment(dateTime).calendar();
 
 export default function FormActivity() {
   const [filterOptions, setFilterOptions] =
@@ -73,22 +67,18 @@ export default function FormActivity() {
     );
   };
 
-  const {data: activities, isLoading} = useGetFormActivities();
-
-  // MOCK TABLE DATA
-  const tableData = useMemo(() => {
-    if (!activities) {
-      return [];
-    }
-
-    return activities.map((activity) => {
-      return {
-        id: activity.id,
-        description: <EventDescription {...activity} />,
-        date: <EventDate dateTime={activity.date} />,
-      };
-    });
-  }, [activities]);
+  const rowRenderer = (data: ActivityLogItem) => {
+    return {
+      description: (
+        <EventDescription
+          who={data.who}
+          action={data.action}
+          what={data.what}
+        />
+      ),
+      date: <EventDate dateTime={data.date} />,
+    };
+  };
 
   return (
     <div className='form-view main-container'>
@@ -115,15 +105,11 @@ export default function FormActivity() {
         </div>
       </div>
       <div className='table-container'>
-        {isLoading ? (
-          <div className='loading'><LoadingSpinner /></div>
-        ) : (
-          // <UniversalTable data={tableData} columns={columns} />
-          < PaginatedQueryUniversalTable
-            columns={columns}
-            queryHook={(limit, offset) => useGetFormActivities<Activity>(limit, offset)}
-
-        )}
+        <PaginatedQueryUniversalTable<ActivityLogItem, TableDataItem>
+          columns={columns}
+          queryHook={useActivityLogQuery}
+          rowRenderer={rowRenderer}
+        />
       </div>
     </div>
   );
