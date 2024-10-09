@@ -12,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.models import ProjectHistoryLog
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -476,6 +477,9 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+                ProjectHistoryLog.create_from_deployment_request(
+                    request, asset, first_deployment=True
+                )
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -500,6 +504,21 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+
+                # create a project history log
+                # note a log will be created even if nothing changed, since
+                # we care about request intent more than effect
+
+                # copy the request data so we don't change the original object
+                request_data_copy = request.data.copy()
+                # remove the 'backend' key, we don't care about it for this part
+                request_data_copy.pop('backend', None)
+
+                updated_fields = request_data_copy.keys()
+                only_active_changed = list(updated_fields) == ['active']
+                ProjectHistoryLog.create_from_deployment_request(
+                    request, asset, only_active_changed=only_active_changed
+                )
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))

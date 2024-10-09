@@ -19,7 +19,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME, UUID
-from kobo.apps.openrosa.libs.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from .test_base import TestBase
 
 uuid_regex = re.compile(
@@ -132,7 +132,7 @@ class TestProcess(TestBase):
         self.manifest_url = \
             'http://testserver/%s/xformsManifest/%s'\
             % (self.user.username, self.xform.pk)
-        md5_hash = get_hash(self.xform.xml)
+        md5_hash = calculate_hash(self.xform.xml)
         expected_content = """<?xml version="1.0" encoding="utf-8"?>
 <xforms xmlns="http://openrosa.org/xforms/xformsList"><xform><formID>transportation_2011_07_25</formID><name>transportation_2011_07_25</name><majorMinorVersion></majorMinorVersion><version></version><hash>md5:%(hash)s</hash><descriptionText>transportation_2011_07_25</descriptionText><downloadUrl>%(download_url)s</downloadUrl><manifestUrl>%(manifest_url)s</manifestUrl></xform></xforms>"""  # noqa: E501
         expected_content = expected_content % {

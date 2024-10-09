@@ -60,7 +60,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >           ]
     >       }
 
-    Results from this endpoint can be filtered by a Boolean query specified in the `q` parameter.
+    Results from this endpoint can be filtered by a Boolean query specified in the
+    `q` parameter.
 
     **Filterable fields:**
 
@@ -131,7 +132,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     6. All authentications from superusers<br>
         `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True
 
-    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces (e.g. date and time "2022-11-15 20:34")*
+    *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
+    (e.g. date and time "2022-11-15 20:34")*
 
     ### CURRENT ENDPOINT
     """

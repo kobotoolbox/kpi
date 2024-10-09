@@ -465,7 +465,7 @@ export function generateUuid() {
  * This is a function from `/jsapp/xlform/src/model.utils.coffee`. It's being
  * used to generate some unique-ish ids.
  *
- * DEPRECATED. We should definitely use `generateUuid`!
+ * @deprecated Use `generateUuid`.
  */
 export function txtid() {
   const o = 'AAnCAnn'.replace(/[AaCn]/g, (c) => {
