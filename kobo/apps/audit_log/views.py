@@ -36,7 +36,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >               {
     >                    "app_label": "foo",
     >                    "model_name": "bar",
-    >                    "user": "http://kf.kobo.local/api/v2users/kobo_user/",
+    >                    "user": "http://kf.kobo.local/api/v2/users/kobo_user/",
     >                    "user_uid": "u12345",
     >                    "action": "delete",
     >                    "date_created": "2024-10-01T00:01:00Z",
