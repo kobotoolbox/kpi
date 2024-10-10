@@ -7,7 +7,7 @@ import type {
 } from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
 
 interface PlanButtonProps {
   buySubscription: (price: Price, quantity?: number) => void;
@@ -34,15 +34,15 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const [organization] = useContext(OrganizationContext);
+  const {data: organizationData} = useOrganizationQuery();
 
-  if (!product || !organization || product.price.unit_amount === 0) {
+  if (!product || !organizationData || product.price.unit_amount === 0) {
     return null;
   }
 
   const manageSubscription = (subscriptionPrice?: Price) => {
     setIsBusy(true);
-    postCustomerPortal(organization.id, subscriptionPrice?.id, quantity)
+    postCustomerPortal(organizationData.id, subscriptionPrice?.id, quantity)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };

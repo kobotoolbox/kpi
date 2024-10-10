@@ -37,8 +37,6 @@ function AccountSidebar() {
 
   const {
     data: organizationData,
-    isLoading: isLoadingOrganization,
-    isError,
   } = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
@@ -55,13 +53,6 @@ function AccountSidebar() {
 
   return (
     <bem.FormSidebar m='account'>
-      <div>
-        {isLoadingOrganization ? (
-          <div>Loading...</div>
-        ) : (
-          <pre>{JSON.stringify(organizationData, null, 2)}</pre>
-        )}
-      </div>
       <AccountNavLink
         iconName='user'
         name={t('Profile')}
