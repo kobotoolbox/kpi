@@ -403,7 +403,7 @@ class AssetViewSet(
 
             return asset
 
-        return super().get_object()
+        return super().fancy_get_object()
 
     @action(
         detail=False,

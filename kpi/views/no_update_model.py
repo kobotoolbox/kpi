@@ -21,6 +21,8 @@ class NoUpdateModelViewSet(
 class LogThingsViewSet(viewsets.GenericViewSet):
     def get_object(self):
         obj = self.fancy_get_object()
+        if self.request.method in ['GET','HEAD']:
+            return obj
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
             split = field.split('.')
@@ -28,27 +30,27 @@ class LogThingsViewSet(viewsets.GenericViewSet):
             if len(split) >= 1:
                 for smaller_field in split[1:]:
                     thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
+            breakpoint()
             audit_log_data[field] = thing
         self.request._request.audit_log_data_initial = audit_log_data
         return obj
 
     def perform_update(self, serializer):
         self.fancy_perform_update(serializer)
-        logging.info(f'{serializer.instance}')
-
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
+            breakpoint()
             audit_log_data[field] = getattr(serializer.instance, field)
         self.request._request.audit_log_data = audit_log_data
 
     def perform_create(self, serializer):
         self.fancy_perform_create(serializer)
-        #logging.info(f'{serializer=}')
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
             split = field.split('.')
-            thing = serializer.data.get(split[0],{})
+            thing = getattr(serializer.instance,split[0],{})
             if len(split) >= 1:
+                breakpoint()
                 for smaller_field in split[1:]:
                     thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
             audit_log_data[field] = thing
