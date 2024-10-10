@@ -5,8 +5,8 @@ def do_thing_middleware(get_response):
         response = get_response(request)
         if request.method in ['GET', 'HEAD']:
             return response
-        new_stuff = getattr(request, 'audit_log_data', {})
         old_stuff = getattr(request, 'audit_log_data_initial', {})
+        new_stuff = getattr(request, 'audit_log_data', {})
         logging.info(f'{old_stuff=}')
         logging.info(f'{new_stuff=}')
         return response
