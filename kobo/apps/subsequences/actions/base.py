@@ -1,4 +1,5 @@
 import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -6,7 +7,7 @@ except ImportError:
 
 from django.utils import timezone
 
-from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
+from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
 
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
@@ -39,10 +40,10 @@ class BaseAction:
         return schema
 
     def compile_revised_record(self, content, edits):
-        '''
+        """
         a method that applies changes to a json structure and appends previous
         changes to a revision history
-        '''
+        """
         if self.ID is None:
             return content
         for field_name, vals in edits.items():

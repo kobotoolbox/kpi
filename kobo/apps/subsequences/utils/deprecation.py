@@ -97,6 +97,7 @@ class WritableAdvancedFeaturesField(WritableJSONField):
     It should be deleted and replaced with WritableJSONField when all
     assets are repopulated.
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._model_instance = None

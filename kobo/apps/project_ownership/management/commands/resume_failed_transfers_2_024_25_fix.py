@@ -7,11 +7,7 @@ from ...models import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from ...utils import (
-    move_media_files,
-    move_attachments,
-    rewrite_mongo_userform_id,
-)
+from ...utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 class Command(BaseCommand):
@@ -50,9 +46,7 @@ class Command(BaseCommand):
                 continue
 
             if verbosity:
-                self.stdout.write(
-                    f'Resuming `{transfer.asset}` transfer…'
-                )
+                self.stdout.write(f'Resuming `{transfer.asset}` transfer…')
             self._move_data(transfer)
             move_attachments(transfer)
             move_media_files(transfer)

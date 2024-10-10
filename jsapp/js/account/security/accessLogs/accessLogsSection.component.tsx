@@ -2,21 +2,21 @@
 import React from 'react';
 
 // Partial components
-import Button from 'js/components/common/button';
+// import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 
 // Utilities
 import useAccessLogsQuery, {type AccessLog} from 'js/query/queries/accessLogs.query';
 import {formatTime} from 'js/utils';
-import sessionStore from 'js/stores/session';
+// import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 export default function AccessLogsSection() {
-  function logOutAllSessions() {
-    sessionStore.logOutAll();
-  }
+  // function logOutAllSessions() {
+  //   sessionStore.logOutAll();
+  // }
 
   return (
     <>
@@ -43,11 +43,21 @@ export default function AccessLogsSection() {
         columns={[
           // The `key`s of these columns are matching the `AccessLog` interface
           // properties (from `accessLogs.query.ts` file) using dot notation.
-          {key: 'metadata.source', label: t('Source')},
+          {
+            key: 'metadata.source',
+            label: t('Source'),
+            cellFormatter: (log: AccessLog) => {
+              if (log.metadata.auth_type === 'submission-group') {
+                return t('Data Submissions (##count##)').replace('##count##', String(log.count));
+              } else {
+                return log.metadata.source;
+              }
+            },
+          },
           {
             key: 'date_created',
             label: t('Last activity'),
-            cellFormatter: (date: string) => formatTime(date),
+            cellFormatter: (log: AccessLog) => formatTime(log.date_created),
           },
           {key: 'metadata.ip_address', label: t('IP Address')},
         ]}

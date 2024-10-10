@@ -1,6 +1,4 @@
-from kobo.apps.openrosa.apps.logger.models import (
-    MonthlyXFormSubmissionCounter
-)
+from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
 
 
 class SuperuserStatsModel(MonthlyXFormSubmissionCounter):

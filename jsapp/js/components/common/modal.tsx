@@ -1,45 +1,74 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import {KEY_CODES} from 'js/constants';
 import bem from 'js/bem';
 import classNames from 'classnames';
 import Button from 'js/components/common/button';
 import './modal.scss';
 
+interface ModalPartialProps {
+  children?: React.ReactNode;
+}
+
+class Footer extends React.Component<ModalPartialProps> {
+  render() {
+    return (<bem.Modal__footer>{this.props.children}</bem.Modal__footer>);
+  }
+}
+
+class Body extends React.Component<ModalPartialProps> {
+  render() {
+    return (<bem.Modal__body>{this.props.children}</bem.Modal__body>);
+  }
+}
+
+class Tabs extends React.Component<ModalPartialProps> {
+  render() {
+    return <bem.Modal__tabs>{this.props.children}</bem.Modal__tabs>;
+  }
+}
+
+interface ModalProps {
+  onClose: () => void;
+  open: boolean;
+  children: React.ReactNode;
+  title: string;
+  icon?: string;
+  small?: boolean;
+  large?: boolean;
+  isDuplicated?: boolean;
+  disableEscClose?: boolean;
+  disableBackdropClose?: boolean;
+  customModalHeader?: React.ReactNode;
+  className?: string;
+}
+
 /**
  * A generic modal component.
  *
- * @prop {function} onClose
- * @prop {string} title
- * @prop {boolean} small
- * @prop {boolean} isDuplicated
- * @prop {string} className
- * @prop {boolean} open
- * @prop {boolean} large
- * @prop {string} icon
- * @prop {node} children
+ * @deprecated Please use `KoboModal`.
  */
-export default class Modal extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
+export default class Modal extends React.Component<ModalProps> {
+  static Footer = Footer;
+  static Body = Body;
+  static Tabs = Tabs;
+
+  escFunctionBound = this.escFunction.bind(this);
 
   componentDidMount() {
-    document.addEventListener('keydown', this.escFunction);
+    document.addEventListener('keydown', this.escFunctionBound);
   }
 
   componentWillUnmount() {
-    document.removeEventListener('keydown', this.escFunction);
+    document.removeEventListener('keydown', this.escFunctionBound);
   }
 
-  escFunction(evt) {
+  escFunction(evt: KeyboardEvent) {
     if (!this.props.disableEscClose && (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape')) {
       this.props.onClose.call(evt);
     }
   }
 
-  backdropClick(evt) {
+  backdropClick(evt: TouchEvent) {
     if (evt.currentTarget === evt.target && !this.props.disableBackdropClose) {
       this.props.onClose.call(evt);
     }
@@ -64,7 +93,7 @@ export default class Modal extends React.Component {
 
   renderClose() {
     if (this.props.isDuplicated) {
-      return(
+      return (
         <Button
           type='text'
           size='l'
@@ -73,7 +102,7 @@ export default class Modal extends React.Component {
         />
       );
     } else {
-      return(
+      return (
         <a className='modal__x' type='button' onClick={this.props.onClose}>
           <i className='k-icon k-icon-close'/>
         </a>
@@ -83,7 +112,7 @@ export default class Modal extends React.Component {
 
   render() {
     return (
-      <bem.Modal__backdrop onClick={this.backdropClick}>
+      <bem.Modal__backdrop onClick={this.backdropClick.bind(this)}>
         <div className={classNames(
           'modal',
           this.props.className,
@@ -109,44 +138,3 @@ export default class Modal extends React.Component {
     );
   }
 }
-
-/**
- * @prop {node} children
- */
-class Footer extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return (<bem.Modal__footer>{this.props.children}</bem.Modal__footer>);
-  }
-}
-Modal.Footer = Footer;
-
-/**
- * @prop {node} children
- */
-class Body extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return (<bem.Modal__body>{this.props.children}</bem.Modal__body>);
-  }
-}
-Modal.Body = Body;
-
-/**
- * @prop {node} children
- */
-class Tabs extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return <bem.Modal__tabs>{this.props.children}</bem.Modal__tabs>;
-  }
-}
-Modal.Tabs = Tabs;

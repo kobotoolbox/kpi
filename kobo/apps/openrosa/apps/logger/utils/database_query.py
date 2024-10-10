@@ -12,7 +12,6 @@ from ..models.xform import XForm
 
 
 def build_db_queries(xform: XForm, request_data: dict) -> tuple[dict, dict]:
-
     """
     Gets instance ids based on the request payload.
     Useful to narrow down set of instances for bulk actions
@@ -28,15 +27,11 @@ def build_db_queries(xform: XForm, request_data: dict) -> tuple[dict, dict]:
 
     """
 
-    mongo_query = ParsedInstance.get_base_query(
-        xform.user.username, xform.id_string
-    )
+    mongo_query = ParsedInstance.get_base_query(xform.user.username, xform.id_string)
     postgres_query = {'xform_id': xform.id}
     instance_ids = None
     # Remove empty values
-    payload = {
-        key_: value_ for key_, value_ in request_data.items() if value_
-    }
+    payload = {key_: value_ for key_, value_ in request_data.items() if value_}
     ###################################################
     # Submissions can be retrieve in 3 different ways #
     ###################################################
@@ -57,10 +52,7 @@ def build_db_queries(xform: XForm, request_data: dict) -> tuple[dict, dict]:
         except AttributeError:
             raise BuildDbQueriesAttributeError
 
-        query_kwargs = {
-            'query': json.dumps(query),
-            'fields': '["_id"]'
-        }
+        query_kwargs = {'query': json.dumps(query), 'fields': '["_id"]'}
 
         cursor = ParsedInstance.query_mongo_no_paging(**query_kwargs)
         instance_ids = [record.get('_id') for record in list(cursor)]
@@ -73,8 +65,7 @@ def build_db_queries(xform: XForm, request_data: dict) -> tuple[dict, dict]:
     else:
         try:
             # Use int() to test if list of integers is valid.
-            instance_ids = [int(submission_id)
-                            for submission_id in submission_ids]
+            instance_ids = [int(submission_id) for submission_id in submission_ids]
         except ValueError:
             raise BuildDbQueriesAttributeError
 

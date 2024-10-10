@@ -461,6 +461,40 @@ export function generateUuid() {
   });
 }
 
+/**
+ * This is a function from `/jsapp/xlform/src/model.utils.coffee`. It's being
+ * used to generate some unique-ish ids.
+ *
+ * @deprecated Use `generateUuid`.
+ */
+export function txtid() {
+  const o = 'AAnCAnn'.replace(/[AaCn]/g, (c) => {
+    const randChar = () => {
+      let charI;
+      charI = Math.floor(Math.random() * 52);
+      charI += (charI <= 25 ? 65 : 71);
+      return String.fromCharCode(charI);
+    };
+    const r = Math.random();
+    if (c === 'a') {
+      return randChar();
+    } else if (c === 'A') {
+      return String.fromCharCode(65 + (r * 26 | 0));
+    } else if (c === 'C') {
+      const newI = Math.floor(r * 62);
+      if (newI > 52) {
+        return String(newI - 52);
+      } else {
+        return randChar();
+      }
+    } else if (c === 'n') {
+      return String(Math.floor(r * 10));
+    }
+    return '';
+  });
+  return o.toLowerCase();
+}
+
 export function csrfSafeMethod(method: string) {
   // these HTTP methods do not require CSRF protection
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);

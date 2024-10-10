@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from celery.signals import task_failure, task_retry
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from celery.signals import task_failure, task_retry
 from constance import config
 from django.apps import apps
 from django.conf import settings
@@ -17,11 +17,7 @@ from .models.choices import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .utils import (
-    move_attachments,
-    move_media_files,
-    rewrite_mongo_userform_id,
-)
+from .utils import move_attachments, move_media_files, rewrite_mongo_userform_id
 
 
 @celery_app.task(

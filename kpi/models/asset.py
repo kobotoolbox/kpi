@@ -8,38 +8,32 @@ import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
-from django.db import models
-from django.db import transaction
-from django.db.models import Prefetch, Q, F
+from django.db import models, transaction
+from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
+
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-
-from kobo.apps.reports.constants import (
-    SPECIFIC_REPORTS_KEY,
-    DEFAULT_REPORTS_KEY,
+from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
 from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
-from kobo.apps.subsequences.advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
 from kobo.apps.subsequences.utils.deprecation import (
-    get_sanitized_known_columns,
-    get_sanitized_dict_keys,
     get_sanitized_advanced_features,
+    get_sanitized_dict_keys,
+    get_sanitized_known_columns,
     qpath_to_xpath,
 )
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
-    ASSET_TYPES,
-    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -47,6 +41,8 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     ASSET_TYPE_TEXT,
+    ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ATTACHMENT_QUESTION_TYPES,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -68,15 +64,12 @@ from kpi.exceptions import (
     BadPermissionsException,
     DeploymentDataException,
 )
-from kpi.fields import (
-    KpiUidField,
-    LazyDefaultJSONBField,
-)
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
-    XlsExportableMixin,
     StandardizeSearchableFieldMixin,
+    XlsExportableMixin,
 )
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
@@ -268,7 +261,7 @@ class Asset(
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
-            (PERM_VALIDATE_SUBMISSIONS, t("Can validate submitted data asset")),
+            (PERM_VALIDATE_SUBMISSIONS, t('Can validate submitted data asset')),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -336,7 +329,7 @@ class Asset(
     # Depending on our `asset_type`, only some permissions might be applicable
     ASSIGNABLE_PERMISSIONS_BY_TYPE = {
         ASSET_TYPE_SURVEY: tuple(
-            (p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET)
+            p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET
         ),
         ASSET_TYPE_TEMPLATE: (
             PERM_VIEW_ASSET,
@@ -384,11 +377,9 @@ class Asset(
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_MANAGE_ASSET: tuple(
-            (
-                p
-                for p in ASSIGNABLE_PERMISSIONS
-                if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
-            )
+            p
+            for p in ASSIGNABLE_PERMISSIONS
+            if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
         ),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
@@ -748,8 +739,11 @@ class Asset(
         If user doesn't have any partial permissions, it returns `None`.
         """
 
-        perms = self.asset_partial_permissions.filter(user_id=user_id)\
-            .values_list("permissions", flat=True).first()
+        perms = (
+            self.asset_partial_permissions.filter(user_id=user_id)
+            .values_list('permissions', flat=True)
+            .first()
+        )
 
         if perms:
             if with_filters:
@@ -1139,9 +1133,7 @@ class Asset(
         else:
             children_languages = list(
                 self.children.values_list('summary__languages', flat=True)
-                .exclude(
-                    Q(summary__languages=[]) | Q(summary__languages=[None])
-                )
+                .exclude(Q(summary__languages=[]) | Q(summary__languages=[None]))
                 .order_by()
             )
 
@@ -1168,8 +1160,8 @@ class Asset(
             self.advanced_features = advanced_features
 
         jsonschema.validate(
-           instance=self.advanced_features,
-           schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
+            instance=self.advanced_features,
+            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
         )
 
     @property

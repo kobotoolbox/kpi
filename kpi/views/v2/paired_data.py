@@ -15,11 +15,11 @@ from kpi.permissions import (
     AssetEditorPermission,
     XMLExternalDataPermission,
 )
-from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import strip_nodes, add_xml_declaration
+from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 class PairedDataViewset(
@@ -227,7 +227,7 @@ class PairedDataViewset(
                 file_type=AssetFile.PAIRED_DATA,
                 user=self.asset.owner,
             )
-            # When asset file is new, we consider its content as expired to
+            # When the asset file is new, we consider its content as expired to
             # force its creation below
             has_expired = True
         else:
@@ -336,3 +336,15 @@ class PairedDataViewset(
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
         return context_
+
+
+class OpenRosaDynamicDataAttachmentViewset(PairedDataViewset):
+    """
+    Only specific to OpenRosa manifest when projects are linked with DDA.
+    Enforce permission and renderer classes at the class level instead to be
+    sure they are taken into account while calling `viewset.as_view()`
+    """
+
+    permission_classes = [XMLExternalDataPermission]
+    renderer_classes = [SubmissionXMLRenderer]
+    filter_backends = []
