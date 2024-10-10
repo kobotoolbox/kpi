@@ -18,7 +18,6 @@ from pyxform.question import Question
 from pyxform.section import Section, RepeatingSection
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.utils.viewer_tools import create_attachments_zipfile
@@ -41,6 +40,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.mongo_helper import MongoHelper
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
@@ -491,10 +491,12 @@ class ExportBuilder:
         indices = {}
         survey_name = self.survey.name
         for d in data:
-            joined_export = dict_to_joined_export(d, index, indices,
-                                                  survey_name)
+            joined_export = dict_to_joined_export(
+                d, index, indices, survey_name
+            )
             output = ExportBuilder.decode_mongo_encoded_section_names(
-                joined_export)
+                joined_export
+            )
             # attach meta fields (index, parent_index, parent_table)
             # output has keys for every section
             if survey_name not in output:
@@ -618,11 +620,14 @@ def generate_export(export_type, extension, username, id_string,
 
 
 def query_mongo(username, id_string, query=None):
-    query = json.loads(query, object_hook=json_util.object_hook)\
-        if query else {}
+    query = (
+        json.loads(query, object_hook=json_util.object_hook) if query else {}
+    )
     query = MongoHelper.to_safe_dict(query)
     query[USERFORM_ID] = '{0}_{1}'.format(username, id_string)
-    return xform_instances.find(query, max_time_ms=settings.MONGO_QUERY_TIMEOUT)
+    return xform_instances.find(
+        query, max_time_ms=MongoHelper.get_max_time_ms()
+    )
 
 
 def should_create_new_export(xform, export_type):

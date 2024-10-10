@@ -81,6 +81,7 @@ from kobo.apps.openrosa.libs.utils.model_tools import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.mongo_helper import MongoHelper
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -346,7 +347,7 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
         userform_id = "%s_%s" % (user.username, xform.id_string)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
-            maxTimeMS=settings.MONGO_QUERY_TIMEOUT
+            maxTimeMS=MongoHelper.get_max_time_ms()
         )
 
         if instance_count != mongo_count or update_all:
@@ -825,7 +826,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
             [rec[common_tags.ID] for rec in mongo_instances.find(
                 {common_tags.USERFORM_ID: userform_id},
                 {common_tags.ID: 1},
-                max_time_ms=settings.MONGO_QUERY_TIMEOUT
+                max_time_ms=MongoHelper.get_max_time_ms()
         )])
         sys.stdout.write("Total no of mongo instances: %d\n" % len(mongo_ids))
         # get the difference
