@@ -18,6 +18,18 @@ class NoUpdateModelViewSet(
     """
     pass
 
+def get_nested_field(obj, field: str):
+    split = field.split('.')
+    attribute = getattr(obj, split[0])
+    if len(split) > 1:
+        for inner_field in split[1:]:
+            if isinstance(attribute, dict):
+                attribute = attribute.get(inner_field, {})
+            else:
+                attribute = getattr(attribute, inner_field, {})
+    return attribute
+
+
 class LogThingsViewSet(viewsets.GenericViewSet):
     def get_object(self):
         obj = self.fancy_get_object()
@@ -25,13 +37,8 @@ class LogThingsViewSet(viewsets.GenericViewSet):
             return obj
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
-            split = field.split('.')
-            thing = getattr(obj, split[0], {})
-            if len(split) >= 1:
-                for smaller_field in split[1:]:
-                    thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
-            breakpoint()
-            audit_log_data[field] = thing
+            value = get_nested_field(obj, field)
+            audit_log_data[field] = value
         self.request._request.audit_log_data_initial = audit_log_data
         return obj
 
@@ -39,21 +46,16 @@ class LogThingsViewSet(viewsets.GenericViewSet):
         self.fancy_perform_update(serializer)
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
-            breakpoint()
-            audit_log_data[field] = getattr(serializer.instance, field)
+            value = get_nested_field(serializer.instance, field)
+            audit_log_data[field] = value
         self.request._request.audit_log_data = audit_log_data
 
     def perform_create(self, serializer):
         self.fancy_perform_create(serializer)
         audit_log_data = {}
         for field in self.get_fields_we_care_about():
-            split = field.split('.')
-            thing = getattr(serializer.instance,split[0],{})
-            if len(split) >= 1:
-                breakpoint()
-                for smaller_field in split[1:]:
-                    thing = thing.get(smaller_field, {}) if isinstance(thing, dict) else getattr(thing, smaller_field, {})
-            audit_log_data[field] = thing
+            value = get_nested_field(serializer.instance, field)
+            audit_log_data[field] = value
         self.request._request.audit_log_data = audit_log_data
 
     def fancy_perform_create(self, serializer):
