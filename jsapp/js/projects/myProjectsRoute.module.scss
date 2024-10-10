@@ -1,6 +1,5 @@
 @use 'scss/z-indexes';
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 @use 'sass:color';
 
@@ -32,8 +31,8 @@
   :global {
     h1 {
       width: 100%;
-      margin: sizes.$x6 0 0;
-      font-size: sizes.$x18;
+      margin: 6px 0 0;
+      font-size: 18px;
       font-weight: normal;
     }
   }

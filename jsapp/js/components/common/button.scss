@@ -1,30 +1,29 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'js/components/common/icon';
 @use 'sass:color';
 
 // "s" size
-$button-height-s: sizes.$x28;
-$button-font-s: sizes.$x13;
+$button-height-s: 28px;
+$button-font-s: 13px;
 $button-icon-s: icon.$s-icon-xs;
 $button-icon-alone-s: icon.$s-icon-m;
 
 // "m" size
-$button-height-m: sizes.$x32;
-$button-font-m: sizes.$x14;
+$button-height-m: 32px;
+$button-font-m: 14px;
 $button-icon-m: icon.$s-icon-s;
 $button-icon-alone-m: icon.$s-icon-l;
 
 // "l" size
-$button-height-l: sizes.$x38;
-$button-font-l: sizes.$x16;
+$button-height-l: 38px;
+$button-font-l: 16px;
 $button-icon-l: icon.$s-icon-m;
 $button-icon-alone-l: icon.$s-icon-l;
 
 // shared variables for all sizes
-$button-border-width: sizes.$x1;
-$button-border-radius: sizes.$x6;
+$button-border-width: 1px;
+$button-border-radius: 6px;
 
 // Sets colors for button.
 @mixin button-colors(
@@ -38,7 +37,7 @@ $button-border-radius: sizes.$x6;
   // We use similar styles for focus as for hover
   &:focus-visible {
     background-color: $hoverBgColor;
-    transform: translateY(sizes.$x1);
+    transform: translateY(1px);
   }
 
   &:hover {
@@ -137,7 +136,7 @@ $button-border-radius: sizes.$x6;
 
 .k-button:active {
   // Make it appear pressed down.
-  transform: translateY(sizes.$x1);
+  transform: translateY(1px);
 }
 
 .k-button:focus,
@@ -233,7 +232,7 @@ $button-border-radius: sizes.$x6;
 
   &:focus-visible {
     color: colors.$kobo-hover-blue;
-    transform: translateY(sizes.$x1);
+    transform: translateY(1px);
   }
 
   &:hover {
