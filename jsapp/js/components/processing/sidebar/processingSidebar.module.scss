@@ -1,4 +1,3 @@
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .root {
@@ -12,12 +11,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: sizes.$x20;
+  gap: 20px;
   overflow: auto;
 }
 
 .emptyMessage {
   background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
-  padding: sizes.$x30;
+  border-radius: 6px;
+  padding: 30px;
 }

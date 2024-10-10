@@ -1,6 +1,5 @@
 @use 'scss/colors';
 @use 'scss/_variables';
-@use 'scss/sizes';
 @use 'scss/mixins';
 
 // Note: we can't change this into a CSS Module, because some Data Table and
@@ -56,25 +55,25 @@
   }
 
   .checkbox__label {
-    max-width: calc(100% - sizes.$x32);
+    max-width: calc(100% - 32px);
     color: colors.$kobo-gray-800;
     font-size: variables.$base-font-size;
   }
 
   .checkbox__input + .checkbox__label {
-    margin-inline-start: sizes.$x6;
+    margin-inline-start: 6px;
   }
 
   .checkbox__input {
-    border-radius: sizes.$x4;
+    border-radius: 4px;
     appearance: none;
     position: relative;
     margin: 0;
     color: colors.$kobo-gray-500;
-    border: sizes.$x1 solid colors.$kobo-gray-500;
+    border: 1px solid colors.$kobo-gray-500;
     background-color: colors.$kobo-white;
-    width: sizes.$x20;
-    height: sizes.$x20;
+    width: 20px;
+    height: 20px;
     outline: 0;
     cursor: pointer;
     overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
@@ -85,16 +84,16 @@
       position: absolute;
       opacity: 0;
       content: '';
-      top: calc(50% - sizes.$x5);
-      left: calc(50% - sizes.$x6);
+      top: calc(50% - 5px);
+      left: calc(50% - 6px);
       transform: rotate(-45deg);
-      border: sizes.$x3 solid currentcolor;
+      border: 3px solid currentcolor;
       border-top: none;
       border-right: none;
-      width: sizes.$x10;
-      height: sizes.$x4;
+      width: 10px;
+      height: 4px;
       background-color: transparent;
-      border-radius: sizes.$x1;
+      border-radius: 1px;
     }
 
     &:checked {

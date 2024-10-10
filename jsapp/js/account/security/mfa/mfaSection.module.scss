@@ -1,6 +1,5 @@
 @use 'scss/mixins';
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .isUnauthorized .bodyMain,
 .isUnauthorized .options {
@@ -47,6 +46,6 @@
   display: flex;
   align-items: center;
   font-weight: 600;
-  font-size: sizes.$x16;
+  font-size: 16px;
   margin: 0;
 }

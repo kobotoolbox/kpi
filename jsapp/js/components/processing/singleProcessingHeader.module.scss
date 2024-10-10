@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 
@@ -13,7 +12,7 @@
 
 .submissions {
   @include mixins.centerRowFlex;
-  gap: sizes.$x5;
+  gap: 5px;
 }
 
 
@@ -30,11 +29,11 @@
 
 @include breakpoints.breakpoint(narrowAndUp) {
   .submissions {
-    font-size: sizes.$x18;
+    font-size: 18px;
   }
 
   .count {
-    margin-left: sizes.$x50;
+    margin-left: 50px;
   }
 
   .column.columnMain {

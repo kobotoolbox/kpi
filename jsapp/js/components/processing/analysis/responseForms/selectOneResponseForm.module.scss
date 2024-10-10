@@ -1,7 +1,5 @@
-@use 'scss/sizes';
-
 .radioWrapper {
   > *:not(:last-child) {
-    margin-bottom: sizes.$x10;
+    margin-bottom: 10px;
   }
 }

@@ -1,10 +1,9 @@
 @use 'scss/mixins';
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/breakpoints';
 
 .securityRouteRoot {
-  padding: sizes.$x20;
+  padding: 20px;
   overflow-y: auto;
   height: 100%;
 
@@ -87,6 +86,6 @@ h2.securityHeaderText {
   }
 
   .securityRouteRoot {
-    padding: sizes.$x50;
+    padding: 50px;
   }
 }

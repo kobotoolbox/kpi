@@ -1,8 +1,7 @@
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .root {
-  margin: sizes.$x20 0;
+  margin: 20px 0;
 }
 
 .lockIcon {

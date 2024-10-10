@@ -1,11 +1,10 @@
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .usage {
   display: grid;
   grid: 1fr / 100%;
   width: 100%;
-  margin-top: sizes.$x18;
+  margin-top: 18px;
   align-items: center;
   justify-content: space-between;
   gap: 1em;

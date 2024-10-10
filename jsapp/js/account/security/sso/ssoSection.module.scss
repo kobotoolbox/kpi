@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .body {
   flex: 6;
@@ -18,5 +17,5 @@
 .ssoSetup {
   display: flex;
   flex-direction: column;
-  gap: sizes.$x16;
+  gap: 16px;
 }

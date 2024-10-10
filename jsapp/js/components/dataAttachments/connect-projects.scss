@@ -1,28 +1,27 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
-@use 'scss/sizes';
 @use 'scss/_variables';
 
 .connect-projects {
   .form-view__cell--page-title {
     font-size: variables.$base-font-size !important;
     display: flex;
-    margin-top: sizes.$x20 !important;
+    margin-top: 20px !important;
 
     i.k-icon {
-      margin-top: sizes.$x10;
-      font-size: sizes.$x32;
-      margin-right: sizes.$x5;
+      margin-top: 10px;
+      font-size: 32px;
+      margin-right: 5px;
     }
   }
 
   .connect-projects__export {
     display: block;
-    margin-top: sizes.$x20;
+    margin-top: 20px;
 
     *[class*='loadingSpinner'] {
-      margin-top: sizes.$x12;
+      margin-top: 12px;
     }
 
     .connect-projects__export-options {
@@ -51,9 +50,9 @@
   flex-wrap: wrap;
   position: relative;
   gap: 12px;
-  padding-top: sizes.$x12;
-  margin-top: sizes.$x12;
-  border-top: sizes.$x1 solid colors.$kobo-gray-300;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid colors.$kobo-gray-300;
 }
 
 .connect-projects__import .connect-projects__import-form {
@@ -63,7 +62,7 @@
   flex-wrap: wrap;
   align-items: center;
   align-content: center;
-  margin-top: sizes.$x10;
+  margin-top: 10px;
   gap: 12px 24px;
 
   .kobo-select__wrapper {
@@ -82,10 +81,10 @@
 }
 
 .connect-projects__import-list {
-  margin-top: sizes.$x20;
+  margin-top: 20px;
 
   label {
-    margin-top: sizes.$x20;
+    margin-top: 20px;
     font-size: variables.$base-font-size;
     font-weight: bold;
     color: colors.$kobo-gray-700;
@@ -96,9 +95,9 @@
     position: relative;
     display: flex;
     justify-content: space-between;
-    margin-top: sizes.$x8;
-    margin-bottom: sizes.$x10;
-    border-bottom: sizes.$x1 solid;
+    margin-top: 8px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid;
     border-color: colors.$kobo-gray-300;
   }
 
@@ -110,22 +109,22 @@
   }
 
   .connect-projects__import-list-item {
-    padding-bottom: sizes.$x10;
+    padding-bottom: 10px;
 
     i.k-icon-check {
-      font-size: sizes.$x32;
-      margin-right: sizes.$x5;
+      font-size: 32px;
+      margin-right: 5px;
       color: colors.$kobo-blue;
     }
 
     .connect-projects__import-labels {
       position: absolute;
-      top: sizes.$x6;
-      left: sizes.$x32;
+      top: 6px;
+      left: 32px;
       font-weight: 500;
 
       .connect-projects__import-labels-source {
-        margin-left: sizes.$x24;
+        margin-left: 24px;
         font-weight: 400;
         color: colors.$kobo-gray-700;
       }
@@ -133,7 +132,7 @@
 
     .connect-projects__import-options {
       @include mixins.centerRowFlex;
-      gap: sizes.$x10;
+      gap: 10px;
     }
   }
 }
@@ -142,7 +141,7 @@
   color: colors.$kobo-gray-600;
 
   .bulk-options {
-    margin-top: sizes.$x14;
+    margin-top: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -157,7 +156,7 @@
       white-space: nowrap;
 
       span {
-        margin: sizes.$x12;
+        margin: 12px;
       }
 
       a {
@@ -168,20 +167,20 @@
   }
 
   .multi-checkbox {
-    margin-top: sizes.$x12;
-    height: sizes.$x200;
+    margin-top: 12px;
+    height: 200px;
   }
 
   *[class*='loadingSpinner'] {
-    margin-top: sizes.$x12;
+    margin-top: 12px;
   }
 
   .modal__footer {
     text-align: center;
 
     .data-attachment-modal-footer-button {
-      padding-left: sizes.$x60;
-      padding-right: sizes.$x60;
+      padding-left: 60px;
+      padding-right: 60px;
     }
   }
 }
@@ -205,7 +204,7 @@
 
   .connect-projects__export-multicheckbox .multi-checkbox {
     flex: 1;
-    height: sizes.$x200;
+    height: 200px;
     min-width: 280px;
     max-width: 100%;
   }

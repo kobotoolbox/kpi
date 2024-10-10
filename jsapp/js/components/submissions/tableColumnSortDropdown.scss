@@ -1,5 +1,4 @@
 @use "scss/mixins";
-@use "scss/sizes";
 @use 'scss/colors';
 @use "scss/libs/_mdl";
 
@@ -13,10 +12,10 @@
     color: colors.$kobo-white;
     background-color: colors.$kobo-gray-700;
     @include mdl.box-shadow;
-    padding: sizes.$x8 0;
+    padding: 8px 0;
     text-align: initial;
-    line-height: sizes.$x20;
-    min-width: sizes.$x150;
+    line-height: 20px;
+    min-width: 150px;
 
     .sort-dropdown-menu-button:hover {
       background-color: colors.$kobo-gray-800;
@@ -48,7 +47,7 @@
     // We need to override the default "center" from react-table, but it also
     // needs to work with `dir="auto"`
     text-align: initial;
-    line-height: sizes.$x20;
+    line-height: 20px;
     gap: 5px;
 
     .column-header-title {
@@ -68,7 +67,7 @@
         float: right;
 
         &.k-icon {
-          font-size: sizes.$x18;
+          font-size: 18px;
         }
       }
 
@@ -85,22 +84,22 @@
 
   display: block;
   width: 100%;
-  padding: sizes.$x5 sizes.$x10;
+  padding: 5px 10px;
   text-align: initial;
-  font-size: sizes.$x12;
+  font-size: 12px;
   line-height: inherit;
 
   .k-icon {
     color: inherit;
-    font-size: sizes.$x20;
+    font-size: 20px;
     vertical-align: top;
 
     &:first-child:not(:only-child) {
-      margin-right: sizes.$x5;
+      margin-right: 5px;
     }
 
     &:last-child:not(:only-child) {
-      margin-left: sizes.$x5;
+      margin-left: 5px;
     }
   }
 }

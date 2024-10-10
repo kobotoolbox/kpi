@@ -1,14 +1,14 @@
 @use 'scss/colors';
 @use 'scss/breakpoints';
-@use 'scss/sizes';
 
 .root {
-  padding: sizes.$x20;
+  padding: 20px;
 }
 
 .headerText {
-  font-size: sizes.$r18;
+  font-size: 18px;
   font-weight: 700;
+  // TODO: this should be a color from our palette
   color: hsl(225, 33%, 59%);
   padding: 0.5em 0;
   text-transform: uppercase;
@@ -29,6 +29,6 @@
 
 @include breakpoints.breakpoint(narrowAndUp) {
   .root {
-    padding: sizes.$x40;
+    padding: 40px;
   }
 }
