@@ -22,7 +22,15 @@ export interface ApiFetcherStatus extends Status {
 
 export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 
-/** A reusable hook for making simple fetches with a consistent API.
+/**
+ * *NOTE*: this is deprecated now. Try to use react-query instead.
+ * See `useOrganizationQuery` and its instances for a simple example.
+ *
+ * Below this is the old description for archiving purposes.
+ *
+ * ---
+ *
+ * A reusable hook for making simple fetches with a consistent API.
  *
  * Made to be easily used alongside the Context API - for a simple
  * example, look at `useOrganization` and `OrganizationContext`.
@@ -30,6 +38,7 @@ export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
  * It's heavily patterned off of swr: https://github.com/vercel/swr
  * But only has a small subset of its features of interest to us.
  *
+ * @deprecated
  * @function
  * @template Type
  * @param {function} fetcher Makes an API request and returns a data
@@ -102,6 +111,12 @@ export const useApiFetcher = <Type>(
   return [response, loadFetcher, {...status, setIsInitialLoad}];
 };
 
+/**
+ * *NOTE*: this is deprecated now. Try to use react-query instead.
+ * See `useOrganizationQuery` and its instances for a simple example.
+ *
+ * @deprecated
+ */
 export const withApiFetcher = <Type>(
   initialState: Type
 ): WithApiFetcher<Type> => {

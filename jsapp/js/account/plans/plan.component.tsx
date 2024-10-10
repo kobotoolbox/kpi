@@ -37,7 +37,7 @@ import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.compo
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
@@ -115,8 +115,9 @@ export default function Plan(props: PlanProps) {
   >([]);
   const [products, loadProducts, productsStatus] = useContext(ProductsContext);
   useRefreshApiFetcher(loadProducts, productsStatus);
-  const [organization, loadOrg, orgStatus] = useContext(OrganizationContext);
-  useRefreshApiFetcher(loadOrg, orgStatus);
+  const {
+    data: organizationData,
+  } = useOrganizationQuery();
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
@@ -149,8 +150,8 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(products.isLoaded && organization && state.subscribedProduct),
-    [products.isLoaded, organization, state.subscribedProduct]
+      !(products.isLoaded && organizationData && state.subscribedProduct),
+    [products.isLoaded, organizationData, state.subscribedProduct]
   );
 
   const isDisabled = useMemo(() => isBusy, [isBusy]);
@@ -227,10 +228,10 @@ export default function Plan(props: PlanProps) {
 
   // if the user is not the owner of their org, send them back to the settings page
   useEffect(() => {
-    if (!organization?.is_owner) {
+    if (!organizationData?.is_owner) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [organization]);
+  }, [organizationData]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
@@ -372,7 +373,7 @@ export default function Plan(props: PlanProps) {
   };
 
   const buySubscription = (price: Price, quantity = 1) => {
-    if (!price.id || isDisabled || !organization?.id) {
+    if (!price.id || isDisabled || !organizationData?.id) {
       return;
     }
     setIsBusy(true);
@@ -380,7 +381,7 @@ export default function Plan(props: PlanProps) {
       if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(organization.id, price.id, quantity)
+        postCustomerPortal(organizationData.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
@@ -395,7 +396,7 @@ export default function Plan(props: PlanProps) {
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, organization.id, quantity)
+      postCheckout(price.id, organizationData.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -441,7 +442,7 @@ export default function Plan(props: PlanProps) {
       </div>
     );
 
-  if (!products.products.length || !organization) {
+  if (!products.products.length || !organizationData) {
     return null;
   }
 
@@ -557,7 +558,7 @@ export default function Plan(props: PlanProps) {
             isBusy={isBusy}
             setIsBusy={setIsBusy}
             products={products.products}
-            organization={organization}
+            organization={organizationData}
             onClickBuy={buySubscription}
           />
         )}
