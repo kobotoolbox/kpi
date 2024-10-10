@@ -1,6 +1,7 @@
-# coding: utf-8
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import logging
 import os
 import re
@@ -11,7 +12,6 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -25,7 +25,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
-from django.db import IntegrityError, transaction
+from django.db import connection, IntegrityError, transaction
 from django.db.models import Q
 from django.http import (
     Http404,
@@ -45,7 +45,8 @@ from rest_framework.exceptions import NotAuthenticated
 from kobo.apps.openrosa.apps.logger.exceptions import (
     DuplicateUUIDError,
     FormInactiveError,
-    TemporarilyUnavailableError,
+    InstanceIdMissingError,
+    TemporarilyUnavailableError, ConflictingSubmissionUUIDError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -63,11 +64,13 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_monthly_counter,
     update_xform_submission_count,
 )
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
-    DuplicateInstance,
+from kobo.apps.openrosa.apps.logger.exceptions import (
+    DuplicateInstanceError,
     InstanceEmptyError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
+)
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     clean_and_parse_xml,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
@@ -137,7 +140,6 @@ def check_edit_submission_permissions(
         ))
 
 
-@transaction.atomic  # paranoia; redundant since `ATOMIC_REQUESTS` set to `True`
 def create_instance(
     username: str,
     xml_file: File,
@@ -163,51 +165,40 @@ def create_instance(
 
     # get new and deprecated uuid's
     new_uuid = get_uuid_from_xml(xml)
+    if not new_uuid:
+        raise InstanceIdMissingError
 
-    # Dorey's rule from 2012 (commit 890a67aa):
-    #   Ignore submission as a duplicate IFF
-    #    * a submission's XForm collects start time
-    #    * the submitted XML is an exact match with one that
-    #      has already been submitted for that user.
-    # The start-time requirement protected submissions with identical responses
-    # from being rejected as duplicates *before* KoBoCAT had the concept of
-    # submission UUIDs. Nowadays, OpenRosa requires clients to send a UUID (in
-    # `<instanceID>`) within every submission; if the incoming XML has a UUID
-    # and still exactly matches an existing submission, it's certainly a
-    # duplicate (https://docs.opendatakit.org/openrosa-metadata/#fields).
-    if xform.has_start_time or new_uuid is not None:
-        # XML matches are identified by identical content hash OR, when a
-        # content hash is not present, by string comparison of the full
-        # content, which is slow! Use the management command
-        # `populate_xml_hashes_for_instances` to hash existing submissions
+    with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
+        if not lock_acquired:
+            raise DuplicateInstanceError
+
+        # Check for an existing instance
         existing_instance = Instance.objects.filter(
-            Q(xml_hash=xml_hash) | Q(xml_hash=Instance.DEFAULT_XML_HASH, xml=xml),
+            xml_hash=xml_hash,
             xform__user=xform.user,
         ).first()
-    else:
-        existing_instance = None
 
-    if existing_instance:
-        existing_instance.check_active(force=False)
-        # ensure we have saved the extra attachments
-        new_attachments, _ = save_attachments(existing_instance, media_files)
-        if not new_attachments:
-            raise DuplicateInstance()
+        if existing_instance:
+            existing_instance.check_active(force=False)
+            # ensure we have saved the extra attachments
+            new_attachments, _ = save_attachments(existing_instance, media_files)
+            if not new_attachments:
+                raise DuplicateInstanceError
+            else:
+                # Update Mongo via the related ParsedInstance
+                existing_instance.parsed_instance.save(asynchronous=False)
+                return existing_instance
         else:
-            # Update Mongo via the related ParsedInstance
-            existing_instance.parsed_instance.save(asynchronous=False)
-            return existing_instance
-    else:
-        instance = save_submission(
-            request,
-            xform,
-            xml,
-            media_files,
-            new_uuid,
-            status,
-            date_created_override,
-        )
-        return instance
+            instance = save_submission(
+                request,
+                xform,
+                xml,
+                media_files,
+                new_uuid,
+                status,
+                date_created_override,
+            )
+            return instance
 
 
 def disposition_ext_and_date(name, extension, show_date=True):
@@ -226,6 +217,26 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
     xml_tail = f'\n</{xform_id_string}>\n'
 
     return xml_head + dict2xml(submission) + xml_tail
+
+
+@contextlib.contextmanager
+def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> bool:
+    int_lock = int.from_bytes(
+        hashlib.shake_128(
+            f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()
+        ).digest(7), 'little'
+    )
+    acquired = False
+
+    try:
+        with transaction.atomic():
+            cur = connection.cursor()
+            cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
+            acquired = cur.fetchone()[0]
+            yield acquired
+    finally:
+        cur.execute('SELECT pg_advisory_unlock(%s::bigint);', (int_lock,))
+        cur.close()
 
 
 def get_instance_or_404(**criteria):
@@ -308,6 +319,9 @@ def http_open_rosa_error_handler(func, request):
     except InstanceEmptyError:
         result.error = t('Received empty submission. No instance was created')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except InstanceIdMissingError:
+        result.error = t('Instance ID is required')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
@@ -320,7 +334,13 @@ def http_open_rosa_error_handler(func, request):
     except ExpatError:
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except DuplicateInstance:
+    except ConflictingSubmissionUUIDError:
+        result.error = t('Submission with this instance ID already exists')
+        response = OpenRosaResponse(result.error)
+        response.status_code = 409
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except DuplicateInstanceError:
         result.error = t('Duplicate submission')
         response = OpenRosaResponse(result.error)
         response.status_code = 202
@@ -791,16 +811,23 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
 
+    # If the new attachment has the same basename as an existing one but
+    # different content, update the existing one.
+
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
-        Q(media_file_basename__in=basenames)
-        | Q(media_file_basename__endswith='.enc')
+        Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
+    ).order_by('-id')
+
+    latest_attachments = queryset[:len(basenames)]
+    remaining_attachments = queryset.exclude(
+        id__in=latest_attachments.values_list('id', flat=True)
     )
-    soft_deleted_attachments = list(queryset.all())
-    queryset.update(deleted_at=dj_timezone.now())
+    soft_deleted_attachments = list(remaining_attachments.all())
+    remaining_attachments.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
 
@@ -821,18 +848,20 @@ def _get_instance(
     """
     # check if it is an edit submission
     old_uuid = get_deprecated_uuid_from_xml(xml)
-    instances = Instance.objects.filter(uuid=old_uuid)
-
-    if instances:
+    if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
         # edits
-        instance = instances[0]
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
             xml=instance.xml, xform_instance=instance, uuid=old_uuid)
         instance.xml = xml
         instance._populate_xml_hash()
         instance.uuid = new_uuid
-        instance.save()
+        try:
+            instance.save()
+        except IntegrityError as e:
+            if 'root_uuid' in str(e):
+                raise ConflictingSubmissionUUIDError
+            raise
     else:
         submitted_by = (
             get_database_user(request.user)
@@ -851,8 +880,12 @@ def _get_instance(
             # Only set the attribute if requested, i.e. don't bother ever
             # setting it to `False`
             instance.defer_counting = True
-        instance.save()
-
+        try:
+            instance.save()
+        except IntegrityError as e:
+            if 'root_uuid' in str(e):
+                raise ConflictingSubmissionUUIDError
+            raise
     return instance
 
 
