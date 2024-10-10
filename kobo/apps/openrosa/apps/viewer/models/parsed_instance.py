@@ -9,9 +9,7 @@ from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
 from kobo.celery import celery_app
-from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
-from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.openrosa.apps.logger.models import Note
+from kobo.apps.openrosa.apps.logger.models import Instance, Note
 from kobo.apps.openrosa.apps.restservice.utils import call_service
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ID,
@@ -27,6 +25,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kpi.utils.mongo_helper import MongoHelper
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
@@ -95,7 +94,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
+                        query, maxTimeMS=MongoHelper.get_max_time_ms()
                     )
                 }
             ]
@@ -147,7 +146,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
+                        query, maxTimeMS=MongoHelper.get_max_time_ms()
                     )
                 }
             ]
@@ -176,7 +175,7 @@ class ParsedInstance(models.Model):
             return [
                 {
                     'count': xform_instances.count_documents(
-                        query, maxTimeMS=settings.MONGO_QUERY_TIMEOUT
+                        query, maxTimeMS=MongoHelper.get_max_time_ms()
                     )
                 }
             ]
@@ -208,7 +207,7 @@ class ParsedInstance(models.Model):
         return xform_instances.find(
             query,
             fields_to_select,
-            max_time_ms=settings.MONGO_QUERY_TIMEOUT,
+            max_time_ms=MongoHelper.get_max_time_ms(),
         )
 
     @classmethod
