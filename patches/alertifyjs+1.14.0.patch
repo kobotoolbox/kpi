@@ -1,0 +1,56 @@
+diff --git a/node_modules/alertifyjs/build/alertify.js b/node_modules/alertifyjs/build/alertify.js
+index 56f9264..0b88932 100644
+--- a/node_modules/alertifyjs/build/alertify.js
++++ b/node_modules/alertifyjs/build/alertify.js
+@@ -1507,6 +1507,9 @@
+          * @return {undefined}
+          */
+         function handleTransitionInEvent(event, instance) {
++            // https://github.com/MohammadYounes/AlertifyJS/issues/274
++            if (!instance.__internal || !instance.elements) return; // defensive patch
++
+             // clear the timer
+             clearTimeout(instance.__internal.timerIn);
+ 
+@@ -1534,6 +1537,9 @@
+          * @return {undefined}
+          */
+         function handleTransitionOutEvent(event, instance) {
++            // https://github.com/MohammadYounes/AlertifyJS/issues/274
++            if (!instance.__internal || !instance.elements) return; // defensive patch
++
+             // clear the timer
+             clearTimeout(instance.__internal.timerOut);
+             // unbind the event
+@@ -1554,6 +1560,7 @@
+                 instance.__internal.destroy.apply(instance);
+             }
+         }
++
+         /* Controls moving a dialog around */
+         //holde the current moving instance
+         var movable = null,
+diff --git a/node_modules/alertifyjs/src/js/dialog/transition.js b/node_modules/alertifyjs/src/js/dialog/transition.js
+index 93c6b0f..5578fed 100644
+--- a/node_modules/alertifyjs/src/js/dialog/transition.js
++++ b/node_modules/alertifyjs/src/js/dialog/transition.js
+@@ -7,6 +7,9 @@
+          * @return {undefined}
+          */
+         function handleTransitionInEvent(event, instance) {
++            // https://github.com/MohammadYounes/AlertifyJS/issues/274
++            if (!instance.__internal || !instance.elements) return; // defensive patch
++
+             // clear the timer
+             clearTimeout(instance.__internal.timerIn);
+ 
+@@ -34,6 +37,9 @@
+          * @return {undefined}
+          */
+         function handleTransitionOutEvent(event, instance) {
++            // https://github.com/MohammadYounes/AlertifyJS/issues/274
++            if (!instance.__internal || !instance.elements) return; // defensive patch
++
+             // clear the timer
+             clearTimeout(instance.__internal.timerOut);
+             // unbind the event
