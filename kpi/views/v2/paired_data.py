@@ -20,10 +20,11 @@ from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import add_xml_declaration, strip_nodes
+from kpi.views.no_update_model import LogThingsModelViewSet
 
 
 class PairedDataViewset(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, LogThingsModelViewSet,
 ):
     """
     ## List of paired project endpoints
@@ -304,7 +305,7 @@ class PairedDataViewset(
 
         return Response(xml_)
 
-    def get_object(self):
+    def fancy_get_object(self):
         obj = self.get_queryset(as_list=False).get(
             self.kwargs[self.lookup_field]
         )
@@ -336,6 +337,9 @@ class PairedDataViewset(
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
         return context_
+
+    def get_fields_we_care_about(self):
+        return ['allowed_fields']
 
 
 class OpenRosaDynamicDataAttachmentViewset(PairedDataViewset):
