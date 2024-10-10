@@ -89,7 +89,6 @@ export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
-  BUILDER: 'formBuilderAside',
 });
 
 export const update_states = {
