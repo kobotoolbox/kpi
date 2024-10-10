@@ -24,7 +24,7 @@ from kpi.views.no_update_model import LogThingsModelViewSet
 
 
 class PairedDataViewset(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, LogThingsModelViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, LogThingsModelViewSet,
 ):
     """
     ## List of paired project endpoints
@@ -305,7 +305,7 @@ class PairedDataViewset(
 
         return Response(xml_)
 
-    def get_object(self):
+    def fancy_get_object(self):
         obj = self.get_queryset(as_list=False).get(
             self.kwargs[self.lookup_field]
         )
