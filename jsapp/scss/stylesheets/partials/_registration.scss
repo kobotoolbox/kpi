@@ -54,7 +54,8 @@
     }
 
     hr {
-      border-top: 1px solid colors.$kobo-storm;
+      border-top: 1px solid colors.$kobo-light-storm;
+      opacity: 0.4;
     }
 
     // accounts/{{provider}}/login variant
@@ -94,7 +95,7 @@
     // SSO section styles
     .registration__sso {
       font-size: variables.$base-font-size;
-      padding-bottom: 20px;
+      padding-bottom: 10px;
 
       // Login page variant
       &.registration__sso--login {
@@ -259,7 +260,7 @@
   }
 
   span.required {
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin-left: 3px;
   }
 
@@ -342,25 +343,23 @@ form.registration--login > p > span.helptext{
 .registration__legal {
   width: 100%;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.registration__legal .links {
+  width: 100%;
+  display: flex;
   flex-direction: row;
   justify-content: center;
   flex-wrap: wrap;
   gap: 20px;
 }
 
-.registration__legal::before {
-  content: '';
-  display: block;
-  width: 100%;
-  margin-top: 20px;
-  border-top: 1px solid colors.$kobo-light-storm;
-  opacity: 0.4;
-}
-
 .registration__legal a {
+  color: colors.$kobo-white;
   text-decoration: none !important;
   font-size: 14px;
-  opacity: 0.75;
 }
 
 .registration__legal a:hover {
@@ -376,7 +375,7 @@ form.registration--login > p > span.helptext{
 
 .error-message {
   font-size: variables.$base-font-size;
-  color: colors.$kobo-red;
+  color: colors.$kobo-mid-red;
   background-color: rgba(colors.$kobo-mid-red, 0.075);
 }
 
