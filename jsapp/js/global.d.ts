@@ -242,8 +242,7 @@ interface HashHistoryListenData {
 
 declare module 'react-autobind' {
   /**
-   * NOTE: please DO NOT USE unless refactoring old code, as the autobind
-   * project was abandoned years ago. Just use regular `.bind(this)`.
+   * @deprecated Use regular `.bind(this)`.
    */
   function autoBind(thisToBeBound: any): void;
   export default autoBind;
