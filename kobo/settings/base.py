@@ -1537,6 +1537,10 @@ MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
+# ⚠️⚠️
+# These settings should never be used directly.
+# Use MongoHelper.get_max_time_ms() in the code instead
+# ⚠️⚠️
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
