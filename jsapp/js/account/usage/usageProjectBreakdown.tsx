@@ -15,7 +15,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 
 type ButtonType = 'back' | 'forward';
 

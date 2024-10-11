@@ -1,6 +1,6 @@
 import React, {Suspense, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {ReactQueryStatuses} from 'jsapp/js/constants';

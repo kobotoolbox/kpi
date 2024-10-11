@@ -37,7 +37,7 @@ import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.compo
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
-import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 

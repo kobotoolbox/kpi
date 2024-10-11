@@ -7,7 +7,7 @@ import type {
 } from 'js/account/stripe.types';
 import {postCustomerPortal} from 'js/account/stripe.api';
 import {processCheckoutResponse} from 'js/account/stripe.utils';
-import {useOrganizationQuery} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 
 interface PlanButtonProps {
   buySubscription: (price: Price, quantity?: number) => void;
