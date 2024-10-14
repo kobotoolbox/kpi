@@ -740,7 +740,7 @@ class ProjectSettings extends React.Component {
           </div>
         }
 
-        <div className={styles.formSourceButton}>
+        <div className={styles.sourceButtons}>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
             <button onClick={this.displayStep.bind(this, this.STEPS.PROJECT_DETAILS)}>
               <i className='k-icon k-icon-edit' />
@@ -837,7 +837,7 @@ class ProjectSettings extends React.Component {
           }
         </div>
 
-        <div className={styles.formItem}>
+        <div className={styles.input}>
           <TextBox
             type='url'
             label={t('URL')}
@@ -881,7 +881,7 @@ class ProjectSettings extends React.Component {
         onChange={this.onProjectDetailsFormChange}
         className={cx(
           styles.projectDetails,
-          this.checkModalStyle() ?? styles.formView,
+          this.checkModalStyle() ?? styles.projectDetailsView,
         )}
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
@@ -895,9 +895,9 @@ class ProjectSettings extends React.Component {
             />
           </div>
         }
-        <div className={styles.formItemWrapper}>
+        <div className={styles.inputWrapper}>
           {/* Project Name */}
-          <div className={styles.formItem}>
+          <div className={styles.input}>
             <TextBox
               value={this.state.fields.name}
               onChange={this.onNameChange.bind(this)}
@@ -910,7 +910,7 @@ class ProjectSettings extends React.Component {
 
           {/* Description */}
           {descriptionField &&
-          <div className={styles.formItem}>
+          <div className={styles.input}>
             <TextBox
               type='text-multiline'
               value={this.state.fields.description}
@@ -927,7 +927,7 @@ class ProjectSettings extends React.Component {
           {sectorField &&
             <div
               className={cx(
-                styles.formItem,
+                styles.input,
                 bothCountryAndSector ? styles.sector : null
               )}
             >
@@ -949,7 +949,7 @@ class ProjectSettings extends React.Component {
           {countryField &&
             <div
             className={cx(
-              styles.formItem,
+              styles.input,
               bothCountryAndSector ? styles.country : null
             )}
             >
@@ -970,7 +970,7 @@ class ProjectSettings extends React.Component {
 
           {/* Operational Purpose of Data */}
           {operationalPurposeField &&
-            <div className={styles.formItem}>
+            <div className={styles.input}>
               <WrappedSelect
                 label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
@@ -985,7 +985,7 @@ class ProjectSettings extends React.Component {
 
           {/* Does this project collect personally identifiable information? */}
           {collectsPiiField &&
-            <div className={styles.formItem}>
+            <div className={styles.input}>
               <WrappedSelect
                 label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
@@ -1025,8 +1025,8 @@ class ProjectSettings extends React.Component {
           }
 
           {userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <div className={styles.formItem}>
-              <div className={cx(styles.formItem, styles.formItemInline)}>
+            <div className={styles.input}>
+              <div className={cx(styles.input, styles.inputInline)}>
                 {this.isArchived() &&
                   <Button
                     type='secondary'
@@ -1047,12 +1047,12 @@ class ProjectSettings extends React.Component {
               </div>
 
               {this.isArchivable() &&
-                <div className={cx(styles.formItem, styles.formItemInline)}>
+                <div className={cx(styles.input, styles.inputInline)}>
                   {t('Archive project to stop accepting submissions.')}
                 </div>
               }
               {this.isArchived() &&
-                <div className={cx(styles.formItem, styles.formItemInline)}>
+                <div className={cx(styles.input, styles.inputInline)}>
                   {t('Unarchive project to resume accepting submissions.')}
                 </div>
               }
@@ -1061,7 +1061,7 @@ class ProjectSettings extends React.Component {
           }
 
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <div className={styles.formItem}>
+            <div className={styles.input}>
               <Button
                 type='danger'
                 size='l'

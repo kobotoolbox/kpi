@@ -6,30 +6,21 @@
   text-align: initial;
 }
 
-.formItem[disabled] {
-  pointer-events: none;
-}
-
 .modal {
   width: 100%;
-
-  @media screen and (min-width: breakpoints.$b768) {
-    min-width: 600px;
-    max-width: 750px;
-  }
 }
 
-.formView {
+.projectDetailsView {
   margin-bottom: 30px;
 }
 
-.projectDetails > .formItemWrapper {
+.projectDetails .inputWrapper {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
   align-items: flex-end;
   column-gap: 4%;
-  .formItem {
+  .input {
     min-width: 75%; // Most rows are wide enough to get their own row,
     flex: 1; // and when they do, they grow to occupy the full available width
   }
@@ -39,7 +30,7 @@
   }
 }
 
-.formItem {
+.input {
   &:not(:last-child) {
     margin-bottom: 15px;
   }
@@ -51,7 +42,7 @@
   }
 }
 
-.formItemInline {
+.inputInline {
   display: inline-block;
   &:not(:last-child) {
     margin-bottom: 0;
@@ -74,7 +65,7 @@
 
 $buttons-spacing: 10px;
 
-.formSourceButton {
+.sourceButtons {
   margin: 0 auto;
   max-width: 500px;
 
@@ -91,12 +82,6 @@ $buttons-spacing: 10px;
     width: calc(50% - #{$buttons-spacing});
     min-height: 120px;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
-
-    @media screen and (min-width: breakpoints.$b768) {
-      margin: $buttons-spacing;
-      padding: 2 * $buttons-spacing;
-      width: calc(50% - #{2 * $buttons-spacing});
-    }
 
     i {
       display: block;
@@ -119,35 +104,37 @@ $buttons-spacing: 10px;
   }
 }
 
+.modalFooter {
+  margin-top: 20px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 10px;
+}
+
+.saveChanges {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+@media screen and (min-width: breakpoints.$b768) {
+  .modal {
+    min-width: 600px;
+    max-width: 750px;
+  }
+
+  .sourceButtons button {
+    margin: $buttons-spacing;
+    padding: 2 * $buttons-spacing;
+    width: calc(50% - #{2 * $buttons-spacing});
+  }
+}
+
 @media screen and (min-height: 600px) {
   // on bigger screens make templates-list scrollable to always display back/next buttons
   .chooseTemplate:first-child {
     max-height: 380px;
     overflow-y: auto;
   }
-}
-
-.modalFooter {
-  margin-top: 20px;
-  text-align: right;
-
-  &::before,
-  &::after {
-    content: '';
-    display: table;
-    clear: both;
-  }
-
-  &:first-child {
-    margin-top: 0;
-    margin-bottom: 20px;
-  }
-
-  button:not(:first-of-type) {
-    margin-left: 10px;
-  }
-}
-
-.saveChanges {
-  text-align: right;
 }
