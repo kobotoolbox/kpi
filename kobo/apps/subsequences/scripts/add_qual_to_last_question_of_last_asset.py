@@ -1,6 +1,8 @@
 import json
-from kpi.models import Asset
+
 from jsonschema import validate
+
+from kpi.models import Asset
 
 EXAMPLES = [
     {
@@ -19,8 +21,7 @@ EXAMPLES = [
     },
     {
         'labels': {
-            '_default': 'How many people are heard speaking in this '
-            'response?'
+            '_default': 'How many people are heard speaking in this ' 'response?'
         },
         'xpath': '<XPATH>',
         'scope': 'by_question#survey',
@@ -39,8 +40,7 @@ EXAMPLES = [
             },
         ],
         'labels': {
-            '_default': 'Do they describe the facility as being well '
-            'maintained?'
+            '_default': 'Do they describe the facility as being well ' 'maintained?'
         },
         'xpath': '<XPATH>',
         'scope': 'by_question#survey',
@@ -70,8 +70,7 @@ EXAMPLES = [
     },
     {
         'labels': {
-            '_default': 'Please respect the confidentiality of our '
-            'respondents.'
+            '_default': 'Please respect the confidentiality of our ' 'respondents.'
         },
         'xpath': '<XPATH>',
         'scope': 'by_question#survey',

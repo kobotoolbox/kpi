@@ -3,21 +3,22 @@ from __future__ import annotations
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import date, datetime
-from typing import Generator, Optional, Union, Literal
+from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-import requests
 import redis.exceptions
+import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db.models import Sum, F
+from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone
@@ -25,12 +26,11 @@ from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
 from rest_framework import status
 
-from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     DailyXFormSubmissionCounter,
-    MonthlyXFormSubmissionCounter,
     Instance,
+    MonthlyXFormSubmissionCounter,
     XForm,
 )
 from kobo.apps.openrosa.apps.logger.utils.instance import (
@@ -39,21 +39,19 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    create_instance,
-    publish_xls_form,
-)
+from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
+from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_JSON,
-    SUBMISSION_FORMAT_TYPE_XML,
-    PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
+    PERM_FROM_KC_ONLY,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -73,14 +71,9 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
-from .kc_access.utils import (
-    assign_applicable_kc_permissions,
-    kc_transaction_atomic,
-)
-from ..exceptions import (
-    BadFormatException,
-)
+from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
 
 
 class OpenRosaDeploymentBackend(BaseDeploymentBackend):
@@ -140,12 +133,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         CAUTION: Does not save deployment data to the database!
         """
         xlsx_io = self.asset.to_xlsx_io(
-            versioned=True, append={
+            versioned=True,
+            append={
                 'settings': {
                     'id_string': self.asset.uid,
                     'form_title': self.asset.name,
                 }
-            }
+            },
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
@@ -153,9 +147,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             self._xform = publish_xls_form(xlsx_file, self.asset.owner)
             self._xform.downloadable = active
             self._xform.kpi_asset_uid = self.asset.uid
-            self._xform.save(
-                update_fields=['downloadable', 'kpi_asset_uid']
-            )
+            self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
 
         self.store_data(
             {
@@ -177,9 +169,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         try:
             return self.backend_response['uuid']
         except KeyError:
-            logging.warning(
-                'OpenRosa backend response has no `uuid`', exc_info=True
-            )
+            logging.warning('OpenRosa backend response has no `uuid`', exc_info=True)
             return None
 
     @staticmethod
@@ -218,9 +208,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
 
         self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_DELETE_SUBMISSIONS,
-            submission_ids=[submission_id]
+            user=user, perm=PERM_DELETE_SUBMISSIONS, submission_ids=[submission_id]
         )
 
         count, _ = Instance.objects.filter(pk=submission_id).delete()
@@ -257,16 +245,17 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         return delete_instances(self.xform, data)
 
     def duplicate_submission(
-        self, submission_id: int, request: 'rest_framework.request.Request',
+        self,
+        submission_id: int,
+        request: 'rest_framework.request.Request',
     ) -> dict:
         """
         Duplicates a single submission. The submission with the given
-        `submission_id` is duplicated and the `start`, `end` and
+        `submission_id` is duplicated, and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being
-        saving the instance.
+        saved to the instance.
 
-        Returns a dict with uuid of created
-        submission if successful
+        Returns the duplicated submission (if successful)
         """
 
         user = request.user
@@ -284,9 +273,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Get attachments for the duplicated submission if there are any
         attachments = []
-        if attachment_objects := Attachment.objects.filter(
-            instance_id=submission_id
-        ):
+        if attachment_objects := Attachment.objects.filter(instance_id=submission_id):
             attachments = (
                 ExtendedContentFile(a.media_file.read(), name=a.media_file_basename)
                 for a in attachment_objects
@@ -308,10 +295,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
-        xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = (
-            uuid_formatted
-        )
+        xml_parsed.find(self.SUBMISSION_CURRENT_UUID_XPATH).text = uuid_formatted
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         instance = create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_tostring(xml_parsed)),
@@ -320,7 +307,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             request=request,
         )
 
-        # Cast to list to help unit tests to pass.
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user), request
         )
@@ -343,13 +329,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
         except DET.ParseError:
-            raise SubmissionIntegrityError(
-                t('Your submission XML is malformed.')
-            )
+            raise SubmissionIntegrityError(t('Your submission XML is malformed.'))
         try:
-            deprecated_uuid = xml_root.find(
-                self.SUBMISSION_DEPRECATED_UUID_XPATH
-            ).text
+            deprecated_uuid = xml_root.find(self.SUBMISSION_DEPRECATED_UUID_XPATH).text
             xform_uuid = xml_root.find(self.FORM_UUID_XPATH).text
         except AttributeError:
             raise SubmissionIntegrityError(
@@ -374,15 +356,15 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Validate write access for users with partial permissions
         self.validate_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=[instance.pk]
+            user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
         )
 
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
         xml_submission_file.seek(0)
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
             username=user.username,
             xml_file=xml_submission_file,
@@ -527,63 +509,63 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 '_userform_id': self.mongo_userform_id,
                 '_submission_time': {
                     '$gte': f'{timeframe[0]}',
-                    '$lte': f'{timeframe[1]}T23:59:59'
-                }
+                    '$lte': f'{timeframe[1]}T23:59:59',
+                },
             }
 
-            query = MongoHelper.get_permission_filters_query(
-                query, permission_filters
-            )
+            query = MongoHelper.get_permission_filters_query(query, permission_filters)
 
-            documents = settings.MONGO_DB.instances.aggregate([
-                {
-                    '$match': query,
-                },
-                {
-                    '$group': {
-                        '_id': {
-                            '$dateToString': {
-                                'format': '%Y-%m-%d',
-                                'date': {
-                                    '$dateFromString': {
-                                        'format': "%Y-%m-%dT%H:%M:%S",
-                                        'dateString': "$_submission_time"
-                                    }
+            documents = settings.MONGO_DB.instances.aggregate(
+                [
+                    {
+                        '$match': query,
+                    },
+                    {
+                        '$group': {
+                            '_id': {
+                                '$dateToString': {
+                                    'format': '%Y-%m-%d',
+                                    'date': {
+                                        '$dateFromString': {
+                                            'format': '%Y-%m-%dT%H:%M:%S',
+                                            'dateString': '$_submission_time',
+                                        }
+                                    },
                                 }
-                            }
-                        },
-                        'count': {'$sum': 1}
-                    }
-                }
-            ])
+                            },
+                            'count': {'$sum': 1},
+                        }
+                    },
+                ]
+            )
             return {doc['_id']: doc['count'] for doc in documents}
 
         # Trivial case, user has 'view_permissions'
-        daily_counts = (
-            DailyXFormSubmissionCounter.objects.values(
-                'date', 'counter'
-            ).filter(
-                xform_id=self.xform_id,
-                date__range=timeframe,
-            )
+        daily_counts = DailyXFormSubmissionCounter.objects.values(
+            'date', 'counter'
+        ).filter(
+            xform_id=self.xform_id,
+            date__range=timeframe,
         )
-        return {
-            str(count['date']): count['counter'] for count in daily_counts
-        }
+        return {str(count['date']): count['counter'] for count in daily_counts}
 
     def get_data_download_links(self):
-        exports_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'exports',
-            self.xform.id_string
-        ))
-        reports_base_url = '/'.join((
-            settings.KOBOCAT_URL.rstrip('/'),
-            self.asset.owner.username,
-            'reports',
-            self.xform.id_string
-        ))
+        exports_base_url = '/'.join(
+            (
+                settings.KOBOCAT_URL.rstrip('/'),
+                self.asset.owner.username,
+                'exports',
+                self.xform.id_string,
+            )
+        )
+        reports_base_url = '/'.join(
+            (
+                settings.KOBOCAT_URL.rstrip('/'),
+                self.asset.owner.username,
+                'reports',
+                self.xform.id_string,
+            )
+        )
         links = {
             # To be displayed in iframes
             'xls_legacy': '/'.join((exports_base_url, 'xls/')),
@@ -602,10 +584,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         data = {
             'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'),
-                self.asset.owner.username
+                settings.KOBOCAT_URL.rstrip('/'), self.asset.owner.username
             ),
-            'form_id': self.xform.id_string
+            'form_id': self.xform.id_string,
         }
 
         try:
@@ -613,13 +594,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 f'{settings.ENKETO_URL}/{settings.ENKETO_SURVEY_ENDPOINT}',
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_KEY, ''),
-                data=data
+                data=data,
             )
             response.raise_for_status()
         except requests.exceptions.RequestException:
             # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error(
-                'Failed to retrieve links from Enketo', exc_info=True)
+            logging.error('Failed to retrieve links from Enketo', exc_info=True)
             return {}
         try:
             links = response.json()
@@ -649,9 +629,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             # Thus, we need to always generated the ID with the same URL
             # (i.e.: with username) to be retro-compatible and then,
             # overwrite the OpenRosa server URL again.
-            self.set_enketo_open_rosa_server(
-                require_auth=True, enketo_id=enketo_id
-            )
+            self.set_enketo_open_rosa_server(require_auth=True, enketo_id=enketo_id)
 
         for discard in ('enketo_id', 'code', 'preview_iframe_url'):
             try:
@@ -691,7 +669,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
         request: Optional['rest_framework.request.Request'] = None,
-        **mongo_query_params
+        **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
         Retrieve submissions that `user` is allowed to access.
@@ -714,9 +692,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         See `BaseDeploymentBackend._rewrite_json_attachment_urls()`
         """
 
-        mongo_query_params['submission_ids'] = (
-            submission_ids if submission_ids else []
-        )
+        mongo_query_params['submission_ids'] = submission_ids if submission_ids else []
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
@@ -727,7 +703,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
-                "The format {} is not supported".format(format_type)
+                'The format {} is not supported'.format(format_type)
             )
         return submissions
 
@@ -744,9 +720,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             return {
                 'content_type': 'application/json',
                 'status': status.HTTP_404_NOT_FOUND,
-                'data': {
-                    'detail': f'No submission found with ID: {submission_id}'
-                }
+                'data': {'detail': f'No submission found with ID: {submission_id}'},
             }
 
         return {
@@ -773,10 +747,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         try:
             nlp_tracking = (
                 NLPUsageCounter.objects.only('total_asr_seconds', 'total_mt_characters')
-                .filter(
-                    asset_id__in=asset_ids,
-                    **filter_args
-                ).aggregate(
+                .filter(asset_id__in=asset_ids, **filter_args)
+                .aggregate(
                     total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
                     total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
                 )
@@ -800,12 +772,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         id_string = self.xform.id_string
         xlsx_io = self.asset.to_xlsx_io(
-            versioned=True, append={
+            versioned=True,
+            append={
                 'settings': {
                     'id_string': id_string,
                     'form_title': self.asset.name,
                 }
-            }
+            },
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
@@ -877,7 +850,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
-                dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}'
+                dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}',
             )
         except InvalidCacheBackendError:
             # TODO: This handles the case when the cache is disabled and
@@ -953,8 +926,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         during this call, otherwise `False`.
         """
         is_synchronized = not (
-            force or
-            self.backend_response.get('kpi_asset_uid', None) is None
+            force or self.backend_response.get('kpi_asset_uid', None) is None
         )
         if is_synchronized:
             return False
@@ -962,17 +934,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Use `queryset.update()` over `model.save()` because we don't need to
         # run the logic of the `model.save()` method and we don't need signals
         # to be called.
-        XForm.objects.filter(pk=self.xform_id).update(
-            kpi_asset_uid=self.asset.uid
-        )
+        XForm.objects.filter(pk=self.xform_id).update(kpi_asset_uid=self.asset.uid)
         self.xform.kpi_asset_uid = self.asset.uid
         self.backend_response['kpi_asset_uid'] = self.asset.uid
         self.store_data({'backend_response': self.backend_response})
         return True
 
-    def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None
-    ):
+    def set_enketo_open_rosa_server(self, require_auth: bool, enketo_id: str = None):
         # Kobocat handles Open Rosa requests with different accesses.
         #  - Authenticated access, https://[kc]
         #  - Anonymous access, https://[kc]/username
@@ -1017,16 +985,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # TODO simplify response when KobocatDeploymentBackend
         #  and MockDeploymentBackend are gone
         try:
-            instance = Instance.objects.only(
-                'validation_status', 'date_modified'
-            ).get(pk=submission_id)
+            instance = Instance.objects.only('validation_status', 'date_modified').get(
+                pk=submission_id
+            )
         except Instance.DoesNotExist:
             return {
                 'content_type': 'application/json',
                 'status': status.HTTP_404_NOT_FOUND,
-                'data': {
-                    'detail': f'No submission found with ID: {submission_id}'
-                }
+                'data': {'detail': f'No submission found with ID: {submission_id}'},
             }
 
         if method == 'DELETE':
@@ -1039,9 +1005,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 return {
                     'content_type': 'application/json',
                     'status': status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    'data': {
-                        'detail': 'Could not update MongoDB'
-                    }
+                    'data': {'detail': 'Could not update MongoDB'},
                 }
 
         validation_status_uid = data.get('validation_status.uid')
@@ -1054,7 +1018,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'status': status.HTTP_400_BAD_REQUEST,
                 'data': {
                     'detail': f'Invalid validation status: `{validation_status_uid}`'
-                }
+                },
             }
         return {
             'data': instance.validation_status,
@@ -1106,10 +1070,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     ):
         media_files = []
         if attachments:
-            media_files = (
-                media_file for media_file in attachments.values()
-            )
+            media_files = (media_file for media_file in attachments.values())
 
+        # create_instance uses `username` argument to identify the XForm object
+        # (when nothing else worked). `_submitted_by` is populated by `request.user`
         return create_instance(
             username=self.asset.owner.username,
             xml_file=ContentFile(xml_submission),
@@ -1141,9 +1105,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             # Note: this is replicating the functionality that was formerly in
             # `current_month_submission_count`. `current_month_submission_count`
             # didn't account for partial permissions, and this doesn't either
-            total_submissions = DailyXFormSubmissionCounter.objects.only(
-                'date', 'counter'
-            ).filter(**filter_args).aggregate(count_sum=Coalesce(Sum('counter'), 0))
+            total_submissions = (
+                DailyXFormSubmissionCounter.objects.only('date', 'counter')
+                .filter(**filter_args)
+                .aggregate(count_sum=Coalesce(Sum('counter'), 0))
+            )
         except DailyXFormSubmissionCounter.DoesNotExist:
             return 0
         else:
@@ -1256,9 +1222,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'require_auth',
                 'uuid',
             )
-            .select_related(
-                'user'
-            )  # Avoid extra query to validate username below
+            .select_related('user')  # Avoid extra query to validate username below
             .first()
         )
 
@@ -1294,32 +1258,23 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 user_id__in=user_ids
             ).update(submissions_suspended=False)
 
-    def transfer_submissions_ownership(
-        self, previous_owner_username: str
-    ) -> bool:
+    def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
         results = settings.MONGO_DB.instances.update_many(
             {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
-            {
-                '$set': {
-                    '_userform_id': self.mongo_userform_id
-                }
-            },
+            {'$set': {'_userform_id': self.mongo_userform_id}},
         )
 
-        return (
-            results.matched_count == 0 or
-            (
-                results.matched_count > 0
-                and results.matched_count == results.modified_count
-            )
+        return results.matched_count == 0 or (
+            results.matched_count > 0
+            and results.matched_count == results.modified_count
         )
 
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
 
-        NLPUsageCounter.objects.filter(
-            asset=self.asset, user=self.asset.owner
-        ).update(user=new_owner)
+        NLPUsageCounter.objects.filter(asset=self.asset, user=self.asset.owner).update(
+            user=new_owner
+        )
         DailyXFormSubmissionCounter.objects.filter(
             xform=self.xform, user_id=self.asset.owner.pk
         ).update(user=new_owner)
@@ -1329,11 +1284,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
-                                     - self.xform.attachment_storage_bytes
+            - self.xform.attachment_storage_bytes
         )
         UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
-                                     + self.xform.attachment_storage_bytes
+            + self.xform.attachment_storage_bytes
         )
 
     @property
@@ -1402,9 +1357,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.save(update_fields=['synced_with_backend'])
 
     def __get_submissions_in_json(
-        self,
-        request: Optional['rest_framework.request.Request'] = None,
-        **params
+        self, request: Optional['rest_framework.request.Request'] = None, **params
     ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
@@ -1414,7 +1367,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if not params.get('sort'):
             params['sort'] = {'_id': 1}
         mongo_cursor, total_count = MongoHelper.get_instances(
-            self.mongo_userform_id, **params)
+            self.mongo_userform_id, **params
+        )
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
@@ -1437,32 +1391,29 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             for submission in mongo_cursor
         )
 
-    def __get_submissions_in_xml(
-        self,
-        **params
-    ) -> Generator[str, None, None]:
+    def __get_submissions_in_xml(self, **params) -> Generator[str, None, None]:
         """
         Retrieve submissions directly from PostgreSQL.
         Submissions can be filtered with `params`.
         """
 
         mongo_filters = ['query', 'permission_filters']
-        use_mongo = any(mongo_filter in mongo_filters for mongo_filter in params
-                        if params.get(mongo_filter) is not None)
+        use_mongo = any(
+            mongo_filter in mongo_filters
+            for mongo_filter in params
+            if params.get(mongo_filter) is not None
+        )
 
         if use_mongo:
             # We use Mongo to retrieve matching instances.
             params['fields'] = ['_id']
             # Force `sort` by `_id` for Mongo
-            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa: E501
             params['sort'] = {'_id': 1}
             submissions, count = MongoHelper.get_instances(
                 self.mongo_userform_id, **params
             )
-            submission_ids = [
-                submission.get('_id')
-                for submission in submissions
-            ]
+            submission_ids = [submission.get('_id') for submission in submissions]
             self.current_submission_count = count
 
         queryset = Instance.objects.filter(xform_id=self.xform_id)
@@ -1475,7 +1426,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             self.current_submission_count = queryset.count()
 
         # Force Sort by id
-        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa: E501
         queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated,

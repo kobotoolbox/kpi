@@ -2,8 +2,8 @@
 import os
 import socket
 from io import BytesIO
-from urllib.request import urlopen
 from urllib.error import URLError
+from urllib.request import urlopen
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -15,14 +15,14 @@ from django_digest.test import Client as DigestClient
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
-from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
-from kobo.apps.openrosa.libs.utils.string import base64_encodestring
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    publish_xls_form,
+from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
+    MakeSubmissionMixin,
 )
+from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
+from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
+from kobo.apps.openrosa.libs.utils.string import base64_encodestring
 
 
 class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
@@ -76,7 +76,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
             client = self.client
         client.logout()
 
-    def _create_user_and_login(self, username="bob", password="bob"):
+    def _create_user_and_login(self, username='bob', password='bob'):
         self.login_username = username
         self.login_password = password
         self.user = self._create_user(username, password)
@@ -119,9 +119,9 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
     def _publish_transportation_form(self):
         xls_path = os.path.join(
             self.this_directory,
-            "fixtures",
-            "transportation",
-            "transportation.xls",
+            'fixtures',
+            'transportation',
+            'transportation.xls',
         )
         count = XForm.objects.count()
         TestBase._publish_xls_file(self, xls_path)
@@ -141,7 +141,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
 
     def _submit_transport_instance_w_attachment(self, survey_at=0):
         s = self.surveys[survey_at]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         self._make_submission_w_attachment(
             os.path.join(
                 self.this_directory,

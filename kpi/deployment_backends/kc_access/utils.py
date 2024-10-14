@@ -1,4 +1,3 @@
-import logging
 from contextlib import ContextDecorator
 from typing import Union
 
@@ -11,6 +10,7 @@ from django.db.models import Model
 from guardian.models import UserObjectPermission
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.utils.database import use_db
 from kpi.utils.log import logging
 from kpi.utils.permissions import is_user_anonymous
 
@@ -23,6 +23,7 @@ def safe_kc_read(func):
             raise ProgrammingError(
                 'kc_access error accessing KoboCAT tables: {}'.format(str(e))
             )
+
     return _wrapper
 
 
@@ -116,13 +117,11 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
             # without KC should change
             # `KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES` appropriately in their
             # settings
-            logging.error(
-                'Could not find KoboCAT content type for {}.{}'.format(*pair)
-            )
+            logging.error('Could not find KoboCAT content type for {}.{}'.format(*pair))
 
-    permissions_to_assign = Permission.objects.using(
-        settings.OPENROSA_DB_ALIAS
-    ).filter(content_type__in=content_types)
+    permissions_to_assign = Permission.objects.using(settings.OPENROSA_DB_ALIAS).filter(
+        content_type__in=content_types
+    )
 
     if content_types and not permissions_to_assign.exists():
         raise RuntimeError(
@@ -138,17 +137,17 @@ def set_kc_anonymous_permissions_xform_flags(
     obj, kpi_codenames, xform_id, remove=False
 ):
     r"""
-        Given a KPI object, one or more KPI permission codenames and the PK of
-        a KC `XForm`, assume the KPI permissions have been assigned to or
-        removed from the anonymous user. Then, modify any corresponding flags
-        on the `XForm` accordingly.
-        :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
-            dictionary attribute
-        :param kpi_codenames: One or more codenames for KPI permissions
-        :type kpi_codenames: str or list(str)
-        :param xform_id: PK of the KC `XForm` associated with `obj`
-        :param remove: If `True`, apply the Boolean `not` operator to each
-            value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+    Given a KPI object, one or more KPI permission codenames and the PK of
+    a KC `XForm`, assume the KPI permissions have been assigned to or
+    removed from the anonymous user. Then, modify any corresponding flags
+    on the `XForm` accordingly.
+    :param obj: Object with `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
+        dictionary attribute
+    :param kpi_codenames: One or more codenames for KPI permissions
+    :type kpi_codenames: str or list(str)
+    :param xform_id: PK of the KC `XForm` associated with `obj`
+    :param remove: If `True`, apply the Boolean `not` operator to each
+        value in `KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS`
     """
     if not settings.KOBOCAT_URL or not settings.KOBOCAT_INTERNAL_URL:
         return
@@ -213,9 +212,9 @@ def assign_applicable_kc_permissions(
             obj, kpi_codenames, xform_id
         )
 
-    xform_content_type = ContentType.objects.using(
-        settings.OPENROSA_DB_ALIAS
-    ).get(**obj.KC_CONTENT_TYPE_KWARGS)
+    xform_content_type = ContentType.objects.using(settings.OPENROSA_DB_ALIAS).get(
+        **obj.KC_CONTENT_TYPE_KWARGS
+    )
 
     kc_permissions_already_assigned = (
         UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS)
@@ -327,9 +326,10 @@ def reset_kc_permissions(
 
 
 def delete_kc_user(username: str):
-    User.objects.using(settings.OPENROSA_DB_ALIAS).filter(
-        username=username
-    ).delete()
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        # Do not use `.using()` here because it does not bubble down to the
+        # Collector.
+        User.objects.filter(username=username).delete()
 
 
 def kc_transaction_atomic(using=settings.OPENROSA_DB_ALIAS, *args, **kwargs):

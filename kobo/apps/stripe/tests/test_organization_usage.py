@@ -1,4 +1,3 @@
-import itertools
 import timeit
 
 try:
@@ -15,6 +14,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import Customer
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
@@ -62,7 +62,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
 
         users = baker.make(
             User,
-            username=itertools.cycle(cls.names),
+            username=iter(cls.names),
             _quantity=cls.user_count - 1,
             _bulk_create=True,
         )
@@ -314,6 +314,39 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             response.data['current_month_end']
             == current_billing_period_end.isoformat()
         )
+
+    def test_plan_canceled_edge_date(self):
+        """
+        If a plan is canceled on the last day of a 31-day month, we want the subsequent
+        billing cycle to end on the last day of the next month, but we also need to make
+        sure the cycle starts on the cancelation date
+        """
+        frozen_datetime_now = datetime(
+            year=2024,
+            month=9,
+            day=1,
+            tzinfo=ZoneInfo('UTC'),
+        )
+        subscribe_date = frozen_datetime_now.replace(month=8, day=1)
+        cancel_date = frozen_datetime_now.replace(month=8, day=31)
+        with freeze_time(subscribe_date):
+            subscription = generate_plan_subscription(self.organization)
+
+        subscription.status = 'canceled'
+        subscription.ended_at = cancel_date
+        subscription.save()
+
+        with freeze_time(frozen_datetime_now):
+            response = self.client.get(self.detail_url)
+        current_month_start = datetime.fromisoformat(
+            response.data['current_month_start']
+        )
+        current_month_end = datetime.fromisoformat(response.data['current_month_end'])
+
+        assert current_month_start.month == cancel_date.month
+        assert current_month_start.day == cancel_date.day
+        assert current_month_end.month == 9
+        assert current_month_end.day == 30
 
     def test_multiple_canceled_plans(self):
         """

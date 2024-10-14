@@ -60,5 +60,5 @@ pages:
       - public
   only:
     refs:
-      - beta
+      - main
       - storybook

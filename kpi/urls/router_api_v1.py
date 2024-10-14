@@ -3,22 +3,21 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.hook.views.v1.hook import HookViewSet
 from kobo.apps.hook.views.v1.hook_log import HookLogViewSet
-
 from kobo.apps.reports.views import ReportsViewSet
 from kpi.views.v1 import (
-    AssetViewSet,
-    AssetVersionViewSet,
-    AssetSnapshotViewSet,
     AssetFileViewSet,
+    AssetSnapshotViewSet,
+    AssetVersionViewSet,
+    AssetViewSet,
     AuthorizedApplicationUserViewSet,
     ExportTaskViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
     SitewideMessageViewSet,
     SubmissionViewSet,
-    UserViewSet,
-    UserAssetSubscriptionViewSet,
     TagViewSet,
+    UserAssetSubscriptionViewSet,
+    UserViewSet,
 )
 
 router_api_v1 = ExtendedDefaultRouter()
