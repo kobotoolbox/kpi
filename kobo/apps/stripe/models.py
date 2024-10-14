@@ -101,7 +101,11 @@ class PlanAddOn(models.Model):
         Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
         Returns True if a PlanAddOn was created, false otherwise.
         """
-        if not charge.metadata.get('price_id', None) or not charge.metadata.get('quantity', None):
+        if (
+            charge.payment_intent.status != PaymentIntentStatus.succeeded or
+            not charge.metadata.get('price_id', None) or
+            not charge.metadata.get('quantity', None)
+        ):
             # make sure the charge is for a successful addon purchase
             return False
 
@@ -181,7 +185,6 @@ class PlanAddOn(models.Model):
             limits_remaining__has_key=limit_key,
             usage_limits__has_key=limit_key,
             charge__refunded=False,
-            charge__payment_intent__status=PaymentIntentStatus.succeeded,
         ).aggregate(
             total_usage_limit=Coalesce(
                 Sum(Cast(usage_field, output_field=IntegerField()) * F('quantity')),
@@ -212,7 +215,6 @@ class PlanAddOn(models.Model):
             organization__id=organization.id,
             limits_remaining__has_key=limit_key,
             charge__refunded=False,
-            charge__payment_intent__status=PaymentIntentStatus.succeeded,
             **{f'{metadata_key}__gt': 0}
         ).order_by(metadata_key)
         remaining = amount
