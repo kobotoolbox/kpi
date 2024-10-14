@@ -77,7 +77,7 @@ class PlanAddOn(models.Model):
 
     @admin.display(boolean=True, description='available')
     def is_available(self):
-        return self.charge.payment_intent.status == PaymentIntentStatus.succeeded and not (
+        return not (
             self.is_expended or self.charge.refunded
         ) and bool(self.organization)
 
