@@ -7,10 +7,10 @@ import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
-import {notify, stringToColor} from 'js/utils';
+import {notify} from 'js/utils';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
-import Icon from 'js/components/common/icon';
+import Avatar from 'js/components/common/avatar';
 import envStore from 'js/envStore';
 import {
   getInitialAccountFieldsValues,
@@ -134,9 +134,6 @@ const AccountSettings = observer(() => {
   };
 
   const accountName = sessionStore.currentAccount.username;
-  const initialsStyle = {
-    background: `#${stringToColor(accountName)}`,
-  };
 
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
@@ -152,11 +149,7 @@ const AccountSettings = observer(() => {
 
       <bem.AccountSettings__item m={'column'}>
         <bem.AccountSettings__item m='username'>
-          <bem.AccountBox__initials style={initialsStyle}>
-            {accountName.charAt(0)}
-          </bem.AccountBox__initials>
-
-          <h4>{accountName}</h4>
+          <Avatar size='m' username={accountName} isUsernameVisible/>
         </bem.AccountSettings__item>
 
         {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
