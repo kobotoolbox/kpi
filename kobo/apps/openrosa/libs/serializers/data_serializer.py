@@ -7,7 +7,7 @@ from rest_framework.exceptions import ParseError
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
-from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
+from kpi.utils.mongo_helper import MongoHelper
 
 
 class DataSerializer(serializers.HyperlinkedModelSerializer):

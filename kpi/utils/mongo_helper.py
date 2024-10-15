@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import re
@@ -10,6 +9,7 @@ from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
+# use `dict` when Python 3.8 is dropped
 PermissionFilter = Dict[str, Any]
 
 
@@ -208,15 +208,11 @@ class MongoHelper:
         return d
 
     @classmethod
-    def to_safe_dict(cls, d, reading=False):
+    def to_safe_dict(cls, d: dict, reading: bool = False) -> dict:
         """
         Updates invalid attributes of a dict by encoding disallowed characters
         and, when `reading=False`, expanding dotted keys into nested dicts for
         `NESTED_MONGO_RESERVED_ATTRIBUTES`
-
-        :param d: dict
-        :param reading: boolean.
-        :return: dict
 
         Example:
 
@@ -260,9 +256,12 @@ class MongoHelper:
                     pass
 
             if cls._is_nested_reserved_attribute(key):
-                # If we want to write into Mongo, we need to transform the dot delimited string into a dict
-                # Otherwise, for reading, Mongo query engine reads dot delimited string as a nested object.
-                # Drawback, if a user uses a reserved property with dots, it will be converted as well.
+                # If we want to write into Mongo, we need to transform the dot
+                # delimited string into a dict.
+                # Otherwise, for reading, Mongo query engine reads dot delimited string
+                # as a nested object.
+                # Drawback, if a user uses a reserved property with dots, it will be
+                # converted as well.
                 if not reading and key.count('.') > 0:
                     tree = {}
                     t = tree
@@ -396,24 +395,19 @@ class MongoHelper:
         return cursor, count
 
     @classmethod
-    def _is_attribute_encoded(cls, key):
+    def _is_attribute_encoded(cls, key: str) -> bool:
         """
         Checks if an attribute has been encoded when saved in Mongo.
-
-        :param key: string
-        :return: string
         """
         return key not in cls.KEY_WHITELIST and (
             key.startswith('JA==') or key.count('Lg==') > 0
         )
 
     @staticmethod
-    def _is_nested_reserved_attribute(key):
+    def _is_nested_reserved_attribute(key: str) -> bool:
         """
-        Checks if key starts with one of variables values declared in NESTED_MONGO_RESERVED_ATTRIBUTES
-
-        :param key: string
-        :return: boolean
+        Checks if key starts with one of variables values declared in
+        NESTED_MONGO_RESERVED_ATTRIBUTES
         """
         for reserved_attribute in NESTED_MONGO_RESERVED_ATTRIBUTES:
             if key.startswith('{}.'.format(reserved_attribute)):
