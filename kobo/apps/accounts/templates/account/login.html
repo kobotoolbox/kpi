@@ -73,6 +73,6 @@
       </div>
       <script src="{% static 'js/sso_buttons.js' %}"></script>
     {% endif %}
-
+    {% include "../legal/registration_legal.html" with config=config %}
   </form>
 {% endblock %}
