@@ -13,7 +13,7 @@ import {
 } from 'jsapp/js/query/queries/activityLog.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
-import {formatTime, stringToColor} from 'jsapp/js/utils';
+import {formatTime} from 'jsapp/js/utils';
 import Avatar from '../common/avatar';
 
 const EventDescription = ({
@@ -26,7 +26,7 @@ const EventDescription = ({
   what: string;
 }) => (
   <div className={styles.eventDescription}>
-    <Avatar username={who} isLabelVisible={false}/>
+    <Avatar size='s' username={who} />
     <span className={styles.who}>{who}</span>
     <span className={styles.action}>{action}</span> {what}
     <button className={styles.seeDetails}>{t('See details')}</button>
