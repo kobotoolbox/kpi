@@ -43,9 +43,9 @@ interface ModalProps {
 }
 
 /**
- * DEPRECATED: please use `KoboModal`
- *
  * A generic modal component.
+ *
+ * @deprecated Please use `KoboModal`.
  */
 export default class Modal extends React.Component<ModalProps> {
   static Footer = Footer;
