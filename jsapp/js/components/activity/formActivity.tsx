@@ -6,34 +6,17 @@ import KoboSelect from '../common/koboSelect';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
-import type {ActivityLogItem} from 'jsapp/js/query/queries/activityLog.query';
+import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLog.query';
 import {useActivityLogsQuery} from 'jsapp/js/query/queries/activityLog.query';
 import moment from 'moment';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime, stringToColor} from 'jsapp/js/utils';
 
-interface TableDataItem {
-  description: ReactNode;
-  date: ReactNode;
-}
-
 const mockOptions: KoboSelectOption[] = [
   {value: '1', label: 'Option 1'},
   {value: '2', label: 'Option 2'},
   {value: '3', label: 'Option 3'},
-];
-
-const columns: UniversalTableColumn[] = [
-  {
-    key: 'description',
-    label: t('Event description'),
-  },
-  {
-    key: 'date',
-    label: t('Date'),
-    size: 100,
-  },
 ];
 
 const UserAvatar = ({name}: {name: string}) => (
@@ -57,7 +40,26 @@ const EventDescription = ({
   </div>
 );
 
-const EventDate = ({dateTime}: {dateTime: string}) => formatTime(dateTime);
+const columns: UniversalTableColumn[] = [
+  {
+    key: 'description',
+    label: t('Event description'),
+    cellFormatter: (data: ActivityLogsItem) => formatTime(data.date) as ReactNode,
+  },
+  {
+    key: 'date',
+    label: t('Date'),
+    size: 100,
+    cellFormatter: (data: ActivityLogsItem) => (
+      <EventDescription
+      who={data.who}
+      action={data.action}
+      what={data.what}
+    />
+    ),
+  },
+];
+
 
 export default function FormActivity() {
   const [filterOptions, setFilterOptions] =
@@ -69,19 +71,6 @@ export default function FormActivity() {
     setSelectedFilterOption(
       filterOptions.find((option) => option.value === value) || null
     );
-  };
-
-  const rowRenderer = (data: ActivityLogItem) => {
-    return {
-      description: (
-        <EventDescription
-          who={data.who}
-          action={data.action}
-          what={data.what}
-        />
-      ),
-      date: <EventDate dateTime={data.date} />,
-    };
   };
 
   return (
@@ -109,10 +98,9 @@ export default function FormActivity() {
         </div>
       </div>
       <div className={styles.tableContainer}>
-        <PaginatedQueryUniversalTable<ActivityLogItem, TableDataItem>
+        <PaginatedQueryUniversalTable<ActivityLogsItem>
           columns={columns}
           queryHook={useActivityLogsQuery}
-          rowRenderer={rowRenderer}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {PaginatedResponse} from 'jsapp/js/dataInterface';
 import moment from 'moment';
 
-export interface ActivityLogItem {
+export interface ActivityLogsItem {
   id: number;
   who: string;
   action: string;
@@ -23,7 +23,7 @@ const getRandomMockDescriptionData = () => {
 };
 
 const curDate = new Date();
-const mockData: ActivityLogItem[] = Array.from({length: 150}, (_, index) => {
+const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
   curDate.setTime(curDate.getTime() - Math.random() * 1000000);
   return {
     id: index,
@@ -34,7 +34,7 @@ const mockData: ActivityLogItem[] = Array.from({length: 150}, (_, index) => {
 // END OF MOCK GENERATION
 
 const getActivityLogs = async (limit: number, offset: number) =>
-  new Promise<PaginatedResponse<ActivityLogItem>>((resolve) => {
+  new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
     setTimeout(
       () =>
         resolve({
@@ -42,7 +42,7 @@ const getActivityLogs = async (limit: number, offset: number) =>
           previous: null,
           count: mockData.length,
           results: mockData.slice(offset, offset + limit),
-        } as PaginatedResponse<ActivityLogItem>),
+        } as PaginatedResponse<ActivityLogsItem>),
       1000
     );
   });
