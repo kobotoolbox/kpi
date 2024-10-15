@@ -623,10 +623,4 @@ const constants = {
 
 export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
-export enum ReactQueryStatuses {
-  error = 'error',
-  success = 'success',
-  pending = 'pending',
-}
-
 export default constants;
