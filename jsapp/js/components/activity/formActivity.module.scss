@@ -41,7 +41,7 @@ h1 {
 .eventDescription {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   font-size: 14px;
 }
 
@@ -59,6 +59,7 @@ h1 {
 }
 
 .who {
+  margin-left: 4px;
   font-style: normal;
   font-weight: bold;
 }
