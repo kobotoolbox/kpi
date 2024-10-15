@@ -328,7 +328,7 @@ class TestFormSubmission(TestBase):
             Attachment.objects.filter(instance=initial_instance).count(), 1
         )
 
-        # Test duplicate submission with same attachment
+        # Test duplicate submission with the same attachment
         with open(media_file_path1, 'rb') as media_file:
             self._make_submission(xml_submission_file_path, media_file=media_file)
         self.assertEqual(self.response.status_code, 202)
@@ -337,8 +337,8 @@ class TestFormSubmission(TestBase):
             Attachment.objects.filter(instance=initial_instance).count(), 1
         )
 
-        # Test duplicate submission with same attachment name but with
-        # different content
+        # Test duplicate submission with the same attachment name but with
+        # different attachment content
         with open(media_file_path2, 'rb') as media_file2:
             self._make_submission(xml_submission_file_path, media_file=media_file2)
         self.assertEqual(self.response.status_code, 202)
@@ -379,30 +379,34 @@ class TestFormSubmission(TestBase):
             self._make_submission(
                 xml_submission_file_path, media_file=media_file
             )
-        initial_instance = Instance.objects.last()
-        attachment_basename = Attachment.objects.last().media_file_basename
-        attachment_hash = Attachment.objects.last().file_hash
+        initial_instance = Instance.objects.order_by('-pk')[0]
+
+        attachments = Attachment.objects.filter(instance=initial_instance)
+        self.assertTrue(attachments.count() == 1)
         self.assertEqual(self.response.status_code, 201)
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
+        attachment = attachments[0]
+        attachment_basename = attachment.media_file_basename
+        attachment_hash = attachment.file_hash
 
-        # Test edit submission with same attachment name but different content
+        # test edit submission with the same attachment name but different attachment
+        # content
         with open(media_file_path2, 'rb') as media_file:
             self._make_submission(
                 xml_edit_submission_file_path, media_file=media_file
             )
-        initial_instance = Instance.objects.last()
-        edit_attachment_basename = Attachment.objects.last().media_file_basename
-        edit_attachment_hash = Attachment.objects.last().file_hash
-        self.assertEqual(self.response.status_code, 201)
+
+        edited_instance = Instance.objects.order_by('-pk')[0]
+        edited_attachments = Attachment.objects.filter(instance=edited_instance)
+        self.assertTrue(attachments.count() == 1)
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
-        self.assertEqual(attachment_basename, edit_attachment_basename)
-        self.assertNotEqual(attachment_hash, edit_attachment_hash)
+        self.assertEqual(self.response.status_code, 201)
+
+        edited_attachment = edited_attachments[0]
+        edited_attachment_basename = edited_attachment.media_file_basename
+        edited_attachment_hash = edited_attachment.file_hash
+        self.assertEqual(attachment_basename, edited_attachment_basename)
+        self.assertNotEqual(attachment_hash, edited_attachment_hash)
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
