@@ -7,17 +7,10 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLog.query';
-import {useActivityLogsQuery} from 'jsapp/js/query/queries/activityLog.query';
-import moment from 'moment';
+import {useActivityLogsFilterOptionsQuery, useActivityLogsQuery} from 'jsapp/js/query/queries/activityLog.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime, stringToColor} from 'jsapp/js/utils';
-
-const mockOptions: KoboSelectOption[] = [
-  {value: '1', label: 'Option 1'},
-  {value: '2', label: 'Option 2'},
-  {value: '3', label: 'Option 3'},
-];
 
 const UserAvatar = ({name}: {name: string}) => (
   <div style={{background: `#${stringToColor(name)}`}} className={styles.profilePicture}>{name.slice(0, 1)}</div>
@@ -40,7 +33,7 @@ const EventDescription = ({
   </div>
 );
 
-const columns: UniversalTableColumn[] = [
+const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
   {
     key: 'description',
     label: t('Event description'),
@@ -62,14 +55,15 @@ const columns: UniversalTableColumn[] = [
 
 
 export default function FormActivity() {
-  const [filterOptions, setFilterOptions] =
-    useState<KoboSelectOption[]>(mockOptions);
+
+  const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
+
   const [selectedFilterOption, setSelectedFilterOption] =
     useState<KoboSelectOption | null>(null);
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(
-      filterOptions.find((option) => option.value === value) || null
+      filterOptions?.find((option) => option.value === value) || null
     );
   };
 
@@ -87,7 +81,7 @@ export default function FormActivity() {
             name='filter'
             size='m'
             placeholder={t('Filter by')}
-            options={filterOptions}
+            options={filterOptions || []}
           />
           <Button
             size='m'
