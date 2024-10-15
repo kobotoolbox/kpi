@@ -71,8 +71,8 @@ class TestUserSessionQueries(TransactionTestCase):
                 'remove': 'allauth.usersessions.middleware.UserSessionsMiddleware'
             }
         ):
-            # the middleware chain is set on the first request, so log in with a different client
-            # while the UserSessionsMiddleware is turned off
+            # the middleware chain is set on the first request, so log in with a
+            # different client while the UserSessionsMiddleware is turned off
             no_middleware_client = Client()
             no_middleware_client.post(reverse('kobo_login'), data=data)
 
