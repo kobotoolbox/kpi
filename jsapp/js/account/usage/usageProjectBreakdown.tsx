@@ -31,14 +31,14 @@ const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true);
   const [loading, setLoading] = useState(true);
   const [usage] = useContext(UsageContext);
-  const {data: organizationData} = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
     async function fetchData() {
       const data = await getAssetUsageForOrganization(
         currentPage,
         order,
-        organizationData?.id
+        orgQuery.data?.id
       );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');

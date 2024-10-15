@@ -35,9 +35,7 @@ function AccountNavLink(props: AccountNavLinkProps) {
 function AccountSidebar() {
   const [showPlans, setShowPlans] = useState(false);
 
-  const {
-    data: organizationData,
-  } = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
     if (!subscriptionStore.isInitialised) {
@@ -63,7 +61,7 @@ function AccountSidebar() {
         name={t('Security')}
         to={ACCOUNT_ROUTES.SECURITY}
       />
-      {organizationData?.is_owner && (
+      {orgQuery.data?.is_owner && (
         <>
           <AccountNavLink
             iconName='reports'

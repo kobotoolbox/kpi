@@ -7,14 +7,12 @@ import {
 import sessionStore from 'js/stores/session';
 
 export const BillingContextProvider = (props: {children: ReactNode}) => {
-  const {
-    data: organizationData,
-  } = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery();
 
   if (!sessionStore.isLoggedIn) {
     return <>{props.children}</>;
   }
-  const usage = useUsage(organizationData?.id || null);
+  const usage = useUsage(orgQuery.data?.id || null);
   const products = useProducts();
   return (
       <UsageContext.Provider value={usage}>

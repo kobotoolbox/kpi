@@ -34,9 +34,9 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const {data: organizationData} = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery();
 
-  if (!product || !organizationData || product.price.unit_amount === 0) {
+  if (!product || !orgQuery.data || product.price.unit_amount === 0) {
     return null;
   }
 

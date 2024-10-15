@@ -115,9 +115,7 @@ export default function Plan(props: PlanProps) {
   >([]);
   const [products, loadProducts, productsStatus] = useContext(ProductsContext);
   useRefreshApiFetcher(loadProducts, productsStatus);
-  const {
-    data: organizationData,
-  } = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery();
   const [confirmModal, setConfirmModal] = useState<ConfirmChangeProps>({
     newPrice: null,
     products: [],
@@ -150,8 +148,8 @@ export default function Plan(props: PlanProps) {
 
   const isDataLoading = useMemo(
     (): boolean =>
-      !(products.isLoaded && organizationData && state.subscribedProduct),
-    [products.isLoaded, organizationData, state.subscribedProduct]
+      !(products.isLoaded && orgQuery.data && state.subscribedProduct),
+    [products.isLoaded, orgQuery.data, state.subscribedProduct]
   );
 
   const isDisabled = useMemo(() => isBusy, [isBusy]);
@@ -228,10 +226,10 @@ export default function Plan(props: PlanProps) {
 
   // if the user is not the owner of their org, send them back to the settings page
   useEffect(() => {
-    if (!organizationData?.is_owner) {
+    if (!orgQuery.data?.is_owner) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [organizationData]);
+  }, [orgQuery.data]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
@@ -373,7 +371,7 @@ export default function Plan(props: PlanProps) {
   };
 
   const buySubscription = (price: Price, quantity = 1) => {
-    if (!price.id || isDisabled || !organizationData?.id) {
+    if (!price.id || isDisabled || !orgQuery.data?.id) {
       return;
     }
     setIsBusy(true);
@@ -381,7 +379,7 @@ export default function Plan(props: PlanProps) {
       if (!isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is upgrading prices, send them to the customer portal
         // this will immediately change their subscription
-        postCustomerPortal(organizationData.id, price.id, quantity)
+        postCustomerPortal(orgQuery.data.id, price.id, quantity)
           .then(processCheckoutResponse)
           .catch(() => setIsBusy(false));
       } else {
@@ -396,7 +394,7 @@ export default function Plan(props: PlanProps) {
       }
     } else {
       // just send the user to the checkout page
-      postCheckout(price.id, organizationData.id, quantity)
+      postCheckout(price.id, orgQuery.data.id, quantity)
         .then(processCheckoutResponse)
         .catch(() => setIsBusy(false));
     }
@@ -442,7 +440,7 @@ export default function Plan(props: PlanProps) {
       </div>
     );
 
-  if (!products.products.length || !organizationData) {
+  if (!products.products.length || !orgQuery.data) {
     return null;
   }
 
@@ -558,7 +556,7 @@ export default function Plan(props: PlanProps) {
             isBusy={isBusy}
             setIsBusy={setIsBusy}
             products={products.products}
-            organization={organizationData}
+            organization={orgQuery.data}
             onClickBuy={buySubscription}
           />
         )}
