@@ -33,7 +33,7 @@ const mockData: ActivityLogItem[] = Array.from({length: 150}, (_, index) => {
 });
 // END OF MOCK GENERATION
 
-const getActivityLog = async (limit: number, offset: number) =>
+const getActivityLogs = async (limit: number, offset: number) =>
   new Promise<PaginatedResponse<ActivityLogItem>>((resolve) => {
     setTimeout(
       () =>
@@ -47,9 +47,9 @@ const getActivityLog = async (limit: number, offset: number) =>
     );
   });
 
-export const useActivityLogQuery = (itemLimit: number, pageOffset: number) =>
+export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) =>
   useQuery({
     queryKey: ['accessLogs', itemLimit, pageOffset],
-    queryFn: () => getActivityLog(itemLimit, pageOffset),
+    queryFn: () => getActivityLogs(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
   });
