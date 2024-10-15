@@ -7,14 +7,14 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLog.query';
-import {useActivityLogsFilterOptionsQuery, useActivityLogsQuery} from 'jsapp/js/query/queries/activityLog.query';
+import {
+  useActivityLogsFilterOptionsQuery,
+  useActivityLogsQuery,
+} from 'jsapp/js/query/queries/activityLog.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime, stringToColor} from 'jsapp/js/utils';
-
-const UserAvatar = ({name}: {name: string}) => (
-  <div style={{background: `#${stringToColor(name)}`}} className={styles.profilePicture}>{name.slice(0, 1)}</div>
-);
+import Avatar from '../common/avatar';
 
 const EventDescription = ({
   who,
@@ -26,8 +26,8 @@ const EventDescription = ({
   what: string;
 }) => (
   <div className={styles.eventDescription}>
-    <UserAvatar name={who} />
-    <span className={styles.who}>{who}</span>{' '}
+    <Avatar username={who} isLabelVisible={false}/>
+    <span className={styles.who}>{who}</span>
     <span className={styles.action}>{action}</span> {what}
     <button className={styles.seeDetails}>{t('See details')}</button>
   </div>
@@ -37,25 +37,20 @@ const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
   {
     key: 'description',
     label: t('Event description'),
-    cellFormatter: (data: ActivityLogsItem) => formatTime(data.date) as ReactNode,
+    cellFormatter: (data: ActivityLogsItem) => (
+      <EventDescription who={data.who} action={data.action} what={data.what} />
+    ),
   },
   {
     key: 'date',
     label: t('Date'),
     size: 100,
-    cellFormatter: (data: ActivityLogsItem) => (
-      <EventDescription
-      who={data.who}
-      action={data.action}
-      what={data.what}
-    />
-    ),
+    cellFormatter: (data: ActivityLogsItem) =>
+      formatTime(data.date) as ReactNode,
   },
 ];
 
-
 export default function FormActivity() {
-
   const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
 
   const [selectedFilterOption, setSelectedFilterOption] =
