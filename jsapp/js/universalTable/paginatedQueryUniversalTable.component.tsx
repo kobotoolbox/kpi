@@ -1,5 +1,5 @@
 // Libraries
-import {useState, useMemo} from 'react';
+import React, {useState, useMemo} from 'react';
 
 // Partial components
 import UniversalTable from './universalTable.component';
@@ -13,7 +13,7 @@ interface PaginatedQueryHook<DataItem> extends Function {
   (limit: number, offset: number): UseQueryResult<PaginatedResponse<DataItem>>;
 }
 
-interface PaginatedQueryUniversalTableProps<DataItem, RenderItem> {
+interface PaginatedQueryUniversalTableProps<DataItem> {
   queryHook: PaginatedQueryHook<DataItem>;
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
@@ -31,15 +31,15 @@ const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
  *
  * All the rest of the functionalities are the same as `UniversalTable`.
  */
-export default function PaginatedQueryUniversalTable<DataItem, RenderItem = DataItem>(
-  {queryHook, columns, rowRenderer}: PaginatedQueryUniversalTableProps<DataItem, RenderItem>
+export default function PaginatedQueryUniversalTable<DataItem>(
+  props: PaginatedQueryUniversalTableProps<DataItem>
 ) {
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
   });
 
-  const paginatedQuery = queryHook(pagination.limit, pagination.offset);
+  const paginatedQuery = props.queryHook(pagination.limit, pagination.offset);
 
   const availablePages = useMemo(
     () => Math.ceil((paginatedQuery.data?.count ?? 0) / pagination.limit),
@@ -54,9 +54,9 @@ export default function PaginatedQueryUniversalTable<DataItem, RenderItem = Data
   const data = paginatedQuery.data?.results || [];
 
   return (
-    <UniversalTable<DataItem | RenderItem>
-      columns={columns}
-      data={rowRenderer ? data.map((i) => rowRenderer(i)) : data}
+    <UniversalTable<DataItem>
+      columns={props.columns}
+      data={data}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}
