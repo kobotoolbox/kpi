@@ -42,7 +42,7 @@ export const PlanButton = ({
 
   const manageSubscription = (subscriptionPrice?: Price) => {
     setIsBusy(true);
-    postCustomerPortal(organizationData.id, subscriptionPrice?.id, quantity)
+    postCustomerPortal(orgQuery.data.id, subscriptionPrice?.id, quantity)
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false));
   };
