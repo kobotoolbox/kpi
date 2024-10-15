@@ -47,7 +47,7 @@ class TestLogoutAll(BaseTestCase):
         self.assertEqual(count, 2)
 
 
-class TestUserSessionQueriesTestCase(TransactionTestCase):
+class TestUserSessionQueries(TransactionTestCase):
 
     fixtures = ['test_data']
 
