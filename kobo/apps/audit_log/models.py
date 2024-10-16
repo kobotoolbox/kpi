@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
@@ -289,21 +291,25 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
         # always be the same on a project history log
         self.remove_common_fields_and_warn('project history', kwargs)
         user = kwargs.pop('user')
-        asset = kwargs.pop('asset')
-        if not asset.asset_type or asset.asset_type != ASSET_TYPE_SURVEY:
+        asset = kwargs.pop('asset', None)
+        if asset is not None and asset.asset_type != ASSET_TYPE_SURVEY:
             raise BadAssetTypeException(
                 'Cannot create project history log for non-survey asset'
             )
+        new_kwargs = {
+            'app_label': Asset._meta.app_label,
+            'model_name': Asset._meta.model_name,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'user': user,
+            'user_uid': user.extra_details.uid
+        }
+        if asset is not None:
+            new_kwargs['object_id']=asset.id
+        new_kwargs.update(**kwargs)
         return super().create(
             # set the fields that are always the same for all project history logs,
             # along with the ones derived from the user and asset
-            app_label=Asset._meta.app_label,
-            model_name=Asset._meta.model_name,
-            log_type=AuditType.PROJECT_HISTORY,
-            user=user,
-            user_uid=user.extra_details.uid,
-            object_id=asset.id,
-            **kwargs,
+            **new_kwargs,
         )
 
 
@@ -343,3 +349,58 @@ class ProjectHistoryLog(AuditLog):
             metadata=metadata,
             asset=asset,
         )
+
+    @staticmethod
+    def create_from_request(request):
+        view_name = request.resolver_match.url_name
+        if view_name == 'asset-detail':
+            # we don't record project creation, so we only need the detail view
+            ProjectHistoryLog.create_from_asset_view_set_request(request)
+
+    @staticmethod
+    def create_from_asset_view_set_request(request):
+        initial_data = request.get('initial_data', None)
+        updated_data = request.get('updated_data', None)
+        asset_uid = request.resolver_match.kwargs['uid']
+        object_id = initial_data.get('id', None)
+        common_metadata ={
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+        }
+
+        if updated_data is None:
+            # if updated_data is empty, the object was deleted
+            ProjectHistoryLog.objects.create(
+                user=request.user,
+                object_id=object_id,
+                action=AuditAction.DELETE,
+                metadata=common_metadata,
+            )
+            return
+
+        if initial_data['name'] != updated_data['name']:
+            # create PH log for name change
+            metadata = {
+                'old_name': initial_data['name'],
+                'new_name': updated_data['name'],
+                **common_metadata,
+            }
+            ProjectHistoryLog.objects.create(
+                object_id=object_id,
+                user=request.user,
+                action=AuditAction.UPDATE,
+                metadata=metadata
+            )
+
+        if json.dumps(initial_data['content']) != json.dumps(updated_data['content']):
+            metadata = {
+                'new_version_uid': updated_data['latest_version.uid']
+            }
+            ProjectHistoryLog.objects.create(
+                object_id=object_id,
+                user=request.user,
+                action=AuditAction.UPDATE,
+                metadata=metadata,
+            )

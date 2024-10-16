@@ -12,7 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import ProjectHistoryLog, AuditType
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -45,12 +46,13 @@ from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class AssetViewSet(
-    ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
@@ -379,7 +381,12 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    def get_object(self):
+    logged_fields = ['content', 'settings', 'data_sharing', 'latest_version.uid',
+                     'latest_deployed_version_uid', 'name', 'advanced_features']
+    log_type = AuditType.PROJECT_HISTORY
+    model_name = 'Asset'
+
+    def get_object_override(self):
         if self.request.method in ['PATCH', 'GET']:
             try:
                 asset = Asset.objects.get(uid=self.kwargs['uid'])
@@ -399,7 +406,7 @@ class AssetViewSet(
 
             return asset
 
-        return super().get_object()
+        return super().get_object_override()
 
     @action(
         detail=False,
@@ -779,10 +786,11 @@ class AssetViewSet(
                                              partial=True)
 
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        logging.info('I am updating the instance')
+        super().perform_update(serializer)
         return Response(serializer.data)
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         user = get_database_user(self.request.user)
         serializer.save(
             owner=user,
@@ -790,7 +798,7 @@ class AssetViewSet(
             last_modified_by=user.username
         )
 
-    def perform_destroy(self, instance):
+    def perform_destroy_override(self, instance):
         self._bulk_asset_actions(
             {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
         )
