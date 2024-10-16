@@ -36,7 +36,11 @@ class HeaderTitleEditor extends React.Component<
   }
 
   componentDidMount() {
-    this.unlisteners.push(assetStore.listen(this.onAssetLoad, this));
+    // Note: there is a risk/vulnerability in this component connected to
+    // the usage of the `assetStore`. As `assetStore` is listening to
+    // `actions.resources.loadAsset` which is using our faulty `assetCache`,
+    // there is a chance `assetStore` would give us a cached (old) asset object.
+    this.unlisteners.push(assetStore.listen(this.onAssetStoreUpdated, this));
   }
 
   componentWillUnmount() {
@@ -45,11 +49,14 @@ class HeaderTitleEditor extends React.Component<
     });
   }
 
-  onAssetLoad() {
-    this.setState({
-      name: this.props.asset.name,
-      isPending: false,
-    });
+  onAssetStoreUpdated() {
+    const foundAsset = assetStore.getAsset(this.props.asset.uid);
+    if (foundAsset) {
+      this.setState({
+        name: foundAsset.name,
+        isPending: false,
+      });
+    }
   }
 
   updateAssetTitle() {
