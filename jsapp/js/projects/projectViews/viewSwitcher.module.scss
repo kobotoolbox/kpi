@@ -1,6 +1,6 @@
 @use 'sass:color';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/mixins';
 
 .root {
@@ -21,8 +21,10 @@
   @include mixins.centerRowFlex;
   font-size: sizes.$x20;
   font-weight: 800;
-  color: colors.$kobo-gray-24;
-  padding: sizes.$x6 sizes.$x16;
+  color: colors.$kobo-gray-800;
+  padding: 2px sizes.$x16;
+  // we want it to be 32px height
+  line-height: 28px;
   max-width: sizes.$x400;
 
   :global {
@@ -63,7 +65,7 @@
   font-weight: 500;
   padding: sizes.$x10 sizes.$x30;
   width: 100%;
-  text-align: left;
+  text-align: initial;
 
   &:hover {
     color: colors.$kobo-blue;

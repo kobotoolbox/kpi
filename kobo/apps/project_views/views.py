@@ -2,13 +2,13 @@
 from typing import Union
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import (
     AssetOrderingFilter,
@@ -16,6 +16,7 @@ from kpi.filters import (
 )
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.paginators import FastAssetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
@@ -52,6 +53,7 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
+        pagination_class=FastAssetPagination,
     )
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):

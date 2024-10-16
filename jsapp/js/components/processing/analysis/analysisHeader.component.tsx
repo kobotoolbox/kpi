@@ -46,7 +46,7 @@ export default function AnalysisHeader() {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
             payload: {
-              qpath: singleProcessingStore.currentQuestionQpath,
+              xpath: singleProcessingStore.currentQuestionXpath,
               type: definition.type,
             },
           });
@@ -66,8 +66,7 @@ export default function AnalysisHeader() {
         hideOnMenuClick
         triggerContent={
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             startIcon='plus'
             label={t('Add question')}

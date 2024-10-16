@@ -1,5 +1,5 @@
 @use "scss/_variables";
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Buttons
@@ -77,6 +77,6 @@ input[type="button"].btn--block {
 
 .btn--disabled {
     cursor: default;
-    color: colors.$kobo-gray-92;
+    color: colors.$kobo-gray-300;
     font-weight: normal;
 }

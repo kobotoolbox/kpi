@@ -76,7 +76,9 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  * Returns the index of language or null if not found.
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
-  let foundIndex = null;
+  // Return -1 instead of null as that would allow
+  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
+  let foundIndex = -1;
 
   if (
     Array.isArray(asset.summary?.languages) &&
@@ -224,6 +226,11 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    // If the user hasn't made translations yet for a form language show
+    // the xml names instead of blank.
+    if (questionOrChoice.label[translationIndex] === null) {
+      return getRowName(questionOrChoice);
+    }
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
@@ -450,8 +457,8 @@ export function findRow(assetContent: AssetContent, rowName: string) {
   return assetContent?.survey?.find((row) => getRowName(row) === rowName);
 }
 
-export function findRowByQpath(assetContent: AssetContent, qpath: string) {
-  return assetContent?.survey?.find((row) => row.$qpath === qpath);
+export function findRowByXpath(assetContent: AssetContent, xpath: string) {
+  return assetContent?.survey?.find((row) => row.$xpath === xpath);
 }
 
 export function getRowType(assetContent: AssetContent, rowName: string) {
@@ -459,8 +466,8 @@ export function getRowType(assetContent: AssetContent, rowName: string) {
   return foundRow?.type;
 }
 
-export function getRowNameByQpath(assetContent: AssetContent, qpath: string) {
-  const foundRow = findRowByQpath(assetContent, qpath);
+export function getRowNameByXpath(assetContent: AssetContent, xpath: string) {
+  const foundRow = findRowByXpath(assetContent, xpath);
   if (foundRow) {
     return getRowName(foundRow);
   }
@@ -549,9 +556,8 @@ export function injectSupplementalRowsIntoListOfRows(
   // Step 4: Inject all the extra columns immediately after source question
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
-    const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
-    (extraColsBySource[qpath] || []).forEach((extraCol) => {
+    (extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`);
     });
   });
@@ -699,7 +705,7 @@ export function getAssetSubmissionProcessingUrl(
   return undefined;
 }
 
-/** Returns a list of all rows (their `qpath`s) activated for advanced features. */
+/** Returns a list of all rows (their `xpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset?.advanced_submission_schema?.properties) {
@@ -720,9 +726,9 @@ export function getAssetProcessingRows(assetUid: string) {
   return undefined;
 }
 
-export function isRowProcessingEnabled(assetUid: string, qpath: string) {
+export function isRowProcessingEnabled(assetUid: string, xpath: string) {
   const processingRows = getAssetProcessingRows(assetUid);
-  return Array.isArray(processingRows) && processingRows.includes(qpath);
+  return Array.isArray(processingRows) && processingRows.includes(xpath);
 }
 
 export function isAssetProcessingActivated(assetUid: string) {

@@ -66,6 +66,28 @@ class DeploymentNotFound(Exception):
         super().__init__(message)
 
 
+class DTDForbiddenException(Exception):
+    """
+    Exception to be used when DTDs are forbidden while parsing XML using the
+    LXML library
+    """
+
+    def __init__(self, message=t('XML contains forbidden DTDs')):
+        self.message = message
+        super().__init__(self.message)
+
+
+class EntitiesForbiddenException(Exception):
+    """
+    Exception to be used when Entities are forbidden while parsing XML
+    using the LXML library
+    """
+
+    def __int__(self, message=t('XML contains forbidden entities')):
+        self.message = message
+        super().__init__(self.message)
+
+
 class FFMpegException(Exception):
     pass
 
@@ -91,7 +113,8 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class InvalidXFormException(Exception):
-    pass
+    def __init__(self, message=t('Deployment links to an unexpected KoboCAT XForm')):
+        super().__init__(message)
 
 
 class InvalidXPathException(Exception):
@@ -131,6 +154,10 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
 
 
 class KobocatProfileException(Exception):
+    pass
+
+
+class MissingXFormException(Exception):
     pass
 
 

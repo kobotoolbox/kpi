@@ -44,6 +44,14 @@ from kpi.utils.permissions import is_user_anonymous
 from .models import Asset, ObjectPermission
 
 
+class DeploymentFilter:
+    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
+        AssetDeploymentStatus.DEPLOYED.value,
+        AssetDeploymentStatus.DRAFT.value,
+        AssetDeploymentStatus.ARCHIVED.value,
+    ]
+
+
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
     For use with nested models of Asset.
@@ -55,7 +63,32 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
-class AssetOrderingFilter(filters.OrderingFilter):
+class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
+
+    DEFAULT_USAGE_ORDERING_FIELDS = [
+        'name',
+        '_deployment_status',
+    ]
+
+    ordering_fields = DEFAULT_USAGE_ORDERING_FIELDS
+
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+
+        if ordering:
+            queryset = queryset.order_by(*ordering)
+        else:
+            return queryset.order_by(
+                OrderCustomCharField(
+                    '_deployment_status',
+                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                )
+            )
+
+        return queryset
+
+
+class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
@@ -72,12 +105,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
         'owner__extra_details__data__organization',
         'owner__email',
         '_deployment_status',
-    ]
-
-    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
-        AssetDeploymentStatus.DEPLOYED.value,
-        AssetDeploymentStatus.DRAFT.value,
-        AssetDeploymentStatus.ARCHIVED.value,
     ]
 
     def filter_queryset(self, request, queryset, view):

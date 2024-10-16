@@ -7,10 +7,11 @@ from typing import Optional
 
 from constance import config
 from django.conf import settings
-from django.db.models import QuerySet, F
-from django.utils.translation import gettext as t, ngettext as nt
+from django.db.models import F, QuerySet
+from django.utils.translation import gettext as t
+from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -18,10 +19,8 @@ from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.trash_bin.exceptions import (
-    TrashIntegrityError,
-    TrashTaskInProgressError,
-)
+from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
+from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.constants import (
@@ -29,13 +28,13 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPES,
-    ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -46,8 +45,8 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetVersion,
     AssetExportSettings,
+    AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
 )
@@ -58,18 +57,15 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
-
-from .asset_file import AssetFileSerializer
-
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
-from .asset_version import AssetVersionListSerializer
-from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+from .asset_file import AssetFileSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_version import AssetVersionListSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -286,7 +282,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     owner = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail', lookup_field='username', read_only=True)
+        view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
@@ -297,7 +293,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
     map_custom = WritableJSONField(required=False)
-    advanced_features = WritableJSONField(required=False)
+    advanced_features = WritableAdvancedFeaturesField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
@@ -418,6 +414,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context['request']
         user = request.user
 
+        validated_data['last_modified_by'] = user.username
         self._set_asset_ids_cache(asset)
 
         if (
@@ -686,9 +683,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ).data
 
     def get_project_ownership(self, asset) -> Optional[dict]:
-        pass
-
-    def get_project_ownership(self, asset) -> Optional[dict]:
         if not (transfer := asset.transfers.order_by('-date_created').first()):
             return
 
@@ -893,6 +887,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return {**self.instance.settings, **settings}
 
     def _content(self, obj):
+        # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
     def _get_status(self, perm_assignments):

@@ -1,9 +1,9 @@
-# coding: utf-8
 import logging
 import os
 import string
 import subprocess
-from datetime import datetime
+import warnings
+from datetime import datetime, timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -12,11 +12,12 @@ import environ
 from celery.schedules import crontab
 from django.conf import global_settings
 from django.urls import reverse_lazy
-from django.utils.translation import get_language_info, gettext_lazy as t
+from django.utils.translation import get_language_info
+from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.utils.json import LazyJSONSerializable
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -34,7 +35,7 @@ SECRET_KEY = env.str('DJANGO_SECRET_KEY', '@25)**hc^rjaiagb4#&q*84hr*uscsxwr-cv#
 # See: https://docs.djangoproject.com/en/1.8/ref/settings/#secure-proxy-ssl-header.
 # Example environment: `export SECURE_PROXY_SSL_HEADER='HTTP_X_FORWARDED_PROTO, https'`.
 # SECURITY WARNING: If enabled, outer web server must filter out the `X-Forwarded-Proto` header.
-SECURE_PROXY_SSL_HEADER = env.tuple("SECURE_PROXY_SSL_HEADER", str, None)
+SECURE_PROXY_SSL_HEADER = env.tuple('SECURE_PROXY_SSL_HEADER', str, None)
 
 public_request_scheme = env.str('PUBLIC_REQUEST_SCHEME', 'https').lower()
 
@@ -48,7 +49,7 @@ SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
 
 # Make Django use NginX $host. Useful when running with ./manage.py runserver_plus
 # It avoids adding the debugger webserver port (i.e. `:8000`) at the end of urls.
-USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", False)
+USE_X_FORWARDED_HOST = env.bool('USE_X_FORWARDED_HOST', False)
 
 # Domain must not exclude KoBoCAT when sharing sessions
 SESSION_COOKIE_DOMAIN = env.str('SESSION_COOKIE_DOMAIN', None)
@@ -69,7 +70,7 @@ SESSION_COOKIE_AGE = env.int('DJANGO_SESSION_COOKIE_AGE', 604800)
 LANGUAGE_COOKIE_AGE = SESSION_COOKIE_AGE
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DJANGO_DEBUG", False)
+DEBUG = env.bool('DJANGO_DEBUG', False)
 
 ALLOWED_HOSTS = env.str('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
@@ -86,6 +87,7 @@ INSTALLED_APPS = (
     # https://code.djangoproject.com/ticket/10827
     'django.contrib.contenttypes',
     'django.contrib.admin',
+    'kobo.apps.kobo_auth.KoboAuthAppConfig',
     'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -100,7 +102,9 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.microsoft',
     'allauth.socialaccount.providers.openid_connect',
+    'allauth.usersessions',
     'hub.HubAppConfig',
+    'import_export',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -121,7 +125,6 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
-    'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
     'kobo.apps.accounts.mfa.apps.MfaAppConfig',
     'kobo.apps.languages.LanguageAppConfig',
@@ -131,25 +134,41 @@ INSTALLED_APPS = (
     'kobo.apps.trash_bin.TrashBinAppConfig',
     'kobo.apps.markdownx_uploader.MarkdownxUploaderAppConfig',
     'kobo.apps.form_disclaimer.FormDisclaimerAppConfig',
+    'kobo.apps.openrosa.apps.logger.app.LoggerAppConfig',
+    'kobo.apps.openrosa.apps.viewer.app.ViewerConfig',
+    'kobo.apps.openrosa.apps.main.app.MainConfig',
+    'kobo.apps.openrosa.apps.api',
+    'guardian',
+    'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
 )
 
 MIDDLEWARE = [
+    'kobo.apps.service_health.middleware.HealthCheckMiddleware',
+    'kobo.apps.openrosa.koboform.redirect_middleware.ConditionalRedirects',
+    'kobo.apps.openrosa.apps.main.middleware.RevisionMiddleware',
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Still needed really?
+    'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
 ]
+
 
 if os.environ.get('DEFAULT_FROM_EMAIL'):
     DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
@@ -275,11 +294,22 @@ CONSTANCE_CONFIG = {
         # Use custom field for schema validation
         'i18n_text_jsonfield_schema'
     ),
+    'SUPERUSER_AUTH_ENFORCEMENT': (
+        False,
+        'Require MFA for superusers with a usable password',
+    ),
     'ASR_MT_INVITEE_USERNAMES': (
         '',
         'List of invited usernames, one per line, who will have access to NLP '
         'ASR/MT processing via external (costly) APIs.\nEnter * to invite '
         'all users.'
+    ),
+    'ASR_MT_GOOGLE_REQUEST_TIMEOUT': (
+        10,
+        (
+            'Timeout in seconds for google NLP data processing requests using'
+            ' the operations API. '
+        )
     ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
         'kobo-asr-mt',
@@ -353,7 +383,7 @@ CONSTANCE_CONFIG = {
         'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
-        '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        '\n'.join(s[0] for s in SECTOR_CHOICE_DEFAULTS),
         "Options available for the 'sector' metadata field, one per line.",
         'long_textfield'
     ),
@@ -630,6 +660,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
+        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -637,6 +668,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MFA_ISSUER_NAME',
         'MFA_ENABLED',
         'MFA_LOCALIZED_HELP_TEXT',
+        'SUPERUSER_AUTH_ENFORCEMENT',
     ),
     'Metadata options': (
         'USER_METADATA_FIELDS',
@@ -704,9 +736,10 @@ TEST_RUNNER = __name__ + '.DoNotUseRunner'
 # KoBoCAT also lists ModelBackend before
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
+    'kpi.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
+    'kobo.apps.openrosa.libs.backends.ObjectPermissionBackend',
 )
 
 ROOT_URLCONF = 'kobo.urls'
@@ -736,8 +769,10 @@ DATABASES = {
     ),
 }
 
+OPENROSA_DB_ALIAS = 'kobocat'
+
 if 'KC_DATABASE_URL' in os.environ:
-    DATABASES['kobocat'] = env.db_url('KC_DATABASE_URL')
+    DATABASES[OPENROSA_DB_ALIAS] = env.db_url('KC_DATABASE_URL')
 
 DATABASE_ROUTERS = ['kpi.db_routers.DefaultDatabaseRouter']
 
@@ -776,6 +811,7 @@ DJANGO_LANGUAGE_CODES = env.str(
         'tr '  # Turkish
         'uk '  # Ukrainian
         'vi '  # Vietnamese
+        'yo '  # Yoruba
         'zh-hans'  # Chinese Simplified
     )
 )
@@ -878,8 +914,7 @@ REST_FRAMEWORK = {
         'kpi.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-        'kobo_service_account.authentication.ServiceAccountAuthentication',
+        'kpi.authentication.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -889,6 +924,47 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
+}
+
+OPENROSA_REST_FRAMEWORK = {
+
+    'DEFAULT_PAGINATION_CLASS': None,
+    'DEFAULT_VERSIONING_CLASS': None,
+
+    # deprecated
+    # # Use hyperlinked styles by default.
+    # # Only used if the `serializer_class` attribute is not set on a view.
+    # 'DEFAULT_MODEL_SERIALIZER_CLASS': (
+    #     'rest_framework.serializers.HyperlinkedModelSerializer'
+    # ),
+    # # Use Django's standard `django.contrib.auth` permissions,
+    # # or allow read-only access for unauthenticated users.
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.AllowAny',
+    # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'kpi.authentication.DigestAuthentication',
+        'kpi.authentication.OAuth2Authentication',
+        'kpi.authentication.TokenAuthentication',
+        # HttpsOnlyBasicAuthentication must come before SessionAuthentication because
+        # Django authentication is called before DRF authentication and users get authenticated with
+        # Session if it comes first (which bypass BasicAuthentication and MFA validation)
+        'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
+        'kpi.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        # Keep JSONRenderer at the top "in order to send JSON responses to
+        # clients that do not specify an Accept header." See
+        # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_jsonp.renderers.JSONPRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_xml.renderers.XMLRenderer',
+        'rest_framework_csv.renderers.CSVRenderer',
+    ],
+    # FIXME Kobocat migration: Move to main REST_FRAMEWORK and change logic to handle kobocat view properly
+    'VIEW_NAME_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_name',
+    'VIEW_DESCRIPTION_FUNCTION': 'kobo.apps.openrosa.apps.api.tools.get_view_description',
 }
 
 TEMPLATES = [
@@ -916,6 +992,7 @@ TEMPLATES = [
                 'kpi.context_processors.config',
                 'kpi.context_processors.mfa',
                 'kpi.context_processors.django_settings',
+                'kpi.context_processors.kobocat',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
@@ -925,36 +1002,35 @@ TEMPLATES = [
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 SENTRY_JS_DSN = None
-RAVEN_JS_DSN = env.str('RAVEN_JS_DSN', None)
-if SENTRY_JS_DSN_URL := env.url(
-        'SENTRY_JS_DSN',
-        default=RAVEN_JS_DSN
-    ):
+if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
 
-# replace this with the pointer to the kobocat server, if it exists
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
+# replace this with the pointer to the KoboCAT server, if it exists
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'https://change-me.invalid')
 
-# In case server must serve two KoBoCAT domain names (e.g. during a
+# In case server must serve two KoboCAT domain names (e.g. during a
 # domain name transfer), `settings.KOBOCAT_OLD_URL` adds support for
 # the domain name.
 KOBOCAT_OLD_URL = os.environ.get('KOBOCAT_OLD_URL')
 
-KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
-                                      'http://kobocat')
+# Internal URL does not use HTTPS
+KOBOCAT_INTERNAL_URL = os.environ.get(
+    'KOBOCAT_INTERNAL_URL', 'http://change-me.invalid'
+)
 
-KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
+KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'https://change-me.invalid')
 
 if 'KOBOCAT_URL' in os.environ:
-    DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
+    DEFAULT_DEPLOYMENT_BACKEND = 'openrosa'
 else:
     DEFAULT_DEPLOYMENT_BACKEND = 'mock'
 
 
-''' Stripe configuration intended for kf.kobotoolbox.org only, tracks usage limit exceptions '''
-STRIPE_ENABLED = False
-if env.str('STRIPE_TEST_SECRET_KEY', None) or env.str('STRIPE_LIVE_SECRET_KEY', None):
-    STRIPE_ENABLED = True
+"""
+Stripe configuration intended for kf.kobotoolbox.org only,
+tracks usage limit exceptions
+"""
+STRIPE_ENABLED = env.bool('STRIPE_ENABLED', False)
 
 
 def dj_stripe_request_callback_method():
@@ -967,35 +1043,39 @@ def dj_stripe_request_callback_method():
     pass
 
 
-DJSTRIPE_SUBSCRIBER_MODEL = "organizations.Organization"
+DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 STRIPE_LIVE_MODE = env.bool('STRIPE_LIVE_MODE', False)
-STRIPE_TEST_PUBLIC_KEY = env.str('STRIPE_TEST_PUBLIC_KEY', "pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM")
-STRIPE_LIVE_PUBLIC_KEY = "pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P"
+STRIPE_TEST_PUBLIC_KEY = env.str(
+    'STRIPE_TEST_PUBLIC_KEY', 'pk_test_qliDXQRyVGPWmsYR69tB1NPx00ndTrJfVM'
+)
+STRIPE_LIVE_PUBLIC_KEY = 'pk_live_7JRQ5elvhnmz4YuWdlSRNmMj00lhvqZz8P'
 if STRIPE_ENABLED:
-    INSTALLED_APPS += ('djstripe', "kobo.apps.stripe")
+    INSTALLED_APPS += ('djstripe', 'kobo.apps.stripe')
     STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
     STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
     DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
     DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
 
-'''Organizations settings'''
+"""Organizations settings"""
 # necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
 # queries that may need to aggregate data for all organization users) from slowing down db
 ORGANIZATION_USER_LIMIT = env.str('ORGANIZATION_USER_LIMIT', 400)
 
 
-''' Enketo configuration '''
-ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+""" Enketo configuration """
+ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get(
+    'ENKETO_SERVER', 'https://change-me.invalid'
+)
 ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
-ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
+ENKETO_API_KEY = os.environ.get('ENKETO_API_KEY', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
@@ -1008,7 +1088,7 @@ ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
 # however CSP_EXTRA_DEFAULT_SRC is provided to allow for custom additions
-if env.bool("ENABLE_CSP", False):
+if env.bool('ENABLE_CSP', False):
     MIDDLEWARE.append('csp.middleware.CSPMiddleware')
 local_unsafe_allows = [
     "'unsafe-eval'",
@@ -1016,8 +1096,12 @@ local_unsafe_allows = [
     'http://kf.kobo.local:3000',
     'ws://kf.kobo.local:3000'
 ]
-CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + ["'self'", KOBOCAT_URL, ENKETO_URL]
-if env.str("FRONTEND_DEV_MODE", None) == "host":
+CSP_DEFAULT_SRC = env.list('CSP_EXTRA_DEFAULT_SRC', str, []) + [
+    "'self'",
+    KOBOCAT_URL,
+    ENKETO_URL,
+]
+if env.str('FRONTEND_DEV_MODE', None) == 'host':
     CSP_DEFAULT_SRC += local_unsafe_allows
 CSP_CONNECT_SRC = CSP_DEFAULT_SRC
 CSP_SCRIPT_SRC = CSP_DEFAULT_SRC
@@ -1034,33 +1118,40 @@ CSP_FRAME_SRC = CSP_DEFAULT_SRC
 if GOOGLE_ANALYTICS_TOKEN:
     # Taken from https://developers.google.com/tag-platform/tag-manager/csp#google_analytics_4_google_analytics
     CSP_SCRIPT_SRC.append('https://*.googletagmanager.com')
-    CSP_CONNECT_SRC.extend(['https://*.google-analytics.com', 'https://*.analytics.google.com', 'https://*.googletagmanager.com'])
-    CSP_IMG_SRC.extend(['https://*.google-analytics.com', 'https://*.googletagmanager.com'])
+    CSP_CONNECT_SRC.extend(
+        [
+            'https://*.google-analytics.com',
+            'https://*.analytics.google.com',
+            'https://*.googletagmanager.com',
+        ]
+    )
+    CSP_IMG_SRC.extend(
+        ['https://*.google-analytics.com', 'https://*.googletagmanager.com']
+    )
 if SENTRY_JS_DSN_URL and SENTRY_JS_DSN_URL.scheme:
     sentry_js_url = SENTRY_JS_DSN_URL.scheme + '://' + SENTRY_JS_DSN_URL.hostname
     CSP_SCRIPT_SRC.append(sentry_js_url)
     CSP_CONNECT_SRC.append(sentry_js_url)
 if STRIPE_ENABLED:
-    stripe_domain = "https://js.stripe.com"
+    stripe_domain = 'https://js.stripe.com'
     CSP_SCRIPT_SRC.append(stripe_domain)
     CSP_FRAME_SRC.append(stripe_domain)
 
 csp_report_uri = env.url('CSP_REPORT_URI', None)
 if csp_report_uri:  # Let environ validate uri, but set as string
     CSP_REPORT_URI = csp_report_uri.geturl()
-CSP_REPORT_ONLY = env.bool("CSP_REPORT_ONLY", False)
+CSP_REPORT_ONLY = env.bool('CSP_REPORT_ONLY', False)
 
-''' Celery configuration '''
+""" Celery configuration """
 # Celery 4.0 New lowercase settings.
 # Uppercase settings can be used when using a PREFIX
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings
 # http://docs.celeryproject.org/en/4.0/whatsnew-4.0.html#step-2-update-your-configuration-with-the-new-setting-names
 
-CELERY_TIMEZONE = "UTC"
+CELERY_TIMEZONE = 'UTC'
 
-if os.environ.get('SKIP_CELERY', 'False') == 'True':
-    # helpful for certain debugging
-    CELERY_TASK_ALWAYS_EAGER = True
+# helpful for certain debugging
+CELERY_TASK_ALWAYS_EAGER = env.bool('SKIP_CELERY', False)
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks
@@ -1094,6 +1185,16 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=20, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    'log-stuck-exports-and-mark-failed': {
+        'task': 'kobo.apps.openrosa.apps.viewer.tasks.log_stuck_exports_and_mark_failed',
+        'schedule': timedelta(hours=6),
+        'options': {'queue': 'kobocat_queue'}
+    },
+    'delete-daily-xform-submissions-counter': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
+        'schedule': crontab(hour=0, minute=0),
+        'options': {'queue': 'kobocat_queue'}
+    },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
@@ -1120,22 +1221,32 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+
 CELERY_BROKER_TRANSPORT_OPTIONS = {
-    "fanout_patterns": True,
-    "fanout_prefix": True,
+    'fanout_patterns': True,
+    'fanout_prefix': True,
     # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#redis-visibility-timeout
     # TODO figure out how to pass `Constance.HOOK_MAX_RETRIES` or `HookLog.get_remaining_seconds()
     # Otherwise hardcode `HOOK_MAX_RETRIES` in Settings
-    "visibility_timeout": 60 * (10 ** 3)  # Longest ETA for RestService (seconds)
+    'visibility_timeout': 60 * (10**2),  # Longest ETA for RestService (seconds)
 }
 
-CELERY_TASK_DEFAULT_QUEUE = "kpi_queue"
+CELERY_TASK_DEFAULT_QUEUE = 'kpi_queue'
 
 if 'KOBOCAT_URL' in os.environ:
     SYNC_KOBOCAT_PERMISSIONS = (
         os.environ.get('SYNC_KOBOCAT_PERMISSIONS', 'True') == 'True')
 
-CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_BROKER_URL = os.environ.get(
+    'CELERY_BROKER_URL',
+    os.environ.get('KPI_BROKER_URL', 'redis://change-me.invalid:6379/1'),
+)
+if 'KPI_BROKER_URL' in os.environ:
+    warnings.warn(
+        'KPI_BROKER_URL is renamed CELERY_BROKER_URL, update the environment variable.',
+        DeprecationWarning,
+    )
+
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 # Increase limits for long-running tasks
@@ -1148,7 +1259,7 @@ CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT = int(
     os.environ.get('CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT', 4200)  # seconds
 )
 
-''' Django allauth configuration '''
+""" Django allauth configuration """
 # User.email should continue to be used instead of the EmailAddress model
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
@@ -1170,7 +1281,7 @@ SOCIALACCOUNT_FORMS = {
 # For SSO, the signup form is prepopulated with the account email
 # If set True, the email field in the SSO signup form will be readonly
 UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
-    "UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE", False
+    'UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE', False
 )
 
 WEBPACK_LOADER = {
@@ -1182,13 +1293,14 @@ WEBPACK_LOADER = {
 }
 
 
-''' Email configuration '''
+""" Email configuration """
 # This setting sets the prefix in the subject line of the account activation email
 # The default is the URL of the server. Set to blank to fit the email requirements
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND',
-                               'django.core.mail.backends.filebased.EmailBackend')
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND', 'django.core.mail.backends.filebased.EmailBackend'
+)
 
 if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     EMAIL_FILE_PATH = os.environ.get(
@@ -1210,7 +1322,7 @@ if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
 
-''' AWS configuration (email and storage) '''
+""" AWS configuration (email and storage) """
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
@@ -1225,12 +1337,19 @@ if env.str('AWS_ACCESS_KEY_ID', False):
 # Storage configuration
 STORAGES = global_settings.STORAGES
 
+default_file_storage = env.str(
+    'DEFAULT_FILE_STORAGE', env.str('KPI_DEFAULT_FILE_STORAGE', None)
+)
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+    warnings.warn(
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
+        DeprecationWarning,
+    )
+
+if default_file_storage:
 
     global_default_file_storage = STORAGES['default']['BACKEND']
-    default_file_storage = STORAGES['default']['BACKEND'] = env.str(
-        'KPI_DEFAULT_FILE_STORAGE'
-    )
+    default_file_storage = STORAGES['default']['BACKEND'] = default_file_storage
     if default_file_storage != global_default_file_storage:
         if default_file_storage.endswith('S3Boto3Storage'):
             # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
@@ -1251,8 +1370,9 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-    if 'KPI_AWS_STORAGE_BUCKET_NAME' in os.environ:
-        AWS_STORAGE_BUCKET_NAME = os.environ.get('KPI_AWS_STORAGE_BUCKET_NAME')
+    aws_storage_bucket_name = env.str('AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None))
+    if aws_storage_bucket_name:
+        AWS_STORAGE_BUCKET_NAME = aws_storage_bucket_name
         AWS_DEFAULT_ACL = 'private'
         # django-private-storage needs its own S3 configuration
         PRIVATE_STORAGE_CLASS = \
@@ -1265,21 +1385,24 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
 
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
-    # To use S3 storage, set this to `storages.backends.s3boto3.S3Boto3Storage`
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
     if 'KOBOCAT_AWS_STORAGE_BUCKET_NAME' in os.environ:
         KOBOCAT_AWS_STORAGE_BUCKET_NAME = os.environ.get('KOBOCAT_AWS_STORAGE_BUCKET_NAME')
+        STORAGES['local'] = {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        }
 else:
     KOBOCAT_DEFAULT_FILE_STORAGE = global_settings.STORAGES['default']['BACKEND']
-    KOBOCAT_MEDIA_PATH = os.environ.get('KOBOCAT_MEDIA_PATH', '/srv/src/kobocat/media')
-
+    KOBOCAT_MEDIA_ROOT = os.environ.get(
+        'KOBOCAT_MEDIA_ROOT', MEDIA_ROOT.replace('kpi', 'kobocat')
+    )
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
 GS_BUCKET_NAME = env.str('GS_BUCKET_NAME', None)
 
 
-''' Django error logging configuration '''
+""" Django error logging configuration """
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -1317,7 +1440,7 @@ LOGGING = {
 ################################
 # Sentry settings              #
 ################################
-sentry_dsn = env.str('SENTRY_DSN', env.str('RAVEN_DSN', None))
+sentry_dsn = env.str('SENTRY_DSN', None)
 if sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
@@ -1353,7 +1476,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-''' Try to identify the running codebase for informational purposes '''
+""" Try to identify the running codebase for informational purposes """
 # Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
 GIT_REV = {}
 for git_rev_key, git_command in (
@@ -1371,14 +1494,14 @@ if GIT_REV['branch'] == 'HEAD':
     GIT_REV['branch'] = False
 
 
-'''
+"""
 Since this project handles user creation, we must handle the model-level
 permission assignment that would've been done by KoBoCAT's user post_save
 signal handler. Here we record the content types of the models listed in KC's
 set_api_permissions_for_user(). Verify that this list still matches that
 function if you experience permission-related problems. See
-https://github.com/kobotoolbox/kobocat/blob/master/onadata/libs/utils/user_auth.py.
-'''
+https://github.com/kobotoolbox/kobocat/blob/main/onadata/libs/utils/user_auth.py.
+"""
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
     ('main', 'userprofile'),
@@ -1390,7 +1513,7 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
 TESTING = False
 
 
-''' Auxiliary database configuration '''
+""" Auxiliary database configuration """
 if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
     # ToDo Remove all this block by the end of 2022.
     #   Update kobo-install accordingly
@@ -1410,16 +1533,15 @@ if not (MONGO_DB_URL := env.str('MONGO_DB_URL', False)):
     }
 
     if MONGO_DATABASE.get('USER') and MONGO_DATABASE.get('PASSWORD'):
-        MONGO_DB_URL = "mongodb://{user}:{password}@{host}:{port}/{db_name}".\
-            format(
-                user=MONGO_DATABASE['USER'],
-                password=quote_plus(MONGO_DATABASE['PASSWORD']),
-                host=MONGO_DATABASE['HOST'],
-                port=MONGO_DATABASE['PORT'],
-                db_name=MONGO_DATABASE['NAME']
-            )
+        MONGO_DB_URL = 'mongodb://{user}:{password}@{host}:{port}/{db_name}'.format(
+            user=MONGO_DATABASE['USER'],
+            password=quote_plus(MONGO_DATABASE['PASSWORD']),
+            host=MONGO_DATABASE['HOST'],
+            port=MONGO_DATABASE['PORT'],
+            db_name=MONGO_DATABASE['NAME'],
+        )
     else:
-        MONGO_DB_URL = "mongodb://%(HOST)s:%(PORT)s/%(NAME)s" % MONGO_DATABASE
+        MONGO_DB_URL = 'mongodb://%(HOST)s:%(PORT)s/%(NAME)s' % MONGO_DATABASE
     mongo_db_name = MONGO_DATABASE['NAME']
 else:
     # Attempt to get collection name from the connection string
@@ -1436,13 +1558,17 @@ MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
+# ⚠️⚠️
+# These settings should never be used directly.
+# Use MongoHelper.get_max_time_ms() in the code instead
+# ⚠️⚠️
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
 redis_session_url = env.cache_url(
-    'REDIS_SESSION_URL', default='redis://redis_cache:6380/2'
+    'REDIS_SESSION_URL', default='redis://change-me.invalid:6380/2'
 )
 SESSION_REDIS = {
     'url': redis_session_url['LOCATION'],
@@ -1452,7 +1578,7 @@ SESSION_REDIS = {
 
 CACHES = {
     # Set CACHE_URL to override
-    'default': env.cache_url(default='redis://redis_cache:6380/3'),
+    'default': env.cache_url(default='redis://change-me.invalid:6380/3'),
     'enketo_redis_main': env.cache_url(
         'ENKETO_REDIS_MAIN_URL', default='redis://change-me.invalid/0'
     ),
@@ -1472,31 +1598,18 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
-OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
-# Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300  # seconds
 
-# Minimum size (in bytes) of files to allow fast calculation of hashes
-# Should match KoBoCAT setting
-HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
-
-# Chunk size in bytes to read per iteration when hash of a file is calculated
-# Should match KoBoCAT setting
-HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
+CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
 # add some mimetype
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
 
 KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
-KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
-    'original': '',
-    'large': '_large',
-    'medium': '_medium',
-    'small': '_small',
-}
 
 TRENCH_AUTH = {
     'USER_MFA_MODEL': 'mfa.MfaMethod',
@@ -1526,19 +1639,13 @@ TRENCH_AUTH = {
 # Session Authentication is supported by default.
 MFA_SUPPORTED_AUTH_CLASSES = [
     'kpi.authentication.TokenAuthentication',
+    'kobo.apps.openrosa.libs.authentication.TokenAuthentication',
 ]
 
 MINIMUM_DEFAULT_SEARCH_CHARACTERS = 3
 
 # Django 3.2 required settings
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-SERVICE_ACCOUNT = {
-    'BACKEND': env.cache_url(
-        'SERVICE_ACCOUNT_BACKEND_URL', default='redis://redis_cache:6380/6'
-    ),
-    'WHITELISTED_HOSTS': env.list('SERVICE_ACCOUNT_WHITELISTED_HOSTS', default=[]),
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -1557,3 +1664,113 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'kpi.password_validation.MostRecentPasswordValidator',
     },
 ]
+
+# Needed to avoid Constance to create permissions on KoboCAT database
+CONSTANCE_DBS = [
+    'default'
+]
+
+AUTH_USER_MODEL = 'kobo_auth.User'
+
+####################################
+#         KoboCAT settings         #
+####################################
+KOBOCAT_PUBLIC_HOSTNAME = (
+    f"{env.str('KOBOCAT_PUBLIC_SUBDOMAIN', 'kc')}"
+    f".{env.str('PUBLIC_DOMAIN_NAME', 'domain.tld')}"
+)
+
+KOBOFORM_INTERNAL_URL = env.url('KOBOFORM_INTERNAL_URL', KOBOFORM_URL).geturl()
+
+ENKETO_OFFLINE_SURVEYS = env.bool('ENKETO_OFFLINE_SURVEYS', True)
+ENKETO_ONLINE_SURVEY_ENDPOINT = 'api/v2/survey'
+ENKETO_OFFLINE_SURVEY_ENDPOINT = 'api/v2/survey/offline'
+OPENROSA_ENKETO_SURVEY_ENDPOINT = (
+    ENKETO_OFFLINE_SURVEY_ENDPOINT
+    if ENKETO_OFFLINE_SURVEYS
+    else ENKETO_ONLINE_SURVEY_ENDPOINT
+)
+OPENROSA_APP_DIR = os.path.join(BASE_DIR, 'kobo', 'apps', 'openrosa')
+DEFAULT_SESSION_EXPIRY_TIME = 21600  # 6 hours
+
+CELERY_TASK_ROUTES = {
+    'kobo.apps.openrosa.*': 'kobocat_queue',
+}
+USE_THOUSAND_SEPARATOR = True
+
+DIGEST_NONCE_BACKEND = 'kobo.apps.openrosa.apps.django_digest_backends.cache.RedisCacheNonceStorage'  # noqa
+
+# Needed to get ANONYMOUS_USER = -1
+GUARDIAN_GET_INIT_ANONYMOUS_USER = 'kobo.apps.openrosa.apps.main.models.user_profile.get_anonymous_user_instance'  # noqa
+
+KPI_HOOK_ENDPOINT_PATTERN = '/api/v2/assets/{asset_uid}/hook-signal/'
+
+# TODO Validate if `'PKCE_REQUIRED': False` is required in KPI
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'groups': 'Access to your groups'
+    },
+    'PKCE_REQUIRED': False,
+}
+
+REVERSION_MIDDLEWARE_SKIPPED_URL_PATTERNS = {
+    r'/api/v1/users/(.*)': ['DELETE']
+}
+DAILY_COUNTERS_MAX_DAYS = env.int('DAILY_COUNTERS_MAX_DAYS', 366)
+
+USE_POSTGRESQL = True
+
+# Added this because of https://github.com/onaio/kobo.apps.open_rosa_server/pull/2139
+# Should bring support to ODK v1.17+
+SUPPORT_BRIEFCASE_SUBMISSION_DATE = (
+    os.environ.get('SUPPORT_BRIEFCASE_SUBMISSION_DATE') != 'True'
+)
+
+DEFAULT_VALIDATION_STATUSES = {
+    'validation_status_not_approved': 'Not Approved',
+    'validation_status_approved': 'Approved',
+    'validation_status_on_hold': 'On Hold',
+}
+
+THUMB_CONF = {
+    'large': 1280,
+    'medium': 640,
+    'small': 240,
+}
+
+SUPPORTED_MEDIA_UPLOAD_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/svg+xml',
+    'image/webp',
+    'video/3gpp',
+    'video/mp4',
+    'video/quicktime',
+    'video/ogg',
+    'video/webm',
+    'audio/aac',
+    'audio/aacp',
+    'audio/3gpp',
+    'audio/flac',
+    'audio/mp3',
+    'audio/mp4',
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/webm',
+    'audio/x-m4a',
+    'text/csv',
+    'application/xml',
+    'application/zip',
+    'application/x-zip-compressed'
+]
+
+# Silence Django Guardian warning. Authentication backend is hooked, but
+# Django Guardian does not recognize it because it is extended
+SILENCED_SYSTEM_CHECKS = ['guardian.W001']
+
+DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

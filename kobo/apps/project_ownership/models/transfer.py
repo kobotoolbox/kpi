@@ -18,18 +18,19 @@ from kpi.deployment_backends.kc_access.utils import (
 )
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
+from kpi.models.abstract_models import AbstractTimeStampedModel
+from ..exceptions import TransferAlreadyProcessedException
+from ..tasks import async_task, send_email_to_admins
+from ..utils import get_target_folder
 from .choices import (
     InviteStatusChoices,
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
 from .invite import Invite
-from ..exceptions import TransferAlreadyProcessedException
-from ..tasks import async_task, send_email_to_admins
-from ..utils import get_target_folder
 
 
-class Transfer(models.Model):
+class Transfer(AbstractTimeStampedModel):
 
     uid = KpiUidField(uid_prefix='pot')
     asset = models.ForeignKey(
@@ -42,8 +43,6 @@ class Transfer(models.Model):
         related_name='transfers',
         on_delete=models.CASCADE,
     )
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'project ownership transfer'
@@ -58,11 +57,6 @@ class Transfer(models.Model):
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
-
-        update_fields = kwargs.get('update_fields', {})
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-
         super().save(*args, **kwargs)
 
         if is_new:
@@ -87,6 +81,7 @@ class Transfer(models.Model):
                 global_status.status = value
 
             global_status.save()
+
             self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
             self._update_invite_status()
@@ -100,6 +95,7 @@ class Transfer(models.Model):
         success = False
         try:
             if not self.asset.has_deployment:
+                _rewrite_mongo = False
                 with transaction.atomic():
                     self._reassign_project_permissions(update_deployment=False)
                     self._sent_in_app_messages()
@@ -113,6 +109,7 @@ class Transfer(models.Model):
                         status=TransferStatusChoices.SUCCESS
                     )
             else:
+                _rewrite_mongo = True
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
@@ -129,19 +126,9 @@ class Transfer(models.Model):
 
                         self._sent_in_app_messages()
 
-                # Move submissions, media files and attachments in background
-                # tasks because it can take a while to complete on big projects
-
-                # 1) Rewrite `_userform_id` in MongoDB
-                async_task.delay(
-                    self.pk, TransferStatusTypeChoices.SUBMISSIONS
-                )
-
-            # 2) Move media files to new owner's home directory
-            async_task.delay(
-                self.pk, TransferStatusTypeChoices.MEDIA_FILES
-            )
-
+            # Do not delegate anything to Celery before the transaction has
+            # been validated. Otherwise, Celery could fetch outdated data.
+            transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
             success = True
         finally:
             if not success:
@@ -236,7 +223,7 @@ class Transfer(models.Model):
         message_recipient_ids = (
             ObjectPermission.objects.filter(asset_id=self.asset_id)
             .exclude(user_id__in=exclusions)
-            .values_list("user_id", flat=True)
+            .values_list('user_id', flat=True)
         )
 
         if len(message_recipient_ids):
@@ -264,6 +251,16 @@ class Transfer(models.Model):
                     for user_id in message_recipient_ids
                 ]
             )
+
+    def _start_async_jobs(self, rewrite_mongo: bool = True):
+        # Move submissions, media files and attachments in background
+        # tasks because it can take a while to complete on big projects
+        if rewrite_mongo:
+            # 1) Rewrite `_userform_id` in MongoDB
+            async_task.delay(self.pk, TransferStatusTypeChoices.SUBMISSIONS)
+
+        # 2) Move media files to new owner's home directory
+        async_task.delay(self.pk, TransferStatusTypeChoices.MEDIA_FILES)
 
     def _update_invite_status(self):
         """
@@ -303,7 +300,7 @@ class Transfer(models.Model):
             self.invite.refresh_from_db()
 
 
-class TransferStatus(models.Model):
+class TransferStatus(AbstractTimeStampedModel):
 
     transfer = models.ForeignKey(
         Transfer, related_name='statuses', on_delete=models.CASCADE
@@ -321,8 +318,6 @@ class TransferStatus(models.Model):
         db_index=True
     )
     error = models.TextField(null=True)
-    date_created = models.DateTimeField(default=timezone.now)
-    date_modified = models.DateTimeField(default=timezone.now)
 
     class Meta:
         constraints = [
@@ -338,13 +333,6 @@ class TransferStatus(models.Model):
             f'[{TransferStatusTypeChoices(self.status_type).label}]: '
             f'{TransferStatusChoices(self.status).label}'
         )
-
-    def save(self, *args, **kwargs):
-        update_fields = kwargs.get('update_fields', {})
-        if not update_fields or 'date_modified' in update_fields:
-            self.date_modified = timezone.now()
-
-        super().save(*args, **kwargs)
 
     @classmethod
     def update_status(

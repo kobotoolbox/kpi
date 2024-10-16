@@ -22,24 +22,18 @@ export default class FormXform extends React.Component {
   render() {
     if (!this.state.xformLoaded) {
       return (
-        <bem.uiPanel>
-          <bem.uiPanel__body>
-            <CenteredMessage message={t('XForm is loading')} />
-          </bem.uiPanel__body>
-        </bem.uiPanel>
+        <bem.FormView m='ui-panel'>
+          <CenteredMessage message={t('XForm is loading')} />
+        </bem.FormView>
       );
     } else {
       return (
-        <bem.uiPanel>
-          <bem.uiPanel__body>
-            <bem.FormView>
-              <div
-                className='pygment'
-                dangerouslySetInnerHTML={this.state.xformHtml}
-              />
-            </bem.FormView>
-          </bem.uiPanel__body>
-        </bem.uiPanel>
+        <bem.FormView m='ui-panel'>
+          <div
+            className='pygment'
+            dangerouslySetInnerHTML={this.state.xformHtml}
+          />
+        </bem.FormView>
       );
     }
   }

@@ -1,6 +1,6 @@
 from allauth.socialaccount.models import SocialApp
 from django import template
-from django.conf import settings
+from django.db.models import Q
 
 register = template.Library()
 
@@ -36,4 +36,4 @@ def get_provider_appname(context, provider=None):
 
 @register.simple_tag()
 def get_social_apps():
-    return SocialApp.objects.filter(custom_data__isnull=True)
+    return SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))

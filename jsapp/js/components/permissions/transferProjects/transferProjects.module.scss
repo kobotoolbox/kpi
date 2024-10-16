@@ -1,11 +1,12 @@
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/colors';
 
 .root {
   background: colors.$kobo-white;
   padding: sizes.$x20;
   margin: sizes.$x24 sizes.$x40;
-  border: 1px solid colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-300;
   border-radius: sizes.$x5;
 }
 
@@ -15,8 +16,10 @@
 
 .bar {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
 
   .transferButton {
     max-width: sizes.$x180;
@@ -35,34 +38,20 @@
   line-height: sizes.$x24;
   padding: 0 sizes.$x24;
 
-  p:first-of-type {
-    margin: sizes.$x16 0;
+  p {
+    // Reset browser defaults
+    margin: 0;
+  }
+
+  p:not(:last-child) {
+    margin-bottom: sizes.$x16;
   }
 }
 
-.warning {
-  display: flex;
-  padding: sizes.$x12;
-  margin: sizes.$x24 0 sizes.$x24 0;
-  background-color: colors.$kobo-light-red;;
-  border-radius: sizes.$x5;
-}
-
-.warningIcon {
-  margin-right: sizes.$x8;
-}
-
-@media screen and (max-width: 768px) {
+@include breakpoints.breakpoint(mediumAndUp) {
   .bar {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .transferButton {
-      margin-top: sizes.$x12;
-    }
-  }
-
-  .description {
-    margin: 0 0 sizes.$x12 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
   }
 }

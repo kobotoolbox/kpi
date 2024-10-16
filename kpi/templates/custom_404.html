@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+  <form class='registration registration--login'>
+    <h1>
+      {% trans 'Page not found (404)' %}
+    </h1>
+
+    {% trans 'This page does not exist on the server. Please check the URL or link that sent you here.' %}
+
+    <a href="javascript: history.back()">{% trans 'Go back' %}</a>
+  </form>
+{% endblock %}

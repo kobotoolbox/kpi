@@ -12,7 +12,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: 'abc123',
-        qpath: 'My_que',
+        xpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
         tabName: ProcessingTab.Analysis,
       });
@@ -23,7 +23,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: 'abc123',
-        qpath: 'My_que',
+        xpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
         tabName: ProcessingTab.Transcript,
       });
@@ -34,7 +34,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: 'abc123',
-        qpath: 'My_que',
+        xpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
       });
     });
@@ -44,7 +44,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: 'abc123',
-        qpath: 'My_que',
+        xpath: 'My_que',
         submissionEditId: 'def-45gh-jklm',
       });
     });
@@ -54,7 +54,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: '',
-        qpath: '',
+        xpath: '',
         submissionEditId: '',
       });
     });
@@ -64,7 +64,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: '',
-        qpath: '',
+        xpath: '',
         submissionEditId: '',
       });
     });
@@ -74,7 +74,7 @@ describe('processing routes.utils tests', () => {
       const test = getProcessingRouteParts(path);
       chai.expect(test).to.deep.equal({
         assetUid: '',
-        qpath: '',
+        xpath: '',
         submissionEditId: '',
       });
     });

@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'scss/mixins';
 @use 'js/components/common/button';
@@ -20,7 +20,7 @@
   padding: 0 sizes.$x1 0 sizes.$x10;
   border-width: button.$button-border-width;
   border-style: solid;
-  border-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-300;
   border-radius: button.$button-border-radius;
 
   &:not(:last-child) {

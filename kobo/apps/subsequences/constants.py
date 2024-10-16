@@ -6,6 +6,7 @@ QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
 
 GOOGLETX = 'googletx'
 GOOGLETS = 'googlets'
+GOOGLE_CODE = 'goog'
 
 ASYNC_TRANSLATION_DELAY_INTERVAL = 5
 
@@ -15,5 +16,15 @@ SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 GOOGLE_CACHE_TIMEOUT = 28800  # 8 hours
 
 
-def make_async_cache_key(user_id: int, submission_id: str, xpath: str, source: str):
-    return f'{SUBSEQUENCES_ASYNC_CACHE_KEY}-{user_id}-{submission_id}-{xpath}-{source}'
+def make_nlp_async_cache_key(
+    user_id: int,
+    submission_uuid: str,
+    xpath: str,
+    source_lang: str,
+    target_lang: str
+) -> str:
+    """
+    Make a cache key from the parameters for NLP
+    """
+    args = [user_id, submission_uuid, xpath, source_lang, target_lang]
+    return '-'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))

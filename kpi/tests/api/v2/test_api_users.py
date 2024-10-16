@@ -18,7 +18,7 @@ class UserListTests(BaseTestCase):
         """
         a superuser can query the entire user list and search
         """
-        url = reverse(self._get_endpoint('user-list'))
+        url = reverse(self._get_endpoint('user-kpi-list'))
         response = self.client.get(url, format='json')
         assert response.status_code == status.HTTP_200_OK
 
@@ -35,7 +35,7 @@ class UserListTests(BaseTestCase):
         """
         self.client.logout()
         self.client.login(username='someuser')
-        url = reverse(self._get_endpoint('user-list'))
+        url = reverse(self._get_endpoint('user-kpi-list'))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -44,7 +44,7 @@ class UserListTests(BaseTestCase):
         an anonymous user cannot query the entire user list
         """
         self.client.logout()
-        url = reverse(self._get_endpoint('user-list'))
+        url = reverse(self._get_endpoint('user-kpi-list'))
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -53,7 +53,7 @@ class UserListTests(BaseTestCase):
         we can retrieve user details
         """
         username = 'admin'
-        url = reverse(self._get_endpoint('user-detail'), args=[username])
+        url = reverse(self._get_endpoint('user-kpi-detail'), args=[username])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('username', response.data)
@@ -64,6 +64,6 @@ class UserListTests(BaseTestCase):
         verify that a 404 is returned when trying to retrieve details for an
         invalid user
         """
-        url = reverse(self._get_endpoint('user-detail'), args=['nonexistentuser'])
+        url = reverse(self._get_endpoint('user-kpi-detail'), args=['nonexistentuser'])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

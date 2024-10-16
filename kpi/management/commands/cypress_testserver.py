@@ -1,10 +1,11 @@
 # coding: utf-8
+from allauth.account.models import EmailAddress
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 
 
@@ -16,7 +17,7 @@ class Command(BaseCommand):
 
     help = 'Runs a development server with data to facilitate Cypress testing.'
 
-    requires_system_checks = False
+    requires_system_checks = []
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -55,6 +56,9 @@ class Command(BaseCommand):
             # Optionally import any fixtures specified on the command line into
             # the database.
             call_command('loaddata', *fixture_labels, **{'verbosity': verbosity})
+        else:
+            # Load the `test_data` fixture by default
+            call_command('loaddata', ['test_data'], **{'verbosity': verbosity})
 
         # Insert fixture data that are written here as Python code
         self.insert_test_data()
@@ -113,9 +117,13 @@ class Command(BaseCommand):
             'submission_retryer',
         ]
         for user in users:
-            user_obj = User(username=user)
+            email = f'{user}@fake.kbtdev.org'
+            user_obj = User(username=user, email=email)
             user_obj.set_password(user)
             user_obj.save()
+            EmailAddress.objects.create(
+                user=user_obj, email=email, verified=True, primary=True
+            )
 
         # Create an "empty" survey with no questions other than the defaults
         # added by the form builder
@@ -373,4 +381,4 @@ class Command(BaseCommand):
             submission['__version__'] = latest_version_uuid
             return submission
         submission_generator = (set_version(s) for s in submissions)
-        asset.deployment.mock_submissions(submission_generator, flush_db=False)
+        asset.deployment.mock_submissions(submission_generator)

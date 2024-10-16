@@ -1,9 +1,9 @@
 import React from 'react';
-import {formatTime} from 'js/utils';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import TransxSelector from 'js/components/processing/transxSelector';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
+import TransxDate from 'js/components/processing/transxDate.component';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
 
 interface HeaderLanguageAndDateProps {
@@ -68,28 +68,14 @@ export default function HeaderLanguageAndDate(
     props.selectedTranslation
   );
 
-  let dateText = '';
-  if (storeTranslation) {
-    if (storeTranslation.dateCreated !== storeTranslation?.dateModified) {
-      dateText = t('last modified ##date##').replace(
-        '##date##',
-        formatTime(storeTranslation.dateModified)
-      );
-    } else {
-      dateText = t('created ##date##').replace(
-        '##date##',
-        formatTime(storeTranslation.dateCreated)
-      );
-    }
-  }
-
   return (
     <React.Fragment>
       {renderLanguage()}
 
-      {dateText !== '' && (
-        <time className={bodyStyles.transxHeaderDate}>{dateText}</time>
-      )}
+      <TransxDate
+        dateCreated={storeTranslation?.dateCreated}
+        dateModified={storeTranslation?.dateModified}
+      />
     </React.Fragment>
   );
 }

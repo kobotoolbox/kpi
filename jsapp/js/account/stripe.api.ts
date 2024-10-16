@@ -10,9 +10,12 @@ import type {
   ChangePlan,
   Checkout,
   Organization,
+  PriceMetadata,
   Product,
+  TransformQuantity,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
+import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -28,17 +31,20 @@ export async function getProducts() {
 }
 
 export async function changeSubscription(
-  priceId: string,
-  subscriptionId: string
+  price_id: string,
+  subscription_id: string,
+  quantity = 1
 ) {
-  return fetchGet<ChangePlan>(
-    `${endpoints.CHANGE_PLAN_URL}?price_id=${priceId}&subscription_id=${subscriptionId}`,
-    {
-      errorMessageDisplay: t(
-        "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
-      ),
-    }
-  );
+  const params = new URLSearchParams({
+    price_id,
+    subscription_id,
+    quantity: quantity.toString(),
+  });
+  return fetchGet<ChangePlan>(`${endpoints.CHANGE_PLAN_URL}?${params}`, {
+    errorMessageDisplay: t(
+      "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
+    ),
+  });
 }
 
 export async function getOrganization() {
@@ -50,9 +56,13 @@ export async function getOrganization() {
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
  */
-export async function postCheckout(priceId: string, organizationId: string) {
+export async function postCheckout(
+  priceId: string,
+  organizationId: string,
+  quantity = 1
+) {
   return fetchPost<Checkout>(
-    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}`,
+    `${endpoints.CHECKOUT_URL}?price_id=${priceId}&organization_id=${organizationId}&quantity=${quantity}`,
     {},
     {
       errorMessageDisplay:
@@ -64,9 +74,13 @@ export async function postCheckout(priceId: string, organizationId: string) {
 /**
  * Get the URL of the Stripe customer portal for an organization.
  */
-export async function postCustomerPortal(organizationId: string, priceId?: string) {
+export async function postCustomerPortal(
+  organizationId: string,
+  priceId: string = '',
+  quantity = 1
+) {
   return fetchPost<Checkout>(
-    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId || ''}`,
+    `${endpoints.PORTAL_URL}?organization_id=${organizationId}&price_id=${priceId}&quantity=${quantity}`,
     {},
     {
       errorMessageDisplay:
@@ -91,7 +105,7 @@ export async function getSubscriptionInterval() {
       ACTIVE_STRIPE_STATUSES.includes(sub.status)
     );
     if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval;
+      return activeSubscription.items[0].price.recurring?.interval || 'month';
     }
   }
   return 'month';
@@ -102,14 +116,18 @@ export async function getSubscriptionInterval() {
  * Will only return limits that exceed the ones in `limitsToCompare`, or all limits if `limitsToCompare` is not present.
  */
 function getLimitsForMetadata(
-  metadata: {[key: string]: string},
+  metadata: PriceMetadata,
   limitsToCompare: false | AccountLimit = false
 ) {
   const limits: Partial<AccountLimit> = {};
+  const quantity = getAdjustedQuantityForPrice(
+    parseInt(metadata['quantity']),
+    metadata.transform_quantity
+  );
   for (const [key, value] of Object.entries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
-      if (!(key in limitsToCompare)) {
+      if (!(key in limitsToCompare) || value === null) {
         continue;
       }
       if (
@@ -121,9 +139,10 @@ function getLimitsForMetadata(
       }
     }
     // only use metadata needed for limit calculations
-    if (key in DEFAULT_LIMITS) {
+    if (key in DEFAULT_LIMITS && value !== null) {
+      const numericValue = parseInt(value as string);
       limits[key as keyof AccountLimit] =
-        value === Limits.unlimited ? Limits.unlimited : parseInt(value);
+        value === Limits.unlimited ? Limits.unlimited : numericValue * quantity;
     }
   }
   return limits;
@@ -158,60 +177,60 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
 const getRecurringAddOnLimits = (limits: AccountLimit) => {
   let newLimits = {...limits};
   let activeAddOns = [...subscriptionStore.addOnsResponse];
-  let metadata = {};
+  let metadata: PriceMetadata;
   // only check active add-ons
   activeAddOns = activeAddOns.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
-  if (activeAddOns.length) {
-    activeAddOns.forEach((addOn) => {
-      metadata = {
-        ...addOn.items[0].price.product.metadata,
-        ...addOn.items[0].price.metadata,
-      };
-      newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
-    });
-  }
+  activeAddOns.forEach((addOn) => {
+    metadata = {
+      ...addOn.items[0].price.product.metadata,
+      ...addOn.items[0].price.metadata,
+      quantity: activeAddOns[0].quantity.toString(),
+      transform_quantity: activeAddOns[0].items[0].price.transform_quantity,
+    };
+    newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
+  });
   return newLimits;
 };
 
 /**
  * Get all metadata keys for the logged-in user's plan, or from the free tier if they have no plan.
  */
-const getStripeMetadataAndFreeTierStatus = async () => {
+const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
   await when(() => subscriptionStore.isInitialised);
   const plans = [...subscriptionStore.planResponse];
   // only use metadata for active subscriptions
   const activeSubscriptions = plans.filter((subscription) =>
     ACTIVE_STRIPE_STATUSES.includes(subscription.status)
   );
-  let metadata;
+  let metadata: PriceMetadata;
   let hasFreeTier = false;
   if (activeSubscriptions.length) {
     // get metadata from the user's subscription (prioritize price metadata over product metadata)
     metadata = {
       ...activeSubscriptions[0].items[0].price.product.metadata,
       ...activeSubscriptions[0].items[0].price.metadata,
+      transform_quantity:
+        activeSubscriptions[0].items[0].price.transform_quantity,
+      quantity: activeSubscriptions[0].quantity.toString(),
     };
   } else {
+    await when(() => !!products.length);
     // the user has no subscription, so get limits from the free monthly product
     hasFreeTier = true;
-    try {
-      const products = await getProducts();
-      const freeProduct = products.results.filter((product) =>
-        product.prices.filter(
-          (price) =>
-            price.unit_amount === 0 && price.recurring?.interval === 'month'
-        )
-      )[0];
-      metadata = {
-        ...freeProduct.metadata,
-        ...freeProduct.prices[0].metadata,
-      };
-    } catch (error) {
-      // couldn't find the free monthly product, continue in case we have limits to display from the free tier override
-      metadata = {};
-    }
+    const freeProduct = products.filter((product) =>
+      product.prices.filter(
+        (price) =>
+          price.unit_amount === 0 && price.recurring?.interval === 'month'
+      )
+    )[0];
+    metadata = {
+      ...freeProduct.metadata,
+      ...freeProduct.prices[0].metadata,
+      transform_quantity: null,
+      quantity: '1',
+    };
   }
   return {metadata, hasFreeTier};
 };
@@ -223,8 +242,10 @@ const getStripeMetadataAndFreeTierStatus = async () => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits() {
-  const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus();
+export async function getAccountLimits(products: Product[]) {
+  const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
+    products
+  );
 
   // initialize to unlimited
   let limits: AccountLimit = {...DEFAULT_LIMITS};

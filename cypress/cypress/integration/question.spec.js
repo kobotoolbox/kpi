@@ -10,8 +10,10 @@ describe('Create questions', function () {
 
   it('Creates questions', function () {
     cy.fixture('questions').then((data) => {
-      cy.get('[data-cy="question"]')
+      // Click the asset name to load its form summary page
+      cy.get('[data-cy="asset"]')
         .click()
+      // Click the "edit" button to get to the Formbuilder
       cy.get('[data-cy="edit"]')
         .click()
 

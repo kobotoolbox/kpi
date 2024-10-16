@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth.models import User
-
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models.asset import Asset
@@ -23,7 +22,7 @@ class TrackersTestCases(KpiTestCase):
 
     def _create_asset(self):
         asset = Asset.objects.create(
-            content={'survey': [{"type": "text", "name": "q1"}]},
+            content={'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]},
             owner=self.user,
             asset_type='survey',
             name='тєѕт αѕѕєт',

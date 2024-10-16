@@ -124,7 +124,7 @@ export default function TransferProjectsInvite(
               name='information'
               size='s'
               color='blue'
-              classNames={[styles.noteIcon]}
+              className={styles.noteIcon}
             />
 
             {isDeclined && asset ? (
@@ -154,8 +154,7 @@ export default function TransferProjectsInvite(
             <Button
               label={t('Decline')}
               onClick={decline}
-              color='blue'
-              type='frame'
+              type='secondary'
               size='l'
               isDisabled={acceptPending}
               isPending={declinePending}
@@ -163,8 +162,7 @@ export default function TransferProjectsInvite(
             <Button
               label={t('Accept')}
               onClick={accept}
-              color='blue'
-              type='full'
+              type='primary'
               size='l'
               isDisabled={declinePending}
               isPending={acceptPending}

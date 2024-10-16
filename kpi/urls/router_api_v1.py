@@ -3,23 +3,21 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.hook.views.v1.hook import HookViewSet
 from kobo.apps.hook.views.v1.hook_log import HookLogViewSet
-from kobo.apps.hook.views.v1.hook_signal import HookSignalViewSet
-
 from kobo.apps.reports.views import ReportsViewSet
 from kpi.views.v1 import (
-    AssetViewSet,
-    AssetVersionViewSet,
-    AssetSnapshotViewSet,
     AssetFileViewSet,
+    AssetSnapshotViewSet,
+    AssetVersionViewSet,
+    AssetViewSet,
     AuthorizedApplicationUserViewSet,
     ExportTaskViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
     SitewideMessageViewSet,
     SubmissionViewSet,
-    UserViewSet,
-    UserAssetSubscriptionViewSet,
     TagViewSet,
+    UserAssetSubscriptionViewSet,
+    UserViewSet,
 )
 
 router_api_v1 = ExtendedDefaultRouter()
@@ -27,11 +25,6 @@ asset_routes = router_api_v1.register(r'assets', AssetViewSet, basename='asset')
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       basename='asset-version',
-                      parents_query_lookups=['asset'],
-                      )
-asset_routes.register(r'hook-signal',
-                      HookSignalViewSet,
-                      basename='hook-signal',
                       parents_query_lookups=['asset'],
                       )
 asset_routes.register(r'submissions',
@@ -60,7 +53,7 @@ hook_routes.register(r'logs',
 router_api_v1.register(r'asset_snapshots', AssetSnapshotViewSet)
 router_api_v1.register(
     r'asset_subscriptions', UserAssetSubscriptionViewSet)
-router_api_v1.register(r'users', UserViewSet)
+router_api_v1.register(r'users', UserViewSet, basename='user-kpi')
 router_api_v1.register(r'tags', TagViewSet)
 router_api_v1.register(r'permissions', ObjectPermissionViewSet)
 router_api_v1.register(r'reports', ReportsViewSet, basename='reports')

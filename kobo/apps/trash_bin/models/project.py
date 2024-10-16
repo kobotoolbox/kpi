@@ -4,12 +4,8 @@ from django.conf import settings
 from django.db import models, transaction
 from django.utils.timezone import now
 
-from kobo.apps.project_ownership.models import (
-    Invite,
-    InviteStatusChoices,
-    Transfer,
-)
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUser, KobocatXForm
+from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
@@ -35,7 +31,7 @@ class ProjectTrash(BaseTrash):
     def toggle_asset_statuses(
         cls,
         asset_uids: list[str] = None,
-        owner: 'auth.User' = None,
+        owner: settings.AUTH_USER_MODEL = None,
         active: bool = True,
         toggle_delete: bool = True,
     ) -> tuple:
@@ -49,7 +45,7 @@ class ProjectTrash(BaseTrash):
             kc_filter_params = {'kpi_asset_uid__in': asset_uids}
             filter_params = {'uid__in': asset_uids}
         else:
-            kc_filter_params = {'user': KobocatUser.get_kc_user(owner)}
+            kc_filter_params = {'user_id': owner.pk}
             filter_params = {'owner': owner}
 
         kc_update_params = {'downloadable': active}
@@ -90,9 +86,9 @@ class ProjectTrash(BaseTrash):
                     ).update(status=InviteStatusChoices.CANCELLED)
 
                 if not settings.TESTING:
-                    kc_updated = KobocatXForm.objects.filter(
-                        **kc_filter_params
-                    ).update(**kc_update_params)
+                    kc_updated = XForm.objects.filter(**kc_filter_params).update(
+                        **kc_update_params
+                    )
                     assert updated >= kc_updated
 
         return queryset, updated

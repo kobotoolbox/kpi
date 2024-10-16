@@ -1,14 +1,15 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from rest_framework import viewsets, mixins, exceptions
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import CreateUserSerializer
 
 
-class AuthorizedApplicationUserViewSet(mixins.CreateModelMixin,
-                                       viewsets.GenericViewSet):
+class AuthorizedApplicationUserViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
     authentication_classes = [ApplicationTokenAuthentication]
     queryset = User.objects.all()
     serializer_class = CreateUserSerializer

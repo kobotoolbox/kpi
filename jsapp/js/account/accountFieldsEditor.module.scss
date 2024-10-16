@@ -1,6 +1,6 @@
 @use 'scss/sizes';
 @use 'js/components/common/textBox.module';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .row {
   display: flex;
@@ -24,7 +24,7 @@
   .checkboxLabel {
     margin-top: sizes.$x6;
     margin-bottom: sizes.$x6;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   :global {
@@ -63,7 +63,7 @@
 .socialLabel,
 .checkboxLabel {
   width: 100%;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
   font-size: sizes.$x12;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;

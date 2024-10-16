@@ -1,7 +1,6 @@
 # coding: utf-8
 import base64
 import datetime
-import dateutil.parser
 import os
 import posixpath
 import re
@@ -9,7 +8,10 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
-from typing import List, Dict, Optional, Tuple, Generator
+from typing import Dict, Generator, List, Optional, Tuple
+
+import dateutil.parser
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -24,10 +26,14 @@ from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
 import formpack
-from formpack.constants import (
-    KOBO_LOCK_SHEET,
-)
+from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
     NotesCopyField,
@@ -37,12 +43,6 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from private_storage.fields import PrivateFileField
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-from openpyxl.utils.exceptions import InvalidFileException
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -58,18 +58,14 @@ from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
 from kpi.utils.log import logging
-from kpi.utils.models import (
-    _load_library_content,
-    create_assets,
-    resolve_url_to_asset,
-)
+from kpi.utils.models import _load_library_content, create_assets, resolve_url_to_asset
+from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.rename_xls_sheet import (
+    ConflictSheetError,
+    NoFromSheetError,
     rename_xls_sheet,
     rename_xlsx_sheet,
-    NoFromSheetError,
-    ConflictSheetError,
 )
-from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
@@ -103,7 +99,7 @@ class ImportExportTask(models.Model):
         (COMPLETE, COMPLETE),
     )
 
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     data = models.JSONField()
     messages = models.JSONField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
@@ -214,7 +210,7 @@ class ImportExportTask(models.Model):
                     # was created concurrently.
                     pass
             if not os.path.isdir(directory):
-                raise IOError("%s exists and is not a directory." % directory)
+                raise IOError('%s exists and is not a directory.' % directory)
 
             # Store filenames with forward slashes, even on Windows.
             filename = filename.replace('\\', '/')
@@ -570,8 +566,9 @@ class ExportTaskBase(ImportExportTask):
     }
 
     TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux and above
+    # 207 causes a 'Filename too long' error in Excel
+    MAXIMUM_FILENAME_LENGTH = 207
 
     class InaccessibleData(Exception):
         def __str__(self):
@@ -767,7 +764,7 @@ class ExportTaskBase(ImportExportTask):
         with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
-                    output_file.write((line + "\r\n").encode('utf-8'))
+                    output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
                 for line in export.to_geojson(
                     submission_stream, flatten=flatten
@@ -859,7 +856,9 @@ class ExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            pack.extend_survey(source.analysis_form_json())
+            pack.extend_survey(
+                source.analysis_form_json(omit_question_types=['qual_note'])
+            )
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

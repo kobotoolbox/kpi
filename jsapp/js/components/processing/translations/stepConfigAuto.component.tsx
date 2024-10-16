@@ -3,6 +3,7 @@ import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
 import Button from 'js/components/common/button';
 import RegionSelector from 'js/components/languages/regionSelector';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
@@ -38,6 +39,29 @@ export default function StepConfigAuto() {
     return null;
   }
 
+  if (singleProcessingStore.data.isPollingForTranslation) {
+    return (
+      <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
+        <LoadingSpinner type='big' message={false} />
+
+        <header className={bodyStyles.header}>
+          {t('Automatic translation in progress')}
+        </header>
+
+        {/*
+        Automatic translation is much faster than automatic transcription, but
+        for the consistency sake we use similar UI here.
+        */}
+        <p>
+          {t('Estimated time for completion: ##estimate##').replace(
+            '##estimate##',
+            t('less than a minute')
+          )}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>
@@ -68,8 +92,7 @@ export default function StepConfigAuto() {
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('cancel')}
             onClick={cancelAuto}
@@ -77,8 +100,7 @@ export default function StepConfigAuto() {
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             label={t('create translation')}
             onClick={requestAutoTranslation}

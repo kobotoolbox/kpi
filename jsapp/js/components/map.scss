@@ -1,6 +1,8 @@
-@use '~kobo-common/src/styles/colors';
-@use "scss/libs/_mdl";
-@use "scss/_variables";
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'scss/libs/_mdl';
+@use 'scss/_variables';
+@use 'scss/mixins';
 @use 'scss/z-indexes';
 
 #data-map {
@@ -33,7 +35,7 @@
     background: colors.$kobo-white;
     z-index: z-indexes.$z-map-settings-2;
     cursor: pointer;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &--heatmap {
       top: 118px;
@@ -59,7 +61,7 @@
 
     &.active,
     &:hover {
-      color: colors.$kobo-gray-24;
+      color: colors.$kobo-gray-800;
     }
 
     &:active {
@@ -101,21 +103,18 @@
   bottom: 15px;
   left: 15px;
   z-index: z-indexes.$z-map-settings-2;
+  max-width: 90%;
 
   .popover-menu__toggle {
     min-width: 180px;
+    max-width: 90%;
     background: colors.$kobo-white;
-    max-width: 340px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-
+    @include mixins.textEllipsis;
     @include mdl.box-shadow;
 
     border-radius: 6px;
     padding: 12px;
-    text-align: left;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   .popover-menu__content {
@@ -126,12 +125,12 @@
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-24, 0.15);
+    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-800, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: colors.$kobo-gray-96;
-      border-top: 1px solid colors.$kobo-gray-92;
+      background: colors.$kobo-gray-200;
+      border-top: 1px solid colors.$kobo-gray-300;
     }
 
     .popover-menu__heading {
@@ -150,19 +149,6 @@ body .leaflet-control-layers,
 
   margin-right: 12px;
   margin-top: 12px;
-}
-
-@media screen and (max-width: 767px) {
-  .popover-menu--viewby-menu {
-    max-width: 90%;
-
-    .popover-menu__toggle {
-      max-width: 90%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
 }
 
 .form-view__map-list {
@@ -224,7 +210,7 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: colors.$kobo-gray-96;
+      background: colors.$kobo-gray-200;
 
       &::after {
         content: "";
@@ -237,7 +223,7 @@ body .leaflet-control-layers,
 
       &::after {
         content: "";
-        background: colors.$kobo-gray-65;
+        background: colors.$kobo-gray-500;
       }
 
       &:hover {
@@ -275,7 +261,7 @@ body .leaflet-control-layers,
     padding: 0 3px;
     position: relative;
     text-shadow: 0 0 1px colors.$kobo-white;
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
 
     &::after {
       position: absolute;
@@ -292,9 +278,7 @@ body .leaflet-control-layers,
 
   span.map-marker-label {
     width: calc(100% - 56px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @include mixins.textEllipsis;
     cursor: pointer;
   }
 }
@@ -312,7 +296,7 @@ body .leaflet-control-layers,
 }
 
 .map-settings {
-  .form-modal__item--layer-upload label {
+  .form-modal__item--layer-upload label[for='name'] {
     display: block;
     padding: 10px 0 20px;
     position: relative;
@@ -320,13 +304,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid colors.$kobo-gray-92;
+      border-top: 1px solid colors.$kobo-gray-300;
       padding: 5px;
 
       > span {
@@ -340,9 +324,7 @@ body .leaflet-control-layers,
       }
 
       .file-layer-name {
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
+        @include mixins.textEllipsis;
         width: 80%;
         font-weight: 600;
       }
@@ -354,7 +336,7 @@ body .leaflet-control-layers,
 
         i {
           font-size: 24px;
-          color: colors.$kobo-red;
+          color: colors.$kobo-mid-red;
         }
       }
     }
@@ -408,27 +390,17 @@ body .leaflet-control-layers,
   color: red;
 }
 
+.change-limit-form {
+  @include mixins.centerRowFlex;
+  gap: 10px;
+}
+
 .change-limit-slider {
-  width: 75%;
-  display: inline-block;
-  vertical-align: middle;
+  flex: 1;
 }
 
 .change-limit-slider-value {
-  width: 10%;
-  margin-left: 10px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-@media screen and (max-width: 1265px) {
-  .change-limit-slider {
-    width: 60%;
-  }
-
-  .change-limit-slider-value {
-    width: 30%;
-  }
+  min-width: 80px;
 }
 
 .map-no-geopoint {
@@ -492,9 +464,15 @@ body .leaflet-control-layers,
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: colors.$kobo-gray-24;
+  color: colors.$kobo-gray-800;
 }
 
 .marker-cluster span {
   line-height: 20px;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .popover-menu--viewby-menu .popover-menu__toggle {
+    max-width: 340px;
+  }
 }

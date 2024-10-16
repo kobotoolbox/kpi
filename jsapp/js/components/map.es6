@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import bem from 'js/bem';
-import {stores} from '../stores';
 import {actions} from '../actions';
 import PopoverMenu from 'js/popoverMenu';
 import Modal from 'js/components/common/modal';
@@ -19,6 +18,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
+import pageState from 'js/pageState.store';
 
 import {
   ASSET_FILE_TYPES,
@@ -50,7 +50,7 @@ const baseLayers = {
       'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
   }),
   'ESRI World Imagery': L.tileLayer(
-    'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {
       attribution:
         'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
@@ -672,7 +672,7 @@ export class FormMap extends React.Component {
       ids.push(r._id);
     });
 
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: evt.layer.options.sId,
       asset: this.props.asset,
@@ -753,11 +753,9 @@ export class FormMap extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <bem.uiPanel>
-          <bem.uiPanel__body>
-            <CenteredMessage message={this.state.error} />
-          </bem.uiPanel__body>
-        </bem.uiPanel>
+        <bem.FormView m='ui-panel'>
+          <CenteredMessage message={this.state.error} />
+        </bem.FormView>
       );
     }
 

@@ -4,38 +4,32 @@ import json
 from copy import deepcopy
 from datetime import timedelta
 
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError, models, transaction
 from django.db.models import F, Q
 from django.db.models.signals import pre_delete
 from django.utils.timezone import now
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-    PeriodicTasks,
-)
-from rest_framework import status
+from django_celery_beat.models import ClockedSchedule, PeriodicTask, PeriodicTasks
 
-from kobo.apps.audit_log.models import AuditLog, AuditAction
-from kpi.exceptions import KobocatCommunicationError
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
 from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from .exceptions import (
     TrashIntegrityError,
-    TrashNotImplementedError,
     TrashMongoDeleteOrphansError,
+    TrashNotImplementedError,
     TrashTaskInProgressError,
-    TrashUnknownKobocatError,
 )
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
 
 
-def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
+def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
     asset_id = asset.pk
     asset_uid = asset.uid
@@ -70,7 +64,8 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
             metadata={
                 'asset_uid': asset_uid,
                 'asset_name': asset.name,
-            }
+            },
+            log_type=AuditType.ASSET_MANAGEMENT,
         )
 
     # Delete media files left on storage
@@ -80,7 +75,7 @@ def delete_asset(request_author: 'auth.User', asset: 'kpi.Asset'):
 
 @transaction.atomic
 def move_to_trash(
-    request_author: 'auth.User',
+    request_author: settings.AUTH_USER_MODEL,
     objects_list: list[dict],
     grace_period: int,
     trash_type: str,
@@ -98,7 +93,7 @@ def move_to_trash(
     Projects and accounts stay in trash for `grace_period` and then are
     hard-deleted when their related scheduled task runs.
 
-    If `retain_placeholder` is True, in instance of `auth.User` with the same
+    If `retain_placeholder` is True, in instance of `kobo_auth.User` with the same
     username and primary key is retained after deleting all other data.
     """
 
@@ -138,6 +133,11 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
+        log_type = (
+            AuditType.USER_MANAGEMENT
+            if related_model._meta.model_name == 'user'
+            else AuditType.ASSET_MANAGEMENT
+        )
         audit_logs.append(
             AuditLog(
                 app_label=related_model._meta.app_label,
@@ -147,6 +147,7 @@ def move_to_trash(
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.IN_TRASH,
                 metadata=_remove_pk_from_dict(obj_dict),
+                log_type=log_type,
             )
         )
 
@@ -187,7 +188,7 @@ def move_to_trash(
 
 @transaction.atomic()
 def put_back(
-    request_author: 'auth.User', objects_list: list[dict], trash_type: str
+    request_author: settings.AUTH_USER_MODEL, objects_list: list[dict], trash_type: str
 ):
     """
     Remove related objects from trash.
@@ -217,6 +218,11 @@ def put_back(
 
     if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
+    log_type = (
+        AuditType.USER_MANAGEMENT
+        if related_model._meta.model_name == 'user'
+        else AuditType.ASSET_MANAGEMENT
+    )
 
     AuditLog.objects.bulk_create(
         [
@@ -227,7 +233,8 @@ def put_back(
                 user=request_author,
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
-                metadata=_remove_pk_from_dict(obj_dict)
+                metadata=_remove_pk_from_dict(obj_dict),
+                log_type=log_type,
             )
             for obj_dict in objects_list
         ]
@@ -246,8 +253,8 @@ def put_back(
 
 
 def replace_user_with_placeholder(
-    user: 'auth.User', retain_audit_logs: bool = True
-) -> 'auth.User':
+    user: settings.AUTH_USER_MODEL, retain_audit_logs: bool = True
+) -> settings.AUTH_USER_MODEL:
     """
     Replace a user with an inactive placeholder, which prevents others from
     registering a new account with the same username. The placeholder uses the
@@ -285,12 +292,7 @@ def replace_user_with_placeholder(
     return placeholder_user
 
 
-def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
-
-    (
-        app_label,
-        model_name,
-    ) = asset.deployment.submission_model.get_app_label_and_model_name()
+def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
     while True:
         audit_logs = []
@@ -314,38 +316,34 @@ def _delete_submissions(request_author: 'auth.User', asset: 'kpi.Asset'):
 
         submission_ids = []
         for submission in submissions:
-            audit_logs.append(AuditLog(
-                app_label=app_label,
-                model_name=model_name,
-                object_id=submission['_id'],
-                user=request_author,
-                user_uid=request_author.extra_details.uid,
-                metadata={
-                    'asset_uid': asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-            ))
+            audit_logs.append(
+                AuditLog(
+                    app_label='logger',
+                    model_name='instance',
+                    object_id=submission['_id'],
+                    user=request_author,
+                    user_uid=request_author.extra_details.uid,
+                    metadata={
+                        'asset_uid': asset.uid,
+                        'uuid': submission['_uuid'],
+                    },
+                    action=AuditAction.DELETE,
+                    log_type=AuditType.SUBMISSION_MANAGEMENT,
+                )
+            )
+
             submission_ids.append(submission['_id'])
 
-        json_response = asset.deployment.delete_submissions(
-            {'submission_ids': submission_ids, 'query': ''}, request_author
-        )
-
-        if json_response['status'] in [
-            status.HTTP_502_BAD_GATEWAY,
-            status.HTTP_504_GATEWAY_TIMEOUT,
-        ]:
-            raise KobocatCommunicationError
-
-        if json_response['status'] not in [
-            status.HTTP_404_NOT_FOUND,
-            status.HTTP_200_OK,
-        ]:
-            raise TrashUnknownKobocatError(response=json_response)
+        try:
+            deleted = asset.deployment.delete_submissions(
+                {'submission_ids': submission_ids, 'query': ''}, request_author
+            )
+        except (MissingXFormException, InvalidXFormException):
+            # XForm is invalid or gone
+            deleted = 0
 
         if audit_logs:
-            if json_response['status'] == status.HTTP_404_NOT_FOUND:
+            if not deleted:
                 # Submissions are lingering in MongoDB but XForm has been
                 # already deleted
                 if not MongoHelper.delete(

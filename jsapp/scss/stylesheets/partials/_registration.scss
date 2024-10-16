@@ -1,6 +1,7 @@
 @use "scss/_variables";
+@use "scss/breakpoints";
 @use "sass:color";
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 // ==========================================================================
 // Registration Forms
@@ -13,7 +14,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: colors.$kobo-gray-96;
+  color: colors.$kobo-gray-200;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -30,7 +31,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(colors.$kobo-gray-24, 0.8);
+    background: rgba(colors.$kobo-gray-800, 0.9);
     padding: 20px 30px;
     border-radius: 10px;
 
@@ -53,7 +54,8 @@
     }
 
     hr {
-      border-top: 1px solid colors.$kobo-storm;
+      border-top: 1px solid colors.$kobo-light-storm;
+      opacity: 0.4;
     }
 
     // accounts/{{provider}}/login variant
@@ -77,6 +79,11 @@
       max-width: 500px; // to be revised
       padding-bottom: 60px;
 
+      .registration__legal {
+        margin-top: 10px;
+        margin-bottom: -20px;
+      }
+
       h1 {
         font-weight: bold;
       }
@@ -93,7 +100,7 @@
     // SSO section styles
     .registration__sso {
       font-size: variables.$base-font-size;
-      padding-bottom: 20px;
+      padding-bottom: 10px;
 
       // Login page variant
       &.registration__sso--login {
@@ -135,7 +142,7 @@
       color: colors.$kobo-dark-blue;
 
       &.btn-danger {
-        background-color: colors.$kobo-red;
+        background-color: colors.$kobo-mid-red;
         color: colors.$kobo-white;
       }
 
@@ -258,7 +265,7 @@
   }
 
   span.required {
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin-left: 3px;
   }
 
@@ -304,29 +311,14 @@
 
   ul.errorlist {
     padding: 0px;
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin: 8px 0px;
   }
 }
 
-.registration--register {
-  .registration--logo {
-    text-align: left;
-    margin: 0;
-    margin-left: -5px;
-  }
-
-  h1 {
-    margin-top: 0em;
-  }
-
-  div.field {
-    margin-bottom: 12px;
-  }
-
-  input[type=submit] {
-    margin-top: 20px;
-  }
+// hide the redundant django-allauth "Forgot your password?" link
+form.registration--login > p > span.helptext{
+  display: none;
 }
 
 .registration .registration__kc-domain + input {
@@ -345,7 +337,7 @@
 }
 
 .registration__create-or-forgot {
-  margin: 20px 0;
+  margin: 20px 0 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -353,34 +345,44 @@
   gap: 10px;
 }
 
+.registration__legal {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.registration__legal .links {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.registration__legal a {
+  color: colors.$kobo-white;
+  text-decoration: none !important;
+  font-size: 14px;
+}
+
+.registration__legal a:hover {
+  text-decoration: underline !important;
+  opacity: 1;
+}
+
 .registration__footer {
   clear: both;
   text-align: center;
-  margin: 20px 10px 10px 10px;
-  text-shadow: colors.$kobo-gray-14 0 0 2px; // contrast against photo background
-
-  a {
-    color: colors.$kobo-white;
-
-    &:hover {
-      color: colors.$kobo-light-storm;
-    }
-  }
-
-  .registration__legal {
-    margin: 0 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
+  margin: 30px;
+  text-shadow: colors.$kobo-gray-900 0 0 2px; // contrast against photo background
 }
 
 .error-message {
   font-size: variables.$base-font-size;
-  color: colors.$kobo-red;
-  background-color: rgba(colors.$kobo-red, 0.075);
+  color: colors.$kobo-mid-red;
+  background-color: rgba(colors.$kobo-mid-red, 0.075);
 }
 
 .registration__credit {
@@ -422,8 +424,68 @@
   }
 }
 
-@media screen and (min-width: 768px) {
+.registration__bg {
+  form.registration--register {
+    display: flex;
+    flex-direction: column;
+
+    h1 {
+      text-align: center;
+      margin-top: 0.5em;
+    }
+
+    .registration--logo {
+      display: block;
+      text-align: center;
+      order: 1;
+    }
+
+    .registration__first-half {
+      order: 3;
+    }
+
+    .registration__second-half {
+      order: 2;
+    }
+
+    .registration__legal {
+      order: 4;
+    }
+
+    div.field {
+      margin-bottom: 12px;
+    }
+
+    input[type=submit] {
+      margin-top: 20px;
+    }
+  }
+}
+
+@media screen and (min-width: breakpoints.$b768) {
   .registration__bg {
+    form.registration--register {
+      display: block;
+      padding: 30px;
+
+      h1 {
+        text-align: initial;
+        margin-top: 0;
+      }
+
+      .registration--logo {
+        text-align: initial;
+        margin: 0;
+        margin-left: -5px;
+        width: 48%;
+        float: right;
+
+        > * {
+          padding-left: 60px;
+        }
+      }
+    }
+
     form.registration, section.registration {
       padding: 30px 40px;
       margin-top: 10px;
@@ -444,19 +506,6 @@
 
       &[data-path="/accounts/signup/"] {
         max-width: 860px;
-      }
-    }
-
-    form.registration--register {
-      padding: 30px;
-
-      .registration--logo {
-        width: 48%;
-        float: right;
-
-        > * {
-          padding-left: 60px;
-        }
       }
     }
 
@@ -514,33 +563,5 @@
   .registration .registration__kc-domain {
     font-size: variables.$base-font-size;
     letter-spacing: 0em;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .registration__bg {
-    form.registration--register {
-      display: flex;
-      flex-direction: column;
-
-      h1 {
-        text-align: center;
-        margin-top: 0.5em;
-      }
-
-      .registration--logo {
-        display: block;
-        text-align: center;
-        order: 1;
-      }
-
-      .registration__first-half {
-        order: 3;
-      }
-
-      .registration__second-half {
-        order: 2;
-      }
-    }
   }
 }

@@ -1914,7 +1914,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_text',
           'uuid': 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'What is?',
@@ -1923,7 +1923,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_integer',
           'uuid': '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'How much is the fish?',
@@ -1932,7 +1932,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_tags',
           'uuid': 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'Another tag question here?',
@@ -1941,7 +1941,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_select_multiple',
           'uuid': '1a89e0da-3344-4b5d-b919-ab8b072e0918',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'Choose multiple',
@@ -1970,7 +1970,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_auto_keyword_count',
           'uuid': 'd4813284-d928-43b7-bde5-133eabe76024',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'How many swear words were used?',
@@ -1979,7 +1979,7 @@ export const assetWithSupplementalDetails = {
         {
           'type': 'qual_tags',
           'uuid': '056c8f57-0733-4669-a84e-aa9726ffbf6b',
-          'qpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
+          'xpath': 'Use_the_camera_s_mic_ne_to_record_a_sound',
           'scope': 'by_question#survey',
           'labels': {
             '_default': 'Do tags work?',

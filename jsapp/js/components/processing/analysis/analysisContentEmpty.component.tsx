@@ -28,7 +28,7 @@ export default function AnalysisContentEmpty() {
         <p>{t('There are no qualitative analysis questions yet.')}</p>
 
         <p>
-          <Icon name='lock-alt' size='xl' classNames={[styles.lockIcon]} />
+          <Icon name='lock-alt' size='xl' className={styles.lockIcon} />
         </p>
 
         <p>

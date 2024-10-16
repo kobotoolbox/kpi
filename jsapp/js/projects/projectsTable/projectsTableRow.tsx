@@ -34,19 +34,28 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
     switch (field.name) {
       case 'name':
         return (
-          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}>
+          <Link
+            to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}
+            data-cy="asset"
+          >
             <AssetName asset={props.asset} />
           </Link>
         );
       case 'description':
         return props.asset.settings.description;
       case 'status':
-        return <AssetStatusBadge asset={props.asset} />;
+        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
       case 'ownerUsername':
         if (isSelfOwned(props.asset)) {
           return t('me');
         } else {
-          return <Avatar username={props.asset.owner__username} />;
+          return (
+            <Avatar
+              username={props.asset.owner__username}
+              size='s'
+              isUsernameVisible
+            />
+          );
         }
       case 'ownerFullName':
         return 'owner__name' in props.asset ? props.asset.owner__name : null;
@@ -120,6 +129,14 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return null;
         }
 
+        // All the columns that could have user content
+        const isUserContent = (
+          field.name === 'name' ||
+          field.name === 'description' ||
+          field.name === 'ownerFullName' ||
+          field.name === 'ownerOrganization'
+        );
+
         return (
           <div
             className={classNames({
@@ -133,6 +150,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
+            dir={isUserContent ? 'auto' : undefined}
           >
             {renderColumnContent(field)}
           </div>

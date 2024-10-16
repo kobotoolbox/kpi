@@ -69,11 +69,13 @@ export default function FormSummaryProjectInfo(
         {metadata.description && (
           <bem.FormView__group m='items'>
             {/* description - takes whole row */}
-            <bem.FormView__cell m='padding'>
+            <bem.FormView__cell m={['padding', 'full-width']}>
               <bem.FormView__label>
                 {metadata.description?.label ?? t('Description')}
               </bem.FormView__label>
-              {props.asset.settings.description || '-'}
+              <div dir='auto'>
+                {props.asset.settings.description || '-'}
+              </div>
             </bem.FormView__cell>
           </bem.FormView__group>
         )}
@@ -82,7 +84,7 @@ export default function FormSummaryProjectInfo(
           {/* status */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Status')}</bem.FormView__label>
-            <AssetStatusBadge asset={props.asset} />
+            <AssetStatusBadge deploymentStatus={props.asset.deployment_status}/>
           </bem.FormView__cell>
 
           {/* questions count */}
@@ -96,7 +98,11 @@ export default function FormSummaryProjectInfo(
             <bem.FormView__label>{t('Owner')}</bem.FormView__label>
             {isSelfOwned(props.asset) && t('me')}
             {!isSelfOwned(props.asset) && (
-              <Avatar username={props.asset.owner__username} />
+              <Avatar
+                username={props.asset.owner__username}
+                size='s'
+                isUsernameVisible
+              />
             )}
           </bem.FormView__cell>
         </bem.FormView__group>

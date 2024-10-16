@@ -3,21 +3,19 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, NavLink } from 'react-router-dom';
-import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import bem from 'js/bem';
 import DocumentTitle from 'react-document-title';
 import Icon from 'js/components/common/icon';
+import Avatar from 'js/components/common/avatar';
 import {getFormDataTabs} from './formViewSideTabs';
-import {
-  stringToColor,
-} from 'utils';
 import {getUsernameFromUrl, ANON_USERNAME} from 'js/users/utils';
 import {MODAL_TYPES} from 'js/constants';
 import './formSummary.scss';
 import {userCan} from 'js/components/permissions/utils';
 import FormSummaryProjectInfo from './formSummaryProjectInfo';
 import SubmissionsCountGraph from 'js/project/submissionsCountGraph.component';
+import pageState from 'js/pageState.store';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -56,6 +54,7 @@ class FormSummary extends React.Component {
             key='edit'
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}
+            data-cy="edit"
           >
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}
@@ -110,7 +109,7 @@ class FormSummary extends React.Component {
 
   sharingModal (evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.SHARING,
       assetid: this.state.uid,
     });
@@ -118,7 +117,7 @@ class FormSummary extends React.Component {
 
   enketoPreviewModal (evt) {
     evt.preventDefault();
-    stores.pageState.showModal({
+    pageState.showModal({
       type: MODAL_TYPES.ENKETO_PREVIEW,
       assetid: this.state.uid,
     });
@@ -153,13 +152,12 @@ class FormSummary extends React.Component {
         }
         <bem.FormView__cell m={['box', 'padding']}>
           { team.map((username, ind) =>
-            <bem.UserRow key={ind}>
-              <bem.UserRow__avatar data-tip={username}>
-                <bem.AccountBox__initials style={{background: `#${stringToColor(username)}`}}>
-                  {username.charAt(0)}
-                </bem.AccountBox__initials>
-              </bem.UserRow__avatar>
-            </bem.UserRow>
+            <Avatar
+              key={ind}
+              username={username}
+              size='s'
+              isUsernameVisible
+            />
           )}
         </bem.FormView__cell>
       </bem.FormView__row>

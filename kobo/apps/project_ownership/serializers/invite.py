@@ -31,7 +31,7 @@ class InviteSerializer(serializers.ModelSerializer):
     )
     sender = serializers.SerializerMethodField()
     recipient = RelativePrefixHyperlinkedRelatedField(
-        view_name='user-detail',
+        view_name='user-kpi-detail',
         lookup_field='username',
         queryset=get_user_model().objects.filter(is_active=True),
         style={'base_template': 'input.html'}  # Render as a simple text box
@@ -118,7 +118,7 @@ class InviteSerializer(serializers.ModelSerializer):
     def get_sender(self, invite: Invite) -> str:
         request = self.context['request']
         return reverse(
-            'user-detail', args=[invite.sender.username], request=request
+            'user-kpi-detail', args=[invite.sender.username], request=request
         )
 
     def validate_assets(self, asset_uids: list[str]) -> list[Asset]:
@@ -182,7 +182,7 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return assets
 
-    def validate_recipient(self, user: 'auth.User') -> 'auth.User':
+    def validate_recipient(self, user: 'kobo_auth.User') -> 'kobo_auth.User':
         if self.instance is None:
             return user
 

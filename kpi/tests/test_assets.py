@@ -6,11 +6,12 @@ from collections import OrderedDict
 from copy import deepcopy
 
 import openpyxl
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import serializers
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,

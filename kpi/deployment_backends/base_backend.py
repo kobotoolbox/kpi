@@ -7,28 +7,28 @@ import datetime
 import json
 import os
 import uuid
-from datetime import date
 from contextlib import contextmanager
-from typing import Union, Iterator, Optional
+from datetime import date
+from typing import Iterator, Optional, Union
 
 from bson import json_util
 from django.conf import settings
-from django.core.files.storage import default_storage
+from django.core.exceptions import PermissionDenied
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
-from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
+from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
-    SUBMISSION_FORMAT_TYPE_XML,
-    SUBMISSION_FORMAT_TYPE_JSON,
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
@@ -41,6 +41,7 @@ from kpi.utils.xml import (
     get_or_create_element,
     xml_tostring,
 )
+
 
 class BaseDeploymentBackend(abc.ABC):
     """
@@ -86,7 +87,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def bulk_update_submissions(
-        self, data: dict, user: 'auth.User'
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
     ) -> dict:
         """
         Allows for bulk updating (bulk editing) of submissions. A
@@ -117,6 +118,11 @@ class BaseDeploymentBackend(abc.ABC):
             # Reset query, because all the submission ids have been already
             # retrieve
             data['query'] = {}
+
+            # Set `has_partial_perms` flag on `request.user` to grant them
+            # permissions while calling `logger_tool.py::_has_edit_xform_permission()`
+            if request := kwargs.get('request'):
+                request.user.has_partial_perms = True
         else:
             submission_ids = data['submission_ids']
 
@@ -144,7 +150,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         }
 
-        kc_responses = []
+        backend_results = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -172,51 +178,78 @@ class BaseDeploymentBackend(abc.ABC):
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
 
-            kc_response = self.store_submission(
-                user, xml_tostring(xml_parsed), _uuid
-            )
-            kc_responses.append(
-                {
-                    'uuid': _uuid,
-                    'response': kc_response,
-                }
-            )
-
-        return self.prepare_bulk_update_response(kc_responses)
-
+            request = kwargs.get('request')
+            with http_open_rosa_error_handler(
+                lambda: self.store_submission(
+                    user,
+                    xml_tostring(xml_parsed),
+                    _uuid,
+                    request=request,
+                ),
+                request,
+            ) as handler:
+                backend_results.append(
+                    {
+                        'uuid': _uuid,
+                        'error': handler.error,
+                        'result': handler.func_return,
+                    }
+                )
+        return self.prepare_bulk_update_response(backend_results)
 
     @abc.abstractmethod
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+    def calculated_submission_count(self, user: settings.AUTH_USER_MODEL, **kwargs):
         pass
 
     @abc.abstractmethod
     def connect(self, active=False):
         pass
 
-    @abc.abstractmethod
-    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
-        pass
+    def copy_submission_extras(self, origin_uuid: str, dest_uuid: str):
+        """
+        Copy the submission extras from an origin submission uuid
+        to a destination uuid. Should be used along with duplicate_submission,
+        after it succeeds at duplicating a submission
+        """
+        original_extras = self.asset.submission_extras.filter(
+            submission_uuid=origin_uuid
+        ).first()
+        if original_extras is not None:
+            duplicated_extras = copy.deepcopy(original_extras.content)
+            duplicated_extras['submission'] = dest_uuid
+            self.asset.update_submission_extra(duplicated_extras)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
-    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+    def delete_submission(
+        self, submission_id: int, user: settings.AUTH_USER_MODEL
+    ) -> dict:
         pass
 
     @abc.abstractmethod
-    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+    def delete_submissions(
+        self, data: dict, user: settings.AUTH_USER_MODEL, **kwargs
+    ) -> dict:
         pass
 
     @abc.abstractmethod
     def duplicate_submission(
-        self, submission_id: int, user: 'auth.User'
+        self,
+        submission_id: int,
+        request: 'rest_framework.request.Request',
     ) -> dict:
         pass
 
     @property
     @abc.abstractmethod
     def enketo_id(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def form_uuid(self):
         pass
 
     @staticmethod
@@ -233,7 +266,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
-        user: 'auth.User',
+        user: 'settings.AUTH_USER_MODEL',
         attachment_id: Optional[int] = None,
         xpath: Optional[str] = None,
     ) -> tuple:
@@ -243,7 +276,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_daily_counts(self, user: 'auth.User', timeframe: tuple[date, date]) -> dict:
+    def get_daily_counts(self, user: settings.AUTH_USER_MODEL, timeframe: tuple[date, date]) -> dict:
         pass
 
     def get_data(
@@ -287,7 +320,7 @@ class BaseDeploymentBackend(abc.ABC):
     def get_submission(
         self,
         submission_id: int,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
@@ -325,19 +358,9 @@ class BaseDeploymentBackend(abc.ABC):
         return None
 
     @abc.abstractmethod
-    def get_submission_detail_url(self, submission_id: int) -> str:
-        pass
-
-    def get_submission_validation_status_url(self, submission_id: int) -> str:
-        url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_id)
-        )
-        return url
-
-    @abc.abstractmethod
     def get_submissions(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
         request: Optional['rest_framework.request.Request'] = None,
@@ -362,7 +385,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+    def get_validation_status(self, submission_id: int, user: settings.AUTH_USER_MODEL) -> dict:
         """
         Return a formatted dict to be passed to a Response object
         """
@@ -375,6 +398,14 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def mongo_userform_id(self):
         return None
+
+    @abc.abstractmethod
+    def nlp_tracking_data(self, start_date: Optional[datetime.date] = None):
+        pass
+
+    @abc.abstractmethod
+    def prepare_bulk_update_response(self, backend_results: list[dict]) -> dict:
+        pass
 
     @abc.abstractmethod
     def redeploy(self, active: bool = None):
@@ -433,23 +464,21 @@ class BaseDeploymentBackend(abc.ABC):
     ):
         pass
 
-    @abc.abstractmethod
-    def set_has_kpi_hooks(self):
-        pass
-
     def set_status(self, status):
         self.save_to_db({'status': status})
 
     @abc.abstractmethod
-    def set_validation_status(self,
-                              submission_id: int,
-                              user: 'auth.User',
-                              data: dict,
-                              method: str) -> dict:
+    def set_validation_status(
+        self,
+        submission_id: int,
+        user: settings.AUTH_USER_MODEL,
+        data: dict,
+        method: str,
+    ) -> dict:
         pass
 
     @abc.abstractmethod
-    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+    def set_validation_statuses(self, user: settings.AUTH_USER_MODEL, data: dict) -> dict:
         pass
 
     @property
@@ -467,10 +496,9 @@ class BaseDeploymentBackend(abc.ABC):
     def stored_data_key(self):
         return self.__stored_data_key
 
-    @property
     @abc.abstractmethod
     def store_submission(
-        self, user, xml_submission, submission_uuid, attachments=None
+        self, user, xml_submission, submission_uuid, attachments=None, **kwargs
     ):
         pass
 
@@ -484,11 +512,6 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_count_since_date(
         self, start_date: Optional[datetime.date] = None
     ):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def submission_list_url(self):
         pass
 
     @property
@@ -507,7 +530,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def transfer_counters_ownership(self, new_owner: 'auth.User'):
+    def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
         pass
 
     @abc.abstractmethod
@@ -518,7 +541,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_submission_list_params(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         validate_count: bool = False,
         partial_perm=PERM_VIEW_SUBMISSIONS,
@@ -652,11 +675,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     def validate_access_with_partial_perms(
         self,
-        user: 'auth.User',
+        user: settings.AUTH_USER_MODEL,
         perm: str,
         submission_ids: list = [],
         query: dict = {},
-    ) -> list:
+    ) -> Optional[list]:
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.
@@ -673,11 +696,11 @@ class BaseDeploymentBackend(abc.ABC):
         allowed_submission_ids = []
 
         if not submission_ids:
-            # if no submission ids are provided, the back end must rebuild the
+            # If no submission ids are provided, the back end must rebuild the
             # query to retrieve the related submissions. Unfortunately, the
             # current back end (KoBoCAT) does not support row level permissions.
             # Thus, we need to fetch all the submissions the user is allowed to
-            # see in order to to compare the requested subset of submissions to
+            # see in order to compare the requested subset of submissions to
             # all
             all_submissions = self.get_submissions(
                 user=user,
@@ -692,8 +715,8 @@ class BaseDeploymentBackend(abc.ABC):
             if not allowed_submission_ids:
                 raise PermissionDenied
 
-            # if `query` is not provided, the action is performed on all
-            # submissions. There are no needs to go further.
+            # If `query` is not provided, the action is performed on all
+            # submissions. There is no need to go further.
             if not query:
                 return allowed_submission_ids
 
@@ -719,7 +742,7 @@ class BaseDeploymentBackend(abc.ABC):
              and set(requested_submission_ids).issubset(allowed_submission_ids))
             or sorted(requested_submission_ids) == sorted(submission_ids)
         ):
-            # Regardless of whether or not the request contained a query or a
+            # Regardless of whether the request contained a query or a
             # list of IDs, always return IDs here because the results of a
             # query may contain submissions that the requesting user is not
             # allowed to access. For example,
@@ -742,10 +765,6 @@ class BaseDeploymentBackend(abc.ABC):
     @property
     def version_id(self):
         return self.get_data('version')
-
-    @property
-    def _open_rosa_server_storage(self):
-        return default_storage
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """
@@ -775,25 +794,48 @@ class BaseDeploymentBackend(abc.ABC):
         )
 
         for attachment in submission['_attachments']:
-            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
-                # We should use 'attachment-list' with `?xpath=` but we do not
-                # know what the XPath is here. Since the primary key is already
-                # exposed, let's use it to build the url with 'attachment-detail'
-                kpi_url = reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission['_id'], attachment['id']),
-                    request=request,
-                )
-                key = f'download{suffix}_url'
-                try:
+            # We should use 'attachment-list' with `?xpath=` but we do not
+            # know what the XPath is here. Since the primary key is already
+            # exposed, let's use it to build the url.
+            kpi_url = reverse(
+                'attachment-detail',
+                args=(
+                    self.asset.uid,
+                    submission['_id'],
+                    attachment['id'],
+                ),
+                request=request,
+            )
+            key = f'download_url'
+            attachment[key] = kpi_url
+            if attachment['mimetype'].startswith('image/'):
+                for suffix in settings.THUMB_CONF.keys():
+                    kpi_url = reverse(
+                        'attachment-thumb',
+                        args=(
+                            self.asset.uid,
+                            submission['_id'],
+                            attachment['id'],
+                            suffix,
+                        ),
+                        request=request,
+                    )
+                    key = f'download_{suffix}_url'
                     attachment[key] = kpi_url
-                except KeyError:
-                    continue
+            else:
+                for suffix in settings.THUMB_CONF.keys():
+                    try:
+                        key = f'download_{suffix}_url'
+                        del attachment[key]
+                    except KeyError:
+                        continue
+
             filename = attachment['filename']
             attachment['filename'] = os.path.join(
                 self.asset.owner.username,
                 'attachments',
-                submission['formhub/uuid'],
+                # KoboCAT accepts submissions even when they lack `formhub/uuid`
+                self.form_uuid or submission['formhub/uuid'],
                 submission['_uuid'],
                 os.path.basename(filename)
             )

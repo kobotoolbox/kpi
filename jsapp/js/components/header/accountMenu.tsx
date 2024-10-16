@@ -3,12 +3,15 @@ import {useNavigate} from 'react-router-dom';
 import PopoverMenu from 'js/popoverMenu';
 import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
-import {currentLang, stringToColor} from 'js/utils';
+import {currentLang} from 'js/utils';
 import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
-import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import {actions} from 'js/actions';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
+import Button from 'js/components/common/button';
+import Avatar from 'js/components/common/avatar';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -76,20 +79,16 @@ export default function AccountMenu() {
       ? sessionStore.currentAccount.email
       : '';
 
-  const initialsStyle = {background: `#${stringToColor(accountName)}`};
-  const accountMenuLabel = (
-    <bem.AccountBox__initials style={initialsStyle}>
-      {accountName.charAt(0)}
-    </bem.AccountBox__initials>
-  );
-
   return (
     <bem.AccountBox>
-      <PopoverMenu type='account-menu' triggerLabel={accountMenuLabel}>
+      <PopoverMenu
+        type='account-menu'
+        triggerLabel={<Avatar size='m' username={accountName} />}
+      >
         <bem.AccountBox__menu>
           <bem.AccountBox__menuLI key='1'>
             <bem.AccountBox__menuItem m={'avatar'}>
-              {accountMenuLabel}
+              <Avatar size='l' username={accountName} />
             </bem.AccountBox__menuItem>
 
             <bem.AccountBox__menuItem m={'mini-profile'}>
@@ -103,12 +102,13 @@ export default function AccountMenu() {
             */}
             {!isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
-                <bem.KoboButton
+                <Button
+                  type='primary'
+                  size='l'
+                  isFullWidth
                   onClick={openAccountSettings}
-                  m={['blue', 'fullwidth']}
-                >
-                  {t('Account Settings')}
-                </bem.KoboButton>
+                  label={t('Account Settings')}
+                />
               </bem.AccountBox__menuItem>
             )}
           </bem.AccountBox__menuLI>

@@ -18,7 +18,7 @@ const NO_DATA_MESSAGE = t('There is no data for this question for the current su
 
 interface SingleProcessingRouteProps extends WithRouterProps {
   uid: string;
-  qpath: string;
+  xpath: string;
   submissionEditId: string;
 }
 
@@ -76,10 +76,10 @@ export default class SingleProcessingRoute extends React.Component<
 
   /** Is processing enabled for current question. */
   isProcessingEnabled() {
-    if (this.props.params.uid && this.props.params.qpath) {
+    if (this.props.params.uid && this.props.params.xpath) {
       return isRowProcessingEnabled(
         this.props.params.uid,
-        this.props.params.qpath
+        this.props.params.xpath
       );
     }
     return false;
@@ -160,7 +160,7 @@ export default class SingleProcessingRoute extends React.Component<
             <SingleProcessingHeader
               submissionEditId={this.props.params.submissionEditId}
               assetUid={this.props.params.uid}
-              assetContent={this.state.asset.content}
+              asset={this.state.asset}
             />
           </section>
 

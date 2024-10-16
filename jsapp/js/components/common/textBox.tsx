@@ -61,7 +61,8 @@ interface TextBoxProps {
    * uses this component.
    */
   required?: boolean;
-  customClassNames?: string[];
+  /** Additional class name */
+  className?: string;
   disableAutocomplete?: boolean;
   'data-cy'?: string;
   /** Gives focus to the input immediately after rendering */
@@ -123,8 +124,12 @@ export default function TextBox(props: TextBoxProps) {
     return true;
   }
 
-  const rootClassNames = props.customClassNames || [];
+  const rootClassNames = [];
   rootClassNames.push(styles.root);
+
+  if (props.className) {
+    rootClassNames.push(props.className);
+  }
 
   let size: TextBoxSize = props.size || DefaultSize;
   switch (size) {
@@ -177,6 +182,8 @@ export default function TextBox(props: TextBoxProps) {
     // For `number` type we allow only positive integers
     step: props.type === 'number' ? 1 : undefined,
     min: props.type === 'number' ? 0 : undefined,
+    // All textboxes handles text direction of user content with browser
+    // built-in functionality
     dir: 'auto',
   };
 
@@ -202,7 +209,7 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.startIcon}
-            classNames={[styles.startIcon]}
+            className={styles.startIcon}
           />
         )}
         {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
@@ -250,15 +257,15 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.endIcon}
-            classNames={[styles.endIcon]}
+            className={styles.endIcon}
           />
         )}
         {errors.length > 0 && (
           <Icon
             size={iconSize}
             name='alert'
-            color='red'
-            classNames={[styles.errorIcon]}
+            color='mid-red'
+            className={styles.errorIcon}
           />
         )}
       </div>

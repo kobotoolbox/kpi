@@ -182,14 +182,13 @@ export default function AnalysisQuestionEditor(
             onChange={onTextBoxChange}
             errors={errorMessage}
             placeholder={t('Type question')}
-            customClassNames={[styles.labelInput]}
+            className={styles.labelInput}
             renderFocused
             size='m'
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='m'
             label={t('Save')}
             onClick={saveQuestion}
@@ -198,8 +197,7 @@ export default function AnalysisQuestionEditor(
           />
 
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='m'
             label={t('Cancel')}
             onClick={cancelEditing}

@@ -70,7 +70,7 @@ export default function AnalysisTab() {
             await fetchGetUrl<SubmissionProcessingDataResponse>(processingUrl);
 
           questions = applyUpdateResponseToInternalQuestions(
-            singleProcessingStore.currentQuestionQpath,
+            singleProcessingStore.currentQuestionXpath,
             apiResponse,
             questions
           );
@@ -98,15 +98,21 @@ export default function AnalysisTab() {
   }, [state.hasUnsavedWork]);
 
   if (!isInitialised) {
-    return <LoadingSpinner message={false} />;
+    return (
+      <div className={bodyStyles.root}>
+        <LoadingSpinner message={false} />
+      </div>
+    );
   }
 
   if (isErrored) {
     return (
-      <InlineMessage
-        type='error'
-        message={t('Failed to load analysis questions')}
-      />
+      <div className={bodyStyles.root}>
+        <InlineMessage
+          type='error'
+          message={t('Failed to load analysis questions')}
+        />
+      </div>
     );
   }
 

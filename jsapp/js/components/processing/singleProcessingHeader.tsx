@@ -1,11 +1,12 @@
 import React from 'react';
-import {QUESTION_TYPES} from 'js/constants';
-import type {AssetContent} from 'js/dataInterface';
+import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
+import type {AssetContent, AssetResponse} from 'js/dataInterface';
 import {
-  findRowByQpath,
+  findRowByXpath,
   getRowTypeIcon,
   getTranslatedRowLabel,
   getRowName,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
 import Button from 'js/components/common/button';
@@ -22,7 +23,7 @@ import classNames from 'classnames';
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string;
   assetUid: string;
-  assetContent: AssetContent;
+  asset: AssetResponse;
 }
 
 interface SingleProcessingHeaderState {
@@ -61,9 +62,9 @@ class SingleProcessingHeader extends React.Component<
     this.forceUpdate();
   }
 
-  onQuestionSelectChange(newQpath: string | null) {
-    if (newQpath !== null) {
-      this.goToSubmission(newQpath, this.props.submissionEditId);
+  onQuestionSelectChange(newXpath: string | null) {
+    if (newXpath !== null) {
+      this.goToSubmission(newXpath, this.props.submissionEditId);
     }
   }
 
@@ -86,14 +87,24 @@ class SingleProcessingHeader extends React.Component<
   getQuestionSelectorOptions() {
     const options: KoboSelectOption[] = [];
     const editIds = singleProcessingStore.getSubmissionsEditIds();
+    const assetContent = this.props.asset.content;
+    const languageIndex = getLanguageIndex(
+      this.props.asset,
+      singleProcessingStore.getCurrentlyDisplayedLanguage()
+    );
+
+    if (!assetContent) {
+      return [];
+    }
+
     if (editIds) {
-      Object.keys(editIds).forEach((qpath) => {
-        const questionData = findRowByQpath(this.props.assetContent, qpath);
+      Object.keys(editIds).forEach((xpath) => {
+        const questionData = findRowByXpath(assetContent, xpath);
         // At this point we want to find out whether the question has at least
         // one editId (i.e. there is at least one transcriptable response to
         // the question). Otherwise there's no point in having the question as
         // selectable option.
-        const questionEditIds = editIds[qpath];
+        const questionEditIds = editIds[xpath];
         const hasAtLeastOneEditId = Boolean(
           questionEditIds.find((editIdOrNull) => editIdOrNull !== null)
         );
@@ -107,11 +118,11 @@ class SingleProcessingHeader extends React.Component<
             const rowName = getRowName(questionData);
             const translatedLabel = getTranslatedRowLabel(
               rowName,
-              this.props.assetContent.survey,
-              0
+              assetContent.survey,
+              languageIndex
             );
             options.push({
-              value: qpath,
+              value: xpath,
               label: translatedLabel !== null ? translatedLabel : rowName,
               icon: getRowTypeIcon(questionData.type),
             });
@@ -166,15 +177,15 @@ class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission. */
-  goToSubmission(qpath: string, targetSubmissionEditId: string) {
-    goToProcessing(this.props.assetUid, qpath, targetSubmissionEditId, true);
+  goToSubmission(xpath: string, targetSubmissionEditId: string) {
+    goToProcessing(this.props.assetUid, xpath, targetSubmissionEditId, true);
   }
 
   goPrev() {
     const prevEditId = this.getPrevSubmissionEditId();
     if (prevEditId !== null) {
       this.goToSubmission(
-        singleProcessingStore.currentQuestionQpath,
+        singleProcessingStore.currentQuestionXpath,
         prevEditId
       );
     }
@@ -184,7 +195,7 @@ class SingleProcessingHeader extends React.Component<
     const nextEditId = this.getNextSubmissionEditId();
     if (nextEditId !== null) {
       this.goToSubmission(
-        singleProcessingStore.currentQuestionQpath,
+        singleProcessingStore.currentQuestionXpath,
         nextEditId
       );
     }
@@ -292,7 +303,7 @@ class SingleProcessingHeader extends React.Component<
             type='gray'
             size='l'
             options={this.getQuestionSelectorOptions()}
-            selectedOption={singleProcessingStore.currentQuestionQpath}
+            selectedOption={singleProcessingStore.currentQuestionXpath}
             onChange={this.onQuestionSelectChange.bind(this)}
           />
         </section>
@@ -314,18 +325,16 @@ class SingleProcessingHeader extends React.Component<
             </div>
 
             <Button
-              type='bare'
+              type='text'
               size='s'
-              color='storm'
               startIcon='arrow-up'
               onClick={this.goPrev.bind(this)}
               isDisabled={this.getPrevSubmissionEditId() === null}
             />
 
             <Button
-              type='bare'
+              type='text'
               size='s'
-              color='storm'
               endIcon='arrow-down'
               onClick={this.goNext.bind(this)}
               isDisabled={this.getNextSubmissionEditId() === null}
@@ -335,9 +344,8 @@ class SingleProcessingHeader extends React.Component<
 
         <section className={styles.column}>
           <Button
-            type='frame'
+            type='primary'
             size='l'
-            color='blue'
             label={t('DONE')}
             isPending={this.state?.isDoneButtonPending}
             onClick={this.onDone.bind(this)}

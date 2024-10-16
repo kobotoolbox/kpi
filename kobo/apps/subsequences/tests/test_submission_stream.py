@@ -1,4 +1,3 @@
-import json
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
@@ -26,7 +25,6 @@ class TestSubmissionStream(TestCase):
                         'type': 'text',
                         '$kuid': 'rc9ak31',
                         'label': ["What's your name?"],
-                        '$qpath': 'What_s_your_name',
                         '$xpath': 'What_s_your_name',
                         'required': False,
                         '$autoname': 'What_s_your_name',
@@ -35,7 +33,6 @@ class TestSubmissionStream(TestCase):
                         'type': 'audio',
                         '$kuid': 'ff6ek09',
                         'label': ['Tell me a story!'],
-                        '$qpath': 'Tell_me_a_story',
                         '$xpath': 'Tell_me_a_story',
                         'required': False,
                         '$autoname': 'Tell_me_a_story',
@@ -49,14 +46,14 @@ class TestSubmissionStream(TestCase):
                         {
                             'type': 'qual_integer',
                             'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
-                            'qpath': 'Tell_me_a_story',
+                            'xpath': 'Tell_me_a_story',
                             'scope': 'by_question#survey',
                             'labels': {'_default': 'When was this recorded?'},
                         },
                         {
                             'type': 'qual_select_one',
                             'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
-                            'qpath': 'Tell_me_a_story',
+                            'xpath': 'Tell_me_a_story',
                             'scope': 'by_question#survey',
                             'labels': {
                                 '_default': "What's the source of this story?"
@@ -85,6 +82,7 @@ class TestSubmissionStream(TestCase):
             },
         )
         self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
 
     def _create_mock_submissions(self):
         self.asset.deployment.mock_submissions(
@@ -95,8 +93,6 @@ class TestSubmissionStream(TestCase):
                     'meta/instanceID': (
                         'uuid:1c05898e-b43c-491d-814c-79595eb84e81'
                     ),
-                    # `MockDeploymentBackend` should probably add `_uuid`, but
-                    # it doesn't. It's going away soon enough, though.
                     '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
                 },
             ]
@@ -241,3 +237,80 @@ class TestSubmissionStream(TestCase):
         assert '_supplementalDetails' in output[0]
         assert '_supplementalDetails' in output[1]
         # test other things?
+
+    def test_stream_with_extras_handles_duplicated_submission_uuids(self):
+        # Define submission data with duplicated UUIDs
+        submissions = [
+            {
+                'What_s_your_name': 'Ed',
+                'Tell_me_a_story': 'ed-18_6_24.ogg',
+                'meta/instanceID': 'uuid:1c05898e-b43c-491d-814c-79595eb84e81',
+                '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
+            },
+            {
+                'What_s_your_name': 'Ed',
+                'Tell_me_a_story': 'ed-18_6_44.ogg',
+                'meta/instanceID': 'uuid:1c05898e-b43c-491d-814c-79595eb84e81',
+                '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
+            },
+        ]
+        self.asset.deployment.mock_submissions(submissions)
+
+        # Process submissions with extras
+        output = list(
+            stream_with_extras(
+                self.asset.deployment.get_submissions(user=self.asset.owner),
+                self.asset,
+            )
+        )
+
+        # Make sure that uuid values for single or multiple choice qualitative
+        # analysis questions are kept as strings and not mutated
+        for submission in output:
+            supplemental_details = submission['_supplementalDetails']
+            for qual_response in supplemental_details['Tell_me_a_story']['qual']:
+                if qual_response['type'] not in [
+                    'qual_select_one',
+                    'qual_select_multiple',
+                ]:
+                    # question is not a single or multiple choice one
+                    continue
+
+                for v in qual_response['val']:
+                    assert isinstance(v['uuid'], str)
+
+    def test_stream_with_extras_ignores_empty_qual_responses(self):
+        # Modify submission extras 'val' to be an empty string
+        submission_extras = SubmissionExtras.objects.get(
+            submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81'
+        )
+        content = submission_extras.content
+        content['Tell_me_a_story']['qual'][1]['val'] = ''
+        submission_extras.content = content
+        submission_extras.save()
+
+        # Process submissions with extras
+        output = list(
+            stream_with_extras(
+                self.asset.deployment.get_submissions(user=self.asset.owner),
+                self.asset,
+            )
+        )
+
+        # Ensure that the empty 'val' fields are skipped and not processed
+        for submission in output:
+            supplemental_details = submission.get('_supplementalDetails', {})
+            for key, details in supplemental_details.items():
+                qual_responses = details.get('qual', [])
+                for qual_response in qual_responses:
+                    if qual_response['type'] in [
+                        'qual_select_one',
+                        'qual_select_multiple',
+                    ]:
+                        val = qual_response['val']
+
+                        if isinstance(val, list):
+                            for v in val:
+                                self.assertEqual(v, '')
+                        else:
+                            self.assertEqual(val, '')

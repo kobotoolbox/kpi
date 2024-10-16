@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
 from mock import patch
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models.account import AccountTrash
@@ -31,7 +31,11 @@ class AccountTrashTestCase(TestCase):
 
         # Create dummy logs for someuser
         audit_log = AuditLog.objects.create(
-            app_label='foo', model_name='bar', object_id=1, user=someuser
+            app_label='foo',
+            model_name='bar',
+            object_id=1,
+            user=someuser,
+            log_type=AuditType.ACCESS,
         )
 
         grace_period = 0
@@ -98,11 +102,12 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser_id,
             user=someuser,
             action=AuditAction.IN_TRASH,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
     def test_put_back(self):
@@ -134,11 +139,12 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.PUT_BACK,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
     def test_remove_user(self):
@@ -188,11 +194,12 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.REMOVE,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
 
@@ -241,6 +248,7 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.IN_TRASH,
+            log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()
 
     def test_put_back(self):
@@ -278,4 +286,5 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.PUT_BACK,
+            log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()

@@ -27,7 +27,7 @@ bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div');
  * Table cell replacement for media submissions
  *
  * @prop {string} questionType
- * @prop {mediaAttachment} mediaAttachment - `null` for text questions
+ * @prop {string | mediaAttachment} mediaAttachment
  * @prop {string} mediaName - Backend stored media attachment file name or the
                               content of a text question
  */
@@ -47,7 +47,7 @@ class TableMediaPreview extends React.Component {
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image>
-            <KoboImage src={this.props?.mediaAttachment?.download_medium_url}/>
+            <KoboImage src={this.props.mediaAttachment?.download_medium_url}/>
           </bem.TableMediaPreview__image>
         );
       case QUESTION_TYPES.audio.id:
@@ -57,7 +57,7 @@ class TableMediaPreview extends React.Component {
             <i className='k-icon k-icon-file-audio' />
 
             <AudioPlayer 
-              mediaURL={this.props?.mediaAttachment?.download_url}
+              mediaURL={this.props.mediaAttachment?.download_url}
               data-cy='audioPlayer'
             />
           </bem.TableMediaPreview__audio>
@@ -65,7 +65,7 @@ class TableMediaPreview extends React.Component {
       case QUESTION_TYPES.video.id:
         return (
           <bem.TableMediaPreview__video
-            src={this.props?.mediaAttachment?.download_url}
+            src={this.props.mediaAttachment?.download_url}
             controls
             autoPlay
           />
@@ -91,7 +91,8 @@ class TableMediaPreview extends React.Component {
   render() {
     return (
       <bem.TableMediaPreview>
-        {this.props.questionType && this.renderPreviewByType()}
+        {typeof this.props.mediaAttachment === 'string' && this.props.mediaAttachment}
+        {typeof this.props.mediaAttachment === 'object' && this.props.questionType && this.renderPreviewByType()}
       </bem.TableMediaPreview>
     );
   }

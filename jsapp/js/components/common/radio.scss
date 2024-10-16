@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 @use 'scss/sizes';
 @use 'scss/mixins';
@@ -25,12 +25,12 @@
 
   .radio__label {
     max-width: calc(100% - sizes.$x32);
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     font-size: variables.$base-font-size;
   }
 
   .radio__input + .radio__label {
-    margin-left: sizes.$x6;
+    margin-inline-start: sizes.$x6;
   }
 
   .radio__input {
@@ -38,7 +38,7 @@
     appearance: none;
     position: relative;
     margin: 0;
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     border: sizes.$x1 solid currentcolor;
     background-color: colors.$kobo-white;
     width: sizes.$x20;
@@ -82,13 +82,13 @@
     }
 
     .radio__input:checked {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
     }
   }
 
   // Hover unchecked state
   .radio__row:hover .radio__input:not(:checked) {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     background-color: colors.$kobo-bg-blue;
   }
 

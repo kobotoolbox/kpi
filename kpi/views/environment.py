@@ -5,23 +5,25 @@ import logging
 import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
-from hub.models.sitewide_message import SitewideMessage
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.organizations.models import OrganizationOwner
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
-from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
+from kobo.static_lists import COUNTRIES
 from kpi.utils.object_permission import get_database_user
 
 
-def _check_asr_mt_access_for_user(user):
+def check_asr_mt_access_for_user(user):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
     if user.is_anonymous:
@@ -158,18 +160,31 @@ class EnvironmentView(APIView):
         data = {}
 
         data['social_apps'] = list(
-            SocialApp.objects.filter(custom_data__isnull=True).values(
+            (SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))).values(
                 'provider', 'name', 'client_id', 'provider_id'
             )
         )
 
-        data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
-            request.user
-        )
+        data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
-        data['stripe_public_key'] = (
-            settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
-        )
+
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            try:
+                data['stripe_public_key'] = str(
+                    APIKey.objects.get(type='publishable', livemode=settings.STRIPE_LIVE_MODE).secret
+                )
+            except MultipleObjectsReturned as e:
+                raise MultipleObjectsReturned(
+                    'Remove extra api keys from the django admin.'
+                ) from e
+            except APIKey.DoesNotExist as e:
+                raise APIKey.DoesNotExist(
+                    'Add a stripe api key to the django admin.'
+                ) from e
+        else:
+            data['stripe_public_key'] = None
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:

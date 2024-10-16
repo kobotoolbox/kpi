@@ -3,11 +3,12 @@ import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
+import pageState from 'js/pageState.store';
 
 /**
  * @param {Object} asset - Modal asset.
@@ -39,7 +40,7 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
 
   onUpdateAssetCompleted() {
     this.setState({isPending: false});
-    stores.pageState.hideModal();
+    pageState.hideModal();
   }
 
   onUpdateAssetFailed() {
@@ -60,14 +61,6 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
     this.setState({tags: newValue});
   }
 
-  getSubmitButtonLabel() {
-    if (this.state.isPending) {
-      return t('Updating…');
-    } else {
-      return t('Update');
-    }
-  }
-
   render() {
     if (!sessionStore.isLoggedIn) {
       return (<LoadingSpinner/>);
@@ -85,14 +78,14 @@ export const AssetTagsForm = observer(class AssetTagsForm extends React.Componen
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isPending}
-          >
-            {this.getSubmitButtonLabel()}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isPending={this.state.isPending}
+            label={t('Update')}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

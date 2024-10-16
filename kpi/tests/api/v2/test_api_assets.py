@@ -1,23 +1,26 @@
 # coding: utf-8
 import base64
 import copy
-import dateutil.parser
 import json
 import os
 from io import StringIO
 
-from django.contrib.auth.models import User
+import dateutil.parser
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
+from unittest.mock import patch
 
+
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
-    PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetFile, AssetVersion
 from kpi.models.asset import AssetDeploymentStatus
@@ -31,9 +34,7 @@ from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-)
+from kpi.utils.project_views import get_region_for_view
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -88,13 +89,13 @@ class AssetListApiTests(BaseAssetTestCase):
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
     def test_assets_hash(self):
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
         user_asset = Asset.objects.get(pk=1)
         user_asset.save()
-        user_asset.assign_perm(another_user, "view_asset")
+        user_asset.assign_perm(another_user, 'view_asset')
 
         self.client.logout()
-        self.client.login(username="anotheruser", password="anotheruser")
+        self.client.login(username='anotheruser', password='anotheruser')
         creation_response = self.create_asset()
 
         another_user_asset = another_user.assets.last()
@@ -106,9 +107,9 @@ class AssetListApiTests(BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = calculate_hash(''.join(versions_ids))
-        hash_url = reverse("asset-hash")
+        hash_url = reverse('asset-hash')
         hash_response = self.client.get(hash_url)
-        self.assertEqual(hash_response.data.get("hash"), expected_hash)
+        self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
     def test_assets_search_query(self):
         someuser = User.objects.get(username='someuser')
@@ -299,6 +300,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.region_views_url = reverse(self._get_endpoint('projectview-list'))
         asset_country_settings = [
@@ -378,7 +380,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             ['Overview', 'Test view 1']
         )
 
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         # anotheruser should only see view 1 and 2
@@ -412,7 +414,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_countries & region_for_view
 
     def test_project_views_anotheruser_submission_count(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         for asset in Asset.objects.all():
             if asset.has_deployment:
                 submissions = [
@@ -442,7 +444,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
     def test_project_views_for_anotheruser(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -484,7 +486,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert data_res.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         user = User.objects.get(username='anotheruser')
         res = self.client.get(self.region_views_url)
         data = res.json()
@@ -505,6 +507,42 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
+
+    def test_project_views_for_anotheruser_can_view_all_asset_permission_assignments(
+        self,
+    ):
+        # get the first asset from the first project view
+        self.client.force_login(self.anotheruser)
+        anotheruser = User.objects.get(username='anotheruser')
+        proj_view_list = self.client.get(self.region_views_url).data['results']
+        first_proj_view = proj_view_list[0]
+        asset_list = self.client.get(first_proj_view['assets']).data['results']
+        first_asset_entry = asset_list[0]
+        asset_obj = Asset.objects.get(uid=first_asset_entry['uid'])
+
+        # make sure any access that would allow listing permission assignments
+        # is coming exclusively from the project view
+        assert asset_obj.owner != anotheruser
+        assert not asset_obj.has_perm(anotheruser, PERM_MANAGE_ASSET)
+
+        # add a non-owner, non-anon, non-`anotheruser` perm assignment
+        new_user = User.objects.create(username='a_whole_new_user')
+        asset_obj.assign_perm(new_user, PERM_VIEW_ASSET)
+
+        # get the permission assignments from the asset detail endpoint while
+        # authenticated as `anotheruser`
+        proj_view_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+
+        # compare those assignments to the complete list of permission
+        # assignments seen by the asset owner
+        self.client.force_login(asset_obj.owner)
+        all_asset_perms = self.client.get(first_asset_entry['url']).data[
+            'permissions'
+        ]
+        assert proj_view_asset_perms == all_asset_perms
+
 
     def test_project_views_for_anotheruser_can_preview_form(self):
         someuser = User.objects.get(username='someuser')
@@ -556,7 +594,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert snap_response.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_change_metadata(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -1014,19 +1052,19 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.asset.deploy(backend='mock', active=True)
         submissions = [
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a1",
-                "q2": "a2",
-                "_id": 1,
-                "_submitted_by": ""
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                'q2': 'a2',
+                '_id': 1,
+                '_submitted_by': '',
             },
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a3",
-                "q2": "a4",
-                "_id": 2,
-                "_submitted_by": anotheruser.username
-            }
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a3',
+                'q2': 'a4',
+                '_id': 2,
+                '_submitted_by': anotheruser.username,
+            },
         ]
 
         self.asset.deployment.mock_submissions(submissions)
@@ -1301,18 +1339,15 @@ class AssetFileTest(BaseTestCase):
 
     @property
     def asset_file_payload(self):
-        geojson_ = StringIO(json.dumps(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [125.6, 10.1]
-                },
-                "properties": {
-                    "name": "Dinagat Islands"
+        geojson_ = StringIO(
+            json.dumps(
+                {
+                    'type': 'Feature',
+                    'geometry': {'type': 'Point', 'coordinates': [125.6, 10.1]},
+                    'properties': {'name': 'Dinagat Islands'},
                 }
-            }
-        ))
+            )
+        )
         geojson_.name = 'dingagat_island.geojson'
         return {
             'file_type': AssetFile.MAP_LAYER,
@@ -1343,12 +1378,16 @@ class AssetFileTest(BaseTestCase):
         response_dict = json.loads(response.content)
         self.assertEqual(
             response_dict['asset'],
-            self.absolute_reverse(self._get_endpoint('asset-detail'), args=[self.asset.uid])
+            self.absolute_reverse(
+                self._get_endpoint('asset-detail'), args=[self.asset.uid]
+            ),
         )
         self.assertEqual(
             response_dict['user'],
-            self.absolute_reverse(self._get_endpoint('user-detail'),
-                                  args=[self.current_username])
+            self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.current_username],
+            ),
         )
         self.assertEqual(
             response_dict['user__username'],
@@ -1688,7 +1727,8 @@ class AssetFileTest(BaseTestCase):
 
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
-    def test_asset_deployment(self):
+    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
+    def test_asset_deployment(self, patched_create_log):
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
                                  kwargs={'uid': self.asset_uid})
 
@@ -1699,6 +1739,11 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         self.assertEqual(response1.data['asset']['deployment__active'], True)
         self.assertEqual(response1.data['asset']['has_deployment'], True)
+        request = response1.renderer_context['request']
+        patched_create_log.assert_called_once_with(
+            request, self.asset, first_deployment=True
+        )
+        patched_create_log.reset_mock()
 
         response2 = self.client.get(self.asset_url, format='json')
 
@@ -1708,8 +1753,11 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
         )
+        # nothing should be logged for a GET request
+        patched_create_log.assert_not_called()
 
-    def test_asset_redeployment(self):
+    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
+    def test_asset_redeployment(self, patched_create_log):
         self.test_asset_deployment()
 
         # Update asset to redeploy it
@@ -1735,6 +1783,8 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
+        # no log should be created for failed request
+        patched_create_log.assert_not_called()
 
         # ... but we can with `PATCH`
         redeploy_response = self.client.patch(deployment_url, {
@@ -1744,6 +1794,13 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_200_OK)
+
+        # check project history log
+        request = redeploy_response.renderer_context['request']
+        patched_create_log.assert_called_once_with(
+            request, self.asset, only_active_changed=False
+        )
+
         # Validate version id
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.version_id,
@@ -1829,7 +1886,8 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             ' modification date of that version'
         )
 
-    def test_archive_asset(self):
+    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
+    def test_archive_asset(self, patched_create_log):
         self.test_asset_deployment()
 
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
@@ -1844,6 +1902,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert (
             response1.data['asset']['deployment_status']
             == AssetDeploymentStatus.ARCHIVED.value
+        )
+        request = response1.renderer_context['request']
+        patched_create_log.assert_called_once_with(
+            request, self.asset, only_active_changed=True
         )
 
         response2 = self.client.get(self.asset_url, format='json')
@@ -1879,3 +1941,72 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
         assert self.asset.date_deployed == original_date_deployed
+
+    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
+    def test_unarchive_asset_creates_log(self, patched_create_log):
+        # manually deploy as archived
+        self.asset.deploy(backend='mock', active=False)
+
+        # unarchive
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': self.asset_uid}
+        )
+
+        response = self.client.patch(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self.asset.refresh_from_db()
+        request = response.renderer_context['request']
+        patched_create_log.assert_called_once_with(
+            request, self.asset, only_active_changed=True
+        )
+
+
+class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.url = reverse('asset-list')
+        self.client.login(username='someuser', password='someuser')
+        self.some_user = User.objects.get(username='someuser')
+
+    def create_and_fetch_asset(self):
+        # Create a new asset and verify it was created successfully
+        create_response = self.create_asset()
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        return Asset.objects.order_by('date_created').last(), create_response
+
+    def test_created_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'created_by' is correct
+        asset, _ = self.create_and_fetch_asset()
+        self.assertEqual(asset.created_by, self.some_user.username)
+
+    def test_last_modified_by_field(self):
+        # Fetch the most recently created asset and check if
+        # 'last_modified_by' is correct
+        asset, create_response = self.create_and_fetch_asset()
+        self.assertEqual(asset.last_modified_by, self.some_user.username)
+
+        # Logout the current user and login as 'anotheruser'
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        another_user = User.objects.get(username='anotheruser')
+
+        # Assign permission to 'anotheruser' to modify the asset
+        asset.assign_perm(another_user, PERM_CHANGE_ASSET)
+        self.assertTrue(asset.has_perm(another_user, PERM_CHANGE_ASSET))
+
+        # Modify the asset and verify the 'last_modified_by' field is updated
+        patch_url = create_response.data['url']
+        patch_response = self.client.patch(patch_url, data={'name': 'A new name'})
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+
+        asset.refresh_from_db()
+        self.assertEqual(asset.created_by, self.some_user.username)
+        self.assertEqual(asset.last_modified_by, another_user.username)

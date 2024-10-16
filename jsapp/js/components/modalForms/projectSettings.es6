@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {when} from 'mobx';
@@ -9,11 +8,12 @@ import Button from 'js/components/common/button';
 import clonedeep from 'lodash.clonedeep';
 import TextBox from 'js/components/common/textBox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
-import bem from 'js/bem';
+import cx from 'classnames';
+import styles from 'js/components/modalForms/projectSettings.module.scss';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import InlineMessage from 'js/components/common/inlineMessage';
 import assetUtils from 'js/assetUtils';
-import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
 import sessionStore from 'js/stores/session';
 import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
@@ -47,7 +47,6 @@ const VIA_URL_SUPPORT_URL = 'xls_url.html';
  * 1. When creating new project
  * 2. When replacing project with new one
  * 3. When editing project in /settings
- * 4. When editing or creating asset in Form Builder
  *
  * Identifying the purpose is done by checking `context` and `formAsset`.
  *
@@ -158,7 +157,6 @@ class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return this.displayStep(this.STEPS.FORM_SOURCE);
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-      case PROJECT_SETTINGS_CONTEXTS.BUILDER:
         return this.displayStep(this.STEPS.PROJECT_DETAILS);
       default:
         throw new Error(`Unknown context: ${this.props.context}!`);
@@ -172,7 +170,6 @@ class ProjectSettings extends React.Component {
       case PROJECT_SETTINGS_CONTEXTS.REPLACE:
         return t('Replace form');
       case PROJECT_SETTINGS_CONTEXTS.EXISTING:
-      case PROJECT_SETTINGS_CONTEXTS.BUILDER:
       default:
         return t('Project settings');
     }
@@ -345,20 +342,20 @@ class ProjectSettings extends React.Component {
    */
 
   goToFormBuilder(assetUid) {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(`/forms/${assetUid}/edit`);
   }
 
   goToFormLanding() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
 
     let targetUid;
     if (this.state.formAsset) {
       targetUid = this.state.formAsset.uid;
-    } else if (this.context.router && this.context.router.params.assetid) {
-      targetUid = this.context.router.params.assetid;
-    } else if (this.context.router && this.context.router.params.uid) {
-      targetUid = this.context.router.params.uid;
+    } else if (this.props.router.params.assetid) {
+      targetUid = this.props.router.params.assetid;
+    } else if (this.props.router.params.uid) {
+      targetUid = this.props.router.params.uid;
     }
 
     if (!targetUid) {
@@ -369,7 +366,7 @@ class ProjectSettings extends React.Component {
   }
 
   goToProjectsList() {
-    stores.pageState.hideModal();
+    pageState.hideModal();
     this.props.router.navigate(ROUTES.FORMS);
   }
 
@@ -721,6 +718,10 @@ class ProjectSettings extends React.Component {
     return label;
   }
 
+  checkModalStyle() {
+    return this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING ? styles.modal : null;
+  }
+
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
@@ -732,14 +733,14 @@ class ProjectSettings extends React.Component {
 
   renderStepFormSource() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--form-source'>
+      <form className={this.checkModalStyle()}>
         {this.props.context !== PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-          <bem.Modal__subheader>
+          <div className={styles.modalSubheader}>
             {t('Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.')}
-          </bem.Modal__subheader>
+          </div>
         }
 
-        <bem.FormModal__item m='form-source-buttons'>
+        <div className={styles.sourceButtons}>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
             <button onClick={this.displayStep.bind(this, this.STEPS.PROJECT_DETAILS)}>
               <i className='k-icon k-icon-edit' />
@@ -764,38 +765,37 @@ class ProjectSettings extends React.Component {
           {this.props.context !== PROJECT_SETTINGS_CONTEXTS.NEW &&
             this.renderChooseTemplateButton()
           }
-        </bem.FormModal__item>
-      </bem.FormModal__form>
+        </div>
+      </form>
     );
   }
 
   renderStepChooseTemplate() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--choose-template'>
+      <form className={cx(styles.chooseTemplate, this.checkModalStyle())}>
         <TemplatesList onSelectTemplate={this.onTemplateChange}/>
 
-        <bem.Modal__footer>
+        <footer className={styles.modalFooter}>
           {this.renderBackButton()}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.applyTemplate}
-            disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
-          >
-            {this.state.applyTemplateButton}
-          </bem.KoboButton>
-        </bem.Modal__footer>
-      </bem.FormModal__form>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.applyTemplate.bind(this)}
+            isDisabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
+            label={this.state.applyTemplateButton}
+          />
+        </footer>
+      </form>
     );
   }
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__form className='project-settings'>
-        <bem.Modal__subheader>
+      <form className={this.checkModalStyle()}>
+        <div className={styles.modalSubheader}>
           {t('Import an XLSForm from your computer.')}
-        </bem.Modal__subheader>
+        </div>
 
         {!this.state.isUploadFilePending &&
           <Dropzone
@@ -816,17 +816,17 @@ class ProjectSettings extends React.Component {
           </div>
         }
 
-        <bem.Modal__footer>
+        <footer className={styles.modalFooter}>
           {this.renderBackButton()}
-        </bem.Modal__footer>
-      </bem.FormModal__form>
+        </footer>
+      </form>
     );
   }
 
   renderStepImportUrl() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--import-url'>
-        <div className='intro'>
+      <form className={this.checkModalStyle()}>
+        <div className={styles.uploadInstructions}>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
 
           { envStore.isReady &&
@@ -837,7 +837,7 @@ class ProjectSettings extends React.Component {
           }
         </div>
 
-        <bem.FormModal__item>
+        <div className={styles.input}>
           <TextBox
             type='url'
             label={t('URL')}
@@ -845,21 +845,21 @@ class ProjectSettings extends React.Component {
             value={this.state.importUrl}
             onChange={this.onImportUrlChange}
           />
-        </bem.FormModal__item>
+        </div>
 
-        <bem.Modal__footer>
+        <footer className={styles.modalFooter}>
           {this.renderBackButton()}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.importFromURL}
-            disabled={!this.state.importUrlButtonEnabled}
-          >
-            {this.state.importUrlButton}
-          </bem.KoboButton>
-        </bem.Modal__footer>
-      </bem.FormModal__form>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.importFromURL.bind(this)}
+            isDisabled={!this.state.importUrlButtonEnabled}
+            label={this.state.importUrlButton}
+          />
+        </footer>
+      </form>
     );
   }
 
@@ -876,46 +876,41 @@ class ProjectSettings extends React.Component {
     const descriptionField = envStore.data.getProjectMetadataField('description');
 
     return (
-      <bem.FormModal__form
+      <form
         onSubmit={this.handleSubmit}
         onChange={this.onProjectDetailsFormChange}
-        className={[
-          'project-settings',
-          'project-settings--project-details',
-          this.props.context === PROJECT_SETTINGS_CONTEXTS.BUILDER ? 'project-settings--narrow' : null,
-        ].join(' ')}
+        className={cx(
+          styles.projectDetails,
+          this.checkModalStyle() ?? styles.projectDetailsView,
+        )}
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-          <bem.Modal__footer>
-            <bem.KoboButton
-              type='submit'
-              m='blue'
-              onClick={this.handleSubmit}
-            >
-              {t('Save Changes')}
-            </bem.KoboButton>
-          </bem.Modal__footer>
+          <div className={styles.saveChanges}>
+            <Button
+              type='primary'
+              size='l'
+              isSubmit
+              onClick={this.handleSubmit.bind(this)}
+              label={t('Save Changes')}
+            />
+          </div>
         }
-
-        {/* Project Name */}
-        <bem.FormModal__item m='wrapper'>
-          {/* form builder displays name in different place */}
-          {this.props.context !== PROJECT_SETTINGS_CONTEXTS.BUILDER &&
-            <bem.FormModal__item>
-              <TextBox
-                value={this.state.fields.name}
-                onChange={this.onNameChange.bind(this)}
-                errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
-                label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
-                placeholder={t('Enter title of project here')}
-                data-cy='title'
-              />
-            </bem.FormModal__item>
-          }
+        <div className={styles.inputWrapper}>
+          {/* Project Name */}
+          <div className={styles.input}>
+            <TextBox
+              value={this.state.fields.name}
+              onChange={this.onNameChange.bind(this)}
+              errors={this.hasFieldError('name') ? t('Please enter a title for your project!') : false}
+              label={addRequiredToLabel(this.getNameInputLabel(this.state.fields.name))}
+              placeholder={t('Enter title of project here')}
+              data-cy='title'
+            />
+          </div>
 
           {/* Description */}
           {descriptionField &&
-          <bem.FormModal__item>
+          <div className={styles.input}>
             <TextBox
               type='text-multiline'
               value={this.state.fields.description}
@@ -925,12 +920,17 @@ class ProjectSettings extends React.Component {
               placeholder={t('Enter short description here')}
               data-cy='description'
             />
-          </bem.FormModal__item>
+          </div>
           }
 
           {/* Sector */}
           {sectorField &&
-            <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
+            <div
+              className={cx(
+                styles.input,
+                bothCountryAndSector ? styles.sector : null
+              )}
+            >
               <WrappedSelect
                 label={addRequiredToLabel(sectorField.label, sectorField.required)}
                 value={this.state.fields.sector}
@@ -942,12 +942,17 @@ class ProjectSettings extends React.Component {
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
                 data-cy='sector'
               />
-            </bem.FormModal__item>
+            </div>
           }
 
           {/* Country */}
           {countryField &&
-            <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
+            <div
+            className={cx(
+              styles.input,
+              bothCountryAndSector ? styles.country : null
+            )}
+            >
               <WrappedSelect
                 label={addRequiredToLabel(countryField.label, countryField.required)}
                 isMulti
@@ -960,12 +965,12 @@ class ProjectSettings extends React.Component {
                 error={this.hasFieldError('country') ? t('Please select at least one country') : false}
                 data-cy='country'
               />
-            </bem.FormModal__item>
+            </div>
           }
 
           {/* Operational Purpose of Data */}
           {operationalPurposeField &&
-            <bem.FormModal__item>
+            <div className={styles.input}>
               <WrappedSelect
                 label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
                 value={this.state.fields.operational_purpose}
@@ -975,12 +980,12 @@ class ProjectSettings extends React.Component {
                 isClearable
                 error={this.hasFieldError('operational_purpose') ? t('Please specify the operational purpose of your project') : false}
               />
-            </bem.FormModal__item>
+            </div>
           }
 
           {/* Does this project collect personally identifiable information? */}
           {collectsPiiField &&
-            <bem.FormModal__item>
+            <div className={styles.input}>
               <WrappedSelect
                 label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
                 value={this.state.fields.collects_pii}
@@ -992,36 +997,39 @@ class ProjectSettings extends React.Component {
                 isClearable
                 error={this.hasFieldError('collects_pii') ? t('Please indicate whether or not your project collects personally identifiable information') : false}
               />
-            </bem.FormModal__item>
+            </div>
           }
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW || this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) &&
-            <bem.Modal__footer>
+            <div className={styles.modalFooter}>
               {/* Don't allow going back if asset already exist */}
               {!this.state.formAsset &&
                 this.renderBackButton()
               }
 
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.handleSubmit}
-                disabled={this.state.isSubmitPending}
-              >
-                {this.state.isSubmitPending && t('Please wait…')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
-                {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
-              </bem.KoboButton>
-            </bem.Modal__footer>
+              <Button
+                type='primary'
+                size='l'
+                isSubmit
+                onClick={this.handleSubmit.bind(this)}
+                isDisabled={this.state.isSubmitPending}
+                label={(
+                  <>
+                    {this.state.isSubmitPending && t('Please wait…')}
+                    {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                    {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
+                  </>
+                )}
+              />
+            </div>
           }
 
           {userCan('manage_asset', this.state.formAsset) && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <bem.FormModal__item>
-              <bem.FormModal__item m='inline'>
+            <div className={styles.input}>
+              <div className={cx(styles.input, styles.inputInline)}>
                 {this.isArchived() &&
                   <Button
-                    type='frame'
-                    color='blue'
+                    type='secondary'
                     size='l'
                     label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
@@ -1030,42 +1038,42 @@ class ProjectSettings extends React.Component {
 
                 {this.isArchivable() &&
                   <Button
-                    type='frame'
-                    color='red'
+                    type='secondary'
                     size='l'
                     label={t('Archive Project')}
                     onClick={this.archiveProject}
                   />
                 }
-              </bem.FormModal__item>
+              </div>
 
               {this.isArchivable() &&
-                <bem.FormModal__item m='inline'>
+                <div className={cx(styles.input, styles.inputInline)}>
                   {t('Archive project to stop accepting submissions.')}
-                </bem.FormModal__item>
+                </div>
               }
               {this.isArchived() &&
-                <bem.FormModal__item m='inline'>
+                <div className={cx(styles.input, styles.inputInline)}>
                   {t('Unarchive project to resume accepting submissions.')}
-                </bem.FormModal__item>
+                </div>
               }
 
-            </bem.FormModal__item>
+            </div>
           }
 
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
-            <bem.FormModal__item>
+            <div className={styles.input}>
               <Button
-                type='full'
-                color='red'
+                type='danger'
                 size='l'
-                label={t('Delete Project and Data')}
+                label={this.state.formAsset.deployment__submission_count > 0 ?
+                  t('Delete Project and Data') :
+                  t('Delete Project')}
                 onClick={this.deleteProject}
               />
-            </bem.FormModal__item>
+            </div>
           }
-        </bem.FormModal__item>
-      </bem.FormModal__form>
+          </div>
+      </form>
     );
   }
 
@@ -1078,14 +1086,13 @@ class ProjectSettings extends React.Component {
         this.state.isUploadFilePending
       );
       return (
-        <bem.KoboButton
-          m='whitegray'
-          type='button'
-          onClick={this.displayPreviousStep}
-          disabled={isBackButtonDisabled}
-        >
-          {t('Back')}
-        </bem.KoboButton>
+        <Button
+          type='secondary'
+          size='l'
+          onClick={this.displayPreviousStep.bind(this)}
+          isDisabled={isBackButtonDisabled}
+          label={t('Back')}
+        />
       );
     } else {
       return false;
@@ -1123,7 +1130,5 @@ reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
-
-ProjectSettings.contextTypes = {router: PropTypes.object};
 
 export default withRouter(ProjectSettings);

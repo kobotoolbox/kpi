@@ -1,17 +1,3 @@
-/**
- * Mixins to be used via react-mixin plugin. These extend components with the
- * methods defined within the given mixin, using the component as `this`.
- *
- * NOTE: please try using mixins as less as possible - when needing a method
- * from here, move it out to separete file (utils?), import here to avoid
- * breaking the code and use the separete file instead of mixin.
- *
- * TODO: think about moving out of mixins, as they are deprecated in new React
- * versions and considered harmful (see
- * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
- * See: https://github.com/kobotoolbox/kpi/issues/3907
- */
-
 import React from 'react';
 import alertify from 'alertifyjs';
 import {PROJECT_SETTINGS_CONTEXTS, MODAL_TYPES, ASSET_TYPES} from './constants';
@@ -39,6 +25,7 @@ import {
   deployAsset,
 } from 'js/assetQuickActions';
 import type {DropFilesEventHandler} from 'react-dropzone';
+import pageState from 'js/pageState.store';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -119,14 +106,30 @@ interface MixinsObject {
   };
 }
 
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ * See: https://github.com/kobotoolbox/kpi/issues/3907
+ *
+ * @deprecated Use some of the utils functions spread throught many files in
+ * the repo (search for files with "utils" in the name). Some of the functions
+ * below have direct replacements mentioned.
+ */
 const mixins: MixinsObject = {
   dmix: {
     afterCopy() {
       notify(t('copied to clipboard'));
     },
 
-    saveCloneAs(evt: React.TouchEvent<HTMLElement>) {
-      const version_id = evt.currentTarget.dataset.versionId;
+    saveCloneAs(versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`;
 
       const dialog = alertify.dialog('prompt');
@@ -143,7 +146,7 @@ const mixins: MixinsObject = {
             {
               uid: uid,
               name: value,
-              version_id: version_id,
+              version_id: versionId,
             },
             {
               onComplete: (asset: AssetResponse) => {
@@ -265,9 +268,12 @@ const mixins: MixinsObject = {
     },
 
     componentDidMount() {
-      this.dmixAssetStoreCancelListener = assetStore.listen((data: AssetStoreData) => {
-        this.dmixAssetStoreChange(data);
-      }, this);
+      this.dmixAssetStoreCancelListener = assetStore.listen(
+        (data: AssetStoreData) => {
+          this.dmixAssetStoreChange(data);
+        },
+        this
+      );
 
       // TODO 2/2
       // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -277,7 +283,7 @@ const mixins: MixinsObject = {
       if (uid && this.props.initialAssetLoadNotNeeded) {
         this.setState(Object.assign({}, assetStore.data[uid]));
       } else if (uid) {
-        actions.resources.loadAsset({id: uid});
+        actions.resources.loadAsset({id: uid}, true);
       }
     },
 
@@ -291,6 +297,11 @@ const mixins: MixinsObject = {
       removeAssetSharing(this.props.params.uid);
     },
   },
+  /**
+   * @deprecated Please refer to `dropzone.utils.tsx` file and update the code
+   * there accordingly to your needs. You might end up needing to move and
+   * update one of the functions found here.
+   */
   droppable: {
     /*
      * returns an interval-driven promise
@@ -354,7 +365,7 @@ const mixins: MixinsObject = {
       params = Object.assign({library: isLibrary}, params);
 
       if (params.base64Encoded) {
-        stores.pageState.showModal({
+        pageState.showModal({
           type: MODAL_TYPES.UPLOADING_XLS,
           filename: multipleFiles
             ? t('## files').replace('##', String(totalFiles))
@@ -400,11 +411,14 @@ const mixins: MixinsObject = {
                       )
                     );
                     if (params.assetUid) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid));
+                      router!.navigate(
+                        ROUTES.FORM.replace(':uid', params.assetUid)
+                      );
                     }
                   } else {
                     if (
-                      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+                      this.props.context ===
+                        PROJECT_SETTINGS_CONTEXTS.REPLACE &&
                       routerIsActive(ROUTES.FORMS)
                     ) {
                       actions.resources.loadAsset({id: assetUid});
@@ -449,7 +463,7 @@ const mixins: MixinsObject = {
                 notify.error(t('Import Failed!'));
                 log('import failed', failData);
               });
-            stores.pageState.hideModal();
+            pageState.hideModal();
           }, 2500);
         },
         (jqxhr: string) => {
@@ -459,9 +473,6 @@ const mixins: MixinsObject = {
       );
     },
 
-    // NOTE: this is a DEPRECATED method of handling Dropzone. Please refer to
-    // `dropzone.utils.tsx` file and update the code there accordingly to your
-    // needs.
     dropFiles(files: File[], rejectedFiles: File[], {}, pms = {}) {
       files.map((file) => {
         const reader = new FileReader();
@@ -493,6 +504,9 @@ const mixins: MixinsObject = {
       }
     },
   },
+  /**
+   * @deprecated Use `routerUtils.ts` instead.
+   */
   contextRouter: {
     isFormList() {
       return (

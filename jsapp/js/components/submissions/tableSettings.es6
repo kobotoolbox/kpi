@@ -8,6 +8,7 @@ import {notify} from 'utils';
 import {DATA_TABLE_SETTINGS} from 'js/components/submissions/tableConstants';
 import {userCan} from 'js/components/permissions/utils';
 import tableStore from 'js/components/submissions/tableStore';
+import Button from 'js/components/common/button';
 import './tableSettings.scss';
 
 /**
@@ -117,14 +118,20 @@ class TableSettings extends React.Component {
 
         <bem.Modal__footer>
           {userCan('change_asset', this.props.asset) &&
-            <bem.KoboButton m='whitegray' onClick={this.onReset}>
-              {t('Reset')}
-            </bem.KoboButton>
+            <Button
+              type='secondary-danger'
+              size='l'
+              onClick={this.onReset.bind(this)}
+              label={t('Reset')}
+            />
           }
 
-          <bem.KoboButton m='blue' onClick={this.onSave}>
-            {t('Save')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.onSave.bind(this)}
+            label={t('Save')}
+          />
         </bem.Modal__footer>
       </div>
     );

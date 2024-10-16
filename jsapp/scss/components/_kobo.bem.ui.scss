@@ -1,7 +1,8 @@
 @use 'scss/_variables';
 @use 'scss/sizes';
 @use 'scss/z-indexes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/colors';
 
 #kpiapp,
 .mdl-wrapper,
@@ -28,60 +29,12 @@
   }
 }
 
-.ui-panel {
-  height: 100%;
-  margin: 0px 8px;
-
-  // useful if you want to avoid weird Flexbox bug with pushing things outside viewport
-  &.ui-panel--fixed {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-  }
-}
-
-.ui-panel__body {
-  @extend .mdl-grid, .mdl-grid--no-spacing;
-
-  padding: 0;
-  height: 100%;
-  flex-direction: column;
-
-  > .asset-view__content,
-  > .form-builder {
-    @extend .mdl-cell, .mdl-cell--12-col;
-
-    flex-flow: column;
-    margin: 0px !important;
-  }
-
-  > .asset-view__content {
-    height: 100%;
-  }
-
-  > .form-builder {
-    height: 100%;
-  }
-}
-
-.ui-panel--transparent .ui-panel__body {
-  background: transparent;
-  box-shadow: none;
-  margin: 0px;
-}
-
 // Focus mode for form builder, disable drawer, header
 .mdl-layout.page-wrapper--in-formbuilder {
   .mdl-layout__content {
     margin: 0px;
     width: 100%;
     height: 100%;
-  }
-
-  .ui-panel {
-    margin: 0px;
   }
 }
 
@@ -90,347 +43,9 @@
   opacity: 0.75;
 }
 
-// Popover menu
-.popover-menu {
-  position: relative;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.popover-menu__toggle {
-  background: transparent;
-  border: none;
-  margin: 0;
-  padding: 0;
-  cursor: pointer;
-  color: colors.$kobo-gray-40;
-  display: inline-block;
-  vertical-align: middle;
-
-  &:hover {
-    color: colors.$kobo-blue;
-  }
-
-  i {
-    margin: 3px;
-    font-size: 26px;
-  }
-}
-
-.popover-menu__content {
-  @include box-shadow-mid;
-
-  overflow: hidden;
-  position: absolute;
-  min-width: 160px;
-  max-width: 300px;
-  text-align: left;
-  background: colors.$kobo-white;
-  z-index: z-indexes.$z-dropdown;
-  right: -10px;
-  transition: opacity 0.35s;
-  opacity: 1;
-
-  &.popover-menu__content--hiding {
-    opacity: 0;
-    transition: opacity 0.35s;
-  }
-
-  &.popover-menu__content--hidden {
-    display: none;
-  }
-
-  &.popover-menu__content--visible {
-    display: block;
-  }
-}
-
-.popover-menu--below .popover-menu__content {
-  top: 100%;
-}
-
-.popover-menu--right .popover-menu__content {
-  right: auto;
-  left: -10px;
-}
-
-.popover-menu--above .popover-menu__content,
-.popover-menu--viewby-menu .popover-menu__content {
-  bottom: 100%;
-  top: auto;
-}
-
-.popover-menu__link,
-.popover-menu__item {
-  background-color: colors.$kobo-white;
-  display: block;
-  padding: 6px 12px 6px 6px;
-  position: relative;
-  color: colors.$kobo-gray-40;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  > i:first-child {
-    margin-right: 5px;
-    font-size: 28px;
-    width: 28px;
-    vertical-align: middle;
-  }
-
-  span {
-    vertical-align: middle;
-  }
-
-  &:hover {
-    background-color: colors.$kobo-gray-96;
-    color: colors.$kobo-gray-24;
-  }
-
-  &.active {
-    color: colors.$kobo-blue;
-  }
-
-  &.divider {
-    border-top: 1px solid colors.$kobo-gray-92;
-  }
-}
-
-@media screen and (max-height: 475px) {
-  .popover-menu__link,
-  .popover-menu__item {
-    i.k-icon:first-child {
-      font-size: 22px;
-    }
-  }
-}
-
-.popover-menu__moveTo {
-  max-height: 120px;
-  overflow: auto;
-  overflow-x: hidden;
-  background-color: colors.$kobo-gray-96;
-  border-bottom: 1px solid colors.$kobo-gray-92;
-}
-
-.popover-menu__item--move-coll-item {
-  background-color: colors.$kobo-gray-96;
-  position: relative;
-  text-align: left;
-  padding: 3px 8px 3px 5px;
-
-  span {
-    display: inline-block;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    word-wrap: break-word;
-  }
-
-  &.popover-menu__item--move-coll-item-parent {
-    pointer-events: none;
-    font-weight: 700;
-    color: colors.$kobo-gray-24;
-  }
-}
-
-.popover-menu__heading {
-  padding: 8px 15px;
-  color: colors.$kobo-gray-40;
-  border-top: 1px solid colors.$kobo-gray-92;
-  background-color: colors.$kobo-gray-96;
-  margin: 0px;
-}
-
-.popover-menu--formLanding-menu {
-  margin-left: 4px;
-
-  .popover-menu__content {
-    right: 10px;
-  }
-}
-
-.popover-menu--new-menu {
-  width: 100%;
-  margin-bottom: 10px;
-
-  .popover-menu__content {
-    right: 0px;
-    width: 100%;
-  }
-}
-
-.popover-menu--new-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-  border-radius: 6px;
-
-  width: 100%;
-}
-
-.popover-menu--assets-table {
-  .popover-menu__content {
-    max-height: 26px * 7.5;
-    overflow: auto;
-  }
-}
-
-.popover-menu--bulkUpdate-menu {
-  .popover-menu__toggle {
-    color: colors.$kobo-blue;
-
-    &:hover {
-      color: lighten(colors.$kobo-blue, 10%);
-    }
-
-    &::after {
-      content: '\25BC';
-      font-size: 8px;
-      margin-left: 3px;
-      display: inline-block;
-      vertical-align: 1px;
-    }
-  }
-
-  .popover-menu__content {
-    line-height: 20px;
-  }
-}
-
-.popover-menu--custom-reports {
-  .popover-menu__toggle {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 0px;
-
-    &::after {
-      content: '\25BC';
-      font-size: 10px;
-      margin-left: 5px;
-      display: inline-block;
-      vertical-align: 1px;
-    }
-  }
-
-  .popover-menu__content {
-    max-height: 500px;
-    min-width: 300px;
-    overflow: scroll;
-    right: auto;
-    left: 20px;
-  }
-
-  .popover-menu__link {
-    white-space: normal;
-  }
-}
-
-.popover-menu--collectData-menu {
-  .popover-menu__toggle {
-    padding: 8px 12px;
-    padding-right: 90px;
-    color: colors.$kobo-gray-40;
-    background: colors.$kobo-gray-96;
-    position: relative;
-
-    @include box-shadow;
-
-    &:hover {
-      color: colors.$kobo-gray-24;
-    }
-
-    &::after {
-      position: absolute;
-      right: 10px;
-      top: 9px;
-      content: '\25BC';
-      font-size: 10px;
-    }
-  }
-
-  .popover-menu__content {
-    min-width: 550px;
-    max-width: 780px;
-    top: auto;
-    bottom: -150px;
-    right: auto;
-    left: 30px;
-    max-height: 400px;
-    overflow: auto;
-
-    .popover-menu__link {
-      max-width: 100%;
-      white-space: normal;
-      padding: 12px;
-      border-bottom: 1px solid colors.$kobo-gray-92;
-      border-left: 2px solid transparent;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .collect-data-label {
-        font-weight: 600;
-        color: colors.$kobo-gray-24;
-      }
-
-      .collect-data-desc {
-        font-size: 12px;
-        line-height: 16px;
-      }
-
-      &:hover {
-        border-left: 2px solid colors.$kobo-teal;
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .popover-menu--collectData-menu {
-    .popover-menu__toggle {
-      padding-right: 40px;
-    }
-
-    .popover-menu__content {
-      min-width: 320px;
-      max-width: 360px;
-      left: 0px;
-
-      .collect-data-desc {
-        font-size: inherit;
-      }
-    }
-  }
-}
-
 // iframe default styles
 iframe {
   border: none;
-}
-
-// Flexbox helps us maintain a layout when some fields may be customized
-// or removed.
-// Place sector and country side-by-side, when both fields exist and we're
-// not in the narrow form builder sidebar. Similar to registration screen.
-.form-modal__form.project-settings--project-details:not(
-    .project-settings--narrow
-  )
-  > .form-modal__item--wrapper {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  column-gap: 4%;
-  .form-modal__item {
-    min-width: 75%; // Most rows are wide enough to get their own row,
-    flex: 1; // and when they do, they grow to occupy the full available width
-  }
-  .form-modal__item--sector,
-  .form-modal__item--country {
-    min-width: 40%; // These fields can sit next to each other in pairs.
-  }
 }
 
 // modal forms
@@ -450,7 +65,7 @@ iframe {
   & > label {
     font-weight: normal;
     font-size: 12px;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
 
     &.long {
       padding-top: 5px;
@@ -472,7 +87,7 @@ iframe {
     width: 100%;
     padding: sizes.$x10 sizes.$x14;
     font-size: sizes.$x14;
-    border: 1px solid colors.$kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-300;
 
     &:focus {
       border-color: colors.$kobo-blue;
@@ -492,22 +107,13 @@ iframe {
   }
 }
 
-@media screen and (max-width: 767px) {
-  .form-modal__item {
-    select {
-      max-width: 90%;
-      background: colors.$kobo-gray-65;
-    }
-  }
-}
-
 .ajs-content input[type='text'],
 .ajs-content textarea {
   width: 100%;
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: colors.$kobo-gray-92;
+  border-bottom-color: colors.$kobo-gray-300;
   transition: border-color 0.3s;
 
   &:focus {
@@ -551,13 +157,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: colors.$kobo-gray-65;
+  background-color: colors.$kobo-gray-500;
   background-color: transparent;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: colors.$kobo-gray-65;
+  background-color: colors.$kobo-gray-500;
   outline: none;
   border-radius: 6px;
 }

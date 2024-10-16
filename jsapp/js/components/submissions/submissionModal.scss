@@ -1,0 +1,90 @@
+@use 'scss/colors';
+
+.modal.modal-submission {
+  .modal__header {
+    background-color: colors.$kobo-gray-200;
+    color: colors.$kobo-gray-800;
+  }
+}
+
+.submission-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+
+  .checkbox {
+    margin-right: 40px;
+
+    .checkbox__label {
+      white-space: nowrap;
+    }
+  }
+}
+
+.submission-modal-buttons-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.submission-modal-message-box {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: colors.$kobo-gray-200;
+  text-align: center;
+  border-radius: 6px;
+
+  p:not(:last-child) {
+    margin: 0 auto 20px auto;
+  }
+}
+
+.submission-modal-dropdowns:only-child {
+  width: 100%;
+}
+
+.submission-modal-dropdowns {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  .k-select {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+
+    .k-select__label {
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .kobo-dropdown {
+      min-width: 140px;
+    }
+  }
+}
+
+.duplicated-submission-subheader {
+  .submission-modal-buttons-group {
+    justify-content: center;
+  }
+
+  .submission-duplicate__text {
+    max-width: 640px;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+
+  .submission-duplicate__header {
+    text-align: center;
+    margin: auto;
+    margin-bottom: 12px;
+    color: colors.$kobo-blue;
+  }
+}

@@ -4,6 +4,7 @@ import Button from 'js/components/common/button';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import HeaderLanguageAndDate from './headerLanguageAndDate.component';
 import bodyStyles from 'js/components/processing/processingBody.module.scss';
+import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
 
 export default function StepEditor() {
   function discardDraft() {
@@ -40,22 +41,26 @@ export default function StepEditor() {
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button
-            type='frame'
-            color='blue'
+            type='secondary'
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.data.isFetchingData}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
 
           <Button
-            type='full'
-            color='blue'
+            type='primary'
             size='s'
             label={t('Save')}
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftValue()}
+            isDisabled={
+              !singleProcessingStore.hasUnsavedTranscriptDraftValue() ||
+              !hasManagePermissionsToCurrentAsset()
+            }
           />
         </nav>
       </header>

@@ -1,12 +1,8 @@
-from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import UniqueConstraint
 from markdownx.models import MarkdownxField
 
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatFormDisclaimer,
-)
 from kobo.apps.markdownx_uploader.models import AbstractMarkdownxModel
 
 
@@ -62,21 +58,6 @@ class FormDisclaimer(AbstractMarkdownxModel):
                 name='uniq_hidden_disclaimer_per_asset',
             ),
         ]
-
-    def save(self, *args, **kwargs):
-
-        with transaction.atomic():
-            super().save(*args, **kwargs)
-            if not settings.TESTING:
-                KobocatFormDisclaimer.sync(self)
-
-    def delete(self, using=None, keep_parents=False):
-        pk = self.pk
-        with transaction.atomic():
-            value = super().delete(using, keep_parents)
-            if not settings.TESTING:
-                KobocatFormDisclaimer.objects.filter(pk=pk).delete()
-        return value
 
 
 class OverriddenFormDisclaimer(FormDisclaimer):

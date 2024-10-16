@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/sizes';
 @use 'js/components/common/button';
 
@@ -17,7 +17,7 @@
 }
 
 .mini-audio-player.mini-audio-player--is-loading {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .mini-audio-player.mini-audio-player--is-broken {

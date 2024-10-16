@@ -3,10 +3,10 @@
 import json
 import unittest
 
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.exceptions import BadAssetTypeException

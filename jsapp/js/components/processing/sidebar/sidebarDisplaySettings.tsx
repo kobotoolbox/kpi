@@ -11,22 +11,21 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Button from 'js/components/common/button';
 import {AsyncLanguageDisplayLabel} from 'js/components/languages/languagesUtils';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import type {AssetContent} from 'js/dataInterface';
 import {getActiveTab} from 'js/components/processing/routes.utils';
 import styles from './sidebarDisplaySettings.module.scss';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import cx from 'classnames';
+import KoboSelect from 'js/components/common/koboSelect';
 
-interface SidebarDisplaySettingsProps {
-  assetContent: AssetContent | undefined;
-}
-
-export default function SidebarDisplaySettings(
-  props: SidebarDisplaySettingsProps
-) {
+export default function SidebarDisplaySettings() {
   const [store] = useState(() => singleProcessingStore);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [labelLanguage, setLabelLanguage] = useState<LanguageCode | string>(
+    store.getCurrentlyDisplayedLanguage()
+  );
+
+  const displayedLanguageList = store.getDisplayedLanguagesList();
 
   const activeTab = getActiveTab();
 
@@ -39,9 +38,6 @@ export default function SidebarDisplaySettings(
   );
 
   function getInitialFields() {
-    if (!props.assetContent?.survey) {
-      return [];
-    }
 
     const allQuestions = store.getAllSidebarQuestions();
     const hiddenFields = store.getHiddenSidebarQuestions();
@@ -54,7 +50,9 @@ export default function SidebarDisplaySettings(
     return questionsList;
   }
 
-  const [selectedFields, setSelectedFields] = useState(getInitialFields());
+  const [selectedFields, setSelectedFields] = useState(() =>
+    getInitialFields()
+  );
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -65,6 +63,8 @@ export default function SidebarDisplaySettings(
   const transcript = store.getTranscript();
   const availableDisplays = store.getAvailableDisplays(activeTab);
 
+  // Returns the list of available displays for the current tab.
+  // I.e., if we are on the transcript tab, hide the transcript option.
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript) {
       if (transcript) {
@@ -103,10 +103,6 @@ export default function SidebarDisplaySettings(
   }
 
   function getCheckboxes() {
-    if (!props.assetContent?.survey) {
-      return [];
-    }
-
     const checkboxes = store.getAllSidebarQuestions().map((question) => {
       return {
         label: question.label,
@@ -152,9 +148,8 @@ export default function SidebarDisplaySettings(
     <div className={styles.root}>
       <Button
         size='m'
-        type='bare'
+        type='text'
         label={t('Display settings')}
-        color='storm'
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />
@@ -168,7 +163,13 @@ export default function SidebarDisplaySettings(
         }}
         size='medium'
       >
-        <KoboModalHeader>{t('Customize display settings')}</KoboModalHeader>
+        <KoboModalHeader
+          onRequestCloseByX={() => {
+            setSelectedDisplays(store.getDisplays(activeTab));
+            setSelectedFields(getInitialFields());
+            setIsModalOpen(false);
+          }}
+        >{t('Customize display settings')}</KoboModalHeader>
 
         <KoboModalContent>
           <p className={styles.description}>
@@ -178,6 +179,22 @@ export default function SidebarDisplaySettings(
           </p>
 
           <ul className={styles.options}>
+            <li className={styles.display}>
+              <KoboSelect
+                label={t('Display labels or XML values?')}
+                name='displayedLanguage'
+                type='outline'
+                size='s'
+                options={displayedLanguageList}
+                selectedOption={labelLanguage}
+                onChange={(languageCode) => {
+                  if (languageCode) {
+                    setLabelLanguage(languageCode);
+                  }
+                }}
+              />
+            </li>
+
             {availableDisplays.map((entry) => {
               const isEnabled = selectedDisplays.includes(entry);
 
@@ -186,34 +203,32 @@ export default function SidebarDisplaySettings(
                 const isSubmissionData = staticDisplay === StaticDisplays.Data;
 
                 return (
-                  <>
-                    <li className={cx(styles.display)} key={entry}>
-                      <ToggleSwitch
-                        onChange={(isChecked) => {
-                          if (isChecked) {
-                            enableDisplay(entry);
-                          } else {
-                            disableDisplay(entry);
-                          }
-                        }}
-                        checked={isEnabled}
-                        label={getStaticDisplayText(staticDisplay)}
-                      />
+                  <li className={cx(styles.display)} key={entry}>
+                    <ToggleSwitch
+                      onChange={(isChecked) => {
+                        if (isChecked) {
+                          enableDisplay(entry);
+                        } else {
+                          disableDisplay(entry);
+                        }
+                      }}
+                      checked={isEnabled}
+                      label={getStaticDisplayText(staticDisplay)}
+                    />
 
-                      {isSubmissionData && props.assetContent?.survey && (
-                        <div className={styles.questionList}>
-                          {t('Select the submission data to display.')}
-                          <div className={styles.checkbox}>
-                            <MultiCheckbox
-                              type='bare'
-                              items={getCheckboxes()}
-                              onChange={onCheckboxesChange}
-                            />
-                          </div>
+                    {isSubmissionData && (
+                      <div className={styles.questionList}>
+                        {t('Select the submission data to display.')}
+                        <div className={styles.checkbox}>
+                          <MultiCheckbox
+                            type='bare'
+                            items={getCheckboxes()}
+                            onChange={onCheckboxesChange}
+                          />
                         </div>
-                      )}
-                    </li>
-                  </>
+                      </div>
+                    )}
+                  </li>
                 );
               } else {
                 return (
@@ -245,9 +260,8 @@ export default function SidebarDisplaySettings(
         <KoboModalFooter alignment='center'>
           {/* This button resets the displays for current tab. */}
           <Button
-            label={<strong>{t('Reset')}</strong>}
-            type='frame'
-            color='light-blue'
+            label={t('Reset')}
+            type='secondary-danger'
             size='m'
             onClick={() => {
               store.resetDisplays(activeTab);
@@ -256,19 +270,20 @@ export default function SidebarDisplaySettings(
               // when the modal is closed.
               resetFieldsSelection();
               setSelectedDisplays(store.getDisplays(activeTab));
+              setLabelLanguage(store.getCurrentlyDisplayedLanguage());
               setIsModalOpen(false);
             }}
           />
 
           {/* Applies current selection of displays to the sidebar. */}
           <Button
-            label={<strong>{t('Apply selection')}</strong>}
-            type='full'
-            color='light-blue'
+            label={t('Apply selection')}
+            type='primary'
             size='m'
             onClick={() => {
               applyFieldsSelection();
               store.setDisplays(activeTab, selectedDisplays);
+              store.setCurrentlyDisplayedLanguage(labelLanguage);
               setIsModalOpen(false);
             }}
           />

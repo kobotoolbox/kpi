@@ -90,9 +90,8 @@ export default function ProjectsFieldsSelector(
     <div className={styles.root}>
       {/* Trigger button */}
       <Button
-        type='bare'
+        type='text'
         size='s'
-        color='storm'
         onClick={toggleModal}
         startIcon='spreadsheet'
         label={t('fields')}
@@ -123,16 +122,14 @@ export default function ProjectsFieldsSelector(
 
         <KoboModalFooter>
           <Button
-            type='frame'
-            color='storm'
+            type='secondary-danger'
             size='m'
             onClick={resetFields}
             label={t('Reset')}
           />
 
           <Button
-            type='frame'
-            color='blue'
+            type='primary'
             size='m'
             onClick={applyFields}
             label={t('Apply')}

@@ -1,13 +1,12 @@
 @use 'scss/breakpoints';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .root {
   padding: sizes.$x40;
 }
 
 .headerText {
-  margin-bottom: sizes.$x28;
   font-size: sizes.$r18;
   font-weight: 700;
   color: hsl(225, 33%, 59%);
@@ -47,7 +46,7 @@
   min-width: 250px;
   width: 100%;
   border: sizes.$x1 solid;
-  border-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-300;
   border-radius: sizes.$x6;
   padding: sizes.$x24;
   display: flex;
@@ -64,7 +63,7 @@
 
 .title {
   font-size: sizes.$x16;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .date {
@@ -72,13 +71,13 @@
   font-size: sizes.$x14;
 }
 
-@media screen and (min-width: breakpoints.$b600) {
+@include breakpoints.breakpoint(narrowAndUp) {
   .subrow {
     flex-wrap: nowrap;
   }
 }
 
-@media screen and (min-width: breakpoints.$b1440) {
+@include breakpoints.breakpoint(veryWide) {
   .row {
     flex-wrap: nowrap;
   }

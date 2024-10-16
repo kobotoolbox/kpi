@@ -2,7 +2,7 @@
 @use 'sass:math';
 @use 'scss/mixins';
 @use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'js/components/common/icon';
 @use './projectsTableRow.module';
 
@@ -141,13 +141,13 @@ $resizer-width: sizes.$x16 + $line-width;
     bottom: sizes.$x6;
     display: inline-block;
     position: absolute;
-    background-color: colors.$kobo-gray-65;
+    background-color: colors.$kobo-gray-500;
     // Give a little fade
-    border-top: sizes.$x1 solid colors.$kobo-gray-92;
-    border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+    border-top: sizes.$x1 solid colors.$kobo-gray-300;
+    border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
     box-shadow:
-      0 -1px 0 colors.$kobo-gray-96,
-      0  1px 0 colors.$kobo-gray-96;
+      0 -1px 0 colors.$kobo-gray-200,
+      0  1px 0 colors.$kobo-gray-200;
     width: $line-width;
     content: '';
     z-index: 1; // Layer below the resizer "pad" but above adjacent column headers
