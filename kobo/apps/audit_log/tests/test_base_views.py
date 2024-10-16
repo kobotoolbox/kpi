@@ -38,7 +38,7 @@ class TestUrls:
     """
 
     router = DefaultRouter()
-    router.register(f'test', DummyViewSet, basename='test-vs')
+    router.register(r'test', DummyViewSet, basename='test-vs')
     urlpatterns = router.urls
 
 
