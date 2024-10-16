@@ -110,7 +110,9 @@ class SubmissionSerializer(serializers.Serializer):
         if not hasattr(obj, 'xform'):
             return super().to_representation(obj)
 
-        message = self.context.get('confirmation_message', t('Successful submission.'))
+        message = self.context.get(
+            'confirmation_message', t('Successful submission.')
+        )
         return {
             'message': message,
             'formid': obj.xform.id_string,
