@@ -178,7 +178,7 @@ export default class ProjectExportsList extends React.Component {
     // doesn't exist in current form version
     let languageDisplay = (<em>{t('Unknown')}</em>);
     const langIndex = getLanguageIndex(this.props.asset, exportLang);
-    if (langIndex !== null) {
+    if (langIndex !== -1) {
       languageDisplay = exportLang;
     } else if (EXPORT_FORMATS[exportLang]) {
       languageDisplay = EXPORT_FORMATS[exportLang].label;
