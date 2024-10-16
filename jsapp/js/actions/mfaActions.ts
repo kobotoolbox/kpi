@@ -102,7 +102,7 @@ mfaActions.getMfaAvailability.listen(() => {
           mfaActions.getMfaAvailability.failed({isMfaAvailable: false, isPlansMessageVisible: false});
         });
     }
-  })
+  });
 });
 
 mfaActions.confirmCode.listen((mfaCode: string) => {

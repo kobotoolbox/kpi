@@ -11,6 +11,9 @@ import {
 import type {Router} from '@remix-run/router';
 
 // https://stackoverflow.com/a/70754791/443457
+/**
+ * @deprecated Use `getCurrentPath` from `routerUtils.ts`.
+ */
 const getRoutePath = (location: Location, params: Params): string => {
   const {pathname} = location;
 
@@ -44,7 +47,8 @@ export interface WithRouterProps {
  * This is for class based components, which cannot use hooks
  * Attempts to mimic both react router 3 and 5!
  * https://v5.reactrouter.com/web/api/withRouter
- * Use hooks instead when possible
+ *
+ * @deprecated Use hooks instead when possible.
  */
 export function withRouter(Component: FC | typeof React.Component) {
   function ComponentWithRouterProp(props: any) {
@@ -60,17 +64,25 @@ export function withRouter(Component: FC | typeof React.Component) {
   return ComponentWithRouterProp;
 }
 
+/**
+ * @deprecated Use some of the functions from `routerUtils.ts`.
+ */
 function getCurrentRoute() {
   return router!.state.location.pathname;
 }
 
 /**
  * Reimplementation of router v3 isActive
+ *
+ * @deprecated Use some of the functions from `routerUtils.ts`.
  */
 export function routerIsActive(route: string) {
   return getCurrentRoute().startsWith(route);
 }
 
+/**
+ * @deprecated Use `getRouteAssetUid` from `routerUtils.ts`.
+ */
 export function routerGetAssetId() {
   const current = getCurrentRoute();
   if (current) {
