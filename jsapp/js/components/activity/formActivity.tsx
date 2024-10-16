@@ -6,11 +6,11 @@ import KoboSelect from '../common/koboSelect';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
-import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLog.query';
+import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLogs.query';
 import {
   useActivityLogsFilterOptionsQuery,
   useActivityLogsQuery,
-} from 'jsapp/js/query/queries/activityLog.query';
+} from 'jsapp/js/query/queries/activityLogs.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
@@ -65,7 +65,7 @@ export default function FormActivity() {
   return (
     <div className={cx('form-view', styles.mainContainer)}>
       <div className={styles.header}>
-        <h1>{t('Recent Project Activity')}</h1>
+        <h1>{t('Recent project activity')}</h1>
         <div className={styles.headerActions}>
           <KoboSelect
             isClearable

@@ -43,9 +43,9 @@ const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
 
 /**
  * Fetches the activity logs from the server.
- * @param limit Pagination parameter: number of items per page
- * @param offset Pagination parameter: offset of the page
- * @returns
+ * @param {number} limit Pagination parameter: number of items per page
+ * @param {number} offset Pagination parameter: offset of the page
+ * @returns {Promise<PaginatedResponse<ActivityLogsItem>>} The paginated response
  */
 const getActivityLogs = async (limit: number, offset: number) =>
   new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
@@ -63,7 +63,7 @@ const getActivityLogs = async (limit: number, offset: number) =>
 
 /**
  * Fetches the filter options for the activity logs.
- * @returns
+ * @returns {Promise<KoboSelectOption[]>} The filter options
  */
 const getFilterOptions = async () =>
   new Promise<KoboSelectOption[]>((resolve) => {
@@ -74,20 +74,20 @@ const getFilterOptions = async () =>
  *
  *  This is a hook that fetches activity logs from the server.
  *
- * @param itemLimit Pagination parameter: number of items per page
- * @param pageOffset Pagination parameter: offset of the page
- * @returns
+ * @param {number} itemLimit Pagination parameter: number of items per page
+ * @param {number} pageOffset Pagination parameter: offset of the page
+ * @returns {UseQueryResult<PaginatedResponse<ActivityLogsItem>>} The react query result
  */
 export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) =>
   useQuery({
-    queryKey: [QueryKeys.activityLog, itemLimit, pageOffset],
+    queryKey: [QueryKeys.activityLogs, itemLimit, pageOffset],
     queryFn: () => getActivityLogs(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
   });
 
 /**
  * This is a hook to fetch the filter options for the activity logs.
- * @returns
+ * @returns {UseQueryResult<KoboSelectOption[]>} The react query result
  */
 export const useActivityLogsFilterOptionsQuery = () =>
   useQuery({

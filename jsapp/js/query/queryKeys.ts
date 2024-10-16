@@ -6,6 +6,6 @@
  */
 export enum QueryKeys {
   accessLogs = 'accessLogs',
-  activityLog = 'activityLog',
+  activityLogs = 'activityLogs',
   activityLogsFilter = 'activityLogsFilter',
 }
