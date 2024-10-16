@@ -1,6 +1,5 @@
 # coding: utf-8
-from rest_framework import viewsets
-from rest_framework import mixins
+from rest_framework import mixins, viewsets
 
 
 def get_nested_field(obj, field: str):
@@ -33,12 +32,13 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
     Sets the values on the inner HttpRequest object rather than the DRF Request
     so middleware can access them.
     """
+
     logged_fields = []
 
     def get_object(self):
         # actually fetch the object
         obj = self.get_object_override()
-        if self.request.method in ['GET','HEAD']:
+        if self.request.method in ['GET', 'HEAD']:
             # since this is for audit logs, don't worry about read-only requests
             return obj
         audit_log_data = {}
@@ -85,16 +85,22 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         return super().get_object()
 
 
-class AuditLoggedModelViewSet(AuditLoggedViewSet, mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin):
+class AuditLoggedModelViewSet(
+    AuditLoggedViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+):
     pass
 
-class AuditLoggedNoUpdateModelViewSet(AuditLoggedModelViewSet,
-                                    mixins.CreateModelMixin,
-                                    mixins.RetrieveModelMixin,
-                                    mixins.DestroyModelMixin,
-                                    mixins.ListModelMixin):
+
+class AuditLoggedNoUpdateModelViewSet(
+    AuditLoggedModelViewSet,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+):
     pass
