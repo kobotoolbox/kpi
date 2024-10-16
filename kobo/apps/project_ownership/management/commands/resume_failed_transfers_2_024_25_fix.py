@@ -1,4 +1,3 @@
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from ...models import (
@@ -18,7 +17,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        usernames = set()
         verbosity = options['verbosity']
 
         for transfer_status in TransferStatus.objects.filter(
@@ -48,20 +46,33 @@ class Command(BaseCommand):
             if verbosity:
                 self.stdout.write(f'Resuming `{transfer.asset}` transfer…')
             self._move_data(transfer)
-            move_attachments(transfer)
-            move_media_files(transfer)
+
+            # We do not want any error to break the management command,
+            # so we catch any exception and log it for later purpose.
+            try:
+                if verbosity:
+                    self.stdout.write('\tMoving attachments…')
+                move_attachments(transfer)
+            except Exception as e:
+                self.stderr.write(f'Failed to move attachments: {e}')
+                TransferStatus.objects.filter(
+                    transfer=transfer,
+                    status_type=TransferStatusTypeChoices.ATTACHMENTS,
+                ).update(error=str(e), status=TransferStatusChoices.FAILED)
+
+            try:
+                if verbosity:
+                    self.stdout.write('\tMoving media files…')
+                move_media_files(transfer)
+            except Exception as e:
+                self.stderr.write(f'Failed to move media files: {e}')
+                TransferStatus.objects.filter(
+                    transfer=transfer,
+                    status_type=TransferStatusTypeChoices.MEDIA_FILES,
+                ).update(error=str(e), status=TransferStatusChoices.FAILED)
+
             if verbosity:
                 self.stdout.write('\tDone!')
-            usernames.add(transfer.invite.recipient.username)
-
-        # Update attachment storage bytes counters
-        for username in usernames:
-            call_command(
-                'update_attachment_storage_bytes',
-                verbosity=verbosity,
-                force=True,
-                username=username,
-            )
 
     def _move_data(self, transfer: Transfer):
 

@@ -133,13 +133,13 @@ class TestOneTimeAuthentication(BaseTestCase):
         'kpi.authentication.OPOAuth2Authentication.authenticate',
         'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
     )
-    def test_any_auth_for_submissions(self, authetication_method):
+    def test_any_auth_for_submissions(self, authentication_method):
         """
         Test most one-time authenticated submissions result in a submission access log
         """
 
         with patch(
-            authetication_method,
+            authentication_method,
             return_value=(TestOneTimeAuthentication.user, 'something'),
         ):
             # assume the submission works, we don't actually care

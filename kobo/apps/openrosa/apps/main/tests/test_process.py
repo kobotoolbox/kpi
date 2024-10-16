@@ -18,7 +18,7 @@ from kobo.apps.openrosa.apps.logger.models.xform import XFORM_TITLE_LENGTH
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
-from kobo.apps.openrosa.libs.utils.common_tags import UUID, SUBMISSION_TIME
+from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME, UUID
 from kpi.utils.hash import calculate_hash
 from .test_base import TestBase
 
