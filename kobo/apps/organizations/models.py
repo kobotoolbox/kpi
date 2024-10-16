@@ -94,7 +94,7 @@ class OrganizationUser(AbstractOrganizationUser):
         try:
             customer = Customer.objects.get(subscriber=self.organization.id)
             subscriptions = Subscription.objects.filter(
-                customer=customer, status="active"
+                customer=customer, status='active'
             )
 
             unique_plans = set()
