@@ -4,6 +4,24 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    paths: # files to trigger frontend runs
+      # frontend source and tests
+      - 'jsapp/**/*'
+      - 'test/**/*'
+      # frontend dependency changes
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/*.patch'
+      # frontend build system config
+      - 'webpack/**/*'
+      - 'tsconfig.json'
+      - '.swcrc'
+      - '.browserslistrc'
+      # frontend linter config
+      - '*lint*'
+      - '.*rc.js*'
+      # ignore markdown-only changes
+      - '!**/*.md'
 
 jobs:
   build:

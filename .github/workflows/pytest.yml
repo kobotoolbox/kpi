@@ -6,6 +6,24 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    paths: # files to trigger pytest runs
+      # django app source files
+      - 'kpi/**/*'
+      - 'hub/**/*'
+      - 'kobo/**/*'
+      # py build system and scripts
+      - 'dependencies/pip/*'
+      - 'pyproject.toml'
+      - '**/*.py'
+      - '**/*.sh'
+      - '**/*.bash'
+      # ignore markdown-only changes
+      - '!**/*.md'
+      # ignore frontend-only changes
+      - '!webpack/**/*'
+      - '!cypress/**/*'
+      - '!jsapp/**/*'
+      - '!test/**/*'
 
 jobs:
   build:
