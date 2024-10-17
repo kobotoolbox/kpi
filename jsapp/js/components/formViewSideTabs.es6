@@ -10,8 +10,10 @@ import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
+import {getFeatureFlags} from 'js/featureFlags';
 
 export function getFormDataTabs(assetUid) {
+
   return [
     {
       label: t('Table'),
@@ -60,7 +62,7 @@ class FormViewSideTabs extends Reflux.Component {
   }
 
   assetLoad(data) {
-    var asset = data[this.currentAssetID()];
+    const asset = data[this.currentAssetID()];
     this.setState(Object.assign({asset: asset}));
   }
 
@@ -70,7 +72,7 @@ class FormViewSideTabs extends Reflux.Component {
         ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid)
       );
 
-      var path = evt.target.getAttribute('data-path');
+      const path = evt.target.getAttribute('data-path');
       window.setTimeout(() => {
         this.props.router.navigate(path);
       }, 50);
@@ -80,7 +82,9 @@ class FormViewSideTabs extends Reflux.Component {
   }
 
   renderFormSideTabs() {
-    var sideTabs = [];
+    let sideTabs = [];
+
+    const featureFlags = getFeatureFlags();
 
     if (
       this.state.asset &&
@@ -164,6 +168,7 @@ class FormViewSideTabs extends Reflux.Component {
       }
 
       if (
+        featureFlags.activityLogs &&
         userCan(
           PERMISSIONS_CODENAMES.manage_asset,
           this.state.asset
