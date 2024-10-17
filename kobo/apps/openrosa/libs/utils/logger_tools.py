@@ -85,7 +85,6 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
@@ -668,9 +667,7 @@ def save_attachments(
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment and (
-            existing_attachment.file_hash == calculate_hash(f.read())
-        ):
+        if existing_attachment:
             # We already have this attachment!
             continue
         f.seek(0)
