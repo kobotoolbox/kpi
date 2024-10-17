@@ -13,7 +13,6 @@ import {userCan} from 'js/components/permissions/utils';
 import {getFeatureFlags} from 'js/featureFlags';
 
 export function getFormDataTabs(assetUid) {
-
   return [
     {
       label: t('Table'),
@@ -62,7 +61,7 @@ class FormViewSideTabs extends Reflux.Component {
   }
 
   assetLoad(data) {
-    const asset = data[this.currentAssetID()];
+    var asset = data[this.currentAssetID()];
     this.setState(Object.assign({asset: asset}));
   }
 
@@ -72,7 +71,7 @@ class FormViewSideTabs extends Reflux.Component {
         ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid)
       );
 
-      const path = evt.target.getAttribute('data-path');
+      var path = evt.target.getAttribute('data-path');
       window.setTimeout(() => {
         this.props.router.navigate(path);
       }, 50);
@@ -82,7 +81,7 @@ class FormViewSideTabs extends Reflux.Component {
   }
 
   renderFormSideTabs() {
-    let sideTabs = [];
+    var sideTabs = [];
 
     const {activityLogsEnabled} = getFeatureFlags();
 
