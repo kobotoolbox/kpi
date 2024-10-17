@@ -435,7 +435,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         media_file = '1335783522563.jpg'
         xml_files = [
             'transport_with_custom_attribute_01',
-            'transport_with_custom_attribute_02'
+            'transport_with_custom_attribute_02',
+            'transport_with_no_custom_attribute'
         ]
 
         path = os.path.join(
@@ -481,6 +482,10 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     if xml_file == 'transport_with_custom_attribute_01':
                         self.assertContains(
                             response, 'Custom submit message', status_code=201
+                        )
+                    elif xml_file == 'transport_with_custom_attribute_02':
+                        self.assertContains(
+                            response, 'Successful submission.', status_code=201
                         )
                     else:
                         self.assertContains(
