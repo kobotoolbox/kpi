@@ -47,29 +47,6 @@ iframe {
   border: none;
 }
 
-// Flexbox helps us maintain a layout when some fields may be customized
-// or removed.
-// Place sector and country side-by-side, when both fields exist and we're
-// not in the narrow form builder sidebar. Similar to registration screen.
-.form-modal__form.project-settings--project-details:not(
-    .project-settings--narrow
-  )
-  > .form-modal__item--wrapper {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  column-gap: 4%;
-  .form-modal__item {
-    min-width: 75%; // Most rows are wide enough to get their own row,
-    flex: 1; // and when they do, they grow to occupy the full available width
-  }
-  .form-modal__item--sector,
-  .form-modal__item--country {
-    min-width: 40%; // These fields can sit next to each other in pairs.
-  }
-}
-
 // modal forms
 .form-modal__item {
   &:not(:last-child) {

@@ -336,6 +336,9 @@ $modal-custom-header-height: 60px;
   cursor: pointer;
 }
 
+// TODO: This class has been removed from the actual ProjectSettings component,
+// but this rule is still used in a few places. We should remove it once we have
+// switched them to style modules.
 .project-settings {
   // make sure it doesn't get too small (but only inside modal)
   .modal & {
@@ -433,16 +436,6 @@ $modal-custom-header-height: 60px;
     &:hover {border-color: colors.$kobo-blue;}
     &.dropzone-active {border-color: colors.$kobo-blue;}
     &.dropzone-reject {border-color: colors.$kobo-red;}
-  }
-}
-
-@media screen and (min-height: 600px) {
-  // on bigger screens make templates-list scrollable to always display back/next buttons
-  .project-settings.project-settings--choose-template {
-    .templates-list {
-      max-height: 380px;
-      overflow-y: auto;
-    }
   }
 }
 
