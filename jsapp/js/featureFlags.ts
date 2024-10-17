@@ -1,9 +1,11 @@
 
 /**
  * This function reads query parameters and processes them to find feature flags
+ * - The query parameters are read from the URL
+ * - Recommended naming convention: `ff_featureNameEnabled`
  * - Any parameter starting with "ff_" is considered to be a feature flag
  * - A feature flag parameter needs to have its value equals "true" to be set to true
- * - Enabled flags are stored on sessionStorage by its name (without the ff_)
+ * - Enabled flags are stored on sessionStorage by its name **without the ff_**
  * - Disabled (false) flags are removed from the sessionStorage object
  * - A flag won't disable itself unless it's set to false or the sessionStorage object is deleted
  * - If no flags are enabled, the session storage object is removed
