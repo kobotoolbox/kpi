@@ -157,9 +157,8 @@ class DataDictionary(XForm):
     def save(self, *args, **kwargs):
         if self.xls:
             survey = create_survey_from_xls(self.xls)
-            survey.update({
-                'name': survey.id_string,
-            })
+            if not survey.name or survey.name == 'None':
+                survey.name = survey.id_string
             self.json = survey.to_json()
             self.xml = survey.to_xml()
             self._mark_start_time_boolean()

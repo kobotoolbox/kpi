@@ -12,6 +12,8 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
@@ -779,3 +781,85 @@ class ShareAssetsTest(AssetsTestCase):
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
                 PERM_VIEW_ASSET, self.asset))
+
+
+class TestAssetNameSettingHandling(AssetsTestCase):
+    """
+    Tests for the 'name' setting in the asset content
+    """
+    def test_asset_name_matches_instance_root(self):
+        """
+        Test if 'name' setting is provided, it should match with the root node.
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'select_one',
+                    'label': 'q1',
+                    'select_from_list_name': 'iu0sl99',
+                },
+            ],
+            'choices': [
+                {'name': 'a11', 'label': ['a11'], 'list_name': 'iu0sl99'},
+                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
+            ],
+            'settings': {'name': 'custom_root_node_name'}
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the name setting matches the root node name
+        self.assertEqual(asset.content['settings']['name'], root_element.nodeName)
+
+    def test_asset_without_name_setting(self):
+        """
+        Test if 'name' setting is not provided, the root node should fall back
+        to xform.id_string
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'select_one',
+                    'label': 'q1',
+                    'select_from_list_name': 'iu0sl99',
+                },
+            ],
+            'choices': [
+                {'name': 'a11', 'label': ['a11'], 'list_name': 'iu0sl99'},
+                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
+            ],
+            # No 'name' setting provided in this case
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the root node name is the xform.id_sting
+        self.assertEqual(xform.id_string, root_element.nodeName)
