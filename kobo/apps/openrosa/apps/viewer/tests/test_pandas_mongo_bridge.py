@@ -51,16 +51,27 @@ class TestPandasMongoBridge(TestBase):
         self.xform = XForm.objects.all().reverse()[0]
 
     def _submit_fixture_instance(
-            self, fixture, instance, submission_time=None):
+            self, fixture, instance, submission_time=None, add_submission_uuid=None):
         """
         Submit an instance at
         tests/fixtures/[fixture]/instances/[fixture]_[instance].xml
         """
         xml_submission_file_path = xml_inst_filepath_from_fixture_name(
             fixture, instance)
-        self._make_submission(
-            xml_submission_file_path, forced_submission_time=submission_time)
-        self.assertEqual(self.response.status_code, 201)
+
+        if add_submission_uuid:
+            xml_submission_file_path = (
+                self._add_submission_uuid_to_submission_xml(
+                    xml_submission_file_path
+                )
+            )
+        try:
+            self._make_submission(
+                xml_submission_file_path, forced_submission_time=submission_time)
+            self.assertEqual(self.response.status_code, 201)
+        finally:
+            if add_submission_uuid:
+                os.remove(xml_submission_file_path)
 
     def _publish_single_level_repeat_form(self):
         self._publish_xls_fixture_set_xform("new_repeats")
@@ -207,6 +218,7 @@ class TestPandasMongoBridge(TestBase):
             'gps_group/_gps_longitude',
             'gps_group/_gps_altitude',
             'gps_group/_gps_precision',
+            'meta/instanceID',
             'web_browsers/firefox',
             'web_browsers/chrome',
             'web_browsers/ie',
@@ -246,6 +258,7 @@ class TestPandasMongoBridge(TestBase):
             'kids/kids_details[1]/kids_age': '50',
             'kids/kids_details[2]/kids_name': 'Cain',
             'kids/kids_details[2]/kids_age': '76',
+            'meta/instanceID': 'uuid:435f173c688e482463a486617004534df',
             'web_browsers/chrome': True,
             'web_browsers/ie': True,
             'web_browsers/safari': False,
@@ -494,7 +507,7 @@ class TestPandasMongoBridge(TestBase):
         self._publish_single_level_repeat_form()
         # submit 3 instances
         for i in range(3):
-            self._submit_fixture_instance("new_repeats", "01")
+            self._submit_fixture_instance('new_repeats', '03', None, True)
         df_builder = XLSDataFrameBuilder(self.user.username,
                                          self.xform.id_string)
         record_count = df_builder._query_mongo(count=True)
@@ -526,10 +539,10 @@ class TestPandasMongoBridge(TestBase):
         self._publish_single_level_repeat_form()
         # submit 7 instances
         for i in range(4):
-            self._submit_fixture_instance("new_repeats", "01")
+            self._submit_fixture_instance('new_repeats', '03', None, True)
         self._submit_fixture_instance("new_repeats", "02")
         for i in range(2):
-            self._submit_fixture_instance("new_repeats", "01")
+            self._submit_fixture_instance('new_repeats', '03', None, True)
         csv_df_builder = CSVDataFrameBuilder(self.user.username,
                                              self.xform.id_string)
         record_count = csv_df_builder._query_mongo(count=True)
