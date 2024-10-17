@@ -113,7 +113,7 @@ class SingleProcessingHeader extends React.Component<
           // and video in future).
           if (
             questionData.type === QUESTION_TYPES.audio.id ||
-            questionData.type === META_QUESTION_TYPES['background-audio']
+            questionData.type === QUESTION_TYPES['background-audio'].id
           ) {
             const rowName = getRowName(questionData);
             const translatedLabel = getTranslatedRowLabel(
