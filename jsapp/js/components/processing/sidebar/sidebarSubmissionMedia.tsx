@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
+import cx from 'classnames';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {AssetContent} from 'js/dataInterface';
 import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
 import {getAttachmentForProcessing} from 'js/components/processing/transcript/transcript.utils';
 import styles from './sidebarSubmissionMedia.module.scss';
+import DeletedAttachment from 'js/components/submissions/deletedAttachment.component';
 
 interface SidebarSubmissionMediaProps {
   assetContent: AssetContent | undefined;
@@ -26,15 +28,23 @@ export default function SidebarSubmissionMedia(
     return null;
   }
 
+  if (attachment.is_deleted) {
+    return (
+      <section
+        className={cx([styles.mediaWrapper, styles.mediaWrapperDeleted])}
+        key='deleted'
+      >
+        <DeletedAttachment />
+      </section>
+    );
+  }
+
   switch (store.currentQuestionType) {
     case QUESTION_TYPES.audio.id:
     case META_QUESTION_TYPES['background-audio']:
       return (
         <section
-          className={`
-            ${styles.mediaWrapper}
-            ${styles.mediaWrapperAudio}
-          `}
+          className={cx([styles.mediaWrapper, styles.mediaWrapperAudio])}
           key='audio'
         >
           <AudioPlayer
@@ -46,10 +56,7 @@ export default function SidebarSubmissionMedia(
     case QUESTION_TYPES.video.id:
       return (
         <section
-          className={`
-            ${styles.mediaWrapper}
-            ${styles.mediaWrapperVideo}
-          `}
+          className={cx([styles.mediaWrapper, styles.mediaWrapperVideo])}
           key='video'
         >
           <video
