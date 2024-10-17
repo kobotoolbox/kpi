@@ -1,19 +1,18 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .root {
   @include mixins.centerRowFlex;
   align-items: flex-start;
-  gap: sizes.$x10;
+  gap: 10px;
 }
 
 .sideLabel {
   color: colors.$kobo-storm;
-  font-size: sizes.$x12;
+  font-size: 12px;
   font-weight: 700;
   line-height: 200%;
-  margin-bottom: sizes.$x3;
+  margin-bottom: 3px;
   display: inline-block;
   vertical-align: bottom;
 }

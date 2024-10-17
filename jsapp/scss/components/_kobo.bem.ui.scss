@@ -1,5 +1,4 @@
 @use 'scss/_variables';
-@use 'scss/sizes';
 @use 'scss/z-indexes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
@@ -85,8 +84,8 @@ iframe {
   select,
   textarea {
     width: 100%;
-    padding: sizes.$x10 sizes.$x14;
-    font-size: sizes.$x14;
+    padding: 10px 14px;
+    font-size: 14px;
     border: 1px solid colors.$kobo-gray-300;
 
     &:focus {
