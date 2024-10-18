@@ -49,56 +49,12 @@ class PlanAddOn(models.Model):
             models.Index(fields=['organization', 'limits_remaining', 'charge']),
         ]
 
-    @property
-    def is_expended(self):
-        """
-        Whether the addon is at/over its usage limits.
-        """
-        for limit_type, limit_value in self.limits_remaining.items():
-            if limit_value > 0:
-                return False
-        return True
-
-    @property
-    def total_usage_limits(self):
-        """
-        The total usage limits for this add-on, based on the usage_limits for a single add-on and the quantity.
-        """
-        return {key: value * self.quantity for key, value in self.usage_limits.items()}
-
-    @property
-    def valid_tags(self) -> List:
-        """
-        The tag metadata (on the subscription product/price) needed to view/purchase this add-on.
-        If the org that purchased this add-on no longer has that a plan with those tags, the add-on will be inactive.
-        If the add-on doesn't require a tag, this property will return an empty list.
-        """
-        return self.product.metadata.get('valid_tags', '').split(',')
-
-    @admin.display(boolean=True, description='available')
-    def is_available(self):
-        return self.charge.payment_intent.status == PaymentIntentStatus.succeeded and not (
-            self.is_expended or self.charge.refunded
-        ) and bool(self.organization)
-
-    def increment(self, limit_type, amount_used):
-        """
-        Increments the usage counter for limit_type by amount_used.
-        Returns the amount of this add-on that was used (up to its limit).
-        Will return 0 if limit_type does not apply to this add-on.
-        """
-        if limit_type in self.usage_limits.keys():
-            limit_available = self.limits_remaining.get(limit_type)
-            amount_to_use = min(amount_used, limit_available)
-            self.limits_remaining[limit_type] -= amount_to_use
-            self.save()
-            return amount_to_use
-        return 0
-
     @staticmethod
     def create_or_update_one_time_add_on(charge: Charge):
         """
-        Create a PlanAddOn object from a Charge object, if the Charge is for a one-time add-on.
+        Create a PlanAddOn object from a Charge object, if the Charge is for a
+        one-time add-on.
+
         Returns True if a PlanAddOn was created, false otherwise.
         """
         if not charge.metadata.get('price_id', None) or not charge.metadata.get('quantity', None):
@@ -151,25 +107,11 @@ class PlanAddOn(models.Model):
         return add_on_created
 
     @staticmethod
-    def make_add_ons_from_existing_charges():
-        """
-        Create a PlanAddOn object for each eligible Charge object in the database.
-        Does not refresh Charge data from Stripe.
-        Returns the number of PlanAddOns created.
-        """
-        created_count = 0
-        # TODO: This should filter out charges that are already matched to an add on
-        for charge in Charge.objects.all().iterator(chunk_size=500):
-            if PlanAddOn.create_or_update_one_time_add_on(charge):
-                created_count += 1
-        return created_count
-
-    @staticmethod
     def get_organization_totals(
         organization: 'Organization', usage_type: UsageType
     ) -> (int, int):
         """
-        Returns the total limit and the total remaining usage for a given org.
+        Returns the total limit and the total remaining usage for a given organization
         and usage type.
         """
         usage_mapped = USAGE_LIMIT_MAP[usage_type]
@@ -196,13 +138,61 @@ class PlanAddOn(models.Model):
 
         return totals['total_usage_limit'], totals['total_remaining']
 
+    @property
+    def is_expended(self):
+        """
+        Whether the addon is at/over its usage limits.
+        """
+        for limit_type, limit_value in self.limits_remaining.items():
+            if limit_value > 0:
+                return False
+        return True
+
+    @admin.display(boolean=True, description='available')
+    def is_available(self):
+        return (
+            self.charge.payment_intent.status == PaymentIntentStatus.succeeded and not (
+                self.is_expended or self.charge.refunded
+            ) and bool(self.organization)
+        )
+
+    def deduct(self, limit_type, amount_used):
+        """
+        Deducts the add on usage counter for limit_type by amount_used.
+        Returns the amount of this add-on that was used (up to its limit).
+        Will return 0 if limit_type does not apply to this add-on.
+        """
+        if limit_type in self.usage_limits.keys():
+            limit_available = self.limits_remaining.get(limit_type)
+            amount_to_use = min(amount_used, limit_available)
+            self.limits_remaining[limit_type] -= amount_to_use
+            self.save()
+            return amount_to_use
+        return 0
+
     @staticmethod
-    def increment_add_ons_for_organization(
+    def make_add_ons_from_existing_charges():
+        """
+        Create a PlanAddOn object for each eligible Charge object in the database.
+        Does not refresh Charge data from Stripe.
+        Returns the number of PlanAddOns created.
+        """
+        created_count = 0
+        # TODO: This should filter out charges that are already matched to an add on
+        for charge in Charge.objects.all().iterator(chunk_size=500):
+            if PlanAddOn.create_or_update_one_time_add_on(charge):
+                created_count += 1
+        return created_count
+
+    @staticmethod
+    def deduct_add_ons_for_organization(
         organization: 'Organization', usage_type: UsageType, amount: int
     ):
         """
-        Increments the usage counter for limit_type by amount_used for a given user.
-        Will always increment the add-on with the most used first, so that add-ons are used up in FIFO order.
+        Deducts the usage counter for limit_type by amount_used for a given user.
+        Will always spend the add-on with the most used first, so that add-ons
+        are used up in FIFO order.
+
         Returns the amount of usage that was not applied to an add-on.
         """
         usage_mapped = USAGE_LIMIT_MAP[usage_type]
@@ -218,10 +208,28 @@ class PlanAddOn(models.Model):
         remaining = amount
         for add_on in add_ons.iterator():
             if add_on.is_available():
-                remaining -= add_on.increment(
+                remaining -= add_on.deduct(
                     limit_type=limit_key, amount_used=remaining
                 )
         return remaining
+
+    @property
+    def total_usage_limits(self):
+        """
+        The total usage limits for this add-on, based on the usage_limits for a single
+        add-on and the quantity.
+        """
+        return {key: value * self.quantity for key, value in self.usage_limits.items()}
+
+    @property
+    def valid_tags(self) -> List:
+        """
+        The tag metadata (on the subscription product/price) needed to view/purchase
+        this add-on. If the org that purchased this add-on no longer has that a plan
+        with those tags, the add-on will be inactive. If the add-on doesn't require a
+        tag, this property will return an empty list.
+        """
+        return self.product.metadata.get('valid_tags', '').split(',')
 
 
 @receiver(post_save, sender=Charge)

@@ -20,10 +20,14 @@ from kpi.utils.cache import CachedClass, cached_class_property
 class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
-    def __init__(self, user: User, organization: Optional['Organization']):
+    def __init__(
+        self, user: User,
+        organization: Optional['Organization'],
+        disable_cache: bool = False
+    ):
         self.user = user
         self.organization = organization
-
+        self._cache_available = not disable_cache
         self._user_ids = [user.pk]
         self._user_id_query = self._filter_by_user([user.pk])
         if organization and settings.STRIPE_ENABLED:
