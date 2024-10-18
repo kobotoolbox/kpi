@@ -10,6 +10,7 @@ import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
+import {checkFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export function getFormDataTabs(assetUid) {
   return [
@@ -81,6 +82,8 @@ class FormViewSideTabs extends Reflux.Component {
 
   renderFormSideTabs() {
     var sideTabs = [];
+
+    const isActivityLogsEnabled = checkFeatureFlag(FeatureFlag.activityLogsEnabled);
 
     if (
       this.state.asset &&
@@ -164,6 +167,7 @@ class FormViewSideTabs extends Reflux.Component {
       }
 
       if (
+        isActivityLogsEnabled &&
         userCan(
           PERMISSIONS_CODENAMES.manage_asset,
           this.state.asset
