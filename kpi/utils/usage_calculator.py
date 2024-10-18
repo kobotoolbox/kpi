@@ -1,6 +1,7 @@
 from json import dumps, loads
 from typing import Optional
 
+from django.apps import apps
 from django.conf import settings
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
@@ -13,17 +14,20 @@ from kobo.apps.organizations.utils import (
     get_yearly_billing_dates,
 )
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
 class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
-    def __init__(self, user: User, organization: Optional['Organization']):
+    def __init__(
+        self, user: User,
+        organization: Optional['Organization'],
+        disable_cache: bool = False
+    ):
         self.user = user
         self.organization = organization
-
+        self._cache_available = not disable_cache
         self._user_ids = [user.pk]
         self._user_id_query = self._filter_by_user([user.pk])
         if organization and settings.STRIPE_ENABLED:
@@ -55,7 +59,7 @@ class ServiceUsageCalculator(CachedClass):
         self.current_year_filter = Q(date__range=[self.current_year_start, now])
         self._setup_cache()
 
-    def get_cached_usage(self, usage_key: str) -> int:
+    def get_nlp_usage_by_type(self, usage_key: str) -> int:
         """Returns the usage for a given organization and usage key. The usage key
         should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
         """
@@ -71,7 +75,7 @@ class ServiceUsageCalculator(CachedClass):
 
         cached_usage = {
             'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
-            'mt_character': nlp_usage[f'mt_characters_current_{interval}'],
+            'mt_characters': nlp_usage[f'mt_characters_current_{interval}'],
         }
 
         return cached_usage[usage_key]
@@ -83,6 +87,8 @@ class ServiceUsageCalculator(CachedClass):
         key='nlp_usage_counters', serializer=dumps, deserializer=loads
     )
     def get_nlp_usage_counters(self):
+        NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+
         nlp_tracking = (
             NLPUsageCounter.objects.only(
                 'date', 'total_asr_seconds', 'total_mt_characters'
