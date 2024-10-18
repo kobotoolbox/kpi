@@ -14,6 +14,7 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 import pageState from 'js/pageState.store';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -55,9 +56,13 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   getQuestionIcon(): IconName {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
-        return 'qt-photo';
+        return QUESTION_TYPES.image.icon;
+      case QUESTION_TYPES.audio.id:
+        return QUESTION_TYPES.audio.icon;
+      case QUESTION_TYPES['background-audio'].id:
+        return QUESTION_TYPES['background-audio'].icon;
       case QUESTION_TYPES.video.id:
-        return 'qt-video';
+        return QUESTION_TYPES.video.icon;
       default:
         return 'media-files';
     }
@@ -127,6 +132,17 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
                 label={t('download')}
               />
             </a>
+          }
+
+          {PROCESSING_QUESTION_TYPES.includes(this.props.questionType) &&
+            <Button
+              type='frame'
+              size='s'
+              color='storm'
+              endIcon='arrow-up-right'
+              label={t('process')}
+              onClick={this.openProcessing.bind(this)}
+            />
           }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>

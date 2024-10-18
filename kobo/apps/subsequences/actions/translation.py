@@ -1,5 +1,5 @@
-
 from kobo.apps.subsequences.constants import GOOGLETX
+from ..constants import TRANSLATABLE_SOURCE_TYPES
 from ..actions.base import BaseAction
 
 TRANSLATED = 'translation'
@@ -13,7 +13,7 @@ class TranslationAction(BaseAction):
     def build_params(cls, survey_content):
         translatable_fields = []
         for row in survey_content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
                 translatable_fields.append(cls.get_xpath(cls, row))
         params = {'values': translatable_fields}
         return params
@@ -22,7 +22,7 @@ class TranslationAction(BaseAction):
     def get_values_for_content(cls, content):
         translatable_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
                 name = cls.get_xpath(cls, row)
                 if name:
                     translatable_fields.append(name)

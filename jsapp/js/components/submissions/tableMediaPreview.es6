@@ -4,10 +4,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import KoboImage from 'js/components/common/koboImage';
-import {
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
-} from 'js/constants';
+import {QUESTION_TYPES} from 'js/constants';
 import './tableMediaPreview.scss';
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview');
@@ -54,7 +51,7 @@ class TableMediaPreview extends React.Component {
           </bem.TableMediaPreview__image>
         );
       case QUESTION_TYPES.audio.id:
-      case META_QUESTION_TYPES['background-audio']:
+      case QUESTION_TYPES['background-audio'].id:
         return (
           <bem.TableMediaPreview__audio>
             <i className='k-icon k-icon-file-audio' />
