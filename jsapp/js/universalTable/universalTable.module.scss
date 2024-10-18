@@ -1,5 +1,6 @@
 @use 'scss/colors';
 @use 'scss/mixins';
+@use 'sass:color';
 
 // Because of scrollable content of the table, we need to do something more
 // fancy with rounded corners.
@@ -32,6 +33,12 @@ $z-index-resizer-active: 5;
   overflow-x: auto;
   position: relative;
   border-radius: $universal-table-border-radius-inner;
+}
+
+// If the footer is displayed, don't round bottom corners
+.tableContainer:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .table {
@@ -68,6 +75,16 @@ $z-index-resizer-active: 5;
 .tableHeaderCell {
   padding: 12px 20px;
   border-bottom: 1px solid colors.$kobo-gray-200;
+}
+
+.spinnerOverlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 1px; // Take border line into account
+  left: 0;
+  background-color: color.adjust(colors.$kobo-gray-100, $alpha: -0.5);
+  // LoadingSpinner styles handle centering it inside this wrapper
 }
 
 // -----------------------------------------------------------------------------

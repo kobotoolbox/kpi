@@ -57,6 +57,7 @@ export default function PaginatedQueryUniversalTable<DataItem>(
     <UniversalTable<DataItem>
       columns={props.columns}
       data={data}
+      isSpinnerVisible={paginatedQuery.isFetching}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}
