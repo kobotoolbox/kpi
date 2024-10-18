@@ -10,6 +10,7 @@ export interface ActivityLogsItem {
   action: string;
   what: string;
   date: string;
+  device: string;
 }
 
 // MOCK DATA GENERATION
@@ -23,10 +24,12 @@ const getRandomMockDescriptionData = () => {
   const who = ['Trent', 'Jane', 'Alice', 'Bob', 'Charlie'];
   const action = ['created', 'updated', 'deleted', 'added', 'removed'];
   const what = ['project property', 'the form', 'the permissions'];
+  const device = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux'];
   return {
     who: who[Math.floor(Math.random() * who.length)],
     action: action[Math.floor(Math.random() * action.length)],
     what: what[Math.floor(Math.random() * what.length)],
+    device: device[Math.floor(Math.random() * device.length)],
   };
 };
 
