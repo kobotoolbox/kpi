@@ -15,40 +15,32 @@ import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
 import Avatar from '../common/avatar';
+import KoboModal from '../modals/koboModal';
+import KoboModalHeader from '../modals/koboModalHeader';
 
-const EventDescription = ({
-  who,
-  action,
-  what,
-}: {
-  who: string;
-  action: string;
-  what: string;
-}) => (
+interface EventDescriptionProps {
+  data: ActivityLogsItem;
+  /**
+   * This will be called when details button is being clicked. If you don't
+   * provide it, the button will not be displayed.
+   */
+  detailsButtonFn?: () => void;
+}
+const EventDescription = (props: EventDescriptionProps) => (
   <div className={styles.eventDescription}>
-    <Avatar size='s' username={who} />
-    <span className={styles.who}>{who}</span>
-    <span className={styles.action}>{action}</span> {what}
-    <button className={styles.seeDetails}>{t('See details')}</button>
+    <Avatar size='s' username={props.data.who} />
+    <span className={styles.who}>{props.data.who}</span>
+    <span className={styles.action}>{props.data.action}</span> {props.data.what}
+    {props.detailsButtonFn &&
+      <button
+        className={styles.seeDetailsButton}
+        onClick={props.detailsButtonFn}
+      >
+        {t('See details')}
+      </button>
+    }
   </div>
 );
-
-const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
-  {
-    key: 'description',
-    label: t('Event description'),
-    cellFormatter: (data: ActivityLogsItem) => (
-      <EventDescription who={data.who} action={data.action} what={data.what} />
-    ),
-  },
-  {
-    key: 'date',
-    label: t('Date'),
-    size: 100,
-    cellFormatter: (data: ActivityLogsItem) =>
-      formatTime(data.date) as ReactNode,
-  },
-];
 
 export default function FormActivity() {
   const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
@@ -61,6 +53,31 @@ export default function FormActivity() {
       filterOptions?.find((option) => option.value === value) || null
     );
   };
+
+  // Modal is being displayed when data for it is being set. To close modal,
+  // simply set data to `null`.
+  const [detailsModalData, setDetailsModalData] =
+    useState<ActivityLogsItem | null>(null);
+
+  const columns: Array<UniversalTableColumn<ActivityLogsItem>> = [
+    {
+      key: 'description',
+      label: t('Event description'),
+      cellFormatter: (data: ActivityLogsItem) => (
+        <EventDescription
+          data={data}
+          detailsButtonFn={() => setDetailsModalData(data)}
+        />
+      ),
+    },
+    {
+      key: 'date',
+      label: t('Date'),
+      size: 100,
+      cellFormatter: (data: ActivityLogsItem) =>
+        formatTime(data.date) as ReactNode,
+    },
+  ];
 
   return (
     <div className={cx('form-view', styles.mainContainer)}>
@@ -87,6 +104,32 @@ export default function FormActivity() {
         </div>
       </div>
       <div className={styles.tableContainer}>
+        {detailsModalData &&
+          <KoboModal
+            isOpen
+            size='medium'
+            onRequestClose={() => setDetailsModalData(null)}
+          >
+            <KoboModalHeader onRequestCloseByX={() => setDetailsModalData(null)}>
+              <EventDescription data={detailsModalData} />
+            </KoboModalHeader>
+
+            <section className={styles.detailsModalContent}>
+              <p className={styles.detailsModalText}>{detailsModalData.who} {detailsModalData.action} {detailsModalData.what}</p>
+              <div className={styles.detailsModalMetaRow}>
+                <label>{t('Action occured:')}</label>
+                <time dateTime={detailsModalData.date}>
+                  {formatTime(detailsModalData.date)}
+                </time>
+              </div>
+              <div className={styles.detailsModalMetaRow}>
+                <label>{t('Device:')}</label>
+                {detailsModalData.device}
+              </div>
+            </section>
+          </KoboModal>
+        }
+
         <PaginatedQueryUniversalTable<ActivityLogsItem>
           columns={columns}
           queryHook={useActivityLogsQuery}

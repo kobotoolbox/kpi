@@ -68,10 +68,22 @@
   font-style: italic;
 }
 
-.seeDetails {
+.seeDetailsButton {
   background: transparent;
   border: none;
   color: colors.$kobo-gray-900;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.detailsModalContent {
+  padding: 30px;
+}
+
+.detailsModalText {
+  margin: 0;
+}
+
+.detailsModalMetaRow {
+  margin: 0;
 }
