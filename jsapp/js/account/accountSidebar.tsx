@@ -3,12 +3,12 @@ import {NavLink} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import bem from 'js/bem';
 import Icon from 'js/components/common/icon';
-import {IconName} from 'jsapp/fonts/k-icons';
+import type {IconName} from 'jsapp/fonts/k-icons';
 import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
 interface AccountNavLinkProps {
@@ -34,9 +34,8 @@ function AccountNavLink(props: AccountNavLinkProps) {
 
 function AccountSidebar() {
   const [showPlans, setShowPlans] = useState(false);
-  const [organization, _] = useContext(OrganizationContext);
 
-  const isOrgOwner = useMemo(() => organization?.is_owner, [organization]);
+  const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
     if (!subscriptionStore.isInitialised) {
@@ -45,9 +44,10 @@ function AccountSidebar() {
     setShowPlans(true);
   }, [subscriptionStore.isInitialised]);
 
-  const showAddOnsLink = useMemo(() => {
-    return !subscriptionStore.planResponse.length;
-  }, [subscriptionStore.isInitialised]);
+  const showAddOnsLink = useMemo(
+    () => !subscriptionStore.planResponse.length,
+    [subscriptionStore.isInitialised]
+  );
 
   return (
     <bem.FormSidebar m='account'>
@@ -61,7 +61,7 @@ function AccountSidebar() {
         name={t('Security')}
         to={ACCOUNT_ROUTES.SECURITY}
       />
-      {isOrgOwner && (
+      {orgQuery.data?.is_owner && (
         <>
           <AccountNavLink
             iconName='reports'
@@ -80,7 +80,7 @@ function AccountSidebar() {
                   iconName='plus'
                   name={t('Add-ons')}
                   to={ACCOUNT_ROUTES.ADD_ONS}
-                  isNew={true}
+                  isNew
                 />
               )}
             </>

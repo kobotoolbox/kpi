@@ -15,7 +15,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 
 type ButtonType = 'back' | 'forward';
 
@@ -31,14 +31,14 @@ const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true);
   const [loading, setLoading] = useState(true);
   const [usage] = useContext(UsageContext);
-  const [organization] = useContext(OrganizationContext);
+  const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
     async function fetchData() {
       const data = await getAssetUsageForOrganization(
         currentPage,
         order,
-        organization?.id
+        orgQuery.data?.id
       );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');

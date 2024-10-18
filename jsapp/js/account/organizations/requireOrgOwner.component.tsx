@@ -1,6 +1,6 @@
-import React, {Suspense, useContext, useEffect} from 'react';
+import React, {Suspense, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 
@@ -10,23 +10,32 @@ interface Props {
 }
 
 export const RequireOrgOwner = ({children, redirect = true}: Props) => {
-  const [organization, _, orgStatus] = useContext(OrganizationContext);
   const navigate = useNavigate();
+  const orgQuery = useOrganizationQuery();
 
+  // Redirect to Account Settings if you're not the owner
   useEffect(() => {
     if (
       redirect &&
-      !orgStatus.pending &&
-      organization &&
-      !organization.is_owner
+      orgQuery.isSuccess &&
+      !orgQuery.data.is_owner
     ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [organization, orgStatus.pending, redirect]);
+  }, [redirect, orgQuery.isSuccess, orgQuery.data, navigate]);
 
-  return redirect && organization?.is_owner ? (
-    <Suspense fallback={null}>{children}</Suspense>
-  ) : (
-    <LoadingSpinner />
-  );
+  if (orgQuery.isError) {
+    // TODO: non-silent error, here or elsewhere?
+    return null;
+  }
+  if (orgQuery.isPending) {
+    return <LoadingSpinner />;
+  }
+
+  if (orgQuery.isSuccess && orgQuery.data.is_owner) {
+    <Suspense fallback={null}>{children}</Suspense>;
+  }
+
+  // Show a loading spinner if waiting for redirect effect
+  return <LoadingSpinner />;
 };
