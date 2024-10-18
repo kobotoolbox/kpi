@@ -1,0 +1,77 @@
+@use 'scss/mixins';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: colors.$kobo-white !important;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 20px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.headerActions {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.filterSelect {
+  width: 150px;
+}
+
+.tableContainer {
+  flex: 1;
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+
+.eventDescription {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.profilePicture {
+  background: colors.$kobo-gray-800;
+  border-radius: 50%;
+  color: colors.$kobo-white;
+  width: 24px;
+  height: 24px;
+  font-weight: 500;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.who {
+  margin-left: 4px;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.action {
+  font-style: italic;
+}
+
+.seeDetails {
+  background: transparent;
+  border: none;
+  color: colors.$kobo-gray-900;
+  text-decoration: underline;
+  cursor: pointer;
+}
