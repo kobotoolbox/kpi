@@ -9,7 +9,7 @@ export enum FeatureFlag {
 /**
  * This function reads query parameters and processes them to find feature flags
  * - The query parameters are read from the URL
- * - Recommended naming convention: `ff_FeatureNameEnabled`
+ * - Recommended naming convention: `ff_featureNameEnabled`
  * - Any parameter starting with "ff_" is considered to be a feature flag
  * - A feature flag parameter needs to have its value equals "true" to be set to true
  * - Enabled flags are stored on sessionStorage by its name **without the ff_**
@@ -19,16 +19,16 @@ export enum FeatureFlag {
  *  Uses:
  * - Destructuring
  *  ```js
- *    # https://kf.kobotoolbox.org/#/projects/home?ff_FeatureNameEnable=true&ff_FeatureNameEnable2=true
- *    const {FeatureNameEnabled} = getFeatureFlags()`
- *    console.log(FeatureNameEnabled) # true
+ *    // https://kf.kobotoolbox.org/#/projects/home?ff_featureNameEnable=true&ff_featureNameEnable2=true
+ *    const {featureNameEnabled} = getFeatureFlags()`
+ *    console.log(featureNameEnabled) // true
  *  ```
  *
  * - Full object
  *  ```
- *    # https://kf.kobotoolbox.org/#/projects/home?ff_FeatureNameEnable=true&ff_FeatureNameEnable2=true
+ *    // https://kf.kobotoolbox.org/#/projects/home?ff_featureNameEnable=true&ff_featureNameEnable2=true
  *    const flags = getFeatureFlags()
- *    console.log(flags) # {FeatureNameEnable: true, FeatureNameEnable2: true}
+ *    console.log(flags) // {featureNameEnable: true, featureNameEnable2: true}
  *  ```
  *
  * @returns {Record<FeatureFlag, boolean>} Object containing enabled flags as entries set as true
@@ -83,7 +83,7 @@ export const checkFeatureFlag = (flag: FeatureFlag): boolean =>
  * It uses the {@link getFeatureFlags} function to get the flags.
  *
  * - The query parameters from the URL are processed to find feature flags
- * - Recommended parameter naming convention: `ff_FeatureNameEnabled`
+ * - Recommended parameter naming convention: `ff_featureNameEnabled`
  * - Any query parameter starting with "ff_" is considered to be a feature flag
  * - A feature flag parameter needs to have its value equals "true" to be set to true
  * - Enabled flags are stored on session and will keep their state even if the query param is no longer present
@@ -91,10 +91,10 @@ export const checkFeatureFlag = (flag: FeatureFlag): boolean =>
  *
  * Use:
  * ```
- * # https://kf.kobotoolbox.org/#/projects/home?ff_FeatureNameEnable=true&ff_FeatureNameEnable2=true
+ * // https://kf.kobotoolbox.org/#/projects/home?ff_featureNameEnable=true&ff_featureNameEnable2=true
  *
  * const isFeatureEnabled = useFeatureFlag(FeatureFlag.featureNameEnabled);
- * console.log(isFeatureEnabled) # true
+ * console.log(isFeatureEnabled) // true
  * ```
  * - If you can't use the hook, use the {@link checkFeatureFlag} function.
  *
@@ -102,7 +102,7 @@ export const checkFeatureFlag = (flag: FeatureFlag): boolean =>
  *
  * @param {FeatureFlag} flag - The feature flag to check
  *
- * @returns {Record<FeatureFlag, boolean>} Object containing enabled flags as entries set as true
+ * @returns {boolean} - True if the feature flag is enabled
  */
 export const useFeatureFlag = (flag: FeatureFlag): boolean =>
-  !!getFeatureFlags()[flag];
+  checkFeatureFlag(flag);
