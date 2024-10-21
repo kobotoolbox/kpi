@@ -53,7 +53,7 @@ class AssetViewSet(
     ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
 ):
     """
-    * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
+    * Assign an asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
 
     ## List of asset endpoints
@@ -697,8 +697,12 @@ class AssetViewSet(
             # 4) Get children count per asset
             # Ordering must be cleared otherwise group_by is wrong
             # (i.e. default ordered field `date_modified` must be removed)
-            records = Asset.objects.filter(parent_id__in=asset_ids). \
-                values('parent_id').annotate(children_count=Count('id')).order_by()
+            records = (
+                Asset.objects.filter(parent_id__in=asset_ids)
+                .values('parent_id')
+                .annotate(children_count=Count('id'))
+                .order_by()
+            )
 
             children_count_per_asset = {
                 r.get('parent_id'): r.get('children_count', 0)
