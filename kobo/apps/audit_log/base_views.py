@@ -58,6 +58,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         self.perform_update_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
+            if field == 'data_sharing':
+                pass
             value = get_nested_field(serializer.instance, field)
             audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data

@@ -7,7 +7,8 @@ from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
 from mock import patch
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.models import AuditLog, AuditType
+from ...audit_log.audit_actions import AuditAction
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models.account import AccountTrash

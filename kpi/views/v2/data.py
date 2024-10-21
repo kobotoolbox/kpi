@@ -16,7 +16,8 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (

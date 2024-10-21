@@ -12,7 +12,8 @@ from django.db.models.signals import pre_delete
 from django.utils.timezone import now
 from django_celery_beat.models import ClockedSchedule, PeriodicTask, PeriodicTasks
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.models import AuditLog, AuditType
+from ..audit_log.audit_actions import AuditAction
 from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.models import Asset, ExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper

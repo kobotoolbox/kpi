@@ -7,10 +7,10 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.models import (
     AccessLog,
-    AuditAction,
     AuditLog,
     AuditType,
 )
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (

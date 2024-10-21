@@ -9,7 +9,8 @@ from django.urls import reverse
 from mock import patch
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditLog
+from ...audit_log.audit_actions import AuditAction
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from .constants import SOCIALACCOUNT_PROVIDERS

@@ -186,7 +186,7 @@ class Asset(
 
     # JSON with subset of fields to share
     # {
-    #   'enable': True,
+    #   'enabled': True,
     #   'fields': []  # shares all when empty
     # }
     data_sharing = LazyDefaultJSONBField(default=dict)

@@ -7,7 +7,8 @@ from django.test import override_settings
 from django.urls import reverse
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditLog
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.signals import create_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase

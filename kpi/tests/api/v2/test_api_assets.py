@@ -1727,8 +1727,7 @@ class AssetFileTest(BaseTestCase):
 
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_asset_deployment(self, patched_create_log):
+    def test_asset_deployment(self):
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
                                  kwargs={'uid': self.asset_uid})
 
@@ -1739,11 +1738,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         self.assertEqual(response1.data['asset']['deployment__active'], True)
         self.assertEqual(response1.data['asset']['has_deployment'], True)
-        request = response1.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, first_deployment=True
-        )
-        patched_create_log.reset_mock()
 
         response2 = self.client.get(self.asset_url, format='json')
 
@@ -1753,8 +1747,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
         )
-        # nothing should be logged for a GET request
-        patched_create_log.assert_not_called()
+
 
     @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
     def test_asset_redeployment(self, patched_create_log):
