@@ -2,13 +2,13 @@ import datetime
 from datetime import timedelta
 from unittest.mock import patch
 
-from ddt import data, ddt, unpack
+from ddt import ddt
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 from django.utils import timezone
-from model_bakery import baker
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
@@ -17,15 +17,11 @@ from kobo.apps.audit_log.models import (
     AuditType,
     ProjectHistoryLog,
 )
-from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
-    ASSET_TYPE_QUESTION,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
-    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
-from kpi.exceptions import BadAssetTypeException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 

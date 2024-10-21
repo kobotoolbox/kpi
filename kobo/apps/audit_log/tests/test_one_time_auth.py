@@ -7,8 +7,8 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import AuthorizedApplication

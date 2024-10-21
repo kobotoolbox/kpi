@@ -1,8 +1,6 @@
 # coding: utf-8
 from rest_framework import mixins, viewsets
 
-from kobo.apps.audit_log.models import AuditType
-
 
 def get_nested_field(obj, field: str):
     """

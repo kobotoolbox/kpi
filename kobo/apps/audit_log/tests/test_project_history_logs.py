@@ -1,15 +1,13 @@
 import copy
-import unittest
 
-from kobo.apps.audit_log.models import ProjectHistoryLog
-from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
-from kpi.deployment_backends.mock_backend import MockDeploymentBackend
-from kpi.models import Asset
-from kpi.tests.kpi_test_case import KpiTestCase
-from kobo.apps.kobo_auth.shortcuts import User
-from django.urls import reverse
 from django.test import override_settings
+from django.urls import reverse
+
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.models import Asset
 
 
 @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
@@ -27,240 +25,265 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # save to create a version
         asset.save()
         self.asset = asset
+        self.detail_url = 'api_v2:asset-detail'
+        self.deployment_url = 'api_v2:asset-deployment'
 
-    def _check_common_metadata(self, metadata_dict, asset):
-        self.assertEqual(metadata_dict['asset_uid'], asset.uid)
+    def _check_common_metadata(self, metadata_dict):
+        self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
-        self.assertEqual(metadata_dict['latest_version_uid'], self.asset.latest_version.uid)
+        self.assertEqual(
+            metadata_dict['latest_version_uid'], self.asset.latest_version.uid
+        )
+
+    def _base_endpoint_test(
+        self, patch, url_name, request_data, expected_action, verify_additional_metadata
+    ):
+        request_method = self.client.patch if patch else self.client.post
+        response = request_method(
+            reverse(url_name, kwargs={'uid': self.asset.uid}),
+            data=request_data,
+            format='json',
+        )
+        print(response.status_code)
+        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+        self._check_common_metadata(log.metadata)
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.action, expected_action)
+        verify_additional_metadata(log.metadata)
 
     def test_change_project_name_creates_log(self):
         old_name = self.asset.name
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data={'name': 'new_name'}
+
+        def verify_metadata(log_metadata):
+            self.assertEqual(log_metadata['name']['new'], 'new_name')
+            self.assertEqual(log_metadata['name']['old'], old_name)
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'name': 'new_name'},
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_NAME,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.metadata['name']['new'], 'new_name')
-        self.assertEqual(log.metadata['name']['old'], old_name)
-        self.assertEqual(log.action, AuditAction.UPDATE_NAME)
-        self.assertEqual(log.object_id, self.asset.id)
 
     def test_change_project_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
-        user = User.objects.get(username='admin')
-        self.client.force_login(user=user)
-        patch_data = {'settings': {
-            'sector': {'label': 'Health', 'value': 'Health'},
-            'country': [{'label': 'Albania', 'value': 'ALB'}],
-            'operational_purpose': 'New operational purpose',
-            'collects_pii': True,
-            'description': 'New description',
-        }}
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data = patch_data,
-            format='json',
+        patch_data = {
+            'settings': {
+                'sector': {'label': 'Health', 'value': 'Health'},
+                'country': [{'label': 'Albania', 'value': 'ALB'}],
+                'operational_purpose': 'New operational purpose',
+                'collects_pii': True,
+                'description': 'New description',
+            }
+        }
+
+        def verify_metadata(log_metadata):
+            # check non-list settings just store old and new information
+            settings_dict = log_metadata['settings']
+            self.assertDictEqual(settings_dict['sector']['old'], old_settings['sector'])
+            self.assertDictEqual(
+                settings_dict['sector']['new'],
+                {'label': 'Health', 'value': 'Health'},
+            )
+            self.assertEqual(
+                settings_dict['operational_purpose']['old'],
+                old_settings['operational_purpose'],
+            )
+            self.assertEqual(
+                settings_dict['operational_purpose']['new'],
+                'New operational purpose',
+            )
+            self.assertEqual(
+                settings_dict['collects_pii']['old'], old_settings['collects_pii']
+            )
+            self.assertEqual(settings_dict['collects_pii']['new'], True)
+            self.assertEqual(
+                settings_dict['description']['old'], old_settings['description']
+            )
+            self.assertEqual(settings_dict['description']['new'], 'New description')
+            # check list settings store added and removed fields
+            self.assertListEqual(
+                settings_dict['country']['added'],
+                [{'label': 'Albania', 'value': 'ALB'}],
+            )
+            self.assertListEqual(
+                settings_dict['country']['removed'],
+                [{'label': 'United States', 'value': 'USA'}],
+            )
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=patch_data,
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_SETTINGS,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        log_settings_metadata = log.metadata['settings']
-        # check non-list settings just store old and new information
-        self.assertDictEqual(log_settings_metadata['sector']['old'], old_settings['sector'])
-        self.assertDictEqual(log_settings_metadata['sector']['new'], {'label': 'Health', 'value': 'Health'})
-        self.assertEqual(log_settings_metadata['operational_purpose']['old'], old_settings['operational_purpose'])
-        self.assertEqual(log_settings_metadata['operational_purpose']['new'], 'New operational purpose')
-        self.assertEqual(log_settings_metadata['collects_pii']['old'], old_settings['collects_pii'])
-        self.assertEqual(log_settings_metadata['collects_pii']['new'], True)
-        self.assertEqual(log_settings_metadata['description']['old'], old_settings['description'])
-        self.assertEqual(log_settings_metadata['description']['new'], 'New description')
-        # check list settings store added and removed fields
-        self.assertListEqual(log_settings_metadata['country']['added'], [{'label': 'Albania', 'value': 'ALB'}])
-        self.assertListEqual(log_settings_metadata['country']['removed'], [{'label': 'United States', 'value': 'USA'}])
 
     def test_unchanged_settings_not_recorded_on_log(self):
-        patch_data = {'settings': {
-            'sector': self.asset.settings['sector'],
-            'country': self.asset.settings['country'],
-            'operational_purpose': self.asset.settings['operational_purpose'],
-            'collects_pii': self.asset.settings['collects_pii'],
-            'description': 'New description',
-        }}
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data = patch_data,
-            format='json',
+        patch_data = {
+            'settings': {
+                'sector': self.asset.settings['sector'],
+                'country': self.asset.settings['country'],
+                'operational_purpose': self.asset.settings['operational_purpose'],
+                'collects_pii': self.asset.settings['collects_pii'],
+                'description': 'New description',
+            }
+        }
+
+        def verify_metadata(log_metadata):
+            self.assertNotIn('sector', log_metadata.keys())
+            self.assertNotIn('country', log_metadata.keys())
+            self.assertNotIn('operational_purpose', log_metadata.keys())
+            self.assertNotIn('collects_pii', log_metadata.keys())
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=patch_data,
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_SETTINGS,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        log_settings_metadata = log.metadata['settings']
-        self.assertNotIn('sector', log_settings_metadata.keys())
-        self.assertNotIn('country', log_settings_metadata.keys())
-        self.assertNotIn('operational_purpose', log_settings_metadata.keys())
-        self.assertNotIn('collects_pii', log_settings_metadata.keys())
 
     def test_first_time_deployment_creates_log(self):
         post_data = {
             'active': True,
             'backend': 'mock',
         }
-        self.client.post(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data = post_data,
-            format='json',
+
+        def verify_metadata(log_metadata):
+            self.assertEqual(
+                log_metadata['latest_deployed_version_uid'],
+                self.asset.latest_version.uid,
+            )
+
+        self._base_endpoint_test(
+            patch=False,
+            url_name=self.deployment_url,
+            request_data=post_data,
+            expected_action=AuditAction.DEPLOY,
+            verify_additional_metadata=verify_metadata,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        self.assertEqual(log.metadata['latest_deployed_version_uid'], self.asset.latest_version.uid)
-        self.assertEqual(log.action, AuditAction.DEPLOY)
 
     def test_redeployment_creates_log(self):
+        # create an initial deployment
         self.asset.deploy(backend='mock', active=True)
-        patch_data = {
-            'active': True,
-            'version_id': self.asset.version_id
-        }
-        self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data = patch_data,
-            format='json',
+        patch_data = {'active': True, 'version_id': self.asset.version_id}
+
+        def verify_metadata(log_metadata):
+            self.assertEqual(
+                log_metadata['latest_deployed_version_uid'],
+                self.asset.latest_version.uid,
+            )
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.deployment_url,
+            request_data=patch_data,
+            expected_action=AuditAction.REDEPLOY,
+            verify_additional_metadata=verify_metadata,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        self.assertEqual(log.metadata['latest_deployed_version_uid'], self.asset.latest_version.uid)
-        self.assertEqual(log.action, AuditAction.REDEPLOY)
 
     def test_change_project_content_creates_log(self):
-        new_content = {
-            'survey': [
-                {'type': 'text', 'label': 'new question', 'name': 'new_question', 'kuid': 'hijk'}
-            ]
-        }
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data={'content': new_content},
-            format='json',
-        )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self._check_common_metadata(log.metadata, self.asset)
-        self.assertEqual(log.action, AuditAction.UPDATE_FORM)
-
-    def test_enable_sharing_creates_log(self):
-        patch_data = {
-            'data_sharing': {
-                'enabled': True,
-                'fields': ['q1']
+        request_data = {
+            'content': {
+                'survey': [
+                    {
+                        'type': 'text',
+                        'label': 'new question',
+                        'name': 'new_question',
+                        'kuid': 'hijk',
+                    }
+                ]
             }
         }
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data=patch_data,
-            format='json',
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_FORM,
+            verify_additional_metadata=lambda x: None,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self._check_common_metadata(log.metadata, self.asset)
-        self.assertEqual(log.action, AuditAction.ENABLE_SHARING)
-        self.assertListEqual(log.metadata['shared_fields']['added'], ['q1'])
+
+    def test_enable_sharing_creates_log(self):
+        request_data = {'data_sharing': {'enabled': True, 'fields': ['q1']}}
+
+        def verify_metadata(log_metadata):
+            self.assertListEqual(log_metadata['shared_fields']['added'], ['q1'])
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=request_data,
+            expected_action=AuditAction.ENABLE_SHARING,
+            verify_additional_metadata=verify_metadata,
+        )
 
     def test_disable_sharing_creates_log(self):
         # turn sharing on
-        self.asset.data_sharing = {
-            'enabled': True,
-            'fields': ['q1', 'q2']
-        }
+        self.asset.data_sharing = {'enabled': True, 'fields': ['q1', 'q2']}
         self.asset.save()
-        patch = {
-            'data_sharing': {
-                'enabled': False,
-                'fields': []
-            }
-        }
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data=patch,
-            format='json',
+        request_data = {'data_sharing': {'enabled': False, 'fields': []}}
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=request_data,
+            expected_action=AuditAction.DISABLE_SHARING,
+            verify_additional_metadata=lambda x: None,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self._check_common_metadata(log.metadata, self.asset)
-        self.assertEqual(log.action, AuditAction.DISABLE_SHARING)
 
     def test_modify_shared_fields_creates_log(self):
-        self.asset.content = { 'survey':[
-            {"type": "text", "label": "fixture q1", "name": "q1", "kuid": "abc"},
-            {"type": "text", "label": "fixture q2", "name": "q2", "kuid": "def"},
-            {"type": "text", "label": "fixture q3", "name": "q3", "kuid": "def"}
-        ]}
+        self.asset.content = {
+            'survey': [
+                {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'},
+                {'type': 'text', 'label': 'fixture q2', 'name': 'q2', 'kuid': 'def'},
+                {'type': 'text', 'label': 'fixture q3', 'name': 'q3', 'kuid': 'def'},
+            ]
+        }
         # turn sharing on
-        self.asset.data_sharing = {
-            'enabled': True,
-            'fields': ['q1', 'q2']
-        }
+        self.asset.data_sharing = {'enabled': True, 'fields': ['q1', 'q2']}
         self.asset.save()
-        post_data = {
-            'data_sharing': {
-                'enabled': True,
-                'fields': ['q2', 'q3']
-            }
-        }
-        self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-            data=post_data,
-            format='json',
+        request_data = {'data_sharing': {'enabled': True, 'fields': ['q2', 'q3']}}
+
+        def verify_metadata(log_metadata):
+            self.assertListEqual(log_metadata['shared_fields']['added'], ['q3'])
+            self.assertListEqual(log_metadata['shared_fields']['removed'], ['q1'])
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=request_data,
+            expected_action=AuditAction.MODIFY_SHARING,
+            verify_additional_metadata=verify_metadata,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self._check_common_metadata(log.metadata, self.asset)
-        self.assertEqual(log.action, AuditAction.MODIFY_SHARING)
-        self.assertListEqual(log.metadata['shared_fields']['added'], ['q3'])
-        self.assertListEqual(log.metadata['shared_fields']['removed'], ['q1'])
 
     def test_archive_creates_log(self):
         # can only archive deployed asset
         self.asset.deploy(backend='mock', active=True)
-        post_data = {
+        request_data = {
             'active': False,
         }
-        self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data = post_data,
-            format='json',
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.deployment_url,
+            request_data=request_data,
+            expected_action=AuditAction.ARCHIVE,
+            verify_additional_metadata=lambda x: None,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        self.assertEqual(log.action, AuditAction.ARCHIVE)
 
     def test_unarchive_creates_log(self):
         # can only unarchive deployed asset
         self.asset.deploy(backend='mock', active=False)
-        post_data = {
+        request_data = {
             'active': True,
         }
-        self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data = post_data,
-            format='json',
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.deployment_url,
+            request_data=request_data,
+            expected_action=AuditAction.UNARCHIVE,
+            verify_additional_metadata=lambda x: None,
         )
-        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
-        self.assertEqual(logs.count(), 1)
-        log = logs.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        self.assertEqual(log.action, AuditAction.UNARCHIVE)
-

@@ -7,13 +7,13 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet, get_nested_field
-from kobo.apps.audit_log.models import ProjectHistoryLog, AuditType
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -46,7 +46,6 @@ from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
-from kpi.utils.log import logging
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -381,8 +380,17 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    logged_fields = ['content', 'settings', 'data_sharing', 'latest_version.uid',
-                     'has_deployment', 'name', 'advanced_features.qual', 'id', 'latest_deployed_version_uid']
+    logged_fields = [
+        'content',
+        'settings',
+        'data_sharing',
+        'latest_version.uid',
+        'has_deployment',
+        'name',
+        'advanced_features.qual',
+        'id',
+        'latest_deployed_version_uid',
+    ]
     log_type = AuditType.PROJECT_HISTORY
 
     def get_object_override(self):
@@ -486,7 +494,8 @@ class AssetViewSet(
                 request._request.additional_audit_log_info = {
                     'request_data': request._data,
                     'id': asset.id,
-                    'latest_deployed_version_uid': asset.latest_deployed_version_uid
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
                 }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
@@ -512,11 +521,14 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                only_active_changed = set(serializer.validated_data.keys()) == set(('active',))
+                only_active_changed = set(serializer.validated_data.keys()) == {
+                    'active'
+                }
                 request._request.additional_audit_log_info = {
                     'only_active_changed': only_active_changed,
                     'active': serializer.data['active'],
-                    'latest_deployed_version_uid': asset.latest_deployed_version_uid
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
                 }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict

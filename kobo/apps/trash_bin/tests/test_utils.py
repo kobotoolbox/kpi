@@ -1,15 +1,15 @@
 # coding: utf-8
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
-from mock import patch
 
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from ...audit_log.audit_actions import AuditAction
 from kpi.models import Asset
+from ...audit_log.audit_actions import AuditAction
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models.account import AccountTrash
 from ..models.project import ProjectTrash

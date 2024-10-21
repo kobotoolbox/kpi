@@ -4,13 +4,12 @@ import copy
 import json
 import os
 from io import StringIO
+from unittest.mock import patch
 
 import dateutil.parser
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from unittest.mock import patch
-
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
@@ -1747,7 +1746,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
         )
-
 
     @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
     def test_asset_redeployment(self, patched_create_log):

@@ -281,7 +281,7 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
             'model_name': Asset._meta.model_name,
             'log_type': AuditType.PROJECT_HISTORY,
             'user': user,
-            'user_uid': user.extra_details.uid
+            'user_uid': user.extra_details.uid,
         }
         new_kwargs.update(**kwargs)
         return super().create(
@@ -304,13 +304,14 @@ class ProjectHistoryLog(AuditLog):
         elif request.resolver_match.url_name == 'asset-deployment':
             cls.create_from_deployment_request(request)
 
-
     @staticmethod
     def create_from_deployment_request(request):
-        if not hasattr(request, 'additional_audit_log_info'):
-            # if we didn't set this information, the request failed so don't try to create a log
+        audit_log_info = getattr(request, 'additional_audit_log_info', None)
+        if audit_log_info is None:
+            # if we didn't set this information, the request failed
+            # so don't try to create a log
             return
-        only_active_changed = request.additional_audit_log_info.get('only_active_changed',False)
+
         initial_data = request.initial_data
         asset_uid = request.resolver_match.kwargs['uid']
         object_id = request.initial_data['id']
@@ -319,15 +320,36 @@ class ProjectHistoryLog(AuditLog):
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
+            'latest_version_uid': audit_log_info['latest_version_uid'],
         }
 
+        # requests to archive/unarchive will only have the `active` param in the request
+        # we record this on the request at the view level
+        only_active_changed = request.additional_audit_log_info.get(
+            'only_active_changed', False
+        )
+
         if only_active_changed:
-            action = AuditAction.ARCHIVE if request.additional_audit_log_info['active'] is False else AuditAction.UNARCHIVE
+            # if active is set to False, the request was to archive the project
+            # otherwise, request was to unarchive
+            action = (
+                AuditAction.ARCHIVE
+                if request.additional_audit_log_info['active'] is False
+                else AuditAction.UNARCHIVE
+            )
         else:
-            action = AuditAction.REDEPLOY if initial_data['has_deployment'] is True else AuditAction.DEPLOY
-            metadata.update({
-                'latest_deployed_version_uid': request.additional_audit_log_info['latest_deployed_version_uid']
-            })
+            # if the asset was already deployed, label this as a redeploy
+            action = (
+                AuditAction.REDEPLOY
+                if initial_data['has_deployment'] is True
+                else AuditAction.DEPLOY
+            )
+            latest_deployed_version_uid = audit_log_info['latest_deployed_version_uid']
+            metadata.update(
+                {
+                    'latest_deployed_version_uid': latest_deployed_version_uid,
+                }
+            )
 
         ProjectHistoryLog.objects.create(
             user=request.user,
@@ -340,6 +362,11 @@ class ProjectHistoryLog(AuditLog):
     def create_from_asset_view_set(cls, request):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
+
+        if initial_data is None or updated_data is None:
+            # Something went wrong with the request, don't try to create a log
+            return
+
         asset_uid = request.resolver_match.kwargs['uid']
         object_id = initial_data['id']
 
@@ -350,18 +377,17 @@ class ProjectHistoryLog(AuditLog):
             'source': get_human_readable_client_user_agent(request),
         }
 
-        if initial_data is None or updated_data is None:
-            # Something went wrong with the request, don't try to create a log
-            return
-
-        common_metadata.update({'latest_version_uid': updated_data['latest_version.uid']})
+        # always store the latest version uid
+        common_metadata.update(
+            {'latest_version_uid': updated_data['latest_version.uid']}
+        )
 
         changed_field_to_action_map = {
             'name': cls.name_change,
             'content': cls.content_change,
             'advanced_features.qual': cls.qa_change,
             'data_sharing': cls.sharing_change,
-            'settings': cls.settings_change
+            'settings': cls.settings_change,
         }
 
         for field, method in changed_field_to_action_map.items():
@@ -371,20 +397,19 @@ class ProjectHistoryLog(AuditLog):
                 action, additional_metadata = method(old_field, new_field)
                 full_metadata = {**common_metadata, **additional_metadata}
                 ProjectHistoryLog.objects.create(
-                        user=request.user,
-                        object_id=object_id,
-                        action=action,
-                        metadata=full_metadata,
+                    user=request.user,
+                    object_id=object_id,
+                    action=action,
+                    metadata=full_metadata,
                 )
+
+    # additional metadata should generally follow the pattern
+    # 'field': {'old': old_value, 'new': new_value } or
+    # 'field': {'added': [], 'removed'}
 
     @staticmethod
     def name_change(old_field, new_field):
-        metadata = {
-            'name': {
-                'old': old_field,
-                'new': new_field
-            }
-        }
+        metadata = {'name': {'old': old_field, 'new': new_field}}
         return AuditAction.UPDATE_NAME, metadata
 
     @staticmethod
@@ -409,10 +434,13 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def content_change(*_):
+        # content is too long/complicated for meaningful comparison,
+        # so don't store values
         return AuditAction.UPDATE_FORM, {}
 
     @staticmethod
     def qa_change(_, new_field):
+        # old version isn't needed on ph logs
         return AuditAction.UPDATE_QA, {'qa_questions': {'new': new_field}}
 
     @staticmethod
@@ -423,13 +451,20 @@ class ProjectHistoryLog(AuditLog):
         new_shared_fields = new_fields['fields']
         shared_fields_dict = {}
         if old_enabled is True and new_enabled is False:
+            # sharing went from enabled to disabled
             action = AuditAction.DISABLE_SHARING
         elif old_enabled is False and new_enabled is True:
+            # sharing went from disabled to enabled
             action = AuditAction.ENABLE_SHARING
             shared_fields_dict['added'] = new_shared_fields
         else:
-            removed_fields = [field for field in old_shared_fields if field not in new_shared_fields]
-            added_fields = [field for field in new_shared_fields if field not in old_shared_fields]
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
             action = AuditAction.MODIFY_SHARING
             shared_fields_dict['added'] = added_fields
             shared_fields_dict['removed'] = removed_fields
