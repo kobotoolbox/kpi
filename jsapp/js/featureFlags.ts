@@ -20,7 +20,7 @@ export enum FeatureFlag {
  * - Destructuring
  *  ```js
  *    // https://kf.kobotoolbox.org/#/projects/home?ff_featureNameEnable=true&ff_featureNameEnable2=true
- *    const {featureNameEnabled} = getFeatureFlags()`
+ *    const {featureNameEnabled} = getFeatureFlags()
  *    console.log(featureNameEnabled) // true
  *  ```
  *
