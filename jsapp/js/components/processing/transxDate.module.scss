@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 
@@ -7,10 +6,10 @@
   @include mixins.textEllipsis;
 
   background-color: colors.$kobo-light-storm;
-  height: sizes.$x28;
-  line-height: sizes.$x28;
-  border-radius: sizes.$x14;
-  padding: 0 sizes.$x14;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 14px;
+  padding: 0 14px;
 }
 
 .transxDateLong {display: none;}

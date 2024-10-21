@@ -1,5 +1,4 @@
 @use "js/components/common/button";
-@use "scss/sizes";
 @use 'scss/colors';
 @use "scss/_variables";
 
@@ -18,7 +17,7 @@
 }
 
 .kobo-select__error {
-  font-size: sizes.$x12;
+  font-size: 12px;
   font-weight: 400;
   font-style: normal;
 }
@@ -26,8 +25,8 @@
 .kobo-select__label {
   display: block;
   color: inherit;
-  font-size: sizes.$x12;
-  line-height: sizes.$x16;
+  font-size: 12px;
+  line-height: 16px;
   font-weight: 400;
 
   & + .kobo-select {
@@ -45,7 +44,7 @@
 }
 
 .kobo-select {
-  font-size: sizes.$x14;
+  font-size: 14px;
 
   &.kobo-select--is-disabled {
     pointer-events: none;
