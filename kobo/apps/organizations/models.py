@@ -116,7 +116,7 @@ class Organization(AbstractOrganization):
 
     def get_user_role(self, user: 'User') -> OrganizationRole:
 
-        if not self.users.filter(pk=user.pk).exists:
+        if not self.users.filter(pk=user.pk).exists():
             return EXTERNAL_ORG_ROLE
 
         if self.is_owner(user):
