@@ -23,8 +23,8 @@ export interface ApiFetcherStatus extends Status {
 export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 
 /**
- * *NOTE*: this is deprecated now. Try to use react-query instead.
- * See `useOrganizationQuery` and its instances for a simple example.
+ *
+ * @deprecated Use react-query instead. See `useOrganizationQuery` for a simple example.
  *
  * Below this is the old description for archiving purposes.
  *
@@ -38,7 +38,6 @@ export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
  * It's heavily patterned off of swr: https://github.com/vercel/swr
  * But only has a small subset of its features of interest to us.
  *
- * @deprecated
  * @function
  * @template Type
  * @param {function} fetcher Makes an API request and returns a data

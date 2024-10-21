@@ -44,10 +44,9 @@ function AccountSidebar() {
     setShowPlans(true);
   }, [subscriptionStore.isInitialised]);
 
-  const showAddOnsLink = useMemo(
-    () => !subscriptionStore.planResponse.length,
-    [subscriptionStore.isInitialised]
-  );
+  const showAddOnsLink = useMemo(() => {
+    return !subscriptionStore.planResponse.length;
+  }, [subscriptionStore.isInitialised]);
 
   return (
     <bem.FormSidebar m='account'>
