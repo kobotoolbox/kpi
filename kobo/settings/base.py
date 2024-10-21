@@ -586,6 +586,10 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +653,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
