@@ -5,6 +5,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.constants import (
     ADMIN_ORG_ROLE,
+    EXTERNAL_ORG_ROLE,
     MEMBER_ORG_ROLE,
     OWNER_ORG_ROLE,
 )
@@ -36,9 +37,11 @@ class OrganizationTestCase(TestCase):
     def test_get_user_role(self):
         anotheruser = User.objects.get(username='anotheruser')
         alice = User.objects.create(username='alice', email='alice@alice.com')
+        external = User.objects.create(username='external', email='external@external.com')
         self.organization.add_user(self.user)
         self.organization.add_user(anotheruser, is_admin=True)
         self.organization.add_user(alice)
         assert self.organization.get_user_role(self.user) == OWNER_ORG_ROLE
         assert self.organization.get_user_role(anotheruser) == ADMIN_ORG_ROLE
         assert self.organization.get_user_role(alice) == MEMBER_ORG_ROLE
+        assert self.organization.get_user_role(external) == EXTERNAL_ORG_ROLE
