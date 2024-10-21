@@ -18,9 +18,16 @@ from organizations.utils import create_organization as create_organization_base
 
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
-from .constants import ADMIN_ORG_ROLE, MEMBER_ORG_ROLE, OWNER_ORG_ROLE
+from .constants import (
+    ADMIN_ORG_ROLE,
+    EXTERNAL_ORG_ROLE,
+    MEMBER_ORG_ROLE,
+    OWNER_ORG_ROLE,
+)
 
-OrganizationRole = Literal[ADMIN_ORG_ROLE, MEMBER_ORG_ROLE, OWNER_ORG_ROLE]
+OrganizationRole = Literal[
+    ADMIN_ORG_ROLE, EXTERNAL_ORG_ROLE, MEMBER_ORG_ROLE, OWNER_ORG_ROLE
+]
 
 
 class Organization(AbstractOrganization):
@@ -108,6 +115,9 @@ class Organization(AbstractOrganization):
             return
 
     def get_user_role(self, user: 'User') -> OrganizationRole:
+
+        if not self.users.filter(pk=user.pk).exists:
+            return EXTERNAL_ORG_ROLE
 
         if self.is_owner(user):
             return OWNER_ORG_ROLE
