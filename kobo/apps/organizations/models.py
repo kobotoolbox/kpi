@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
 
@@ -20,6 +21,9 @@ from kpi.fields import KpiUidField
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
+    mmo_override = models.BooleanField(
+        default=False, verbose_name='Multi-members override'
+    )
 
     @property
     def email(self):
@@ -51,7 +55,7 @@ class Organization(AbstractOrganization):
                 ).first()
 
         return None
-    
+
     @cache_for_request
     def canceled_subscription_billing_cycle_anchor(self):
         """
@@ -69,7 +73,7 @@ class Organization(AbstractOrganization):
                 ).first()
             if qs:
                 return qs['anchor']
-            
+
         return None
 
 
