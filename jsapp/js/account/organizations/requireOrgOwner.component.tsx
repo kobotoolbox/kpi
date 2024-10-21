@@ -17,25 +17,17 @@ export const RequireOrgOwner = ({children, redirect = true}: Props) => {
   useEffect(() => {
     if (
       redirect &&
-      orgQuery.isSuccess &&
+      !orgQuery.isPending &&
+      orgQuery.data &&
       !orgQuery.data.is_owner
     ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
   }, [redirect, orgQuery.isSuccess, orgQuery.data, navigate]);
 
-  if (orgQuery.isError) {
-    // TODO: non-silent error, here or elsewhere?
-    return null;
-  }
-  if (orgQuery.isPending) {
-    return <LoadingSpinner />;
-  }
-
-  if (orgQuery.isSuccess && orgQuery.data.is_owner) {
-    <Suspense fallback={null}>{children}</Suspense>;
-  }
-
-  // Show a loading spinner if waiting for redirect effect
-  return <LoadingSpinner />;
+  return redirect && orgQuery.data?.is_owner ? (
+    <Suspense fallback={null}>{children}</Suspense>
+  ) : (
+    <LoadingSpinner />
+  );
 };
