@@ -1,5 +1,4 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .root {
@@ -10,8 +9,8 @@
 
 .header {
   @include mixins.centerRowFlex;
-  padding: sizes.$x30 sizes.$x30 sizes.$x40;
-  gap: sizes.$x10 sizes.$x30;
+  padding: 30px 30px 40px;
+  gap: 10px 30px;
   flex-wrap: wrap;
 }
 
@@ -24,15 +23,15 @@
 .banner {
   display: flex;
   justify-content: space-between;
-  margin: sizes.$x24 sizes.$x24 0 sizes.$x24;
-  padding: sizes.$x12;
+  margin: 24px 24px 0 24px;
+  padding: 12px;
   background-color: colors.$kobo-light-blue;
-  border-radius: sizes.$x5;
+  border-radius: 5px;
   align-items: center;
 }
 
 .bannerIcon {
-  padding-right: sizes.$x18;
+  padding-right: 18px;
 }
 
 .bannerButton {

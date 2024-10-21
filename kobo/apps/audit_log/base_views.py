@@ -1,4 +1,3 @@
-# coding: utf-8
 from rest_framework import mixins, viewsets
 
 
@@ -50,6 +49,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         self.request._request.initial_data = audit_log_data
         self.request._request.log_type = self.log_type
         self.request._request.model_name = self.model_name
+
         return obj
 
     def perform_update(self, serializer):
@@ -58,6 +58,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         for field in self.logged_fields:
             if field == 'data_sharing':
                 pass
+
             value = get_nested_field(serializer.instance, field)
             audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data

@@ -1,23 +1,22 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
-$mfa-paragraph-spacing: sizes.$x18;
+$mfa-paragraph-spacing: 18px;
 
 // FIXME: should not depend on another header's CSS. Standardize modal headers
 .modal--mfa-setup .table-media-preview-header__title {
-  font-size: sizes.$x14;
+  font-size: 14px;
   font-weight: 600;
 
   .k-icon {
     color: colors.$kobo-blue;
     position: relative;
-    top: sizes.$x2;
-    padding-right: sizes.$x12;
+    top: 2px;
+    padding-right: 12px;
   }
 }
 
 .mfa-modal {
-  padding: sizes.$x30 sizes.$x60 0; // bottom padding is handled by footer
+  padding: 30px 60px 0; // bottom padding is handled by footer
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -30,7 +29,7 @@ $mfa-paragraph-spacing: sizes.$x18;
 // HACK override for TextBox component
 .mfa-modals-textbox input {
   text-align: center;
-  font-size: sizes.$x18 !important;
+  font-size: 18px !important;
   font-weight: 400 !important;
 }
 
@@ -66,8 +65,8 @@ $mfa-paragraph-spacing: sizes.$x18;
 .mfa-modal--step-qr {
   canvas {
     display: block;
-    padding: sizes.$x14;
-    border: sizes.$x1 solid colors.$kobo-gray-400;
+    padding: 14px;
+    border: 1px solid colors.$kobo-gray-400;
     border-radius: 3%;
     margin: 0 auto;
   }
@@ -76,16 +75,16 @@ $mfa-paragraph-spacing: sizes.$x18;
 .mfa-modal__codes {
   text-align: center;
   background-color: colors.$kobo-gray-300;
-  border: sizes.$x1 solid colors.$kobo-gray-400;
-  border-radius: sizes.$x5;
-  padding: sizes.$x12;
+  border: 1px solid colors.$kobo-gray-400;
+  border-radius: 5px;
+  padding: 12px;
   line-break: anywhere;
 
   .mfa-modal__list {
-    padding-top: sizes.$x24;
+    padding-top: 24px;
 
     > li {
-      padding-bottom: sizes.$x24;
+      padding-bottom: 24px;
     }
   }
 
@@ -101,8 +100,8 @@ $mfa-paragraph-spacing: sizes.$x18;
 .mfa-modal__footer {
   display: flex;
   justify-content: space-between;
-  margin-top: sizes.$x30;
-  padding-bottom: sizes.$x60;
+  margin-top: 30px;
+  padding-bottom: 60px;
 
   .mfa-modal__footer-left {
     width: 40%;
