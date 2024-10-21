@@ -39,16 +39,19 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def _base_endpoint_test(
         self, patch, url_name, request_data, expected_action, verify_additional_metadata
     ):
+        # requests are either patches or posts
         request_method = self.client.patch if patch else self.client.post
-        response = request_method(
+        # hit the endpoint with the correct data
+        request_method(
             reverse(url_name, kwargs={'uid': self.asset.uid}),
             data=request_data,
             format='json',
         )
-        print(response.status_code)
+        # make sure a log was created
         logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(logs.count(), 1)
         log = logs.first()
+        # check the log has the expected fields and metadata
         self._check_common_metadata(log.metadata)
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, expected_action)
