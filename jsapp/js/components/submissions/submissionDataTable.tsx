@@ -259,7 +259,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
         <bem.SimpleTable__body>
           {pointsArray.map((pointArray, pointIndex) => (
-            <bem.SimpleTable__row>
+            <bem.SimpleTable__row key={pointIndex}>
               <bem.SimpleTable__cell>
                 P<sub>{pointIndex + 1}</sub>
               </bem.SimpleTable__cell>
@@ -289,7 +289,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           P<sub>{pointIndex + 1}</sub>
         </bem.SubmissionDataTable__column>
         <bem.SubmissionDataTable__column>
-          {this.renderPointData(pointData)}
+          {this.renderPointsData(pointData)}
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     ));

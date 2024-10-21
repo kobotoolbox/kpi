@@ -4,7 +4,6 @@ import bem, {makeBem} from 'js/bem';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
-  META_QUESTION_TYPES,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
@@ -14,7 +13,6 @@ import type {SubmissionAttachment} from 'js/dataInterface';
 import './mediaCell.scss';
 import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
-import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 import pageState from 'js/pageState.store';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -44,7 +42,10 @@ interface MediaCellProps {
  submissionUuid: string;
 }
 
-/** Table cell replacement for media submissions */
+/**
+ * Table cell replacement for image and video submissions. For audio type
+ * questions, please use `AudioCell` component.
+ */
 class MediaCell extends React.Component<MediaCellProps, {}> {
   constructor(props: MediaCellProps) {
     super(props);
@@ -56,13 +57,9 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   getQuestionIcon(): IconName {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
-        return QUESTION_TYPES.image.icon;
-      case QUESTION_TYPES.audio.id:
-        return QUESTION_TYPES.audio.icon;
-      case QUESTION_TYPES['background-audio'].id:
-        return QUESTION_TYPES['background-audio'].icon;
+        return 'qt-photo';
       case QUESTION_TYPES.video.id:
-        return QUESTION_TYPES.video.icon;
+        return 'qt-video';
       default:
         return 'media-files';
     }
@@ -132,17 +129,6 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
                 label={t('download')}
               />
             </a>
-          }
-
-          {PROCESSING_QUESTION_TYPES.includes(this.props.questionType) &&
-            <Button
-              type='frame'
-              size='s'
-              color='storm'
-              endIcon='arrow-up-right'
-              label={t('process')}
-              onClick={this.openProcessing.bind(this)}
-            />
           }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>

@@ -1,6 +1,6 @@
 import React from 'react';
-import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
-import type {AssetContent, AssetResponse} from 'js/dataInterface';
+import {QUESTION_TYPES} from 'js/constants';
+import type {AssetResponse} from 'js/dataInterface';
 import {
   findRowByXpath,
   getRowTypeIcon,
