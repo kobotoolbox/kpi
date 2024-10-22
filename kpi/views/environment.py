@@ -185,6 +185,7 @@ class EnvironmentView(APIView):
                 ) from e
         else:
             data['stripe_public_key'] = None
+            data['use_team_label'] = constance.config.USE_TEAM_LABEL
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
