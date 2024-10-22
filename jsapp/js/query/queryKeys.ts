@@ -7,5 +7,6 @@
 export enum QueryKeys {
   accessLogs = 'accessLogs',
   activityLogs = 'activityLogs',
+  activityLogsExportStatus = 'activityLogsExportStatus',
   activityLogsFilter = 'activityLogsFilter',
 }
