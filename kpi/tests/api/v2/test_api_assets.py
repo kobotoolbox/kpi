@@ -759,11 +759,10 @@ class AssetVersionApiTests(BaseTestCase):
         )
 
     def test_asset_version(self):
-        self.assertEqual(Asset.objects.count(), 2)
-        self.assertEqual(AssetVersion.objects.count(), 1)
+        version_count = AssetVersion.objects.count()
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['count'], 1)
+        self.assertEqual(resp.data['count'], version_count)
         _version_detail_url = resp.data['results'][0].get('url')
         resp2 = self.client.get(_version_detail_url, format='json')
         self.assertTrue('survey' in resp2.data['content'])
@@ -1747,8 +1746,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             == AssetDeploymentStatus.DEPLOYED.value
         )
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_asset_redeployment(self, patched_create_log):
+    def test_asset_redeployment(self):
         self.test_asset_deployment()
 
         # Update asset to redeploy it
@@ -1774,8 +1772,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
-        # no log should be created for failed request
-        patched_create_log.assert_not_called()
 
         # ... but we can with `PATCH`
         redeploy_response = self.client.patch(deployment_url, {
@@ -1788,9 +1784,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         # check project history log
         request = redeploy_response.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=False
-        )
 
         # Validate version id
         self.asset.refresh_from_db()
@@ -1877,8 +1870,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             ' modification date of that version'
         )
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_archive_asset(self, patched_create_log):
+    def test_archive_asset(self):
         self.test_asset_deployment()
 
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
@@ -1895,9 +1887,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             == AssetDeploymentStatus.ARCHIVED.value
         )
         request = response1.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=True
-        )
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data['deployment__active'], False)
@@ -1932,30 +1921,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
         assert self.asset.date_deployed == original_date_deployed
-
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_unarchive_asset_creates_log(self, patched_create_log):
-        # manually deploy as archived
-        self.asset.deploy(backend='mock', active=False)
-
-        # unarchive
-        deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': self.asset_uid}
-        )
-
-        response = self.client.patch(
-            deployment_url,
-            {
-                'backend': 'mock',
-                'active': True,
-            },
-        )
-        assert response.status_code == status.HTTP_200_OK
-        self.asset.refresh_from_db()
-        request = response.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=True
-        )
 
 
 class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):

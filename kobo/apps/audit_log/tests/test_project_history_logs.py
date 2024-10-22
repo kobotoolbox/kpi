@@ -13,7 +13,7 @@ from kpi.models import Asset
 @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
 class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
-    fixtures = ['test_data']
+    fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
         super().setUp()

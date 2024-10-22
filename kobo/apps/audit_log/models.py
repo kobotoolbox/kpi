@@ -416,9 +416,9 @@ class ProjectHistoryLog(AuditLog):
     def settings_change(old_field, new_field):
         settings = {}
         for setting_name in PROJECT_METADATA_DEFAULT_LABELS.keys():
-            if old_field[setting_name] != new_field[setting_name]:
-                old = old_field[setting_name]
-                new = new_field[setting_name]
+            old = old_field.get(setting_name, None)
+            new = new_field.get(setting_name, None)
+            if old != new:
                 metadata_field_subdict = {}
                 if isinstance(old, list) and isinstance(new, list):
                     removed_values = [val for val in old if val not in new]
@@ -445,8 +445,8 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def sharing_change(old_fields, new_fields):
-        old_enabled = old_fields['enabled']
-        old_shared_fields = old_fields['fields']
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
         new_enabled = new_fields['enabled']
         new_shared_fields = new_fields['fields']
         shared_fields_dict = {}
