@@ -626,6 +626,9 @@ class ObjectPermissionMixin:
             if perm in ProjectView.ALLOWED_PERMISSIONS:
                 result = user_has_project_view_asset_perm(self, user_obj, perm)
 
+            if self.owner.organization.is_admin(user_obj):
+                return True
+
             if not result:
                 # The user-specific test failed, but does the public have access?
                 result = self.has_perm(AnonymousUser(), perm)
@@ -945,7 +948,6 @@ class ObjectPermissionMixin:
 class ObjectPermissionViewSetMixin:
 
     def cache_all_assets_perms(self, asset_ids: list) -> dict:
-
         object_permissions = ObjectPermission.objects.filter(
             asset_id__in=asset_ids,
             deny=False,

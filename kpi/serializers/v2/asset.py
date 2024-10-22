@@ -668,10 +668,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # No need to read all permissions if `AnonymousUser`'s permissions
         # are found.
         # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
-        perm_assignments = asset.permissions. \
-            values('user_id', 'permission__codename'). \
-            exclude(user_id=asset.owner_id). \
-            order_by('user_id', 'permission__codename')
+        perm_assignments = (
+            asset.permissions.values('user_id', 'permission__codename')
+            .exclude(user_id=asset.owner_id)
+            .order_by('user_id', 'permission__codename')
+        )
 
         return self._get_status(perm_assignments)
 
@@ -808,6 +809,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # User is big brother.
         if request.user.is_superuser:
             access_types.append('superuser')
+
+        if org_role := obj.owner.organization.get_user_role(request.user):
+            if org_role != 'external':
+                # TODO Validate with front end what's the perfect role?
+                access_types.extend(['shared', 'org-admin'])
+                access_types = list(set(access_types))
 
         if not access_types:
             raise Exception(
@@ -1012,7 +1019,7 @@ class AssetListSerializer(AssetSerializer):
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
-            # be always a property of `self.context`
+            # always be a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context

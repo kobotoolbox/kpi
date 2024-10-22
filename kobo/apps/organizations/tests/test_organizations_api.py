@@ -4,13 +4,20 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.constants import (
+    ADMIN_ORG_ROLE,
+    EXTERNAL_ORG_ROLE,
+    MEMBER_ORG_ROLE,
+    OWNER_ORG_ROLE,
+)
+from kpi.constants import ASSET_TYPE_SURVEY, PERM_VIEW_ASSET
+from kpi.models.asset import Asset
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
-
 from kpi.utils.fuzzy_int import FuzzyInt
 
 
-class OrganizationTestCase(BaseTestCase):
+class OrganizationApiTestCase(BaseTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -72,3 +79,126 @@ class OrganizationTestCase(BaseTestCase):
         org_user = self.organization.add_user(user=user)
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
+
+
+class OrganizationAssetApiTestCase(BaseTestCase):
+    fixtures = ['test_data']
+    URL_NAMESPACE = URL_NAMESPACE
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        # Assign permissions
+        for asset in self.someuser.assets.all():
+            asset.save()
+
+        self.client.force_login(self.someuser)
+        self.organization = self.someuser.organization
+        self.org_assets_list_url = reverse(
+            self._get_endpoint('organizations-assets'),
+            kwargs={'id': self.organization.id},
+        )
+
+    def test_can_list_as_owner(self):
+        response = self.client.get(self.org_assets_list_url)
+        assert self.organization.get_user_role(self.someuser) == OWNER_ORG_ROLE
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_can_list_as_admin(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+        assert self.organization.get_user_role(anotheruser) == ADMIN_ORG_ROLE
+        self.client.force_login(anotheruser)
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        self.client.get(asset_list_url)
+        response = self.client.get(self.org_assets_list_url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_cannot_list_as_member(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=False)
+        assert self.organization.get_user_role(anotheruser) == MEMBER_ORG_ROLE
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.org_assets_list_url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_not_found_as_external(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        assert self.organization.get_user_role(anotheruser) == EXTERNAL_ORG_ROLE
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.org_assets_list_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_not_found_as_anonymous(self):
+        self.client.logout()
+        response = self.client.get(self.org_assets_list_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_only_organization_assets(self):
+        # The organization's assets endpoint only returns assets where the `owner`
+        # matches the User object who owns the organization.
+        # The user assets list endpoint returns all assets to which a permission
+        # has been assigned.
+        # As a result, for an owner, each of the assets they own will appear in
+        # both lists until the code excludes organization assets from the user
+        # list.
+
+        # Ensure someuser see already created assets (from fixture).
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        response = self.client.get(self.org_assets_list_url)
+        someuser_org_asset_uids = [a['uid'] for a in response.data['results']]
+        assert response.data['count'] == 2
+
+        response = self.client.get(asset_list_url)
+        someuser_asset_uids = [a['uid'] for a in response.data['results']]
+        assert response.data['count'] == 2
+        assert someuser_org_asset_uids == someuser_asset_uids
+
+        # Create assets
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+
+        alice = User.objects.create(username='alice', email='alice@alice.com')
+        alice_survey = Asset.objects.create(
+            owner=alice,
+            name='Breakfast',
+            asset_type=ASSET_TYPE_SURVEY,
+            content={
+                'survey': [
+                    {
+                        'name': 'egg',
+                        'type': 'integer',
+                        'label': 'how many eggs?',
+                    },
+                    {
+                        'name': 'bacon',
+                        'type': 'integer',
+                        'label': 'how many slices of bacon',
+                    }
+                ],
+            },
+        )
+
+        # alice does not belong to someuser's organization
+        alice_survey.assign_perm(self.someuser, PERM_VIEW_ASSET)
+
+        # someuser should see only their org projects on the org assets list
+        response = self.client.get(self.org_assets_list_url)
+        assert response.data['count'] == 2
+        assert someuser_org_asset_uids == [a['uid'] for a in response.data['results']]
+
+        # someuser should see only projects shared with them on the regular assets list
+        response = self.client.get(asset_list_url)
+        assert response.data['count'] == 3
+        assert response.data['results'][0]['uid'] == alice_survey.uid
+
+        self.client.force_login(anotheruser)
+        # anotheruser, as an admin, should see only someuser org projects on the
+        # org assets list
+        response = self.client.get(self.org_assets_list_url)
+        assert response.data['count'] == 2
+        assert someuser_org_asset_uids == [a['uid'] for a in response.data['results']]
+
+        # anotheruser should see no assets on the regular assets list because
+        # no assets are shared with them
+        response = self.client.get(asset_list_url)
+        assert response.data['count'] == 0

@@ -53,20 +53,19 @@ class User(AbstractUser):
     @cache_for_request
     def organization(self):
         # Database allows multiple organizations per user, but we restrict it to one.
-        if not (
-            organization := Organization.objects.filter(
-                organization_users__user=self
-            ).first()
-        ):
-            try:
-                organization_name = self.extra_details.data['organization'].strip()
-            except (KeyError, AttributeError):
-                organization_name = None
-            create_organization(
-                self, organization_name or f'{self.username}’s organization'
-            )
+        if organization := Organization.objects.filter(
+            organization_users__user=self
+        ).first():
+            return organization
 
-        return organization
+        try:
+            organization_name = self.extra_details.data['organization'].strip()
+        except (KeyError, AttributeError):
+            organization_name = None
+
+        return create_organization(
+            self, organization_name or f'{self.username}’s organization'
+        )
 
     def sync_to_openrosa_db(self):
         User = self.__class__  # noqa

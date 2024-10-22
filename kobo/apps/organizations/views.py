@@ -29,21 +29,29 @@ from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 class OrganizationAssetViewSet(AssetViewSet):
     """
-    This class is intended exclusively for the `assets` action of the
+    This class is specifically designed for the `assets` action of the
     OrganizationViewSet below.
 
-    It extends the list functionality of the parent class (AssetViewSet).
-    Additionally, it allows for a distinct set of permissions and backend filters to
-    list only the assets owned by the organization.
+    It overrides the queryset of the parent class (AssetViewSet), limiting
+    results to assets owned by the organization. The `permission_classes`
+    attribute is deliberately left empty to prevent duplicate permission checks
+    with OrganizationViewSet.asset(). It relies on `permissions_checked` being
+    passed as a `self.request` attribute to confirm that permissions have been
+    properly validated beforehand.
     """
 
-    permission_classes = [IsOrgAdmin]
+    permission_classes = []
     filter_backends = [
         SearchFilter,
         AssetOrderingFilter,
     ]
 
     def get_queryset(self, *args, **kwargs):
+        if not getattr(self.request, 'permissions_checked', False):
+            # Perform a sanity check to ensure that permissions have been properly
+            # validated within `OrganizationViewSet.assets()`.
+            raise AttributeError('`permissions_checked` is missing')
+
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.filter(
@@ -75,6 +83,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
+        permission_classes=[IsOrgAdmin]
     )
     def assets(self, request: Request, *args, **kwargs):
         """
@@ -89,13 +98,16 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### Additional Information
         For more details, please refer to `/api/v2/assets/`.
         """
+        self.get_object()  # Call check permissions
+
         # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
         django_http_request = request._request
+        django_http_request.permissions_checked = True
         return asset_view(request=django_http_request)
 
     def get_queryset(self) -> QuerySet:
-        user = self.request.user
+        user = get_database_user(self.request.user)
         queryset = super().get_queryset().filter(users=user)
         if self.action == 'list' and not queryset:
             # Very inefficient get or create queryset.
