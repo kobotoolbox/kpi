@@ -98,7 +98,11 @@ export default function FormSummaryProjectInfo(
             <bem.FormView__label>{t('Owner')}</bem.FormView__label>
             {isSelfOwned(props.asset) && t('me')}
             {!isSelfOwned(props.asset) && (
-              <Avatar username={props.asset.owner__username} />
+              <Avatar
+                username={props.asset.owner__username}
+                size='s'
+                isUsernameVisible
+              />
             )}
           </bem.FormView__cell>
         </bem.FormView__group>

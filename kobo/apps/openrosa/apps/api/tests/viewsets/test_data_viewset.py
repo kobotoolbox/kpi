@@ -1,23 +1,20 @@
 # coding: utf-8
 import requests
-
-from django.conf import settings
 from django.test import RequestFactory
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
-from kobo_service_account.utils import get_request_headers
+from httmock import HTTMock, all_requests
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.constants import (
     CAN_CHANGE_XFORM,
     CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
-from httmock import all_requests, HTTMock
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
 
 
 @all_requests
@@ -79,57 +76,6 @@ class TestDataViewSet(TestBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsInstance(response.data, list)
         self.assertTrue(self.xform.instances.count())
-
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        data = _data_instance(dataid)
-        response_first_element = sorted(response.data, key=lambda x: x['_id'])[0]
-        self.assertEqual(dict(response_first_element, **data),
-                         response_first_element)
-
-        view = DataViewSet.as_view({'get': 'retrieve'})
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, dict)
-        self.assertEqual(dict(response.data, **data),
-                         response.data)
-
-    def test_data_with_service_account(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'get': 'list'})
-
-        # Access the list endpoint as Bob.
-        request = self.factory.get('/', **self.extra)
-        response = view(request)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        formid = self.xform.pk
-        data = _data_list(formid)
-        self.assertEqual(response.data, data)
-
-        # Access the data endpoint as Bob; reinitialize `request` since it has
-        # already been consumed within the previous block
-        request = self.factory.get('/', **self.extra)
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-        self.assertTrue(self.xform.instances.count())
-
-        # Alice cannot see Bob's data
-        self._create_user_and_login(username='alice', password='alice')
-        self.extra = {
-            'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token}
-        request = self.factory.get('/', **self.extra)
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        request = self.factory.get('/', **service_account_meta)
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         dataid = self.xform.instances.all().order_by('id')[0].pk
         data = _data_instance(dataid)
@@ -254,15 +200,14 @@ class TestDataViewSet(TestBase):
         response = view(request, pk=pk)
         self.assertEqual(response.data, [])
         # add tag "hello"
-        request = self.factory.post('/', data={"tags": "hello"}, **self.extra)
+        request = self.factory.post('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=pk)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data, ['hello'])
         for i in self.xform.instances.all():
             self.assertIn('hello', i.tags.names())
         # remove tag "hello"
-        request = self.factory.delete('/', data={"tags": "hello"},
-                                      **self.extra)
+        request = self.factory.delete('/', data={'tags': 'hello'}, **self.extra)
         response = view(request, pk=pk, label='hello')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -378,15 +323,13 @@ class TestDataViewSet(TestBase):
             )
 
             request = self.factory.get(
-                '/',
-                data={'return_url': "http://test.io/test_url"},
-                **self.extra
+                '/', data={'return_url': 'http://test.io/test_url'}, **self.extra
             )
 
             with HTTMock(enketo_mock):
                 response = view(request, pk=formid, dataid=dataid)
                 self.assertEqual(
-                    response.data['url'], "https://hmh2a.enketo.formhub.org"
+                    response.data['url'], 'https://hmh2a.enketo.formhub.org'
                 )
 
     def test_get_enketo_view_url(self):
@@ -509,7 +452,7 @@ class TestDataViewSet(TestBase):
         count = self.xform.instances.all().count()
         self.assertEqual(before_count - 1, count)
 
-    def test_cannot_delete_submission_as_granted_user_but_not_service_account(self):
+    def test_cannot_delete_submission_as_granted_user(self):
         self._make_submissions()
         before_count = self.xform.instances.all().count()
         view = DataViewSet.as_view({'delete': 'destroy'})
@@ -542,39 +485,7 @@ class TestDataViewSet(TestBase):
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    def test_delete_submission_with_service_account(self):
-        self._make_submissions()
-        before_count = self.xform.instances.all().count()
-        view = DataViewSet.as_view({'delete': 'destroy'})
-        formid = self.xform.pk
-
-        self._create_user_and_login(username='alice', password='alice')
-        # `self.user` is now alice
-        # Give Alice some permissions but not to delete submissions.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_CHANGE_XFORM, self.user, self.xform)
-        self.extra = {'HTTP_AUTHORIZATION': f'Token  {self.user.auth_token}'}
-        request = self.factory.delete('/', **self.extra)
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        response = view(request, pk=formid, dataid=dataid)
-
-        # Alice cannot delete submissions without `CAN_DELETE_DATA_XFORM`
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
-        request = self.factory.delete('/', **service_account_meta)
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        count = self.xform.instances.all().count()
-        self.assertEqual(before_count - 1, count)
-
-    def test_bulk_delete_submissions_as_granted_user_but_not_service_account(self):
+    def test_cannot_bulk_delete_submissions_as_granted_user(self):
         self._make_submissions()
         view = DataViewSet.as_view({'delete': 'bulk_delete'})
         formid = self.xform.pk
@@ -615,46 +526,6 @@ class TestDataViewSet(TestBase):
         count = self.xform.instances.all().count()
         self.assertEqual(before_count - 2, count)
 
-    def test_bulk_delete_submissions_with_service_account(self):
-        self._make_submissions()
-        before_count = self.xform.instances.all().count()
-        view = DataViewSet.as_view({'delete': 'bulk_delete'})
-        formid = self.xform.pk
-        submission_ids = self.xform.instances.values_list(
-            'pk', flat=True
-        ).all()[:2]
-        data = {'submission_ids': list(submission_ids)}
-
-        self._create_user_and_login(username='alice', password='alice')
-        # `self.user` is now alice
-        # Give Alice some permissions but not to delete submissions.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_CHANGE_XFORM, self.user, self.xform)
-        self.extra = {'HTTP_AUTHORIZATION': f'Token  {self.user.auth_token}'}
-        request = self.factory.delete(
-            '/', data=data, format='json', **self.extra,
-        )
-        response = view(request, pk=formid)
-
-        # Alice cannot delete submissions without `CAN_DELETE_DATA_XFORM`
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
-        request = self.factory.delete(
-            '/', data=data, format='json', **service_account_meta
-        )
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['detail'], '2 submissions have been deleted')
-        count = self.xform.instances.all().count()
-        self.assertEqual(before_count - 2, count)
-
     def test_update_validation_status(self):
         self._make_submissions()
         view = DataViewSet.as_view({'patch': 'validation_status'})
@@ -679,50 +550,6 @@ class TestDataViewSet(TestBase):
         )
         self.assertEqual(
             submission['_validation_status']['by_whom'], self.user.username  # bob
-        )
-
-    def test_update_validation_status_with_service_account(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'patch': 'validation_status'})
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        data = {
-            'validation_status.uid': 'validation_status_on_hold'
-        }
-        self._create_user_and_login(username='alice', password='alice')
-        # `self.user` is now alice
-        # Give Alice view permission but not validate.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        self.extra = {'HTTP_AUTHORIZATION': f'Token  {self.user.auth_token}'}
-        request = self.factory.patch(
-            '/', data=data, format='json', **self.extra
-        )
-        response = view(request, pk=formid, dataid=dataid)
-        # 403, not 404. Alice is aware of form existence.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        request = self.factory.patch(
-            '/', data=data, format='json', **service_account_meta
-        )
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        cursor = ParsedInstance.query_mongo_minimal(
-            query={'_id': dataid},
-            fields=None,
-            sort=None,
-        )
-        submission = next(cursor)
-        self.assertEqual(
-            submission['_validation_status']['uid'], 'validation_status_on_hold'
-        )
-        self.assertEqual(
-            submission['_validation_status']['by_whom'], self.user.username  # alice
         )
 
     def test_bulk_update_validation_status(self):
@@ -754,56 +581,6 @@ class TestDataViewSet(TestBase):
             )
             self.assertEqual(
                 submission['_validation_status']['by_whom'], self.user.username  # bob
-            )
-
-    def test_bulk_update_validation_statuses_with_service_account(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'patch': 'bulk_validation_status'})
-        formid = self.xform.pk
-        submission_ids = list(self.xform.instances.values_list(
-            'pk', flat=True
-        ).all().order_by('pk')[:2])
-        data = {
-            'submission_ids': submission_ids,
-            'validation_status.uid': 'validation_status_on_hold'
-
-        }
-
-        self._create_user_and_login(username='alice', password='alice')
-        # `self.user` is now alice
-        # Give Alice view permission but not validate.
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        self.extra = {'HTTP_AUTHORIZATION': f'Token  {self.user.auth_token}'}
-        request = self.factory.patch(
-            '/', data=data, format='json', **self.extra,
-        )
-        response = view(request, pk=formid)
-        # 403, not 404. Alice is aware of form existence.
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # Try the same request with service account user on behalf of alice
-        service_account_meta = self.get_meta_from_headers(
-            get_request_headers(self.user.username)
-        )
-        # Test server does not provide `host` header
-        service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        request = self.factory.patch(
-            '/', data=data, format='json', **service_account_meta
-        )
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        cursor = ParsedInstance.query_mongo_minimal(
-            query={'_id': {'$in': submission_ids}},
-            fields=None,
-            sort=None,
-        )
-        for submission in cursor:
-            self.assertEqual(
-                submission['_validation_status']['uid'],
-                'validation_status_on_hold'
-            )
-            self.assertEqual(
-                submission['_validation_status']['by_whom'], self.user.username  # alice
             )
 
     def test_cannot_access_data_of_pending_delete_xform(self):

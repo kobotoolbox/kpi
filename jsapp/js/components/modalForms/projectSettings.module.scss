@@ -1,0 +1,140 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+
+.uploadInstructions {
+  margin-bottom: 20px;
+  text-align: initial;
+}
+
+.modal {
+  width: 100%;
+}
+
+.projectDetailsView {
+  margin-bottom: 30px;
+}
+
+.projectDetails .inputWrapper {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  column-gap: 4%;
+  .input {
+    min-width: 75%; // Most rows are wide enough to get their own row,
+    flex: 1; // and when they do, they grow to occupy the full available width
+  }
+  .sector,
+  .country {
+    min-width: 40%; // These fields can sit next to each other in pairs.
+  }
+}
+
+.input {
+  &:not(:last-child) {
+    margin-bottom: 15px;
+  }
+
+  textarea {
+    overflow: hidden;
+    resize: none;
+    height: auto;
+  }
+}
+
+.inputInline {
+  display: inline-block;
+  &:not(:last-child) {
+    margin-bottom: 0;
+    margin-right: 20px;
+  }
+}
+
+.modalSubheader {
+  background: colors.$kobo-gray-200;
+  padding: 20px 30px;
+  margin: -30px -30px 20px;
+  color: colors.$kobo-gray-700;
+
+  i {
+    margin: 5px 10px 10px 3px;
+    font-size: 24px;
+    float: left;
+  }
+}
+
+$buttons-spacing: 10px;
+
+.sourceButtons {
+  margin: 0 auto;
+  max-width: 500px;
+
+  button {
+    display: inline-block;
+    vertical-align: top;
+    border: none;
+    background: colors.$kobo-gray-200;
+    border-radius: 6px;
+    color: colors.$kobo-gray-700;
+    cursor: pointer;
+    margin: 0.5 * $buttons-spacing;
+    padding: $buttons-spacing;
+    width: calc(50% - #{$buttons-spacing});
+    min-height: 120px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+
+    i {
+      display: block;
+      margin: 3px auto;
+      font-size: 34px;
+      color: currentColor;
+    }
+
+    &:hover {
+      color: colors.$kobo-gray-800;
+      background-color: colors.$kobo-gray-300;
+    }
+
+    &:active {
+      // makes the shadow smaller and moves button down by small bit
+      // to make it look pressed-in
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
+.modalFooter {
+  margin-top: 20px;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 10px;
+}
+
+.saveChanges {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+@media screen and (min-width: breakpoints.$b768) {
+  .modal {
+    min-width: 600px;
+    max-width: 750px;
+  }
+
+  .sourceButtons button {
+    margin: $buttons-spacing;
+    padding: 2 * $buttons-spacing;
+    width: calc(50% - #{2 * $buttons-spacing});
+  }
+}
+
+@media screen and (min-height: 600px) {
+  // on bigger screens make templates-list scrollable to always display back/next buttons
+  .chooseTemplate:first-child {
+    max-height: 380px;
+    overflow-y: auto;
+  }
+}

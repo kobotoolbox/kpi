@@ -8,9 +8,9 @@ import {
   getAssetProcessingRows,
   isAssetProcessingActivated,
   getAssetAdvancedFeatures,
-  findRowByQpath,
+  findRowByXpath,
   getRowName,
-  getRowNameByQpath,
+  getRowNameByXpath,
   getFlatQuestionsList,
   getLanguageIndex,
 } from 'js/assetUtils';
@@ -99,7 +99,7 @@ interface TransxDraft {
  * ```
  */
 interface SubmissionsEditIds {
-  [qpath: string]: Array<{
+  [xpath: string]: Array<{
     editId: string;
     hasResponse: boolean;
   }>;
@@ -186,8 +186,8 @@ class SingleProcessingStore extends Reflux.Store {
     return getCurrentProcessingRouteParts().assetUid;
   }
 
-  public get currentQuestionQpath() {
-    return getCurrentProcessingRouteParts().qpath;
+  public get currentQuestionXpath() {
+    return getCurrentProcessingRouteParts().xpath;
   }
 
   public get currentSubmissionEditId() {
@@ -197,7 +197,7 @@ class SingleProcessingStore extends Reflux.Store {
   public get currentQuestionName() {
     const asset = assetStore.getAsset(this.currentAssetUid);
     if (asset?.content) {
-      const foundRow = findRowByQpath(asset.content, this.currentQuestionQpath);
+      const foundRow = findRowByXpath(asset.content, this.currentQuestionXpath);
       if (foundRow) {
         return getRowName(foundRow);
       }
@@ -209,9 +209,9 @@ class SingleProcessingStore extends Reflux.Store {
   public get currentQuestionType(): AnyRowTypeName | undefined {
     const asset = assetStore.getAsset(this.currentAssetUid);
     if (asset?.content) {
-      const foundRow = findRowByQpath(
+      const foundRow = findRowByXpath(
         asset?.content,
-        this.currentQuestionQpath
+        this.currentQuestionXpath
       );
       return foundRow?.type;
     }
@@ -407,7 +407,7 @@ class SingleProcessingStore extends Reflux.Store {
       isAnyProcessingRoute(newPath) &&
       previousPathParts &&
       previousPathParts.assetUid === newPathParts.assetUid &&
-      previousPathParts.qpath === newPathParts.qpath &&
+      previousPathParts.xpath === newPathParts.xpath &&
       previousPathParts.submissionEditId === newPathParts.submissionEditId &&
       // This check is needed to avoid going into this in case when route
       // redirects from no tab (e.g. `/`) into default tab (e.g. `/transcript`).
@@ -427,7 +427,7 @@ class SingleProcessingStore extends Reflux.Store {
       isAnyProcessingRoute(newPath) &&
       previousPathParts &&
       previousPathParts.assetUid === newPathParts.assetUid &&
-      (previousPathParts.qpath !== newPathParts.qpath ||
+      (previousPathParts.xpath !== newPathParts.xpath ||
         previousPathParts.submissionEditId !== newPathParts.submissionEditId)
     ) {
       this.fetchProcessingData();
@@ -479,8 +479,8 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
-    // We need to get a regular path (not qpath!) for each of the processing
-    // rows. In theory we could just convert the qpath strings, but it's safer
+    // We need to get a regular path (not xpath!) for each of the processing
+    // rows. In theory we could just convert the xpath strings, but it's safer
     // to use the asset data that we already have.
     const processingRowsPaths: string[] = [];
 
@@ -488,11 +488,11 @@ class SingleProcessingStore extends Reflux.Store {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
 
       if (processingRows) {
-        processingRows.forEach((qpath) => {
+        processingRows.forEach((xpath) => {
           if (asset?.content) {
-            // Here we need to "convert" qpath into name, as flatPaths work with
-            // names only. We search the row by qpath and use its name.
-            const rowName = getRowNameByQpath(asset.content, qpath);
+            // Here we need to "convert" xpath into name, as flatPaths work with
+            // names only. We search the row by xpath and use its name.
+            const rowName = getRowNameByXpath(asset.content, xpath);
 
             if (rowName && flatPaths[rowName]) {
               processingRowsPaths.push(flatPaths[rowName]);
@@ -521,16 +521,16 @@ class SingleProcessingStore extends Reflux.Store {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
 
       if (processingRows !== undefined) {
-        processingRows.forEach((qpath) => {
-          submissionsEditIds[qpath] = [];
+        processingRows.forEach((xpath) => {
+          submissionsEditIds[xpath] = [];
         });
 
         response.results.forEach((result) => {
-          processingRows.forEach((qpath) => {
+          processingRows.forEach((xpath) => {
             if (asset?.content) {
-              // Here we need to "convert" qpath into name, as flatPaths work with
-              // names only. We search the row by qpath and use its name.
-              const rowName = getRowNameByQpath(asset.content, qpath);
+              // Here we need to "convert" xpath into name, as flatPaths work with
+              // names only. We search the row by xpath and use its name.
+              const rowName = getRowNameByXpath(asset.content, xpath);
 
               if (rowName) {
                 // `meta/rootUuid` is persistent across edits while `_uuid` is not;
@@ -539,7 +539,7 @@ class SingleProcessingStore extends Reflux.Store {
                 if (uuid === undefined) {
                   uuid = result['_uuid'];
                 }
-                submissionsEditIds[qpath].push({
+                submissionsEditIds[xpath].push({
                   editId: uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
                 });
@@ -580,7 +580,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
+    const transcriptResponse = response[this.currentQuestionXpath]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
     this.data.transcript = undefined;
     if (transcriptResponse?.value && transcriptResponse?.languageCode) {
@@ -588,8 +588,9 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     const translationsResponse =
-      response[this.currentQuestionQpath]?.translation;
+      response[this.currentQuestionXpath]?.translation;
     const translationsArray: Transx[] = [];
+
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach(
         (languageCode: LanguageCode) => {
@@ -640,7 +641,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
+    const transcriptResponse = response[this.currentQuestionXpath]?.transcript;
 
     this.data.isFetchingData = false;
 
@@ -664,7 +665,7 @@ class SingleProcessingStore extends Reflux.Store {
     // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
     const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+      event.response[this.currentQuestionXpath]?.googlets;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
       googleTsResponse &&
@@ -677,14 +678,14 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onRequestAutoTranscriptionCompleted(event: AutoTransxEvent) {
     if (
-      !this.currentQuestionQpath ||
+      !this.currentQuestionXpath ||
       !this.data.isPollingForTranscript ||
       !this.data.transcriptDraft
     ) {
       return;
     }
 
-    const googleTsResponse = event.response[this.currentQuestionQpath]?.googlets;
+    const googleTsResponse = event.response[this.currentQuestionXpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
       this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
@@ -725,7 +726,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   private isAutoTranslationEventApplicable(event: AutoTransxEvent) {
     const googleTxResponse =
-      event.response[this.currentQuestionQpath]?.googletx;
+      event.response[this.currentQuestionXpath]?.googletx;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
       googleTxResponse &&
@@ -738,14 +739,14 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onRequestAutoTranslationCompleted(event: AutoTransxEvent) {
     if (
-      !this.currentQuestionQpath ||
+      !this.currentQuestionXpath ||
       !this.data.isPollingForTranslation ||
       !this.data.translationDraft
     ) {
       return;
     }
 
-    const googleTxResponse = event.response[this.currentQuestionQpath]?.googletx;
+    const googleTxResponse = event.response[this.currentQuestionXpath]?.googletx;
     if (
       googleTxResponse &&
       this.isAutoTranslationEventApplicable(event)
@@ -767,7 +768,7 @@ class SingleProcessingStore extends Reflux.Store {
         this.data.isPollingForTranslation = true;
         console.log('trying to poll!'); // TEMP DELETEME
         this.requestAutoTranslation(
-          event.response[this.currentQuestionQpath]!.googlets!.languageCode
+          event.response[this.currentQuestionXpath]!.googlets!.languageCode
         );
       } else {
         console.log('no more polling!'); // TEMP DELETEME
@@ -816,7 +817,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode,
       value
@@ -828,7 +829,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId
     );
     this.trigger(this.data);
@@ -838,7 +839,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       this.data.transcriptDraft?.languageCode,
       this.data.transcriptDraft?.regionCode
@@ -902,7 +903,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode,
       value
@@ -914,7 +915,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode
     );
@@ -922,10 +923,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
-    this.data.isFetchingData = true;
+    this.data.isPollingForTranslation = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode
     );
@@ -979,7 +980,7 @@ class SingleProcessingStore extends Reflux.Store {
   /** NOTE: Returns editIds for current question name, not for all of them. */
   getCurrentQuestionSubmissionsEditIds() {
     if (this.data.submissionsEditIds !== undefined) {
-      return this.data.submissionsEditIds[this.currentQuestionQpath];
+      return this.data.submissionsEditIds[this.currentQuestionXpath];
     }
     return undefined;
   }

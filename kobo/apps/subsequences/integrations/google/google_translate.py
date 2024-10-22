@@ -3,24 +3,23 @@ from __future__ import annotations
 import posixpath
 from datetime import date
 from hashlib import md5
-from typing import Union, Any
+from typing import Any, Union
 
 import constance
 from django.conf import settings
-from django.utils import timezone
 from google.api_core.exceptions import InvalidArgument
-from google.cloud import translate_v3 as translate, storage
+from google.cloud import translate_v3 as translate
 
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-from .base import GoogleService
-from .utils import google_credentials_from_constance_config
-from ...constants import GOOGLETX, GOOGLE_CODE
+from ...constants import GOOGLE_CODE, GOOGLETX
 from ...exceptions import (
     SubsequenceTimeoutError,
-    TranslationResultsNotFound,
     TranslationAsyncResultAvailable,
+    TranslationResultsNotFound,
 )
+from .base import GoogleService
+from .utils import google_credentials_from_constance_config
 
 MAX_SYNC_CHARS = 30720
 
@@ -173,12 +172,11 @@ class GoogleTranslationService(GoogleService):
         )
         return source_path, output_path
 
-    def process_data(self, qpath: str, vals: dict) -> dict:
+    def process_data(self, xpath: str, vals: dict) -> dict:
         """
-        Translates the value for a given qpath and it's json values.
+        Translates the value for a given xpath and its json values.
         """
         autoparams = vals[GOOGLETX]
-        xpath = self.qpath_to_xpath(qpath)
         try:
             content = vals['transcript']['value']
             source_lang = vals['transcript']['languageCode']

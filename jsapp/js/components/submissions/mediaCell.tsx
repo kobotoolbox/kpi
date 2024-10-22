@@ -39,7 +39,7 @@ interface MediaCellProps {
  /** Total submissions for text questions. */
  submissionTotal: number;
  assetUid: string;
- qpath: string;
+ xpath: string;
  submissionUuid: string;
 }
 

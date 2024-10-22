@@ -1,6 +1,4 @@
-# coding: utf-8
 import unittest
-from mock import patch, MagicMock
 
 from django.urls import reverse
 from rest_framework import status
@@ -10,8 +8,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
@@ -39,7 +37,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                     {
                         'name': 'group_restaurant',
                         'type': 'begin_group',
-                        "label": "Restaurant"
+                        'label': 'Restaurant',
                     },
                     {
                         'name': 'favourite_restaurant',
@@ -98,9 +96,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
         if not source_url:
             source_url = self.source_asset_detail_url
 
-        response = self.client.patch(source_url,
-                                     data=payload,
-                                     format='json')
+        response = self.client.patch(source_url, data=payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         return response
 
@@ -390,13 +386,11 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # When owner's destination asset does not require any authentications,
         # everybody can see their data
         self.client.logout()
-        with patch(
-            'kpi.deployment_backends.backends.MockDeploymentBackend.xform',
-            MagicMock(),
-        ) as xf_mock:
-            xf_mock.require_auth = False
-            response = self.client.get(self.external_xml_url)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        xform = self.destination_asset.deployment.xform
+        xform.require_auth = False
+        xform.save(update_fields=['require_auth'])
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_changed_source_fields(self):

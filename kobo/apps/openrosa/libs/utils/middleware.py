@@ -3,12 +3,11 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.http import (
-    HttpResponseNotAllowed,
-    HttpResponseForbidden,
     HttpRequest,
     HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
 )
 from django.middleware.locale import LocaleMiddleware
 from django.template import loader
@@ -16,7 +15,6 @@ from django.template.loader import get_template
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import gettext as t
 from django.utils.translation.trans_real import parse_accept_lang_header
-from kobo_service_account.models import ServiceAccountUser
 
 from kobo.apps.openrosa.libs.http import JsonResponseForbidden, XMLResponseForbidden
 
@@ -83,9 +81,6 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         if not request.user.is_authenticated:
-            return response
-
-        if isinstance(request.user, ServiceAccountUser):
             return response
 
         if self._skipped_view:

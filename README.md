@@ -1,8 +1,10 @@
 # KPI
 
-[![Python Build Status](https://github.com/kobotoolbox/kpi/workflows/pytest/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest)
-[![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=master)](https://coveralls.io/github/kobotoolbox/kpi?branch=master)
-[![JavaScript Build Status](https://github.com/kobotoolbox/kpi/workflows/npm-test/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test)
+[![Python Build Status](https://github.com/kobotoolbox/kpi/workflows/pytest/badge.svg?branch=main)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest+branch%3Amain)
+[![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=main)](https://coveralls.io/github/kobotoolbox/kpi?branch=main)
+[![JavaScript Build Status](https://github.com/kobotoolbox/kpi/workflows/npm-test/badge.svg?branch=main)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test+branch%3Amain)
+
+For production always use a specific release branch, `main` branch may include breaking changes. Run `git branch -rl 'origin/release/*'` to list release branches and then switch to a release branch of your choice.
 
 We're open for [contributions](./CONTRIBUTING.md)!
 

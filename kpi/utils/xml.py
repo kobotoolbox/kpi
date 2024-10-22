@@ -364,17 +364,7 @@ class OmitDefaultNamespacePrefixTreeBuilder(ET.TreeBuilder):
         if self.default_namespace_uri:
             # Remove the Clark notation prefix if it matches the default
             # namespace
-            # TODO remove try/except when Python 3.8 support is removed
-            try:
-                tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
-            except AttributeError:
-                remove_prefix = (
-                    lambda text, prefix: text[len(prefix):]
-                    if text.startswith(prefix)
-                    else text
-                )
-                tag = remove_prefix(tag, '{' + self.default_namespace_uri + '}')
-
+            tag = tag.removeprefix('{' + self.default_namespace_uri + '}')
         return super().start(tag, attrs)
 
 

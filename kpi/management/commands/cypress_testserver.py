@@ -381,4 +381,4 @@ class Command(BaseCommand):
             submission['__version__'] = latest_version_uuid
             return submission
         submission_generator = (set_version(s) for s in submissions)
-        asset.deployment.mock_submissions(submission_generator, flush_db=False)
+        asset.deployment.mock_submissions(submission_generator)

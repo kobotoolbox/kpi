@@ -73,7 +73,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       }
 
       const newQuestion: AnalysisQuestionInternal = {
-        qpath: action.payload.qpath,
+        xpath: action.payload.xpath,
         type: action.payload.type,
         labels: {_default: ''},
         uuid: newUuid,
@@ -186,7 +186,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
     }
     case 'updateResponseCompleted': {
       const newQuestions = applyUpdateResponseToInternalQuestions(
-        action.payload.qpath,
+        action.payload.xpath,
         action.payload.apiResponse,
         state.questions
       );

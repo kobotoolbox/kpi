@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 
@@ -21,7 +21,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     validated_password = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
+        return "{}'s data: {}".format(self.user.__str__(), repr(self.data))
 
     def save(
         self,
@@ -43,9 +43,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             update_fields=update_fields,
         )
 
-        # Sync `validated_password` field to `KobocatUserProfile` only when
+        # Sync `validated_password` field to `UserProfile` only when
         # this object is updated to avoid a race condition and an IntegrityError
-        # when trying to save `KobocatUserProfile` object whereas the related
+        # when trying to save `UserProfile` object whereas the related
         # `KobocatUser` object has not been created yet.
         if (
             not settings.TESTING
@@ -55,7 +55,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 or (update_fields and 'validated_password' in update_fields)
             )
         ):
-            KobocatUserProfile.set_password_details(
+            UserProfile.set_password_details(
                 self.user.id,
                 self.validated_password,
             )

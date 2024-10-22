@@ -15,6 +15,8 @@ interface bemInstances {
 
 /**
  * Container for holding all BEM definitions.
+ *
+ * @deprecated Use CSS Modules and regular HTML tags.
  */
 const bem: bemInstances = {}
 
@@ -45,6 +47,8 @@ interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
  * For first parameter pass `null` to create a Block component,
  * or pass existing Block component to create Element component (a child).
  * Please no angle brackets for `htmlTagName`.
+ *
+ * @deprecated Use CSS Modules and regular HTML tags.
  */
 export function makeBem(
   parent: BemInstance | null,

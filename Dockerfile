@@ -25,6 +25,7 @@ ENV KPI_LOGS_DIR=/srv/logs \
     NGINX_STATIC_DIR=/srv/static \
     KPI_SRC_DIR=/srv/src/kpi \
     KPI_MEDIA_DIR=/srv/src/kpi/media \
+    OPENROSA_MEDIA_DIR=/srv/src/kobocat/media \
     KPI_NODE_PATH=/srv/src/kpi/node_modules \
     TMP_DIR=/srv/tmp \
     UWSGI_USER=kobo \

@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 
@@ -24,17 +23,17 @@
   color: colors.$kobo-gray-600;
   position: relative;
   font-weight: 900;
-  font-size: sizes.$x14;
-  line-height: sizes.$x48;
+  font-size: 14px;
+  line-height: 48px;
   text-transform: uppercase;
-  border-radius: sizes.$x6 sizes.$x6 0 0;
+  border-radius: 6px 6px 0 0;
 
   &:hover {
     color: colors.$kobo-gray-700;
   }
 
   &:active:not(.activeTab) {
-    transform: translateY(#{sizes.$x1});
+    transform: translateY(#{1px});
   }
 
   // We need this for covering the border radius of the white box underneath
@@ -45,7 +44,7 @@
     left: 0%;
     top: 100%;
     width: 100%;
-    height: sizes.$x6;
+    height: 6px;
   }
 
   &.activeTab {
@@ -60,7 +59,7 @@
 
 .body {
   background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
+  border-radius: 6px;
   flex: 1;
 }
 

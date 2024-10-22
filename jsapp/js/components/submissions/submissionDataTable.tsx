@@ -58,7 +58,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       if (foundRow) {
         goToProcessing(
           this.props.asset.uid,
-          foundRow.$qpath,
+          foundRow.$xpath,
           this.props.submissionData._uuid
         );
       }

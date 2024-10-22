@@ -1,63 +1,53 @@
-# coding: utf-8
-import logging
-import json
 from typing import Union
 
 from django.db.models import Q
-from django.db.models.signals import pre_delete, post_delete
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from kobo_service_account.models import ServiceAccountUser
-from kobo_service_account.utils import get_real_user
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
-from kobo.apps.openrosa.apps.api.exceptions import (
-    NoConfirmationProvidedException,
-)
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import (
-    custom_response_handler,
-)
-from kobo.apps.openrosa.apps.api.tools import (
-    add_tags_to_instance,
-    add_validation_status_to_instance,
-    get_validation_status,
-    remove_validation_status_from_instance,
-)
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.models.instance import (
-    Instance,
-)
-from kobo.apps.openrosa.apps.logger.signals import (
-    nullify_exports_time_of_last_submission,
-    update_xform_submission_count_delete,
-)
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
-from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
-from kobo.apps.openrosa.libs.renderers import renderers
-from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
-    AnonymousUserPublicFormsMixin,
-)
+from kobo.apps.openrosa.apps.api.exceptions import NoConfirmationProvidedAPIException
 from kobo.apps.openrosa.apps.api.permissions import (
     EnketoSubmissionEditPermissions,
     EnketoSubmissionViewPermissions,
     XFormDataPermissions,
 )
-from kobo.apps.openrosa.libs.serializers.data_serializer import (
-    DataSerializer,
-    DataListSerializer,
-    DataInstanceSerializer,
+from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
+from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
+from kobo.apps.openrosa.apps.logger.exceptions import (
+    BuildDbQueriesAttributeError,
+    BuildDbQueriesBadArgumentError,
+    BuildDbQueriesNoConfirmationProvidedError,
+    MissingValidationStatusPayloadError,
+)
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.logger.utils.instance import (
+    add_validation_status_to_instance,
+    delete_instances,
+    remove_validation_status_from_instance,
+    set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.libs import filters
+from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
+    AnonymousUserPublicFormsMixin,
+)
+from kobo.apps.openrosa.libs.renderers import renderers
+from kobo.apps.openrosa.libs.serializers.data_serializer import (
+    DataInstanceSerializer,
+    DataListSerializer,
+    DataSerializer,
+)
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     EnketoError,
     get_enketo_submission_url,
 )
+from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -326,7 +316,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >           "timestamp": 1513299978,
     >           "by_whom ": "John Doe",
     >           "uid": "validation_status_approved",
-    >           "color": "#00ff00",
     >           "label: "Approved"
     >       }
 
@@ -353,7 +342,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >           "timestamp": 1513299978,
     >           "by_whom ": "John Doe",
     >           "uid": "validation_status_not_approved",
-    >           "color": "#ff0000",
     >           "label": "Not Approved"
     >       }
 
@@ -406,101 +394,66 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     extra_lookup_fields = None
     queryset = XForm.objects.all()
 
-    def get_queryset(self):
-        if isinstance(self.request.user, ServiceAccountUser):
-            # We need to get all xforms (even soft-deleted ones) to
-            # system-account user to let it delete data
-            # when the xform is already soft-deleted.
-            self.queryset = XForm.all_objects.all()
-        return super().get_queryset()
-
     def bulk_delete(self, request, *args, **kwargs):
         """
         Bulk delete instances
         """
         xform = self.get_object()
-        postgres_query, mongo_query = self.__build_db_queries(xform, request.data)
-
-        # Disconnect signals to speed-up bulk deletion
-        pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
-        post_delete.disconnect(
-            nullify_exports_time_of_last_submission, sender=Instance,
-            dispatch_uid='nullify_exports_time_of_last_submission',
-        )
-        post_delete.disconnect(
-            update_xform_submission_count_delete, sender=Instance,
-            dispatch_uid='update_xform_submission_count_delete',
-        )
 
         try:
-            # Delete Postgres & Mongo
-            all_count, results = Instance.objects.filter(**postgres_query).delete()
-            identifier = f'{Instance._meta.app_label}.Instance'
-            try:
-                deleted_records_count = results[identifier]
-            except KeyError:
-                # PostgreSQL did not delete any Instance objects. Keep going in case
-                # they are still present in MongoDB.
-                logging.warning('Instance objects cannot be found')
-                deleted_records_count = 0
-
-            ParsedInstance.bulk_delete(mongo_query)
-
-            # Update xform like signals would do if it was as single object deletion
-            nullify_exports_time_of_last_submission(sender=Instance, instance=xform)
-            update_xform_submission_count_delete(
-                sender=Instance,
-                instance=xform, value=deleted_records_count
+            deleted_records_count = delete_instances(xform, request.data)
+        except BuildDbQueriesBadArgumentError:
+            raise ValidationError(
+                {'payload': t("`query` and `instance_ids` can't be used together")}
             )
-        finally:
-            # Pre_delete signal needs to be re-enabled for parsed instance
-            pre_delete.connect(remove_from_mongo, sender=ParsedInstance)
-            post_delete.connect(
-                nullify_exports_time_of_last_submission,
-                sender=Instance,
-                dispatch_uid='nullify_exports_time_of_last_submission',
+        except BuildDbQueriesAttributeError:
+            raise ValidationError(
+                {'payload': t('Invalid `query` or `submission_ids` params')}
             )
-            post_delete.connect(
-                update_xform_submission_count_delete,
-                sender=Instance,
-                dispatch_uid='update_xform_submission_count_delete',
-            )
+        except BuildDbQueriesNoConfirmationProvidedError:
+            raise NoConfirmationProvidedAPIException()
 
-        return Response({
-            'detail': t('{} submissions have been deleted').format(
-                deleted_records_count)
-        }, status.HTTP_200_OK)
+        return Response(
+            {
+                'detail': t('{} submissions have been deleted').format(
+                    deleted_records_count
+                )
+            },
+            status.HTTP_200_OK,
+        )
 
     def bulk_validation_status(self, request, *args, **kwargs):
 
         xform = self.get_object()
+        real_user = get_database_user(request.user)
 
         try:
-            new_validation_status_uid = request.data['validation_status.uid']
-        except KeyError:
+            updated_records_count = set_instance_validation_statuses(
+                xform, request.data, real_user.username
+            )
+        except BuildDbQueriesBadArgumentError:
+            raise ValidationError(
+                {'payload': t("`query` and `instance_ids` can't be used together")}
+            )
+        except BuildDbQueriesAttributeError:
+            raise ValidationError(
+                {'payload': t('Invalid `query` or `submission_ids` params')}
+            )
+        except BuildDbQueriesNoConfirmationProvidedError:
+            raise NoConfirmationProvidedAPIException()
+        except MissingValidationStatusPayloadError:
             raise ValidationError({
                 'payload': t('No `validation_status.uid` provided')
             })
 
-        # Create new validation_status object
-        real_user = get_real_user(request)
-        new_validation_status = get_validation_status(
-            new_validation_status_uid, xform, real_user.username
+        return Response(
+            {
+                'detail': t('{} submissions have been updated').format(
+                    updated_records_count
+                )
+            },
+            status.HTTP_200_OK,
         )
-
-        postgres_query, mongo_query = self.__build_db_queries(xform,
-                                                              request.data)
-
-        # Update Postgres & Mongo
-        updated_records_count = Instance.objects.filter(
-            **postgres_query
-        ).update(validation_status=new_validation_status)
-        ParsedInstance.bulk_update_validation_statuses(mongo_query,
-                                                       new_validation_status)
-        return Response({
-            'detail': t('{} submissions have been updated').format(
-                      updated_records_count)
-        }, status.HTTP_200_OK)
 
     def get_serializer_class(self):
         pk_lookup, dataid_lookup = self.lookup_fields
@@ -531,12 +484,11 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         try:
             int(pk)
         except ValueError:
-            raise ParseError(t("Invalid pk `%(pk)s`" % {'pk': pk}))
+            raise ParseError(t('Invalid pk `%(pk)s`' % {'pk': pk}))
         try:
             int(dataid)
         except ValueError:
-            raise ParseError(t("Invalid dataid `%(dataid)s`"
-                               % {'dataid': dataid}))
+            raise ParseError(t('Invalid dataid `%(dataid)s`' % {'dataid': dataid}))
 
         return get_object_or_404(Instance, pk=dataid, xform__pk=pk)
 
@@ -551,7 +503,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             filter_kwargs['shared_data'] = True
             qs = XForm.objects.filter(**filter_kwargs)
             if not qs:
-                raise Http404(t("No data matches with given query."))
+                raise Http404(t('No data matches with given query.'))
 
         return qs
 
@@ -568,13 +520,13 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             try:
                 int(pk)
             except ValueError:
-                raise ParseError(t("Invalid pk %(pk)s" % {'pk': pk}))
+                raise ParseError(t('Invalid pk %(pk)s' % {'pk': pk}))
             else:
                 qs = self._filtered_or_shared_qs(qs, pk)
 
         return qs
 
-    @action(detail=True, methods=["GET", "PATCH", "DELETE"])
+    @action(detail=True, methods=['GET', 'PATCH', 'DELETE'])
     def validation_status(self, request, *args, **kwargs):
         """
         View or modify validation status of specific instance.
@@ -588,9 +540,10 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
         data = {}
 
         if request.method != 'GET':
-            if (
-                request.method == 'PATCH'
-                and not add_validation_status_to_instance(request, instance)
+            username = get_database_user(request.user).username
+            validation_status_uid = request.data.get('validation_status.uid')
+            if request.method == 'PATCH' and not add_validation_status_to_instance(
+                username, validation_status_uid, instance
             ):
                 http_status = status.HTTP_400_BAD_REQUEST
             elif request.method == 'DELETE':
@@ -702,7 +655,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         # XML rendering does not a serializer
-        if request.accepted_renderer.format == "xml":
+        if request.accepted_renderer.format == 'xml':
             instance = self.get_object()
             return Response(instance.xml)
         else:
@@ -728,7 +681,7 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             return Response(serializer.data)
 
         xform = self.get_object()
-        query = request.GET.get("query", {})
+        query = request.GET.get('query', {})
         export_type = kwargs.get('format')
         if export_type is None or export_type in ['json']:
             # perform default viewset retrieve, no data export
@@ -741,90 +694,3 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             return res
 
         return custom_response_handler(request, xform, query, export_type)
-
-    @staticmethod
-    def __build_db_queries(xform_, request_data):
-
-        """
-        Gets instance ids based on the request payload.
-        Useful to narrow down set of instances for bulk actions
-
-        Args:
-            xform_ (XForm)
-            request_data (dict)
-
-        Returns:
-            tuple(<dict>, <dict>): PostgreSQL filters, Mongo filters.
-               They are meant to be used respectively with Django Queryset
-               and PyMongo query.
-
-        """
-
-        mongo_query = ParsedInstance.get_base_query(xform_.user.username,
-                                                    xform_.id_string)
-        postgres_query = {'xform_id': xform_.id}
-        instance_ids = None
-        # Remove empty values
-        payload = {
-            key_: value_ for key_, value_ in request_data.items() if value_
-        }
-        ###################################################
-        # Submissions can be retrieve in 3 different ways #
-        ###################################################
-        # First of all,
-        # users cannot send `query` and `submission_ids` in POST/PATCH request
-        #
-        if all(key_ in payload for key_ in ('query', 'submission_ids')):
-            raise ValidationError({
-                'payload': t("`query` and `instance_ids` can't be used together")
-            })
-
-        # First scenario / Get submissions based on user's query
-        try:
-            query = payload['query']
-        except KeyError:
-            pass
-        else:
-            try:
-                query.update(mongo_query)  # Overrides `_userform_id` if exists
-            except AttributeError:
-                raise ValidationError({
-                    'payload': t('Invalid query: %(query)s')
-                               % {'query': json.dumps(query)}
-                })
-
-            query_kwargs = {
-                'query': json.dumps(query),
-                'fields': '["_id"]'
-            }
-
-            cursor = ParsedInstance.query_mongo_no_paging(**query_kwargs)
-            instance_ids = [record.get('_id') for record in list(cursor)]
-
-        # Second scenario / Get submissions based on list of ids
-        try:
-            submission_ids = payload['submission_ids']
-        except KeyError:
-            pass
-        else:
-            try:
-                # Use int() to test if list of integers is valid.
-                instance_ids = [int(submission_id)
-                                for submission_id in submission_ids]
-            except ValueError:
-                raise ValidationError({
-                    'payload': t('Invalid submission ids: %(submission_ids)s')
-                               % {'submission_ids':
-                                  json.dumps(payload['submission_ids'])}
-                })
-
-        if instance_ids is not None:
-            # Narrow down queries with list of ids.
-            postgres_query.update({'id__in': instance_ids})
-            mongo_query.update({'_id': {'$in': instance_ids}})
-        elif payload.get('confirm', False) is not True:
-            # Third scenario / get all submissions in form,
-            # but confirmation param must be among payload
-            raise NoConfirmationProvidedException()
-
-        return postgres_query, mongo_query

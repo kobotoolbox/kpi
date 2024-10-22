@@ -58,7 +58,6 @@ export default class SingleProcessingContent extends React.Component<{}> {
     if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
       return <AnalysisTab />;
     }
-
     return null;
   }
 

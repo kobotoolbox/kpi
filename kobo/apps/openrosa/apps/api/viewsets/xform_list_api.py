@@ -1,5 +1,5 @@
-# coding: utf-8
 from datetime import datetime
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -8,19 +8,25 @@ except ImportError:
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import permissions, status
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs import filters
-from kobo.apps.openrosa.libs.renderers.renderers import MediaFileContentNegotiation
-from kobo.apps.openrosa.libs.renderers.renderers import XFormListRenderer
-from kobo.apps.openrosa.libs.renderers.renderers import XFormManifestRenderer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormListSerializer
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormManifestSerializer
+from kobo.apps.openrosa.libs.renderers.renderers import (
+    MediaFileContentNegotiation,
+    XFormListRenderer,
+    XFormManifestRenderer,
+)
+from kobo.apps.openrosa.libs.serializers.xform_serializer import (
+    XFormListSerializer,
+    XFormManifestSerializer,
+)
 from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
@@ -141,7 +147,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         # Expired files may have an out-of-date hash which needs to be refreshed
         # before being exposed to the serializer
         for obj in object_list:
-            if not obj.has_expired:
+            if not self._is_metadata_expired(obj, request):
                 media_files[obj.pk] = obj
                 continue
             expired_objects = True
@@ -188,3 +194,36 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             return self.get_response_for_head_request()
 
         return get_media_file_response(meta_obj, request)
+
+    @staticmethod
+    def _is_metadata_expired(obj: MetaData, request: Request) -> bool:
+        """
+        It validates whether the file has been modified for the last X minutes.
+        (where `X` equals `settings.PAIRED_DATA_EXPIRATION`)
+
+        Notes: Only `xml-external` (paired data XML) files expire.
+        """
+        if not obj.is_paired_data:
+            return False
+
+        timedelta = timezone.now() - obj.date_modified
+        if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
+            # Force external XML regeneration
+            get_media_file_response(obj, request)
+
+            # We update the modification time here to avoid requesting that KPI
+            # resynchronize this file multiple times per the
+            # `PAIRED_DATA_EXPIRATION` period. However, this introduces a race
+            # condition where it's possible that KPI *deletes* this file before
+            # we attempt to update it. We avoid that by locking the row
+
+            # TODO: this previously used `select_for_update()`, which locked
+            #  the object for the duration of the *entire* request due to
+            #  Django's `ATOMIC_REQUESTS`. `ATOMIC_REQUESTS` is not True by
+            #  default anymore and the `update()` method is itself
+            #  atomic since it does not reference any value previously read
+            #  from the database. Is that enough?
+            MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
+            return True
+
+        return False

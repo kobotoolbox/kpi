@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kpi.models import Asset
+from kpi.tests.utils.transaction import immediate_on_commit
 from ..models import (
     Invite,
     InviteStatusChoices,
@@ -105,9 +106,11 @@ class ProjectOwnershipTransferStatusTestCase(TestCase):
         assert self.invite.status == InviteStatusChoices.FAILED
 
     def test_draft_project_transfer(self):
-        # when project is a draft, there are no celery tasks called to move
+        # When a project is a draft, there are no celery tasks called to move
         # submissions (and related attachments).
-        self.transfer.transfer_project()
+        with immediate_on_commit():
+            self.transfer.transfer_project()
+
         assert self.transfer.status == TransferStatusChoices.SUCCESS
 
         # However, the status of each async task should still be updated to

@@ -1,14 +1,10 @@
 # coding: utf-8
 from django.db import models
 
-from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.models import Asset
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.utils.log import logging
-from .constants import GOOGLETS, GOOGLETX, ASYNC_TRANSLATION_DELAY_INTERVAL
-from .utils.determine_export_cols_with_values import (
-    determine_export_cols_indiv,
-)
+from .constants import GOOGLETS, GOOGLETX
+from .utils.determine_export_cols_with_values import determine_export_cols_indiv
 
 
 class SubmissionExtras(AbstractTimeStampedModel):
@@ -33,17 +29,17 @@ class SubmissionExtras(AbstractTimeStampedModel):
         from .integrations.google.google_translate import GoogleTranslationService
 
         features = self.asset.advanced_features
-        for qpath, vals in self.content.items():
+        for xpath, vals in self.content.items():
             if 'transcript' in features:
                 options = vals.get(GOOGLETS, {})
                 if options.get('status') == 'requested':
                     service = GoogleTranscriptionService(self)
-                    vals[GOOGLETS] = service.process_data(qpath, vals)
+                    vals[GOOGLETS] = service.process_data(xpath, vals)
             if 'translation' in features:
                 options = vals.get(GOOGLETX, {})
                 if options.get('status') == 'requested':
                     service = GoogleTranslationService(self)
-                    vals[GOOGLETX] = service.process_data(qpath, vals)
+                    vals[GOOGLETX] = service.process_data(xpath, vals)
 
         asset_changes = False
         asset_known_cols = self.asset.known_cols

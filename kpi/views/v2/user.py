@@ -1,15 +1,13 @@
-# coding: utf-8
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.pagination import LimitOffsetPagination
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
-from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.permissions import IsAuthenticated
-from kpi.serializers.v2.user import UserSerializer, UserListSerializer
+from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
 
 
@@ -28,10 +26,6 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.authentication_classes += [ApplicationTokenAuthentication]
 
     def get_serializer_class(self):
         if self.action == 'list':

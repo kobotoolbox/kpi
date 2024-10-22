@@ -1,17 +1,3 @@
-/**
- * Mixins to be used via react-mixin plugin. These extend components with the
- * methods defined within the given mixin, using the component as `this`.
- *
- * NOTE: please try using mixins as less as possible - when needing a method
- * from here, move it out to separete file (utils?), import here to avoid
- * breaking the code and use the separete file instead of mixin.
- *
- * TODO: think about moving out of mixins, as they are deprecated in new React
- * versions and considered harmful (see
- * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
- * See: https://github.com/kobotoolbox/kpi/issues/3907
- */
-
 import React from 'react';
 import alertify from 'alertifyjs';
 import {PROJECT_SETTINGS_CONTEXTS, MODAL_TYPES, ASSET_TYPES} from './constants';
@@ -120,6 +106,23 @@ interface MixinsObject {
   };
 }
 
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ * See: https://github.com/kobotoolbox/kpi/issues/3907
+ *
+ * @deprecated Use some of the utils functions spread throught many files in
+ * the repo (search for files with "utils" in the name). Some of the functions
+ * below have direct replacements mentioned.
+ */
 const mixins: MixinsObject = {
   dmix: {
     afterCopy() {
@@ -294,6 +297,11 @@ const mixins: MixinsObject = {
       removeAssetSharing(this.props.params.uid);
     },
   },
+  /**
+   * @deprecated Please refer to `dropzone.utils.tsx` file and update the code
+   * there accordingly to your needs. You might end up needing to move and
+   * update one of the functions found here.
+   */
   droppable: {
     /*
      * returns an interval-driven promise
@@ -465,9 +473,6 @@ const mixins: MixinsObject = {
       );
     },
 
-    // NOTE: this is a DEPRECATED method of handling Dropzone. Please refer to
-    // `dropzone.utils.tsx` file and update the code there accordingly to your
-    // needs.
     dropFiles(files: File[], rejectedFiles: File[], {}, pms = {}) {
       files.map((file) => {
         const reader = new FileReader();
@@ -499,6 +504,9 @@ const mixins: MixinsObject = {
       }
     },
   },
+  /**
+   * @deprecated Use `routerUtils.ts` instead.
+   */
   contextRouter: {
     isFormList() {
       return (

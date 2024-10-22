@@ -38,5 +38,6 @@
   <p class="or-go-back">
     {% trans "or" %} <a href="{% url 'account_login' %}">{% trans "go back" %}</a>
   </p>
+  {% include "../legal/registration_legal.html" with config=config %}
 </form>
 {% endblock %}

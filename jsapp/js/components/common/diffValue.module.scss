@@ -1,0 +1,21 @@
+@use 'scss/colors';
+
+.root {
+  display: inline;
+}
+
+.before {
+  color: colors.$kobo-red !important;
+  text-decoration: line-through;
+}
+
+.after {
+  color: colors.$kobo-dark-green !important;
+}
+
+.root:not(.isInline) {
+  .before,
+  .after {
+    display: block;
+  }
+}

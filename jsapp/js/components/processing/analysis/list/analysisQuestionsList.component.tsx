@@ -35,7 +35,7 @@ export default function AnalysisQuestionsList() {
           // hide them at this point (not filtering the whole list beforehand),
           // because we need the indexes to match the whole list. And FYI all
           // analysis questions live on a single list :)
-          if (question.qpath !== singleProcessingStore.currentQuestionQpath) {
+          if (question.xpath !== singleProcessingStore.currentQuestionXpath) {
             return null;
           }
 

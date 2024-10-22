@@ -1,29 +1,28 @@
 @use 'scss/colors';
 @use 'scss/mixins';
-@use 'scss/sizes';
 
 .row > *:not(:last-child),
 .subRow > *:not(:last-child) {
-  margin-bottom: sizes.$x8;
+  margin-bottom: 8px;
 }
 
 .row {
   &:not(:last-child) {
-    margin-bottom: sizes.$x10;
+    margin-bottom: 10px;
   }
 
   &.rowUsername {
-    width: calc(100% - sizes.$x32);
+    width: calc(100% - 32px);
   }
 }
 
 .subRow {
-  padding-left: sizes.$x16;
+  padding-left: 16px;
 }
 
 .byResponsesInputs {
   @include mixins.centerRowFlex;
-  gap: sizes.$x8;
+  gap: 8px;
 }
 
 // These wrappers are needed so that the reset button can have as much space

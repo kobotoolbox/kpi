@@ -1,10 +1,30 @@
-import type {ChartTypeRegistry} from 'chart.js/auto';
+import type {ChartType} from 'chart.js/auto';
 import type {AnyRowTypeName} from 'js/constants';
 
+export interface ReportStyle {
+  /** Asset row type name (`AnyRowTypeName`) */
+  groupDataBy?: string;
+  report_type?: ReportStyleName;
+  report_colors?: string[];
+  translationIndex?: number;
+  graphWidth?: number;
+}
+
+export interface CustomReportSettings {
+  crid: string;
+  name: string;
+  /** A list of asset content rows */
+  questions: string[];
+  reportStyle: ReportStyle;
+  specified?: {
+    [rowName: string]: ReportStyle;
+  };
+}
+
 interface ReportsResponseDataValueRegular {
-  responses: string;
-  frequencies: number;
-  percentages: number;
+  responses: string[];
+  frequencies: number[];
+  percentages: number[];
 }
 
 interface ReportsResponseDataValueNumerical {
@@ -14,8 +34,14 @@ interface ReportsResponseDataValueNumerical {
   stdev?: number | '*';
 }
 
+export type ReportsResponseDataValue = ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical;
+
 export type ReportsResponseDataValues = Array<
-  [number, ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical]
+  [
+    number,
+    ReportsResponseDataValue,
+    string | number | undefined,
+  ]
 >;
 
 export interface ReportsResponseData {
@@ -44,20 +70,59 @@ export interface ReportsResponseData {
 }
 
 export interface ReportsResponse {
+  /** The question name */
   name: string;
   row: {
     type: AnyRowTypeName;
+    // TODO: check if this is actually true, for sure `string` happens in
+    // the code, but the array perhaps happens (some code suggests so indirectly)
+    label?: string | Array<string | null>;
   };
   data: ReportsResponseData;
   kuid: string;
-  style: {
-    // There could be more properties here
-    graphWidth?: number;
-    report_type?: ReportStyleName;
-    report_colors?: string[];
+  style: ReportStyle;
+}
+
+/**
+ * There is some older piece of code on Back end that doesn't follow
+ * the consistent responses architecture (see `PaginatedResponse` from
+ * `dataInterface` file). This one is only being used by responses endpoint.
+ */
+export interface ReportsPaginatedResponse {
+  url: string;
+  count: number;
+  list: ReportsResponse[];
+}
+
+/**
+ * This is the `report_styles` object from `AssetResponse`. It is being used to
+ * store override styles for particular questions (rows). Most of the times it
+ * would be in "empty" state.
+ */
+export interface AssetResponseReportStyles {
+  /**
+   * The default styles (i.e. not overrides). This is empty if there are no
+   * overrides defined (in `specified` below).
+   */
+  default: ReportStyle;
+  /** A map of rows and their style overrides. */
+  specified: {[rowName: string]: ReportStyle};
+  /** This is a map of row names to their `kuid`s stored here for some reason. */
+  kuid_names: {
+    [rowName: string]: string;
   };
 }
 
+/**
+ * This is the `report_custom` object from `AssetResponse`.
+ */
+export interface AssetResponseReportCustom {
+  [crid: string]: CustomReportSettings;
+}
+
+/**
+ * A name of the report type as KoboToolbox understands it.
+ */
 export type ReportStyleName =
   | 'vertical'
   | 'horizontal'
@@ -70,15 +135,32 @@ export type ReportStyleName =
   | 'polar'
   | 'radar';
 
-interface ReportStyle {
+/**
+ * Combines together `ReportStyleName`, label (for users) and `ChartType` (from
+ * Chart.js library).
+ */
+interface ChartStyleDefinition {
+  /** This is our internal name of a report style/type. */
   value: ReportStyleName;
+  /**
+   * This is a user friendly version of `ReportStyleName`, we use it to display
+   * all available options in the settings.
+   */
   label: string;
-  chartJsType: keyof ChartTypeRegistry;
+  /**
+   * This is the name of a chart that Chart.js understands. For some definitions
+   * it matches our internal `ReportStyleName`. We use this name to render
+   * a nice graph/chart in the UI for our users.
+   */
+  chartJsType: ChartType;
 }
 
-type ReportStyles = {[P in ReportStyleName]: ReportStyle};
+type ChartStyleDefinitions = {[P in ReportStyleName]: ChartStyleDefinition};
 
-export const REPORT_STYLES: ReportStyles = Object.freeze({
+/**
+ * A list of definitions of chart styles.
+ */
+export const CHART_STYLES: ChartStyleDefinitions = Object.freeze({
   vertical: {
     value: 'vertical',
     label: t('Vertical'),
@@ -138,7 +220,12 @@ export const REPORT_STYLES: ReportStyles = Object.freeze({
   },
 });
 
-export const REPORT_COLOR_SETS = [
+export interface ChartColorSet {
+  label: string;
+  colors: string[];
+}
+
+export const CHART_COLOR_SETS: ChartColorSet[] = [
   {
     label: 'set1',
     colors: [
@@ -205,3 +292,12 @@ export const REPORT_COLOR_SETS = [
     ],
   },
 ];
+
+/**
+ * The default report style. An minimal instance of `ReportStyle` that uses
+ * values from of `CHART_STYLES` and `REPORT_COLOR_SETS`.
+ */
+export const DEFAULT_MINIMAL_REPORT_STYLE: ReportStyle = {
+  report_type: CHART_STYLES.vertical.value,
+  report_colors: CHART_COLOR_SETS[0].colors,
+};

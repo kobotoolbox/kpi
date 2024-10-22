@@ -1,4 +1,3 @@
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .lib-list {
@@ -62,12 +61,12 @@
   background-color: colors.$kobo-gray-700;
   color: colors.$kobo-white;
   font-weight: 400;
-  margin-bottom: sizes.$x4;
-  margin-right: sizes.$x4;
-  padding: sizes.$x4 sizes.$x8;
-  padding-right: sizes.$x6;
+  margin-bottom: 4px;
+  margin-right: 4px;
+  padding: 4px 8px;
+  padding-right: 6px;
   display: inline-block;
-  border-radius: sizes.$x2;
+  border-radius: 2px;
   max-width: 90%;
   overflow: hidden;
 }

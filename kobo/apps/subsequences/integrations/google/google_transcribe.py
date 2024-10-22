@@ -1,25 +1,23 @@
 from __future__ import annotations
 
-import uuid
 import posixpath
-from concurrent.futures import TimeoutError
+import uuid
 from datetime import timedelta
-from typing import Union, Any
+from typing import Any, Union
 
 import constance
 from django.conf import settings
 from google.api_core.exceptions import InvalidArgument
-from google.cloud import speech, storage
+from google.cloud import speech
 
-from kobo.apps.languages.models.transcription import TranscriptionService
 from kpi.utils.log import logging
-from .base import GoogleService
-from ...constants import GOOGLE_CODE, GOOGLETS
+from ...constants import GOOGLETS
 from ...exceptions import (
     AudioTooLongError,
     SubsequenceTimeoutError,
     TranscriptionResultsNotFound,
 )
+from .base import GoogleService
 
 # https://cloud.google.com/speech-to-text/quotas#content
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -121,7 +119,7 @@ class GoogleTranscriptionService(GoogleService):
         )
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
-    def process_data(self, qpath: str, vals: dict) -> dict:
+    def process_data(self, xpath: str, vals: dict) -> dict:
         autoparams = vals[GOOGLETS]
         language_code = autoparams.get('languageCode')
         region_code = autoparams.get('regionCode')
@@ -130,10 +128,7 @@ class GoogleTranscriptionService(GoogleService):
             'languageCode': language_code,
             'regionCode': region_code,
         }
-        xpath = self.qpath_to_xpath(qpath)
         region_or_language_code = region_code or language_code
-        result_string = ''
-        results = []
         try:
             flac_content, duration = self.get_converted_audio(
                 xpath,

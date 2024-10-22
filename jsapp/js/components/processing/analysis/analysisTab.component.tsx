@@ -70,7 +70,7 @@ export default function AnalysisTab() {
             await fetchGetUrl<SubmissionProcessingDataResponse>(processingUrl);
 
           questions = applyUpdateResponseToInternalQuestions(
-            singleProcessingStore.currentQuestionQpath,
+            singleProcessingStore.currentQuestionXpath,
             apiResponse,
             questions
           );

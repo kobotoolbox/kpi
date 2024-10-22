@@ -1,5 +1,5 @@
 from kobo.apps.subsequences.constants import GOOGLETS
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from ..actions.base import ACTION_NEEDED, PASSES, BaseAction
 
 NOT_REQUESTED = 'NOT_REQUESTED'
 REQUESTED_BY_USER = 'REQUESTED_BY_USER'
@@ -9,25 +9,26 @@ PENDING = 'PENDING'
 DT_MOD = BaseAction.DATE_MODIFIED_FIELD
 DT_CREATED = BaseAction.DATE_CREATED_FIELD
 
+
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
     MANUAL = 'user_transcribed'
 
     @classmethod
-    def build_params(kls, params, content):
+    def build_params(cls, params, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         params = {'values': possible_transcribed_fields, 'services': []}
         return params
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         return possible_transcribed_fields
 
     def load_params(self, params):
@@ -119,13 +120,13 @@ class AutomaticTranscriptionAction(BaseAction):
                 },
             }
 
-    '''
+    """
     {"value": "My translation", "languageCode": "en", "date": "12today"}
 
     AQ1 Translation (FR)	AQ1 Translation (XZ)
     --------------------    --------------------
     "My translation"
-    '''
+    """
 
     def engines(self):
         manual_name = f'engines/transcript_manual'

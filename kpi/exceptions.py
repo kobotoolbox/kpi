@@ -113,7 +113,8 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class InvalidXFormException(Exception):
-    pass
+    def __init__(self, message=t('Deployment links to an unexpected KoboCAT XForm')):
+        super().__init__(message)
 
 
 class InvalidXPathException(Exception):
@@ -153,6 +154,10 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
 
 
 class KobocatProfileException(Exception):
+    pass
+
+
+class MissingXFormException(Exception):
     pass
 
 

@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'js/components/common/button';
 
 .mini-audio-player {
@@ -29,6 +28,6 @@
 }
 
 .mini-audio-player__time {
-  font-size: sizes.$x14;
-  margin-left: sizes.$x5;
+  font-size: 14px;
+  margin-left: 5px;
 }

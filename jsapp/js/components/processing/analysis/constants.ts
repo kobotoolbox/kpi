@@ -72,7 +72,7 @@ export interface AnalysisQuestionBase {
   uuid: string;
   options?: AnalysisQuestionOptions;
   /** The survey question that this analysis questions is for. */
-  qpath: string;
+  xpath: string;
 }
 
 /** Analysis question definition from the asset's schema (i.e. from Back end) */
@@ -160,7 +160,7 @@ export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
  * This is the payload of a request made to update a question response.
  */
 export interface AnalysisResponseUpdateRequest {
-  [qpath: string]:
+  [xpath: string]:
     | {
         qual: AnalysisRequest[];
       }
@@ -173,7 +173,7 @@ export interface AnalysisResponseUpdateRequest {
  * response.
  */
 export interface SubmissionProcessingDataResponse {
-  [qpath: string]: {
+  [xpath: string]: {
     qual: AnalysisResponse[];
   };
 }

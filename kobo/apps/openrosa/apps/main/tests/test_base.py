@@ -2,24 +2,26 @@
 import os
 import socket
 from io import BytesIO
-from urllib.request import urlopen
 from urllib.error import URLError
+from urllib.request import urlopen
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
+from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.test.client import Client
 from django.utils import timezone
 from django_digest.test import Client as DigestClient
-from kobo_service_account.utils import get_request_headers
-from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import MakeSubmissionMixin
+from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
+    MakeSubmissionMixin,
+)
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
+from kobo.apps.openrosa.libs.utils.logger_tools import publish_xls_form
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
 
 
@@ -74,7 +76,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
             client = self.client
         client.logout()
 
-    def _create_user_and_login(self, username="bob", password="bob"):
+    def _create_user_and_login(self, username='bob', password='bob'):
         self.login_username = username
         self.login_password = password
         self.user = self._create_user(username, password)
@@ -85,48 +87,29 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
         self.client = self._login(username, password)
         self.anon = Client()
 
-    def _publish_xls_file(self, path, use_service_account=True):
-
-        xform_list_url = reverse('xform-list')
-
+    def _publish_xls_file(self, path):
+        # API does not support project creation anymore
         if not path.startswith(f'/{self.user.username}/'):
             path = os.path.join(self.this_directory, path)
 
-        if use_service_account:
-            # Only service account user is allowed to `POST` to XForm API
-            client = Client()
-            service_account_meta = self.get_meta_from_headers(
-                get_request_headers(self.user.username)
-            )
-            service_account_meta['HTTP_HOST'] = settings.TEST_HTTP_HOST
-        else:
-            # For test purposes we want to try to `POST` with current logged-in
-            # user
-            client = self.client
-            service_account_meta = {}
+        with open(path, 'rb') as f:
+            xls_file = ContentFile(f.read(), name=os.path.basename(path))
 
-        with open(path, 'rb') as xls_file:
-            post_data = {'xls_file': xls_file}
-            response = client.post(
-                xform_list_url,
-                data=post_data,
-                **service_account_meta,
-            )
-            return response
+        return publish_xls_form(xls_file, self.user)
 
     def _publish_xlsx_file(self):
         path = os.path.join(self.this_directory, 'fixtures', 'exp.xlsx')
         pre_count = XForm.objects.count()
-        response = TestBase._publish_xls_file(self, path)
+        TestBase._publish_xls_file(self, path)
         # make sure publishing the survey worked
-        self.assertEqual(response.status_code, 201)
         self.assertEqual(XForm.objects.count(), pre_count + 1)
 
     def _publish_xls_file_and_set_xform(self, path):
         count = XForm.objects.count()
-        self.response = self._publish_xls_file(path)
+        xform = self._publish_xls_file(path)
         self.assertEqual(XForm.objects.count(), count + 1)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
+        assert self.xform.pk == xform.pk
 
     def _share_form_data(self, id_string='transportation_2011_07_25'):
         xform = XForm.objects.get(id_string=id_string)
@@ -136,9 +119,9 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
     def _publish_transportation_form(self):
         xls_path = os.path.join(
             self.this_directory,
-            "fixtures",
-            "transportation",
-            "transportation.xls",
+            'fixtures',
+            'transportation',
+            'transportation.xls',
         )
         count = XForm.objects.count()
         TestBase._publish_xls_file(self, xls_path)
@@ -158,7 +141,7 @@ class TestBase(RequestMixin, MakeSubmissionMixin, TestCase):
 
     def _submit_transport_instance_w_attachment(self, survey_at=0):
         s = self.surveys[survey_at]
-        media_file = "1335783522563.jpg"
+        media_file = '1335783522563.jpg'
         self._make_submission_w_attachment(
             os.path.join(
                 self.this_directory,

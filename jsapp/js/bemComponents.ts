@@ -151,7 +151,6 @@ bem.LoginBox = makeBem(null, 'login-box');
 
 bem.AccountBox = makeBem(null, 'account-box');
 bem.AccountBox__name = makeBem(bem.AccountBox, 'name', 'div');
-bem.AccountBox__initials = makeBem(bem.AccountBox, 'initials', 'span');
 bem.AccountBox__menu = makeBem(bem.AccountBox, 'menu', 'ul');
 bem.AccountBox__menuLI = makeBem(bem.AccountBox, 'menu-li', 'li');
 bem.AccountBox__menuItem = makeBem(bem.AccountBox, 'menu-item', 'div');

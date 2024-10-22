@@ -1,6 +1,5 @@
 @use 'scss/colors';
 @use 'scss/breakpoints';
-@use 'scss/sizes';
 @use 'scss/libs/_mdl';
 @use 'scss/_variables';
 @use 'scss/mixins';
@@ -196,7 +195,7 @@ $z-modal-x: 10;
 // custom parts and overrides
 // -----------------------------------------------------------------------------
 
-$modal-custom-header-height: sizes.$x60;
+$modal-custom-header-height: 60px;
 
 // TODO: Make a better generic modal component
 // Refactor common CSS for modals with custom headers
@@ -237,11 +236,11 @@ $modal-custom-header-height: sizes.$x60;
 
   .modal__header {
     background-color: colors.$kobo-gray-100;
-    font-size: sizes.$x24;
-    padding: sizes.$x32 sizes.$x32 sizes.$x48 sizes.$x32;
+    font-size: 24px;
+    padding: 32px 32px 48px 32px;
 
     .modal__x {
-      font-size: sizes.$x12;
+      font-size: 12px;
       color: rgba(colors.$kobo-gray-800, 0.4);
     }
   }
@@ -250,7 +249,7 @@ $modal-custom-header-height: sizes.$x60;
     overflow: hidden;
 
     .mfa-setup {
-      padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
+      padding: 0 32px 32px 32px;
       margin: auto;
     }
   }
@@ -337,6 +336,9 @@ $modal-custom-header-height: sizes.$x60;
   cursor: pointer;
 }
 
+// TODO: This class has been removed from the actual ProjectSettings component,
+// but this rule is still used in a few places. We should remove it once we have
+// switched them to style modules.
 .project-settings {
   // make sure it doesn't get too small (but only inside modal)
   .modal & {
@@ -434,16 +436,6 @@ $modal-custom-header-height: sizes.$x60;
     &:hover {border-color: colors.$kobo-blue;}
     &.dropzone-active {border-color: colors.$kobo-blue;}
     &.dropzone-reject {border-color: colors.$kobo-red;}
-  }
-}
-
-@media screen and (min-height: 600px) {
-  // on bigger screens make templates-list scrollable to always display back/next buttons
-  .project-settings.project-settings--choose-template {
-    .templates-list {
-      max-height: 380px;
-      overflow-y: auto;
-    }
   }
 }
 

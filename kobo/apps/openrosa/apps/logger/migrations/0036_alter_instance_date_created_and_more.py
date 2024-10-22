@@ -2,9 +2,7 @@
 
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
-import kobo.apps.openrosa.apps.logger.models.attachment
-import kobo.apps.openrosa.apps.logger.models.xform
+
 import kpi.deployment_backends.kc_access.storage
 import kpi.models.abstract_models
 
@@ -20,41 +18,57 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='instance',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instance',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instancehistory',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='instancehistory',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='note',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='note',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='xform',
             name='date_created',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
         migrations.AlterField(
             model_name='xform',
             name='date_modified',
-            field=models.DateTimeField(default=kpi.models.abstract_models._get_default_datetime),
+            field=models.DateTimeField(
+                default=kpi.models.abstract_models._get_default_datetime
+            ),
         ),
     ]

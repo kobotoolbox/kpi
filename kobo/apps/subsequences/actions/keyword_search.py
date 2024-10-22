@@ -1,26 +1,28 @@
 import copy
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+
+from ..actions.base import ACTION_NEEDED, PASSES, BaseAction
+
 
 class KeywordSearchAction(BaseAction):
     ID = 'keyword_search'
 
-    '''
+    """
     @classmethod
-    def build_params(kls, params, content):
+    def build_params(cls, params, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         params = {'values': possible_transcribed_fields}
         return params
-    '''
+    """
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         possible_transcribed_fields = []
         for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
-                possible_transcribed_fields.append(kls.get_qpath(kls, row))
+                possible_transcribed_fields.append(cls.get_xpath(cls, row))
         return possible_transcribed_fields
 
     def load_params(self, params):
@@ -68,8 +70,9 @@ class KeywordSearchAction(BaseAction):
                 response = self._traverse_object(submission, source)
             except KeyError:
                 continue
-            qpath = source.split('/')[0]
-            all_output = submission[qpath].setdefault(self.ID, [])
+
+            xpath = source.split('/')[0]
+            all_output = submission[xpath].setdefault(self.ID, [])
             this_output = self._get_matching_element(all_output, **query)
             if not this_output:
                 return ACTION_NEEDED
@@ -90,8 +93,9 @@ class KeywordSearchAction(BaseAction):
             matches = 0
             for keyword in query['keywords']:
                 matches += response['value'].count(keyword)
-            qpath = source.split('/')[0]
-            all_output = submission[qpath].setdefault(self.ID, [])
+
+            xpath = source.split('/')[0]
+            all_output = submission[xpath].setdefault(self.ID, [])
             this_output = self._get_matching_element(all_output, **query)
             if not this_output:
                 this_output = copy.deepcopy(query)

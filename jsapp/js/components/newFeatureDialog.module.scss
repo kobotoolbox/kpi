@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 
 .root {
@@ -13,8 +12,8 @@
 .dialog {
   max-width: 30rem;
   position: absolute;
-  border-radius: sizes.$x4;
-  padding: sizes.$x12;
+  border-radius: 4px;
+  padding: 12px;
   color: colors.$kobo-white;
   background: colors.$kobo-dark-blue;
   z-index: 1100; // 1 index lower than a modal
@@ -27,8 +26,8 @@
   width: 0;
   position: absolute;
   pointer-events: none;
-  border-width: sizes.$x6;
-  margin-left: -(sizes.$x6);
+  border-width: 6px;
+  margin-left: -(6px);
   bottom: 100%;
   border-bottom-color: colors.$kobo-dark-blue;
 }
@@ -38,7 +37,7 @@
   font-weight: 600;
   display: flex;
   justify-content: space-between;
-  padding-bottom: sizes.$x6;
+  padding-bottom: 6px;
   align-items: center;
 
   .k-button :hover {
@@ -47,7 +46,7 @@
 }
 
 .support {
-  padding-top: sizes.$x8;
+  padding-top: 8px;
   margin: 0;
   color: lighten(colors.$kobo-blue, 20%);
   text-decoration: underline;

@@ -39,6 +39,5 @@ OPENROSA_APP_LABELS = [
     'logger',
     'viewer',
     'main',
-    'restservice',
     'guardian',
 ]

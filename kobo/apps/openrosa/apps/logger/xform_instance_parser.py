@@ -1,7 +1,10 @@
-# coding: utf-8
+from __future__ import annotations
+
 import logging
 import re
 import sys
+from datetime import datetime
+from typing import Optional
 from xml.dom import Node
 
 import dateutil.parser
@@ -19,22 +22,22 @@ class XLSFormError(Exception):
 
 class DuplicateInstance(Exception):
     def __str__(self):
-        return t("Duplicate Instance")
+        return t('Duplicate Instance')
 
 
 class InstanceInvalidUserError(Exception):
     def __str__(self):
-        return t("Could not determine the user.")
+        return t('Could not determine the user.')
 
 
 class InstanceParseError(Exception):
     def __str__(self):
-        return t("The instance could not be parsed.")
+        return t('The instance could not be parsed.')
 
 
 class InstanceEmptyError(InstanceParseError):
     def __str__(self):
-        return t("Empty instance")
+        return t('Empty instance')
 
 
 class InstanceMultipleNodeError(Exception):
@@ -47,12 +50,14 @@ def get_meta_from_xml(xml_str, meta_name):
     # children ideally contains a single element
     # that is the parent of all survey elements
     if children.length == 0:
-        raise ValueError(t("XML string must have a survey element."))
+        raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
-    meta_tags = [n for n in survey_node.childNodes if
-                 n.nodeType == Node.ELEMENT_NODE and
-                 (n.tagName.lower() == "meta" or
-                     n.tagName.lower() == "orx:meta")]
+    meta_tags = [
+        n
+        for n in survey_node.childNodes
+        if n.nodeType == Node.ELEMENT_NODE
+        and (n.tagName.lower() == 'meta' or n.tagName.lower() == 'orx:meta')
+    ]
     if len(meta_tags) == 0:
         return None
 
@@ -71,13 +76,15 @@ def get_meta_from_xml(xml_str, meta_name):
 
 
 def get_uuid_from_xml(xml):
+
     def _uuid_only(uuid, regex):
         matches = regex.match(uuid)
         if matches and len(matches.groups()) > 0:
             return matches.groups()[0]
         return None
-    uuid = get_meta_from_xml(xml, "instanceID")
-    regex = re.compile(r"uuid:(.*)")
+
+    uuid = get_meta_from_xml(xml, 'instanceID')
+    regex = re.compile(r'uuid:(.*)')
     if uuid:
         return _uuid_only(uuid, regex)
     # check in survey_node attributes
@@ -86,7 +93,7 @@ def get_uuid_from_xml(xml):
     # children ideally contains a single element
     # that is the parent of all survey elements
     if children.length == 0:
-        raise ValueError(t("XML string must have a survey element."))
+        raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
     uuid = survey_node.getAttribute('instanceID')
     if uuid != '':
@@ -94,24 +101,24 @@ def get_uuid_from_xml(xml):
     return None
 
 
-def get_submission_date_from_xml(xml):
+def get_submission_date_from_xml(xml) -> Optional[datetime]:
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
     # children ideally contains a single element
     # that is the parent of all survey elements
     if children.length == 0:
-        raise ValueError(t("XML string must have a survey element."))
+        raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
-    submissionDate = survey_node.getAttribute('submissionDate')
-    if submissionDate != '':
-        return dateutil.parser.parse(submissionDate)
+    submission_date = survey_node.getAttribute('submissionDate')
+    if submission_date != '':
+        return dateutil.parser.parse(submission_date)
     return None
 
 
 def get_deprecated_uuid_from_xml(xml):
-    uuid = get_meta_from_xml(xml, "deprecatedID")
-    regex = re.compile(r"uuid:(.*)")
+    uuid = get_meta_from_xml(xml, 'deprecatedID')
+    regex = re.compile(r'uuid:(.*)')
     if uuid:
         matches = regex.match(uuid)
         if matches and len(matches.groups()) > 0:
@@ -207,7 +214,7 @@ def _flatten_dict(d, prefix):
                     # hack: removing [1] index to be consistent across
                     # surveys that have a single repitition of the
                     # loop versus mutliple.
-                    item_prefix[-1] += "[%s]" % str(i + 1)
+                    item_prefix[-1] += '[%s]' % str(i + 1)
                 if type(item) == dict:
                     for pair in _flatten_dict(item, item_prefix):
                         yield pair
@@ -238,10 +245,10 @@ def _flatten_dict_nest_repeats(d, prefix):
                     for path, value in \
                             _flatten_dict_nest_repeats(item, item_prefix):
                         # TODO: this only considers the first level of repeats
-                        repeat.update({"/".join(path[1:]): value})
+                        repeat.update({'/'.join(path[1:]): value})
                     repeats.append(repeat)
                 else:
-                    repeats.append({"/".join(item_prefix[1:]): item})
+                    repeats.append({'/'.join(item_prefix[1:]): item})
             yield new_prefix, repeats
         else:
             yield new_prefix, value
@@ -258,14 +265,14 @@ def _gather_parent_node_list(node):
 
 def xpath_from_xml_node(node):
     node_names = _gather_parent_node_list(node)
-    return "/".join(node_names[1:])
+    return '/'.join(node_names[1:])
 
 
 def _get_all_attributes(node):
     """
     Go through an XML document returning all the attributes we see.
     """
-    if hasattr(node, "hasAttributes") and node.hasAttributes():
+    if hasattr(node, 'hasAttributes') and node.hasAttributes():
         for key in node.attributes.keys():
             yield key, node.getAttribute(key)
     for child in node.childNodes:
@@ -283,7 +290,7 @@ class XFormInstanceParser:
         try:
             self.parse(xml_str)
         except Exception as e:
-            logger = logging.getLogger("console_logger")
+            logger = logging.getLogger('console_logger')
             logger.error(
                 "Failed to parse instance '%s'" % xml_str, exc_info=True)
             # `self.parse()` has been wrapped in to try/except but it makes the
@@ -295,13 +302,15 @@ class XFormInstanceParser:
     def parse(self, xml_str):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = [e.get_abbreviated_xpath()
-                   for e in self.dd.get_survey_elements_of_type("repeat")]
+        repeats = [
+            e.get_abbreviated_xpath()
+            for e in self.dd.get_survey_elements_of_type('repeat')
+        ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
         if self._dict is None:
             raise InstanceEmptyError
         for path, value in _flatten_dict_nest_repeats(self._dict, []):
-            self._flat_dict["/".join(path[1:])] = value
+            self._flat_dict['/'.join(path[1:])] = value
         self._set_attributes()
 
     def get_root_node(self):
@@ -339,7 +348,7 @@ class XFormInstanceParser:
                 self._attributes[key] = value
 
     def get_xform_id_string(self):
-        return self._attributes.get("id")
+        return self._attributes.get('id')
 
     def get_flat_dict_with_attributes(self):
         result = self.to_flat_dict().copy()

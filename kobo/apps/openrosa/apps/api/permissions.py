@@ -1,21 +1,20 @@
 # coding: utf-8
 from django.http import Http404
-from kobo_service_account.models import ServiceAccountUser
 from rest_framework.permissions import (
+    SAFE_METHODS,
     BasePermission,
     DjangoObjectPermissions,
     IsAuthenticated,
-    SAFE_METHODS,
 )
 
+from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.constants import (
-    CAN_DELETE_DATA_XFORM,
     CAN_CHANGE_XFORM,
+    CAN_DELETE_DATA_XFORM,
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
-from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.apps.api.exceptions import LegacyAPIException
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -90,7 +89,6 @@ class XFormPermissions(ObjectPermissionsWithViewRestricted):
             request.method not in SAFE_METHODS
             and view.action
             and view.action in ['create', 'update', 'partial_update', 'destroy']
-            and not isinstance(request.user, ServiceAccountUser)
         ):
             raise LegacyAPIException
 
@@ -174,23 +172,14 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         except KeyError:
             pass
         else:
-            # Only service account is allowed to bulk delete submissions.
-            # Even KoBoCAT superusers are not allowed
-            if (
-                view.action == 'bulk_delete'
-                and not isinstance(user, ServiceAccountUser)
-            ):
-                # return False
+            # Deleting submissions is not allowed with KoboCAT API
+            if view.action == 'bulk_delete':
                 raise LegacyAPIException
 
             return user.has_perms(required_perms, obj)
 
-        # Only service account is allowed to delete submissions.
-        # Even KoBoCAT superusers are not allowed
-        if (
-            view.action == 'destroy'
-            and not isinstance(user, ServiceAccountUser)
-        ):
+        # Deleting submissions is not allowed with KoboCAT API
+        if view.action == 'destroy':
             raise LegacyAPIException
 
         return super().has_object_permission(request, view, obj)
@@ -205,7 +194,7 @@ class EnketoSubmissionEditPermissions(ObjectPermissionsWithViewRestricted):
         user = request.user
         required_perms = [f'logger.{CAN_CHANGE_XFORM}']
 
-        # Grant access if user is owner or super user
+        # Grant access if user is owner or superuser
         if user.is_superuser or user == obj.user:
             return True
 
@@ -370,11 +359,8 @@ class UserDeletePermission(BasePermission):
     perms_map = {}
 
     def has_permission(self, request, view):
-        if not isinstance(request.user, ServiceAccountUser):
-            # Do not reveal user's existence
-            raise Http404
-
-        return True
+        # Do not reveal user's existence
+        raise Http404
 
     def has_object_permission(self, request, view, obj):
         # Always return True because it must pass `has_permission()` first

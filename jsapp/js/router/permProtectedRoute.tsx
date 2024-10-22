@@ -8,6 +8,7 @@ import assetStore from 'js/assetStore';
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import type {AssetResponse, FailResponse} from 'js/dataInterface';
+import {decodeURLParamWithSlash} from "js/components/processing/routes.utils";
 
 interface PermProtectedRouteProps extends WithRouterProps {
   /** One of PATHS */
@@ -137,6 +138,27 @@ class PermProtectedRoute extends React.Component<
     }
   }
 
+  filterProps(props: any) {
+    const {params, ...rest} = props;
+    if (!params?.xpath) {
+      return props;
+    }
+
+    const {xpath, ...restParams} = params;
+    const decodedXPath = decodeURLParamWithSlash(xpath);
+    if (xpath !== decodedXPath) {
+      return {
+        ...rest,
+        params: {
+          xpath: decodedXPath,
+          ...restParams,
+        },
+      };
+    } else {
+      return props;
+    }
+  }
+
   getUserHasRequiredPermission(
     asset: AssetResponse,
     requiredPermission: PermissionCodename
@@ -168,10 +190,11 @@ class PermProtectedRoute extends React.Component<
     if (!this.state.isLoadAssetFinished) {
       return <LoadingSpinner />;
     } else if (this.state.userHasRequiredPermissions) {
+      const filteredProps = this.filterProps(this.props);
       return (
         <Suspense fallback={<LoadingSpinner />}>
           <this.props.protectedComponent
-            {...this.props}
+            {...filteredProps}
             initialAssetLoadNotNeeded={this.state.initialAssetLoadNotNeeded}
           />
         </Suspense>

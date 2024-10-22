@@ -1,5 +1,4 @@
 @use 'sass:color';
-@use 'scss/sizes';
 @use 'scss/colors';
 @use 'scss/mixins';
 
@@ -19,11 +18,13 @@
 .trigger {
   @include mixins.buttonReset;
   @include mixins.centerRowFlex;
-  font-size: sizes.$x20;
+  font-size: 20px;
   font-weight: 800;
   color: colors.$kobo-gray-800;
-  padding: sizes.$x6 sizes.$x16;
-  max-width: sizes.$x400;
+  padding: 2px 16px;
+  // we want it to be 32px height
+  line-height: 28px;
+  max-width: 400px;
 
   :global {
     label {
@@ -32,7 +33,7 @@
     }
 
     .k-icon {
-      margin-left: sizes.$x5;
+      margin-left: 5px;
     }
   }
 
@@ -49,19 +50,19 @@
   @include mixins.floatingRoundedBox;
   display: block;
   width: 100%;
-  min-width: sizes.$x300;
-  max-height: sizes.$x200;
-  max-width: sizes.$x300;
+  min-width: 300px;
+  max-height: 200px;
+  max-width: 300px;
   overflow-x: auto;
-  padding: sizes.$x20 0;
+  padding: 20px 0;
 }
 
 .menuOption {
   @include mixins.buttonReset;
   @include mixins.textEllipsis;
-  font-size: sizes.$x16;
+  font-size: 16px;
   font-weight: 500;
-  padding: sizes.$x10 sizes.$x30;
+  padding: 10px 30px;
   width: 100%;
   text-align: initial;
 

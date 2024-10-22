@@ -1,21 +1,14 @@
-# coding: utf-8
 import inspect
 import os
 import re
-import time
 from datetime import datetime
 
-import requests
 import rest_framework.views as rest_framework_views
 from django import forms
 from django.conf import settings
-from django.http import (
-    HttpResponse,
-    HttpResponseNotFound,
-    HttpResponseRedirect,
-)
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.urls import Resolver404, resolve
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user, get_request_headers
 from rest_framework import exceptions
 from rest_framework.request import Request
 from taggit.forms import TagField
@@ -36,6 +29,7 @@ from kobo.apps.openrosa.libs.utils.user_auth import (
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.views.v2.paired_data import OpenRosaDynamicDataAttachmentViewset
 
 DECIMAL_PRECISION = 2
 
@@ -53,8 +47,11 @@ def _get_id_for_type(record, mongo_field):
     date_field = datetime_from_str(record[mongo_field])
     mongo_str = '$' + mongo_field
 
-    return {"$substr": [mongo_str, 0, 10]} if isinstance(date_field, datetime)\
+    return (
+        {'$substr': [mongo_str, 0, 10]}
+        if isinstance(date_field, datetime)
         else mongo_str
+    )
 
 
 def publish_xlsform(request, user, existing_xform=None):
@@ -69,17 +66,25 @@ def publish_xlsform(request, user, existing_xform=None):
         )
     ):
         raise exceptions.PermissionDenied(
-            detail=t("User %(user)s has no permission to add xforms to "
-                     "account %(account)s" % {'user': request.user.username,
-                                              'account': user.username}))
+            detail=t(
+                'User %(user)s has no permission to add xforms to '
+                'account %(account)s'
+                % {'user': request.user.username, 'account': user.username}
+            )
+        )
     if (
         existing_xform
         and not request.user.is_superuser
         and not request.user.has_perm('change_xform', existing_xform)
     ):
         raise exceptions.PermissionDenied(
-            detail=t("User %(user)s has no permission to change this "
-                     "form." % {'user': request.user.username, })
+            detail=t(
+                'User %(user)s has no permission to change this '
+                'form.'
+                % {
+                    'user': request.user.username,
+                }
+            )
         )
 
     def set_form():
@@ -102,8 +107,9 @@ def get_xform(formid, request, username=None):
         xform = check_and_set_form_by_id(int(formid), request)
 
     if not xform:
-        raise exceptions.PermissionDenied(t(
-            "You do not have permission to view data from this form."))
+        raise exceptions.PermissionDenied(
+            t('You do not have permission to view data from this form.')
+        )
 
     return xform
 
@@ -136,58 +142,9 @@ def add_tags_to_instance(request, instance):
             instance.save()
 
 
-def add_validation_status_to_instance(
-    request: Request, instance: 'Instance'
-) -> bool:
-    """
-    Save instance validation status if it is valid.
-    To be valid, it has to belong to XForm validation statuses
-    """
-    validation_status_uid = request.data.get('validation_status.uid')
-    success = False
-
-    # Payload must contain validation_status property.
-    if validation_status_uid:
-        real_user = get_real_user(request)
-        validation_status = get_validation_status(
-            validation_status_uid, instance.xform, real_user.username
-        )
-        if validation_status:
-            instance.validation_status = validation_status
-            instance.save()
-            success = instance.parsed_instance.update_mongo(asynchronous=False)
-
-    return success
-
-
-def get_validation_status(validation_status_uid, asset, username):
-    # Validate validation_status value It must belong to asset statuses.
-    available_statuses = {status.get("uid"): status
-                          for status in asset.settings.get("validation_statuses")}
-
-    validation_status = {}
-
-    if validation_status_uid in available_statuses.keys():
-        available_status = available_statuses.get(validation_status_uid)
-        validation_status = {
-            "timestamp": int(time.time()),
-            "uid": validation_status_uid,
-            "by_whom": username,
-            "color": available_status.get("color"),
-            "label": available_status.get("label")
-        }
-
-    return validation_status
-
-
-def remove_validation_status_from_instance(instance):
-    instance.validation_status = {}
-    instance.save()
-    return instance.parsed_instance.update_mongo(asynchronous=False)
-
-
 def get_media_file_response(
-    metadata: MetaData, request: Request = None
+    metadata: MetaData,
+    request: Request = None,
 ) -> HttpResponse:
     if metadata.data_file:
         file_path = metadata.data_file.name
@@ -207,22 +164,21 @@ def get_media_file_response(
         return HttpResponseRedirect(metadata.data_value)
 
     # When `request.user` is authenticated, their authentication is lost with
-    # an HTTP redirection. We use KoBoCAT to proxy the response from KPI
-    headers = {}
-    if not request.user.is_anonymous:
-        headers = get_request_headers(request.user.username)
+    # an HTTP redirection. We need to call KPI viewset directly
+    internal_url = metadata.data_value.replace(settings.KOBOFORM_URL, '')
+    try:
+        resolver_match = resolve(internal_url)
+    except Resolver404:
+        return HttpResponseNotFound()
 
-    # Send the request internally to avoid extra traffic on the public interface
-    internal_url = metadata.data_value.replace(
-        settings.KOBOFORM_URL, settings.KOBOFORM_INTERNAL_URL
-    )
-    response = requests.get(internal_url, headers=headers)
+    args = resolver_match.args
+    kwargs = resolver_match.kwargs
 
-    return HttpResponse(
-        content=response.content,
-        status=response.status_code,
-        content_type=response.headers['content-type'],
+    paired_data_viewset = OpenRosaDynamicDataAttachmentViewset.as_view(
+        {'get': 'external'}
     )
+    django_http_request = request._request
+    return paired_data_viewset(request=django_http_request, *args, **kwargs)
 
 
 def get_view_name(view_obj):

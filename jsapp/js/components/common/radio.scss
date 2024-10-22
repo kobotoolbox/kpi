@@ -1,6 +1,5 @@
 @use 'scss/colors';
 @use 'scss/_variables';
-@use 'scss/sizes';
 @use 'scss/mixins';
 
 // Note: we can't change this into a CSS Module, because some Form Builder code
@@ -8,7 +7,7 @@
 
 .radio {
   .radio__row {
-    padding: sizes.$x4 0;
+    padding: 4px 0;
     cursor: pointer;
     display: block;
 
@@ -24,13 +23,13 @@
   }
 
   .radio__label {
-    max-width: calc(100% - sizes.$x32);
+    max-width: calc(100% - 32px);
     color: colors.$kobo-gray-800;
     font-size: variables.$base-font-size;
   }
 
   .radio__input + .radio__label {
-    margin-inline-start: sizes.$x6;
+    margin-inline-start: 6px;
   }
 
   .radio__input {
@@ -39,10 +38,10 @@
     position: relative;
     margin: 0;
     color: colors.$kobo-gray-500;
-    border: sizes.$x1 solid currentcolor;
+    border: 1px solid currentcolor;
     background-color: colors.$kobo-white;
-    width: sizes.$x20;
-    height: sizes.$x20;
+    width: 20px;
+    height: 20px;
     outline: 0;
     cursor: pointer;
     overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
@@ -51,11 +50,11 @@
       display: block;
       position: absolute;
       content: '';
-      top: sizes.$x4;
-      left: sizes.$x4;
+      top: 4px;
+      left: 4px;
       border-radius: 50%;
-      width: sizes.$x10;
-      height: sizes.$x10;
+      width: 10px;
+      height: 10px;
       background-color: currentcolor;
     }
 

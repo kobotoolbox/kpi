@@ -1,7 +1,10 @@
 # coding: utf-8
 import os
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+import pytest
+from pyxform.errors import PyXFormError
+
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from .test_base import TestBase
 
 
@@ -14,19 +17,32 @@ class TestInputs(TestBase):
     def test_uniqueness_of_group_names_enforced(self):
         pre_count = XForm.objects.count()
         self._create_user_and_login()
-        response = self._publish_xls_file(
-            'fixtures/group_names_must_be_unique.xls')
-        message = 'The name "group_names_must_be_unique" is the same as the form name'
-        self.assertTrue(message in response.json()['text'])
-        self.assertEqual(XForm.objects.count(), pre_count)
+
+        with pytest.raises(PyXFormError) as e:
+            self._publish_xls_file('fixtures/group_names_must_be_unique.xls')
+            assert (
+                'The name "group_names_must_be_unique" is the same as the form name'
+                in str(e)
+            )
+
+        assert XForm.objects.count() == pre_count
 
     def test_mch(self):
-        self._publish_xls_file('fixtures/bug_fixes/MCH_v1.xls')
+        self._publish_xls_file(os.path.join('fixtures/bug_fixes/MCH_v1.xls'))
+
+    def test_buggy_files(self):
+        message = 'Duplicate column header: label'
+        with pytest.raises(PyXFormError) as e:
+            self._publish_xls_file(
+                os.path.join('fixtures', 'bug_fixes', 'enumerator_weekly.xls')
+            )
+            assert message == str(e)
 
     def test_erics_files(self):
-        for name in ['battery_life.xls',
-                     'enumerator_weekly.xls',
-                     'Enumerator_Training_Practice_Survey.xls']:
+        for name in [
+            'battery_life.xls',
+            'Enumerator_Training_Practice_Survey.xls',
+        ]:
             self._publish_xls_file(os.path.join('fixtures', 'bug_fixes', name))
 
 
@@ -38,8 +54,15 @@ class TestSubmissionBugs(TestBase):
         count = Instance.objects.count()
         self._make_submission(
             os.path.join(
-                self.this_directory, 'fixtures',
-                'transportation', 'instances', s, s + '.xml'), 'BoB')
+                self.this_directory,
+                'fixtures',
+                'transportation',
+                'instances',
+                s,
+                s + '.xml',
+            ),
+            'BoB',
+        )
         self.assertEqual(Instance.objects.count(), count + 1)
 
 

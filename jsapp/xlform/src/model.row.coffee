@@ -13,7 +13,7 @@ $choices = require './model.choices'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 readParameters = require('../../js/components/formBuilder/formBuilderUtils').readParameters
 writeParameters = require('../../js/components/formBuilder/formBuilderUtils').writeParameters
-notify = require('js/utils').notify
+txtid = require('js/utils').txtid
 
 module.exports = do ->
   row = {}
@@ -27,7 +27,7 @@ module.exports = do ->
 
     ensureKuid: ->
       if '$kuid' not of @attributes
-        @set '$kuid', $utils.txtid()
+        @set '$kuid', txtid()
 
     initialize: ->
       @ensureKuid()
@@ -105,7 +105,7 @@ module.exports = do ->
     finalize: -> ``
     simpleEnsureKuid: ->
       if '$kuid' not of @attributes
-        @set('$kuid', $utils.txtid())
+        @set('$kuid', txtid())
     getTypeId: -> @get('type')
     linkUp: ->
     _isSelectQuestion: ()-> false
@@ -161,7 +161,7 @@ module.exports = do ->
           # if rr is a rank question
           for rankRow in rr._rankRows.models
             r2._rankRows.add(rankRow.toJSON())
-          r2._rankLevels = rr.getSurvey().choices.add(name: $utils.txtid())
+          r2._rankLevels = rr.getSurvey().choices.add(name: txtid())
           for item in rr.getList().options.models
             r2._rankLevels.options.add(item.toJSON())
           r2.set('kobo--rank-items', r2._rankLevels.get('name'))
@@ -171,7 +171,7 @@ module.exports = do ->
           # if rr is a score question
           for scoreRow in rr._scoreRows.models
             r2._scoreRows.add(scoreRow.toJSON())
-          r2._scoreChoices = rr.getSurvey().choices.add(name: $utils.txtid())
+          r2._scoreChoices = rr.getSurvey().choices.add(name: txtid())
           for item in rr.getList().options.models
             r2._scoreChoices.options.add(item.toJSON())
           r2.set('kobo--score-choices', r2._scoreChoices.get('name'))
@@ -271,7 +271,7 @@ module.exports = do ->
           @_scoreChoices = @getSurvey().choices.add({})
       else
         ctx.warnings.push "Score choices list not set"
-        @_scoreChoices = @getSurvey().choices.add(name: $utils.txtid())
+        @_scoreChoices = @getSurvey().choices.add(name: txtid())
       ``
 
     export_relevant_values: (survey_arr, additionalSheets)->
@@ -321,7 +321,7 @@ module.exports = do ->
           @set key, newVals
 
       if '$kuid' not of @attributes
-        @set '$kuid', $utils.txtid()
+        @set '$kuid', txtid()
 
       _type = @getValue('type')
 
@@ -374,7 +374,7 @@ module.exports = do ->
         if typeDetail.get("rowType").specifyChoice
           clname = cl.get("name")
           unless clname
-            clname = $utils.txtid()
+            clname = txtid()
             cl.set("name", clname, silent: true)
           @set("value", "#{@get('typeId')} #{clname}")
     getTypeId: ->
@@ -435,7 +435,7 @@ module.exports = do ->
     getList: ->
       _list = @get('type')?.get('list')
       if (not _list) and @_isSelectQuestion()
-        _list = new $choices.ChoiceList(name: $utils.txtid())
+        _list = new $choices.ChoiceList(name: txtid())
         @setList(_list)
       _list
 

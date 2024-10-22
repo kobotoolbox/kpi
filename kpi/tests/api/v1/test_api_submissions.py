@@ -1,6 +1,6 @@
-# coding: utf-8
 import pytest
 from django.conf import settings
+from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
@@ -25,16 +25,20 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         pass
 
     def test_list_submissions_as_owner(self):
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submissions)
+        expected_ids = [s['_id'] for s in self.submissions]
+        response_ids = [r['_id'] for r in response.data]
+        assert sorted(response_ids) == sorted(expected_ids)
 
     def test_list_submissions_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        self.client.force_login(self.anotheruser)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submissions)
+        expected_ids = [s['_id'] for s in self.submissions]
+        response_ids = [r['_id'] for r in response.data]
+        assert sorted(response_ids) == sorted(expected_ids)
 
     def test_list_submissions_limit(self):
         limit = settings.SUBMISSION_LIST_LIMIT
@@ -42,7 +46,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         asset = Asset.objects.create(
             name='Lots of submissions',
             owner=self.asset.owner,
-            content={'survey': [{'name': 'q', 'type': 'integer'}]},
+            content={'survey': [{'label': 'q', 'name': 'q', 'type': 'integer'}]},
         )
         asset.deploy(backend='mock', active=True)
         asset.deployment.set_namespace(self.URL_NAMESPACE)
@@ -56,40 +60,53 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         asset.deployment.mock_submissions(submissions)
 
         # Server-wide limit should apply if no limit specified
-        response = self.client.get(
-            asset.deployment.submission_list_url, {'format': 'json'}
+        url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': asset.uid},
         )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
         # Limit specified in query parameters should not be able to exceed
         # server-wide limit
-        response = self.client.get(
-            asset.deployment.submission_list_url,
-            {'limit': limit + excess, 'format': 'json'}
+        url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
         )
+        response = self.client.get(url, {'limit': limit + excess, 'format': 'json'})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
 
     def test_list_submissions_as_owner_with_params(self):
         response = self.client.get(
-            self.submission_list_url, {
+            self.submission_list_url,
+            {
                 'format': 'json',
                 'start': 1,
                 'limit': 5,
                 'sort': '{"q1": -1}',
                 'fields': '["q1", "_submitted_by"]',
-                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
-            }
+                'query': (
+                    '{"_submitted_by": {"$in":'
+                    ' ["unknownuser", "someuser", "anotheruser"]'
+                    '}}'
+                ),
+            },
         )
         # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_as_owner(self):
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(
-            submission['_id'])
+        submission = self.submissions_submitted_by_someuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
 
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -99,9 +116,15 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
 
     def test_delete_submission_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
+        self.client.force_login(self.anotheruser)
+        submission = self.submissions_submitted_by_someuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
@@ -152,6 +175,6 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
         pass
 
 
-class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):
+class SubmissionValidationStatusApiTests(test_api_submissions.SubmissionValidationStatusApiTests):  # noqa: E501
 
     URL_NAMESPACE = None

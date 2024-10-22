@@ -5,6 +5,8 @@ import type {AccountResponse, FailResponse} from 'js/dataInterface';
 import {log, currentLang} from 'js/utils';
 import type {Json} from 'js/components/common/common.interfaces';
 import type {ProjectViewsSettings} from 'js/projects/customViewStore';
+import {fetchPost, handleApiFail} from 'js/api';
+import {endpoints} from 'js/api.endpoints';
 
 class SessionStore {
   currentAccount: AccountResponse | {username: string; date_joined: string} = {
@@ -95,6 +97,20 @@ class SessionStore {
         console.error('logout failed for some reason. what should happen now?');
       }),
     );
+  }
+
+  /**
+   * Useful if you need to log out all sessions.
+   */
+  public async logOutAll() {
+    try {
+      // Logging out is simply POSTing to this endpoint
+      await fetchPost(endpoints.LOGOUT_ALL, {});
+      // After that we force reload
+      window.location.replace('');
+    } catch (err) {
+      // `fetchPost` is handling the error
+    }
   }
 
   private saveUiLanguage() {

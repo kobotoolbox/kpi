@@ -49,7 +49,7 @@ export function convertQuestionsFromInternalToSchema(
       options: question.options,
       choices: question.additionalFields?.choices,
       scope: 'by_question#survey',
-      qpath: question.qpath,
+      xpath: question.xpath,
     };
   });
 }
@@ -64,7 +64,7 @@ export function convertQuestionsFromSchemaToInternal(
 ): AnalysisQuestionInternal[] {
   return questions.map((question) => {
     const output: AnalysisQuestionInternal = {
-      qpath: question.qpath,
+      xpath: question.xpath,
       uuid: question.uuid,
       type: question.type,
       labels: question.labels,
@@ -85,12 +85,12 @@ export function convertQuestionsFromSchemaToInternal(
  * internal questions list using the API endpoint response.
  */
 export function applyUpdateResponseToInternalQuestions(
-  qpath: string,
+  xpath: string,
   updateResp: SubmissionProcessingDataResponse,
   questions: AnalysisQuestionInternal[]
 ): AnalysisQuestionInternal[] {
   const newQuestions = clonedeep(questions);
-  const analysisResponses = updateResp[qpath]?.qual || [];
+  const analysisResponses = updateResp[xpath]?.qual || [];
   newQuestions.forEach((question) => {
     const foundResponse = analysisResponses.find(
       (analResp) => question.uuid === analResp.uuid
@@ -191,7 +191,7 @@ export async function updateSurveyQuestions(
 async function updateResponse(
   processingUrl: string,
   submissionUid: string,
-  qpath: string,
+  xpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
   newResponse: string | string[] | number | null
@@ -199,7 +199,7 @@ async function updateResponse(
   try {
     const payload: AnalysisResponseUpdateRequest = {
       submission: submissionUid,
-      [qpath]: {
+      [xpath]: {
         qual: [
           {
             uuid: analysisQuestionUuid,
@@ -219,7 +219,7 @@ async function updateResponse(
 
     return {
       apiResponse: apiResponse,
-      qpath: qpath,
+      xpath: xpath,
     };
   } catch (err) {
     return Promise.reject(err);
@@ -243,7 +243,7 @@ async function updateResponse(
  */
 export async function updateResponseAndReducer(
   dispatch: React.Dispatch<AnalysisQuestionsAction>,
-  surveyQuestionQpath: string,
+  surveyQuestionXpath: string,
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[]
@@ -284,7 +284,7 @@ export async function updateResponseAndReducer(
     const result = await updateResponse(
       processingUrl,
       singleProcessingStore.currentSubmissionEditId,
-      surveyQuestionQpath,
+      surveyQuestionXpath,
       analysisQuestionUuid,
       analysisQuestionType,
       actualResponse

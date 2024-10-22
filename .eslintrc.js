@@ -43,7 +43,7 @@ const jsRules = {
   'react/no-multi-comp': 0,
   'react/no-unknown-property': 0,
   'react/prop-types': 0,
-  'react/react-in-jsx-scope': 2,
+  // 'react/react-in-jsx-scope': 2,
   'react/self-closing-comp': 2,
   'react/wrap-multilines': 0,
   strict: 1,

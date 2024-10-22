@@ -4,15 +4,14 @@ import re
 from tempfile import NamedTemporaryFile
 from typing import Union
 
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django_digest.test import DigestAuth
-from kobo_service_account.utils import get_request_headers
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.libs.utils.logger_tools import safe_create_instance
 
 
 class MakeSubmissionMixin:
@@ -20,10 +19,11 @@ class MakeSubmissionMixin:
     @property
     def submission_view(self):
         if not hasattr(self, '_submission_view'):
-            setattr(self, '_submission_view', XFormSubmissionApi.as_view({
-                "head": "create",
-                "post": "create"
-            }))
+            setattr(
+                self,
+                '_submission_view',
+                XFormSubmissionApi.as_view({'head': 'create', 'post': 'create'}),
+            )
         return self._submission_view
 
     def _add_uuid_to_submission_xml(self, path, xform):
@@ -46,62 +46,82 @@ class MakeSubmissionMixin:
         forced_submission_time: bool = None,
         auth: Union[DigestAuth, bool] = None,
         media_file: 'io.BufferedReader' = None,
-        use_service_account: bool = False,
         assert_success: bool = True,
+        use_api: bool = True,
     ):
         """
         Pass `auth=False` for an anonymous request, or omit `auth` to perform
-        the submission as 'bob'
+        the submission as 'bob'.
+
+        if `use_api` is False, it adds submission directly without POSTing to
+        the API. It is useful for edits which are not allowed anymore through
+        the API.
         """
-        # store temporary file with dynamic uuid
-        self.factory = APIRequestFactory()
-
-        if auth is None and not use_service_account:
-            auth = DigestAuth('bob', 'bob')
-
-        extras = {}
-        if use_service_account:
-            extras = self.get_meta_from_headers(
-                get_request_headers(self.user.username)
-            )
-            extras['HTTP_HOST'] = settings.TEST_HTTP_HOST
-
         if add_uuid:
             path = self._add_uuid_to_submission_xml(path, self.xform)
 
-        with open(path, 'rb') as f:
-            post_data = {'xml_submission_file': f}
+        if not use_api:
 
-            if media_file is not None:
-                post_data['media_file'] = media_file
+            class FakeRequest:
+                pass
 
-            if username is None:
-                username = self.user.username
+            request = FakeRequest()
+            request.user = self.user
 
-            url_prefix = f'{username}/' if username else ''
-            url = f'/{url_prefix}submission'
-            request = self.factory.post(url, post_data, **extras)
-            if auth:
-                request.user = authenticate(username=auth.username,
-                                            password=auth.password)
-            self.response = None  # Reset in case error in viewset below
-            self.response = self.submission_view(request, username=username)
+            with open(path, 'rb') as xml_submission_file:
 
-            if auth and self.response.status_code == 401:
-                f.seek(0)
-                if media_file is not None:
-                    media_file.seek(0)
-
-                request = self.factory.post(url, post_data)
-                request.META.update(auth(request.META, self.response))
-                self.response = self.submission_view(request, username=username)
+                error, instance = safe_create_instance(
+                    username=username,
+                    xml_file=xml_submission_file,
+                    media_files=[media_file],
+                    request=request,
+                )
 
             if assert_success:
-                assert self.response.status_code in [
-                    status.HTTP_200_OK,
-                    status.HTTP_201_CREATED,
-                    status.HTTP_202_ACCEPTED,
-                ]
+                assert error is None and isinstance(instance, Instance)
+
+        else:
+
+            # store temporary file with dynamic uuid
+            self.factory = APIRequestFactory()
+
+            if auth is None:
+                auth = DigestAuth('bob', 'bob')
+
+            with open(path, 'rb') as f:
+                post_data = {'xml_submission_file': f}
+
+                if media_file is not None:
+                    post_data['media_file'] = media_file
+
+                if username is None:
+                    username = self.user.username
+
+                url_prefix = f'{username}/' if username else ''
+                url = f'/{url_prefix}submission'
+                request = self.factory.post(url, post_data)
+                if auth:
+                    request.user = authenticate(
+                        username=auth.username, password=auth.password
+                    )
+                self.response = None  # Reset in case error in viewset below
+                self.response = self.submission_view(request, username=username)
+
+                if auth and self.response.status_code == 401:
+                    f.seek(0)
+                    if media_file is not None:
+                        media_file.seek(0)
+
+                    request = self.factory.post(url, post_data)
+                    request.META.update(auth(request.META, self.response))
+                    self.response = self.submission_view(request, username=username)
+
+                if assert_success:
+                    assert self.response.status_code in [
+                        status.HTTP_200_OK,
+                        status.HTTP_201_CREATED,
+                        status.HTTP_202_ACCEPTED,
+                    ]
 
         if forced_submission_time:
             instance = Instance.objects.order_by('-pk').all()[0]

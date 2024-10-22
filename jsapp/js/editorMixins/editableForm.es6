@@ -9,13 +9,11 @@ import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import alertify from 'alertifyjs';
-import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
 import {escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
-  PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
   META_QUESTION_TYPES,
