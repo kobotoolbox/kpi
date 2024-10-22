@@ -91,11 +91,19 @@ export default function routes() {
         <>
           <Route
             path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
-            element={<div>Organization members view to be implemented</div>}
+            element={
+              <RequireAuth>
+                <div>Organization members view to be implemented</div>
+              </RequireAuth>
+            }
           />
           <Route
             path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
-            element={<div>Organization settings view to be implemented</div>}
+            element={
+              <RequireAuth>
+                <div>Organization settings view to be implemented</div>
+              </RequireAuth>
+            }
           />
         </>
       )}
