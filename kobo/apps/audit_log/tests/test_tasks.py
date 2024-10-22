@@ -20,11 +20,11 @@ class AuditLogTasksTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def test_spawn_deletion_task_identifies_expired_logs(self):
-        '''
+        """
         Test the spawning task correctly identifies which logs to delete.
 
         Separated for easier debugging of the spawning vs deleting steps
-        '''
+        """
         user = User.objects.get(username='someuser')
         old_log = AccessLog.objects.create(
             user=user,
