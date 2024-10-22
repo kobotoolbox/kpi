@@ -11,8 +11,11 @@ import {
   PlansRoute,
   SecurityRoute,
 } from 'js/account/routes.constants';
+import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export default function routes() {
+  const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
+
   return (
     <>
       <Route
@@ -84,6 +87,18 @@ export default function routes() {
           </RequireAuth>
         }
       />
+      {enableMMORoutes && (
+        <>
+          <Route
+            path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
+            element={<div>Organization members view to be implemented</div>}
+          />
+          <Route
+            path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+            element={<div>Organization settings view to be implemented</div>}
+          />
+        </>
+      )}
     </>
   );
 }
