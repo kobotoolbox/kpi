@@ -14,6 +14,13 @@ from kpi.utils.log import logging
 
 
 @celery_app.task()
+def batch_delete_audit_logs_by_id(ids):
+    logs = AuditLog.objects.filter(id__in=ids)
+    count, _ = logs.delete()
+    logging.info(f'Deleted {count} audit logs from database')
+
+
+@celery_app.task()
 def spawn_access_log_cleaning_tasks():
     """
     Enqueue tasks to delete access logs older than ACCESS_LOG_LIFESPAN days old.
@@ -36,10 +43,3 @@ def spawn_access_log_cleaning_tasks():
     ):
         # queue up a new task for each batch of expired ids
         batch_delete_audit_logs_by_id.delay(ids=id_batch)
-
-
-@celery_app.task()
-def batch_delete_audit_logs_by_id(ids):
-    logs = AuditLog.objects.filter(id__in=ids)
-    count, _ = logs.delete()
-    logging.info(f'Deleted {count} audit logs from database')
