@@ -71,14 +71,14 @@ class AuditLogTasksTestCase(BaseTestCase):
         # Should be 2 batches
         self.assertEqual(patched_spawned_task.call_count, 2)
         # make sure all batches were <= ACCESS_LOG_DELETION_BATCH_SIZE
+        all_deleted_ids = []
         for task_call in patched_spawned_task.mock_calls:
             _, _, kwargs = task_call
             id_list = kwargs['ids']
             self.assertLessEqual(len(id_list), 2)
+            all_deleted_ids.extend(id_list)
 
         # make sure we queued everything for deletion
-        id_lists = [kwargs['ids'] for _, _, kwargs in patched_spawned_task.mock_calls]
-        all_deleted_ids = [log_id for id_list in id_lists for log_id in id_list]
         self.assertIn(old_log_1.id, all_deleted_ids)
         self.assertIn(old_log_2.id, all_deleted_ids)
         self.assertIn(old_log_3.id, all_deleted_ids)
