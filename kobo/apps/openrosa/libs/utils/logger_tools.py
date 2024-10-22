@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import logging
@@ -6,37 +5,41 @@ import os
 import re
 import sys
 import traceback
+from contextlib import contextmanager
 from datetime import date, datetime, timezone
+from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
+
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
+from wsgiref.util import FileWrapper
+from xml.dom import Node
+
 from dict2xml import dict2xml
 from django.conf import settings
-from django.core.exceptions import ValidationError, PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import (
+    Http404,
     HttpResponse,
     HttpResponseNotFound,
     StreamingHttpResponse,
-    Http404
 )
 from django.shortcuts import get_object_or_404
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from kobo_service_account.utils import get_real_user
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
 from pyxform.errors import PyXFormError
 from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
-from xml.dom import Node
-from wsgiref.util import FileWrapper
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
     DuplicateUUIDError,
@@ -46,7 +49,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
     generate_attachment_filename,
-    hash_attachment_contents,
 )
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
@@ -61,26 +63,26 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_submission_count,
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    DuplicateInstance,
     InstanceEmptyError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
-    DuplicateInstance,
     clean_and_parse_xml,
-    get_uuid_from_xml,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
+    get_uuid_from_xml,
     get_xform_media_question_xpaths,
 )
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import (
-    queryset_iterator,
-    set_uuid,
-)
+from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.object_permission import get_database_user
+from kpi.utils.hash import calculate_hash
+from kpi.utils.mongo_helper import MongoHelper
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -107,6 +109,7 @@ def check_submission_permissions(
     :returns: None.
     :raises: PermissionDenied based on the above criteria.
     """
+
     if not xform.require_auth:
         # Anonymous submissions are allowed!
         return
@@ -137,12 +140,12 @@ def check_edit_submission_permissions(
 @transaction.atomic  # paranoia; redundant since `ATOMIC_REQUESTS` set to `True`
 def create_instance(
     username: str,
-    xml_file: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    xml_file: File,
+    media_files: Generator[File],
     status: str = 'submitted_via_web',
     uuid: str = None,
     date_created_override: datetime = None,
-    request: 'rest_framework.request.Request' = None,
+    request: Optional['rest_framework.request.Request'] = None,
 ) -> Instance:
     """
     Submission cases:
@@ -195,8 +198,15 @@ def create_instance(
             existing_instance.parsed_instance.save(asynchronous=False)
             return existing_instance
     else:
-        instance = save_submission(request, xform, xml, media_files, new_uuid,
-                                   status, date_created_override)
+        instance = save_submission(
+            request,
+            xform,
+            xml,
+            media_files,
+            new_uuid,
+            status,
+            date_created_override,
+        )
         return instance
 
 
@@ -204,16 +214,18 @@ def disposition_ext_and_date(name, extension, show_date=True):
     if name is None:
         return 'attachment;'
     if show_date:
-        name = "%s_%s" % (name, date.today().strftime("%Y_%m_%d"))
+        name = '%s_%s' % (name, date.today().strftime('%Y_%m_%d'))
     return 'attachment; filename=%s.%s' % (name, extension)
 
 
-def dict2xform(jsform, form_id):
-    dd = {'form_id': form_id}
-    xml_head = "<?xml version='1.0' ?>\n<%(form_id)s id='%(form_id)s'>\n" % dd
-    xml_tail = "\n</%(form_id)s>" % dd
+def dict2xform(submission: dict, xform_id_string: str) -> str:
+    xml_head = (
+        f'<?xml version="1.0" encoding="utf-8"?>\n'
+        f'   <{xform_id_string} id="{xform_id_string}">\n'
+    )
+    xml_tail = f'\n</{xform_id_string}>\n'
 
-    return xml_head + dict2xml(jsform) + xml_tail
+    return xml_head + dict2xml(submission) + xml_tail
 
 
 def get_instance_or_404(**criteria):
@@ -225,7 +237,7 @@ def get_instance_or_404(**criteria):
     :param criteria: dict
     :return: Instance
     """
-    instances = Instance.objects.filter(**criteria).order_by("id")
+    instances = Instance.objects.filter(**criteria).order_by('id')
     if instances:
         instance = instances[0]
         xml_hash = instance.xml_hash
@@ -233,8 +245,8 @@ def get_instance_or_404(**criteria):
             if instance_.xml_hash == xml_hash:
                 continue
             raise DuplicateUUIDError(
-                "Multiple instances with different content exist for UUID "
-                "{}".format(instance.uuid)
+                'Multiple instances with different content exist for UUID '
+                '{}'.format(instance.uuid)
             )
 
         return instance
@@ -273,37 +285,94 @@ def get_xform_from_submission(xml, username, uuid=None):
     )
 
 
+@contextmanager
+def http_open_rosa_error_handler(func, request):
+    class _ContextResult:
+        def __init__(self):
+            self.func_return = None
+            self.error = None
+            self.http_error_response = None
+
+        @property
+        def status_code(self):
+            if self.http_error_response:
+                return self.http_error_response.status_code
+            return 200
+
+    result = _ContextResult()
+    try:
+        result.func_return = func()
+    except InstanceInvalidUserError:
+        result.error = t('Username or ID required.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except InstanceEmptyError:
+        result.error = t('Received empty submission. No instance was created')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except FormInactiveError:
+        result.error = t('Form is not active')
+        result.http_error_response = OpenRosaResponseNotAllowed(result.error)
+    except TemporarilyUnavailableError:
+        result.error = t('Temporarily unavailable')
+        result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except XForm.DoesNotExist:
+        result.error = t('Form does not exist on this account')
+        result.http_error_response = OpenRosaResponseNotFound(result.error)
+    except ExpatError:
+        result.error = t('Improperly formatted XML.')
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    except DuplicateInstance:
+        result.error = t('Duplicate submission')
+        response = OpenRosaResponse(result.error)
+        response.status_code = 202
+        response['Location'] = request.build_absolute_uri(request.path)
+        result.http_error_response = response
+    except PermissionDenied:
+        result.error = t('Access denied')
+        result.http_error_response = OpenRosaResponseForbidden(result.error)
+    except InstanceMultipleNodeError as e:
+        result.error = str(e)
+        result.http_error_response = OpenRosaResponseBadRequest(e)
+    except DjangoUnicodeDecodeError:
+        result.error = t(
+            'File likely corrupted during ' 'transmission, please try later.'
+        )
+        result.http_error_response = OpenRosaResponseBadRequest(result.error)
+    yield result
+
+
 def inject_instanceid(xml_str, uuid):
     if get_uuid_from_xml(xml_str) is None:
         xml = clean_and_parse_xml(xml_str)
         children = xml.childNodes
         if children.length == 0:
-            raise ValueError(t("XML string must have a survey element."))
+            raise ValueError(t('XML string must have a survey element.'))
 
         # check if we have a meta tag
         survey_node = children.item(0)
         meta_tags = [
-            n for n in survey_node.childNodes
-            if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName.lower() == "meta"]
+            n
+            for n in survey_node.childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName.lower() == 'meta'
+        ]
         if len(meta_tags) == 0:
-            meta_tag = xml.createElement("meta")
+            meta_tag = xml.createElement('meta')
             xml.documentElement.appendChild(meta_tag)
         else:
             meta_tag = meta_tags[0]
 
         # check if we have an instanceID tag
         uuid_tags = [
-            n for n in meta_tag.childNodes
-            if n.nodeType == Node.ELEMENT_NODE
-            and n.tagName == "instanceID"]
+            n
+            for n in meta_tag.childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'instanceID'
+        ]
         if len(uuid_tags) == 0:
-            uuid_tag = xml.createElement("instanceID")
+            uuid_tag = xml.createElement('instanceID')
             meta_tag.appendChild(uuid_tag)
         else:
             uuid_tag = uuid_tags[0]
         # insert meta and instanceID
-        text_node = xml.createTextNode("uuid:%s" % uuid)
+        text_node = xml.createTextNode('uuid:%s' % uuid)
         uuid_tag.appendChild(text_node)
         return xml.toxml()
     return xml_str
@@ -338,23 +407,24 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     found = 0
     done = 0
     total_to_remongo = 0
-    report_string = ""
+    report_string = ''
     for xform in queryset_iterator(qs, 100):
         # get the count
         user = xform.user
         instance_count = Instance.objects.filter(xform=xform).count()
-        userform_id = "%s_%s" % (user.username, xform.id_string)
+        userform_id = '%s_%s' % (user.username, xform.id_string)
         mongo_count = mongo_instances.count_documents(
             {common_tags.USERFORM_ID: userform_id},
-            maxTimeMS=settings.MONGO_QUERY_TIMEOUT
+            maxTimeMS=MongoHelper.get_max_time_ms()
         )
 
         if instance_count != mongo_count or update_all:
-            line = "user: %s, id_string: %s\nInstance count: %d\t" \
-                   "Mongo count: %d\n---------------------------------" \
-                   "-----\n" % (
-                       user.username, xform.id_string, instance_count,
-                       mongo_count)
+            line = (
+                'user: %s, id_string: %s\nInstance count: %d\t'
+                'Mongo count: %d\n---------------------------------'
+                '-----\n'
+                % (user.username, xform.id_string, instance_count, mongo_count)
+            )
             report_string += line
             found += 1
             total_to_remongo += (instance_count - mongo_count)
@@ -363,24 +433,24 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
             if remongo or (remongo and update_all):
                 if update_all:
                     sys.stdout.write(
-                        "Updating all records for %s\n--------------------"
-                        "---------------------------\n" % xform.id_string)
+                        'Updating all records for %s\n--------------------'
+                        '---------------------------\n' % xform.id_string
+                    )
                 else:
                     sys.stdout.write(
-                        "Updating missing records for %s\n----------------"
-                        "-------------------------------\n"
-                        % xform.id_string)
-                _update_mongo_for_xform(
-                    xform, only_update_missing=not update_all
-                )
+                        'Updating missing records for %s\n----------------'
+                        '-------------------------------\n' % xform.id_string
+                    )
+                _update_mongo_for_xform(xform, only_update_missing=not update_all)
         done += 1
-        sys.stdout.write(
-            "%.2f %% done ...\r" % ((float(done) / float(total)) * 100))
+        sys.stdout.write('%.2f %% done ...\r' % ((float(done) / float(total)) * 100))
     # only show stats if we are not updating mongo, the update function
     # will show progress
     if not remongo:
-        line = "Total # of forms out of sync: %d\n" \
-               "Total # of records to remongo: %d\n" % (found, total_to_remongo)
+        line = (
+            'Total # of forms out of sync: %d\n'
+            'Total # of records to remongo: %d\n' % (found, total_to_remongo)
+        )
         report_string += line
     return report_string
 
@@ -423,7 +493,7 @@ def publish_form(callback):
         # ODK validation errors are vanilla errors and it masks a lot of regular
         # errors if we try to catch it so let's catch it, BUT reraise it
         # if we don't see typical ODK validation error messages in it.
-        if "ODK Validate Errors" not in str(e):
+        if 'ODK Validate Errors' not in str(e):
             raise
 
         # error in the XLS file; show an error to the user
@@ -483,16 +553,17 @@ def report_exception(subject, info, exc_info=None):
     # TODO: replace with standard logging (i.e. `import logging`)
     if exc_info:
         cls, err = exc_info[:2]
-        message = t("Exception in request:"
-                    " %(class)s: %(error)s")\
-            % {'class': cls.__name__, 'error': err}
-        message += "".join(traceback.format_exception(*exc_info))
+        message = t('Exception in request:' ' %(class)s: %(error)s') % {
+            'class': cls.__name__,
+            'error': err,
+        }
+        message += ''.join(traceback.format_exception(*exc_info))
     else:
-        message = "%s" % info
+        message = '%s' % info
 
     if settings.DEBUG or settings.TESTING:
-        sys.stdout.write("Subject: %s\n" % subject)
-        sys.stdout.write("Message: %s\n" % message)
+        sys.stdout.write('Subject: %s\n' % subject)
+        sys.stdout.write('Message: %s\n' % message)
     else:
         mail_admins(subject=subject, message=message)
 
@@ -503,7 +574,7 @@ def response_with_mimetype_and_name(
     if extension is None:
         extension = mimetype
     if not full_mime:
-        mimetype = "application/%s" % mimetype
+        mimetype = 'application/%s' % mimetype
     if file_path:
         try:
             if not use_local_filesystem:
@@ -515,8 +586,7 @@ def response_with_mimetype_and_name(
                 response = StreamingHttpResponse(wrapper, content_type=mimetype)
                 response['Content-Length'] = os.path.getsize(file_path)
         except IOError:
-            response = HttpResponseNotFound(
-                t("The requested file could not be found."))
+            response = HttpResponseNotFound(t('The requested file could not be found.'))
     else:
         response = HttpResponse(content_type=mimetype)
     response['Content-Disposition'] = disposition_ext_and_date(
@@ -524,53 +594,36 @@ def response_with_mimetype_and_name(
     return response
 
 
-def safe_create_instance(username, xml_file, media_files, uuid, request):
+def safe_create_instance(
+    username: str,
+    xml_file: File,
+    media_files: Union[list, Generator[File]],
+    uuid: Optional[str] = None,
+    date_created_override: Optional[datetime] = None,
+    request: Optional['rest_framework.request.Request'] = None,
+):
     """Create an instance and catch exceptions.
 
     :returns: A list [error, instance] where error is None if there was no
         error.
     """
-    error = instance = None
-
-    try:
-        instance = create_instance(
-            username, xml_file, media_files, uuid=uuid, request=request)
-    except InstanceInvalidUserError:
-        error = OpenRosaResponseBadRequest(t("Username or ID required."))
-    except InstanceEmptyError:
-        error = OpenRosaResponseBadRequest(
-            t("Received empty submission. No instance was created")
-        )
-    except FormInactiveError:
-        error = OpenRosaResponseNotAllowed(t("Form is not active"))
-    except TemporarilyUnavailableError:
-        error = OpenRosaTemporarilyUnavailable(t("Temporarily unavailable"))
-    except XForm.DoesNotExist:
-        error = OpenRosaResponseNotFound(
-            t("Form does not exist on this account")
-        )
-    except ExpatError as e:
-        error = OpenRosaResponseBadRequest(t("Improperly formatted XML."))
-    except DuplicateInstance:
-        response = OpenRosaResponse(t("Duplicate submission"))
-        response.status_code = 202
-        response['Location'] = request.build_absolute_uri(request.path)
-        error = response
-    except PermissionDenied as e:
-        error = OpenRosaResponseForbidden(e)
-    except InstanceMultipleNodeError as e:
-        error = OpenRosaResponseBadRequest(e)
-    except DjangoUnicodeDecodeError:
-        error = OpenRosaResponseBadRequest(t("File likely corrupted during "
-                                             "transmission, please try later."
-                                             ))
-
-    return [error, instance]
+    with http_open_rosa_error_handler(
+        lambda: create_instance(
+            username,
+            xml_file,
+            media_files,
+            uuid=uuid,
+            date_created_override=date_created_override,
+            request=request,
+        ),
+        request,
+    ) as handler:
+        return [handler.http_error_response, handler.func_return]
 
 
 def save_attachments(
     instance: Instance,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Generator[File],
     defer_counting: bool = False,
 ) -> tuple[list[Attachment], list[Attachment]]:
     """
@@ -584,15 +637,19 @@ def save_attachments(
     which avoids locking any rows in `logger_xform` or `main_userprofile`.
     """
     new_attachments = []
+
     for f in media_files:
-        attachment_filename = generate_attachment_filename(instance, f.name)
+        attachment_filename = generate_attachment_filename(
+            instance, os.path.basename(f.name)
+        )
         existing_attachment = Attachment.objects.filter(
             instance=instance,
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment and (existing_attachment.file_hash ==
-                                    hash_attachment_contents(f.read())):
+        if existing_attachment and (
+            existing_attachment.file_hash == calculate_hash(f.read())
+        ):
             # We already have this attachment!
             continue
         f.seek(0)
@@ -616,7 +673,7 @@ def save_submission(
     request: 'rest_framework.request.Request',
     xform: XForm,
     xml: str,
-    media_files: list['django.core.files.uploadedfile.UploadedFile'],
+    media_files: Union[list, Generator[File]],
     new_uuid: str,
     status: str,
     date_created_override: datetime,
@@ -652,13 +709,13 @@ def save_submission(
         if not dj_timezone.is_aware(date_created_override):
             # default to utc?
             date_created_override = dj_timezone.make_aware(
-                date_created_override, timezone.utc)
+                date_created_override, timezone.utc
+            )
         instance.date_created = date_created_override
-        instance.save()
+        instance.save(update_fields=['date_created'])
 
     if instance.xform is not None:
-        pi, created = ParsedInstance.objects.get_or_create(
-            instance=instance)
+        pi, created = ParsedInstance.objects.get_or_create(instance=instance)
 
     if not created:
         pi.save(asynchronous=False)
@@ -778,7 +835,7 @@ def _get_instance(
         instance.save()
     else:
         submitted_by = (
-            get_real_user(request)
+            get_database_user(request.user)
             if request and request.user.is_authenticated
             else None
         )
@@ -806,7 +863,12 @@ def _has_edit_xform_permission(
         if request.user.is_superuser:
             return True
 
-        return request.user.has_perm('logger.change_xform', xform)
+        if request.user.has_perm('logger.change_xform', xform):
+            return True
+
+        # User's permissions have been already checked when calling KPI endpoint
+        # If `has_partial_perms` is True, user is allowed to perform the action.
+        return getattr(request.user, 'has_partial_perms', False)
 
     return False
 
@@ -815,19 +877,19 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
 
     instance_ids = set(
         [i.id for i in Instance.objects.only('id').filter(xform=xform)])
-    sys.stdout.write("Total no of instances: %d\n" % len(instance_ids))
+    sys.stdout.write('Total no of instances: %d\n' % len(instance_ids))
     mongo_ids = set()
     user = xform.user
-    userform_id = "%s_%s" % (user.username, xform.id_string)
+    userform_id = '%s_%s' % (user.username, xform.id_string)
     if only_update_missing:
-        sys.stdout.write("Only updating missing mongo instances\n")
+        sys.stdout.write('Only updating missing mongo instances\n')
         mongo_ids = set(
             [rec[common_tags.ID] for rec in mongo_instances.find(
                 {common_tags.USERFORM_ID: userform_id},
                 {common_tags.ID: 1},
-                max_time_ms=settings.MONGO_QUERY_TIMEOUT
+                max_time_ms=MongoHelper.get_max_time_ms()
         )])
-        sys.stdout.write("Total no of mongo instances: %d\n" % len(mongo_ids))
+        sys.stdout.write('Total no of mongo instances: %d\n' % len(mongo_ids))
         # get the difference
         instance_ids = instance_ids.difference(mongo_ids)
     else:
@@ -835,10 +897,8 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         mongo_instances.delete_many({common_tags.USERFORM_ID: userform_id})
 
     # get instances
-    sys.stdout.write(
-        "Total no of instances to update: %d\n" % len(instance_ids))
-    instances = Instance.objects.only('id').in_bulk(
-        [id_ for id_ in instance_ids])
+    sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
+    instances = Instance.objects.only('id').in_bulk([id_ for id_ in instance_ids])
     total = len(instances)
     done = 0
     for id_, instance in instances.items():
@@ -847,24 +907,24 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
             save_success = pi.save(asynchronous=False)
         except InstanceEmptyError:
             print(
-                "\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because "
-                "it is empty\033[0m".format(id_, instance.uuid)
+                '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
+                'it is empty\033[0m'.format(id_, instance.uuid)
             )
         else:
             if not save_success:
                 print(
-                    "\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save "
-                    "the parsed instance\033[0m".format(id_, instance.uuid)
+                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                    'the parsed instance\033[0m'.format(id_, instance.uuid)
                 )
             else:
                 done += 1
 
-        progress = "\r%.2f %% done..." % ((float(done) / float(total)) * 100)
+        progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
         sys.stdout.flush()
     sys.stdout.write(
-        "\nUpdated %s\n------------------------------------------\n"
-        % xform.id_string)
+        '\nUpdated %s\n------------------------------------------\n' % xform.id_string
+    )
 
 
 class BaseOpenRosaResponse(HttpResponse):

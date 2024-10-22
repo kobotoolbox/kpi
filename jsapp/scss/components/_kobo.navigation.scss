@@ -311,30 +311,6 @@
   }
 }
 
-// Initials avatar, used in header, sharing modal and account settings
-.account-box__initials {
-  width: 32px;
-  text-align: center;
-  text-transform: uppercase;
-  padding: 6px;
-  border-radius: 32px;
-  display: inline-block;
-  vertical-align: middle;
-  line-height: 20px;
-  font-size: 16px;
-  color: colors.$kobo-white;
-}
-
-.account-box__menu-item--avatar {
-  .account-box__initials {
-    width: 48px;
-    padding: 10px;
-    border-radius: 48px;
-    line-height: 28px;
-    font-size: 24px;
-  }
-}
-
 .git-rev {
   display: none;
 }

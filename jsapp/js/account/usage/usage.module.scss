@@ -1,14 +1,14 @@
 @use 'scss/breakpoints';
-@use 'scss/sizes';
 @use 'scss/colors';
 
 .root {
-  padding: sizes.$x40;
+  padding: 40px;
 }
 
 .headerText {
-  font-size: sizes.$r18;
+  font-size: 18px;
   font-weight: 700;
+  // TODO this should be a color from our palette
   color: hsl(225, 33%, 59%);
   text-transform: uppercase;
 }
@@ -36,7 +36,7 @@
   display: flex;
   justify-content: center;
   flex-flow: wrap;
-  gap: sizes.$x24;
+  gap: 24px;
   flex: 1 1 0;
   width: 100%;
 }
@@ -45,14 +45,14 @@
   // TODO: Should we add this size or try some flex magic to make the width work?
   min-width: 250px;
   width: 100%;
-  border: sizes.$x1 solid;
+  border: 1px solid;
   border-color: colors.$kobo-gray-300;
-  border-radius: sizes.$x6;
-  padding: sizes.$x24;
+  border-radius: 6px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: sizes.$x2;
+  gap: 2px;
   overflow-wrap: break-word;
 }
 
@@ -62,13 +62,13 @@
 }
 
 .title {
-  font-size: sizes.$x16;
+  font-size: 16px;
   color: colors.$kobo-gray-700;
 }
 
 .date {
   display: block;
-  font-size: sizes.$x14;
+  font-size: 14px;
 }
 
 @include breakpoints.breakpoint(narrowAndUp) {

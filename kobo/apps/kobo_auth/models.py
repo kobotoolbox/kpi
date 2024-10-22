@@ -1,13 +1,11 @@
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.contrib.auth.models import AbstractUser
-
 
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kpi.utils.database import use_db
+from kpi.utils.database import update_autofield_sequence, use_db
 
 
 class User(AbstractUser):
@@ -39,3 +37,23 @@ class User(AbstractUser):
 
         # Otherwise, check in KPI DB
         return super().has_perm(perm, obj)
+
+    def sync_to_openrosa_db(self):
+        User = self.__class__  # noqa
+        User.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
+            [self],
+            update_conflicts=True,
+            update_fields=[
+                'password',
+                'last_login',
+                'is_superuser',
+                'first_name',
+                'last_name',
+                'email',
+                'is_staff',
+                'is_active',
+                'date_joined',
+            ],
+            unique_fields=['pk'],
+        )
+        update_autofield_sequence(User)

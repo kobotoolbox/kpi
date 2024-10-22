@@ -1,11 +1,19 @@
+// Libraries
 import React, {useCallback} from 'react';
 import {observer} from 'mobx-react-lite';
-import sessionStore from 'js/stores/session';
-import styles from './ssoSection.module.scss';
-import {deleteSocialAccount} from './sso.api';
+import cx from 'classnames';
+
+// Partial components
 import Button from 'jsapp/js/components/common/button';
-import envStore, {SocialApp} from 'jsapp/js/envStore';
-import classNames from 'classnames';
+
+// Stores and utils
+import sessionStore from 'js/stores/session';
+import envStore, {type SocialApp} from 'jsapp/js/envStore';
+import {deleteSocialAccount} from './sso.api';
+
+// Styles
+import styles from './ssoSection.module.scss';
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 const SsoSection = observer(() => {
   const socialApps = envStore.isReady ? envStore.data.social_apps : [];
@@ -25,48 +33,49 @@ const SsoSection = observer(() => {
 
   const providerLink = useCallback((socialApp: SocialApp) => {
     let providerPath = '';
-    if(socialApp.provider === 'openid_connect') {
+    if (socialApp.provider === 'openid_connect') {
       providerPath = 'oidc/' + socialApp.provider_id;
     } else {
       providerPath = socialApp.provider_id || socialApp.provider;
     }
     return `accounts/${providerPath}/login/?process=connect&next=%2F%23%2Faccount%2Fsecurity`;
-  }, [sessionStore.currentAccount])
+  }, [sessionStore.currentAccount]);
 
   if (socialApps.length === 0 && socialAccounts.length === 0) {
     return <></>;
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.titleSection}>
-        <h2 className={styles.title}>{t('Single-Sign On')}</h2>
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Single-Sign On')}</h2>
       </div>
+
       {socialAccounts.length === 0 ? (
-        <div className={styles.bodySection}>
-          <div className={styles.securityDescription}>
-            {t(
-              "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
-                'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
-                'address is different.'
-            )}
-          </div>
+        <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+          {t(
+            "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only " +
+              'be able to sign in via SSO unless you disable this setting here. This will also update your email address in case your current ' +
+              'address is different.'
+          )}
         </div>
       ) : (
-        <div className={styles.bodySection}>{t('Already connected')}</div>
+        <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+          {t('Already connected')}
+        </div>
       )}
 
       {socialAccounts.length === 0 ? (
-        <div className={classNames(styles.optionsSection, styles.ssoSetup)}>
+        <div className={cx(styles.options, styles.ssoSetup)}>
           {socialApps.map((socialApp) => (
             <a
+              key={socialApp.name}
               href={providerLink(socialApp)}
-              className={styles.passwordLink}
             >
               <Button
                 label={socialApp.name}
                 size='m'
-                type='secondary'
+                type='primary'
                 onClick={() => {
                   /*TODO: Handle NavLink and Button*/
                 }}
@@ -75,16 +84,16 @@ const SsoSection = observer(() => {
           ))}
         </div>
       ) : (
-        <div className={styles.optionsSection}>
+        <div className={styles.options}>
           <Button
             label={t('Disable')}
             size='m'
-            type='secondary'
+            type='primary'
             onClick={disconnectSocialAccount}
           />
         </div>
       )}
-    </div>
+    </section>
   );
 });
 

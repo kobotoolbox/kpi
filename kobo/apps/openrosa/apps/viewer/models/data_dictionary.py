@@ -14,13 +14,13 @@ from pyxform.xform2json import create_survey_element_from_xml
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
-from kobo.apps.openrosa.apps.api.mongo_helper import MongoHelper
 from kobo.apps.openrosa.libs.utils.common_tags import UUID, SUBMISSION_TIME, TAGS, NOTES
 from kobo.apps.openrosa.libs.utils.export_tools import (
     question_types_to_exclude,
     DictOrganizer,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kpi.utils.mongo_helper import MongoHelper
 
 
 class ColumnRename(models.Model):
