@@ -10,9 +10,9 @@ from kobo.apps.organizations.constants import (
     MEMBER_ORG_ROLE,
     OWNER_ORG_ROLE,
 )
-from kpi.constants import ASSET_TYPE_SURVEY, PERM_VIEW_ASSET
+from kpi.constants import ASSET_TYPE_SURVEY, PERM_VIEW_ASSET, PERM_MANAGE_ASSET
 from kpi.models.asset import Asset
-from kpi.tests.kpi_test_case import BaseTestCase
+from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -81,7 +81,7 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(res.status_code, 403)
 
 
-class OrganizationAssetApiTestCase(BaseTestCase):
+class OrganizationAssetApiTestCase(BaseAssetTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -202,3 +202,63 @@ class OrganizationAssetApiTestCase(BaseTestCase):
         # no assets are shared with them
         response = self.client.get(asset_list_url)
         assert response.data['count'] == 0
+
+    def test_create_asset_by_someone_else_owned_by_organization(self):
+        self._create_asset_by_someone_else_owned_by_organization()
+
+    def test_can_admin_get_asset_created_by_other_members(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+        response = self._create_asset_by_someone_else_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(anotheruser)
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+        )
+        response = self.client.get(assert_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['uid'] == response.data['uid']
+
+    def test_can_owner_get_asset_created_by_other_members(self):
+        response = self._create_asset_by_someone_else_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(self.someuser)
+
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+        )
+        response = self.client.get(assert_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['uid'] == response.data['uid']
+
+    def _create_asset_by_someone_else_owned_by_organization(self):
+        alice = User.objects.create(username='alice', email='alice@alice.com')
+        self.organization.add_user(user=alice)
+        self.client.force_login(alice)
+
+        response = self.create_asset(content={
+            'survey': [
+                {
+                    'name': 'egg',
+                    'type': 'integer',
+                    'label': 'how many eggs?',
+                },
+                {
+                    'name': 'bacon',
+                    'type': 'integer',
+                    'label': 'how many slices of bacon',
+                }
+            ],
+        })
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['owner__username'] == self.someuser.username
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid': response.data['uid']}
+        )
+        response = self.client.get(assert_detail_url)
+        asset = Asset.objects.get(uid=response.data['uid'])
+
+        # Ensure creator received "manage_asset" permission
+        assert asset.has_perm(alice, PERM_MANAGE_ASSET)
+        assert response.status_code == status.HTTP_200_OK
+        return response

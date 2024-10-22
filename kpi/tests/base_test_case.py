@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
@@ -33,18 +35,27 @@ class BaseAssetTestCase(BaseTestCase):
 
     EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
-    def create_asset(self, asset_type='survey'):
-        """ Create a new, empty asset as the currently logged-in user """
+    def create_asset(self, asset_type='survey', content: dict = None):
+        """
+        Create a new, empty asset as the currently logged-in user
+        """
+        if not content:
+            content = {}
+
         data = {
-            'content': '{}',
+            'content': json.dumps(content),
             'asset_type': asset_type,
         }
         list_url = reverse(self._get_endpoint('asset-list'))
         response = self.client.post(list_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                         msg=response.data)
-        sa = Asset.objects.order_by('date_created').last()
-        self.assertEqual(sa.content, self.EMPTY_SURVEY)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, msg=response.data
+        )
+
+        if not content:
+            sa = Asset.objects.order_by('date_created').last()
+            self.assertEqual(sa.content, self.EMPTY_SURVEY)
+
         return response
 
 

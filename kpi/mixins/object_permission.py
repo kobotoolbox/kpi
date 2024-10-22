@@ -19,6 +19,8 @@ from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
     PERM_FROM_KC_ONLY,
+    PERM_VIEW_ASSET,
+    PERM_MANAGE_ASSET,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -626,7 +628,10 @@ class ObjectPermissionMixin:
             if perm in ProjectView.ALLOWED_PERMISSIONS:
                 result = user_has_project_view_asset_perm(self, user_obj, perm)
 
-            if self.owner.organization.is_admin(user_obj):
+            if (
+                self.owner.organization.is_admin(user_obj)
+                and codename == PERM_VIEW_ASSET
+            ):
                 return True
 
             if not result:
