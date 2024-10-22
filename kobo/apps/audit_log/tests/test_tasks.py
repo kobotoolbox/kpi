@@ -20,6 +20,11 @@ class AuditLogTasksTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def test_spawn_deletion_task_identifies_expired_logs(self):
+        '''
+        Test the spawning task correctly identifies which logs to delete.
+
+        Separated for easier debugging of the spawning vs deleting steps
+        '''
         user = User.objects.get(username='someuser')
         old_log = AccessLog.objects.create(
             user=user,
@@ -45,8 +50,7 @@ class AuditLogTasksTestCase(BaseTestCase):
         self.assertNotIn(new_log.id, all_deleted_ids)
 
     @override_settings(ACCESS_LOG_DELETION_BATCH_SIZE=2)
-    @patch('kobo.apps.audit_log.tasks.batch_delete_audit_logs_by_id.delay')
-    def test_spawn_task_batches_ids(self, patched_task):
+    def test_spawn_task_batches_ids(self):
         three_days_ago = timezone.now() - timedelta(days=3)
         user = User.objects.get(username='someuser')
         old_log_1 = AccessLog.objects.create(
