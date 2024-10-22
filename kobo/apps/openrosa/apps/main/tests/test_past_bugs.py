@@ -16,7 +16,7 @@ class TestInputs(TestBase):
         self._create_user_and_login()
         response = self._publish_xls_file(
             'fixtures/group_names_must_be_unique.xls')
-        message = 'The name "group_names_must_be_unique" is the same as the form name'
+        message = "The name 'group_names_must_be_unique' is the same as the form name"
         self.assertTrue(message in response.json()['text'])
         self.assertEqual(XForm.objects.count(), pre_count)
 
