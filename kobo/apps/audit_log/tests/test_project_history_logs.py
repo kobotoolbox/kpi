@@ -110,6 +110,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.ARCHIVE,
             verify_additional_metadata=lambda x: None,
         )
+        # do it again (archive an already-archived asset)
+        self.client.patch(
+            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            data=request_data,
+            format='json',
+        )
+        unarchived_logs = ProjectHistoryLog.objects.filter(
+            object_id=self.asset.id, action=AuditAction.ARCHIVE
+        )
+        # we should log the attempt even if it didn't technically do anything
+        self.assertEqual(unarchived_logs.count(), 2)
 
     def test_unarchive_creates_log(self):
         # can only unarchive deployed asset
@@ -124,3 +135,35 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.UNARCHIVE,
             verify_additional_metadata=lambda x: None,
         )
+        # do it again (unarchive an already-unarchived asset)
+        self.client.patch(
+            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            data=request_data,
+            format='json',
+        )
+        unarchived_logs = ProjectHistoryLog.objects.filter(
+            object_id=self.asset.id, action=AuditAction.UNARCHIVE
+        )
+        # we should log the attempt even if it didn't technically do anything
+        self.assertEqual(unarchived_logs.count(), 2)
+
+    def test_failed_requests_does_not_create_log(self):
+        # attempt to PATCH on an un-deployed asset
+        request_data = {
+            'active': True,
+        }
+        self.client.patch(
+            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            data=request_data,
+            format='json',
+        )
+        # deploy asset
+        self.asset.deploy(backend="mock", active=True)
+        # attempt to POST to a deployed asset
+        self.client.post(
+            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            data=request_data,
+            format='json',
+        )
+        # no logs should be created
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)

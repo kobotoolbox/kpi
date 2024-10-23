@@ -386,11 +386,6 @@ class AssetViewSet(
     ]
     log_type = AuditType.PROJECT_HISTORY
 
-    def initialize_request(self, request, *args, **kwargs):
-        request = super().initialize_request(request, *args, **kwargs)
-        request._request.log_type = self.log_type
-        return request
-
     def get_object_override(self):
         if self.request.method in ['PATCH', 'GET']:
             try:
@@ -490,7 +485,6 @@ class AssetViewSet(
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
                 request._request.additional_audit_log_info = {
-                    'request_data': request._data,
                     'id': asset.id,
                     'latest_deployed_version_uid': asset.latest_deployed_version_uid,
                     'latest_version_uid': asset.latest_version.uid,
