@@ -557,6 +557,14 @@ class ObjectPermissionMixin:
         self.recalculate_descendants_perms()
         return new_permission
 
+    @classmethod
+    def get_admin_org_inherited_perms(cls):
+        return set(
+            perm
+            for inherit_perm in settings.ADMIN_ORG_INHERITED_PERMS
+            for perm in [inherit_perm, *cls.get_implied_perms(inherit_perm)]
+        )
+
     def get_perms(self, user_obj: settings.AUTH_USER_MODEL) -> list[str]:
         """
         Return a list of codenames of all effective grant permissions that
@@ -564,13 +572,20 @@ class ObjectPermissionMixin:
         """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
-        assigned_perms = Permission.objects.filter(pk__in=perm_ids).values_list(
-            'codename', flat=True
+        assigned_perms = list(
+            Permission.objects.filter(pk__in=perm_ids).values_list(
+                'codename', flat=True
+            )
         )
         project_views_perms = get_project_view_user_permissions_for_asset(
             self, user_obj
         )
-        return list(set(list(assigned_perms) + project_views_perms))
+
+        other_perms = []
+        if self.owner.organization.is_admin(user_obj):
+            other_perms = list(self.get_admin_org_inherited_perms())
+
+        return list(set(assigned_perms + project_views_perms + other_perms))
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
@@ -626,16 +641,12 @@ class ObjectPermissionMixin:
         )) == 1
 
         if not result and not is_anonymous:
-            implied_perms = set(
-                perm
-                for inherit_perm in settings.ADMIN_ORG_INHERITED_PERMS
-                for perm in [inherit_perm, *self.get_implied_perms(inherit_perm)]
-            )
+            admin_org_perms = self.get_admin_org_inherited_perms()
 
             if (
                 self.owner
                 and self.owner.organization.is_admin(user_obj)
-                and codename in implied_perms
+                and codename in admin_org_perms
             ):
                 return True
 
@@ -927,9 +938,9 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_permissions_for_content_type(content_type_id,
-                                           codename=None,
-                                           codename__startswith=None):
+    def __get_permissions_for_content_type(
+        content_type_id, codename=None, codename__startswith=None
+    ):
         """
         Gets permissions for specific content type and permission's codename
         This method is cached per request because it can be called several times
@@ -952,8 +963,9 @@ class ObjectPermissionMixin:
         if codename__startswith is not None:
             filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters). \
-            values_list('pk', 'codename')
+        permissions = Permission.objects.filter(**filters).values_list(
+            'pk', 'codename'
+        )
 
         return permissions
 

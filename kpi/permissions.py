@@ -84,7 +84,9 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             return cls._get_asset(view)
 
     def _get_user_permissions(
-        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: settings.AUTH_USER_MODEL
+        self,
+        object_: Union['kpi.Asset', 'kpi.Collection'],
+        user: settings.AUTH_USER_MODEL,
     ) -> list[str]:
         """
         Returns a list of `user`'s permission for `asset`

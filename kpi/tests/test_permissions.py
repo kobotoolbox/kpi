@@ -21,6 +21,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import BadPermissionsException
 from kpi.utils.object_permission import get_all_objects_for_user
+from ..models import ObjectPermission
 from ..models.asset import Asset
 
 
@@ -861,5 +862,45 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertFalse(anonymous_user.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
-        self.assertTrue(asset.get_perms(grantee),
-                        asset.get_perms(anonymous_user))
+        self.assertTrue(
+            asset.get_perms(grantee), asset.get_perms(anonymous_user)
+        )
+
+    def test_admin_org_inherited_and_implied_permissions(self):
+        """
+        Test the inherited (and implied) permissions for an admin within
+        an organization.
+
+        This test ensures that admin users receive the correct permissions,
+        both directly inherited and those implied by their role,
+        within the organization context, even if they are not granted explicitly.
+        """
+        expected_perms = [
+            PERM_ADD_SUBMISSIONS,
+            PERM_CHANGE_ASSET,
+            PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_ASSET,
+            PERM_DELETE_SUBMISSIONS,
+            PERM_DISCOVER_ASSET,
+            PERM_MANAGE_ASSET,
+            PERM_VALIDATE_SUBMISSIONS,
+            PERM_VIEW_ASSET,
+            PERM_VIEW_SUBMISSIONS,
+        ]
+        assert (
+            list(self.admin_asset.get_admin_org_inherited_perms()).sort()
+            == expected_perms.sort()
+        )
+
+        # Add anotheruser to someuser's org as an admin
+        self.someuser.organization.add_user(self.anotheruser, is_admin=True)
+        for asset in self.someuser.assets.all():
+            # Set permission assignments
+            asset.save()
+            # No permissions are explicitly assigned to anotheruser…
+            assert not ObjectPermission.objects.filter(
+                asset=asset, user=self.anotheruser
+            ).exists()
+            # …but they still access to someuser's org projects
+            for expected_perm in expected_perms:
+                assert asset.has_perm(self.anotheruser, expected_perm)

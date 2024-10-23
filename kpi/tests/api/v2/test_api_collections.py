@@ -304,8 +304,6 @@ class CollectionsTests(BaseTestCase):
             },
         }
 
-        breakpoint()
-
         for collection in response.data['results']:
             expected_collection = expected[collection.get('name')]
             assert expected_collection['status'] == collection['status']
