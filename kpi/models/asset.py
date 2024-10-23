@@ -12,11 +12,12 @@ from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
 
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
