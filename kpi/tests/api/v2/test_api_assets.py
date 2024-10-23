@@ -1782,9 +1782,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_200_OK)
 
-        # check project history log
-        request = redeploy_response.renderer_context['request']
-
         # Validate version id
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.version_id,
@@ -1886,7 +1883,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response1.data['asset']['deployment_status']
             == AssetDeploymentStatus.ARCHIVED.value
         )
-        request = response1.renderer_context['request']
 
         response2 = self.client.get(self.asset_url, format='json')
         self.assertEqual(response2.data['deployment__active'], False)
