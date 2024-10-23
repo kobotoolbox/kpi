@@ -9,10 +9,10 @@ from django.test.utils import override_settings
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from ...audit_log.audit_actions import AuditAction
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
