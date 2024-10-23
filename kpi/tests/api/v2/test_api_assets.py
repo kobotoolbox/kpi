@@ -758,10 +758,11 @@ class AssetVersionApiTests(BaseTestCase):
         )
 
     def test_asset_version(self):
-        version_count = AssetVersion.objects.count()
+        self.assertEqual(Asset.objects.count(), 2)
+        self.assertEqual(AssetVersion.objects.count(), 1)
         resp = self.client.get(self.version_list_url, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['count'], version_count)
+        self.assertEqual(resp.data['count'], 1)
         _version_detail_url = resp.data['results'][0].get('url')
         resp2 = self.client.get(_version_detail_url, format='json')
         self.assertTrue('survey' in resp2.data['content'])

@@ -1,27 +1,21 @@
 from rest_framework import mixins, viewsets
 
-from kpi.utils.log import logging
-
 
 def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Logs a warning and returns None if the field is not found
+    Raises an exception if the field is not found
     """
     split = field.split('.')
-    try:
-        attribute = getattr(obj, split[0])
-        if len(split) > 1:
-            for inner_field in split[1:]:
-                if isinstance(attribute, dict):
-                    attribute = attribute.get(inner_field)
-                else:
-                    attribute = getattr(attribute, inner_field)
-        return attribute
-    except (AttributeError, KeyError):
-        logging.warning(f'Attribute not found: {field} on object {obj}')
-        return None
+    attribute = getattr(obj, split[0])
+    if len(split) > 1:
+        for inner_field in split[1:]:
+            if isinstance(attribute, dict):
+                attribute = attribute.get(inner_field)
+            else:
+                attribute = getattr(attribute, inner_field)
+    return attribute
 
 
 class AuditLoggedViewSet(viewsets.GenericViewSet):

@@ -53,6 +53,14 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         cls.super_user.backend = 'django.contrib.auth.backends.ModelBackend'
         cls.super_user.save()
 
+    def _create_request(self, url: str, cached_user, new_user):
+        factory = RequestFactory()
+        request = factory.post(url)
+        request.user = new_user
+        request._cached_user = cached_user
+        request.resolver_match = resolve(url)
+        return request
+
     def _check_common_fields(self, access_log: AccessLog, user):
         self.assertEqual(access_log.user.id, user.id)
         self.assertEqual(access_log.app_label, 'kobo_auth')
@@ -353,14 +361,6 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, asset.id)
         self.assertEqual(log.user_uid, user.extra_details.uid)
         self.assertEqual(log.log_type, AuditType.PROJECT_HISTORY)
-
-    def _create_request(self, url: str, user, data):
-        factory = RequestFactory()
-        request = factory.post(url)
-        request.user = user
-        request.resolver_match = resolve(url)
-        request.data = data
-        return request
 
     def test_create_project_history_log_sets_standard_fields(self):
         user = User.objects.get(username='someuser')
