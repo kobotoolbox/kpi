@@ -237,6 +237,8 @@ class XMLRenderer(DRFXMLRenderer):
         accepted_media_type=None,
         renderer_context=None,
         relationship=None,
+        relationship_args=None,
+        relationship_kwargs=None,
     ):
         if hasattr(renderer_context.get('view'), 'get_object'):
             obj = renderer_context.get('view').get_object()
@@ -246,7 +248,10 @@ class XMLRenderer(DRFXMLRenderer):
             if relationship is not None and hasattr(obj, relationship):
                 var_or_callable = getattr(obj, relationship)
                 if isinstance(var_or_callable, Callable):
-                    return var_or_callable().xml
+                    return var_or_callable(
+                        *(relationship_args or tuple()),
+                        **(relationship_kwargs or dict())
+                    ).xml
                 return var_or_callable.xml
             return add_xml_declaration(obj.xml)
         else:
@@ -260,10 +265,13 @@ class XMLRenderer(DRFXMLRenderer):
 class XFormRenderer(XMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(data=data,
-                              accepted_media_type=accepted_media_type,
-                              renderer_context=renderer_context,
-                              relationship="snapshot")
+        return super().render(
+            data=data,
+            accepted_media_type=accepted_media_type,
+            renderer_context=renderer_context,
+            relationship='snapshot',
+            relationship_kwargs={'regenerate': 'True'},
+        )
 
 
 class XlsRenderer(renderers.BaseRenderer):
