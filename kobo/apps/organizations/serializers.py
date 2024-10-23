@@ -25,6 +25,7 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
     is_owner = serializers.SerializerMethodField('_is_owner')
+    is_mmo = serializers.BooleanField(read_only=True)
 
     def _is_owner(self, instance):
         user = self.context['request'].user
@@ -32,7 +33,16 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'is_active', 'created', 'modified', 'slug', 'is_owner']
+        fields = [
+            'id',
+            'name',
+            'is_active',
+            'created',
+            'modified',
+            'slug',
+            'is_owner',
+            'is_mmo',
+        ]
         read_only_fields = ['id', 'slug']
 
     def create(self, validated_data):
