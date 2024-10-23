@@ -1,3 +1,5 @@
+import copy
+
 from django.test import override_settings
 from django.urls import reverse
 
@@ -167,3 +169,98 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         # no logs should be created
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+
+    def test_change_project_name_creates_log(self):
+        old_name = self.asset.name
+
+        def verify_metadata(log_metadata):
+            self.assertEqual(log_metadata['name']['new'], 'new_name')
+            self.assertEqual(log_metadata['name']['old'], old_name)
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'name': 'new_name'},
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_NAME,
+        )
+
+    def test_change_project_settings_creates_log(self):
+        old_settings = copy.deepcopy(self.asset.settings)
+        patch_data = {
+            'settings': {
+                'sector': {'label': 'Health', 'value': 'Health'},
+                'country': [{'label': 'Albania', 'value': 'ALB'}],
+                'operational_purpose': 'New operational purpose',
+                'collects_pii': True,
+                'description': 'New description',
+            }
+        }
+
+        def verify_metadata(log_metadata):
+            # check non-list settings just store old and new information
+            settings_dict = log_metadata['settings']
+            self.assertDictEqual(settings_dict['sector']['old'], old_settings['sector'])
+            self.assertDictEqual(
+                settings_dict['sector']['new'],
+                {'label': 'Health', 'value': 'Health'},
+            )
+            self.assertEqual(
+                settings_dict['operational_purpose']['old'],
+                old_settings['operational_purpose'],
+            )
+            self.assertEqual(
+                settings_dict['operational_purpose']['new'],
+                'New operational purpose',
+            )
+            self.assertEqual(
+                settings_dict['collects_pii']['old'], old_settings['collects_pii']
+            )
+            self.assertEqual(settings_dict['collects_pii']['new'], True)
+            self.assertEqual(
+                settings_dict['description']['old'], old_settings['description']
+            )
+            self.assertEqual(settings_dict['description']['new'], 'New description')
+            # check list settings store added and removed fields
+            self.assertListEqual(
+                settings_dict['country']['added'],
+                [{'label': 'Albania', 'value': 'ALB'}],
+            )
+            self.assertListEqual(
+                settings_dict['country']['removed'],
+                [{'label': 'United States', 'value': 'USA'}],
+            )
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=patch_data,
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_SETTINGS,
+        )
+
+    def test_unchanged_settings_not_recorded_on_log(self):
+        patch_data = {
+            'settings': {
+                'sector': self.asset.settings['sector'],
+                'country': self.asset.settings['country'],
+                'operational_purpose': self.asset.settings['operational_purpose'],
+                'collects_pii': self.asset.settings['collects_pii'],
+                'description': 'New description',
+            }
+        }
+
+        def verify_metadata(log_metadata):
+            self.assertNotIn('sector', log_metadata.keys())
+            self.assertNotIn('country', log_metadata.keys())
+            self.assertNotIn('operational_purpose', log_metadata.keys())
+            self.assertNotIn('collects_pii', log_metadata.keys())
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=patch_data,
+            verify_additional_metadata=verify_metadata,
+            expected_action=AuditAction.UPDATE_SETTINGS,
+        )
