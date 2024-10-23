@@ -40,6 +40,30 @@ class IncrementValue(Func):
         )
 
 
+class DeductUsageValue(Func):
+
+    function = 'jsonb_set'
+    usage_value = "COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int"
+    template = (
+        "%(function)s(%(expressions)s,"
+        "'{\"%(keyname)s\"}',"
+        "("
+        "CASE WHEN %(usage_value)s > %(amount)s "
+        "THEN %(usage_value)s - %(amount)s "
+        "ELSE 0 "
+        ")::text::jsonb)"
+    )
+    arity = 1
+
+    def __init__(self, expression: str, keyname: str, amount: int, **extra):
+        super().__init__(
+            expression,
+            keyname=keyname,
+            amount=amount,
+            **extra,
+        )
+
+
 class OrderCustomCharField(Func):
     """
     DO NOT use on fields other than CharField while the application maintains
