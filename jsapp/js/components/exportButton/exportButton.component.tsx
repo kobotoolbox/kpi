@@ -1,3 +1,4 @@
+import type {ButtonProps} from '../common/button';
 import Button from '../common/button';
 import KoboPrompt from '../modals/koboPrompt';
 import {useState} from 'react';
@@ -16,14 +17,19 @@ const MessageModal = ({onClose}: {onClose: () => void}) => (
     ]}
   >
     <div>
-      <p>{t('Your export request is currently being processed. Once the export is complete, you\'ll receive an email with all the details.')}</p>
+      <p>
+        {t(
+          "Your export request is currently being processed. Once the export is complete, you'll receive an email with all the details."
+        )}
+      </p>
     </div>
   </KoboPrompt>
 );
 
 export default function ExportToEmailButton({
   exportFunction,
-}: {
+  ...props
+}: Partial<ButtonProps> & {
   exportFunction: () => Promise<void>;
 }) {
   const [isMessageOpen, setIsMessageOpen] = useState(false);
@@ -48,8 +54,8 @@ export default function ExportToEmailButton({
       <Button
         size='m'
         type='primary'
+        {...props}
         startIcon='download'
-        label={t('Export all data')}
         onClick={handleClick}
         isPending={isPending}
       />
