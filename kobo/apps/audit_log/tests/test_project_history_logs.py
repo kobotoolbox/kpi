@@ -158,7 +158,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             format='json',
         )
         # deploy asset
-        self.asset.deploy(backend="mock", active=True)
+        self.asset.deploy(backend='mock', active=True)
         # attempt to POST to a deployed asset
         self.client.post(
             reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
