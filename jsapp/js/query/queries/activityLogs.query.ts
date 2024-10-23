@@ -12,10 +12,6 @@ export interface ActivityLogsItem {
   date: string;
 }
 
-export interface ExportStatus {
-  status: 'in_progress' | 'done' | 'not_started';
-}
-
 // MOCK DATA GENERATION
 const mockOptions: KoboSelectOption[] = [
   {value: '1', label: 'Option 1'},
@@ -88,35 +84,17 @@ const getFilterOptions = async () =>
  * Starts the exporting process of the activity logs.
  * @returns {Promise<void>} The promise that starts the export
  */
-const startActivityLogsExport = async () => {
-  // Simulates backend export process.
-  // Here we just start it and get a feedback if it's done.
-  exportData.startTime = Date.now();
-  exportData.endTime = undefined;
-  exportData.data = undefined;
-  setTimeout(() => {
-    exportData.endTime = Date.now();
-    exportData.data = mockData;
-  }, 10000);
-};
-
-/**
- * Fetches the export status of the activity logs.
- * @returns {Promise<ExportStatus>} The export status
- */
-const getExportStatus = async (): Promise<ExportStatus> => {
-  // Simulates backend export process.
-  // Here we just start it and get a feedback if it's done.
-  if (exportData.startTime && !exportData.endTime) {
-    return {status: 'in_progress'};
-  }
-
-  if (exportData.startTime && exportData.endTime) {
-    return {status: 'done'};
-  }
-
-  return {status: 'not_started'};
-};
+const startActivityLogsExport = async () =>
+  new Promise<void>((resolve, reject) => {
+    // Simulates backend export process.
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        resolve();
+      } else {
+        reject();
+      }
+    }, 500);
+  });
 
 /**
  *
@@ -144,20 +122,7 @@ export const useActivityLogsFilterOptionsQuery = () =>
   });
 
 /**
- * This is a hook to fetch the export status of the activity logs.
- * @returns {UseQueryResult<ExportStatus>} The react query result
- */
-export const useExportStatusQuery = (isInProgress: boolean) =>
-  useQuery({
-    queryKey: [QueryKeys.activityLogsExportStatus],
-    queryFn: getExportStatus,
-    refetchInterval: 2500,
-    enabled: isInProgress,
-  });
-
-/**
  * This is a hook to start the exporting process of the activity logs.
- * To follow up the export status, use the {@link useExportStatusQuery} hook.
  * @returns {() => void} The function to start the export
  */
 export const useExportActivityLogs = () => startActivityLogsExport;
