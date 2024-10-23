@@ -18,6 +18,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.organizations.constants import ADMIN_ORG_ROLE
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
@@ -199,6 +200,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not asset_uids or self.__user.is_superuser:
             return
 
+        user_filter = [self.__user]
+        if self.__user.organization.is_admin(self.__user):
+            user_filter.append(self.__user.organization.owner_user_object)
+
         if not delete_request:
             if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
                 raise exceptions.PermissionDenied()
@@ -206,14 +211,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             code_names = get_cached_code_names(Asset)
             perm_dict = code_names[PERM_MANAGE_ASSET]
             objects_count = ObjectPermission.objects.filter(
-                user=self.__user,
+                user__in=user_filter,
                 permission_id=perm_dict['id'],
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
         else:
             objects_count = Asset.objects.filter(
-                owner=self.__user,
+                owner__in=user_filter,
                 uid__in=asset_uids,
             ).count()
 
@@ -810,11 +815,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
-        if org_role := obj.owner.organization.get_user_role(request.user):
-            if org_role != 'external':
-                # TODO Validate with front end what's the perfect role?
-                access_types.extend(['shared', 'org-admin'])
-                access_types = list(set(access_types))
+        if obj.owner.organization.get_user_role(request.user) == ADMIN_ORG_ROLE:
+            access_types.extend(['shared', 'org-admin'])
+            access_types = list(set(access_types))
 
         if not access_types:
             raise Exception(
@@ -969,9 +972,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('asset-table-view',
-                       args=(obj.uid,),
-                       request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class AssetListSerializer(AssetSerializer):

@@ -624,15 +624,23 @@ class ObjectPermissionMixin:
             user=user_obj,
             codename=codename
         )) == 1
+
         if not result and not is_anonymous:
-            if perm in ProjectView.ALLOWED_PERMISSIONS:
-                result = user_has_project_view_asset_perm(self, user_obj, perm)
+            implied_perms = set(
+                perm
+                for inherit_perm in settings.ADMIN_ORG_INHERITED_PERMS
+                for perm in [inherit_perm, *self.get_implied_perms(inherit_perm)]
+            )
 
             if (
-                self.owner.organization.is_admin(user_obj)
-                and codename == PERM_VIEW_ASSET
+                self.owner
+                and self.owner.organization.is_admin(user_obj)
+                and codename in implied_perms
             ):
                 return True
+
+            if perm in ProjectView.ALLOWED_PERMISSIONS:
+                result = user_has_project_view_asset_perm(self, user_obj, perm)
 
             if not result:
                 # The user-specific test failed, but does the public have access?

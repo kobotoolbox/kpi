@@ -1,4 +1,3 @@
-# coding: utf-8
 import copy
 import json
 from collections import OrderedDict, defaultdict
@@ -380,26 +379,28 @@ class AssetViewSet(
     ]
 
     def get_object(self):
-        if self.request.method in ['PATCH', 'GET']:
-            try:
-                asset = Asset.objects.get(uid=self.kwargs['uid'])
-            except Asset.DoesNotExist:
-                raise Http404
+        """
+        This `get_object` method bypasses the filter backends because the UID
+        already explicitly filters the object to be retrieved.
+        It relies on `check_object_permissions` to validate access to the object.
+        """
+        try:
+            asset = Asset.objects.get(uid=self.kwargs['uid'])
+        except Asset.DoesNotExist:
+            raise Http404
 
-            self.check_object_permissions(self.request, asset)
+        self.check_object_permissions(self.request, asset)
 
-            # Cope with kobotoolbox/formpack#322, which wrote invalid content
-            # into the database. For performance, consider only the current
-            # content, not previous versions. Previous versions are handled in
-            # `kobo.apps.reports.report_data.build_formpack()`
-            if self.request.method == 'GET':
-                repair_file_column_content_and_save(
-                    asset, include_versions=False
-                )
+        # Cope with kobotoolbox/formpack#322, which wrote invalid content
+        # into the database. For performance, consider only the current
+        # content, not previous versions. Previous versions are handled in
+        # `kobo.apps.reports.report_data.build_formpack()`
+        if self.request.method == 'GET':
+            repair_file_column_content_and_save(
+                asset, include_versions=False
+            )
 
-            return asset
-
-        return super().get_object()
+        return asset
 
     @action(
         detail=False,

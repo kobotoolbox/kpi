@@ -164,6 +164,7 @@ class KpiObjectPermissionsFilter:
     DATA_SHARING_PARAMETER = 'data_sharing__enabled'
 
     def filter_queryset(self, request, queryset, view):
+
         user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's

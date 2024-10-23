@@ -80,7 +80,7 @@ class Organization(AbstractOrganization):
     def email(self):
         """
         As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute
+        it has an email address attribute.
         """
         try:
             return self.owner_user_object.email
@@ -91,19 +91,21 @@ class Organization(AbstractOrganization):
     def is_admin(self, user: 'User') -> bool:
         """
         Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request
+        multiple calls to DB in the same request.
         """
 
+        # Be aware: Owners are also Admins
         return super().is_admin(user)
 
-    @cache_for_request
     def is_owner(self, user):
         """
-        Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request
+        Overrides `is_owner()` with `owner_user_object()` instead of
+        using `super().is_owner()` to take advantage of `@cache_for_request`
+        in both scenarios.
+        (i.e., when calling either `is_owner()` or `owner_user_object()`).
         """
 
-        return super().is_owner(user)
+        return self.owner_user_object == user
 
     @property
     @cache_for_request

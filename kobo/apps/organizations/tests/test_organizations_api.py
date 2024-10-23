@@ -81,7 +81,7 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(res.status_code, 403)
 
 
-class OrganizationAssetApiTestCase(BaseAssetTestCase):
+class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -97,6 +97,9 @@ class OrganizationAssetApiTestCase(BaseAssetTestCase):
             self._get_endpoint('organizations-assets'),
             kwargs={'id': self.organization.id},
         )
+
+
+class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
 
     def test_can_list_as_owner(self):
         response = self.client.get(self.org_assets_list_url)
@@ -203,13 +206,23 @@ class OrganizationAssetApiTestCase(BaseAssetTestCase):
         response = self.client.get(asset_list_url)
         assert response.data['count'] == 0
 
-    def test_create_asset_by_someone_else_owned_by_organization(self):
-        self._create_asset_by_someone_else_owned_by_organization()
 
-    def test_can_admin_get_asset_created_by_other_members(self):
+class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
+    """
+    This test suite does not verify scenarios where owners or admins are the
+    creators of the objects.
+    The purpose is to evaluate access without explicit permission assignment.
+    """
+
+    def test_create_asset_is_owned_by_organization(self):
+
+        self._create_asset_is_owned_by_organization()
+
+    def test_admin_can_get_asset_owned_by_organization(self):
+
         anotheruser = User.objects.get(username='anotheruser')
         self.organization.add_user(user=anotheruser, is_admin=True)
-        response = self._create_asset_by_someone_else_owned_by_organization()
+        response = self._create_asset_is_owned_by_organization()
         asset_uid = response.data['uid']
         self.client.force_login(anotheruser)
         assert_detail_url = reverse(
@@ -219,8 +232,9 @@ class OrganizationAssetApiTestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['uid'] == response.data['uid']
 
-    def test_can_owner_get_asset_created_by_other_members(self):
-        response = self._create_asset_by_someone_else_owned_by_organization()
+    def test_owner_can_get_asset_owned_by_organization(self):
+
+        response = self._create_asset_is_owned_by_organization()
         asset_uid = response.data['uid']
         self.client.force_login(self.someuser)
 
@@ -231,7 +245,102 @@ class OrganizationAssetApiTestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['uid'] == response.data['uid']
 
-    def _create_asset_by_someone_else_owned_by_organization(self):
+    def test_admin_can_update_asset_owned_by_organization(self):
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(anotheruser)
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+        )
+        data = {
+            'name': 'Week-end breakfast'
+        }
+        response = self.client.patch(assert_detail_url, data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['name'] == data['name']
+
+    def test_owner_can_update_asset_owned_by_organization(self):
+
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(self.someuser)
+
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
+        )
+        data = {
+            'name': 'Week-end breakfast'
+        }
+        response = self.client.patch(assert_detail_url, data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['name'] == data['name']
+
+    def test_admin_can_delete_asset_owned_by_organization(self):
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(anotheruser)
+
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'),
+            # Use JSON format to prevent HtmlRenderer from returning a 200 status
+            # instead of 204.
+            kwargs={'uid': asset_uid, 'format': 'json'}
+        )
+        response = self.client.delete(assert_detail_url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_owner_can_delete_asset_owned_by_organization(self):
+
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(self.someuser)
+
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-detail'),
+            # Use JSON format to prevent HtmlRenderer from returning a 200 status
+            # instead of 204.
+            kwargs={'uid': asset_uid, 'format': 'json'}
+        )
+        response = self.client.delete(assert_detail_url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_admin_can_archive_asset_owned_by_organization(self):
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(user=anotheruser, is_admin=True)
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(anotheruser)
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+        )
+        data = {'active': False}
+        response = self.client.patch(assert_detail_url, data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['asset']['deployment__active'] is False
+
+    def test_owner_can_archive_asset_owned_by_organization(self):
+
+        response = self._create_asset_is_owned_by_organization()
+        asset_uid = response.data['uid']
+        self.client.force_login(self.someuser)
+
+        assert_detail_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+        )
+        data = {'active': False}
+        response = self.client.patch(assert_detail_url, data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['asset']['deployment__active'] is False
+
+    def _create_asset_is_owned_by_organization(self):
+
         alice = User.objects.create(username='alice', email='alice@alice.com')
         self.organization.add_user(user=alice)
         self.client.force_login(alice)
@@ -256,7 +365,9 @@ class OrganizationAssetApiTestCase(BaseAssetTestCase):
             self._get_endpoint('asset-detail'), kwargs={'uid': response.data['uid']}
         )
         response = self.client.get(assert_detail_url)
+
         asset = Asset.objects.get(uid=response.data['uid'])
+        asset.deploy(backend='mock', active=True)
 
         # Ensure creator received "manage_asset" permission
         assert asset.has_perm(alice, PERM_MANAGE_ASSET)
