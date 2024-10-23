@@ -84,7 +84,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge.save()
         return charge
 
-    @data('character', 'seconds')
+    @data('characters', 'seconds')
     def test_organization_usage_utils(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'

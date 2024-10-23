@@ -216,7 +216,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
 
-        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['character']) == 5473
+        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['characters']) == 5473
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
 
     def test_storage_usage(self):
