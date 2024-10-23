@@ -28,9 +28,9 @@ interface EventDescriptionProps {
 }
 const EventDescription = (props: EventDescriptionProps) => (
   <div className={styles.eventDescription}>
-    <Avatar size='s' username={props.data.who} />
-    <span className={styles.who}>{props.data.who}</span>
-    <span className={styles.action}>{props.data.action}</span> {props.data.what}
+    <Avatar size='s' username={props.data.username} />
+    <span className={styles.who}>{props.data.username}</span>
+    <span className={styles.action}>{props.data.action}</span> {props.data.metadata.log_subtype}
     {props.detailsButtonFn &&
       <button
         className={styles.seeDetailsButton}
@@ -75,7 +75,7 @@ export default function FormActivity() {
       label: t('Date'),
       size: 100,
       cellFormatter: (data: ActivityLogsItem) =>
-        formatTime(data.date) as ReactNode,
+        formatTime(data.date_created) as ReactNode,
     },
   ];
 
@@ -115,16 +115,18 @@ export default function FormActivity() {
             </KoboModalHeader>
 
             <section className={styles.detailsModalContent}>
-              <p className={styles.detailsModalText}>{detailsModalData.who} {detailsModalData.action} {detailsModalData.what}</p>
+              <p className={styles.detailsModalText}>
+                <pre>{JSON.stringify(detailsModalData.metadata, null, '  ')}</pre>
+              </p>
               <div className={styles.detailsModalMetaRow}>
                 <label>{t('Action occured:')}</label>
-                <time dateTime={detailsModalData.date}>
-                  {formatTime(detailsModalData.date)}
+                <time dateTime={detailsModalData.date_created}>
+                  {formatTime(detailsModalData.date_created)}
                 </time>
               </div>
               <div className={styles.detailsModalMetaRow}>
                 <label>{t('Device:')}</label>
-                {detailsModalData.device}
+                {detailsModalData.metadata.source}
               </div>
             </section>
           </KoboModal>

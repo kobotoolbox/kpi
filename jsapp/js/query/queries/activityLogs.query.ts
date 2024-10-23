@@ -4,6 +4,49 @@ import type {PaginatedResponse} from 'jsapp/js/dataInterface';
 import moment from 'moment';
 import {QueryKeys} from '../queryKeys';
 
+/**
+ * All possible log item actions.
+ * @see `AuditAction` class from {@link kobo/apps/audit_log/models.py} (BE code)
+ */
+enum AuditActions {
+  create = 'create',
+  delete = 'delete',
+  'in-trash' = 'in-trash',
+  'put-back' = 'put-back',
+  remove = 'remove',
+  update = 'update',
+  auth = 'auth',
+  deploy = 'deploy',
+  archive = 'archive',
+  unarchive = 'unarchive',
+  redeploy = 'redeploy',
+  'update-name' = 'update-name',
+  'update-form' = 'update-form',
+  'update-settings' = 'update-settings',
+  'update-qa' = 'update-qa',
+  'disable-sharing' = 'disable-sharing',
+  'enable-sharing' = 'enable-sharing',
+  'modify-sharing' = 'modify-sharing',
+}
+
+/**
+ * All possible log item types.
+ * @see `AuditType` class from {@link kobo/apps/audit_log/models.py} (BE code)
+ */
+enum AuditTypes {
+  access = 'access',
+  'project-history' = 'project-history',
+  'data-editing' = 'data-editing',
+  'user-management' = 'user-management',
+  'asset-management' = 'asset-management',
+  'submission-management' = 'submission-management',
+}
+
+enum AuditSubTypes {
+  project = 'project',
+  permission = 'permission',
+}
+
 export interface ActivityLogsItem {
   /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
   user: string;
@@ -11,21 +54,20 @@ export interface ActivityLogsItem {
   username: string;
   /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
   date_created: string;
-  // TODO: make this a limited list of all possible actions?
-  action: 'settings-changed' | string;
-  // TODO: make this a limited list of all possible types?
-  log_type: 'project-history' | string;
+  action: AuditActions;
+  log_type: AuditTypes;
   metadata: {
     /** E.g. "Firefox (Ubuntu)" */
     source: string;
     asset_uid: string;
     /** E.g. "71.235.120.86" */
     ip_address: string;
-    // TODO: make this a limited list of all possible subtypes?
-    log_subtype: 'project' | string;
-    // TODO: does both of these always appear?
-    old_name: string;
-    new_name: string;
+    log_subtype: AuditSubTypes;
+    old_name?: string;
+    new_name?: string;
+    version_uid?: string;
+    permission_granted?: string;
+    // a lot of more optional metadata props…
   };
 }
 
@@ -45,16 +87,13 @@ const getRandomMockDescriptionData = () => {
   const user_uid = String(Math.random());
 
   // action
-  const testActions = ['created', 'updated', 'deleted', 'added', 'removed', 'settings-changed'];
-  const action = testActions[Math.floor(Math.random() * testActions.length)];
+  const action = Object.keys(AuditActions)[Math.floor(Math.random() * Object.keys(AuditActions).length)];
 
   // log type
-  const testTypes = ['project-history', 'something-other'];
-  const log_type = testTypes[Math.floor(Math.random() * testTypes.length)];
+  const log_type = Object.keys(AuditTypes)[Math.floor(Math.random() * Object.keys(AuditTypes).length)];
 
   // metadata
-  const testSubTypes = ['project property', 'the form', 'the permissions'];
-  const log_subtype = testSubTypes[Math.floor(Math.random() * testSubTypes.length)];
+  const log_subtype = Object.keys(AuditSubTypes)[Math.floor(Math.random() * Object.keys(AuditSubTypes).length)];
   const testSources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux'];
   const source = testSources[Math.floor(Math.random() * testSources.length)];
   const asset_uid = String(Math.random());
@@ -66,13 +105,13 @@ const getRandomMockDescriptionData = () => {
     user,
     user_uid,
     username,
-    action,
-    log_type,
+    action: action as AuditActions,
+    log_type: log_type as AuditTypes,
     metadata: {
       source,
       asset_uid,
       ip_address,
-      log_subtype,
+      log_subtype: log_subtype as AuditSubTypes,
       old_name,
       new_name,
     },
