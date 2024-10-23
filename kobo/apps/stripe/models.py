@@ -168,7 +168,7 @@ class PlanAddOn(models.Model):
             amount_to_use = min(amount_used, limit_available)
             PlanAddOn.objects.filter(pk=self.id).update(
                 limits_remaining=DeductUsageValue(
-                    'limits_remaining', keyname=limit_type, amount=amont_used)
+                    'limits_remaining', keyname=limit_type, amount=amount_used)
             )
             return amount_to_use
         return 0

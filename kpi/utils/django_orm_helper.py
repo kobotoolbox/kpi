@@ -48,9 +48,10 @@ class DeductUsageValue(Func):
         "%(function)s(%(expressions)s,"
         "'{\"%(keyname)s\"}',"
         "("
-        "CASE WHEN %(usage_value)s > %(amount)s "
-        "THEN %(usage_value)s - %(amount)s "
+        f"CASE WHEN {usage_value} > %(amount)s "
+        f"THEN {usage_value} - %(amount)s "
         "ELSE 0 "
+        "END "
         ")::text::jsonb)"
     )
     arity = 1
