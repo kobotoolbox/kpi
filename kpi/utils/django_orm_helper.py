@@ -45,14 +45,14 @@ class DeductUsageValue(Func):
     function = 'jsonb_set'
     usage_value = "COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int"
     template = (
-        "%(function)s(%(expressions)s,"
-        "'{\"%(keyname)s\"}',"
-        "("
-        f"CASE WHEN {usage_value} > %(amount)s "
-        f"THEN {usage_value} - %(amount)s "
-        "ELSE 0 "
-        "END "
-        ")::text::jsonb)"
+        '%(function)s(%(expressions)s,'
+        '\'{"%(keyname)s"}\','
+        '('
+        f'CASE WHEN {usage_value} > %(amount)s '
+        f'THEN {usage_value} - %(amount)s '
+        'ELSE 0 '
+        'END '
+        ')::text::jsonb)'
     )
     arity = 1
 

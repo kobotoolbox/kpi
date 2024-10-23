@@ -57,7 +57,7 @@ def update_nlp_counter(
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if asset_id is not None and organization is not None:
-            handle_usage_deduction(organization, 'character', amount)
+            handle_usage_deduction(organization, 'characters', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),

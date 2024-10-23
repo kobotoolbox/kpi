@@ -181,7 +181,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response_get_list.status_code == status.HTTP_200_OK
         assert response_get_list.data['results'] == []
 
-    @data('character', 'seconds')
+    @data('characters', 'seconds')
     def test_get_user_totals(self, usage_type):
         limit = 2000
         quantity = 5
