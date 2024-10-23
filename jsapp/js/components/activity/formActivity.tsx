@@ -81,7 +81,10 @@ export default function FormActivity() {
             placeholder={t('Filter by')}
             options={filterOptions || []}
           />
-          <ExportButton exportFunction={exportData} />
+          <ExportButton
+            label={t('Export all data')}
+            exportFunction={exportData}
+          />
         </div>
       </div>
       <div className={styles.tableContainer}>
