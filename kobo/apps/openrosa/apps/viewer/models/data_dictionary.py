@@ -1,4 +1,5 @@
 # coding: utf-8
+import io
 import os
 import re
 from xml.dom import Node
@@ -156,15 +157,23 @@ class DataDictionary(XForm):
 
     def save(self, *args, **kwargs):
         if self.xls:
-            survey = create_survey_from_xls(self.xls)
-            survey.update({
-                'name': survey.id_string,
-            })
-            self.json = survey.to_json()
-            self.xml = survey.to_xml()
-            self._mark_start_time_boolean()
-            set_uuid(self)
-            self.set_uuid_in_xml(id_string=survey.id_string)
+            file_obj = self.xls.read()
+            if file_obj:
+                # Wrap the file data in a BytesIO object to simulate a file
+                xls_bytes_io = io.BytesIO(file_obj)
+                xls_bytes_io.name = self.xls.name
+
+                survey = create_survey_from_xls(xls_bytes_io)
+                survey.update(
+                    {
+                        'name': survey.id_string,
+                    }
+                )
+                self.json = survey.to_json()
+                self.xml = survey.to_xml()
+                self._mark_start_time_boolean()
+                set_uuid(self)
+                self.set_uuid_in_xml(id_string=survey.id_string)
         super().save(*args, **kwargs)
 
     def file_name(self):
