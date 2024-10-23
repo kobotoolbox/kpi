@@ -16,6 +16,7 @@ from kobo.apps.organizations.types import UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 from kobo.apps.stripe.utils import get_default_add_on_limits
 from kpi.fields import KpiUidField
+from kpi.utils.django_orm_helper import DeductUsageValue
 
 
 class PlanAddOn(models.Model):
@@ -165,8 +166,10 @@ class PlanAddOn(models.Model):
         if limit_type in self.usage_limits.keys():
             limit_available = self.limits_remaining.get(limit_type)
             amount_to_use = min(amount_used, limit_available)
-            self.limits_remaining[limit_type] -= amount_to_use
-            self.save()
+            PlanAddOn.objects.filter(pk=self.id).update(
+                limits_remaining=DeductUsageValue(
+                    'limits_remaining', keyname=limit_type, amount=amont_used)
+            )
             return amount_to_use
         return 0
 
