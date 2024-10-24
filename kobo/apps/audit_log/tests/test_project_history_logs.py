@@ -344,7 +344,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_disable_sharing_creates_log(self):
         self.asset.data_sharing = {
-            'enabled': True, 'fields': [],
+            'enabled': True,
+            'fields': [],
         }
         self.asset.save()
 
@@ -352,15 +353,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': False}},
-            verify_additional_metadata=lambda x:None,
+            verify_additional_metadata=lambda x: None,
             expected_action=AuditAction.DISABLE_SHARING,
         )
 
     def test_modify_sharing_creates_log(self):
         self.asset.data_sharing = {
-            'enabled': True, 'fields': ['q1'],
+            'enabled': True,
+            'fields': ['q1'],
         }
         self.asset.save()
+
         def verify_metadata(log_metadata):
             self.assertEqual(log_metadata['shared_fields']['added'], ['q2'])
             self.assertEqual(log_metadata['shared_fields']['removed'], ['q1'])
@@ -369,6 +372,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': True, 'fields': ['q2']}},
-            verify_additional_metadata=lambda x:None,
+            verify_additional_metadata=lambda x: None,
             expected_action=AuditAction.MODIFY_SHARING,
         )

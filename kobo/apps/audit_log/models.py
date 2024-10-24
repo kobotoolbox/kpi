@@ -384,7 +384,7 @@ class ProjectHistoryLog(AuditLog):
         changed_field_to_action_map = {
             'name': cls.name_change,
             'settings': cls.settings_change,
-            'data_sharing': cls.sharing_change
+            'data_sharing': cls.sharing_change,
         }
 
         for field, method in changed_field_to_action_map.items():
@@ -439,6 +439,7 @@ class ProjectHistoryLog(AuditLog):
         if old_enabled is True and new_enabled is False:
             # sharing went from enabled to disabled
             action = AuditAction.DISABLE_SHARING
+            return action, {}
         elif old_enabled is False and new_enabled is True:
             # sharing went from disabled to enabled
             action = AuditAction.ENABLE_SHARING

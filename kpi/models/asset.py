@@ -99,6 +99,7 @@ class AssetSetting:
       default_val [object|Callable]: can be either a value or a callable on an asset
       force_default [boolean]: if true, always use the default value
     """
+
     def __init__(self, setting_type, default_val=None, force_default=False):
         standard_defaults = {
             list: [],
