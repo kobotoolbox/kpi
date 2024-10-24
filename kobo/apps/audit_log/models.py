@@ -384,6 +384,7 @@ class ProjectHistoryLog(AuditLog):
         changed_field_to_action_map = {
             'name': cls.name_change,
             'settings': cls.settings_change,
+            'data_sharing': cls.sharing_change
         }
 
         for field, method in changed_field_to_action_map.items():
@@ -427,3 +428,30 @@ class ProjectHistoryLog(AuditLog):
                     metadata_field_subdict['new'] = new
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+
+    @staticmethod
+    def sharing_change(old_fields, new_fields):
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
+        new_enabled = new_fields['enabled']
+        new_shared_fields = new_fields['fields']
+        shared_fields_dict = {}
+        if old_enabled is True and new_enabled is False:
+            # sharing went from enabled to disabled
+            action = AuditAction.DISABLE_SHARING
+        elif old_enabled is False and new_enabled is True:
+            # sharing went from disabled to enabled
+            action = AuditAction.ENABLE_SHARING
+            shared_fields_dict['added'] = new_shared_fields
+        else:
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
+            action = AuditAction.MODIFY_SHARING
+            shared_fields_dict['added'] = added_fields
+            shared_fields_dict['removed'] = removed_fields
+        return action, {'shared_fields': shared_fields_dict}
