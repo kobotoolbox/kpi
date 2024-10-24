@@ -10,7 +10,6 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
     get_human_readable_client_user_agent,
 )
-from kobo.static_lists import PROJECT_METADATA_DEFAULT_LABELS
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,

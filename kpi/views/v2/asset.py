@@ -380,13 +380,7 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    logged_fields = [
-        'has_deployment',
-        'id',
-        'name',
-        'settings',
-        'latest_version.uid'
-    ]
+    logged_fields = ['has_deployment', 'id', 'name', 'settings', 'latest_version.uid']
     log_type = AuditType.PROJECT_HISTORY
 
     def get_object_override(self):

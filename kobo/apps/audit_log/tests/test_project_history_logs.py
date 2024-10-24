@@ -172,7 +172,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # no logs should be created
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-
     def test_change_project_name_creates_log(self):
         old_name = self.asset.name
 
@@ -282,18 +281,30 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     # if the setting is one of the standard ones, the new value after
                     # nulling it out will be whatever is configured as the default
                     setting_configs: AssetSetting = Asset.STANDARDIZED_SETTINGS[setting]
-                    new_value = setting_configs.default_val(self.asset) if callable(setting_configs.default_val) else setting_configs.default_val
+                    new_value = (
+                        setting_configs.default_val(self.asset)
+                        if callable(setting_configs.default_val)
+                        else setting_configs.default_val
+                    )
                 else:
                     new_value = None
 
                 if isinstance(new_value, list) and isinstance(old_value, list):
-                    removed_values = [ val for val in old_value if val not in new_value ]
-                    added_values = [ val for val in new_value if val not in old_value]
-                    self.assertListEqual(log_metadata['settings'][setting]['added'], added_values)
-                    self.assertListEqual(log_metadata['settings'][setting]['removed'], removed_values)
+                    removed_values = [val for val in old_value if val not in new_value]
+                    added_values = [val for val in new_value if val not in old_value]
+                    self.assertListEqual(
+                        log_metadata['settings'][setting]['added'], added_values
+                    )
+                    self.assertListEqual(
+                        log_metadata['settings'][setting]['removed'], removed_values
+                    )
                 else:
-                    self.assertEqual(log_metadata['settings'][setting]['new'], new_value)
-                    self.assertEqual(log_metadata['settings'][setting]['old'], old_value)
+                    self.assertEqual(
+                        log_metadata['settings'][setting]['new'], new_value
+                    )
+                    self.assertEqual(
+                        log_metadata['settings'][setting]['old'], old_value
+                    )
 
         self._base_endpoint_test(
             patch=True,
@@ -305,7 +316,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_add_new_settings_creates_log(self):
         def verify_metadata(log_metadata):
-            self.assertEqual(log_metadata['settings']['new_setting']['new'], 'new_value')
+            self.assertEqual(
+                log_metadata['settings']['new_setting']['new'], 'new_value'
+            )
             self.assertEqual(log_metadata['settings']['new_setting']['old'], None)
 
         self._base_endpoint_test(

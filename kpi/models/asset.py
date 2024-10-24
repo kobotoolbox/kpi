@@ -12,12 +12,12 @@ from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
-
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -87,6 +87,7 @@ class AssetDeploymentStatus(models.TextChoices):
     DEPLOYED = 'deployed', 'Deployed'
     DRAFT = 'draft', 'Draft'
 
+
 class AssetSetting:
     def __init__(self, setting_type, default_val=None, force_default=False):
         standard_defaults = {
@@ -95,7 +96,9 @@ class AssetSetting:
             str: '',
         }
         self.setting_type = setting_type
-        self.default_val = default_val if default_val else standard_defaults[setting_type]
+        self.default_val = (
+            default_val if default_val else standard_defaults[setting_type]
+        )
         self.force_default = force_default
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -439,8 +442,8 @@ class Asset(
         'country_codes': AssetSetting(
             setting_type=list,
             default_val=lambda asset: [c['value'] for c in asset.settings['country']],
-            force_default=True
-        )
+            force_default=True,
+        ),
     }
 
     def __init__(self, *args, **kwargs):
@@ -948,10 +951,17 @@ class Asset(
         ):
             # TODO: add a settings jsonschema to validate these
             for setting_name, setting in self.STANDARDIZED_SETTINGS.items():
-                self.standardize_json_field('settings', setting_name, setting.setting_type,
-                                            setting.default_val(self) if callable(setting.default_val) else setting.default_val,
-                                            setting.force_default
-                                            )
+                self.standardize_json_field(
+                    'settings',
+                    setting_name,
+                    setting.setting_type,
+                    (
+                        setting.default_val(self)
+                        if callable(setting.default_val)
+                        else setting.default_val
+                    ),
+                    setting.force_default,
+                )
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
