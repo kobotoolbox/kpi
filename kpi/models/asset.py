@@ -111,6 +111,7 @@ class AssetSetting:
         )
         self.force_default = force_default
 
+
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetWithoutPendingDeletedManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):

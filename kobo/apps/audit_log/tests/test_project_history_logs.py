@@ -229,7 +229,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_unchanged_settings_not_recorded_on_log(self):
         """
-        Check settings not included on log if they were in the request but did not change
+        Check settings not included on log if in the request but did not change
         """
         patch_data = {
             'settings': {
