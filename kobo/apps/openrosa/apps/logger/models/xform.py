@@ -78,6 +78,9 @@ class XForm(AbstractTimeStampedModel):
     last_submission_time = models.DateTimeField(blank=True, null=True)
     has_start_time = models.BooleanField(default=False)
     uuid = models.CharField(max_length=32, default='', db_index=True)
+    mongo_uuid = models.CharField(
+        max_length=100, null=True, unique=True, db_index=True
+    )
 
     uuid_regex = re.compile(r'(<instance>.*?id="[^"]+">)(.*</instance>)(.*)',
                             re.DOTALL)
