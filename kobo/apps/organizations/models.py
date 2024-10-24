@@ -1,3 +1,4 @@
+from typing import Literal
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import F
@@ -17,6 +18,16 @@ from organizations.utils import create_organization as create_organization_base
 
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
+from .constants import (
+    ADMIN_ORG_ROLE,
+    EXTERNAL_ORG_ROLE,
+    MEMBER_ORG_ROLE,
+    OWNER_ORG_ROLE,
+)
+
+OrganizationRole = Literal[
+    ADMIN_ORG_ROLE, EXTERNAL_ORG_ROLE, MEMBER_ORG_ROLE, OWNER_ORG_ROLE
+]
 
 
 class Organization(AbstractOrganization):
@@ -76,13 +87,45 @@ class Organization(AbstractOrganization):
         except AttributeError:
             return
 
+    @cache_for_request
+    def is_admin(self, user: 'User') -> bool:
+        """
+        Only extends super() to add decorator @cache_for_request and avoid
+        multiple calls to DB in the same request
+        """
+
+        return super().is_admin(user)
+
+    @cache_for_request
+    def is_owner(self, user):
+        """
+        Only extends super() to add decorator @cache_for_request and avoid
+        multiple calls to DB in the same request
+        """
+
+        return super().is_owner(user)
+
     @property
     @cache_for_request
     def owner_user_object(self) -> 'User':
+
         try:
             return self.owner.organization_user.user
         except ObjectDoesNotExist:
             return
+
+    def get_user_role(self, user: 'User') -> OrganizationRole:
+
+        if not self.users.filter(pk=user.pk).exists():
+            return EXTERNAL_ORG_ROLE
+
+        if self.is_owner(user):
+            return OWNER_ORG_ROLE
+
+        if self.is_admin(user):
+            return ADMIN_ORG_ROLE
+
+        return MEMBER_ORG_ROLE
 
 
 class OrganizationUser(AbstractOrganizationUser):

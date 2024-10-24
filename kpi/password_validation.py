@@ -118,9 +118,16 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
         # constructor, it won't be refresh if constance value is changed.
         self.user_attributes = config.PASSWORD_USER_ATTRIBUTES.splitlines()
 
+        # To prevent a migration, since the `User` object now includes a property
+        # called `organization`, we cannot dynamically assign `organization`.
+        # Instead, we'll use `organization_name` internally for validation.
+        if 'organization' in self.user_attributes:
+            index = self.user_attributes.index('organization')
+            self.user_attributes[index] = 'organization_name'
+
         # Set extra detail attributes on user object to call parent class
         # validation
-        if not hasattr(user, 'full_name') and not hasattr(user, 'organization'):
+        if not hasattr(user, 'full_name') and not hasattr(user, 'organization_name'):
             try:
                 user_extra_details = user.extra_details
             except get_user_model().extra_details.RelatedObjectDoesNotExist:
@@ -129,7 +136,7 @@ class UserAttributeSimilarityValidator(BaseUserAttributeSimilarityValidator):
                 setattr(user, 'full_name', user_extra_details.data.get('name', ''))
                 setattr(
                     user,
-                    'organization',
+                    'organization_name',
                     user_extra_details.data.get('organization', ''),
                 )
 

@@ -186,7 +186,7 @@ class PasswordTestCase(BaseTestCase):
 
         new_user = User(username='new_user', email='jd_2023@example.org')
         new_user.full_name = 'John Doe'
-        new_user.organization = 'Unknown business inc.'
+        new_user.organization_name = 'Unknown business inc.'
 
         password = 'newuser'
         error = self._run_validation(password, new_user)
