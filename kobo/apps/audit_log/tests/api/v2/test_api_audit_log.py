@@ -5,9 +5,9 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     AccessLog,
-    AuditAction,
     AuditLog,
     AuditType,
 )

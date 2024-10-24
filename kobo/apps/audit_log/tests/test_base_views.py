@@ -26,6 +26,8 @@ class DummyViewSet(AuditLoggedModelViewSet):
     Uses the email address model because it's simple
     """
 
+    log_type = 'dummy'
+
     permission_classes = (permissions.AllowAny,)
     queryset = EmailAddress.objects.all()
     serializer_class = DummyEmailSerializer
