@@ -37,7 +37,9 @@ class OrganizationTestCase(TestCase):
     def test_get_user_role(self):
         anotheruser = User.objects.get(username='anotheruser')
         alice = User.objects.create(username='alice', email='alice@alice.com')
-        external = User.objects.create(username='external', email='external@external.com')
+        external = User.objects.create(
+            username='external', email='external@external.com'
+        )
         self.organization.add_user(self.user)
         self.organization.add_user(anotheruser, is_admin=True)
         self.organization.add_user(alice)
