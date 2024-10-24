@@ -968,7 +968,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
               if (
                 q.type === QUESTION_TYPES.audio.id ||
-                q.type === META_QUESTION_TYPES['background-audio']
+                q.type === QUESTION_TYPES['background-audio'].id
               ) {
                 const submissionEditId = row.original['meta/rootUuid'] || row.original._uuid;
 

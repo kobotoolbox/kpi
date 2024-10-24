@@ -36,6 +36,10 @@ export function getColumnLabel(
   showGroupName: boolean,
   translationIndex = 0
 ): string {
+  // NOTE: Some very old code has something to do with nonexistent/negative
+  // translationIndex. No idea what is that. It does influences returned value.
+  const showLabels = translationIndex > -1;
+
   if (asset.content?.survey === undefined) {
     return key;
   }
@@ -97,9 +101,11 @@ export function getColumnLabel(
     }
   }
 
-  // NOTE: Some very old code has something to do with nonexistent/negative
-  // translationIndex. No idea what is that. It does influences returned value.
-  const showLabels = translationIndex > -1;
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users.
+  if (key === QUESTION_TYPES['background-audio'].id && showLabels) {
+    return t('Background audio');
+  }
 
   if (key === SUBMISSION_ACTIONS_ID) {
     return t('Multi-select checkboxes column');
@@ -165,7 +171,7 @@ export function getBackgroundAudioQuestionName(
 ): string | null {
   return (
     asset?.content?.survey?.find(
-      (item) => item.type === META_QUESTION_TYPES['background-audio']
+      (item) => item.type === QUESTION_TYPES['background-audio'].id
     )?.name || null
   );
 }

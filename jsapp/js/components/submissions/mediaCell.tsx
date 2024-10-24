@@ -4,7 +4,6 @@ import bem, {makeBem} from 'js/bem';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
-  META_QUESTION_TYPES,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import Button from 'js/components/common/button';
@@ -43,7 +42,10 @@ interface MediaCellProps {
  submissionUuid: string;
 }
 
-/** Table cell replacement for media submissions */
+/**
+ * Table cell replacement for image and video submissions. For audio type
+ * questions, please use `AudioCell` component.
+ */
 class MediaCell extends React.Component<MediaCellProps, {}> {
   constructor(props: MediaCellProps) {
     super(props);
