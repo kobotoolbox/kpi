@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from kpi.models import Asset
@@ -9,11 +10,12 @@ from kpi.signals import post_assign_asset_perm
 
 class AssetPermissionSignalTest(TestCase):
     def setUp(self):
-        self.asset = Asset.objects.create()
+        User = get_user_model()
+        self.user = User.objects.create(username='someuser')
+        self.asset = Asset.objects.create(owner=self.user)
         self.asset.connect_deployment(backend='mock')
         self.asset.deployment.set_enketo_open_rosa_server = MagicMock()
         self.anonymous_user = AnonymousUser()
-        self.user = User()
 
     def test_enketo_server_updated_for_anonymous_add_submissions(self):
         """
