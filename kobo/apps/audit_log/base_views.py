@@ -1,21 +1,25 @@
 from rest_framework import mixins, viewsets
-
+from kpi.utils.log import logging
 
 def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Raises an exception if the field is not found
+    Logs a warning and returns None if the field is not found
     """
     split = field.split('.')
-    attribute = getattr(obj, split[0])
-    if len(split) > 1:
-        for inner_field in split[1:]:
-            if isinstance(attribute, dict):
-                attribute = attribute.get(inner_field)
-            else:
-                attribute = getattr(attribute, inner_field)
-    return attribute
+    try:
+        attribute = getattr(obj, split[0])
+        if len(split) > 1:
+            for inner_field in split[1:]:
+                if isinstance(attribute, dict):
+                    attribute = attribute.get(inner_field)
+                else:
+                    attribute = getattr(attribute, inner_field)
+        return attribute
+    except (AttributeError, KeyError):
+        logging.warning(f'Attribute not found: {field} on object {obj}')
+        return None
 
 
 class AuditLoggedViewSet(viewsets.GenericViewSet):
@@ -33,6 +37,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
     """
 
     logged_fields = []
+    log_type = None
+    model_name = None
 
     def get_object(self):
         # actually fetch the object
@@ -45,12 +51,18 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             value = get_nested_field(obj, field)
             audit_log_data[field] = value
         self.request._request.initial_data = audit_log_data
+        self.request._request.log_type = self.log_type
+        self.request._request.model_name = self.model_name
+
         return obj
 
     def perform_update(self, serializer):
         self.perform_update_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
+            if field == 'data_sharing':
+                pass
+
             value = get_nested_field(serializer.instance, field)
             audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data
@@ -62,6 +74,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             value = get_nested_field(serializer.instance, field)
             audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data
+        self.request._request.log_type = self.log_type
+        self.request._request.model_name = self.model_name
 
     def perform_destroy(self, instance):
         audit_log_data = {}

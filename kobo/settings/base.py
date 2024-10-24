@@ -155,6 +155,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',

@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import responses
 from allauth.socialaccount.models import SocialAccount, SocialApp
@@ -6,12 +7,12 @@ from django.conf import settings
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
-from mock import patch
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
+from ...audit_log.audit_actions import AuditAction
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
