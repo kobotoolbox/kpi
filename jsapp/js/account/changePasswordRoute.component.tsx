@@ -3,13 +3,13 @@ import DocumentTitle from 'react-document-title';
 import {observer} from 'mobx-react';
 import sessionStore from 'js/stores/session';
 import bem, {makeBem} from 'js/bem';
-import {stringToColor} from 'js/utils';
 import {withRouter} from 'js/router/legacy';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import './accountSettings.scss';
 import styles from './changePasswordRoute.module.scss';
 import UpdatePasswordForm from './security/password/updatePasswordForm.component';
 import Button from 'js/components/common/button';
+import Avatar from 'js/components/common/avatar';
 
 bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -28,15 +28,13 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
     }
 
     const accountName = sessionStore.currentAccount.username;
-    const initialsStyle = {background: `#${stringToColor(accountName)}`};
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='l'
               startIcon='close'
               onClick={this.close.bind(this)}
@@ -45,10 +43,7 @@ const ChangePasswordRoute = class ChangePassword extends React.Component<WithRou
 
           <bem.AccountSettings__item m='column'>
             <bem.AccountSettings__item m='username'>
-              <bem.AccountBox__initials style={initialsStyle}>
-                {accountName.charAt(0)}
-              </bem.AccountBox__initials>
-              <h4>{accountName}</h4>
+              <Avatar size='m' username={accountName} isUsernameVisible />
             </bem.AccountSettings__item>
 
             <div className={styles.fieldsWrapper}>

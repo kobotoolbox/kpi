@@ -1,8 +1,7 @@
 from copy import deepcopy
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from constance.test import override_config
-from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from google.cloud import translate_v3
@@ -19,8 +18,6 @@ from kobo.apps.languages.models.translation import (
     TranslationService,
     TranslationServiceLanguageM2M,
 )
-from kpi.models.asset import Asset
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -28,6 +25,8 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.models.asset import Asset
+from kpi.utils.fuzzy_int import FuzzyInt
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -36,7 +35,8 @@ class ValidateSubmissionTest(APITestCase):
     def setUp(self):
         user = User.objects.create_user(username='someuser', email='user@example.com')
         self.asset = Asset(
-            owner=user, content={'survey': [{'type': 'audio', 'name': 'q1'}]}
+            owner=user,
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
         )
         self.asset.advanced_features = {}
         self.asset.save()
@@ -391,8 +391,12 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
 
 class GoogleNLPSubmissionTest(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='someuser', email='user@example.com')
-        self.asset = Asset(content={'survey': [{'type': 'audio', 'name': 'q1'}]})
+        self.user = User.objects.create_user(
+            username='someuser', email='user@example.com'
+        )
+        self.asset = Asset(
+            content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
+        )
         self.asset.advanced_features = {
             'transcript': {'languages': ['en']},
             'translation': {'languages': ['en', 'es']},
@@ -419,8 +423,12 @@ class GoogleNLPSubmissionTest(APITestCase):
             service=translation_service
         )
 
-
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={
+            'default':
+                {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+        }
+    )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
     @patch('google.cloud.storage.Client')
@@ -433,7 +441,6 @@ class GoogleNLPSubmissionTest(APITestCase):
             '_uuid': submission_id,
             '_attachments': [
                 {
-                    'id': 1,
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                 },
@@ -446,10 +453,10 @@ class GoogleNLPSubmissionTest(APITestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(49, 57)):
+        with self.assertNumQueries(FuzzyInt(49, 65)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
-        with self.assertNumQueries(FuzzyInt(20, 26)):
+        with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
 
     @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})

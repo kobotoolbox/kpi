@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import AuditAction, AuditLog
+from kpi.fields import RelativePrefixHyperlinkedRelatedField
+from .models import AuditLog
 
 
 class AuditLogSerializer(serializers.ModelSerializer):
@@ -19,7 +20,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
         fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
             'username',
@@ -32,7 +32,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'app_label',
             'model_name',
-            'object_id',
             'user',
             'user_uid',
             'username',
@@ -47,3 +46,21 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
     def get_username(self, audit_log):
         return audit_log.user.username
+
+
+class AccessLogSerializer(serializers.Serializer):
+    user = RelativePrefixHyperlinkedRelatedField(
+        view_name='user-kpi-detail',
+        lookup_field='user__username',
+        lookup_url_kwarg='username',
+        read_only=True,
+        source='user__username',
+    )
+    date_created = serializers.SerializerMethodField()
+    username = serializers.CharField(source='user__username')
+    metadata = serializers.JSONField()
+    user_uid = serializers.CharField()
+    count = serializers.IntegerField()
+
+    def get_date_created(self, audit_log):
+        return audit_log['date_created'].strftime('%Y-%m-%dT%H:%M:%SZ')

@@ -1,20 +1,29 @@
+// Libraries
 import React from 'react';
 import {observer} from 'mobx-react';
 import zip from 'lodash.zip';
 import isEqual from 'lodash.isequal';
 import Chart from 'chart.js/auto';
 import type {
-  ChartTypeRegistry,
+  ChartType,
   ChartDataset,
   ChartConfiguration,
 } from 'chart.js/auto';
 import clonedeep from 'lodash.clonedeep';
 import bem from 'js/bem';
+
+// Stores
 import sessionStore from 'js/stores/session';
-import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
-import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
+
+// Partial components
 import ReportTable from './reportTable.component';
 import Button from 'js/components/common/button';
+
+// Constants
+import {CHART_STYLES, CHART_COLOR_SETS} from './reportsConstants';
+
+// Types
+import type {ReportsResponse, ReportsResponseData} from './reportsConstants';
 
 export type PreparedTable = Array<
   [string | undefined, number | undefined, number | undefined]
@@ -76,13 +85,13 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       // as it causes the animation to start again.
       this.loadChart();
     }
-  }
 
-  // HACK: We no longer keep built PreparedTable in state, it's simply rebuilt
-  // during render. We keep this to ensure that re-render happens when props
-  // change.
-  static getDerivedStateFromProps() {
-    return {};
+    // We no longer keep built PreparedTable in state, it's simply rebuilt
+    // during render. We keep this to ensure that re-render happens when props
+    // change.
+    if (!isEqual(prevProps, this.props)) {
+      this.forceUpdate();
+    }
   }
 
   loadChart() {
@@ -123,12 +132,11 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     Chart.defaults.maintainAspectRatio = false;
 
     // If there is some invalid data we default to bar type
-    const chartJsType: keyof ChartTypeRegistry =
-      REPORT_STYLES[chartType]?.chartJsType || 'bar';
+    const chartJsType: ChartType = CHART_STYLES[chartType]?.chartJsType || 'bar';
 
     const datasets: ChartDataset[] = [];
 
-    const isArea = this.props.style.report_type === REPORT_STYLES.area.value;
+    const isArea = this.props.style.report_type === CHART_STYLES.area.value;
 
     if (data.values !== undefined) {
       if (data.responseLabels) {
@@ -140,20 +148,20 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
 
       let allPercentages: number[] = [];
-      data.values.forEach(function (val: any, i: number) {
+      data.values.forEach((val, i) => {
         const choiceLabel = val[2] || val[0] || '';
         let itemPerc = [];
         // TODO: Make the backend behave consistently?
         // https://github.com/kobotoolbox/kpi/issues/2562
-        if (Array.isArray(val[1].percentage)) {
+        if ('percentage' in val[1] && Array.isArray(val[1].percentage)) {
           itemPerc = val[1].percentage;
         }
-        if (Array.isArray(val[1].percentages)) {
+        if ('percentages' in val[1] && Array.isArray(val[1].percentages)) {
           itemPerc = val[1].percentages;
         }
         allPercentages = [...new Set([...allPercentages, ...itemPerc])];
         datasets.push({
-          label: truncateLabel(choiceLabel, 20),
+          label: truncateLabel(String(choiceLabel), 20),
           data: itemPerc,
           fill: isArea,
           backgroundColor: colors[i],
@@ -239,7 +247,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
     }
 
-    if (this.props.style.report_type === REPORT_STYLES.area.value) {
+    if (this.props.style.report_type === CHART_STYLES.area.value) {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 
@@ -247,7 +255,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
   }
 
   buildChartColors() {
-    let output = this.props.style.report_colors || REPORT_COLOR_SETS[0].colors;
+    let output = this.props.style.report_colors || CHART_COLOR_SETS[0].colors;
 
     const c1 = output.slice(0).map((c) => {
       c = c.replace('1)', '0.75)');
@@ -300,8 +308,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
           {this.props.data.show_graph && sessionStore.isLoggedIn && (
             <span className='report-button__question-settings'>
               <Button
-                type='bare'
-                color='dark-blue'
+                type='text'
                 size='m'
                 startIcon='more'
                 onClick={() =>

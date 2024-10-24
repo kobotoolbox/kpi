@@ -1,5 +1,4 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 @use '../analysisVariables';
 
@@ -18,7 +17,7 @@ $label-left-position: analysisVariables.$icon-size +
 
 .headerLabel {
   color: colors.$kobo-gray-700;
-  font-size: sizes.$x16;
+  font-size: 16px;
   font-weight: 600;
   flex: 1;
   // These below are useful for questions with long labels that are being
@@ -31,7 +30,7 @@ $label-left-position: analysisVariables.$icon-size +
 .headerIcon {
   background-color: colors.$kobo-light-teal;
   color: colors.$kobo-teal;
-  border-radius: sizes.$x6;
+  border-radius: 6px;
   width: analysisVariables.$icon-size;
   height: analysisVariables.$icon-size;
   line-height: analysisVariables.$icon-size;

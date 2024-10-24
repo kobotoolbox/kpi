@@ -69,8 +69,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       </div>
       {props.warning && !props.accountPage && (
         <Button
-          type={'bare'}
-          color={'dark-blue'}
+          type='text'
           endIcon='arrow-right'
           size='m'
           label={t('Monitor usage')}
@@ -81,8 +80,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
       )}
       {(!props.warning || props.accountPage) && (
         <Button
-          type={'bare'}
-          color={'dark-blue'}
+          type='text'
           endIcon='arrow-right'
           size='m'
           label={t('Upgrade now')}

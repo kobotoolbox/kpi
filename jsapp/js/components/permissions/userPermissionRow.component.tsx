@@ -3,13 +3,14 @@ import alertify from 'alertifyjs';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {stringToColor, escapeHtml} from 'js/utils';
+import {escapeHtml} from 'js/utils';
 import UserAssetPermsEditor from './userAssetPermsEditor.component';
 import permConfig from './permConfig';
 import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
 import type {AssignablePermsMap} from './sharingForm.component';
 import {getPermLabel, getFriendlyPermName} from './utils';
 import Button from 'js/components/common/button';
+import Avatar from 'js/components/common/avatar';
 
 interface UserPermissionRowProps {
   assetUid: string;
@@ -134,10 +135,6 @@ export default class UserPermissionRow extends React.Component<
   }
 
   render() {
-    const initialsStyle = {
-      background: `#${stringToColor(this.props.username)}`,
-    };
-
     const modifiers = [];
     if (!this.props.isPendingOwner && this.props.permissions.length === 0) {
       modifiers.push('deleted');
@@ -150,12 +147,8 @@ export default class UserPermissionRow extends React.Component<
       <bem.UserRow m={modifiers}>
         <bem.UserRow__info>
           <bem.UserRow__avatar>
-            <bem.AccountBox__initials style={initialsStyle}>
-              {this.props.username.charAt(0)}
-            </bem.AccountBox__initials>
+            <Avatar size='m' username={this.props.username} isUsernameVisible />
           </bem.UserRow__avatar>
-
-          <bem.UserRow__name>{this.props.username}</bem.UserRow__name>
 
           {this.props.isUserOwner && (
             <bem.UserRow__perms>{t('is owner')}</bem.UserRow__perms>
@@ -166,28 +159,26 @@ export default class UserPermissionRow extends React.Component<
           )}
 
           {!this.props.isUserOwner && !this.props.isPendingOwner && (
-            <React.Fragment>
+            <div className='user-row__perms-actions'>
               {this.renderPermissions(this.props.permissions)}
               {this.props.userCanEditPerms && (
                 <>
                   <Button
-                    type='bare'
-                    color='dark-blue'
+                    type='secondary'
                     size='m'
                     startIcon={this.state.isEditFormVisible ? 'close' : 'edit'}
                     onClick={this.toggleEditForm.bind(this)}
                   />
 
                   <Button
-                    type='bare'
-                    color='red'
+                    type='secondary-danger'
                     size='m'
                     startIcon='trash'
                     onClick={this.showRemovePermissionsPrompt.bind(this)}
                   />
                 </>
               )}
-            </React.Fragment>
+            </div>
           )}
         </bem.UserRow__info>
 

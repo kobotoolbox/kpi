@@ -83,7 +83,7 @@ export async function cancelInvite(inviteUrl: string) {
     handleApiFail(
       error as FailResponse,
       t(
-        'Failed to cancel transfer. The transfer may be declined or accpeted already. Please check your email.'
+        'Failed to cancel transfer. The transfer may be declined or accepted already. Please check your email.'
       )
     );
   }

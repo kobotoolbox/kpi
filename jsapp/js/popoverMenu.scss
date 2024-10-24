@@ -169,59 +169,6 @@
   }
 }
 
-.popover-menu--custom-reports {
-  .popover-menu__content {
-    max-height: 500px;
-    min-width: 300px;
-    overflow: scroll;
-    right: auto;
-    left: 20px;
-  }
-
-  .popover-menu__link {
-    white-space: normal;
-  }
-}
-
-.popover-menu--collectData-menu {
-  .popover-menu__content {
-    min-width: 320px;
-    max-width: 360px;
-    left: 0px;
-    top: auto;
-    bottom: -150px;
-    right: auto;
-    max-height: 400px;
-    overflow: auto;
-
-    .popover-menu__link {
-      max-width: 100%;
-      white-space: normal;
-      padding: 12px;
-      border-bottom: 1px solid colors.$kobo-gray-300;
-      border-left: 2px solid transparent;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      .collect-data-label {
-        font-weight: 600;
-        color: colors.$kobo-gray-800;
-      }
-
-      .collect-data-desc {
-        font-size: inherit;
-        line-height: 16px;
-      }
-
-      &:hover {
-        border-left: 2px solid colors.$kobo-teal;
-      }
-    }
-  }
-}
-
 .popover-menu__link.popover-menu__link--red {
   color: colors.$kobo-red;
 }
@@ -231,21 +178,6 @@
   .popover-menu__item {
     i.k-icon:first-child {
       font-size: 22px;
-    }
-  }
-}
-
-@include breakpoints.breakpoint(mediumAndUp) {
-  .popover-menu--collectData-menu .popover-menu__toggle {
-    min-width: 300px;
-  }
-
-  .popover-menu--collectData-menu .popover-menu__content {
-    min-width: 550px;
-    max-width: 780px;
-    left: 30px;
-    .collect-data-desc {
-      font-size: 12px;
     }
   }
 }

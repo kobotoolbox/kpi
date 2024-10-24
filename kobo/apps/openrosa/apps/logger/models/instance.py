@@ -7,6 +7,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import reversion
+from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.utils import timezone
@@ -22,8 +23,11 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
 from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
 from kobo.apps.openrosa.apps.logger.models.survey_type import SurveyType
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser, \
-    clean_and_parse_xml, get_uuid_from_xml
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    XFormInstanceParser,
+    clean_and_parse_xml,
+    get_uuid_from_xml,
+)
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
     GEOLOCATION,
@@ -31,10 +35,10 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     MONGO_STRFTIME,
     NOTES,
     SUBMISSION_TIME,
+    SUBMITTED_BY,
     TAGS,
     UUID,
     XFORM_ID_STRING,
-    SUBMITTED_BY
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -102,10 +106,6 @@ class Instance(AbstractTimeStampedModel):
     # TODO Don't forget to update all records with command `update_is_sync_with_mongo`.
     is_synced_with_mongo = LazyDefaultBooleanField(default=False)
 
-    # If XForm.has_kpi_hooks` is True, this field should be True either.
-    # It tells whether the instance has been successfully sent to KPI.
-    posted_to_kpi = LazyDefaultBooleanField(default=False)
-
     class Meta:
         app_label = 'logger'
 
@@ -129,12 +129,14 @@ class Instance(AbstractTimeStampedModel):
             return
         if self.xform and not self.xform.downloadable:
             raise FormInactiveError()
-        try:
-            profile = self.xform.user.profile
-        except self.xform.user.profile.RelatedObjectDoesNotExist:
-            return
-        if profile.metadata.get('submissions_suspended', False):
+
+        UserProfile = apps.get_model(
+            'main', 'UserProfile'
+        )  # noqa - Avoid circular imports
+        profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
+        if not created and profile.metadata.get('submissions_suspended', False):
             raise TemporarilyUnavailableError()
+        return
 
     def _set_geom(self):
         xform = self.xform
@@ -175,7 +177,7 @@ class Instance(AbstractTimeStampedModel):
         self.json = doc
 
     def _set_parser(self):
-        if not hasattr(self, "_parser"):
+        if not hasattr(self, '_parser'):
             self._parser = XFormInstanceParser(
                 self.xml, self.xform.data_dictionary())
 
@@ -318,7 +320,7 @@ class Instance(AbstractTimeStampedModel):
             return gc[0]
 
     def save(self, *args, **kwargs):
-        force = kwargs.pop("force", False)
+        force = kwargs.pop('force', False)
 
         self.check_active(force)
 

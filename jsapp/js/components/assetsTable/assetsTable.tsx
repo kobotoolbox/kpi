@@ -84,13 +84,17 @@ interface AssetsTableState {
 }
 
 /**
- * DEPRECATED-ish (see below)
  * Displays a table of assets. This old-ish component is handling three routes:
  * - My Library
  * - Public Collections
  * - Single Collection
  * The new and shiny component that handles Projects List is `ProjectsTable`,
  * and in the future it should become (if possible) the only one to be used.
+ *
+ * @deprecated There is no clear replacement as of yet. We have a better
+ * `ProjectsTable` component, but ultimately wa are aiming at using
+ * `react-table` more. See `UniversalTable` for the possible "final" way of
+ * handling tables.
  */
 export default class AssetsTable extends React.Component<
   AssetsTableProps,
@@ -329,8 +333,7 @@ export default class AssetsTable extends React.Component<
       return (
         <bem.AssetsTablePagination>
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='s'
             startIcon='angle-left'
             label={t('Previous')}
@@ -344,8 +347,7 @@ export default class AssetsTable extends React.Component<
           </span>
 
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='s'
             endIcon='angle-right'
             label={t('Next')}
@@ -372,8 +374,7 @@ export default class AssetsTable extends React.Component<
 
         {this.props.totalAssets !== null &&
           <Button
-            type='bare'
-            color='dark-blue'
+            type='text'
             size='s'
             endIcon='expand'
             label={t('Toggle fullscreen')}

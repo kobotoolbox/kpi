@@ -1,4 +1,3 @@
-@use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'scss/_variables';
 @use 'scss/z-indexes';
@@ -271,28 +270,6 @@ $side-tabs-width-mobile: 70px;
     }
   }
 
-  &.form-view__cell--toggle-details button {
-    cursor: pointer;
-    color: colors.$kobo-blue;
-    background: transparent;
-    border: 0;
-    padding: 5px;
-    text-align: center;
-
-    &:hover {
-      color: colors.$kobo-dark-blue;
-    }
-
-    &:active {
-      transform: translateY(1px);
-    }
-
-    .k-icon {
-      font-size: 18px;
-      vertical-align: -5px;
-    }
-  }
-
   &.form-view__cell--asset-content-summary-name {
     line-height: 1;
   }
@@ -306,7 +283,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--small-padding {
-    padding: sizes.$x10 sizes.$x20 sizes.$x20 sizes.$x20;
+    padding: 10px 20px 20px 20px;
   }
 
   &.form-view__cell--padding-small {
@@ -521,7 +498,7 @@ $side-tabs-width-mobile: 70px;
 .form-view.form-view--form-settings-sharing {
   background: colors.$kobo-white;
   .form-modal {
-    padding: sizes.$x40 sizes.$x40 sizes.$x16 sizes.$x40;
+    padding: 40px 40px 16px 40px;
     overflow: auto;
   }
 }

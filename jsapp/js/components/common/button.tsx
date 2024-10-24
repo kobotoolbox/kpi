@@ -10,20 +10,10 @@ import cx from 'classnames';
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't
- * need to import them, just pass correct strings.
+ * need to import them - just pass correct strings.
  */
 
-/**
- * Button types are:
- * 1. bare - no border, no background, hover sets background
- * 2. frame - border, no background, hover sets background
- * 3. full - no border, background, hover dims background
- */
-export type ButtonType = 'bare' | 'frame' | 'full';
-export type ButtonColor =
-  | 'blue'
-  | 'red'
-  | 'dark-blue';
+export type ButtonType = 'primary' | 'secondary' | 'danger' | 'secondary-danger' | 'text';
 
 /**
  * The size is the height of the button, but it also influences the paddings.
@@ -44,8 +34,15 @@ ButtonToIconAloneMap.set('m', 'l');
 ButtonToIconAloneMap.set('l', 'l');
 
 export interface ButtonProps {
+  /**
+   * Button types are:
+   * 1. primary - white text on blue background
+   * 2. secondary - dark blue text on light blue background
+   * 3. danger - white text on red background
+   * 4. secondary danger - dark red text on light red background
+   * 5. text - dark blue text with no background
+   */
   type: ButtonType;
-  color: ButtonColor;
   /** Note: this size will also be carried over to the icon. */
   size: ButtonSize;
   /**
@@ -63,8 +60,17 @@ export interface ButtonProps {
   tooltip?: string;
   /** Sets the alignment of the tooltip */
   tooltipPosition?: TooltipAlignment;
+  /**
+   * Disables the button. You don't need to use `isDisabled` if you already have
+   * `isPending`, but it doesn't hurt the component in any way to have them
+   * both, so go with what is less complicated in implementation.
+   */
   isDisabled?: boolean;
-  /** Changes the appearance to display spinner. */
+  /**
+   * Disables the button and changes the appearance: label/icon is visually
+   * hidden (still takes the same amount of space though!), and a spinner is
+   * being displayed in the center of the button.
+   */
   isPending?: boolean;
   /** Sets the button HTML type to "submit". */
   isSubmit?: boolean;
@@ -125,11 +131,12 @@ const Button = (props: ButtonProps) => {
 
   const renderButton = () => (
     <button
-      className={cx({
-        ['k-button']: true,
-        [`k-button--type-${props.type}`]: true,
-        [`k-button--color-${props.color}`]: true,
-        [`k-button--size-${props.size}`]: true,
+      className={cx([
+        'k-button',
+        `k-button--type-${props.type}`,
+        `k-button--size-${props.size}`,
+        props.className,
+      ],{
         ['k-button--pending']: props.isPending,
         ['k-button--has-start-icon']: props.startIcon,
         // Ensures only one icon is being displayed.
@@ -137,9 +144,13 @@ const Button = (props: ButtonProps) => {
         ['k-button--has-label']: Boolean(props.label),
         ['k-button--full-width']: props.isFullWidth,
         ['k-button--upper-case']: props.isUpperCase,
-      }, props.className)}
+      })}
       type={props.isSubmit ? 'submit' : 'button'}
-      aria-disabled={props.isDisabled}
+      // The `disabled` attribute is needed so that the button is not keyboard
+      // focusable, and `aria-disabled` is needed for accessibility.
+      // We also disable it when in pending state, so that it can't be clicked.
+      disabled={props.isDisabled || props.isPending}
+      aria-disabled={props.isDisabled || props.isPending}
       onClick={handleClick}
       onKeyUp={onKeyUp}
       aria-labelledby={props.label ? `k-button__label--${labelId}` : undefined}

@@ -76,6 +76,33 @@
         "pk": 3
     },
     {
+        "fields": {
+            "name": "Administrator",
+            "validated_password": true,
+            "user": 1
+        },
+        "model": "main.userprofile",
+        "pk": 1
+    },
+    {
+        "fields": {
+            "name": "Some User",
+            "validated_password": true,
+            "user": 2
+        },
+        "model": "main.userprofile",
+        "pk": 2
+    },
+    {
+        "fields": {
+            "name": "Another User",
+            "validated_password": true,
+            "user": 3
+        },
+        "model": "main.userprofile",
+        "pk": 3
+    },
+    {
         "model": "kpi.asset",
         "pk": 1,
         "parent": 1,

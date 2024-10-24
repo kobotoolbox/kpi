@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
 import sessionStore from 'js/stores/session';
 import styles from './newFeatureDialog.module.scss';
 import cx from 'classnames';
@@ -102,15 +102,14 @@ export default function NewFeatureDialog({
           <div className={cx(styles.pointer, pointerClass)} />
           <div className={styles.header}>
             {t('New feature')}
-            <Button
-              color='dark-blue'
-              size='s'
-              type='full'
-              startIcon='close'
+            <button
+              className={styles.closeButton}
               onClick={closeDialog}
-            />
+            >
+              <Icon name='close' size='m' />
+            </button>
           </div>
-          <div className={styles.content}>
+          <div>
             {content}
             &nbsp;
             {supportArticle && (

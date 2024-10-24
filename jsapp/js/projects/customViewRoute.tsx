@@ -46,6 +46,14 @@ function CustomViewRoute() {
     );
   }, [viewUid]);
 
+  // Whenever we do a full page (of results) reload, we need to clear up
+  // `selectedRows` to not end up with a project selected (e.g. on page of
+  // results that wasn't loaded/scrolled down into yet) and user not knowing
+  // about it.
+  useEffect(() => {
+    setSelectedRows([]);
+  }, [customView.isFirstLoadComplete]);
+
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
     const outcome: ProjectFieldName[] = [];
@@ -96,8 +104,7 @@ function CustomViewRoute() {
         />
 
         <Button
-          type='frame'
-          color='dark-blue'
+          type='secondary'
           size='s'
           startIcon='download'
           label={t('Export all data')}

@@ -670,8 +670,7 @@ export default class ProjectExportsCreator extends React.Component {
             />
 
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='s'
               isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
@@ -684,8 +683,7 @@ export default class ProjectExportsCreator extends React.Component {
             <span className='project-downloads__vr'/>
 
             <Button
-              type='frame'
-              color='blue'
+              type='secondary'
               size='s'
               isDisabled={(
                 !this.state.isCustomSelectionEnabled ||
@@ -748,8 +746,7 @@ export default class ProjectExportsCreator extends React.Component {
           </bem.ProjectDownloads__selectorRow>
 
           <Button
-            type='bare'
-            color='blue'
+            type='text'
             size='s'
             onClick={this.toggleAdvancedView.bind(this)}
             label={t('Advanced options')}
@@ -785,8 +782,7 @@ export default class ProjectExportsCreator extends React.Component {
                   {this.state.selectedDefinedExport &&
                     userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                       <Button
-                        type='bare'
-                        color='red'
+                        type='secondary-danger'
                         size='m'
                         onClick={this.onDeleteExportSetting.bind(
                           this,
@@ -801,8 +797,7 @@ export default class ProjectExportsCreator extends React.Component {
               </bem.ProjectDownloads__exportsSelector>
 
               <Button
-                type='full'
-                color='blue'
+                type='primary'
                 size='l'
                 isSubmit
                 onClick={this.onSubmit.bind(this)}

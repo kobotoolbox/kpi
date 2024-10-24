@@ -9,13 +9,11 @@ import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
 import alertify from 'alertifyjs';
-import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
 import {escapeHtml} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
-  PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
   META_QUESTION_TYPES,
@@ -619,8 +617,7 @@ export default Object.assign({
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
             <Button
-              type='full'
-              color='blue'
+              type='primary'
               size='l'
               isPending={this.state.asset_updated === update_states.PENDING_UPDATE}
               isDisabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
@@ -639,8 +636,7 @@ export default Object.assign({
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='l'
               onClick={this.safeNavigateToAsset.bind(this)}
               startIcon='close'
@@ -651,8 +647,7 @@ export default Object.assign({
         <bem.FormBuilderHeader__row m={'secondary'} >
           <bem.FormBuilderHeader__cell m={'toolsButtons'} >
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               isDisabled={previewDisabled}
               onClick={this.previewForm.bind(this)}
@@ -662,8 +657,7 @@ export default Object.assign({
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               isDisabled={!showAllAvailable}
               onClick={this.showAll.bind(this)}
@@ -673,8 +667,7 @@ export default Object.assign({
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               isDisabled={!groupable}
               onClick={this.groupQuestions.bind(this)}
@@ -687,8 +680,7 @@ export default Object.assign({
             />
 
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               isDisabled={this.toggleCascade === undefined}
               onClick={this.toggleCascade.bind(this)}
@@ -709,8 +701,7 @@ export default Object.assign({
 
           <bem.FormBuilderHeader__cell>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               onClick={this.toggleAsideLibrarySearch.bind(this)}
               tooltip={t('Insert cascading select')}
@@ -727,8 +718,7 @@ export default Object.assign({
 
           <bem.FormBuilderHeader__cell>
             <Button
-              type='bare'
-              color='dark-blue'
+              type='text'
               size='m'
               onClick={this.toggleAsideLayoutSettings.bind(this)}
               tooltip={t('Insert cascading select')}

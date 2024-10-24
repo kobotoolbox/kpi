@@ -9,6 +9,7 @@ export const PATHS = Object.freeze({
 export const ROUTES = Object.freeze({
   ROOT: '',
   ACCOUNT_ROOT: '/account',
+  ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',
   PUBLIC_COLLECTIONS: '/library/public-collections',
@@ -34,9 +35,10 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
-  /** Has: :uid, :qpath, :submissionEditId */
-  FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:qpath/:submissionEditId',
+  /** Has: :uid, :xpath, :submissionEditId */
+  FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',
+  FORM_ACTIVITY: '/forms/:uid/settings/activity',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
   FORM_RECORDS: '/forms/:uid/settings/records',

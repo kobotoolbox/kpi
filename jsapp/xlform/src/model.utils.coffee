@@ -28,28 +28,6 @@ module.exports = do ->
       out_out.push(_.object(orow))
     out_out
 
-  utils.txtid = ()->
-    # a is text
-    # b is numeric or text
-    # c is mishmash
-    o = 'AAnCAnn'.replace /[AaCn]/g, (c)->
-      randChar= ()->
-        charI = Math.floor(Math.random()*52)
-        charI += (if charI <= 25 then 65 else 71)
-        String.fromCharCode charI
-
-      r = Math.random()
-      if c is 'a'
-        randChar()
-      else if c is 'A'
-        String.fromCharCode 65+(r*26|0)
-      else if c is 'C'
-        newI = Math.floor(r*62)
-        if newI > 52 then (newI - 52) else randChar()
-      else if c is 'n'
-        Math.floor(r*10)
-    o.toLowerCase()
-
   utils.parseHelper =
     parseSkipLogic: (collection, value, parent_row) ->
       collection.meta.set("rawValue", value)
