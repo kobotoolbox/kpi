@@ -84,6 +84,20 @@ class Organization(AbstractOrganization):
         except ObjectDoesNotExist:
             return
 
+    @property
+    @cache_for_request
+    def is_mmo(self):
+        """
+        Determines if the multi-members feature is active for the organization
+
+        This returns True if:
+        - A superuser has enabled the override (`mmo_override`), or
+        - The organization has an active subscription.
+
+        If the override is enabled, it takes precedence over the subscription status
+        """
+        return self.mmo_override or bool(self.active_subscription_billing_details())
+
 
 class OrganizationUser(AbstractOrganizationUser):
     @property
