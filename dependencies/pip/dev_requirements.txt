@@ -12,6 +12,10 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
+-e git+https://github.com/XLSForm/pyxform.git@a724215f67c53bf529678125db15cae99cf61493#egg=pyxform
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
 aiohttp==3.9.3
@@ -537,10 +541,6 @@ pytz==2024.1
     # via
     #   flower
     #   pandas
-pyxform==2.1.1
-    # via
-    #   -r dependencies/pip/requirements.in
-    #   formpack
 pyyaml==6.0.1
     # via responses
 redis==5.0.3
