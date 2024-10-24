@@ -39,16 +39,6 @@ const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
     date: moment(curDate).format('YYYY-MM-DD HH:mm:ss'),
   };
 });
-
-const exportData: {
-  startTime?: number;
-  endTime?: number;
-  data?: ActivityLogsItem[];
-} = {
-  startTime: undefined,
-  endTime: undefined,
-  data: undefined,
-};
 // END OF MOCK GENERATION
 
 /**
