@@ -588,6 +588,10 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'PROJECT_HISTORY_RETENTION_DAYS': (
+        30,
+        'Number of days to keep project history audit logs.',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -714,6 +718,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FREE_TIER_THRESHOLDS',
         'FREE_TIER_DISPLAY',
         'FREE_TIER_CUTOFF_DATE',
+    ),
+    'Logs': (
+        'PROJECT_HISTORY_RETENTION_DAYS'
     ),
 }
 
