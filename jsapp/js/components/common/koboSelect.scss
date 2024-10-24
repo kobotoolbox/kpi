@@ -1,14 +1,13 @@
 @use 'scss/colors';
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'js/components/common/button';
 @use 'js/components/common/textBox.module';
 
-$k-select-option-height: sizes.$x36;
-$k-select-menu-padding: sizes.$x6;
+$k-select-option-height: 36px;
+$k-select-menu-padding: 6px;
 
 .k-select {
-  font-size: sizes.$x12;
+  font-size: 12px;
 
   .kobo-dropdown__menu {
     width: 100%;
@@ -37,7 +36,7 @@ $k-select-menu-padding: sizes.$x6;
   background-color: transparent;
   color: colors.$kobo-gray-700;
   position: relative; // Needed for pending state.
-  padding: 0 sizes.$x16;
+  padding: 0 16px;
 
   .k-select__search-box,
   .k-select__trigger-selected-option {
@@ -49,7 +48,7 @@ $k-select-menu-padding: sizes.$x6;
 .k-select__trigger-selected-option,
 .k-select__option {
   > *:not(:last-child) {
-    margin-right: sizes.$x6;
+    margin-right: 6px;
   }
 }
 
@@ -80,11 +79,11 @@ $k-select-menu-padding: sizes.$x6;
   // to suggest that there are more options.
   max-height: ($k-select-option-height * 4.5) + $k-select-menu-padding;
   overflow-x: auto;
-  margin: sizes.$x2 0 0;
+  margin: 2px 0 0;
   padding: $k-select-menu-padding ($k-select-menu-padding * 0.5);
   border-radius: button.$button-border-radius;
   background-color: colors.$kobo-white;
-  box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
+  box-shadow: 0 0 6px rgba(colors.$kobo-storm, 0.3);
 }
 
 .k-select__option {
@@ -116,7 +115,7 @@ $k-select-menu-padding: sizes.$x6;
   width: 100%;
   height: $k-select-option-height;
   color: colors.$kobo-gray-700;
-  padding: 0 #{sizes.$x16 - sizes.$x2};
+  padding: 0 #{16px - 2px};
   text-align: initial;
 }
 
@@ -126,12 +125,12 @@ $k-select-menu-padding: sizes.$x6;
 }
 
 .k-select__error {
-  font-size: sizes.$x12;
+  font-size: 12px;
   line-height: 1.6;
   font-weight: 400;
   font-style: normal;
   color: colors.$kobo-red;
-  margin: sizes.$x6 auto 0;
+  margin: 6px auto 0;
 }
 
 .k-select.k-select--has-error {
@@ -160,7 +159,7 @@ $k-select-menu-padding: sizes.$x6;
   background-color: transparent;
   border: 0;
   padding: 0;
-  font-size: sizes.$x14;
+  font-size: 14px;
 
   &:focus-visible {
     // wrapper element is handling that
@@ -311,7 +310,7 @@ $k-select-menu-padding: sizes.$x6;
 // This needs to have stronger specificity because of `.form-modal__item`
 .k-select label.k-select__label {
   color: colors.$kobo-gray-800;
-  font-size: sizes.$x12;
+  font-size: 12px;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
 }
@@ -320,11 +319,11 @@ $k-select-menu-padding: sizes.$x6;
   // NOTE: copied from textBox.module.scss
   // Smaller than the design, because there is also a single whitespace
   // character between the label and this mark
-  margin-left: sizes.$x2;
+  margin-left: 2px;
   color: colors.$kobo-mid-red;
-  font-size: sizes.$x14;
+  font-size: 14px;
   // Magic number to align it similarly to Figma designs
-  line-height: sizes.$x16;
+  line-height: 16px;
   display: inline-block;
   vertical-align: bottom;
 }
