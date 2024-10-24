@@ -797,6 +797,8 @@ export interface AccountResponse {
     tag: string | boolean;
   };
   social_accounts: SocialAccount[];
+  // Organization details
+  organizationPath?: string;
 }
 
 export interface AccountRequest {
