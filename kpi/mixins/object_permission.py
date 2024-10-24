@@ -19,8 +19,6 @@ from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
     PERM_FROM_KC_ONLY,
-    PERM_VIEW_ASSET,
-    PERM_MANAGE_ASSET,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -558,11 +556,16 @@ class ObjectPermissionMixin:
         return new_permission
 
     @classmethod
-    def get_admin_org_inherited_perms(cls):
+    def get_admin_org_inherited_perms(
+        cls, for_instance: Optional['kpi.models.Asset'] = None
+    ):
         return set(
             perm
             for inherit_perm in settings.ADMIN_ORG_INHERITED_PERMS
-            for perm in [inherit_perm, *cls.get_implied_perms(inherit_perm)]
+            for perm in [
+                inherit_perm,
+                *cls.get_implied_perms(inherit_perm, for_instance=for_instance),
+            ]
         )
 
     def get_perms(self, user_obj: settings.AUTH_USER_MODEL) -> list[str]:
@@ -570,7 +573,8 @@ class ObjectPermissionMixin:
         Return a list of codenames of all effective grant permissions that
         user_obj has on this object.
         """
-        user_perm_ids = self._get_effective_perms(user=user_obj)
+        user = get_database_user(user_obj)
+        user_perm_ids = self._get_effective_perms(user=user)
         perm_ids = [x[1] for x in user_perm_ids]
         assigned_perms = list(
             Permission.objects.filter(pk__in=perm_ids).values_list(
@@ -578,12 +582,13 @@ class ObjectPermissionMixin:
             )
         )
         project_views_perms = get_project_view_user_permissions_for_asset(
-            self, user_obj
+            self, user
         )
 
         other_perms = []
-        if self.owner.organization.is_admin(user_obj):
-            other_perms = list(self.get_admin_org_inherited_perms())
+        if self.owner and self.owner.organization.is_admin_only(user):
+            # Admins do not receive explicit permission assignments.
+            other_perms = list(self.get_admin_org_inherited_perms(self))
 
         return list(set(assigned_perms + project_views_perms + other_perms))
 
@@ -645,7 +650,7 @@ class ObjectPermissionMixin:
 
             if (
                 self.owner
-                and self.owner.organization.is_admin(user_obj)
+                and self.owner.organization.is_admin_only(user_obj)
                 and codename in admin_org_perms
             ):
                 return True

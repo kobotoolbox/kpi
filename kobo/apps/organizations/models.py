@@ -97,7 +97,14 @@ class Organization(AbstractOrganization):
         # Be aware: Owners are also Admins
         return super().is_admin(user)
 
-    def is_owner(self, user):
+    @cache_for_request
+    def is_admin_only(self, user: 'User') -> bool:
+
+        # Be aware: Owners are also Admins
+        return super().is_admin(user) and not self.is_owner(user)
+
+    @cache_for_request
+    def is_owner(self, user: 'User') -> bool:
         """
         Overrides `is_owner()` with `owner_user_object()` instead of
         using `super().is_owner()` to take advantage of `@cache_for_request`

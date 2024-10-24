@@ -35,7 +35,9 @@ class BaseAssetTestCase(BaseTestCase):
 
     EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
-    def create_asset(self, asset_type='survey', content: dict = None):
+    def create_asset(
+        self, asset_type='survey', content: dict = None, name: str = None
+    ):
         """
         Create a new, empty asset as the currently logged-in user
         """
@@ -46,6 +48,9 @@ class BaseAssetTestCase(BaseTestCase):
             'content': json.dumps(content),
             'asset_type': asset_type,
         }
+        if name:
+            data['name'] = name
+
         list_url = reverse(self._get_endpoint('asset-list'))
         response = self.client.post(list_url, data, format='json')
         self.assertEqual(
