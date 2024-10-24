@@ -71,6 +71,22 @@ const getFilterOptions = async () =>
   });
 
 /**
+ * Starts the exporting process of the activity logs.
+ * @returns {Promise<void>} The promise that starts the export
+ */
+const startActivityLogsExport = async () =>
+  new Promise<void>((resolve, reject) => {
+    // Simulates backend export process.
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        resolve();
+      } else {
+        reject();
+      }
+    }, 500);
+  });
+
+/**
  *
  *  This is a hook that fetches activity logs from the server.
  *
@@ -94,3 +110,9 @@ export const useActivityLogsFilterOptionsQuery = () =>
     queryKey: [QueryKeys.activityLogsFilter],
     queryFn: () => getFilterOptions(),
   });
+
+/**
+ * This is a hook to start the exporting process of the activity logs.
+ * @returns {() => void} The function to start the export
+ */
+export const useExportActivityLogs = () => startActivityLogsExport;
