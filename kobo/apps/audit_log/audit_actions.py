@@ -13,3 +13,5 @@ class AuditAction(models.TextChoices):
     ARCHIVE = 'archive'
     UNARCHIVE = 'unarchive'
     REDEPLOY = 'redeploy'
+    UPDATE_NAME = 'update-name'
+    UPDATE_SETTINGS = 'update-settings'
