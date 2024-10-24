@@ -14,6 +14,7 @@ $skipLogicHelpers = require './mv.skipLogicHelpers'
 readParameters = require('../../js/components/formBuilder/formBuilderUtils').readParameters
 writeParameters = require('../../js/components/formBuilder/formBuilderUtils').writeParameters
 txtid = require('js/utils').txtid
+notify = require('js/utils').notify
 
 module.exports = do ->
   row = {}

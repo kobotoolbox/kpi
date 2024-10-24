@@ -16,6 +16,9 @@
 # using a fork for django > 1.1.0 compatibility
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
 
+# pyxform
+-e git+https://github.com/XLSForm/pyxform.git@a724215f67c53bf529678125db15cae99cf61493#egg=pyxform
+
 # Regular PyPI packages
 Django>=4.2,<4.3
 Markdown
@@ -75,7 +78,6 @@ openpyxl
 psycopg
 pymongo
 python-dateutil
-pyxform==2.1.1
 requests
 regex
 responses
