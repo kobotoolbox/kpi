@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
@@ -500,6 +501,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         for attachment in response.data['results'][0]['_attachments']:
             assert attachment['filename'].startswith('anotheruser/')
 
+        # Get the mongo_uuid for the transferred asset (XForm)
+        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
+        mongo_uuid = xform.mongo_uuid
+
         assert (
             settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'someuser_{self.asset.uid}'}
@@ -507,7 +512,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         )
         assert (
             settings.MONGO_DB.instances.count_documents(
-                {'_userform_id': f'anotheruser_{self.asset.uid}'}
+                {'_userform_id': mongo_uuid}
             ) == 1
         )
 

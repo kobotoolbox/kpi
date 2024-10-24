@@ -11,6 +11,8 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
+import secrets
+import string
 import redis.exceptions
 import requests
 from defusedxml import ElementTree as DET
@@ -731,7 +733,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+        if self.xform.mongo_uuid:
+            return self.xform.mongo_uuid
+        return f'{self.asset.owner.username}_{self.xform_id_string}'
 
     @staticmethod
     def nlp_tracking_data(
@@ -1218,6 +1222,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'attachment_storage_bytes',
                 'require_auth',
                 'uuid',
+                'mongo_uuid',
             )
             .select_related('user')  # Avoid extra query to validate username below
             .first()
@@ -1233,6 +1238,20 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             raise InvalidXFormException
         self._xform = xform
         return self._xform
+
+    def generate_unique_key(self, length=20):
+
+        characters = string.ascii_letters + string.digits
+        # Generate a secure key with the specified length
+        return ''.join(secrets.choice(characters) for _ in range(length))
+
+    def set_mongo_uuid(self):
+        """
+        Set the `mongo_uuid` for the associated XForm if it's not already set.
+        """
+        if not self.xform.mongo_uuid:
+            self.xform.mongo_uuid = self.generate_unique_key()
+            self.xform.save(update_fields=['mongo_uuid'])
 
     @property
     def xform_id(self):

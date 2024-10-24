@@ -287,6 +287,7 @@ class TestXFormViewSet(TestAbstractViewSet):
             'num_of_submissions': 0,
             'attachment_storage_bytes': 0,
             'kpi_asset_uid': '',
+            'mongo_uuid': '',
         }
         self.assertEqual(data, XFormSerializer(None).data)
 
