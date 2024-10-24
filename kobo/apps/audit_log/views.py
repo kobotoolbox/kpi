@@ -93,7 +93,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Lists all access logs for all users. Only available to superusers.
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/all
+    <b>GET</b> /api/v2/access-logs
     </pre>
 
     > Example
@@ -144,12 +144,12 @@ class AccessLogViewSet(AuditLogViewSet):
     Lists all access logs for the authenticated user
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
+    <b>GET</b> /api/v2/access-logs/me
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/access-logs/
+    >       curl -X GET https://[kpi-url]/access-logs/me
 
     > Response 200
 
