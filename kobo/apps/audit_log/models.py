@@ -412,7 +412,8 @@ class ProjectHistoryLog(AuditLog):
     @staticmethod
     def settings_change(old_field, new_field):
         settings = {}
-        for setting_name in PROJECT_METADATA_DEFAULT_LABELS.keys():
+        all_settings = {**old_field, **new_field}.keys()
+        for setting_name in all_settings:
             old = old_field.get(setting_name, None)
             new = new_field.get(setting_name, None)
             if old != new:

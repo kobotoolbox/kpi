@@ -87,6 +87,16 @@ class AssetDeploymentStatus(models.TextChoices):
     DEPLOYED = 'deployed', 'Deployed'
     DRAFT = 'draft', 'Draft'
 
+class AssetSetting:
+    def __init__(self, setting_type, default_val=None, force_default=False):
+        standard_defaults = {
+            list: [],
+            dict: {},
+            str: '',
+        }
+        self.setting_type = setting_type
+        self.default_val = default_val if default_val else standard_defaults[setting_type]
+        self.force_default = force_default
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetWithoutPendingDeletedManager(models.Manager):
@@ -419,6 +429,18 @@ class Asset(
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
         PERM_ADD_SUBMISSIONS: {'require_auth': False},
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
+    }
+
+    STANDARDIZED_SETTINGS = {
+        'country': AssetSetting(setting_type=list, default_val=[]),
+        'sector': AssetSetting(setting_type=dict, default_val={}),
+        'description': AssetSetting(setting_type=str, default_val=None),
+        'organization': AssetSetting(setting_type=str, default_val=None),
+        'country_codes': AssetSetting(
+            setting_type=list,
+            default_val=lambda asset: [c['value'] for c in asset.settings['country']],
+            force_default=True
+        )
     }
 
     def __init__(self, *args, **kwargs):
@@ -924,17 +946,12 @@ class Asset(
             (not update_fields or update_fields and 'settings' in update_fields)
             and self.asset_type in [ASSET_TYPE_COLLECTION, ASSET_TYPE_SURVEY]
         ):
-            self.standardize_json_field('settings', 'country', list)
-            self.standardize_json_field(
-                'settings',
-                'country_codes',
-                list,
-                [c['value'] for c in self.settings['country']],
-                force_default=True
-            )
-            self.standardize_json_field('settings', 'sector', dict)
-            self.standardize_json_field('settings', 'description', str)
-            self.standardize_json_field('settings', 'organization', str)
+            # TODO: add a settings jsonschema to validate these
+            for setting_name, setting in self.STANDARDIZED_SETTINGS.items():
+                self.standardize_json_field('settings', setting_name, setting.setting_type,
+                                            setting.default_val(self) if callable(setting.default_val) else setting.default_val,
+                                            setting.force_default
+                                            )
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
