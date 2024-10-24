@@ -10,6 +10,7 @@ import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from '../query/queries/organizationQuery';
 
 interface AccountNavLinkProps {
   iconName: IconName;
@@ -34,7 +35,11 @@ function AccountNavLink(props: AccountNavLinkProps) {
 
 function AccountSidebar() {
   const [showPlans, setShowPlans] = useState(false);
-  const [organization, _] = useContext(OrganizationContext);
+
+  // const [organization, _] = useContext(OrganizationContext);
+  const {data: organization} = useOrganizationQuery();
+
+  console.log(organization)
 
   const isOrgOwner = useMemo(() => organization?.is_owner, [organization]);
 
@@ -80,7 +85,7 @@ function AccountSidebar() {
                   iconName='plus'
                   name={t('Add-ons')}
                   to={ACCOUNT_ROUTES.ADD_ONS}
-                  isNew={true}
+                  isNew
                 />
               )}
             </>
