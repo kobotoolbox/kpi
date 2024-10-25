@@ -6,12 +6,13 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -49,7 +50,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class AssetViewSet(
-    ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
     * Assign an asset to a collection <span class='label label-warning'>partially implemented</span>
@@ -378,29 +379,11 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    def get_object(self):
-        """
-        This `get_object` method bypasses the filter backends because the UID
-        already explicitly filters the object to be retrieved.
-        It relies on `check_object_permissions` to validate access to the object.
-        """
-        try:
-            asset = Asset.objects.get(uid=self.kwargs['uid'])
-        except Asset.DoesNotExist:
-            raise Http404
-
-        self.check_object_permissions(self.request, asset)
-
-        # Cope with kobotoolbox/formpack#322, which wrote invalid content
-        # into the database. For performance, consider only the current
-        # content, not previous versions. Previous versions are handled in
-        # `kobo.apps.reports.report_data.build_formpack()`
-        if self.request.method == 'GET':
-            repair_file_column_content_and_save(
-                asset, include_versions=False
-            )
-
-        return asset
+    logged_fields = [
+        'id',
+        'has_deployment',
+    ]
+    log_type = AuditType.PROJECT_HISTORY
 
     @action(
         detail=False,
@@ -479,9 +462,11 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-                ProjectHistoryLog.create_from_deployment_request(
-                    request, asset, first_deployment=True
-                )
+                request._request.additional_audit_log_info = {
+                    'id': asset.id,
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
+                }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -506,21 +491,15 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
-
-                # create a project history log
-                # note a log will be created even if nothing changed, since
-                # we care about request intent more than effect
-
-                # copy the request data so we don't change the original object
-                request_data_copy = request.data.copy()
-                # remove the 'backend' key, we don't care about it for this part
-                request_data_copy.pop('backend', None)
-
-                updated_fields = request_data_copy.keys()
-                only_active_changed = list(updated_fields) == ['active']
-                ProjectHistoryLog.create_from_deployment_request(
-                    request, asset, only_active_changed=only_active_changed
-                )
+                only_active_changed = set(serializer.validated_data.keys()) == {
+                    'active'
+                }
+                request._request.additional_audit_log_info = {
+                    'only_active_changed': only_active_changed,
+                    'active': serializer.data['active'],
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
+                }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -552,6 +531,30 @@ class AssetViewSet(
 
         return super().finalize_response(
             request, response, *args, **kwargs)
+
+    def get_object_override(self):
+        """
+        This `get_object` method bypasses the filter backends because the UID
+        already explicitly filters the object to be retrieved.
+        It relies on `check_object_permissions` to validate access to the object.
+        """
+        try:
+            asset = Asset.objects.get(uid=self.kwargs['uid'])
+        except Asset.DoesNotExist:
+            raise Http404
+
+        self.check_object_permissions(self.request, asset)
+
+        # Cope with kobotoolbox/formpack#322, which wrote invalid content
+        # into the database. For performance, consider only the current
+        # content, not previous versions. Previous versions are handled in
+        # `kobo.apps.reports.report_data.build_formpack()`
+        if self.request.method == 'GET':
+            repair_file_column_content_and_save(
+                asset, include_versions=False
+            )
+
+        return asset
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
@@ -785,10 +788,10 @@ class AssetViewSet(
                                              partial=True)
 
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        super().perform_update(serializer)
         return Response(serializer.data)
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         user = get_database_user(self.request.user)
         serializer.save(
             owner=user,
@@ -796,7 +799,7 @@ class AssetViewSet(
             last_modified_by=user.username
         )
 
-    def perform_destroy(self, instance):
+    def perform_destroy_override(self, instance):
         self._bulk_asset_actions(
             {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
         )
