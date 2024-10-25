@@ -12,6 +12,7 @@ import {
 } from '@tanstack/react-table';
 
 // Partial components
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Button from 'js/components/common/button';
 import KoboSelect from 'js/components/common/koboSelect';
 
@@ -50,6 +51,11 @@ interface UniversalTableProps<DataItem> {
   /** A list of column definitions */
   columns: UniversalTableColumn<DataItem>[];
   data: DataItem[];
+  /**
+   * When set to `true`, a spinner with overlay will be displayed over the table
+   * rows.
+   */
+  isSpinnerVisible?: boolean;
   // PAGINATION
   // To see footer with pagination you need to pass all these below:
   /** Starts with `0` */
@@ -213,6 +219,12 @@ export default function UniversalTable<DataItem>(
   return (
     <div className={styles.universalTableRoot}>
       <div className={styles.tableContainer}>
+        {props.isSpinnerVisible &&
+          <div className={styles.spinnerOverlay}>
+            <LoadingSpinner message={false} />
+          </div>
+        }
+
         <table
           className={styles.table}
           style={{width: table.getTotalSize()}}
