@@ -38,6 +38,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     )
     validated_password = serializers.SerializerMethodField()
     accepted_tos = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -60,47 +61,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'social_accounts',
             'validated_password',
             'accepted_tos',
+            'organization',
         )
         read_only_fields = (
             'email',
             'accepted_tos',
         )
-
-    def get_server_time(self, obj):
-        # Currently unused on the front end
-        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
-
-    def get_date_joined(self, obj):
-        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
-
-    def get_projects_url(self, obj):
-        return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_gravatar(self, obj):
-        return gravatar_url(obj.email)
-
-    def get_git_rev(self, obj):
-        request = self.context.get('request', False)
-        if constance.config.EXPOSE_GIT_REV or (
-            request and request.user.is_superuser
-        ):
-            return settings.GIT_REV
-        else:
-            return False
-
-    def get_validated_password(self, obj):
-        try:
-            extra_details = obj.extra_details
-        except obj.extra_details.RelatedObjectDoesNotExist:
-            # validated_password defaults to True and only becomes False if set
-            # by an administrator. If extra_details does not exist, then
-            # there's no way the administrator ever intended validated_password
-            # to be False for this user
-            return True
-
-        return extra_details.validated_password
 
     def get_accepted_tos(self, obj: User) -> bool:
         """
@@ -115,6 +81,44 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'last_tos_accept_time' in user_extra_details.private_data.keys()
         )
         return accepted_tos
+
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+    def get_git_rev(self, obj):
+        request = self.context.get('request', False)
+        if constance.config.EXPOSE_GIT_REV or (
+            request and request.user.is_superuser
+        ):
+            return settings.GIT_REV
+        else:
+            return False
+
+    def get_gravatar(self, obj):
+        return gravatar_url(obj.email)
+
+    def get_projects_url(self, obj):
+        return '/'.join((settings.KOBOCAT_URL, obj.username))
+
+    def get_server_time(self, obj):
+        # Currently unused on the front end
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+    def get_validated_password(self, obj):
+        try:
+            extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            # validated_password defaults to True and only becomes False if set
+            # by an administrator. If extra_details does not exist, then
+            # there's no way the administrator ever intended validated_password
+            # to be False for this user
+            return True
+
+        return extra_details.validated_password
 
     def to_representation(self, obj):
         if obj.is_anonymous:
