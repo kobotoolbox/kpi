@@ -1,5 +1,6 @@
 import copy
 
+import jsonschema.exceptions
 from django.test import override_settings
 from django.urls import reverse
 
@@ -375,3 +376,55 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['shared_fields'][ADDED], ['q2'])
         self.assertEqual(log_metadata['shared_fields'][REMOVED], ['q1'])
+
+    def test_update_content_creates_log(self):
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'content': {'some': 'thing'}},
+            expected_action=AuditAction.UPDATE_CONTENT,
+        )
+
+    def test_update_qa_creates_log(self):
+        request_data = {
+            'advanced_features': {
+                'qual': {
+                    'qual_survey': [
+                        {
+                            'type': 'qual_note',
+                            'uuid': '12345',
+                            'scope': 'by_question#survey',
+                            'xpath': 'q1',
+                            'labels': {'_default': 'QA Question'},
+                            # requests to remove a question just add this
+                            # option rather than actually deleting anything
+                            'options': {'deleted': True},
+                        }
+                    ]
+                }
+            }
+        }
+
+        log_metadata = self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+        )
+
+        self.assertEqual(
+                log_metadata['qa'][NEW],
+                request_data['advanced_features']['qual']['qual_survey'],
+        )
+
+    def test_failed_qa_update_does_not_create_log(self):
+        # badly formatted QA dict should result in an error before update
+        request_data = {'advanced_features': {'qual': {'qual_survey': ['bad']}}}
+        with self.assertRaises(jsonschema.exceptions.ValidationError):
+            self.client.patch(
+                reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
+                data=request_data,
+                format='json',
+            )
+
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
