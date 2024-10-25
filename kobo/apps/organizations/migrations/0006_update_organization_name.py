@@ -45,7 +45,7 @@ def noop(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organizations', '0001_squashed_0004_remove_organization_uid'),
+        ('organizations', '0005_add_mmo_override_field_to_organization'),
     ]
 
     operations = [migrations.RunPython(update_organization_names, noop)]
