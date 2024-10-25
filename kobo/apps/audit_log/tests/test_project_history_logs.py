@@ -49,6 +49,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             format='json',
         )
         self.asset.refresh_from_db()
+
         # make sure a log was created
         logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(logs.count(), 1)

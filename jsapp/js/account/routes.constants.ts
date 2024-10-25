@@ -26,4 +26,6 @@ export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   PLAN: ROUTES.ACCOUNT_ROOT + '/plan',
   ADD_ONS: ROUTES.ACCOUNT_ROOT + '/addons',
   CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/change-password',
+  ORGANIZATION_SETTINGS: ROUTES.ORGANIZATION + '/settings',
+  ORGANIZATION_MEMBERS: ROUTES.ORGANIZATION + '/members',
 };
