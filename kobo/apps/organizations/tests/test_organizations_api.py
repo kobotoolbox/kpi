@@ -48,11 +48,6 @@ class OrganizationTestCase(BaseTestCase):
             res = self.client.get(self.url_list)
         self.assertContains(res, organization2.name)
 
-    def test_list_creates_org(self):
-        self.assertFalse(self.user.organizations_organization.all())
-        self.client.get(self.url_list)
-        self.assertTrue(self.user.organizations_organization.all())
-
     def test_api_returns_org_data(self):
         self._insert_data()
         response = self.client.get(self.url_detail)

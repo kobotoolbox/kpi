@@ -1,10 +1,5 @@
-# coding: utf-8
 import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import constance
 from django.contrib.auth import update_session_auth_hash
@@ -15,6 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
@@ -22,9 +18,11 @@ from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
+from kpi.utils.object_permission import get_database_user
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
+
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
@@ -98,6 +96,22 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_gravatar(self, obj):
         return gravatar_url(obj.email)
+
+    def get_organization(self, obj):
+        user = get_database_user(obj)
+        request = self.context.get('request')
+
+        if not user.organization:
+            return {}
+        return {
+            'url': reverse(
+                'organizations-detail',
+                kwargs={'id': user.organization.id},
+                request=request,
+            ),
+            'name': user.organization.name,
+            'uid': user.organization.id,
+        }
 
     def get_projects_url(self, obj):
         return '/'.join((settings.KOBOCAT_URL, obj.username))

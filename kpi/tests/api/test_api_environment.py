@@ -269,8 +269,10 @@ class EnvironmentTests(BaseTestCase):
     def test_free_tier_override_uses_organization_owner_join_date(
         self,
     ):
-        """ If the user is in an organization, the custom free tier should only
-        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
+        """
+        If the user is in an organization, the custom free tier should only
+        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE
+        """
         org_user = baker.make(
             settings.AUTH_USER_MODEL,
             username='org_user',
