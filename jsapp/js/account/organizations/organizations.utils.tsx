@@ -1,4 +1,4 @@
-import type {SubscriptionInfo} from '../stripe.types';
+import type {SubscriptionInfo} from 'jsapp/js/account/stripe.types';
 import type {EnvStoreData} from 'jsapp/js/envStore';
 
 /** Only use this directly for complex cases/strings (for example, possessive case). 
