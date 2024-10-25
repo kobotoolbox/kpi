@@ -7,7 +7,7 @@ def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Raises an exception if the field is not found
+    Returns None and logs a warning if the field is not found
     """
     split = field.split('.')
     try:
