@@ -2,7 +2,6 @@
 
 from django.db import migrations
 from django.core.paginator import Paginator
-from docutils.nodes import organization
 
 
 def update_organization_names(apps, schema_editor):
