@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'scss/z-indexes';
 
@@ -74,7 +73,7 @@
   .bottomLeft {
     flex: 61;
     max-width: 60vw; // ensure very long words don't murder the UI
-    margin-right: sizes.$x16;
+    margin-right: 16px;
   }
 
   .bottomRight {

@@ -1,5 +1,4 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 
 @keyframes processing {
@@ -60,8 +59,8 @@
 
   .project-downloads-group-textbox {
     @include mixins.centerRowFlex;
-    gap: sizes.$x10;
-    margin-top: sizes.$x4;
+    gap: 10px;
+    margin-top: 4px;
 
     > * {
       flex: 5;
@@ -69,7 +68,7 @@
   }
 
   .project-downloads-group-textbox__title {
-    font-size: sizes.$x12;
+    font-size: 12px;
     text-align: right;
 
     &[disabled] {
@@ -79,9 +78,9 @@
   }
 
   .custom-export-name-textbox {
-    margin-left: sizes.$x28;
-    width: calc(100% - sizes.$x28);
-    margin-top: sizes.$x4;
+    margin-left: 28px;
+    width: calc(100% - 28px);
+    margin-top: 4px;
     display: block;
   }
 

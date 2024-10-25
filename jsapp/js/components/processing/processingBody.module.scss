@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/breakpoints';
 
@@ -25,7 +24,7 @@
 // The content of these steps is different.
 .root.stepBegin,
 .root.stepConfig {
-  max-width: sizes.$x600 + (2 * sizes.$x30); // include paddings
+  max-width: 600px + (2 * 30px); // include paddings
   margin: 0 auto;
 }
 
@@ -40,7 +39,7 @@
 }
 
 .root :global h2 {
-  font-size: sizes.$x16;
+  font-size: 16px;
   font-weight: 400;
   text-align: center;
 }
@@ -55,7 +54,7 @@
   margin: 0;
 
   &:not(:last-child) {
-    margin-bottom: sizes.$x20;
+    margin-bottom: 20px;
   }
 }
 
@@ -63,23 +62,23 @@
   margin: 0;
 
   &:not(:last-child) {
-    margin-bottom: sizes.$x40;
+    margin-bottom: 40px;
   }
 }
 
 .text {
   white-space: pre-wrap;
-  border-top: sizes.$x2 solid colors.$kobo-gray-200;
-  padding-top: sizes.$x16;
+  border-top: 2px solid colors.$kobo-gray-200;
+  padding-top: 16px;
   width: 100%;
   overflow-y: auto;
   flex: 1;
 }
 
 .textarea {
-  border: sizes.$x2 solid colors.$kobo-gray-200;
-  border-radius: sizes.$x6;
-  padding: sizes.$x16;
+  border: 2px solid colors.$kobo-gray-200;
+  border-radius: 6px;
+  padding: 16px;
   resize: none;
   width: 100%;
   flex: 1;
@@ -88,25 +87,25 @@
 .header {
   font-weight: 400;
   text-align: center;
-  margin-bottom: sizes.$x24;
+  margin-bottom: 24px;
 }
 
 .header:not(:first-child) {
-  margin-top: sizes.$x32;
+  margin-top: 32px;
 }
 
 .footer {
   @include mixins.centerRowFlex;
 
-  padding: sizes.$x20 0;
+  padding: 20px 0;
   justify-content: space-between;
-  gap: sizes.$x14;
+  gap: 14px;
 }
 
 .footerRightButtons {
   @include mixins.centerRowFlex;
 
-  gap: sizes.$x14;
+  gap: 14px;
 }
 
 .footerCenterButtons {
@@ -114,7 +113,7 @@
 
   flex: 1;
   justify-content: center;
-  gap: sizes.$x14;
+  gap: 14px;
 }
 
 /*
@@ -123,7 +122,7 @@
 
 .transxHeader {
   @include mixins.centerRowFlex;
-  margin-bottom: sizes.$x12;
+  margin-bottom: 12px;
   gap: 8px;
 }
 
@@ -141,7 +140,7 @@
   max-width: 30%;
 
   &:not(:first-child) {
-    margin-left: sizes.$x4;
+    margin-left: 4px;
   }
 }
 
@@ -149,10 +148,10 @@
   @include mixins.textEllipsis;
 
   background-color: colors.$kobo-light-storm;
-  height: sizes.$x28;
-  line-height: sizes.$x28;
-  border-radius: sizes.$x14;
-  padding: 0 sizes.$x14;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 14px;
+  padding: 0 14px;
 }
 
 @include breakpoints.breakpoint(veryNarrow) {
@@ -160,7 +159,7 @@
 
   .root.stepBegin,
   .root.stepConfig {
-    padding-top: sizes.$x30;
+    padding-top: 30px;
   }
 
   .header {
@@ -176,7 +175,7 @@
 
   .root.stepBegin,
   .root.stepConfig {
-    padding-top: sizes.$x50;
+    padding-top: 50px;
   }
 
   .header {
