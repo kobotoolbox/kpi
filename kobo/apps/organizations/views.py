@@ -18,7 +18,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
-from .models import Organization, create_organization
+from .models import Organization
 from .permissions import IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES

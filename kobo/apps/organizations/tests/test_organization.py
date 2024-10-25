@@ -1,5 +1,4 @@
 from django.test import TestCase
-from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -24,10 +23,6 @@ class OrganizationTestCase(TestCase):
     def test_owner_user_object_property(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.organization.add_user(anotheruser)
-        assert self.organization.owner_user_object == self.someuser
-        assert not (self.organization.owner_user_object == anotheruser)
-
-    def test_owner_user_object_property(self):
         assert self.organization.owner_user_object == self.someuser
 
     def test_get_user_role(self):
