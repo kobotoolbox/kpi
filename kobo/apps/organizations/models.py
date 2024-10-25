@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
 
@@ -21,6 +22,9 @@ from kpi.fields import KpiUidField
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
+    mmo_override = models.BooleanField(
+        default=False, verbose_name='Multi-members override'
+    )
 
     @cache_for_request
     def active_subscription_billing_details(self):
