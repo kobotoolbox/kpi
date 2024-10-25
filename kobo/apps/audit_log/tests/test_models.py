@@ -2,7 +2,6 @@ import datetime
 from datetime import timedelta
 from unittest.mock import patch
 
-from ddt import ddt
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
@@ -349,7 +348,6 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         )
 
 
-@ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
