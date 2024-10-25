@@ -2,6 +2,7 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
+import {QueryKeys} from '../queryKeys';
 
 export interface AccessLog {
   /** User URL */
@@ -39,7 +40,7 @@ export default function useAccessLogsQuery(
   pageOffset: number
 ) {
   return useQuery({
-    queryKey: ['accessLogs', itemLimit, pageOffset],
+    queryKey: [QueryKeys.accessLogs, itemLimit, pageOffset],
     queryFn: () => getAccessLogs(itemLimit, pageOffset),
     placeholderData: keepPreviousData,
     // We might want to improve this in future, for now let's not retry
