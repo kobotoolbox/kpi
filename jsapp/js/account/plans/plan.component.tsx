@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {postCheckout, postCustomerPortal} from '../stripe.api';
+import {postCheckout, postCustomerPortal, useOrganizationQuery} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -37,7 +37,6 @@ import type {ConfirmChangeProps} from 'js/account/plans/confirmChangeModal.compo
 import ConfirmChangeModal from 'js/account/plans/confirmChangeModal.component';
 import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
-import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 

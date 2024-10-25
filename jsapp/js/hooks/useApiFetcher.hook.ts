@@ -23,13 +23,6 @@ export interface ApiFetcherStatus extends Status {
 export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 
 /**
- *
- * @deprecated Use react-query instead. See `useOrganizationQuery` for a simple example.
- *
- * Below this is the old description for archiving purposes.
- *
- * ---
- *
  * A reusable hook for making simple fetches with a consistent API.
  *
  * Made to be easily used alongside the Context API - for a simple
@@ -49,6 +42,8 @@ export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
  *  during the initial load or if there's an error while fetching.
  *
  * @param {ApiFetcherOptions} options Setup options for the hook.
+ *
+ * @deprecated Use react-query instead. See `useOrganizationQuery` for a simple example.
  * */
 export const useApiFetcher = <Type>(
   fetcher: () => Promise<Type | undefined>,

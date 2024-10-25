@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useContext} from 'react';
+import type React from 'react';
+import {useState, useEffect, useContext} from 'react';
 import styles from './usageProjectBreakdown.module.scss';
 import {Link} from 'react-router-dom';
 import {ROUTES} from 'jsapp/js/router/routerConstants';
@@ -15,7 +16,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {useOrganizationQuery} from 'js/query/queries/organizations.query';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 type ButtonType = 'back' | 'forward';
 

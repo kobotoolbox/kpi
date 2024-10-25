@@ -1,10 +1,8 @@
 import React, {ReactNode} from 'react';
 import {UsageContext, useUsage} from 'js/account/usage/useUsage.hook';
 import {ProductsContext, useProducts} from 'js/account/useProducts.hook';
-import {
-  useOrganizationQuery,
-} from 'js/query/queries/organizations.query';
 import sessionStore from 'js/stores/session';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 export const BillingContextProvider = (props: {children: ReactNode}) => {
   const orgQuery = useOrganizationQuery();

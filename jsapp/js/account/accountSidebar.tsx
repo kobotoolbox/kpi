@@ -8,8 +8,8 @@ import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import './accountSidebar.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from './stripe.api';
 
 interface AccountNavLinkProps {
   iconName: IconName;

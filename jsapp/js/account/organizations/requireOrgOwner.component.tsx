@@ -1,8 +1,8 @@
 import React, {Suspense, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useOrganizationQuery} from 'js/query/queries/organizations.query';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 interface Props {
   children: React.ReactNode;
