@@ -175,6 +175,7 @@ class EnvironmentView(APIView):
                 data['stripe_public_key'] = str(
                     APIKey.objects.get(type='publishable', livemode=settings.STRIPE_LIVE_MODE).secret
                 )
+                data['use_team_label'] = False
             except MultipleObjectsReturned as e:
                 raise MultipleObjectsReturned(
                     'Remove extra api keys from the django admin.'

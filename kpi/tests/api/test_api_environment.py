@@ -127,6 +127,7 @@ class EnvironmentTests(BaseTestCase):
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
+            'use_team_label': False
         }
 
     def _check_response_dict(self, response_dict):
@@ -361,12 +362,26 @@ class EnvironmentTests(BaseTestCase):
         assert response.data['stripe_public_key'] == 'fake_public_key'
 
     @override_settings(STRIPE_ENABLED=False)
-    def test_use_team_label_in_environment(self):
+    def test_use_team_label_without_stripe_enabled(self):
         # Set the USE_TEAM_LABEL in the constance config to True
         with override_config(USE_TEAM_LABEL=True):
             response = self.client.get(self.url, format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertTrue(response.data['use_team_label'])
+
+        # Set the USE_TEAM_LABEL in the constance config to False
+        with override_config(USE_TEAM_LABEL=False):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertFalse(response.data['use_team_label'])
+
+    @override_settings(STRIPE_ENABLED=True)
+    def test_use_team_label_with_stripe_enabled(self):
+        # Set the USE_TEAM_LABEL in the constance config to True
+        with override_config(USE_TEAM_LABEL=True):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertFalse(response.data['use_team_label'])
 
         # Set the USE_TEAM_LABEL in the constance config to False
         with override_config(USE_TEAM_LABEL=False):
