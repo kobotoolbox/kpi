@@ -92,6 +92,20 @@ class Organization(AbstractOrganization):
             return
 
     @cache_for_request
+    def get_user_role(self, user: 'User') -> OrganizationRole:
+
+        if not self.users.filter(pk=user.pk).exists():
+            return EXTERNAL_ORG_ROLE
+
+        if self.is_owner(user):
+            return OWNER_ORG_ROLE
+
+        if self.is_admin(user):
+            return ADMIN_ORG_ROLE
+
+        return MEMBER_ORG_ROLE
+
+    @cache_for_request
     def is_admin(self, user: 'User') -> bool:
         """
         Only extends super() to add decorator @cache_for_request and avoid
@@ -99,6 +113,19 @@ class Organization(AbstractOrganization):
         """
 
         return super().is_admin(user)
+
+    @property
+    def is_mmo(self):
+        """
+        Determines if the multi-members feature is active for the organization
+
+        This returns True if:
+        - A superuser has enabled the override (`mmo_override`), or
+        - The organization has an active subscription.
+
+        If the override is enabled, it takes precedence over the subscription status
+        """
+        return self.mmo_override or bool(self.active_subscription_billing_details())
 
     @cache_for_request
     def is_owner(self, user):
@@ -117,35 +144,6 @@ class Organization(AbstractOrganization):
             return self.owner.organization_user.user
         except ObjectDoesNotExist:
             return
-
-<<<<<<< HEAD
-    @property
-    @cache_for_request
-    def is_mmo(self):
-        """
-        Determines if the multi-members feature is active for the organization
-
-        This returns True if:
-        - A superuser has enabled the override (`mmo_override`), or
-        - The organization has an active subscription.
-
-        If the override is enabled, it takes precedence over the subscription status
-        """
-        return self.mmo_override or bool(self.active_subscription_billing_details())
-=======
-    def get_user_role(self, user: 'User') -> OrganizationRole:
-
-        if not self.users.filter(pk=user.pk).exists():
-            return EXTERNAL_ORG_ROLE
-
-        if self.is_owner(user):
-            return OWNER_ORG_ROLE
-
-        if self.is_admin(user):
-            return ADMIN_ORG_ROLE
-
-        return MEMBER_ORG_ROLE
->>>>>>> @{-1}
 
 
 class OrganizationUser(AbstractOrganizationUser):
