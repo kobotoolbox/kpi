@@ -587,6 +587,10 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
     'ACCESS_LOG_LIFESPAN': (
         60,
         'Length of time in days to keep access logs.',
@@ -655,6 +659,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL'
         'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
