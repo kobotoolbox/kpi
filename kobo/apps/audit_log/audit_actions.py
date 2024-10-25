@@ -15,4 +15,3 @@ class AuditAction(models.TextChoices):
     REDEPLOY = 'redeploy'
     UPDATE_NAME = 'update-name'
     UPDATE_SETTINGS = 'update-settings'
-    
