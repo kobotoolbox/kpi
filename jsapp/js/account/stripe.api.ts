@@ -16,6 +16,7 @@ import type {
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
 import {useQuery} from '@tanstack/react-query';
+import {QueryKeys} from 'js/query/queryKeys';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -52,7 +53,7 @@ export const useOrganizationQuery = () => useQuery({
     const response = await fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
     return response.results?.[0];
   },
-  queryKey: ['organization'],
+  queryKey: [QueryKeys.organization],
 });
 
 /**
