@@ -1,8 +1,7 @@
-# coding: utf-8
-# 😇
 import datetime
 
 import constance
+import pytest
 from constance.test import override_config
 from django.conf import settings
 from django.http import HttpRequest
@@ -261,6 +260,10 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
         self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
 
+    @pytest.mark.skip(
+        'The "FREE_TIER_CUTOFF_DATE" has passed. '
+        'The related conditions are no longer applicable.'
+    )
     @override_config(
         FREE_TIER_CUTOFF_DATE=today.date(),
         FREE_TIER_THRESHOLDS=free_tier_thresholds,

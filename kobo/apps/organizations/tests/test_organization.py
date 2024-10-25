@@ -16,23 +16,19 @@ class OrganizationTestCase(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.user = User.objects.get(username='someuser')
-        self.organization = baker.make(
-            Organization,
-            id='orgSALFMLFMSDGmgdlsgmsd',
-            slug='orgSALFMLFMSDGmgdlsgmsd',
-        )
+        self.someuser = User.objects.get(username='someuser')
+
+        # someuser is the only member their organization, and the owner as well.
+        self.organization = self.someuser.organization
 
     def test_owner_user_object_property(self):
-        # The organization has no members yet, the first user is set as the owner
-        self.organization.add_user(self.user)
         anotheruser = User.objects.get(username='anotheruser')
         self.organization.add_user(anotheruser)
-        assert self.organization.owner_user_object == self.user
+        assert self.organization.owner_user_object == self.someuser
         assert not (self.organization.owner_user_object == anotheruser)
 
-    def test_no_owner_user_object_property(self):
-        assert self.organization.owner_user_object is None
+    def test_owner_user_object_property(self):
+        assert self.organization.owner_user_object == self.someuser
 
     def test_get_user_role(self):
         anotheruser = User.objects.get(username='anotheruser')
@@ -40,10 +36,9 @@ class OrganizationTestCase(TestCase):
         external = User.objects.create(
             username='external', email='external@external.com'
         )
-        self.organization.add_user(self.user)
         self.organization.add_user(anotheruser, is_admin=True)
         self.organization.add_user(alice)
-        assert self.organization.get_user_role(self.user) == OWNER_ORG_ROLE
+        assert self.organization.get_user_role(self.someuser) == OWNER_ORG_ROLE
         assert self.organization.get_user_role(anotheruser) == ADMIN_ORG_ROLE
         assert self.organization.get_user_role(alice) == MEMBER_ORG_ROLE
         assert self.organization.get_user_role(external) == EXTERNAL_ORG_ROLE
@@ -55,7 +50,7 @@ class OrganizationTestCase(TestCase):
             username='alice', password='alice', email='alice@alice.com'
         )
         assert Organization.objects.filter(name__startswith='alice').exists()
-        assert Organization.objects.all().count().count() == organization_count + 1
+        assert Organization.objects.all().count() == organization_count + 1
 
     def test_sync_org_name_on_save(self):
         """
@@ -65,20 +60,20 @@ class OrganizationTestCase(TestCase):
         This synchronization should only occur if the user is the owner of the
         organization.
         """
-
-        self.organization.add_user(self.user)
         # someuser is the owner
         assert self.organization.name == 'someuser’s organization'
-        some_extra_details = self.user.extra_details
-        some_extra_details.data['organization'] = 'SomeUser Technologies'
-        some_extra_details.save()
-        assert self.organization.name == 'Someuser Technologies'
+        someuser_extra_details = self.someuser.extra_details
+        someuser_extra_details.data['organization'] = 'SomeUser Technologies'
+        someuser_extra_details.save()
+        self.organization.refresh_from_db()
+        assert self.organization.name == 'SomeUser Technologies'
 
         # another is an admin
         anotheruser = User.objects.get(username='anotheruser')
 
         self.organization.add_user(anotheruser, is_admin=True)
-        some_extra_details = self.user.extra_details
-        some_extra_details.data['organization'] = 'AnotherUser Enterprises'
-        some_extra_details.save()
-        assert self.organization.name == 'Someuser Technologies'
+        anotheruser_extra_details = anotheruser.extra_details
+        anotheruser_extra_details.data['organization'] = 'AnotherUser Enterprises'
+        anotheruser_extra_details.save()
+        self.organization.refresh_from_db()
+        assert self.organization.name == 'SomeUser Technologies'

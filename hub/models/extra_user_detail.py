@@ -71,7 +71,6 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         This ensures that any updates in the metadata are accurately reflected
         in the organization's name.
         """
-
         user_organization = self.user.organization
         if user_organization.is_owner(self.user):
             try:
