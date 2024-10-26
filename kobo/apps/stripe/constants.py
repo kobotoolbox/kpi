@@ -22,14 +22,14 @@ FREE_TIER_EMPTY_DISPLAY = {
 ORGANIZATION_USAGE_MAX_CACHE_AGE = timedelta(minutes=15)
 
 USAGE_LIMIT_MAP = {
-    'character': 'mt_character',
+    'characters': 'mt_characters',
     'seconds': 'asr_seconds',
     'storage': 'storage_bytes',
     'submission': 'submission',
 }
 
 USAGE_LIMIT_MAP_STRIPE = {
-    'character': 'nlp_character',
+    'characters': 'nlp_character',
     'seconds': 'nlp_seconds',
     'storage': 'storage_bytes',
     'submission': 'submission',

@@ -86,6 +86,9 @@ class CachedClass:
         """
         Sets up the cache client and the cache hash name for the hset
         """
+        if getattr(self, '_cache_available', None) is False:
+            return
+
         self._redis_client = None
         self._cache_available = True
         self._cached_hset = {}

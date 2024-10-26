@@ -1,16 +1,15 @@
-from typing import Union
+from functools import partial
 
 from django.conf import settings
 from django.db.models import F
 from django_request_cache import cache_for_request
 
-from kobo.apps.organizations.types import UsageType
-
 if settings.STRIPE_ENABLED:
-   from djstripe.models import Customer, Subscription
-   from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, ORGANIZATION_USAGE_MAX_CACHE_AGE, \
-    USAGE_LIMIT_MAP_STRIPE, USAGE_LIMIT_MAP
-from functools import partial
+    from djstripe.models import Customer, Subscription
+
+    from kobo.apps.stripe.constants import (
+        ACTIVE_STRIPE_STATUSES,
+    )
 
 from organizations.abstract import (
     AbstractOrganization,
@@ -21,7 +20,6 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 
 class Organization(AbstractOrganization):
@@ -67,46 +65,34 @@ class Organization(AbstractOrganization):
         """
         # Only check for subscriptions if Stripe is enabled
         if settings.STRIPE_ENABLED:
-            qs = Organization.objects.prefetch_related('djstripe_customers').filter(
+            qs = (
+                Organization.objects.prefetch_related('djstripe_customers')
+                .filter(
                     djstripe_customers__subscriptions__status='canceled',
                     djstripe_customers__subscriber=self.id,
-                ).order_by(
-                    '-djstripe_customers__subscriptions__ended_at'
-                ).values(
+                )
+                .order_by('-djstripe_customers__subscriptions__ended_at')
+                .values(
                     anchor=F('djstripe_customers__subscriptions__ended_at'),
-                ).first()
+                )
+                .first()
+            )
             if qs:
                 return qs['anchor']
-            
+
         return None
 
-    def is_organization_over_plan_limit(self, limit_type: UsageType) -> Union[bool, None]:
+    @classmethod
+    def get_from_user_id(cls, user_id: int):
         """
-        Check if an organization is over their plan's limit for a given usage type
-        Returns None if Stripe isn't enabled or the limit status couldn't be determined
+        Get organization that this user is a member of.
         """
-
-        if not settings.STRIPE_ENABLED:
-            return None
-        usage_calc = ServiceUsageCalculator(
-            self.owner.organization_user.user, self
-        )
-        cached_usage = usage_calc.get_cached_usage(USAGE_LIMIT_MAP[limit_type])
-        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[limit_type]}_limit'
-        current_limit = Organization.objects.filter(
-            id=self.id,
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
-        ).values(
-            price_limit=F(f'djstripe_customers__subscriptions__items__price__metadata__{stripe_key}'),
-            product_limit=F(f'djstripe_customers__subscriptions__items__price__product__metadata__{stripe_key}'),
+        # TODO: validate this is the correct way to get a user's organization
+        org = cls.objects.filter(
+            organization_users__user__id=user_id,
         ).first()
-        if current_limit:
-            relevant_limit = current_limit.get('price_limit') or current_limit.get('product_limit')
-        else:
-            # TODO: get the limits from the community plan, overrides
-            relevant_limit = 2000
-        return int(relevant_limit) and cached_usage > int(relevant_limit)
+
+        return org
 
 
 class OrganizationUser(AbstractOrganizationUser):
@@ -118,7 +104,8 @@ class OrganizationUser(AbstractOrganizationUser):
         try:
             customer = Customer.objects.get(subscriber=self.organization.id)
             subscriptions = Subscription.objects.filter(
-                customer=customer, status__in=ACTIVE_STRIPE_STATUSES,
+                customer=customer,
+                status__in=ACTIVE_STRIPE_STATUSES,
             )
 
             unique_plans = set()
