@@ -155,6 +155,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -586,6 +587,15 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
+    'ACCESS_LOG_LIFESPAN': (
+        60,
+        'Length of time in days to keep access logs.',
+        'positive_int'
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +659,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL'
+        'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1219,6 +1231,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    }
 }
 
 
@@ -1768,6 +1785,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/zip',
     'application/x-zip-compressed'
 ]
+
+ACCESS_LOG_DELETION_BATCH_SIZE = 1000
 
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended

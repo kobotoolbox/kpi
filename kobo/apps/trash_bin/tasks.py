@@ -6,15 +6,12 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils.timezone import now
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-    PeriodicTasks,
-)
+from django_celery_beat.models import ClockedSchedule, PeriodicTask, PeriodicTasks
 from requests.exceptions import HTTPError
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.trackers.models import NLPUsageCounter
-from kobo.apps.audit_log.models import AuditLog, AuditAction, AuditType
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatCommunicationError

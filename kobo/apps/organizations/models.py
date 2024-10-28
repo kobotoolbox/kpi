@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
 
@@ -20,14 +22,9 @@ from kpi.fields import KpiUidField
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
-
-    @property
-    def email(self):
-        """
-        As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute
-        """
-        return self.owner.organization_user.user.email
+    mmo_override = models.BooleanField(
+        default=False, verbose_name='Multi-members override'
+    )
 
     @cache_for_request
     def active_subscription_billing_details(self):
@@ -51,7 +48,7 @@ class Organization(AbstractOrganization):
                 ).first()
 
         return None
-    
+
     @cache_for_request
     def canceled_subscription_billing_cycle_anchor(self):
         """
@@ -69,8 +66,27 @@ class Organization(AbstractOrganization):
                 ).first()
             if qs:
                 return qs['anchor']
-            
+
         return None
+
+    @property
+    def email(self):
+        """
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute
+        """
+        try:
+            return self.owner_user_object.email
+        except AttributeError:
+            return
+
+    @property
+    @cache_for_request
+    def owner_user_object(self) -> 'User':
+        try:
+            return self.owner.organization_user.user
+        except ObjectDoesNotExist:
+            return
 
 
 class OrganizationUser(AbstractOrganizationUser):
@@ -96,9 +112,10 @@ class OrganizationUser(AbstractOrganizationUser):
     @property
     def active_subscription_status(self):
         """
-        Return a comma-separated string of active subscriptions for the organization user.
+        Return a comma-separated string of active subscriptions for the organization
+        user.
         """
-        return ", ".join(self.active_subscription_statuses)
+        return ', '.join(self.active_subscription_statuses)
 
 
 class OrganizationOwner(AbstractOrganizationOwner):
