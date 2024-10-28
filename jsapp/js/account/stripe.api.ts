@@ -98,9 +98,12 @@ export const useOrganizationQuery = () => {
     };
   };
 
+  // Setting the 'enabled' property so the query won't run until we have the session data
+  // loaded. Account data is needed to fetch the organization data.
   return useQuery({
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
+    enabled: !sessionStore.isPending && sessionStore.isInitialLoadComplete,
   });
 };
 
