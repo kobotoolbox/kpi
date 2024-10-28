@@ -53,11 +53,11 @@ def update_nlp_counter(
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
         if asset_id is not None and organization is not None:
-            handle_usage_increment(organization, 'seconds', amount)
+            handle_usage_deduction(organization, 'seconds', amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if asset_id is not None and organization is not None:
-            handle_usage_increment(organization, 'character', amount)
+            handle_usage_deduction(organization, 'characters', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
@@ -71,9 +71,8 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     Get the used amount for a given organization and usage type
     """
     usage_calc = ServiceUsageCalculator(
-        organization.owner.organization_user.user, organization
+        organization.owner.organization_user.user, organization, disable_cache=True
     )
-    usage_calc._clear_cache()  # Do not use cached values
     usage = usage_calc.get_nlp_usage_by_type(USAGE_LIMIT_MAP[usage_type])
 
     return usage
@@ -101,11 +100,11 @@ def get_organization_remaining_usage(
     return total_remaining
 
 
-def handle_usage_increment(
+def handle_usage_deduction(
     organization: Organization, usage_type: UsageType, amount: int
 ):
     """
-    Increment the given usage type for this organization by the given amount
+    Deducts the specified usage type for this organization by the given amount
     """
     PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
@@ -115,9 +114,9 @@ def handle_usage_increment(
         current_usage = 0
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
-        increment = (
+        deduction = (
             amount if current_usage >= plan_limit else new_total_usage - plan_limit
         )
-        PlanAddOn.increment_add_ons_for_organization(
-            organization, usage_type, increment
+        PlanAddOn.deduct_add_ons_for_organization(
+            organization, usage_type, deduction
         )

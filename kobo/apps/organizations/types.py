@@ -1,3 +1,3 @@
 from typing import Literal
 
-UsageType = Literal['character', 'seconds', 'submission', 'storage']
+UsageType = Literal['characters', 'seconds', 'submission', 'storage']

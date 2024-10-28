@@ -180,7 +180,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response_get_list.status_code == status.HTTP_200_OK
         assert response_get_list.data['results'] == []
 
-    @data('character', 'seconds')
+    @data('characters', 'seconds')
     def test_get_user_totals(self, usage_type):
         limit = 2000
         quantity = 5
@@ -202,7 +202,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert total_limit == limit * (quantity + 2)
         assert remaining == limit * (quantity + 2)
 
-        PlanAddOn.increment_add_ons_for_organization(
+        PlanAddOn.deduct_add_ons_for_organization(
             self.organization, usage_type, limit * quantity
         )
         total_limit, remaining = PlanAddOn.get_organization_totals(

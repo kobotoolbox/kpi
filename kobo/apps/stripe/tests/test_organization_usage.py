@@ -9,6 +9,7 @@ from datetime import datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
+from ddt import ddt, data
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -463,6 +464,7 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.data['count'] == 1
 
 
+@ddt
 class OrganizationsUtilsTestCase(BaseTestCase):
     fixtures = ['test_data']
 
@@ -479,16 +481,11 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_enterprise_subscription(self.organization)
         limit = get_organization_plan_limit(self.organization, 'seconds')
         assert limit == 2000  # TODO get the limits from the community plan, overrides
-        limit = get_organization_plan_limit(self.organization, 'character')
+        limit = get_organization_plan_limit(self.organization, 'characters')
         assert limit == 2000  # TODO get the limits from the community plan, overrides
 
-    def test_get_subscription_limits_characters(self):
-        self._test_get_suscription_limit('character')
-
-    def test_get_subscription_limits_seconds(self):
-        self._test_get_suscription_limit('seconds')
-
-    def _test_get_suscription_limit(self, usage_type):
+    @data('characters', 'seconds')
+    def test_get_suscription_limit(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
         product_metadata = {
             stripe_key: 1234,
