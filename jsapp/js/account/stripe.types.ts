@@ -147,6 +147,8 @@ export interface Organization {
   modified: string;
   slug: string;
   is_owner: boolean;
+  is_mmo: boolean;
+  request_user_role: string;
 }
 
 export enum PlanNames {

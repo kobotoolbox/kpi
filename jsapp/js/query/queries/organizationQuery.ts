@@ -1,8 +1,7 @@
 import {QueryKeys} from '../queryKeys';
 import {useQuery} from '@tanstack/react-query';
-import {useMeQuery} from './meQuery';
 import type {Organization} from 'jsapp/js/account/stripe.types';
-
+import sessionStore from 'js/stores/session';
 
 const getOrganizationFromPath = (organizationPath: string): Promise<Organization> =>
 
@@ -23,10 +22,10 @@ const getOrganizationFromPath = (organizationPath: string): Promise<Organization
  */
 export const useOrganizationQuery = () => {
 
-  const {data: me} = useMeQuery();
+  const {currentAccount} = sessionStore;
 
-  const organizationPath = me?.organizationPath || '';
-  const queryEnabled = !!me;
+  const organizationPath = currentAccount?.organizationPath || '';
+  const queryEnabled = !!currentAccount;
 
   return useQuery({
     queryKey: [QueryKeys.organization, organizationPath],
