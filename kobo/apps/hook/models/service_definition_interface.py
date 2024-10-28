@@ -108,18 +108,26 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
                 ssrf_protect_options = {}
                 if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
-                    ssrf_protect_options['allowed_ip_addresses'] = constance.\
-                        config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\r\n')
+                    allowed_ip_addresses = (
+                        constance.config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\n')
+                    )
+                    ssrf_protect_options['allowed_ip_addresses'] = [
+                        ip.strip() for ip in allowed_ip_addresses if ip.strip()
+                    ]
 
                 if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
-                    ssrf_protect_options['denied_ip_addresses'] = constance.\
-                        config.SSRF_DENIED_IP_ADDRESS.strip().split('\r\n')
+                    denied_ip_addresses = (
+                        constance.config.SSRF_DENIED_IP_ADDRESS.strip().split('\n')
+                    )
+                    ssrf_protect_options['denied_ip_addresses'] = [
+                        ip.strip() for ip in denied_ip_addresses if ip.strip()
+                    ]
 
-                SSRFProtect.validate(self._hook.endpoint,
-                                     options=ssrf_protect_options)
+                SSRFProtect.validate(self._hook.endpoint, options=ssrf_protect_options)
 
-                response = requests.post(self._hook.endpoint, timeout=30,
-                                         **request_kwargs)
+                response = requests.post(
+                    self._hook.endpoint, timeout=30, **request_kwargs
+                )
                 response.raise_for_status()
                 self.save_log(response.status_code, response.text, True)
                 success = True
