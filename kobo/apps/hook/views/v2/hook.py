@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.hook.constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from kobo.apps.hook.models import Hook, HookLog
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
@@ -19,7 +20,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                  viewsets.ModelViewSet):
+                  AuditLoggedModelViewSet):
     """
 
     ## External services
@@ -155,6 +156,8 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     lookup_field = 'uid'
     serializer_class = HookSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
+    log_type = 'project-history'
+    logged_fields = ['endpoint', 'active', 'uid', ('object_id', 'asset.id')]
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)
@@ -165,7 +168,7 @@ class HookViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         queryset = queryset.select_related('asset')
         return queryset
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         serializer.save(asset=self.asset)
 
     @action(detail=True, methods=['PATCH'])

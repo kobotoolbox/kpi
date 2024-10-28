@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from shortuuid import ShortUUID
 
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import (
@@ -23,7 +24,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 class PairedDataViewset(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
     ## List of paired project endpoints
@@ -178,6 +179,8 @@ class PairedDataViewset(
     lookup_field = 'paired_data_uid'
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
+    log_type = 'project-history'
+    logged_fields = [('source_name', 'source.name'), ('object_id', 'source.id'), 'fields', ('source_uid', 'source.uid')]
 
     @action(
         detail=True,
@@ -304,7 +307,7 @@ class PairedDataViewset(
 
         return Response(xml_)
 
-    def get_object(self):
+    def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
             self.kwargs[self.lookup_field]
         )

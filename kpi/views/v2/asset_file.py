@@ -4,6 +4,7 @@ from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
@@ -14,7 +15,7 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                       NoUpdateModelViewSet):
+                       AuditLoggedNoUpdateModelViewSet):
     """
     This endpoint shows uploaded files related to an asset.
 
@@ -128,6 +129,8 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     filter_backends = (RelatedAssetPermissionsFilter,)
     serializer_class = AssetFileSerializer
     permission_classes = (AssetEditorPermission,)
+    log_type = 'project-history'
+    logged_fields = ['uid', 'filename', 'md5_hash', 'download_url', ('object_id', 'asset.id')]
 
     def get_queryset(self):
         _queryset = self.model.objects.filter(asset__uid=self.asset_uid)
@@ -139,7 +142,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         return _queryset
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         serializer.save(
             asset=self.asset,
             user=self.request.user

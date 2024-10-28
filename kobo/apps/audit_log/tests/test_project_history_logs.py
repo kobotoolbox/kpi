@@ -7,6 +7,7 @@ from django.urls import reverse
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
+from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from kpi.models.asset import AssetSetting
@@ -34,16 +35,25 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
-        self.assertEqual(
-            metadata_dict['latest_version_uid'], self.asset.latest_version.uid
-        )
 
-    def _base_endpoint_test(self, patch, url_name, request_data, expected_action):
+    def _base_asset_detail_endpoint_test(self, patch, url_name, request_data, expected_action):
+        url = reverse(url_name, kwargs={'uid': self.asset.uid})
+        method = self.client.patch if patch else self.client.post
+        log_metadata = self._base_project_history_log_test(
+            patch, url, request_data, expected_action
+        )
+        self.assertEqual(
+            log_metadata['latest_version_uid'], self.asset.latest_version.uid
+        )
+        return log_metadata
+
+    def _base_project_history_log_test(
+        self, method, url, request_data, expected_action
+    ):
         # requests are either patches or posts
-        request_method = self.client.patch if patch else self.client.post
         # hit the endpoint with the correct data
-        request_method(
-            reverse(url_name, kwargs={'uid': self.asset.uid}),
+        method(
+            url,
             data=request_data,
             format='json',
         )
@@ -64,7 +74,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'active': True,
             'backend': 'mock',
         }
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=False,
             url_name=self.deployment_url,
             request_data=post_data,
@@ -83,7 +93,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'active': True,
             'backend': 'mock',
         }
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.deployment_url,
             request_data=request_data,
@@ -101,7 +111,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         request_data = {
             'active': False,
         }
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.deployment_url,
             request_data=request_data,
@@ -125,7 +135,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         request_data = {
             'active': True,
         }
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.deployment_url,
             request_data=request_data,
@@ -167,7 +177,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_change_project_name_creates_log(self):
         old_name = self.asset.name
 
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'name': 'new_name'},
@@ -187,7 +197,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             }
         }
 
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data=patch_data,
@@ -225,7 +235,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'description': 'New description',
             }
         }
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data=patch_data,
@@ -258,7 +268,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_nullify_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
 
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'settings': {}},
@@ -291,7 +301,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 self.assertEqual(log_metadata['settings'][setting][OLD], old_value)
 
     def test_add_new_settings_creates_log(self):
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             # set a setting not in Asset.STANDARDIZED_SETTINGS
@@ -428,3 +438,74 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_register_service_creates_log(self):
+        request_data = {
+            'name': 'test',
+            'endpoint': 'http://www.google.com',
+            'active': True,
+            'subset_fields': [],
+            'email_notification': True,
+            'export_type': 'json',
+            'auth_level': 'no_auth',
+            'settings': {'custom_headers': {}},
+            'payload_template': '',
+        }
+        url = reverse('api_v2:hook-list', args=(self.asset.uid,))
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=url,
+            request_data=request_data,
+            expected_action=AuditAction.REGISTER_SERVICE,
+        )
+        new_hook = Hook.objects.get(name='test')
+        self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
+        self.assertEqual(log_metadata['hook']['active'], True)
+        self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.google.com')
+
+    def test_modify_service_creates_log(self):
+        new_hook = Hook.objects.create(
+            name='test',
+            endpoint='http://www.example.com',
+            asset=self.asset,
+        )
+        new_hook.save()
+        request_data = {
+            'active': False,
+        }
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse('api_v2:hook-detail', kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': new_hook.uid,
+            }),
+            request_data=request_data,
+            expected_action=AuditAction.MODIFY_SERVICE,
+        )
+        self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
+        self.assertEqual(log_metadata['hook']['active'], False)
+        self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
+
+    def test_delete_service_creates_log(self):
+        new_hook = Hook.objects.create(
+            name='test',
+            endpoint='http://www.example.com',
+            asset=self.asset,
+        )
+        new_hook.save()
+        request_data = {}
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                'api_v2:hook-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': new_hook.uid,
+                },
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.DELETE_SERVICE,
+        )
+        self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
+        self.assertEqual(log_metadata['hook']['active'], True)
+        self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
