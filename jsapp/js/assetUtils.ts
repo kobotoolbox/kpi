@@ -25,6 +25,7 @@ import {
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
+  XML_VALUES_OPTION_VALUE,
 } from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
@@ -78,7 +79,11 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
   // Return -1 instead of null as that would allow
   // `getQuestionOrChoiceDisplayName` to defualt to xml names.
-  let foundIndex = -1;
+  if (langString === XML_VALUES_OPTION_VALUE) {
+    return -1;
+  }
+
+  let foundIndex = 0;
 
   if (
     Array.isArray(asset.summary?.languages) &&
