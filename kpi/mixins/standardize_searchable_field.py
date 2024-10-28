@@ -39,7 +39,7 @@ class StandardizeSearchableFieldMixin:
                 value = default if default else {}
         elif property_type is str:
             if value is None:
-                value = default if default else ""
+                value = default if default else ''
         else:
             raise NotImplementedError
 
@@ -54,7 +54,7 @@ class StandardizeSearchableFieldMixin:
         It helps the search with the query parser.
 
         Note: Not used anywhere. It is just a future-proof utility in case
-        some fields allows '' and null, or 0 and null.
+        some fields allow '' and null, or 0 and null.
         """
 
         value = getattr(self, field_name)

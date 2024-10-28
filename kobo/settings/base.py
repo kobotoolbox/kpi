@@ -659,7 +659,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
-        'USE_TEAM_LABEL'
+        'USE_TEAM_LABEL',
         'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
@@ -933,7 +933,7 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
-    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
