@@ -51,7 +51,7 @@ export async function changeSubscription(
 }
 
 export const useOrganizationQuery = () => {
-  const isMmoEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
+  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
 
   // Using a separated function to fetch the organization data to prevent
   // feature flag dependencies from being added to the hook
@@ -59,30 +59,34 @@ export const useOrganizationQuery = () => {
     // Once we have the full data from backend, this function should be modified to return
     // the actual data.
 
-    if (isMmoEnabled) {
-
+    if (isMmosEnabled) {
       const currentAccount = sessionStore.currentAccount as AccountResponse;
 
-      if (!currentAccount) {throw new Error('No account data found');}
+      if (!currentAccount) {
+        throw new Error('No account data found');
+      }
 
-        const organizationUrl = currentAccount.organization?.url;
+      const organizationUrl = currentAccount.organization?.url;
 
-        // Here we would fetch organization data from organizationSlug
-        // For now, we will return mocked data
-        console.log('Fetching organization data from:', organizationUrl);
+      // Here we would fetch organization data from organizationUrl
+      // For now, we will return mocked data
+      console.log('Fetching organization data from:', organizationUrl);
 
-        // Return mocked data for MMO
-        return {
-            name: 'Test Organization',
-            created: '2024-01-01',
-            modified: '2024-01-02',
-            id: '123',
-            is_active: true,
-            is_owner: true,
-            slug: '/test-organization',
-            is_mmo: true,
-            request_user_role: 'owner',
-        };
+      // Adding some delay to simulate network request
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Return mocked data for MMO
+      return {
+        name: 'Test Organization',
+        created: '2024-01-01',
+        modified: '2024-01-02',
+        id: '123',
+        is_active: true,
+        is_owner: true,
+        slug: '/test-organization',
+        is_mmo: true,
+        request_user_role: 'owner',
+      };
     }
 
     const response = await fetchGet<PaginatedResponse<Organization>>(
