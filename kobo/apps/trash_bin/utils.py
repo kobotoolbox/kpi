@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import IntegrityError, models, transaction
 from django.db.models import F, Q
-from django.db.models.signals import pre_delete
+from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
@@ -103,9 +103,6 @@ def move_to_trash(
     username and primary key is retained after deleting all other data.
     """
 
-    clocked_time = now() + timedelta(days=grace_period)
-    clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
-
     (
         trash_model,
         fk_field_name,
@@ -158,24 +155,37 @@ def move_to_trash(
         )
 
     try:
+        # Disconnect signals before bulk-creating periodic tasks
+        pre_save.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
+        post_save.disconnect(PeriodicTasks.update_changed, sender=ClockedSchedule)
+
+        clocked_time = now() + timedelta(days=grace_period)
+        clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
         trash_model.objects.bulk_create(trash_objects)
+        try:
+            periodic_tasks = PeriodicTask.objects.bulk_create(
+                [
+                    PeriodicTask(
+                        clocked=clocked,
+                        name=task_name_placeholder.format(**ato.metadata),
+                        task=f'kobo.apps.trash_bin.tasks.{task}',
+                        args=json.dumps([ato.id]),
+                        one_off=True,
+                        enabled=not empty_manually,
+                    )
+                    for ato in trash_objects
+                ],
+            )
 
-        periodic_tasks = PeriodicTask.objects.bulk_create(
-            [
-                PeriodicTask(
-                    clocked=clocked,
-                    name=task_name_placeholder.format(**ato.metadata),
-                    task=f'kobo.apps.trash_bin.tasks.{task}',
-                    args=json.dumps([ato.id]),
-                    one_off=True,
-                    enabled=not empty_manually,
-                )
-                for ato in trash_objects
-            ],
-        )
+        except IntegrityError:
+            raise TrashIntegrityError
+    finally:
+        # Reconnect signals after bulk-creating periodic tasks
+        pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
+        post_save.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
 
-    except IntegrityError as e:
-        raise TrashIntegrityError
+    # Force celery beat scheduler to refresh
+    PeriodicTasks.update_changed()
 
     # Update relationships between periodic task and trash objects
     updated_trash_objects = []
@@ -246,12 +256,14 @@ def put_back(
         ]
     )
     try:
-        # Disconnect `PeriodicTasks` (plural) signal, until `PeriodicTask` (singular)
+        # Disconnect `PeriodicTasks` (plural) signals, until `PeriodicTask` (singular)
         # delete query finishes to avoid unnecessary DB queries.
         # see https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
         pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
+        post_delete.disconnect(PeriodicTasks.update_changed, sender=ClockedSchedule)
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
     finally:
+        post_delete.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
         pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
 
     # Force celery beat scheduler to refresh

@@ -4,7 +4,7 @@ from celery.signals import task_failure, task_retry
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models.signals import post_delete
+from django.db.models.signals import pre_delete, post_delete
 from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
@@ -205,8 +205,6 @@ def empty_project(project_trash_id: int):
 
 @task_failure.connect(sender=empty_account)
 def empty_account_failure(sender=None, **kwargs):
-    # Force scheduler to refresh
-    PeriodicTasks.update_changed()
 
     exception = kwargs['exception']
     account_trash_id = kwargs['args'][0]
@@ -234,8 +232,6 @@ def empty_account_retry(sender=None, **kwargs):
 
 @task_failure.connect(sender=empty_project)
 def empty_project_failure(sender=None, **kwargs):
-    # Force scheduler to refresh
-    PeriodicTasks.update_changed()
 
     exception = kwargs['exception']
     project_trash_id = kwargs['args'][0]
@@ -263,27 +259,44 @@ def empty_project_retry(sender=None, **kwargs):
 
 @celery_app.task
 def garbage_collector():
-    with transaction.atomic():
-        # Remove orphan periodic tasks
-        PeriodicTask.objects.exclude(
-            pk__in=AccountTrash.objects.values_list(
-                'periodic_task_id', flat=True
-            ),
-        ).filter(
-            name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
-        ).delete()
+    deleted_tasks = 0
+    deleted_users = 0
+    deleted_projects = 0
 
-        PeriodicTask.objects.exclude(
-            pk__in=ProjectTrash.objects.values_list(
-                'periodic_task_id', flat=True
-            ),
-        ).filter(
-            name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
-        ).delete()
+    try:
+        # Disconnect `PeriodicTasks` signals before performing bulk deletions
+        pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
+        post_delete.disconnect(PeriodicTasks.update_changed, sender=ClockedSchedule)
 
-        # Then, remove clocked schedules
-        ClockedSchedule.objects.exclude(
-            pk__in=PeriodicTask.objects.filter(
-                clocked__isnull=False
-            ).values_list('clocked_id', flat=True),
-        ).delete()
+        with transaction.atomic():
+
+            # Remove orphan periodic tasks
+            deleted_users, _ = PeriodicTask.objects.exclude(
+                pk__in=AccountTrash.objects.values_list(
+                    'periodic_task_id', flat=True
+                ),
+            ).filter(
+                name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
+            ).delete()
+
+            deleted_projects, _ = PeriodicTask.objects.exclude(
+                pk__in=ProjectTrash.objects.values_list(
+                    'periodic_task_id', flat=True
+                ),
+            ).filter(
+                name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
+            ).delete()
+
+            # Then, remove clocked schedules
+            deleted_tasks, _ = ClockedSchedule.objects.exclude(
+                pk__in=PeriodicTask.objects.filter(
+                    clocked__isnull=False
+                ).values_list('clocked_id', flat=True),
+            ).delete()
+    finally:
+        # Reconnect `PeriodicTasks` signals after performing bulk deletions
+        pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
+        post_delete.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
+
+        if deleted_users + deleted_projects + deleted_tasks:
+            PeriodicTasks.update_changed()
