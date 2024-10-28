@@ -958,7 +958,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
-              if (q.type !== QUESTION_TYPES.text.id) {
+              if (q.type !== QUESTION_TYPES.text.id && q.$xpath !== undefined) {
                 mediaAttachment = getMediaAttachment(
                   row.original,
                   row.value,
@@ -972,7 +972,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               ) {
                 const submissionEditId = row.original['meta/rootUuid'] || row.original._uuid;
 
-                if (mediaAttachment !== null) {
+                if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
@@ -984,7 +984,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 }
               }
 
-              if (mediaAttachment !== null) {
+              if (mediaAttachment !== null && q.$xpath !== undefined) {
                 return (
                   <MediaCell
                     questionType={q.type}

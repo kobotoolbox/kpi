@@ -34,6 +34,11 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
 
     logged_fields = []
 
+    def initialize_request(self, request, *args, **kwargs):
+        request = super().initialize_request(request, *args, **kwargs)
+        request._request.log_type = self.log_type
+        return request
+
     def get_object(self):
         # actually fetch the object
         obj = self.get_object_override()

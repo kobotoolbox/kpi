@@ -2,30 +2,25 @@ import datetime
 from datetime import timedelta
 from unittest.mock import patch
 
-from ddt import data, ddt, unpack
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 from django.utils import timezone
-from model_bakery import baker
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
     AccessLog,
-    AuditAction,
     AuditLog,
     AuditType,
     ProjectHistoryLog,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
-    ASSET_TYPE_QUESTION,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
-    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
-from kpi.exceptions import BadAssetTypeException
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -353,7 +348,6 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         )
 
 
-@ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
@@ -374,7 +368,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             user=user,
             metadata={'foo': 'bar'},
             date_created=yesterday,
-            asset=asset,
+            object_id=asset.id,
         )
         self._check_common_fields(log, user, asset)
         self.assertEquals(log.date_created, yesterday)
@@ -390,64 +384,10 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             log_type=AuditType.DATA_EDITING,
             model_name='foo',
             app_label='bar',
-            asset=asset,
+            object_id=asset.id,
             user=user,
         )
         # the standard fields should be set the same as any other project history logs
         self._check_common_fields(log, user, asset)
         # we logged a warning for each attempt to override a field
         self.assertEquals(patched_warning.call_count, 3)
-
-    def test_cannot_create_project_history_log_from_non_survey_asset(self):
-        block_asset = baker.make(Asset)
-        block_asset.asset_type = ASSET_TYPE_QUESTION
-        with self.assertRaises(BadAssetTypeException):
-            ProjectHistoryLog.objects.create(
-                user=User.objects.get(username='someuser'), asset=block_asset
-            )
-
-    @data(
-        # first_deployment, only_active_changed, is_active,
-        # expected_action, expect_extra_metadata
-        (True, False, True, AuditAction.DEPLOY, True),
-        (False, False, True, AuditAction.REDEPLOY, True),
-        (False, True, False, AuditAction.ARCHIVE, False),
-        (False, True, True, AuditAction.UNARCHIVE, False),
-    )
-    @unpack
-    def test_create_log_for_deployment_changes(
-        self,
-        first_deployment,
-        only_active_changed,
-        is_active,
-        expected_action,
-        expect_extra_metadata,
-    ):
-        user = User.objects.get(username='someuser')
-        factory = RequestFactory()
-        request = factory.post('')
-        request.user = user
-        asset = Asset.objects.get(pk=1)
-        asset.save()
-        asset.deploy(backend='mock', active=is_active)
-        log = ProjectHistoryLog.create_from_deployment_request(
-            request,
-            asset,
-            first_deployment=first_deployment,
-            only_active_changed=only_active_changed,
-        )
-        self._check_common_fields(log, user, asset)
-        expected_metadata = {
-            'ip_address': '127.0.0.1',
-            'source': 'source',
-            'asset_uid': asset.uid,
-            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-        }
-        if expect_extra_metadata:
-            expected_metadata.update(
-                {
-                    'version_uid': asset.latest_deployed_version_uid,
-                }
-            )
-        self.assertDictEqual(log.metadata, expected_metadata)
-        self.assertEqual(log.action, expected_action)
