@@ -13,10 +13,10 @@ export const BillingContextProvider = (props: {children: ReactNode}) => {
   const usage = useUsage(orgQuery.data?.id || null);
   const products = useProducts();
   return (
-      <UsageContext.Provider value={usage}>
-        <ProductsContext.Provider value={products}>
-          {props.children}
-        </ProductsContext.Provider>
-      </UsageContext.Provider>
+    <UsageContext.Provider value={usage}>
+      <ProductsContext.Provider value={products}>
+        {props.children}
+      </ProductsContext.Provider>
+    </UsageContext.Provider>
   );
 };
