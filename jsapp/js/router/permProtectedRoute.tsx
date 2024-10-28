@@ -138,6 +138,10 @@ class PermProtectedRoute extends React.Component<
     }
   }
 
+  /**
+   * This function is needed to override the `xpath` in the route params. If it
+   * is not present, `params` would be returned untouched.
+   */
   filterProps(props: any) {
     const {params, ...rest} = props;
     if (!params?.xpath) {
@@ -146,6 +150,7 @@ class PermProtectedRoute extends React.Component<
 
     const {xpath, ...restParams} = params;
     const decodedXPath = decodeURLParamWithSlash(xpath);
+
     if (xpath !== decodedXPath) {
       return {
         ...rest,
