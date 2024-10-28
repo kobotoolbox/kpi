@@ -106,7 +106,8 @@ export const useApiFetcher = <Type>(
 };
 
 /**
- * @deprecated Use react-query instead. See `useOrganizationQuery` for a simple example.
+ * @deprecated convert to functional component and use react-query instead.
+ * See `useOrganizationQuery` for a simple example.
  */
 export const withApiFetcher = <Type>(
   initialState: Type
