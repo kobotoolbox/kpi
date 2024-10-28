@@ -28,7 +28,6 @@ import {
 } from 'js/assetUtils';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
 import type {Filter} from 'react-table';
-import type {TableColumn} from 'js/components/submissions/table.types';
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -54,21 +53,25 @@ export function getColumnLabel(
         o.$autoname === questionPath[questionPath.length - 1]
     );
   } else {
+    questionPath = [key];
     question = asset.content.survey.find(
       (o) => o.name === key || o.$autoname === key
     );
   }
 
-  // This identifies the supplemental details column.
+  // This identifies the supplemental details column. For such column question
+  // was not found by the `key` provided (because it starts with
+  // `SUPPLEMENTAL_DETAILS_PROP`) - we will find the question based on the value
+  // returned by `getSupplementalPathParts` later.
   if (question === undefined && questionPath[0] === SUPPLEMENTAL_DETAILS_PROP) {
     const supplementalPathParts = getSupplementalPathParts(key);
 
-    const groupsIfAnyAndName = supplementalPathParts.sourceRowName.split('-');
-    const sourceName = groupsIfAnyAndName.join('/');
+    const sourceName = supplementalPathParts.sourceRowPath;
 
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript _ language code
     // - prefix / source question name / translated _ language code
+    // e.g. `_supplementalDetails/Wie_heisst_du/transcript_de`
     const sourceQuestionLabel = getColumnLabel(
       asset,
       sourceName,
