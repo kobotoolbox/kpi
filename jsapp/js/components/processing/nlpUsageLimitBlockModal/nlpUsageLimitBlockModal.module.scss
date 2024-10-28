@@ -1,6 +1,10 @@
 @use 'scss/colors';
 @use 'scss/sizes';
 
+.root {
+  // Avoids taking space
+  position: fixed;
+}
 
 .modalBody {
   line-height: sizes.$x24;
