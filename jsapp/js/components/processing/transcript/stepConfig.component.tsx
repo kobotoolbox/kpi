@@ -86,11 +86,9 @@ export default function StepConfig() {
   }
 
   const draft = singleProcessingStore.getTranscriptDraft();
-  const typeLabel =
-    singleProcessingStore.currentQuestionType || t('source file');
   const languageSelectorTitle = t(
     'Please select the original language of the ##type##'
-  ).replace('##type##', typeLabel);
+  ).replace('##type##', singleProcessingStore.getProcessedFileLabel());
   const isAutoEnabled = envStore.data.asr_mt_features_enabled;
 
   return (

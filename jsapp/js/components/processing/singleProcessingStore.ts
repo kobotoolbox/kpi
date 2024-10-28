@@ -26,7 +26,7 @@ import type {
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import type {AnyRowTypeName} from 'js/constants';
+import {QUESTION_TYPES, type AnyRowTypeName} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
 import {
   isAnyProcessingRoute,
@@ -983,6 +983,16 @@ class SingleProcessingStore extends Reflux.Store {
       return this.data.submissionsEditIds[this.currentQuestionXpath];
     }
     return undefined;
+  }
+
+  getProcessedFileLabel() {
+    if (this.currentQuestionType === QUESTION_TYPES.audio.id) {
+      return QUESTION_TYPES.audio.label.toLowerCase();
+    } else if (this.currentQuestionType === QUESTION_TYPES['background-audio'].id) {
+      return QUESTION_TYPES['background-audio'].label.toLowerCase();
+    }
+    // Fallback
+    return t('source file');
   }
 
   getSubmissionsEditIds() {
