@@ -26,4 +26,3 @@ class ManualTranscriptionAction(BaseAction):
 
         # needs to be built out
         return PASSES
-
