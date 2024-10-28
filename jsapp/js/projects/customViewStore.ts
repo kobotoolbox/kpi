@@ -278,8 +278,7 @@ class CustomViewStore {
       // `Asset Response` we need to find the last deployed version
       originalAsset.date_deployed !==
         modifiedAsset.deployed_versions?.results[0].date_modified ||
-      originalAsset.settings.sector?.value !==
-        modifiedAsset.settings.sector?.value ||
+      !isEqual(originalAsset.settings.sector, modifiedAsset.settings.sector) ||
       !isEqual(
         originalAsset.settings.country,
         modifiedAsset.settings.country

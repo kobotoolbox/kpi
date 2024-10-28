@@ -60,7 +60,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   openProcessing(name: string) {
     if (this.props.asset?.content) {
       const foundRow = findRow(this.props.asset?.content, name);
-      if (foundRow) {
+      if (foundRow && foundRow.$xpath !== undefined) {
         goToProcessing(
           this.props.asset.uid,
           foundRow.$xpath,

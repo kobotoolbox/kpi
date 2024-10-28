@@ -12,6 +12,7 @@ export type PermissionCodename =
   | 'manage_asset'
   | 'partial_submissions'
   | 'validate_submissions'
+  | 'delete_asset'
   | 'view_asset'
   | 'view_submissions';
 
@@ -30,6 +31,9 @@ export const PERMISSIONS_CODENAMES: PermissionsCodenames = {
   // Is user able to view asset - mostly handled by Backend just not returning
   // asset in the results or direct endpoint.
   view_asset: 'view_asset',
+
+  // TODO: describe this (relatively) new permission
+  delete_asset: 'delete_asset',
 
   // Is user able to edit asset, i.e. to change anything in the asset endpoint,
   // so: editing in Form Builder, changing tags, changing settings, replace XLS,
