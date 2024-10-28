@@ -6,7 +6,7 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import create_organization, Organization
 from kpi.utils.database import update_autofield_sequence, use_db
 
 
@@ -53,7 +53,19 @@ class User(AbstractUser):
     @cache_for_request
     def organization(self):
         # Database allows multiple organizations per user, but we restrict it to one.
-        return Organization.objects.filter(organization_users__user=self).first()
+        if organization := Organization.objects.filter(
+            organization_users__user=self
+        ).first():
+            return organization
+
+        try:
+            organization_name = self.extra_details.data['organization'].strip()
+        except (KeyError, AttributeError):
+            organization_name = None
+
+        return create_organization(
+            self, organization_name or f'{self.username}’s organization'
+        )
 
     def sync_to_openrosa_db(self):
         User = self.__class__  # noqa
