@@ -214,6 +214,8 @@ export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): D
 /**
  * Returns usable name of the question or choice when possible, fallbacks to
  * "Unlabelled". `translationIndex` defaults to first (default) language.
+ *
+ * TODO: see how does this function output differs from `getTranslatedRowLabel`
  */
 export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
@@ -414,6 +416,8 @@ export function isRowSpecialLabelHolder(
  * @param rowName - could be either a survey row name or choices row name
  * @param data - is either a survey or choices
  * Returns null for not found
+ *
+ * TODO: see how does this function output differs from `getQuestionOrChoiceDisplayName`
  */
 export function getTranslatedRowLabel(
   rowName: string,

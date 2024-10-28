@@ -626,4 +626,6 @@ const constants = {
 
 export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
 
+export const XML_VALUES_OPTION_VALUE = 'xml_values';
+
 export default constants;
