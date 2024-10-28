@@ -49,7 +49,7 @@ class AuditLogTasksTestCase(BaseTestCase):
         self.assertIn(older_log.id, all_deleted_ids)
         self.assertNotIn(new_log.id, all_deleted_ids)
 
-    @override_settings(ACCESS_LOG_DELETION_BATCH_SIZE=2)
+    @override_settings(LOG_DELETION_BATCH_SIZE=2)
     def test_spawn_task_batches_ids(self):
         three_days_ago = timezone.now() - timedelta(days=3)
         user = User.objects.get(username='someuser')
@@ -70,7 +70,7 @@ class AuditLogTasksTestCase(BaseTestCase):
 
         # Should be 2 batches
         self.assertEqual(patched_spawned_task.call_count, 2)
-        # make sure all batches were <= ACCESS_LOG_DELETION_BATCH_SIZE
+        # make sure all batches were <= LOG_DELETION_BATCH_SIZE
         all_deleted_ids = []
         for task_call in patched_spawned_task.mock_calls:
             _, _, kwargs = task_call

@@ -21,7 +21,7 @@ def batch_delete_audit_logs_by_id(ids):
 
 
 @celery_app.task()
-def spawn_access_log_cleaning_tasks():
+def spawn_logs_cleaning_tasks():
     """
     Enqueue tasks to delete access logs older than ACCESS_LOG_LIFESPAN days old.
 
@@ -39,7 +39,7 @@ def spawn_access_log_cleaning_tasks():
         .iterator()
     )
     for id_batch in chunked(
-        expired_logs, settings.ACCESS_LOG_DELETION_BATCH_SIZE
+        expired_logs, settings.LOG_DELETION_BATCH_SIZE
     ):
         # queue up a new task for each batch of expired ids
         batch_delete_audit_logs_by_id.delay(ids=id_batch)
