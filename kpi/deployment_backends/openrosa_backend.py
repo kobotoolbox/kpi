@@ -733,9 +733,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        if self.xform.mongo_uuid:
+        try:
             return self.xform.mongo_uuid
-        return f'{self.asset.owner.username}_{self.xform_id_string}'
+        except KeyError:
+            return f'{self.asset.owner.username}_{self.xform_id_string}'
 
     @staticmethod
     def nlp_tracking_data(
