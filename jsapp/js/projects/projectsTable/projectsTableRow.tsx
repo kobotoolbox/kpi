@@ -70,7 +70,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'dateDeployed':
         if (
           'date_deployed' in props.asset &&
-          props.asset.date_deployed !== null
+          props.asset.date_deployed
         ) {
           return formatTime(props.asset.date_deployed);
         }

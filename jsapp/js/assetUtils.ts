@@ -119,7 +119,7 @@ export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsse
 export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   let output = '-';
 
-  if (asset.settings.sector?.value) {
+  if (asset.settings.sector && 'value' in asset.settings.sector) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language

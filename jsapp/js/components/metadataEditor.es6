@@ -275,7 +275,7 @@ export default class MetadataEditor extends React.Component {
               }
             />
           </bem.FormModal__item>
-         </bem.FormBuilderMeta__row>
+        </bem.FormBuilderMeta__row>
 
         {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>
