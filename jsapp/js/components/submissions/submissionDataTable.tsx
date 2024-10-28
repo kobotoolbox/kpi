@@ -282,19 +282,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderMultiplePointsData(data: string) {
-    return (data.split(';').map((pointData, pointIndex) =>
-      <bem.SubmissionDataTable__row m={['columns', 'point']} key={pointIndex}>
-        <bem.SubmissionDataTable__column>
-          P<sub>{pointIndex + 1}</sub>
-        </bem.SubmissionDataTable__column>
-        <bem.SubmissionDataTable__column>
-          {this.renderPointsData(pointData)}
-        </bem.SubmissionDataTable__column>
-      </bem.SubmissionDataTable__row>
-    ));
-  }
-
   renderAttachment(
     type: AnyRowTypeName | null,
     filename: string,
