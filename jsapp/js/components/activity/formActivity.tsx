@@ -6,7 +6,7 @@ import KoboSelect from '../common/koboSelect';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
-import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLogs.query';
+import type {ActivityLogsItem} from './activity.constants';
 import {
   useActivityLogsFilterOptionsQuery,
   useActivityLogsQuery,
@@ -14,33 +14,9 @@ import {
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
-import Avatar from '../common/avatar';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from '../modals/koboModalHeader';
-
-interface EventDescriptionProps {
-  data: ActivityLogsItem;
-  /**
-   * This will be called when details button is being clicked. If you don't
-   * provide it, the button will not be displayed.
-   */
-  detailsButtonFn?: () => void;
-}
-const EventDescription = (props: EventDescriptionProps) => (
-  <div className={styles.eventDescription}>
-    <Avatar size='s' username={props.data.username} />
-    <span className={styles.who}>{props.data.username}</span>
-    <span className={styles.action}>{props.data.action}</span> {props.data.metadata.log_subtype}
-    {props.detailsButtonFn &&
-      <button
-        className={styles.seeDetailsButton}
-        onClick={props.detailsButtonFn}
-      >
-        {t('See details')}
-      </button>
-    }
-  </div>
-);
+import {ActivityMessage} from './activityMessage.component';
 
 export default function FormActivity() {
   const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
@@ -64,10 +40,15 @@ export default function FormActivity() {
       key: 'description',
       label: t('Event description'),
       cellFormatter: (data: ActivityLogsItem) => (
-        <EventDescription
-          data={data}
-          detailsButtonFn={() => setDetailsModalData(data)}
-        />
+        <>
+          <ActivityMessage data={data} />
+          <button
+            className={styles.seeDetailsButton}
+            onClick={() => setDetailsModalData(data)}
+          >
+            {t('See details')}
+          </button>
+        </>
       ),
     },
     {
@@ -111,23 +92,11 @@ export default function FormActivity() {
             onRequestClose={() => setDetailsModalData(null)}
           >
             <KoboModalHeader onRequestCloseByX={() => setDetailsModalData(null)}>
-              <EventDescription data={detailsModalData} />
+              <ActivityMessage data={detailsModalData} />
             </KoboModalHeader>
 
             <section className={styles.detailsModalContent}>
-              <p className={styles.detailsModalText}>
-                <pre>{JSON.stringify(detailsModalData.metadata, null, '  ')}</pre>
-              </p>
-              <div className={styles.detailsModalMetaRow}>
-                <label>{t('Action occured:')}</label>
-                <time dateTime={detailsModalData.date_created}>
-                  {formatTime(detailsModalData.date_created)}
-                </time>
-              </div>
-              <div className={styles.detailsModalMetaRow}>
-                <label>{t('Device:')}</label>
-                {detailsModalData.metadata.source}
-              </div>
+              <pre>{JSON.stringify(detailsModalData.metadata, null, '  ')}</pre>
             </section>
           </KoboModal>
         }

@@ -3,73 +3,12 @@ import type {KoboSelectOption} from 'jsapp/js/components/common/koboSelect';
 import type {PaginatedResponse} from 'jsapp/js/dataInterface';
 import moment from 'moment';
 import {QueryKeys} from '../queryKeys';
-
-/**
- * All possible log item actions.
- * @see `AuditAction` class from {@link kobo/apps/audit_log/models.py} (BE code)
- */
-enum AuditActions {
-  create = 'create',
-  delete = 'delete',
-  'in-trash' = 'in-trash',
-  'put-back' = 'put-back',
-  remove = 'remove',
-  update = 'update',
-  auth = 'auth',
-  deploy = 'deploy',
-  archive = 'archive',
-  unarchive = 'unarchive',
-  redeploy = 'redeploy',
-  'update-name' = 'update-name',
-  'update-form' = 'update-form',
-  'update-settings' = 'update-settings',
-  'update-qa' = 'update-qa',
-  'disable-sharing' = 'disable-sharing',
-  'enable-sharing' = 'enable-sharing',
-  'modify-sharing' = 'modify-sharing',
-}
-
-/**
- * All possible log item types.
- * @see `AuditType` class from {@link kobo/apps/audit_log/models.py} (BE code)
- */
-enum AuditTypes {
-  access = 'access',
-  'project-history' = 'project-history',
-  'data-editing' = 'data-editing',
-  'user-management' = 'user-management',
-  'asset-management' = 'asset-management',
-  'submission-management' = 'submission-management',
-}
-
-enum AuditSubTypes {
-  project = 'project',
-  permission = 'permission',
-}
-
-export interface ActivityLogsItem {
-  /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
-  user: string;
-  user_uid: string;
-  username: string;
-  /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
-  date_created: string;
-  action: AuditActions;
-  log_type: AuditTypes;
-  metadata: {
-    /** E.g. "Firefox (Ubuntu)" */
-    source: string;
-    asset_uid: string;
-    /** E.g. "71.235.120.86" */
-    ip_address: string;
-    log_subtype: AuditSubTypes;
-    old_name?: string;
-    new_name?: string;
-    version_uid?: string;
-    permission_granted?: string;
-    // a lot of more optional metadata props…
-  };
-}
+import {
+  AuditActions,
+  AuditTypes,
+  AuditSubTypes,
+  type ActivityLogsItem,
+} from 'jsapp/js/components/activity/activity.constants';
 
 // =============================================================================
 // MOCK DATA GENERATION
@@ -98,8 +37,6 @@ const getRandomMockDescriptionData = () => {
   const source = testSources[Math.floor(Math.random() * testSources.length)];
   const asset_uid = String(Math.random());
   const ip_address = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255));
-  const old_name = 'I kwno somethign';
-  const new_name = 'I know something';
 
   return {
     user,
@@ -112,8 +49,12 @@ const getRandomMockDescriptionData = () => {
       asset_uid,
       ip_address,
       log_subtype: log_subtype as AuditSubTypes,
-      old_name,
-      new_name,
+      old_name: 'I kwno somethign',
+      new_name: 'I know something',
+      latest_deployed_version_id: 'asd123f3fz',
+      latest_version_id: 'aet4b1213c',
+      version_uid: 'cv4123g41xda',
+      second_user: 'Josh',
     },
   };
 };
