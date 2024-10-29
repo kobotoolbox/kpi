@@ -195,9 +195,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         # check non-list settings just store old and new information
         settings_dict = log_metadata['settings']
-        self.assertEqual(
-            settings_dict['description'][OLD], old_settings['description']
-        )
+        self.assertEqual(settings_dict['description'][OLD], old_settings['description'])
         self.assertEqual(settings_dict['description'][NEW], 'New description')
         # check list settings store added and removed fields
         self.assertListEqual(
@@ -288,12 +286,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     log_metadata['settings'][setting][REMOVED], removed_values
                 )
             else:
-                self.assertEqual(
-                    log_metadata['settings'][setting][NEW], new_value
-                )
-                self.assertEqual(
-                    log_metadata['settings'][setting][OLD], old_value
-                )
+                self.assertEqual(log_metadata['settings'][setting][NEW], new_value)
+                self.assertEqual(log_metadata['settings'][setting][OLD], old_value)
 
     def test_add_new_settings_creates_log(self):
         log_metadata = self._base_endpoint_test(
@@ -315,7 +309,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.ENABLE_SHARING,
         )
         self.assertEqual(log_metadata['shared_fields'][ADDED], [])
-
 
     def test_truthy_field_creates_sharing_enabled_log(self):
         log_metadata = self._base_endpoint_test(
