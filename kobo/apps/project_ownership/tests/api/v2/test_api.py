@@ -516,6 +516,64 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             ) == 1
         )
 
+    @patch(
+        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_attachments',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_media_files',
+        MagicMock()
+    )
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_mongo_uuid_after_transfer(self):
+        """
+        Test that after an ownership transfer, the XForm's MongoDB document
+        updates to use the `mongo_uuid` as the `_userform_id` instead of the
+        original owner's identifier
+        """
+        self.client.login(username='someuser', password='someuser')
+        original_userform_id = f'someuser_{self.asset.uid}'
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': original_userform_id}
+            ) == 1
+        )
+
+        # Transfer the project from someuser to anotheruser
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(self.invite_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Retrieve the mongo_uuid for the transferred asset (XForm)
+        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
+        mongo_uuid = xform.mongo_uuid
+
+        # Verify MongoDB now uses mongo_uuid as the identifier
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': mongo_uuid}
+            ) == 1
+        )
+
+        # Confirm the original `_userform_id` is no longer used
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': original_userform_id}
+            ) == 0
+        )
+
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
 
