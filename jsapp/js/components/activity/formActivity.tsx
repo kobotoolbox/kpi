@@ -15,7 +15,7 @@ import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
 import Avatar from '../common/avatar';
-import ExportButton from '../misc/exportButton/exportButton.component';
+import ExportButton from '../exportButton/exportButton.component';
 
 const EventDescription = ({
   who,
