@@ -1,4 +1,3 @@
-import type {ButtonProps} from '../common/button';
 import Button from '../common/button';
 import KoboPrompt from '../modals/koboPrompt';
 import {useState} from 'react';
@@ -30,9 +29,10 @@ const MessageModal = ({onClose}: {onClose: () => void}) => (
  */
 export default function ExportToEmailButton({
   exportFunction,
-  ...props
-}: Partial<ButtonProps> & {
+  label,
+}: {
   exportFunction: () => Promise<void>;
+  label: string;
 }) {
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -54,7 +54,7 @@ export default function ExportToEmailButton({
       <Button
         size='m'
         type='primary'
-        {...props}
+        label={label}
         startIcon='download'
         onClick={handleClick}
         isPending={isPending}

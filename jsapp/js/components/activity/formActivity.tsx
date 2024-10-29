@@ -15,7 +15,7 @@ import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
 import Avatar from '../common/avatar';
-import ExportButton from '../exportButton/exportButton.component';
+import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
 
 const EventDescription = ({
   who,
@@ -81,7 +81,7 @@ export default function FormActivity() {
             placeholder={t('Filter by')}
             options={filterOptions || []}
           />
-          <ExportButton
+          <ExportToEmailButton
             label={t('Export all data')}
             exportFunction={exportData}
           />
