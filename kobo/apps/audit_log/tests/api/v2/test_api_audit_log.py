@@ -430,3 +430,35 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
             group['metadata']['auth_type'],
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
         )
+
+
+class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
+
+    def get_endpoint_basename(self):
+        return 'access-logs-export-list'
+
+    def test_export_as_anonymous_returns_unauthorized(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
+
+    def get_endpoint_basename(self):
+        return 'all-access-logs-export-list'
+
+    def test_export_as_anonymous_returns_unauthorized(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_regular_user_cannot_export_access_logs(self):
+        self.force_login_user(User.objects.get(username='anotheruser'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_export_access_logs_for_superuser_commences(self):
+        self.force_login_user(User.objects.get(username='admin'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)

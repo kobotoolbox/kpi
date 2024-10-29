@@ -1,5 +1,6 @@
-from rest_framework import mixins, viewsets
+from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.response import Response
 
 from kpi.filters import SearchFilter
 from kpi.permissions import IsAuthenticated
@@ -321,3 +322,33 @@ class AccessLogViewSet(AuditLogViewSet):
     permission_classes = (IsAuthenticated,)
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
+
+
+class AccessLogsExportViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        if not request.user.is_superuser and 'access-logs/export' in request.path:
+            raise exceptions.PermissionDenied(
+                'Only superusers can export all access logs.'
+            )
+
+        # TODO: after AccessLogExportTask is implemented
+        # - Check if the user already has a running job
+        # - Create and trigger the export task
+
+        return Response(
+            {'status': 'Export task started successfully'},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+    def list(self, request, *args, **kwargs):
+        if not request.user.is_superuser and 'access-logs/export' in request.path:
+            raise exceptions.PermissionDenied(
+                'Only superusers can export all access logs.'
+            )
+
+        # TODO: retrieve the status of a given task after AccessLogExportTask is
+        # implemented.
+
+        return Response(status=status.HTTP_200_OK)
