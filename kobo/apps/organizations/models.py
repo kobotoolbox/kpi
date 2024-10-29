@@ -25,6 +25,8 @@ from .constants import (
     ORG_MEMBER_ROLE,
     ORG_OWNER_ROLE,
 )
+from .exceptions import NotMultiMemberOrganizationException
+
 
 OrganizationRole = Literal[
     ORG_ADMIN_ROLE, ORG_EXTERNAL_ROLE, ORG_MEMBER_ROLE, ORG_OWNER_ROLE
@@ -38,8 +40,9 @@ class Organization(AbstractOrganization):
     )
 
     def add_user(self, user, is_admin=False):
-        # TODO Raise an error if user.organization.is_mmo
-        # if self.is_mmo:
+        if not self.is_mmo:
+            raise NotMultiMemberOrganizationException
+
         user.organization.delete()
         super().add_user(user, is_admin=is_admin)
 

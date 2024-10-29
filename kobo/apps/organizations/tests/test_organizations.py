@@ -16,9 +16,10 @@ class OrganizationTestCase(TestCase):
 
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
-
         # someuser is the only member their organization, and the owner as well.
         self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
 
     def test_owner_user_object_property(self):
         anotheruser = User.objects.get(username='anotheruser')

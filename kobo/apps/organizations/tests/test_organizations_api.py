@@ -28,12 +28,10 @@ class OrganizationApiTestCase(BaseTestCase):
         self.url_list = reverse(self._get_endpoint('organizations-list'))
 
     def _insert_data(self, mmo_override=False):
-        self.organization = baker.make(
-            Organization,
-            id='org_abcd1234',
-            mmo_override=mmo_override
-        )
-        self.organization.add_user(user=self.user, is_admin=True)
+        self.organization = self.user.organization
+        self.organization.mmo_override = mmo_override
+        self.organization.save(update_fields=['mmo_override'])
+
         self.url_detail = reverse(
             self._get_endpoint('organizations-detail'),
             kwargs={'id': self.organization.id},
@@ -66,7 +64,7 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertContains(response, self.organization.name)
 
     def test_update(self):
-        self._insert_data()
+        self._insert_data(mmo_override=True)
         data = {'name': 'edit'}
         with self.assertNumQueries(FuzzyInt(10, 16)):
             res = self.client.patch(self.url_detail, data)
@@ -131,7 +129,7 @@ class OrganizationApiTestCase(BaseTestCase):
     ):
         """
         Test that is_mmo is True when both mmo_override and active
-        subscription are present.
+        subscription is present.
         """
         self._insert_data(mmo_override=True)
         response = self.client.get(self.url_detail)
@@ -146,6 +144,8 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
         self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
 
         # anotheruser is an admin of someuser's organization
         self.anotheruser = User.objects.get(username='anotheruser')
