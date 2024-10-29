@@ -27,6 +27,7 @@ import GitRev from './gitRev.component';
 import pageState from 'js/pageState.store';
 import styles from './mainHeader.module.scss';
 import Button from 'js/components/common/button';
+import OrganizationBadge from './organizationBadge.component';
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;
@@ -156,6 +157,8 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
             )}
 
             <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
+
+            <OrganizationBadge/>
           </React.Fragment>
         )}
 
