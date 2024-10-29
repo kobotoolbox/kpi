@@ -318,16 +318,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
 
     def test_truthy_field_creates_sharing_enabled_log(self):
-        def verify_metadata(log_metadata):
-            self.assertEqual(log_metadata['shared_fields'][ADDED], [])
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': 'truthy'}},
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.ENABLE_SHARING,
         )
+        self.assertEqual(log_metadata['shared_fields'][ADDED], [])
 
     def test_disable_sharing_creates_log(self):
         self.asset.data_sharing = {
@@ -368,7 +365,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': 0}},
-            verify_additional_metadata=lambda x: None,
             expected_action=AuditAction.DISABLE_SHARING,
         )
 
