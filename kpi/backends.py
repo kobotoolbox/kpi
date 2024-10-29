@@ -40,9 +40,9 @@ class ObjectPermissionBackend(DjangoModelBackend):
                 if perm not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                     return False
 
-            # if hasattr(obj, 'has_mapped_perm'):
-            #    if obj.has_mapped_perm(user_obj, perm):
-            #        return True
+            if hasattr(obj, 'has_mapped_perm'):
+                if obj.has_mapped_perm(user_obj, perm):
+                    return True
 
             return super().has_perm(user_obj, perm, obj)
         if not user_obj.is_active:

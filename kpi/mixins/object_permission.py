@@ -556,7 +556,7 @@ class ObjectPermissionMixin:
         return new_permission
 
     @classmethod
-    def get_admin_org_inherited_perms(
+    def get_org_admin_inherited_perms(
         cls, for_instance: Optional['kpi.models.Asset'] = None
     ):
         return set(
@@ -588,7 +588,7 @@ class ObjectPermissionMixin:
         other_perms = []
         if self.owner and self.owner.organization.is_admin_only(user):
             # Admins do not receive explicit permission assignments.
-            other_perms = list(self.get_admin_org_inherited_perms(self))
+            other_perms = list(self.get_org_admin_inherited_perms(self))
 
         return list(set(assigned_perms + project_views_perms + other_perms))
 
@@ -646,12 +646,12 @@ class ObjectPermissionMixin:
         )) == 1
 
         if not result and not is_anonymous:
-            admin_org_perms = self.get_admin_org_inherited_perms()
+            org_admin_perms = self.get_org_admin_inherited_perms()
 
             if (
                 self.owner
                 and self.owner.organization.is_admin_only(user_obj)
-                and codename in admin_org_perms
+                and codename in org_admin_perms
             ):
                 return True
 
