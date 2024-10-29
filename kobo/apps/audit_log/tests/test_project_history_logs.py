@@ -37,9 +37,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             metadata_dict['latest_version_uid'], self.asset.latest_version.uid
         )
 
-    def _base_endpoint_test(
-        self, patch, url_name, request_data, expected_action, verify_additional_metadata
-    ):
+    def _base_endpoint_test(self, patch, url_name, request_data, expected_action):
         # requests are either patches or posts
         request_method = self.client.patch if patch else self.client.post
         # hit the endpoint with the correct data
@@ -58,26 +56,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log.metadata)
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, expected_action)
-        verify_additional_metadata(log.metadata)
+        return log.metadata
 
     def test_first_time_deployment_creates_log(self):
         post_data = {
             'active': True,
             'backend': 'mock',
         }
-
-        def verify_metadata(log_metadata):
-            self.assertEqual(
-                log_metadata['latest_deployed_version_uid'],
-                self.asset.latest_version.uid,
-            )
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=False,
             url_name=self.deployment_url,
             request_data=post_data,
             expected_action=AuditAction.DEPLOY,
-            verify_additional_metadata=verify_metadata,
+        )
+
+        self.assertEqual(
+            log_metadata['latest_deployed_version_uid'],
+            self.asset.latest_version.uid,
         )
 
     def test_redeployment_creates_log(self):
@@ -87,19 +82,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'active': True,
             'backend': 'mock',
         }
-
-        def verify_metadata(log_metadata):
-            self.assertEqual(
-                log_metadata['latest_deployed_version_uid'],
-                self.asset.latest_version.uid,
-            )
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.deployment_url,
             request_data=request_data,
             expected_action=AuditAction.REDEPLOY,
-            verify_additional_metadata=verify_metadata,
+        )
+
+        self.assertEqual(
+            log_metadata['latest_deployed_version_uid'],
+            self.asset.latest_version.uid,
         )
 
     def test_archive_creates_log(self):
@@ -113,7 +105,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.deployment_url,
             request_data=request_data,
             expected_action=AuditAction.ARCHIVE,
-            verify_additional_metadata=lambda x: None,
         )
         # do it again (archive an already-archived asset)
         self.client.patch(
@@ -121,11 +112,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             data=request_data,
             format='json',
         )
-        unarchived_logs = ProjectHistoryLog.objects.filter(
+        archived_logs = ProjectHistoryLog.objects.filter(
             object_id=self.asset.id, action=AuditAction.ARCHIVE
         )
         # we should log the attempt even if it didn't technically do anything
-        self.assertEqual(unarchived_logs.count(), 2)
+        self.assertEqual(archived_logs.count(), 2)
 
     def test_unarchive_creates_log(self):
         # can only unarchive deployed asset
@@ -138,7 +129,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.deployment_url,
             request_data=request_data,
             expected_action=AuditAction.UNARCHIVE,
-            verify_additional_metadata=lambda x: None,
         )
         # do it again (unarchive an already-unarchived asset)
         self.client.patch(
@@ -176,17 +166,15 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_change_project_name_creates_log(self):
         old_name = self.asset.name
 
-        def verify_metadata(log_metadata):
-            self.assertEqual(log_metadata['name']['new'], 'new_name')
-            self.assertEqual(log_metadata['name']['old'], old_name)
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'name': 'new_name'},
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.UPDATE_NAME,
         )
+
+        self.assertEqual(log_metadata['name']['new'], 'new_name')
+        self.assertEqual(log_metadata['name']['old'], old_name)
 
     def test_change_standard_project_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
@@ -198,35 +186,33 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             }
         }
 
-        def verify_metadata(log_metadata):
-            # check non-list settings just store old and new information
-            settings_dict = log_metadata['settings']
-            self.assertEqual(
-                settings_dict['description']['old'], old_settings['description']
-            )
-            self.assertEqual(settings_dict['description']['new'], 'New description')
-            # check list settings store added and removed fields
-            self.assertListEqual(
-                settings_dict['country']['added'],
-                [{'label': 'Albania', 'value': 'ALB'}],
-            )
-            self.assertListEqual(
-                settings_dict['country']['removed'],
-                [{'label': 'United States', 'value': 'USA'}],
-            )
-            # check default settings not recorded if not included in request
-            for setting in Asset.STANDARDIZED_SETTINGS:
-                # country codes are updated automatically when country is updated
-                if setting not in ['country', 'settings', 'country_codes']:
-                    self.assertNotIn(setting, log_metadata)
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data=patch_data,
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
+
+        # check non-list settings just store old and new information
+        settings_dict = log_metadata['settings']
+        self.assertEqual(
+            settings_dict['description']['old'], old_settings['description']
+        )
+        self.assertEqual(settings_dict['description']['new'], 'New description')
+        # check list settings store added and removed fields
+        self.assertListEqual(
+            settings_dict['country']['added'],
+            [{'label': 'Albania', 'value': 'ALB'}],
+        )
+        self.assertListEqual(
+            settings_dict['country']['removed'],
+            [{'label': 'United States', 'value': 'USA'}],
+        )
+        # check default settings not recorded if not included in request
+        for setting in Asset.STANDARDIZED_SETTINGS:
+            # country codes are updated automatically when country is updated
+            if setting not in ['country', 'settings', 'country_codes']:
+                self.assertNotIn(setting, log_metadata)
 
     def test_unchanged_settings_not_recorded_on_log(self):
         """
@@ -240,20 +226,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'description': 'New description',
             }
         }
-
-        def verify_metadata(log_metadata):
-            self.assertNotIn('sector', log_metadata)
-            self.assertNotIn('country', log_metadata)
-            self.assertNotIn('operational_purpose', log_metadata)
-            self.assertNotIn('collects_pii', log_metadata)
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data=patch_data,
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
+
+        self.assertNotIn('sector', log_metadata)
+        self.assertNotIn('country', log_metadata)
+        self.assertNotIn('operational_purpose', log_metadata)
+        self.assertNotIn('collects_pii', log_metadata)
 
     def test_no_log_if_settings_unchanged(self):
         # fill request with only existing values
@@ -276,57 +259,47 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_nullify_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
 
-        def verify_metadata(log_metadata):
-            for setting, old_value in old_settings.items():
-                if setting in Asset.STANDARDIZED_SETTINGS:
-                    # if the setting is one of the standard ones, the new value after
-                    # nulling it out will be whatever is configured as the default
-                    setting_configs: AssetSetting = Asset.STANDARDIZED_SETTINGS[setting]
-                    new_value = (
-                        setting_configs.default_val(self.asset)
-                        if callable(setting_configs.default_val)
-                        else setting_configs.default_val
-                    )
-                else:
-                    new_value = None
-
-                if isinstance(new_value, list) and isinstance(old_value, list):
-                    removed_values = [val for val in old_value if val not in new_value]
-                    added_values = [val for val in new_value if val not in old_value]
-                    self.assertListEqual(
-                        log_metadata['settings'][setting]['added'], added_values
-                    )
-                    self.assertListEqual(
-                        log_metadata['settings'][setting]['removed'], removed_values
-                    )
-                else:
-                    self.assertEqual(
-                        log_metadata['settings'][setting]['new'], new_value
-                    )
-                    self.assertEqual(
-                        log_metadata['settings'][setting]['old'], old_value
-                    )
-
-        self._base_endpoint_test(
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'settings': {}},
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
 
-    def test_add_new_settings_creates_log(self):
-        def verify_metadata(log_metadata):
-            self.assertEqual(
-                log_metadata['settings']['new_setting']['new'], 'new_value'
-            )
-            self.assertEqual(log_metadata['settings']['new_setting']['old'], None)
+        for setting, old_value in old_settings.items():
+            if setting in Asset.STANDARDIZED_SETTINGS:
+                # if the setting is one of the standard ones, the new value after
+                # nulling it out will be whatever is configured as the default
+                setting_configs: AssetSetting = Asset.STANDARDIZED_SETTINGS[setting]
+                new_value = (
+                    setting_configs.default_val(self.asset)
+                    if callable(setting_configs.default_val)
+                    else setting_configs.default_val
+                )
+            else:
+                new_value = None
 
-        self._base_endpoint_test(
+            if isinstance(new_value, list) and isinstance(old_value, list):
+                removed_values = [val for val in old_value if val not in new_value]
+                added_values = [val for val in new_value if val not in old_value]
+                self.assertListEqual(
+                    log_metadata['settings'][setting]['added'], added_values
+                )
+                self.assertListEqual(
+                    log_metadata['settings'][setting]['removed'], removed_values
+                )
+            else:
+                self.assertEqual(log_metadata['settings'][setting]['new'], new_value)
+                self.assertEqual(log_metadata['settings'][setting]['old'], old_value)
+
+    def test_add_new_settings_creates_log(self):
+        log_metadata = self._base_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             # set a setting not in Asset.STANDARDIZED_SETTINGS
             request_data={'settings': {'new_setting': 'new_value'}},
-            verify_additional_metadata=verify_metadata,
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
+
+        self.assertEqual(log_metadata['settings']['new_setting']['new'], 'new_value')
+        self.assertEqual(log_metadata['settings']['new_setting']['old'], None)
