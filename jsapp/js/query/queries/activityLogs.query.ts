@@ -2,7 +2,9 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {KoboSelectOption} from 'jsapp/js/components/common/koboSelect';
 import type {PaginatedResponse} from 'jsapp/js/dataInterface';
 import moment from 'moment';
+import {fetchGet} from 'js/api';
 import {QueryKeys} from '../queryKeys';
+import { endpoints } from 'jsapp/js/api.endpoints';
 
 export interface ActivityLogsItem {
   id: number;
@@ -47,8 +49,22 @@ const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
  * @param {number} offset Pagination parameter: offset of the page
  * @returns {Promise<PaginatedResponse<ActivityLogsItem>>} The paginated response
  */
-const getActivityLogs = async (limit: number, offset: number) =>
-  new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
+const getActivityLogs = async (limit: number, offset: number) => {
+
+  // const params = new URLSearchParams({
+  //   limit: limit.toString(),
+  //   offset: offset.toString(),
+  // });
+  // const response = fetchGet<PaginatedResponse<ActivityLogsItem>>(
+  //   endpoints.AUDIT_LOGS_URL + '?' + params,
+  //   {
+  //     errorMessageDisplay: t('There was an error getting the list.'),
+  //   }
+  // );
+
+  // console.log(response);
+
+  return new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
     setTimeout(
       () =>
         resolve({
@@ -60,6 +76,7 @@ const getActivityLogs = async (limit: number, offset: number) =>
       1000
     );
   });
+}
 
 /**
  * Fetches the filter options for the activity logs.
