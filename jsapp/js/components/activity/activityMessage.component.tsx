@@ -18,4 +18,4 @@ export function ActivityMessage(props: {data: ActivityLogsItem}) {
       <span dangerouslySetInnerHTML={{__html: message}} />
     </div>
   );
-};
+}
