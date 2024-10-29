@@ -37,6 +37,12 @@ class Organization(AbstractOrganization):
         default=False, verbose_name='Multi-members override'
     )
 
+    def add_user(self, user, is_admin=False):
+        # TODO Raise an error if user.organization.is_mmo
+        # if self.is_mmo:
+        user.organization.delete()
+        super().add_user(user, is_admin=is_admin)
+
     @cache_for_request
     def active_subscription_billing_details(self):
         """
