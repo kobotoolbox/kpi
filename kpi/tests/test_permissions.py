@@ -866,7 +866,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             asset.get_perms(grantee), asset.get_perms(anonymous_user)
         )
 
-    def test_admin_org_inherited_and_implied_permissions(self):
+    def test_org_admin_inherited_and_implied_permissions(self):
         """
         Test the inherited (and implied) permissions for an admin within
         an organization.
@@ -888,7 +888,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_VIEW_SUBMISSIONS,
         ]
         assert (
-            list(self.admin_asset.get_admin_org_inherited_perms()).sort()
+            list(self.admin_asset.get_org_admin_inherited_perms()).sort()
             == expected_perms.sort()
         )
 

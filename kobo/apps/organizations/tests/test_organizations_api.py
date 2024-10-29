@@ -54,7 +54,7 @@ class OrganizationApiTestCase(BaseTestCase):
 
     def test_list(self):
         self._insert_data()
-        with self.assertNumQueries(FuzzyInt(10, 16)):
+        with self.assertNumQueries(FuzzyInt(8, 16)):
             res = self.client.get(self.url_list)
         self.assertContains(res, self.organization.name)
 
@@ -175,7 +175,6 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
     def _create_asset_by_alice(self):
 
         self.client.force_login(self.alice)
-
         response = self.create_asset(
             name='Breakfast',
             content={

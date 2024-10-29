@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework import permissions
 
-from kobo.apps.organizations.constants import EXTERNAL_ORG_ROLE
+from kobo.apps.organizations.constants import ORG_EXTERNAL_ROLE
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 from kpi.utils.object_permission import get_database_user
 
@@ -19,7 +19,7 @@ class IsOrgAdmin(
 
     def has_object_permission(self, request, view, obj):
         user = get_database_user(request.user)
-        if obj.get_user_role(user) == EXTERNAL_ORG_ROLE:
+        if obj.get_user_role(user) == ORG_EXTERNAL_ROLE:
             # Do not expose organization existence
             raise Http404()
 

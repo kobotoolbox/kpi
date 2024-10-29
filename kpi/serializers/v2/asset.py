@@ -18,7 +18,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from kobo.apps.organizations.constants import ADMIN_ORG_ROLE
+from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
@@ -815,7 +815,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
-        if obj.owner.organization.get_user_role(request.user) == ADMIN_ORG_ROLE:
+        if obj.owner.organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
             access_types.extend(['shared', 'org-admin'])
             access_types = list(set(access_types))
 

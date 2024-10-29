@@ -107,7 +107,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return asset_view(request=django_http_request)
 
     def get_queryset(self) -> QuerySet:
-        user = self.request.user
+        user = get_database_user(self.request.user)
         return super().get_queryset().filter(users=user)
 
     @action(detail=True, methods=['get'])
