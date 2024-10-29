@@ -168,10 +168,14 @@ export default class ReportStyleSettings extends React.Component<
         ) {
           label = row.label?.[reportStyle.translationIndex];
         }
-        groupByOptions.push({
-          value: val,
-          label: label,
-        });
+
+        // Safeguard for TS reasons
+        if (val !== undefined) {
+          groupByOptions.push({
+            value: val,
+            label: label,
+          });
+        }
       }
     }
 

@@ -7,6 +7,7 @@ from typing import Optional
 
 from constance import config
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F, QuerySet
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
@@ -409,6 +410,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
+
+    def create(self, validated_data):
+        current_owner = validated_data['owner']
+        real_owner = self._get_real_owner(current_owner)
+        if real_owner != current_owner:
+            with transaction.atomic():
+                validated_data['owner'] = real_owner
+                instance = super().create(validated_data)
+                instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
+        else:
+            instance = super().create(validated_data)
+
+        return instance
 
     def update(self, asset, validated_data):
         request = self.context['request']
@@ -889,6 +903,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
+
+    def _get_real_owner(self, current_owner: 'User') -> 'User':
+
+        if current_owner.is_org_owner:
+            return current_owner
+
+        # If `owner` is not the owner of the organization they belong to,
+        # they must belong to a multi-member organization. Thus, the asset
+        # must be owned by the organization('s owner).
+        return current_owner.organization.owner_user_object
 
     def _get_status(self, perm_assignments):
         """

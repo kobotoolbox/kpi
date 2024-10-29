@@ -8,6 +8,7 @@
 6. [ ] Mention any related issues in this repository (as #ISSUE) and in other repositories (as kobotoolbox/other#ISSUE)
 7. [ ] Open an issue in the [docs](https://github.com/kobotoolbox/docs/issues/new) if there are UI/UX changes
 8. [ ] Create a testing plan for the reviewer and add it to the Testing section
+9. [ ] Add frontend or backend tag and any other appropriate tags to this pull request
 
 ## Description
 

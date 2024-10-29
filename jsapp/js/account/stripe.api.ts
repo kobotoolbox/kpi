@@ -12,10 +12,11 @@ import type {
   Organization,
   PriceMetadata,
   Product,
-  TransformQuantity,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
+import {useQuery} from '@tanstack/react-query';
+import {QueryKeys} from 'js/query/queryKeys';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -47,11 +48,13 @@ export async function changeSubscription(
   });
 }
 
-export async function getOrganization() {
-  return fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL, {
-    errorMessageDisplay: t("Couldn't get data for your organization."),
-  });
-}
+export const useOrganizationQuery = () => useQuery({
+  queryFn: async () => {
+    const response = await fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
+    return response.results?.[0];
+  },
+  queryKey: [QueryKeys.organization],
+});
 
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
