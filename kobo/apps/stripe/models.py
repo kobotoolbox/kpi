@@ -58,7 +58,11 @@ class PlanAddOn(models.Model):
 
         Returns True if a PlanAddOn was created, false otherwise.
         """
-        if not charge.metadata.get('price_id', None) or not charge.metadata.get('quantity', None):
+        if (
+            charge.payment_intent.status != PaymentIntentStatus.succeeded or
+            not charge.metadata.get('price_id', None) or
+            not charge.metadata.get('quantity', None)
+        ):
             # make sure the charge is for a successful addon purchase
             return False
 
@@ -124,7 +128,6 @@ class PlanAddOn(models.Model):
             limits_remaining__has_key=limit_key,
             usage_limits__has_key=limit_key,
             charge__refunded=False,
-            charge__payment_intent__status=PaymentIntentStatus.succeeded,
         ).aggregate(
             total_usage_limit=Coalesce(
                 Sum(Cast(usage_field, output_field=IntegerField()) * F('quantity')),
@@ -151,11 +154,9 @@ class PlanAddOn(models.Model):
 
     @admin.display(boolean=True, description='available')
     def is_available(self):
-        return (
-            self.charge.payment_intent.status == PaymentIntentStatus.succeeded and not (
-                self.is_expended or self.charge.refunded
-            ) and bool(self.organization)
-        )
+        return not (
+            self.is_expended or self.charge.refunded
+        ) and bool(self.organization)
 
     def deduct(self, limit_type, amount_used):
         """
@@ -205,7 +206,6 @@ class PlanAddOn(models.Model):
             organization__id=organization.id,
             limits_remaining__has_key=limit_key,
             charge__refunded=False,
-            charge__payment_intent__status=PaymentIntentStatus.succeeded,
             **{f'{metadata_key}__gt': 0}
         ).order_by(metadata_key)
         remaining = amount

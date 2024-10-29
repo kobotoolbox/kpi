@@ -139,13 +139,12 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response.data['count'] == 1
         assert not response.data['results'][0]['is_available']
 
-    def test_addon_inactive_for_cancelled_charge(self):
+    def test_no_addon_for_cancelled_charge(self):
         self._create_product()
         self._create_payment(payment_status='cancelled')
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
-        assert not response.data['results'][0]['is_available']
+        assert response.data['count'] == 0
 
     def test_total_limits_reflect_addon_quantity(self):
         limit = 2000
