@@ -4,7 +4,7 @@ import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
-import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {fetchGet, fetchGetUrl, fetchPost} from 'jsapp/js/api';
 import type {
   AccountLimit,
   ChangePlan,
@@ -17,6 +17,8 @@ import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
 import {useQuery} from '@tanstack/react-query';
 import {QueryKeys} from 'js/query/queryKeys';
+import {FeatureFlag, useFeatureFlag} from '../featureFlags';
+import sessionStore from 'js/stores/session';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -48,13 +50,46 @@ export async function changeSubscription(
   });
 }
 
-export const useOrganizationQuery = () => useQuery({
-  queryFn: async () => {
-    const response = await fetchGet<PaginatedResponse<Organization>>(endpoints.ORGANIZATION_URL);
-    return response.results?.[0];
-  },
-  queryKey: [QueryKeys.organization],
-});
+export const useOrganizationQuery = () => {
+  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
+
+  const currentAccount = sessionStore.currentAccount;
+
+  const organizationUrl =
+  'organization' in currentAccount ? currentAccount.organization?.url : null;
+
+  // Using a separated function to fetch the organization data to prevent
+  // feature flag dependencies from being added to the hook
+  const fetchOrganization = async (): Promise<Organization> => {
+    // organizationUrl is a full url with protocol and domain name, so we're using fetchGetUrl
+    // We're asserting the organizationUrl is not null here because the query is disabled if it is
+    const organization = await fetchGetUrl<Organization>(organizationUrl!);
+
+    if (isMmosEnabled) {
+      return organization;
+    }
+
+    // While the project is in development we will force a false return for the is_mmo
+    // to make sure we don't have any implementations appearing for users
+    return {
+      ...organization,
+      is_mmo: false,
+    };
+  };
+
+  // Setting the 'enabled' property so the query won't run until we have the session data
+  // loaded. Account data is needed to fetch the organization data.
+  const isQueryEnabled =
+    !sessionStore.isPending &&
+    sessionStore.isInitialLoadComplete &&
+    !!organizationUrl;
+
+  return useQuery({
+    queryFn: fetchOrganization,
+    queryKey: [QueryKeys.organization],
+    enabled: isQueryEnabled,
+  });
+};
 
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
