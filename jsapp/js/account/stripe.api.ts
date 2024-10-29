@@ -2,9 +2,9 @@ import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
-import type {PaginatedResponse, AccountResponse} from 'js/dataInterface';
+import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
-import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {fetchGet, fetchGetUrl, fetchPost} from 'jsapp/js/api';
 import type {
   AccountLimit,
   ChangePlan,
@@ -53,61 +53,41 @@ export async function changeSubscription(
 export const useOrganizationQuery = () => {
   const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
 
+  const currentAccount = sessionStore.currentAccount;
+
+  const organizationUrl =
+  'organization' in currentAccount ? currentAccount.organization?.url : null;
+
   // Using a separated function to fetch the organization data to prevent
   // feature flag dependencies from being added to the hook
   const fetchOrganization = async (): Promise<Organization> => {
-    // Once we have the full data from backend, this function should be modified to return
-    // the actual data.
+    // organizationUrl is a full url with protocol and domain name, so we're using fetchGetUrl
+    // We're asserting the organizationUrl is not null here because the query is disabled if it is
+    const organization = await fetchGetUrl<Organization>(organizationUrl!);
 
     if (isMmosEnabled) {
-      const currentAccount = sessionStore.currentAccount as AccountResponse;
-
-      if (!currentAccount) {
-        throw new Error('No account data found');
-      }
-
-      const organizationUrl = currentAccount.organization?.url;
-
-      // Here we would fetch organization data from organizationUrl
-      // For now, we will return mocked data
-      console.log('Fetching organization data from:', organizationUrl);
-
-      // Adding some delay to simulate network request
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Return mocked data for MMO
-      return {
-        name: 'Test Organization',
-        created: '2024-01-01',
-        modified: '2024-01-02',
-        id: '123',
-        is_active: true,
-        is_owner: true,
-        slug: '/test-organization',
-        is_mmo: true,
-        request_user_role: 'owner',
-      };
+      return organization;
     }
 
-    const response = await fetchGet<PaginatedResponse<Organization>>(
-      endpoints.ORGANIZATION_URL
-    );
-    const organization = response.results?.[0];
-
-    // Lets 'remove' the MMO data to prevent uncontrolled situations while in development
+    // While the project is in development we will force a false return for the is_mmo
+    // to make sure we don't have any implementations appearing for users
     return {
       ...organization,
       is_mmo: false,
-      request_user_role: '',
     };
   };
 
   // Setting the 'enabled' property so the query won't run until we have the session data
   // loaded. Account data is needed to fetch the organization data.
+  const isQueryEnabled =
+    !sessionStore.isPending &&
+    sessionStore.isInitialLoadComplete &&
+    !!organizationUrl;
+
   return useQuery({
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
-    enabled: !sessionStore.isPending && sessionStore.isInitialLoadComplete,
+    enabled: isQueryEnabled,
   });
 };
 
