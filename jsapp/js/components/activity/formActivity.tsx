@@ -18,6 +18,10 @@ import KoboModal from '../modals/koboModal';
 import KoboModalHeader from '../modals/koboModalHeader';
 import {ActivityMessage} from './activityMessage.component';
 
+/**
+ * A component used at Project > Settings > Activity route. Displays a table
+ * of actions that users did on the project.
+ */
 export default function FormActivity() {
   const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
 
