@@ -9,6 +9,7 @@ import requests
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
 from kpi.utils.log import logging
+from kpi.utils.strings import split_lines_to_list
 from .hook import Hook
 from .hook_log import HookLog
 from ..constants import (
@@ -108,18 +109,24 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
                 ssrf_protect_options = {}
                 if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
-                    ssrf_protect_options['allowed_ip_addresses'] = constance.\
-                        config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\r\n')
+                    ssrf_protect_options['allowed_ip_addresses'] = (
+                        split_lines_to_list(
+                            constance.config.SSRF_ALLOWED_IP_ADDRESS
+                        )
+                    )
 
                 if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
-                    ssrf_protect_options['denied_ip_addresses'] = constance.\
-                        config.SSRF_DENIED_IP_ADDRESS.strip().split('\r\n')
+                    ssrf_protect_options['denied_ip_addresses'] = (
+                        split_lines_to_list(
+                            constance.config.SSRF_DENIED_IP_ADDRESS
+                        )
+                    )
 
-                SSRFProtect.validate(self._hook.endpoint,
-                                     options=ssrf_protect_options)
+                SSRFProtect.validate(self._hook.endpoint, options=ssrf_protect_options)
 
-                response = requests.post(self._hook.endpoint, timeout=30,
-                                         **request_kwargs)
+                response = requests.post(
+                    self._hook.endpoint, timeout=30, **request_kwargs
+                )
                 response.raise_for_status()
                 self.save_log(response.status_code, response.text, True)
                 success = True

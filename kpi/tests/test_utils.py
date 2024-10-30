@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import re
 from copy import deepcopy
@@ -17,6 +16,7 @@ from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.pyxform_compatibility import allow_choice_duplicates
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
+from kpi.utils.strings import split_lines_to_list
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -300,6 +300,12 @@ class UtilsTestCase(TestCase):
             surv['settings']['allow_choice_duplicates']
             == 'no'
         )
+
+    def test_split_lines_to_list(self):
+
+        value = '\r\nfoo\r\nbar\n\n'
+        expected = ['foo', 'bar']
+        assert split_lines_to_list(value) == expected
 
 
 class XmlUtilsTestCase(TestCase):

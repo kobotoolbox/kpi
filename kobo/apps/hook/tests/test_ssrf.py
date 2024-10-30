@@ -1,8 +1,7 @@
-# coding: utf-8
+from unittest.mock import patch
 
 import responses
 from constance.test import override_config
-from mock import patch
 from rest_framework import status
 
 from kobo.apps.hook.constants import (
@@ -27,11 +26,12 @@ class SSRFHookTestCase(HookTestCase):
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
         submission_id = submissions[0]['_id']
         service_definition = ServiceDefinition(hook, submission_id)
-        first_mock_response = {'error': 'not found'}
-
-        responses.add(responses.POST, hook.endpoint,
-                      status=status.HTTP_200_OK,
-                      content_type='application/json')
+        responses.add(
+            responses.POST,
+            hook.endpoint,
+            status=status.HTTP_200_OK,
+            content_type='application/json',
+        )
 
         # Try to send data to external endpoint
         success = service_definition.send()
