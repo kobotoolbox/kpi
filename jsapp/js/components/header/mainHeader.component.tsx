@@ -157,10 +157,10 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
             )}
 
             <HeaderTitleEditor asset={asset} isEditable={userCanEditAsset} />
-
-            <OrganizationBadge/>
           </React.Fragment>
         )}
+
+        <OrganizationBadge/>
 
         <AccountMenu />
 
