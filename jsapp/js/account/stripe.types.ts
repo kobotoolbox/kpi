@@ -7,7 +7,7 @@ interface SubscriptionPhase {
       quantity: number;
       tax_rates: [number];
       billing_thresholds: Record<string, string>;
-    }
+    },
   ];
   coupon: null;
   currency: string;
@@ -147,6 +147,14 @@ export interface Organization {
   modified: string;
   slug: string;
   is_owner: boolean;
+  is_mmo: boolean;
+  request_user_role: OrganizationUserRole;
+}
+
+export enum OrganizationUserRole {
+  member = 'member',
+  admin = 'admin',
+  owner = 'owner',
 }
 
 export enum PlanNames {

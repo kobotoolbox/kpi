@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .body {
   flex: 5;
@@ -19,8 +18,8 @@
 
 .unverifiedEmail {
   display: flex;
-  column-gap: sizes.$x12;
-  padding-right: sizes.$x24;
+  column-gap: 12px;
+  padding-right: 24px;
 
   p.blurb {
     margin: 0;

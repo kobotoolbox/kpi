@@ -1,11 +1,9 @@
 @use 'scss/colors';
 @use 'scss/breakpoints';
-@use 'scss/sizes';
-@use 'scss/_variables';
 @use 'js/account/plans/plan.module';
 
 .header {
-  font-size: sizes.$r18;
+  font-size: 18px;
   font-weight: 700;
   color: colors.$kobo-storm;
   text-transform: uppercase;
@@ -33,7 +31,7 @@
   td {
     padding-block: 1em;
     font-weight: 600;
-    font-size: sizes.$x16;
+    font-size: 16px;
   }
 }
 
@@ -59,7 +57,7 @@
 
 .productName {
   display: flex;
-  margin-right: sizes.$x12;
+  margin-right: 12px;
   font-size: sizes.$x16;
   font-weight: 600;
 }

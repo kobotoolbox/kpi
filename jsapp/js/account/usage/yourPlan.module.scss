@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .section {
   display: flex;
@@ -8,11 +7,11 @@
   align-items: center;
   justify-content: space-between;
   margin-block-end: 1.5em;
-  border-block: sizes.$x1 solid colors.$kobo-gray-200;
+  border-block: 1px solid colors.$kobo-gray-200;
 }
 
 .plan {
-  font-size: sizes.$r18;
+  font-size: 18px;
   margin-block-start: 0;
 }
 
@@ -22,13 +21,13 @@
 
 .updateBadge {
   font-weight: bold;
-  font-size: sizes.$r12;
+  font-size: 12px;
   padding-inline: 0.25em;
 }
 
 .subscriptionChangeNotice {
   width: 100%;
-  padding: sizes.$x12 sizes.$x16;
+  padding: 12px 16px;
   background-color: colors.$kobo-gray-200;
   margin-bottom: 1.5em;
 }

@@ -1,7 +1,6 @@
 @use 'sass:color';
 @use 'sass:math';
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 @use 'js/components/common/icon';
 @use './projectsTableRow.module';
@@ -36,7 +35,7 @@
   padding-right: projectsTableRow.$projects-table-row-padding;
   // 10 px is a magic number that puts the caret icon in the same line as the
   // content of the cells below
-  padding-left: projectsTableRow.$projects-table-row-padding + sizes.$x10;
+  padding-left: projectsTableRow.$projects-table-row-padding + 10px;
 
   cursor: pointer;
   line-height: projectsTableRow.$projects-table-row-height;
@@ -46,8 +45,8 @@
     .k-icon:first-child {
       // Pull the dropdown label and arrow to the left somewhat.
       // This measurement isn't scientific, it's just supposed to look good.
-      margin-left: 0 - icon.$s-icon-xxs - sizes.$x2;
-      padding-right: sizes.$x3;
+      margin-left: 0 - icon.$s-icon-xxs - 2px;
+      padding-right: 3px;
       opacity: 0.6;
     }
 
@@ -58,7 +57,7 @@
 
     // Sorting indicator
     .k-icon:not(:first-child) {
-      margin-left: sizes.$x6;
+      margin-left: 6px;
       color: colors.$kobo-teal; // make it stand out
     }
   }
@@ -70,8 +69,8 @@
 
 .dropdownContent {
   @include mixins.floatingRoundedBox;
-  padding: sizes.$x10;
-  min-width: sizes.$x120;
+  padding: 10px;
+  min-width: 120px;
 
   :global {
     .k-button {
@@ -79,7 +78,7 @@
       white-space: nowrap;
 
       &:not(:first-child) {
-        margin-top: sizes.$x6;
+        margin-top: 6px;
       }
     }
   }
@@ -87,15 +86,15 @@
 
 // Resizers
 
-$line-width: sizes.$x1;
+$line-width: 1px;
 // Resizer "pad" should be at least 10px wide for ease of use.
 // If $line-width is odd, $resizer-width should be odd, too.
-$resizer-width: sizes.$x16 + $line-width;
+$resizer-width: 16px + $line-width;
 
 // Resizer "pad" - interactive area
 .resizer {
   cursor: ew-resize; // col-resize <-|->   ew-resize <->
-  border-radius: sizes.$x4;
+  border-radius: 4px;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -117,8 +116,8 @@ $resizer-width: sizes.$x16 + $line-width;
   display: inline-block;
   content: '';
   position: absolute;
-  top: sizes.$x4; // $resizer-line-vertical-offset;
-  bottom: sizes.$x4;
+  top: 4px; // $resizer-line-vertical-offset;
+  bottom: 4px;
   right: math.div($resizer-width - $line-width, 2);
   width: $line-width;
   background-color: colors.$kobo-blue;
@@ -137,14 +136,14 @@ $resizer-width: sizes.$x16 + $line-width;
 .columnRoot:hover {
   &::before,
   &::after {
-    top: sizes.$x6;
-    bottom: sizes.$x6;
+    top: 6px;
+    bottom: 6px;
     display: inline-block;
     position: absolute;
     background-color: colors.$kobo-gray-500;
     // Give a little fade
-    border-top: sizes.$x1 solid colors.$kobo-gray-300;
-    border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
+    border-top: 1px solid colors.$kobo-gray-300;
+    border-bottom: 1px solid colors.$kobo-gray-300;
     box-shadow:
       0 -1px 0 colors.$kobo-gray-200,
       0  1px 0 colors.$kobo-gray-200;

@@ -1,4 +1,3 @@
-@use 'scss/sizes';
 @use 'scss/mixins';
 @use 'scss/z-indexes';
 @use 'scss/colors';
@@ -14,8 +13,7 @@ $input-color: colors.$kobo-gray-800;
 .root {
   width: 100%;
   position: relative;
-  font-size: sizes.$x14;
-  margin-right: sizes.$x8;
+  font-size: 12px;
 }
 
 .m {
@@ -34,10 +32,10 @@ $input-color: colors.$kobo-gray-800;
 // A focusable input that receives keyboard shortcuts and mouse clicks
 .trigger {
   // Sizing
-  height: sizes.$x48;
+  height: 36px;
   width: 100%;
-  font-size: sizes.$x14;
-  padding: 0 sizes.$x16;
+  font-size: 12px;
+  padding: 0 16px;
   @include mixins.centerRowFlex;
   justify-content: space-between;
   cursor: pointer; // this differs from <select> built-in
@@ -49,9 +47,9 @@ $input-color: colors.$kobo-gray-800;
   // Color styles for 'outline' style.
   color: $input-color;
   border-style: solid;
-  border-width: sizes.$x1;
+  border-width: 1px;
   border-color: colors.$kobo-gray-300;
-  border-radius: sizes.$x6;
+  border-radius: 6px;
   background-color: colors.$kobo-white;
 
   // This transition reduces visual glitching when script initiates focus()
@@ -63,15 +61,15 @@ $input-color: colors.$kobo-gray-800;
   }
 
   &:focus {
-    border-width: sizes.$x1;
+    border-width: 1px;
     border-color: colors.$kobo-blue;
     transition: outline-width 20ms, border-color 20ms;
-    outline: sizes.$x3 solid colors.$kobo-mid-blue;
+    outline: 3px solid colors.$kobo-mid-blue;
   }
   // Specificity-fighting with normalize.css in Firefox
   &button:focus-visible,
   &[type='button']:focus-visible {
-    outline: sizes.$x3 solid colors.$kobo-mid-blue;
+    outline: 3px solid colors.$kobo-mid-blue;
   }
 
   &.hasError {
@@ -101,8 +99,8 @@ $input-color: colors.$kobo-gray-800;
   }
 }
 
-$k-select-option-height: sizes.$x36;
-$k-select-menu-padding: sizes.$x6;
+$k-select-option-height: 36px;
+$k-select-menu-padding: 6px;
 
 // Menu containing a list of options.
 .menu {
@@ -119,13 +117,13 @@ $k-select-menu-padding: sizes.$x6;
   min-width: 100%;
   max-width: 98vw;
   overflow-x: auto;
-  margin: sizes.$x2 0 0;
+  margin: 2px 0 0;
   padding: $k-select-menu-padding 0;
 
   background-color: colors.$kobo-white;
-  border: sizes.$x1 solid colors.$kobo-light-blue; // more contrast for keyboard
+  border: 1px solid colors.$kobo-light-blue; // more contrast for keyboard
   border-radius: button.$button-border-radius;
-  box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
+  box-shadow: 0 0 6px rgba(colors.$kobo-storm, 0.3);
 
   &:not(.noMaxMenuHeight) {
     // Show a four-and-a-half options to suggest there are more
@@ -142,8 +140,8 @@ $k-select-menu-padding: sizes.$x6;
   min-height: $k-select-option-height;
 
   // slight overhang for clarity when cut short
-  padding: sizes.$x8 sizes.$x16 sizes.$x8 sizes.$x20;
-  text-indent: 0 - sizes.$x4;
+  padding: 8px 16px 8px 20px;
+  text-indent: 0 - 4px;
 
   &.selected {
     // background: colors.$kobo-gray-200; // prior design
@@ -155,7 +153,7 @@ $k-select-menu-padding: sizes.$x6;
 
 // Form label displayed above the trigger
 .label {
-  font-size: sizes.$x12;
+  font-size: 12px;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
   &.label.label { // selector specificity-fighting with kobo bem
@@ -175,5 +173,5 @@ $k-select-menu-padding: sizes.$x6;
   line-height: 1.6;
   font-weight: 400;
   font-style: normal;
-  margin: sizes.$x6 auto 0;
+  margin: 6px auto 0;
 }

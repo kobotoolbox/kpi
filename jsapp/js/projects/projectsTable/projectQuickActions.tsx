@@ -24,6 +24,9 @@ interface ProjectQuickActionsProps {
 /**
  * Quick Actions (Archive, Share, Delete) buttons. Use these when a single
  * project is selected in the Project Table.
+ *
+ * Note that for zero projects selected we display `ProjectQuickActionsEmpty`
+ * instead.
  */
 const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
   // The `userCan` method requires `permissions` property to be present in the

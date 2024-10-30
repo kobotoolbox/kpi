@@ -16,7 +16,7 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
-from .models import Organization, create_organization
+from .models import Organization
 from .permissions import IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -39,13 +39,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         user = self.request.user
-        queryset = super().get_queryset().filter(users=user)
-        if self.action == "list" and not queryset:
-            # Very inefficient get or create queryset.
-            # It's temporary and should be removed later.
-            create_organization(user, f"{user.username}'s organization")
-            queryset = queryset.all()  # refresh
-        return queryset
+        return super().get_queryset().filter(users=user)
 
     @action(detail=True, methods=['get'])
     def service_usage(self, request, pk=None, *args, **kwargs):

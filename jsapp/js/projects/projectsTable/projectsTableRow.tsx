@@ -49,7 +49,13 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         if (isSelfOwned(props.asset)) {
           return t('me');
         } else {
-          return <Avatar username={props.asset.owner__username} />;
+          return (
+            <Avatar
+              username={props.asset.owner__username}
+              size='s'
+              isUsernameVisible
+            />
+          );
         }
       case 'ownerFullName':
         return 'owner__name' in props.asset ? props.asset.owner__name : null;
@@ -64,7 +70,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'dateDeployed':
         if (
           'date_deployed' in props.asset &&
-          props.asset.date_deployed !== null
+          props.asset.date_deployed
         ) {
           return formatTime(props.asset.date_deployed);
         }

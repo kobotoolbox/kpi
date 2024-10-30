@@ -7,7 +7,8 @@ from django.urls import reverse
 from rest_framework.authtoken.models import Token
 from trench.utils import get_mfa_model
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import AuthorizedApplication
@@ -133,13 +134,13 @@ class TestOneTimeAuthentication(BaseTestCase):
         'kpi.authentication.OPOAuth2Authentication.authenticate',
         'kobo.apps.openrosa.libs.authentication.BasicAuthentication.authenticate',
     )
-    def test_any_auth_for_submissions(self, authetication_method):
+    def test_any_auth_for_submissions(self, authentication_method):
         """
         Test most one-time authenticated submissions result in a submission access log
         """
 
         with patch(
-            authetication_method,
+            authentication_method,
             return_value=(TestOneTimeAuthentication.user, 'something'),
         ):
             # assume the submission works, we don't actually care
@@ -161,10 +162,6 @@ class TestOneTimeAuthentication(BaseTestCase):
     def test_digest_auth_for_submissions(self):
         """
         Test digest-authenticated submissions result in a submission access log
-=======
-        Test digest authentications for submissions result in an audit log being created
-        with the 'Submission' type
->>>>>>> main
         """
 
         def side_effect(request):

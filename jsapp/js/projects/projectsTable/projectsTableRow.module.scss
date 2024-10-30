@@ -1,15 +1,14 @@
 @use 'sass:color';
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
 @use 'scss/variables';
 @use 'scss/z-indexes';
 
 $projects-table-hover-bg: colors.$kobo-gray-100;
-$projects-table-row-padding: sizes.$x8;
+$projects-table-row-padding: 8px;
 // The shared height of a row: project rows are bigger due to padding, but
 // header rows use this size without paddings
-$projects-table-row-height: sizes.$x36;
+$projects-table-row-height: 36px;
 
 .row {
   display: flex;
@@ -17,13 +16,13 @@ $projects-table-row-height: sizes.$x36;
   position: relative;
   align-items: stretch;
   cursor: pointer;
-  margin: 0 sizes.$x8;
+  margin: 0 8px;
 
   user-select: none;
 }
 
 .cell {
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-300;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   padding: $projects-table-row-padding;
   color: colors.$kobo-gray-700;
   flex: 1 0 auto;
@@ -43,8 +42,8 @@ $projects-table-row-height: sizes.$x36;
   }
 
   &[data-field='checkbox'] {
-    max-width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
-    width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
+    max-width: $projects-table-row-padding + 20px + $projects-table-row-padding;
+    width: $projects-table-row-padding + 20px + $projects-table-row-padding;
     @include mixins.centerRowFlex;
   }
 
@@ -64,7 +63,7 @@ $projects-table-row-height: sizes.$x36;
     width: 15%;
 
     > *:not(:last-child) {
-      margin-right: sizes.$x5;
+      margin-right: 5px;
     }
   }
 
@@ -155,8 +154,8 @@ $projects-table-row-height: sizes.$x36;
       }
       // left: cover whitespace left of project table
       &::before {
-        left: 0 - sizes.$x32;
-        width: sizes.$x32;
+        left: 0 - 32px;
+        width: 32px;
       }
       // uncrop element
       overflow: visible;
@@ -178,15 +177,15 @@ $projects-table-row-height: sizes.$x36;
     // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
       :global .checkbox__input {
-        outline: sizes.$x2 solid colors.$kobo-mid-blue;
-        outline-offset: 0 - sizes.$x1;
+        outline: 2px solid colors.$kobo-mid-blue;
+        outline-offset: 0 - 1px;
       }
 
       &:hover {
         // Do an even bigger outline if you're actually near the checkbox
         :global .checkbox__input {
-          outline-width: sizes.$x3;
-          outline-offset: 0 - sizes.$x1;
+          outline-width: 3px;
+          outline-offset: 0 - 1px;
 
           // Override checkbox hover states to reduce flashing
           &:hover {
@@ -245,7 +244,7 @@ $projects-table-row-height: sizes.$x36;
 }
 
 .row.rowTypeMessage {
-  padding: sizes.$x40;
+  padding: 40px;
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
@@ -253,7 +252,7 @@ $projects-table-row-height: sizes.$x36;
 
 .headerLabel {
   font-weight: 700;
-  font-size: sizes.$x13;
+  font-size: 13px;
 }
 
 // Highlighted columns:
