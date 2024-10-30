@@ -27,7 +27,7 @@ from .models.project import ProjectTrash
 from .utils import (
     delete_asset,
     replace_user_with_placeholder,
-    signals_temporarily_disconnected,
+    temporarily_disconnect_signals,
 )
 
 
@@ -263,7 +263,7 @@ def empty_project_retry(sender=None, **kwargs):
 @celery_app.task
 def garbage_collector():
 
-    with signals_temporarily_disconnected(delete=True):
+    with temporarily_disconnect_signals(delete=True):
         with transaction.atomic():
             # Remove orphan periodic tasks
             PeriodicTask.objects.exclude(

@@ -155,7 +155,7 @@ def move_to_trash(
             )
         )
 
-    with signals_temporarily_disconnected(save=True):
+    with temporarily_disconnect_signals(save=True):
         clocked_time = timezone.now() + timedelta(days=grace_period)
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
         trash_model.objects.bulk_create(trash_objects)
@@ -246,7 +246,7 @@ def put_back(
         ]
     )
 
-    with signals_temporarily_disconnected(delete=True):
+    with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
 
 
@@ -291,7 +291,7 @@ def replace_user_with_placeholder(
 
 
 @contextmanager
-def signals_temporarily_disconnected(save=False, delete=False):
+def temporarily_disconnect_signals(save=False, delete=False):
     """
     Temporarily disconnects `PeriodicTasks` signals to prevent accumulating
     update queries for Celery Beat while bulk operations are in progress.
