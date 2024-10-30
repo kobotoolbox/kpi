@@ -6,11 +6,11 @@ import KoboSelect from '../common/koboSelect';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
-import type {ActivityLogsItem} from 'jsapp/js/query/queries/activityLogs.query';
+import type {ActivityLogsItem} from './activityLogs.query';
 import {
   useActivityLogsFilterOptionsQuery,
   useActivityLogsQuery,
-} from 'jsapp/js/query/queries/activityLogs.query';
+} from './activityLogs.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
 import {formatTime} from 'jsapp/js/utils';
