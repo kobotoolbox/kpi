@@ -96,7 +96,7 @@ export default function FormActivity() {
             </KoboModalHeader>
 
             <section className={styles.detailsModalContent}>
-              <pre>{JSON.stringify(detailsModalData.metadata, null, '  ')}</pre>
+              <pre>{JSON.stringify(detailsModalData, null, '  ')}</pre>
             </section>
           </KoboModal>
         }

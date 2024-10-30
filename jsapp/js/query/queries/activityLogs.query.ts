@@ -38,24 +38,39 @@ const getRandomMockDescriptionData = () => {
   const asset_uid = String(Math.random());
   const ip_address = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255));
 
+  const metadata: ActivityLogsItem['metadata'] = {
+    source,
+    asset_uid,
+    ip_address,
+    log_subtype: log_subtype as AuditSubTypes,
+  };
+
+  if (action === 'update-name') {
+    metadata.old_name = 'I kwno somethign';
+    metadata.new_name = 'I know something';
+  }
+  if (action === 'deploy' || action === 'redeploy') {
+    metadata.latest_deployed_version_id = 'asd123f3fz';
+  }
+  if (action === 'replace-form' || action === 'update-form') {
+    metadata.latest_version_id = 'aet4b1213c';
+  }
+  if (
+    action === 'add-user' ||
+    action === 'remove-user' ||
+    action === 'update-permission' ||
+    action === 'transfer'
+  ) {
+    metadata.second_user = 'Josh';
+  }
+
   return {
     user,
     user_uid,
     username,
     action: action as AuditActions,
     log_type: log_type as AuditTypes,
-    metadata: {
-      source,
-      asset_uid,
-      ip_address,
-      log_subtype: log_subtype as AuditSubTypes,
-      old_name: 'I kwno somethign',
-      new_name: 'I know something',
-      latest_deployed_version_id: 'asd123f3fz',
-      latest_version_id: 'aet4b1213c',
-      version_uid: 'cv4123g41xda',
-      second_user: 'Josh',
-    },
+    metadata: metadata,
   };
 };
 
