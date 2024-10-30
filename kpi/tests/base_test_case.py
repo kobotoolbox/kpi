@@ -1,12 +1,16 @@
-# coding: utf-8
 import json
+import re
 
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
+from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from kpi.models import Asset
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.models.asset import Asset
+from kpi.models.object_permission import ObjectPermission
 # `baker_generators` needs to be imported to give baker extra support
 from kpi.tests.utils import baker_generators  # noqa
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -20,15 +24,52 @@ class BaseTestCase(APITestCase):
     def absolute_reverse(*args, **kwargs):
         return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
 
-    def _get_endpoint(self, endpoint):
-        if hasattr(self, 'URL_NAMESPACE') and self.URL_NAMESPACE is not None:
-            endpoint = '{}:{}'.format(self.URL_NAMESPACE, endpoint) \
-                if self.URL_NAMESPACE else endpoint
-        return endpoint
-
     def login_as_other_user(self, username, password):
         self.client.logout()
         self.client.login(username=username, password=password)
+
+    def obj_to_url(self, obj):
+        # Add more types as you need them
+        if isinstance(obj, ObjectPermission):
+            return reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
+            )
+        if isinstance(obj, Permission):
+            return reverse(
+                self._get_endpoint('permission-detail'),
+                kwargs={'codename': obj.codename},
+            )
+        elif isinstance(obj, User):
+            return reverse(
+                self._get_endpoint('user-kpi-detail'),
+                kwargs={'username': obj.username},
+            )
+        raise NotImplementedError
+
+    def url_to_obj(self, url):
+        uid = self._url_to_uid(url)
+        if uid.startswith('a'):
+            klass = Asset
+        elif uid.startswith('p'):
+            klass = ObjectPermission
+        else:
+            raise NotImplementedError()
+        obj = klass.objects.get(uid=uid)
+        return obj
+
+    @staticmethod
+    def _url_to_uid(url):
+        return re.match(r'.+/(.+)/.*$', url).groups()[0]
+
+    def _get_endpoint(self, endpoint):
+        if hasattr(self, 'URL_NAMESPACE') and self.URL_NAMESPACE is not None:
+            endpoint = (
+                '{}:{}'.format(self.URL_NAMESPACE, endpoint)
+                if self.URL_NAMESPACE
+                else endpoint
+            )
+        return endpoint
 
 
 class BaseAssetTestCase(BaseTestCase):

@@ -32,7 +32,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
-from kpi.tests.utils.asset_file import AssetFileTestCaseMixin
+from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 
 
 class AssetListApiTests(BaseAssetTestCase):

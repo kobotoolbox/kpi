@@ -1,16 +1,20 @@
 from unittest.mock import patch
 
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from ddt import ddt, data, unpack
 from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_VIEW_ASSET, PERM_MANAGE_ASSET
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
-from kpi.tests.utils.asset_file import AssetFileTestCaseMixin
+from kpi.tests.utils.mixins import (
+    AssetFileTestCaseMixin,
+)
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -493,6 +497,78 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         if expected_status_code == status.HTTP_200_OK:
             assert response.data['asset']['deployment__active'] == is_active
 
+    @data(
+        ('someuser', True, status.HTTP_200_OK),
+        ('someuser', False, status.HTTP_200_OK),
+        ('anotheruser', True, status.HTTP_200_OK),
+        ('anotheruser', False, status.HTTP_404_NOT_FOUND),
+        ('alice', True, status.HTTP_200_OK),
+        ('alice', False, status.HTTP_404_NOT_FOUND),
+        ('bob', True, status.HTTP_404_NOT_FOUND),
+        ('bob', False, status.HTTP_200_OK),
+    )
+    @unpack
+    def test_can_assign_permissions(
+        self,
+        username: str,
+        owned_by_org: bool,
+        expected_status_code: int,
+    ):
+        if owned_by_org:
+            response = self._create_asset_by_alice()
+        else:
+            response = self._create_asset_by_bob()
+
+        asset_uid = response.data['uid']
+        user = User.objects.get(username=username)
+
+        payload = {
+            'user': self.obj_to_url(self.alice),
+            'permission': self.obj_to_url(
+                Permission.objects.get(codename=PERM_VIEW_ASSET)
+            ),
+        }
+
+        self.client.force_login(user)
+        url = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': asset_uid},
+        )
+        response = self.client.post(url, data=payload)
+        response.status_code == expected_status_code
+
+
+class OrganizationAdminsAssetFileApiTestCase(
+    AssetFileTestCaseMixin, BaseOrganizationAssetApiTestCase
+):
+    def setUp(self):
+        super().setUp()
+        response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=response.data['uid'])
+        self.current_username = 'anotheruser'
+        self.list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
+        self.client.force_login(self.anotheruser)
+
+    def test_can_get_asset_files(self):
+        self.client.force_login(self.someuser)
+        self.current_username = 'someuser'
+        af_uid = self.verify_asset_file(self.create_asset_file())
+
+        self.client.force_login(self.anotheruser)
+        self.current_username = 'anotheruser'
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['uid'] == af_uid
+
+    def test_can_post_asset_files(self):
+        response = self.create_asset_file()
+        self.verify_asset_file(response)
+
+    def test_can_delete_asset_files(self):
+        self.delete_asset_file()
+
 
 class OrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
 
@@ -535,46 +611,66 @@ class OrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
     def test_can_bulk_validate_data(self):
         pass
 
-    def test_can_assign_permissions(self):
-        pass
 
-    def test_can_delete_rest_services(self):
-        pass
-
-    def test_can_update_rest_services(self):
-        pass
-
-    def test_can_add_rest_services(self):
-        pass
-
-
-class OrganizationAdminsAssetFileApiTestCase(
-    AssetFileTestCaseMixin, BaseOrganizationAssetApiTestCase
+class OrganizationAdminsRestServiceApiTestCase(
+    HookTestCaseMixin, BaseOrganizationAssetApiTestCase
 ):
+
     def setUp(self):
         super().setUp()
         response = self._create_asset_by_alice()
         self.asset = Asset.objects.get(uid=response.data['uid'])
-        self.current_username = 'anotheruser'
-        self.list_url = reverse(
-            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
-        )
+        self.asset.deploy(backend='mock', active=True)
         self.client.force_login(self.anotheruser)
 
-    def test_can_get_asset_files(self):
-        self.client.force_login(self.someuser)
-        self.current_username = 'someuser'
-        af_uid = self.verify_asset_file(self.create_asset_file())
+    def test_can_add_rest_services(self):
+        self._create_hook()
 
-        self.client.force_login(self.anotheruser)
-        self.current_username = 'anotheruser'
-        response = self.client.get(self.list_url)
+    def test_can_list_rest_services(self):
+        hook = self._create_hook()
+        list_url = reverse(self._get_endpoint('hook-list'), kwargs={
+            'parent_lookup_asset': self.asset.uid
+        })
+
+        response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['results'][0]['uid'] == af_uid
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['uid'] == hook.uid
 
-    def test_can_post_asset_files(self):
-        response = self.create_asset_file()
-        self.verify_asset_file(response)
+        detail_url = reverse('hook-detail', kwargs={
+            'parent_lookup_asset': self.asset.uid,
+            'uid': hook.uid,
+        })
 
-    def test_can_delete_asset_files(self):
-        self.delete_asset_file()
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['uid'] == hook.uid
+
+    def test_can_delete_rest_services(self):
+        hook = self._create_hook()
+        detail_url = reverse(
+            self._get_endpoint('hook-detail'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': hook.uid},
+        )
+        response = self.client.delete(detail_url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_can_update_rest_services(self):
+        hook = self._create_hook()
+        detail_url = reverse(
+            self._get_endpoint('hook-detail'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': hook.uid},
+        )
+        data = {'name': 'some disabled external service', 'active': False}
+        response = self.client.patch(detail_url, data)
+        assert response.status_code == status.HTTP_200_OK
+        hook.refresh_from_db()
+        assert not hook.active
+        assert hook.name == 'some disabled external service'
+
+    def _add_submissions(self):
+        submission = {
+            'egg': 2,
+            'bacon': 1,
+        }
+        self.asset.deployment.mock_submissions([submission])

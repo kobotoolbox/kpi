@@ -130,3 +130,21 @@ class AssetFileTestCaseMixin:
         response_url = response_dict['metadata']['redirect_url']
         assert response_url == payload_url and response_url != ''
         return response_dict['uid']
+
+
+class PermissionAssignmentTestCaseMixin:
+
+    def get_asset_perm_assignment_list_url(self, asset):
+        return reverse(
+            self._get_endpoint('asset-permission-assignment-list'),
+            kwargs={'parent_lookup_asset': asset.uid}
+        )
+
+    def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
+        return [
+            self.absolute_reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'uid': uid, 'parent_lookup_asset': asset.uid},
+            )
+            for uid in perm_assignments.values_list('uid', flat=True)
+        ]
