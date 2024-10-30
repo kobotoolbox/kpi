@@ -10,6 +10,7 @@ from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_VIEW_ASSET, PERM_MANAGE_ASSET
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
+from kpi.tests.utils.asset_file import AssetFileTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
 
@@ -138,6 +139,20 @@ class OrganizationApiTestCase(BaseTestCase):
 
 
 class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
+    """
+    This test suite (e.g. classes which inherit from this one) does not cover
+    scenarios where owners or admins are also the creators of the objects.
+
+    The primary focus is to evaluate access for organization admins without explicit
+    permission assignments, while ensuring that permissions for other users work
+    as expected.
+
+    - someuser is the owner
+    - anotheruser is an admin
+    - alice is a member
+    - bob is external to the organization
+    """
+
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -240,6 +255,14 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
 
 @ddt
 class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
+    """
+    The organization asset endpoint returns a list of all assets owned by the
+    organization, while the regular asset endpoint only returns assets for which
+    the user has explicit permissions.
+
+    Admins can view organization assets based on their role, not through assigned
+    permissions.
+    """
 
     @data(
         ('someuser', status.HTTP_200_OK),
@@ -313,18 +336,12 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
 @ddt
 class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
     """
-    This test suite does not cover scenarios where owners or admins are also the
-    creators of the objects.
-
-    The primary focus is to evaluate access for organization admins without explicit
-    permission assignments, while ensuring that permissions for other users work
-    as expected.
-
-    - Owners and Admins have full control over organization projects, including deletion.
-    - Members who create projects can fully manage them, except for deletion.
-    - Externals have no permissions on organization projects.
-    - Owners and Admins can only interact with externals' projects if they have been
-      explicitly shared with them.
+    Owners and Admins have complete control over organization projects, including
+    the ability to delete them.
+    Members who create projects can manage them entirely, except for deletion.
+    Externals do not have any permissions on organization projects. However,
+    Owners and Admins can only interact with externals' projects if these projects
+    have been explicitly shared with them.
     """
 
     def test_create_asset_is_owned_by_organization(self):
@@ -475,3 +492,89 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
 
         if expected_status_code == status.HTTP_200_OK:
             assert response.data['asset']['deployment__active'] == is_active
+
+
+class OrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=response.data['uid'])
+        self.asset.deploy(backend='mock', active=True)
+        submission = {
+            'egg': 2,
+            'bacon': 1,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        self.data_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
+        self.client.force_login(self.anotheruser)
+
+    def test_can_access_data(self):
+        response = self.client.get(self.data_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+
+    def test_can_submit_data(self):
+        pass
+
+    def test_can_edit_data(self):
+        pass
+
+    def test_can_delete_data(self):
+        pass
+
+    def test_can_bulk_delete_data(self):
+        pass
+
+    def test_can_validate_data(self):
+        pass
+
+    def test_can_bulk_validate_data(self):
+        pass
+
+    def test_can_assign_permissions(self):
+        pass
+
+    def test_can_delete_rest_services(self):
+        pass
+
+    def test_can_update_rest_services(self):
+        pass
+
+    def test_can_add_rest_services(self):
+        pass
+
+
+class OrganizationAdminsAssetFileApiTestCase(
+    AssetFileTestCaseMixin, BaseOrganizationAssetApiTestCase
+):
+    def setUp(self):
+        super().setUp()
+        response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=response.data['uid'])
+        self.current_username = 'anotheruser'
+        self.list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
+        self.client.force_login(self.anotheruser)
+
+    def test_can_get_asset_files(self):
+        self.client.force_login(self.someuser)
+        self.current_username = 'someuser'
+        af_uid = self.verify_asset_file(self.create_asset_file())
+
+        self.client.force_login(self.anotheruser)
+        self.current_username = 'anotheruser'
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['uid'] == af_uid
+
+    def test_can_post_asset_files(self):
+        response = self.create_asset_file()
+        self.verify_asset_file(response)
+
+    def test_can_delete_asset_files(self):
+        self.delete_asset_file()

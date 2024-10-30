@@ -1,5 +1,4 @@
-# coding: utf-8
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -13,8 +12,9 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
-class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
-                       NoUpdateModelViewSet):
+class AssetFileViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, NoUpdateModelViewSet
+):
     """
     This endpoint shows uploaded files related to an asset.
 
@@ -169,7 +169,8 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # permissions
         def can_access_file(self, private_file):
             return private_file.request.user.has_perm(
-                PERM_VIEW_ASSET, private_file.parent_object.asset)
+                PERM_VIEW_ASSET, private_file.parent_object.asset
+            )
 
     @action(detail=True, methods=['GET'])
     def content(self, *args, **kwargs):

@@ -76,18 +76,9 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             owned_snapshots = queryset.none()
             if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
-            org_snapshots = queryset.none()
-
-            if not user.is_anonymous and user.organization.is_admin_only(user):
-                # Admins do not receive explicit permission assignments,
-                # but they have the same access to assets as the organization owner.
-                org_snapshots = queryset.filter(
-                    owner=user.organization.owner_user_object
-                )
 
             return (
                 owned_snapshots
-                | org_snapshots
                 | RelatedAssetPermissionsFilter().filter_queryset(
                     self.request, queryset, view=self
                 )

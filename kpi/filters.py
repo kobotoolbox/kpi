@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -36,8 +35,9 @@ from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
 from kpi.utils.django_orm_helper import OrderCustomCharField
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
-    get_objects_for_user,
     get_anonymous_user,
+    get_database_user,
+    get_objects_for_user,
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
@@ -59,7 +59,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        fields = {"asset__owner": request.user}
+        fields = {'asset__owner': request.user}
         return queryset.filter(**fields)
 
 
@@ -404,16 +404,31 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
     """
     Uses KpiObjectPermissionsFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
-    related to those assets. The queryset's model must be related to `Asset`
-    via a field named `asset`.
+    related to those assets.
+    If the current user is an admin of the organization that owns the parent asset,
+    all assets of that organization are returned directly.
+    The queryset's model must be related to `Asset` via a field named `asset`.
     """
 
     def filter_queryset(self, request, queryset, view):
-        available_assets = super().filter_queryset(
-            request=request,
-            queryset=Asset.objects.all(),
-            view=view
-        )
+
+        available_assets = None
+        if hasattr(view, 'asset'):
+            user = get_database_user(request.user)
+            organization = view.asset.owner.organization
+            if organization.is_admin_only(user):
+                # Admins do not receive explicit permission assignments,
+                # but they have the same access to assets as the organization owner.
+                available_assets = Asset.objects.filter(
+                    owner=organization.owner_user_object
+                )
+
+        if not available_assets:
+            available_assets = super().filter_queryset(
+                request=request,
+                queryset=Asset.objects.all(),
+                view=view
+            )
         return queryset.filter(asset__in=available_assets)
 
 
