@@ -1,0 +1,75 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+# Last matching entry wins.
+
+# Default owner for all missed or newly added files.
+*                                   @magicznyleszek @noliveleger
+
+
+
+
+#### Global section.
+.editorconfig                       @magicznyleszek @noliveleger
+.git-blame-ingore-revs              @magicznyleszek @noliveleger
+.gitattributes                      @magicznyleszek @noliveleger
+.gitignore                          @magicznyleszek @noliveleger
+.gitmodules                         @magicznyleszek @noliveleger
+CONTRIBUTING.md                     @magicznyleszek @noliveleger
+dependabot.yml                      @magicznyleszek @noliveleger
+dependabot.yml                      @magicznyleszek @noliveleger
+kpi.code-workspace                  @magicznyleszek @noliveleger
+LICENSE                             @magicznyleszek @noliveleger
+README.md                           @magicznyleszek @noliveleger
+
+
+
+
+#### Frontend section.
+
+# Default owner
+.storybook/*                        @magicznyleszek
+cypress/*                           @magicznyleszek
+jsapp/*                             @magicznyleszek
+patches/*                           @magicznyleszek
+static/*                            @magicznyleszek
+webpack/*                           @magicznyleszek
+.babelrc.json                       @magicznyleszek
+.browserlistrc                      @magicznyleszek
+.eslintignore                       @magicznyleszek
+.eslintrc.js                        @magicznyleszek
+.node-version                       @magicznyleszek
+.nvmrc                              @magicznyleszek
+.prettierrc.js                      @magicznyleszek
+.stylelintrc.js                     @magicznyleszek
+.swcrc                              @magicznyleszek
+.coffeelnt.json                     @magicznyleszek
+package-lock.json                   @magicznyleszek
+package.json                        @magicznyleszek
+tsconfig.json                       @magicznyleszek
+
+# Billing
+/jsapp/js/account/*                 @jamesrkiger
+/jsapp/js/components/usageLimits    @jamesrkiger
+
+
+
+
+#### Backend section
+
+# Default owner
+.tx/*                               @noliveleger
+dependencies/*                      @noliveleger
+docker/*                            @noliveleger
+hub/*                               @noliveleger
+kobo/*                              @noliveleger
+kpi/*                               @noliveleger
+scripts/*                           @noliveleger
+test/*                              @noliveleger
+.coveragerc                         @noliveleger
+.dockerignore                       @noliveleger
+.gitlab-ci.yml                      @noliveleger
+Dockerfile                          @noliveleger
+format-python.sh                    @noliveleger
+manage.py                           @noliveleger
+pip-compile.sh                      @noliveleger
+pyproject.toml                      @noliveleger
