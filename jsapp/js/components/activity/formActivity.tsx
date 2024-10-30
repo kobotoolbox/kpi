@@ -1,4 +1,3 @@
-import type {ReactNode} from 'react';
 import {useState} from 'react';
 import '../../../scss/components/_kobo.form-view.scss';
 import type {KoboSelectOption} from '../common/koboSelect';
@@ -34,8 +33,8 @@ export default function FormActivity() {
     );
   };
 
-  // Modal is being displayed when data for it is being set. To close modal,
-  // simply set data to `null`.
+  // Modal is being displayed when data for it is set. To close modal, simply
+  // set data to `null`.
   const [detailsModalData, setDetailsModalData] =
     useState<ActivityLogsItem | null>(null);
 
@@ -59,8 +58,7 @@ export default function FormActivity() {
       key: 'date',
       label: t('Date'),
       size: 100,
-      cellFormatter: (data: ActivityLogsItem) =>
-        formatTime(data.date_created) as ReactNode,
+      cellFormatter: (data: ActivityLogsItem) => formatTime(data.date_created),
     },
   ];
 
