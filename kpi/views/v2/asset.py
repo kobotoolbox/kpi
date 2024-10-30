@@ -380,10 +380,8 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    logged_fields = [
-        'id',
-        'has_deployment',
-    ]
+    logged_fields = ['has_deployment', 'id', 'name', 'settings', 'latest_version.uid']
+
     log_type = AuditType.PROJECT_HISTORY
 
     def get_object_override(self):
@@ -434,8 +432,9 @@ class AssetViewSet(
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(detail=True,
             methods=['get', 'post', 'patch'],

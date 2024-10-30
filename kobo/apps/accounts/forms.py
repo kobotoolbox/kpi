@@ -279,7 +279,6 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         'newsletter_subscription',
     ]
 
-
     def clean(self):
         """
         Override parent form to pass extra user's attributes to validation.
@@ -287,10 +286,17 @@ class SignupForm(KoboSignupMixin, BaseSignupForm):
         super(SignupForm, self).clean()
 
         User = get_user_model()  # noqa
+
         dummy_user = User()
+        # Using `dummy_user`, a temporary User object, to assign attributes that are
+        # validated during the password similarity check.
         user_username(dummy_user, self.cleaned_data.get('username'))
         user_email(dummy_user, self.cleaned_data.get('email'))
-        setattr(dummy_user, 'organization', self.cleaned_data.get('organization', ''))
+        setattr(
+            dummy_user,
+            'organization_name',
+            self.cleaned_data.get('organization', ''),
+        )
         setattr(dummy_user, 'full_name', self.cleaned_data.get('name', ''))
 
         password = self.cleaned_data.get('password1')

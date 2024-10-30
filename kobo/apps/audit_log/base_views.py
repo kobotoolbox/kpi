@@ -5,16 +5,18 @@ def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Raises an exception if the field is not found
+    Returns None if the field is not found
     """
     split = field.split('.')
-    attribute = getattr(obj, split[0])
-    if len(split) > 1:
-        for inner_field in split[1:]:
-            if isinstance(attribute, dict):
-                attribute = attribute.get(inner_field)
-            else:
-                attribute = getattr(attribute, inner_field)
+    attribute = obj
+
+    for inner_field in split:
+        if attribute is None:
+            break
+        if isinstance(attribute, dict):
+            attribute = attribute.get(inner_field, None)
+        else:
+            attribute = getattr(attribute, inner_field, None)
     return attribute
 
 

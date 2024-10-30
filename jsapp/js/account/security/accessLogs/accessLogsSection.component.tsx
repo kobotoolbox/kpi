@@ -6,7 +6,7 @@ import React from 'react';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 
 // Utilities
-import useAccessLogsQuery, {type AccessLog} from 'js/query/queries/accessLogs.query';
+import useAccessLogsQuery, {type AccessLog} from './accessLogs.query';
 import {formatTime} from 'js/utils';
 // import sessionStore from 'js/stores/session';
 
