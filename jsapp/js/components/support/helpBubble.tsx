@@ -74,7 +74,8 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
           $targetEl.parents('.help-bubble__popup').length === 0 &&
           $targetEl.parents('.help-bubble__popup-content').length === 0 &&
           $targetEl.parents('.help-bubble__row').length === 0 &&
-          $targetEl.parents('.help-bubble__row-wrapper').length === 0
+          $targetEl.parents('.help-bubble__row-wrapper').length === 0 &&
+          $targetEl.parents('.help-bubble').length === 0
         ) {
           this.close();
         }
