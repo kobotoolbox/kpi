@@ -1,4 +1,3 @@
-# coding: utf-8
 import base64
 
 
@@ -13,5 +12,5 @@ def to_str(obj):
 
 
 def split_lines_to_list(value: str) -> list:
-    ip_addresses = value.strip().split('\n')
-    return [ip.strip() for ip in ip_addresses if ip.strip()]
+    values = value.strip().split('\n')
+    return [ip.strip() for ip in values if ip.strip()]
