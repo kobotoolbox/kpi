@@ -27,7 +27,7 @@ import GitRev from './gitRev.component';
 import pageState from 'js/pageState.store';
 import styles from './mainHeader.module.scss';
 import Button from 'js/components/common/button';
-import OrganizationBadge from './organizationBadge.component';
+import OrganizationBadge from 'js/components/header/organizationBadge.component';
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null;

@@ -1,5 +1,5 @@
-import styles from './organizationBadge.module.scss';
 import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
+import styles from './organizationBadge.module.scss';
 
 export default function OrganizationBadge() {
   const orgQuery = useOrganizationQuery();
