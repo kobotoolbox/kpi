@@ -1,22 +1,21 @@
-@use 'scss/sizes';
 @use 'scss/colors';
 
 
 .oneTimeAddOnListContainer {
   .oneTimeAddOnListEntry + .oneTimeAddOnListEntry {
-    margin-top: sizes.$x8;
+    margin-top: 8px;
   }
 }
 
 .oneTimeAddOnListEntry {
   display: flex;
   justify-content: space-between;
-  padding: sizes.$x16;
-  border: sizes.$x1 solid colors.$kobo-gray-300;
-  border-radius: sizes.$x6;
+  padding: 16px;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 6px;
 
   label {
-    margin-right: sizes.$x30;
+    margin-right: 30px;
     font-weight: 600;
   }
 }

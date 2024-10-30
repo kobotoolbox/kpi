@@ -1,4 +1,4 @@
-@use 'scss/sizes';
+
 @use 'scss/colors';
 
 .addonModalTrigger {
@@ -8,25 +8,25 @@
 
 .addonUsageDetails {
   ul + .addonTypeHeader {
-    margin-top: sizes.$x20;
+    margin-top: 20px;
   }
 
-  margin-bottom: sizes.$x32;
+  margin-bottom: 32px;
 }
 
 .addonTypeHeader {
   font-weight: 600;
-  font-size: sizes.$x12;
+  font-size: 12px;
   color: colors.$kobo-gray-600;
   text-transform: uppercase;
 }
 
 .addonModalContent {
-  padding: 0 sizes.$x24 sizes.$x24 sizes.$x24
+  padding: 0 24px 24px 24px;
 }
 
 .usageBreakdown {
-  margin-top: sizes.$x8;
+  margin-top: 8px;
   
   & > li {
     display: flex;
@@ -34,24 +34,24 @@
   }
 
   li + li {
-    margin-top: sizes.$x8;
+    margin-top: 8x;
   }
 
   li:last-of-type {
-    margin-top: sizes.$x14;
+    margin-top: 14px;
   }
 }
 
 .totalAvailable {
-  padding: sizes.$x8 0;
-  border: colors.$kobo-gray-200 sizes.$x1;
+  padding: 8px 0;
+  border: colors.$kobo-gray-200 1px;
   border-style: solid none;
 }
 
 .listHeaderText {
-  font-size: sizes.$r18;
+  font-size: 18px;
   font-weight: 700;
   color: colors.$kobo-storm;
   text-transform: uppercase;
-  margin: 0 0 sizes.$x16 0;
+  margin: 0 0 16px 0;
 }
