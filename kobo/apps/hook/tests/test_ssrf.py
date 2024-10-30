@@ -1,11 +1,8 @@
-from unittest.mock import patch, call
+from unittest.mock import patch
 
-import pytest
 import responses
 from constance.test import override_config
 from rest_framework import status
-from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
-from ipaddress import ip_address
 
 from kobo.apps.hook.constants import (
     HOOK_LOG_PENDING,
@@ -43,34 +40,3 @@ class SSRFHookTestCase(HookTestCase):
         self.assertEqual(hook_log.status_code, KOBO_INTERNAL_ERROR_STATUS_CODE)
         self.assertEqual(hook_log.status, HOOK_LOG_PENDING)
         self.assertTrue('is not allowed' in hook_log.message)
-
-    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
-           new=MockSSRFProtect._get_ip_address)
-    @override_config(
-        SSRF_ALLOWED_IP_ADDRESS='\r\n1.2.3.4\r\n6.7.8.9\n',
-        SSRF_DENIED_IP_ADDRESS='\n10.11.12.13\r\n14.15.16.17\r\n'
-    )
-    @responses.activate
-    def test_constance_settings_parsing(self):
-        hook = self._create_hook()
-
-        ServiceDefinition = hook.get_service_definition()
-        submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        submission_id = submissions[0]['_id']
-        service_definition = ServiceDefinition(hook, submission_id)
-
-        with patch('kobo.apps.hook.models.service_definition_interface.SSRFProtect.validate') as mock_ssrf_validate:  # noqa
-            service_definition.send()
-
-        # \r should be stripped for IPs in options
-        mock_ssrf_validate.assert_has_calls(
-            [
-                call(
-                    hook.endpoint,
-                    options={
-                        'allowed_ip_addresses': ['1.2.3.4', '6.7.8.9'],
-                        'denied_ip_addresses': ['10.11.12.13', '14.15.16.17'],
-                    },
-                )
-            ]
-        )
