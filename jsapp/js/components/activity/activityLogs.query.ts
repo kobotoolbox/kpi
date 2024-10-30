@@ -1,6 +1,6 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import type {PaginatedResponse} from 'js/dataInterface';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import moment from 'moment';
 import {QueryKeys} from 'js/query/queryKeys';
 
@@ -81,7 +81,11 @@ const startActivityLogsExport = async () =>
       if (Math.random() > 0.5) {
         resolve();
       } else {
-        reject();
+        const failResponse: FailResponse = {
+          status: 500,
+          statusText: 'Mocked error',
+        };
+        reject(failResponse);
       }
     }, 500);
   });
