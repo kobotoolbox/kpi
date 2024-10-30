@@ -1,6 +1,6 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import type {PaginatedResponse} from 'js/dataInterface';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import moment from 'moment';
 import {
   AuditActions,
@@ -114,6 +114,26 @@ const getFilterOptions = async () =>
   });
 
 /**
+ * Starts the exporting process of the activity logs.
+ * @returns {Promise<void>} The promise that starts the export
+ */
+const startActivityLogsExport = async () =>
+  new Promise<void>((resolve, reject) => {
+    // Simulates backend export process.
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        resolve();
+      } else {
+        const failResponse: FailResponse = {
+          status: 500,
+          statusText: 'Mocked error',
+        };
+        reject(failResponse);
+      }
+    }, 500);
+  });
+
+/**
  * This is a hook that fetches activity logs from the server.
  *
  * @param itemLimit Pagination parameter: number of items per page
@@ -134,3 +154,9 @@ export const useActivityLogsFilterOptionsQuery = () =>
     queryKey: [QueryKeys.activityLogsFilter],
     queryFn: () => getFilterOptions(),
   });
+
+/**
+ * This is a hook to start the exporting process of the activity logs.
+ * @returns {() => void} The function to start the export
+ */
+export const useExportActivityLogs = () => startActivityLogsExport;

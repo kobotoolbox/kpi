@@ -3,12 +3,12 @@ import '../../../scss/components/_kobo.form-view.scss';
 import type {KoboSelectOption} from '../common/koboSelect';
 import KoboSelect from '../common/koboSelect';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
-import Button from '../common/button';
 import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 import type {ActivityLogsItem} from './activity.constants';
 import {
   useActivityLogsFilterOptionsQuery,
   useActivityLogsQuery,
+  useExportActivityLogs,
 } from './activityLogs.query';
 import styles from './formActivity.module.scss';
 import cx from 'classnames';
@@ -16,6 +16,7 @@ import {formatTime} from 'jsapp/js/utils';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from '../modals/koboModalHeader';
 import {ActivityMessage} from './activityMessage.component';
+import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table
@@ -26,6 +27,8 @@ export default function FormActivity() {
 
   const [selectedFilterOption, setSelectedFilterOption] =
     useState<KoboSelectOption | null>(null);
+
+  const exportData = useExportActivityLogs();
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(
@@ -78,11 +81,9 @@ export default function FormActivity() {
             placeholder={t('Filter by')}
             options={filterOptions || []}
           />
-          <Button
-            size='m'
-            type='primary'
-            startIcon='download'
+          <ExportToEmailButton
             label={t('Export all data')}
+            exportFunction={exportData}
           />
         </div>
       </div>
