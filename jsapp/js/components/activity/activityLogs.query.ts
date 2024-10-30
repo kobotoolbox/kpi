@@ -1,14 +1,14 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import type {KoboSelectOption} from 'jsapp/js/components/common/koboSelect';
-import type {PaginatedResponse} from 'jsapp/js/dataInterface';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import type {PaginatedResponse} from 'js/dataInterface';
 import moment from 'moment';
-import {QueryKeys} from '../queryKeys';
 import {
   AuditActions,
   AuditTypes,
   AuditSubTypes,
   type ActivityLogsItem,
-} from 'jsapp/js/components/activity/activity.constants';
+} from './activity.constants';
+import {QueryKeys} from 'js/query/queryKeys';
 
 // =============================================================================
 // MOCK DATA GENERATION
