@@ -19,8 +19,7 @@ class SubscriptionAPITestCase(BaseTestCase):
         self.url_list = reverse('subscriptions-list')
 
     def _insert_data(self):
-        organization = baker.make(Organization)
-        organization.add_user(self.someuser, is_admin=True)
+        organization = self.someuser.organization
         customer = baker.make(Customer, subscriber=organization)
         self.subscription = baker.make(
             'djstripe.Subscription',

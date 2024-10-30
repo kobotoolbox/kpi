@@ -28,11 +28,14 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         return f'{url}?{urlencode(query_params)}'
 
     def _create_stripe_data(self, create_subscription=True, product_type='plan'):
-        self.organization = baker.make(Organization, id='orgSALFMLFMSDGmgdlsgmsd')
-        self.customer = baker.make(Customer, subscriber=self.organization, livemode=False)
+        self.organization = baker.make(
+            Organization, id='orgSALFMLFMSDGmgdlsgmsd', mmo_override=True
+        )
+        self.customer = baker.make(
+            Customer, subscriber=self.organization, livemode=False
+        )
         self.product = baker.make(
-            Product,
-            metadata={'product_type': product_type}
+            Product, metadata={'product_type': product_type}
         )
         self.price = baker.make(
             Price,

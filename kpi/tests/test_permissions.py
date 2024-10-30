@@ -893,7 +893,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
 
         # Add anotheruser to someuser's org as an admin
-        self.someuser.organization.add_user(self.anotheruser, is_admin=True)
+        organization = self.someuser.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(self.anotheruser, is_admin=True)
         for asset in self.someuser.assets.all():
             # Set permission assignments
             asset.save()

@@ -40,7 +40,7 @@ class Organization(AbstractOrganization):
     )
 
     def add_user(self, user, is_admin=False):
-        if not self.is_mmo:
+        if not self.is_mmo and self.users.all().count():
             raise NotMultiMemberOrganizationException
 
         user.organization.delete()
