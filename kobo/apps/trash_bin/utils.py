@@ -315,13 +315,8 @@ def signals_temporarily_disconnected(save=False, delete=False):
             pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
             post_save.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
 
-    few_minutes_ago = timezone.now() - timedelta(minutes=5)
-
-    # Limit the number of `update_changed()` calls to prevent table locking,
-    # which can create a bottleneck.
-    if PeriodicTasks.objects.filter(last_update__lt=few_minutes_ago).exists():
-        # Force celery beat scheduler to refresh
-        PeriodicTasks.update_changed()
+    # Force celery beat scheduler to refresh
+    PeriodicTasks.update_changed()
 
 
 def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
