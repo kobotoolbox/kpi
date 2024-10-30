@@ -405,31 +405,30 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
     Uses KpiObjectPermissionsFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
     related to those assets.
-    If the current user is an admin of the organization that owns the parent asset,
-    all assets of that organization are returned directly.
+    If the current user is an admin of an organization, all assets of that organization
+    should be added too.
     The queryset's model must be related to `Asset` via a field named `asset`.
     """
 
     def filter_queryset(self, request, queryset, view):
 
-        available_assets = None
-        if hasattr(view, 'asset'):
-            user = get_database_user(request.user)
-            organization = view.asset.owner.organization
-            if organization.is_admin_only(user):
-                # Admins do not receive explicit permission assignments,
-                # but they have the same access to assets as the organization owner.
-                available_assets = Asset.objects.filter(
-                    owner=organization.owner_user_object
-                )
-
-        if not available_assets:
-            available_assets = super().filter_queryset(
-                request=request,
-                queryset=Asset.objects.all(),
-                view=view
+        user = get_database_user(request.user)
+        organization = user.organization
+        if organization.is_admin_only(user):
+            # Admins do not receive explicit permission assignments,
+            # but they have the same access to assets as the organization owner.
+            org_assets = Asset.objects.filter(
+                owner=organization.owner_user_object
             )
-        return queryset.filter(asset__in=available_assets)
+        else:
+            org_assets = Asset.objects.none()
+
+        available_assets = super().filter_queryset(
+            request=request,
+            queryset=Asset.objects.all(),
+            view=view
+        )
+        return queryset.filter(asset__in=available_assets | org_assets)
 
 
 class SearchFilter(filters.BaseFilterBackend):
