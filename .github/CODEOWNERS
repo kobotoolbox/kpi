@@ -62,6 +62,7 @@ dependencies/*                      @noliveleger
 docker/*                            @noliveleger
 hub/*                               @noliveleger
 kobo/*                              @noliveleger
+kobo/apps/audit_log/*               @rgraber
 kpi/*                               @noliveleger
 scripts/*                           @noliveleger
 test/*                              @noliveleger
