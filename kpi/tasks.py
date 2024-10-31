@@ -1,10 +1,11 @@
 # coding: utf-8
 import time
+from typing import Type
 
 import constance
 import requests
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core import mail
 from django.core.management import call_command
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -13,7 +14,7 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ExportTask, ImportTask, ProjectViewExportTask
+from kpi.models.import_export_task import ExportTask, ImportExportTask, ImportTask
 
 
 @celery_app.task
@@ -29,12 +30,12 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task
-def project_view_export_in_background(
-    export_task_uid: str, username: str
+def export_task_in_background(
+    export_task_uid: str, username: str, export_task_class: Type[ImportExportTask]
 ) -> None:
     user = User.objects.get(username=username)
 
-    export_task = ProjectViewExportTask.objects.get(uid=export_task_uid)
+    export_task = export_task_class.objects.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
         file_url = f'{settings.KOBOFORM_URL}{export.result.url}'
@@ -44,7 +45,7 @@ def project_view_export_in_background(
             'Regards,\n'
             'KoboToolbox'
         )
-        send_mail(
+        mail.send_mail(
             subject='Project View Report Complete',
             message=msg,
             from_email=constance.config.SUPPORT_EMAIL,

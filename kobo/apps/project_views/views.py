@@ -20,12 +20,12 @@ from kpi.paginators import FastAssetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
+from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import (
     get_region_for_view,
     user_has_view_perms,
 )
-from kpi.tasks import project_view_export_in_background
 from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
@@ -110,9 +110,10 @@ class ProjectViewViewSet(
             )
 
             # Have Celery run the export in the background
-            project_view_export_in_background.delay(
+            export_task_in_background.delay(
                 export_task_uid=export_task.uid,
                 username=user.username,
+                export_task_class=ProjectViewExportTask,
             )
 
             return Response({'status': export_task.status})
