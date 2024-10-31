@@ -35,7 +35,7 @@ class ExportTaskInBackgroundTests(TestCase):
 
         mock_send_mail.assert_called_once()
         args, kwargs = mock_send_mail.call_args
-        root_url = settings.KOBOCAT_URL
+        root_url = settings.KOBOFORM_URL
         expected_message = (
             'Hello {},\n\n'
             'Your report is complete: {}'
