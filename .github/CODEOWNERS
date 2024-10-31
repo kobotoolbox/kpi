@@ -9,16 +9,15 @@
 
 
 #### Global section.
-.editorconfig                       @magicznyleszek @noliveleger
-.git-blame-ingore-revs              @magicznyleszek @noliveleger
+.editorconfig                       @magicznyleszek
+.git-blame-ignore-revs              @magicznyleszek
 .gitattributes                      @magicznyleszek @noliveleger
 .gitignore                          @magicznyleszek @noliveleger
 .gitmodules                         @magicznyleszek @noliveleger
-CONTRIBUTING.md                     @magicznyleszek @noliveleger
-dependabot.yml                      @magicznyleszek @noliveleger
-dependabot.yml                      @magicznyleszek @noliveleger
-kpi.code-workspace                  @magicznyleszek @noliveleger
-LICENSE                             @magicznyleszek @noliveleger
+CONTRIBUTING.md                     @magicznyleszek
+dependabot.yml                      @magicznyleszek
+kpi.code-workspace                  @magicznyleszek 
+LICENSE                             @magicznyleszek @noliveleger @jnm
 README.md                           @magicznyleszek @noliveleger
 
 
@@ -57,20 +56,20 @@ tsconfig.json                       @magicznyleszek
 #### Backend section
 
 # Default owner
-.tx/*                               @noliveleger
-dependencies/*                      @noliveleger
-docker/*                            @noliveleger
-hub/*                               @noliveleger
-kobo/*                              @noliveleger
+.tx/*                               @noliveleger @jnm @JacquelineMorrissette
+dependencies/*                      @jnm @noliveleger
+docker/*                            @jnm @noliveleger
+hub/*                               @jnm @noliveleger
+kobo/*                              @jnm @noliveleger
 kobo/apps/audit_log/*               @rgraber
-kpi/*                               @noliveleger
-scripts/*                           @noliveleger
-test/*                              @noliveleger
-.coveragerc                         @noliveleger
-.dockerignore                       @noliveleger
-.gitlab-ci.yml                      @noliveleger
-Dockerfile                          @noliveleger
+kpi/*                               @jnm @noliveleger
+scripts/*                           @noliveleger @jnm
+test/*                              @jnm @noliveleger
+.coveragerc                         @jnm
+.dockerignore                       @noliveleger @jnm
+.gitlab-ci.yml                      @bufke
+Dockerfile                          @noliveleger @jnm @bufke
 format-python.sh                    @noliveleger
-manage.py                           @noliveleger
-pip-compile.sh                      @noliveleger
-pyproject.toml                      @noliveleger
+manage.py                           @noliveleger @jnm
+pip-compile.sh                      @noliveleger @jnm
+pyproject.toml                      @bufke
