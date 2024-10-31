@@ -247,7 +247,7 @@
 
 // On smaller screens we hide both of them
 .main-header .main-header__icon,
-.main-header .main-header__counter {
+.main-header {
   display: none;
 }
 
@@ -303,12 +303,6 @@
       }
     }
   }
-
-  .main-header__counter {
-    font-size: variables.$base-font-size;
-    margin-right: 20px;
-    color: colors.$kobo-gray-500;
-  }
 }
 
 .git-rev {
@@ -317,7 +311,7 @@
 
 @include breakpoints.breakpoint(mediumAndUp) {
   .main-header .main-header__icon,
-  .main-header .main-header__counter {
+  .main-header {
     display: initial;
   }
 
