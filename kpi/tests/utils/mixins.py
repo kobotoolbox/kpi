@@ -2,10 +2,16 @@ import base64
 import json
 from io import StringIO
 
+import responses
+from django.conf import settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kpi.models.asset_file import AssetFile
+from kpi.tests.utils.mock import (
+    enketo_edit_instance_response,
+    enketo_view_instance_response,
+)
 
 
 class AssetFileTestCaseMixin:
@@ -112,7 +118,7 @@ class AssetFileTestCaseMixin:
         except KeyError:
             pass
         else:
-            media_content = base64_encoded[base64_encoded.index('base64') + 7 :]
+            media_content = base64_encoded[base64_encoded.index('base64') + 7:]
             expected_content = base64.decodebytes(media_content.encode())
             self.assertEqual(
                 self.get_asset_file_content(response_dict['content']),
@@ -130,6 +136,196 @@ class AssetFileTestCaseMixin:
         response_url = response_dict['metadata']['redirect_url']
         assert response_url == payload_url and response_url != ''
         return response_dict['uid']
+
+
+class SubmissionDeleteTestCaseMixin:
+
+    def _delete_submission(self, submission: dict):
+        response = self.client.get(self.submission_list_url)
+        submission_count = response.data['count']
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        response = self.client.get(self.submission_list_url)
+        assert response.data['count'] == submission_count - 1
+
+    def _delete_submissions(self):
+        response = self.client.get(self.submission_list_url)
+        assert response.data['count'] != 0
+
+        response = self.client.delete(self.submission_bulk_url, format='json')
+        # `confirm` must be sent within the payload (when all submissions are
+        # deleted). Otherwise, a ValidationError is raised
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        response = self.client.get(self.submission_list_url)
+        assert response.data['count'] == 0
+
+
+class SubmissionEditTestCaseMixin:
+
+    def _get_edit_link(self):
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        submission_edit_link_url_legacy = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+        submission_edit_link_url = submission_edit_link_url_legacy.replace(
+            'edit', 'enketo/edit'
+        )
+
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
+        assert response.data == expected_response
+
+
+class SubmissionValidationStatusTestCaseMixin:
+
+    def _delete_status(self):
+        response = self.client.delete(self.validation_status_url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Ensure delete worked.
+        response = self.client.get(self.validation_status_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {}
+
+    def _delete_statuses(self):
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+            }
+        }
+        response = self.client.delete(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        # `confirm` must be sent within the payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        data['payload']['confirm'] = True
+        response = self.client.delete(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure update worked.
+        response_list = self.client.get(self.submission_list_url)
+        for submission in response_list.data['results']:
+            assert submission['_validation_status'] == {}
+
+        return response
+
+    def _update_status(
+        self, username: str, status_uid: str = 'validation_status_not_approved'
+    ):
+        data = {
+            'validation_status.uid': status_uid
+        }
+        response = self.client.patch(self.validation_status_url, data=data)
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure update worked.
+        response = self.client.get(self.validation_status_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['by_whom'] == username
+        assert response.data['uid'] == data['validation_status.uid']
+
+    def _update_statuses(self, status_uid: str = 'validation_status_not_approved'):
+        # Make the owner change validation status of all submissions
+        data = {
+            'payload': {
+                'validation_status.uid': status_uid,
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def _validate_statuses(
+        self, empty: bool = False, uid: str = None, username: str = None
+    ):
+
+        response = self.client.get(self.submission_list_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        if empty:
+            statuses = [
+                not s['_validation_status'] for s in response.data['results']
+            ]
+        else:
+            statuses = [
+                s['_validation_status']['uid'] == uid
+                and s['_validation_status']['by_whom'] == username
+                for s in response.data['results']
+            ]
+
+        assert all(statuses)
+
+
+class SubmissionViewTestCaseMixin:
+
+    def _get_view_link(self):
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
+        submission_view_link_url = reverse(
+            self._get_endpoint('submission-enketo-view'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+
+        response = self.client.get(submission_view_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
+        assert response.data == expected_response
 
 
 class PermissionAssignmentTestCaseMixin:

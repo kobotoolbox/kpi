@@ -183,6 +183,15 @@ class XForm(AbstractTimeStampedModel):
         return self.instances_with_geopoints
 
     def has_mapped_perm(self, user_obj: User, perm: str) -> bool:
+        """
+        Checks if a role-based user (e.g., an organization admin) has access to an
+        object  by validating against equivalent permissions defined in KPI.
+
+        In the context of OpenRosa, roles such as organization admins do not have
+        permissions explicitly recorded in the database. Since django-guardian cannot
+        determine access for such roles directly, this method maps the role to
+        its equivalent permissions in KPI, allowing for accurate permission validation.
+        """
         _, codename = perm_parse(perm)
 
         with use_db(DEFAULT_DB_ALIAS):

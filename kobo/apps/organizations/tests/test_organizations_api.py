@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import responses
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from ddt import ddt, data, unpack
@@ -9,11 +10,19 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.organizations.models import Organization
-from kpi.constants import PERM_VIEW_ASSET, PERM_MANAGE_ASSET
+from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
+)
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
 from kpi.tests.utils.mixins import (
     AssetFileTestCaseMixin,
+    SubmissionEditTestCaseMixin,
+    SubmissionDeleteTestCaseMixin,
+    SubmissionValidationStatusTestCaseMixin,
+    SubmissionViewTestCaseMixin,
 )
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -255,6 +264,48 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
         asset.assign_perm(self.someuser, PERM_MANAGE_ASSET)
 
         return response
+
+
+class BaseOrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
+    """
+    Base test case for testing organization admin permissions.
+
+    This test suite serves as the foundation for classes that verify the permissions
+    of organization admins. It focuses on key access points and basic cases to ensure
+    that admins have the same rights as organization owners over assets and associated
+    data, even without explicitly assigned permissions.
+
+    This suite is intentionally not exhaustive to avoid redundancy with tests covering
+    regular user flows. Only the admin role is tested here, as owners and regular
+    members follow the standard user scenario.
+    """
+
+    def setUp(self):
+        super().setUp()
+        response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=response.data['uid'])
+        self.asset.deploy(backend='mock', active=True)
+        self.submission = {
+            'egg': 2,
+            'bacon': 1,
+        }
+        self.asset.deployment.mock_submissions([self.submission])
+        self.data_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
+        self.submission_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
+        self.client.force_login(self.anotheruser)
 
 
 @ddt
@@ -538,9 +589,80 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         response.status_code == expected_status_code
 
 
+class OrganizationAdminsDataApiTestCase(
+    SubmissionEditTestCaseMixin,
+    SubmissionDeleteTestCaseMixin,
+    SubmissionViewTestCaseMixin,
+    BaseOrganizationAdminsDataApiTestCase
+):
+    """
+    This test suite shares logic with `SubmissionEditApiTests`,
+    `SubmissionViewApiTests` and uses the mixins to call the same code for consistency
+    and reusability.
+    """
+
+    def test_can_access_data(self):
+        response = self.client.get(self.data_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+
+        response = self.client.get(self.submission_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_id'] == self.submission['_id']
+
+    def test_can_bulk_delete_data(self):
+        self.submission_bulk_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+            },
+        )
+        self._delete_submissions()
+
+    def test_can_delete_data(self):
+        self._delete_submission(self.submission)
+
+    @responses.activate
+    def test_can_get_edit_link(self):
+        self._get_edit_link()
+
+    @responses.activate
+    def test_can_get_view_link(self):
+        self._get_view_link()
+
+    def test_can_submit_data(self):
+        """
+        Test that anotheruser can submit data if they have the necessary permissions.
+
+        This test verifies that anotheruser retains the "PERM_ADD_SUBMISSIONS"
+        permission, ensuring that it is not temporarily added by `mock_submissions`.
+        The `mock_submissions` function internally calls `create_instance`, which
+        validates the user's permission (via `_submitted_by`) before saving the data
+        to the database.
+
+        If `create_instance` completes without raising an error, this confirms that the
+        user has the required permissions to submit data.
+        """
+
+        submission = {
+            'egg': 3,
+            'bacon': 0,
+            '_submitted_by': self.anotheruser,
+        }
+
+        self.asset.has_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+        self.asset.deployment.mock_submissions([submission])
+        self.asset.has_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+
+
 class OrganizationAdminsAssetFileApiTestCase(
     AssetFileTestCaseMixin, BaseOrganizationAssetApiTestCase
 ):
+    """
+    This test suite shares logic with `AssetFileTest` and uses the
+    mixin to call the same code for consistency and reusability.
+    """
+
     def setUp(self):
         super().setUp()
         response = self._create_asset_by_alice()
@@ -570,51 +692,13 @@ class OrganizationAdminsAssetFileApiTestCase(
         self.delete_asset_file()
 
 
-class OrganizationAdminsDataApiTestCase(BaseOrganizationAssetApiTestCase):
-
-    def setUp(self):
-        super().setUp()
-        response = self._create_asset_by_alice()
-        self.asset = Asset.objects.get(uid=response.data['uid'])
-        self.asset.deploy(backend='mock', active=True)
-        submission = {
-            'egg': 2,
-            'bacon': 1,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.data_url = reverse(
-            self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid},
-        )
-        self.client.force_login(self.anotheruser)
-
-    def test_can_access_data(self):
-        response = self.client.get(self.data_url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
-
-    def test_can_submit_data(self):
-        pass
-
-    def test_can_edit_data(self):
-        pass
-
-    def test_can_delete_data(self):
-        pass
-
-    def test_can_bulk_delete_data(self):
-        pass
-
-    def test_can_validate_data(self):
-        pass
-
-    def test_can_bulk_validate_data(self):
-        pass
-
-
 class OrganizationAdminsRestServiceApiTestCase(
     HookTestCaseMixin, BaseOrganizationAssetApiTestCase
 ):
+    """
+    This test suite shares logic with `HookTestCase` and uses the mixin to call the
+    same code for consistency and reusability.
+    """
 
     def setUp(self):
         super().setUp()
@@ -674,3 +758,52 @@ class OrganizationAdminsRestServiceApiTestCase(
             'bacon': 1,
         }
         self.asset.deployment.mock_submissions([submission])
+
+
+class OrganizationAdminsValidationStatusApiTestCase(
+    SubmissionValidationStatusTestCaseMixin, BaseOrganizationAdminsDataApiTestCase
+):
+    """
+    This test suite shares logic with `SubmissionValidationStatusApiTests` and uses
+    the mixin to call the same code for consistency and reusability.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.validation_status_url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+        self.validation_statuses_url = reverse(
+            self._get_endpoint('submission-validation-statuses'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+
+    def test_can_access_validation_status(self):
+        response = self.client.get(self.submission_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_validation_status'] == {}
+
+        response = self.client.get(self.validation_status_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {}
+
+    def test_can_update_validation_status(self):
+        self._update_status('anotheruser')
+
+    def test_can_delete_validation_status(self):
+        self._update_status('anotheruser')
+        self._delete_status()
+
+    def test_can_bulk_validate_statuses(self):
+        self._validate_statuses(empty=True)
+        self._update_statuses(status_uid='validation_status_not_approved')
+        self._validate_statuses(
+            uid='validation_status_not_approved', username='anotheruser'
+        )
+
+    def test_can_bulk_delete_statuses(self):
+        self._delete_statuses()
