@@ -21,6 +21,11 @@ from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset
 from kpi.utils.log import logging
 
+NEW = 'new'
+OLD = 'old'
+ADDED = 'added'
+REMOVED = 'removed'
+
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
@@ -300,6 +305,8 @@ class ProjectHistoryLog(AuditLog):
     def create_from_request(cls, request):
         if request.resolver_match.url_name == 'asset-deployment':
             cls.create_from_deployment_request(request)
+        elif request.resolver_match.url_name == 'asset-detail':
+            cls.create_from_detail_request(request)
 
     @staticmethod
     def create_from_deployment_request(request):
@@ -354,3 +361,114 @@ class ProjectHistoryLog(AuditLog):
             action=action,
             metadata=metadata,
         )
+
+    @classmethod
+    def create_from_detail_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+
+        if initial_data is None or updated_data is None:
+            # Something went wrong with the request, don't try to create a log
+            return
+
+        asset_uid = request.resolver_match.kwargs['uid']
+        object_id = initial_data['id']
+
+        common_metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'latest_version_uid': updated_data['latest_version.uid']
+        }
+
+        changed_field_to_action_map = {
+            'name': cls.name_change,
+            'settings': cls.settings_change,
+            'data_sharing': cls.sharing_change,
+            'content': cls.content_change,
+            'advanced_features.qual.qual_survey': cls.qa_change,
+        }
+
+        for field, method in changed_field_to_action_map.items():
+            old_field = initial_data[field]
+            new_field = updated_data[field]
+            if old_field != new_field:
+                action, additional_metadata = method(old_field, new_field)
+                full_metadata = {**common_metadata, **additional_metadata}
+                ProjectHistoryLog.objects.create(
+                    user=request.user,
+                    object_id=object_id,
+                    action=action,
+                    metadata=full_metadata,
+                )
+
+    # additional metadata should generally follow the pattern
+    # 'field': {'old': old_value, 'new': new_value } or
+    # 'field': {'added': [], 'removed'}
+
+    @staticmethod
+    def name_change(old_field, new_field):
+        metadata = {'name': {OLD: old_field, NEW: new_field}}
+        return AuditAction.UPDATE_NAME, metadata
+
+    @staticmethod
+    def settings_change(old_field, new_field):
+        settings = {}
+        all_settings = {**old_field, **new_field}.keys()
+        for setting_name in all_settings:
+            old = old_field.get(setting_name, None)
+            new = new_field.get(setting_name, None)
+            if old != new:
+                metadata_field_subdict = {}
+                if isinstance(old, list) and isinstance(new, list):
+                    removed_values = [val for val in old if val not in new]
+                    added_values = [val for val in new if val not in old]
+                    metadata_field_subdict[ADDED] = added_values
+                    metadata_field_subdict[REMOVED] = removed_values
+                else:
+                    metadata_field_subdict[OLD] = old
+                    metadata_field_subdict[NEW] = new
+                settings[setting_name] = metadata_field_subdict
+        return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+
+    @staticmethod
+    def sharing_change(old_fields, new_fields):
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
+        new_enabled = new_fields.get('enabled', False)
+        new_shared_fields = new_fields.get('fields', [])
+        shared_fields_dict = {}
+        # anything falsy means it was disabled, anything truthy means enabled
+        if old_enabled and not new_enabled:
+            # sharing went from enabled to disabled
+            action = AuditAction.DISABLE_SHARING
+            return action, {}
+        elif not old_enabled and new_enabled:
+            # sharing went from disabled to enabled
+            action = AuditAction.ENABLE_SHARING
+            shared_fields_dict[ADDED] = new_shared_fields
+        else:
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
+            action = AuditAction.MODIFY_SHARING
+            shared_fields_dict[ADDED] = added_fields
+            shared_fields_dict[REMOVED] = removed_fields
+        return action, {'shared_fields': shared_fields_dict}
+
+    @staticmethod
+    def content_change(*_):
+        # content is too long/complicated for meaningful comparison,
+        # so don't store values
+        return AuditAction.UPDATE_CONTENT, {}
+
+    @staticmethod
+    def qa_change(_, new_field):
+        # qa dictionary is complicated to parse and determine
+        # what actually changed, so just return the new dict
+        return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
