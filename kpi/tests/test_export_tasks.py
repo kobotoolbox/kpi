@@ -35,13 +35,17 @@ class ExportTaskInBackgroundTests(TestCase):
         mock_send_mail.assert_called_once()
         args, kwargs = mock_send_mail.call_args
         expected_message = (
-            f'Hello {self.user.username},\n\n'
-            f'Your report is complete: '
-            f'http://kf.kobo.local:8080/private-media/{self.user.username}/exports/'
-            f'assets-{self.user.username}-view_summary-'
-            + datetime.datetime.now().strftime('%Y-%m-%dT%H%M%SZ') + '.csv\n\n'
-            f'Regards,\n'
-            f'KoboToolbox'
+            'Hello {},\n\n'
+            'Your report is complete: '
+            'http://kf.kobo.local:8080/private-media/{}/exports/'
+            'assets-{}-view_summary-{}.csv\n\n'
+            'Regards,\n'
+            'KoboToolbox'
+        ).format(
+            self.user.username,
+            self.user.username,
+            self.user.username,
+            datetime.datetime.now().strftime('%Y-%m-%dT%H%M%SZ'),
         )
         self.assertEqual(kwargs['subject'], 'Project View Report Complete')
         self.assertEqual(expected_message, kwargs['message'])
