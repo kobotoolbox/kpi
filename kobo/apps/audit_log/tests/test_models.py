@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 from django.utils import timezone
+from jsonschema.exceptions import ValidationError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
@@ -366,13 +367,20 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         yesterday = timezone.now() - timedelta(days=1)
         log = ProjectHistoryLog.objects.create(
             user=user,
-            metadata={'foo': 'bar'},
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+            },
             date_created=yesterday,
             object_id=asset.id,
         )
         self._check_common_fields(log, user, asset)
         self.assertEquals(log.date_created, yesterday)
-        self.assertDictEqual(log.metadata, {'foo': 'bar'})
+        self.assertDictEqual(
+            log.metadata,
+            {'ip_address': '1.2.3.4', 'source': 'source', 'asset_uid': asset.uid},
+        )
 
     @patch('kobo.apps.audit_log.models.logging.warning')
     def test_create_project_history_log_ignores_attempt_to_override_standard_fields(
@@ -385,9 +393,44 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             model_name='foo',
             app_label='bar',
             object_id=asset.id,
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+            },
             user=user,
         )
         # the standard fields should be set the same as any other project history logs
         self._check_common_fields(log, user, asset)
         # we logged a warning for each attempt to override a field
         self.assertEquals(patched_warning.call_count, 3)
+
+    def test_create_project_history_log_requires_metadata_fields(
+        self,
+    ):
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.get(pk=1)
+        missing_ip = {'source': 'source', 'asset_uid': asset.uid}
+        missing_source = {'ip_address': '1.2.3.4', 'asset_uid': asset.uid}
+        missing_asset_uid = {'ip_address': '1.2.3.4', 'source': 'source'}
+
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=missing_ip,
+                user=user,
+            )
+
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=missing_source,
+                user=user,
+            )
+
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=missing_asset_uid,
+                user=user,
+            )
