@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import Mock, patch
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 
@@ -34,15 +35,17 @@ class ExportTaskInBackgroundTests(TestCase):
 
         mock_send_mail.assert_called_once()
         args, kwargs = mock_send_mail.call_args
+        root_url = settings.KOBOCAT_URL
         expected_message = (
             'Hello {},\n\n'
-            'Your report is complete: '
-            'http://kf.kobo.local:8080/private-media/{}/exports/'
+            'Your report is complete: {}'
+            '/private-media/{}/exports/'
             'assets-{}-view_summary-{}.csv\n\n'
             'Regards,\n'
             'KoboToolbox'
         ).format(
             self.user.username,
+            root_url,
             self.user.username,
             self.user.username,
             datetime.datetime.now().strftime('%Y-%m-%dT%H%M%SZ'),
