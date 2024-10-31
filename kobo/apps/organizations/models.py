@@ -98,7 +98,7 @@ class Organization(AbstractOrganization):
         # TODO: validate this is the correct way to get a user's organization
         org = cls.objects.filter(
             organization_users__user__id=user_id,
-        ).first()
+        ).order_by("-organization_users__created").first()
 
         return org
     
