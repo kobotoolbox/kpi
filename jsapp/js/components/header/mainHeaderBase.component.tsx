@@ -4,7 +4,6 @@ import bem, {makeBem} from 'js/bem';
 bem.MainHeader = makeBem(null, 'main-header', 'header');
 bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon');
 bem.MainHeader__title = makeBem(bem.MainHeader, 'title');
-bem.MainHeader__counter = makeBem(bem.MainHeader, 'counter');
 
 interface MainHeaderBaseProps {
   children: React.ReactNode;
