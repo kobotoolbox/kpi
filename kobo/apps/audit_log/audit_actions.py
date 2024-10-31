@@ -15,3 +15,6 @@ class AuditAction(models.TextChoices):
     REDEPLOY = 'redeploy'
     UPDATE_NAME = 'update-name'
     UPDATE_SETTINGS = 'update-settings'
+    ENABLE_SHARING = 'enable-sharing'
+    DISABLE_SHARING = 'disable-sharing'
+    MODIFY_SHARING = 'modify_sharing'

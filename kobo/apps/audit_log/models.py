@@ -21,6 +21,11 @@ from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset
 from kpi.utils.log import logging
 
+NEW = 'new'
+OLD = 'old'
+ADDED = 'added'
+REMOVED = 'removed'
+
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
@@ -384,6 +389,7 @@ class ProjectHistoryLog(AuditLog):
         changed_field_to_action_map = {
             'name': cls.name_change,
             'settings': cls.settings_change,
+            'data_sharing': cls.sharing_change,
         }
 
         for field, method in changed_field_to_action_map.items():
@@ -405,7 +411,7 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def name_change(old_field, new_field):
-        metadata = {'name': {'old': old_field, 'new': new_field}}
+        metadata = {'name': {OLD: old_field, NEW: new_field}}
         return AuditAction.UPDATE_NAME, metadata
 
     @staticmethod
@@ -420,10 +426,39 @@ class ProjectHistoryLog(AuditLog):
                 if isinstance(old, list) and isinstance(new, list):
                     removed_values = [val for val in old if val not in new]
                     added_values = [val for val in new if val not in old]
-                    metadata_field_subdict['added'] = added_values
-                    metadata_field_subdict['removed'] = removed_values
+                    metadata_field_subdict[ADDED] = added_values
+                    metadata_field_subdict[REMOVED] = removed_values
                 else:
-                    metadata_field_subdict['old'] = old
-                    metadata_field_subdict['new'] = new
+                    metadata_field_subdict[OLD] = old
+                    metadata_field_subdict[NEW] = new
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+
+    @staticmethod
+    def sharing_change(old_fields, new_fields):
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
+        new_enabled = new_fields.get('enabled', False)
+        new_shared_fields = new_fields.get('fields', [])
+        shared_fields_dict = {}
+        # anything falsy means it was disabled, anything truthy means enabled
+        if old_enabled and not new_enabled:
+            # sharing went from enabled to disabled
+            action = AuditAction.DISABLE_SHARING
+            return action, {}
+        elif not old_enabled and new_enabled:
+            # sharing went from disabled to enabled
+            action = AuditAction.ENABLE_SHARING
+            shared_fields_dict[ADDED] = new_shared_fields
+        else:
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
+            action = AuditAction.MODIFY_SHARING
+            shared_fields_dict[ADDED] = added_fields
+            shared_fields_dict[REMOVED] = removed_fields
+        return action, {'shared_fields': shared_fields_dict}
