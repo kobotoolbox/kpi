@@ -295,7 +295,7 @@ def temporarily_disconnect_signals(save=False, delete=False):
     Temporarily disconnects `PeriodicTasks` signals to prevent accumulating
     update queries for Celery Beat while bulk operations are in progress.
 
-    See https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks
+    See https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks  # noqa: E501
     """
 
     try:
