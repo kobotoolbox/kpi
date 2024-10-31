@@ -1,8 +1,6 @@
 import copy
-import copy
 import json
 import os
-from io import StringIO
 
 import dateutil.parser
 from django.urls import reverse

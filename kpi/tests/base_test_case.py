@@ -2,7 +2,6 @@ import json
 import re
 
 from django.contrib.auth.models import Permission
-from django.urls import reverse
 from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.reverse import reverse

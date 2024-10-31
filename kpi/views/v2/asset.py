@@ -53,7 +53,10 @@ class AssetViewSet(
     ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
-    * Assign an asset to a collection <span class='label label-warning'>partially implemented</span>
+    * Assign an asset to a collection
+      <span class='label label-warning'>
+        partially implemented
+      </span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
 
     ## List of asset endpoints
