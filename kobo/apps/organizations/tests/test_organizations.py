@@ -59,6 +59,12 @@ class OrganizationTestCase(TestCase):
         # someuser is the owner
         assert self.organization.name == 'someuser’s organization'
         someuser_extra_details = self.someuser.extra_details
+        someuser_extra_details.data['organization'] = ''
+        someuser_extra_details.save()
+        self.organization.refresh_from_db()
+        assert self.organization.name == 'someuser’s organization'
+
+        someuser_extra_details = self.someuser.extra_details
         someuser_extra_details.data['organization'] = 'SomeUser Technologies'
         someuser_extra_details.save()
         self.organization.refresh_from_db()
