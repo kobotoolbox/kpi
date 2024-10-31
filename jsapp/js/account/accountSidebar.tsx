@@ -4,12 +4,12 @@ import {observer} from 'mobx-react-lite';
 import styles from './accountSidebar.module.scss';
 import cx from 'classnames';
 import Icon from 'js/components/common/icon';
-import {IconName} from 'jsapp/fonts/k-icons';
+import type {IconName} from 'jsapp/fonts/k-icons';
 import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from './stripe.api';
 
 interface AccountNavLinkProps {
   iconName: IconName;
@@ -38,9 +38,8 @@ function AccountNavLink(props: AccountNavLinkProps) {
 
 function AccountSidebar() {
   const [showPlans, setShowPlans] = useState(false);
-  const [organization, _] = useContext(OrganizationContext);
 
-  const isOrgOwner = useMemo(() => organization?.is_owner, [organization]);
+  const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
     if (!subscriptionStore.isInitialised) {
@@ -65,7 +64,7 @@ function AccountSidebar() {
         name={t('Security')}
         to={ACCOUNT_ROUTES.SECURITY}
       />
-      {isOrgOwner && (
+      {orgQuery.data?.is_owner && (
         <>
           <AccountNavLink
             iconName='reports'
@@ -84,7 +83,7 @@ function AccountSidebar() {
                   iconName='plus'
                   name={t('Add-ons')}
                   to={ACCOUNT_ROUTES.ADD_ONS}
-                  isNew={true}
+                  isNew
                 />
               )}
             </>

@@ -330,9 +330,10 @@ export class FormMap extends React.Component {
           });
         }
 
-        this.setState({submissions: results});
-        this.buildMarkers(map);
-        this.buildHeatMap(map);
+        this.setState({submissions: results}, () => {
+          this.buildMarkers(map);
+          this.buildHeatMap(map);
+        });
       })
       .fail((error) => {
         if (error.responseText) {

@@ -5,16 +5,18 @@ def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Raises an exception if the field is not found
+    Returns None if the field is not found
     """
     split = field.split('.')
-    attribute = getattr(obj, split[0])
-    if len(split) > 1:
-        for inner_field in split[1:]:
-            if isinstance(attribute, dict):
-                attribute = attribute.get(inner_field)
-            else:
-                attribute = getattr(attribute, inner_field)
+    attribute = obj
+
+    for inner_field in split:
+        if attribute is None:
+            break
+        if isinstance(attribute, dict):
+            attribute = attribute.get(inner_field, None)
+        else:
+            attribute = getattr(attribute, inner_field, None)
     return attribute
 
 
@@ -33,6 +35,11 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
     """
 
     logged_fields = []
+
+    def initialize_request(self, request, *args, **kwargs):
+        request = super().initialize_request(request, *args, **kwargs)
+        request._request.log_type = self.log_type
+        return request
 
     def get_object(self):
         # actually fetch the object

@@ -4,6 +4,7 @@ from django.db.models import Case, Count, F, Min, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
+from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
@@ -14,26 +15,11 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
-    ASSET_TYPE_SURVEY, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
-from kpi.exceptions import BadAssetTypeException
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset
 from kpi.utils.log import logging
-
-
-class AuditAction(models.TextChoices):
-    CREATE = 'create'
-    DELETE = 'delete'
-    IN_TRASH = 'in-trash'
-    PUT_BACK = 'put-back'
-    REMOVE = 'remove'
-    UPDATE = 'update'
-    AUTH = 'auth'
-    DEPLOY = 'deploy'
-    ARCHIVE = 'archive'
-    UNARCHIVE = 'unarchive'
-    REDEPLOY = 'redeploy'
 
 
 class AuditType(models.TextChoices):
@@ -59,7 +45,7 @@ class AuditLog(models.Model):
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
-        max_length=10,
+        max_length=30,
         choices=AuditAction.choices,
         default=AuditAction.DELETE,
         db_index=True,
@@ -289,21 +275,18 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
         # always be the same on a project history log
         self.remove_common_fields_and_warn('project history', kwargs)
         user = kwargs.pop('user')
-        asset = kwargs.pop('asset')
-        if not asset.asset_type or asset.asset_type != ASSET_TYPE_SURVEY:
-            raise BadAssetTypeException(
-                'Cannot create project history log for non-survey asset'
-            )
+        new_kwargs = {
+            'app_label': Asset._meta.app_label,
+            'model_name': Asset._meta.model_name,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'user': user,
+            'user_uid': user.extra_details.uid,
+        }
+        new_kwargs.update(**kwargs)
         return super().create(
             # set the fields that are always the same for all project history logs,
             # along with the ones derived from the user and asset
-            app_label=Asset._meta.app_label,
-            model_name=Asset._meta.model_name,
-            log_type=AuditType.PROJECT_HISTORY,
-            user=user,
-            user_uid=user.extra_details.uid,
-            object_id=asset.id,
-            **kwargs,
+            **new_kwargs,
         )
 
 
@@ -313,33 +296,134 @@ class ProjectHistoryLog(AuditLog):
     class Meta:
         proxy = True
 
+    @classmethod
+    def create_from_request(cls, request):
+        if request.resolver_match.url_name == 'asset-deployment':
+            cls.create_from_deployment_request(request)
+        elif request.resolver_match.url_name == 'asset-detail':
+            cls.create_from_detail_request(request)
+
     @staticmethod
-    def create_from_deployment_request(
-        request, asset, first_deployment=False, only_active_changed=False
-    ):
-        ip = get_client_ip(request)
-        source = get_human_readable_client_user_agent(request)
+    def create_from_deployment_request(request):
+        audit_log_info = getattr(request, 'additional_audit_log_info', None)
+        if audit_log_info is None:
+            # if we didn't set this information, the request failed
+            # so don't try to create a log
+            return
+
+        initial_data = request.initial_data
+        asset_uid = request.resolver_match.kwargs['uid']
+        object_id = request.initial_data['id']
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'latest_version_uid': audit_log_info['latest_version_uid'],
+        }
+
+        # requests to archive/unarchive will only have the `active` param in the request
+        # we record this on the request at the view level
+        only_active_changed = request.additional_audit_log_info.get(
+            'only_active_changed', False
+        )
+
         if only_active_changed:
+            # if active is set to False, the request was to archive the project
+            # otherwise, request was to unarchive
             action = (
-                AuditAction.UNARCHIVE
-                if asset.deployment.active
-                else AuditAction.ARCHIVE
+                AuditAction.ARCHIVE
+                if request.additional_audit_log_info['active'] is False
+                else AuditAction.UNARCHIVE
             )
         else:
-            action = AuditAction.DEPLOY if first_deployment else AuditAction.REDEPLOY
-        metadata = {
-            'ip_address': ip,
-            'source': source,
-            'asset_uid': asset.uid,
-            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-        }
-        if action in [AuditAction.REDEPLOY, AuditAction.DEPLOY]:
-            version = asset.latest_deployed_version
-            metadata['version_uid'] = version.uid
-        user = request.user
-        return ProjectHistoryLog.objects.create(
-            user=user,
+            # if the asset was already deployed, label this as a redeploy
+            action = (
+                AuditAction.REDEPLOY
+                if initial_data['has_deployment'] is True
+                else AuditAction.DEPLOY
+            )
+            latest_deployed_version_uid = audit_log_info['latest_deployed_version_uid']
+            metadata.update(
+                {
+                    'latest_deployed_version_uid': latest_deployed_version_uid,
+                }
+            )
+
+        ProjectHistoryLog.objects.create(
+            user=request.user,
+            object_id=object_id,
             action=action,
             metadata=metadata,
-            asset=asset,
         )
+
+    @classmethod
+    def create_from_detail_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+
+        if initial_data is None or updated_data is None:
+            # Something went wrong with the request, don't try to create a log
+            return
+
+        asset_uid = request.resolver_match.kwargs['uid']
+        object_id = initial_data['id']
+
+        common_metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+        }
+
+        # always store the latest version uid
+        common_metadata.update(
+            {'latest_version_uid': updated_data['latest_version.uid']}
+        )
+
+        changed_field_to_action_map = {
+            'name': cls.name_change,
+            'settings': cls.settings_change,
+        }
+
+        for field, method in changed_field_to_action_map.items():
+            old_field = initial_data[field]
+            new_field = updated_data[field]
+            if old_field != new_field:
+                action, additional_metadata = method(old_field, new_field)
+                full_metadata = {**common_metadata, **additional_metadata}
+                ProjectHistoryLog.objects.create(
+                    user=request.user,
+                    object_id=object_id,
+                    action=action,
+                    metadata=full_metadata,
+                )
+
+    # additional metadata should generally follow the pattern
+    # 'field': {'old': old_value, 'new': new_value } or
+    # 'field': {'added': [], 'removed'}
+
+    @staticmethod
+    def name_change(old_field, new_field):
+        metadata = {'name': {'old': old_field, 'new': new_field}}
+        return AuditAction.UPDATE_NAME, metadata
+
+    @staticmethod
+    def settings_change(old_field, new_field):
+        settings = {}
+        all_settings = {**old_field, **new_field}.keys()
+        for setting_name in all_settings:
+            old = old_field.get(setting_name, None)
+            new = new_field.get(setting_name, None)
+            if old != new:
+                metadata_field_subdict = {}
+                if isinstance(old, list) and isinstance(new, list):
+                    removed_values = [val for val in old if val not in new]
+                    added_values = [val for val in new if val not in old]
+                    metadata_field_subdict['added'] = added_values
+                    metadata_field_subdict['removed'] = removed_values
+                else:
+                    metadata_field_subdict['old'] = old
+                    metadata_field_subdict['new'] = new
+                settings[setting_name] = metadata_field_subdict
+        return AuditAction.UPDATE_SETTINGS, {'settings': settings}

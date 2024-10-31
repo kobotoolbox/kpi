@@ -1,4 +1,3 @@
-# coding: utf-8
 from constance import config
 from django.db import transaction
 from django.utils.timezone import now
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.serializers import CurrentUserSerializer
+from kpi.versioning import APIV2Versioning
 
 
 class CurrentUserViewSet(viewsets.ModelViewSet):
@@ -56,6 +56,11 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >           },
     >           "social_accounts": []
     >           "accepted_tos": boolean,
+    >           "organization": {
+    >               "url": string,
+    >               "name": string,
+    >               "uid": string,
+    >           }
     >       }
 
     Update account details
@@ -94,6 +99,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    versioning_class = APIV2Versioning
 
     def get_object(self):
         return self.request.user
