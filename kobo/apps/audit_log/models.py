@@ -21,6 +21,11 @@ from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset
 from kpi.utils.log import logging
 
+NEW = 'new'
+OLD = 'old'
+ADDED = 'added'
+REMOVED = 'removed'
+
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
@@ -374,16 +379,15 @@ class ProjectHistoryLog(AuditLog):
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
+            'latest_version_uid': updated_data['latest_version.uid']
         }
-
-        # always store the latest version uid
-        common_metadata.update(
-            {'latest_version_uid': updated_data['latest_version.uid']}
-        )
 
         changed_field_to_action_map = {
             'name': cls.name_change,
             'settings': cls.settings_change,
+            'data_sharing': cls.sharing_change,
+            'content': cls.content_change,
+            'advanced_features.qual.qual_survey': cls.qa_change,
         }
 
         for field, method in changed_field_to_action_map.items():
@@ -405,7 +409,7 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def name_change(old_field, new_field):
-        metadata = {'name': {'old': old_field, 'new': new_field}}
+        metadata = {'name': {OLD: old_field, NEW: new_field}}
         return AuditAction.UPDATE_NAME, metadata
 
     @staticmethod
@@ -420,10 +424,51 @@ class ProjectHistoryLog(AuditLog):
                 if isinstance(old, list) and isinstance(new, list):
                     removed_values = [val for val in old if val not in new]
                     added_values = [val for val in new if val not in old]
-                    metadata_field_subdict['added'] = added_values
-                    metadata_field_subdict['removed'] = removed_values
+                    metadata_field_subdict[ADDED] = added_values
+                    metadata_field_subdict[REMOVED] = removed_values
                 else:
-                    metadata_field_subdict['old'] = old
-                    metadata_field_subdict['new'] = new
+                    metadata_field_subdict[OLD] = old
+                    metadata_field_subdict[NEW] = new
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+
+    @staticmethod
+    def sharing_change(old_fields, new_fields):
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
+        new_enabled = new_fields.get('enabled', False)
+        new_shared_fields = new_fields.get('fields', [])
+        shared_fields_dict = {}
+        # anything falsy means it was disabled, anything truthy means enabled
+        if old_enabled and not new_enabled:
+            # sharing went from enabled to disabled
+            action = AuditAction.DISABLE_SHARING
+            return action, {}
+        elif not old_enabled and new_enabled:
+            # sharing went from disabled to enabled
+            action = AuditAction.ENABLE_SHARING
+            shared_fields_dict[ADDED] = new_shared_fields
+        else:
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
+            action = AuditAction.MODIFY_SHARING
+            shared_fields_dict[ADDED] = added_fields
+            shared_fields_dict[REMOVED] = removed_fields
+        return action, {'shared_fields': shared_fields_dict}
+
+    @staticmethod
+    def content_change(*_):
+        # content is too long/complicated for meaningful comparison,
+        # so don't store values
+        return AuditAction.UPDATE_CONTENT, {}
+
+    @staticmethod
+    def qa_change(_, new_field):
+        # qa dictionary is complicated to parse and determine
+        # what actually changed, so just return the new dict
+        return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}

@@ -37,9 +37,7 @@
                 "organization" : "An organization"
             },
             "data_sharing":{
-                "fields":[
-
-                ],
+                "fields":[],
                 "enabled":false
             },
             "advanced_features":{
