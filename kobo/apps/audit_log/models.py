@@ -321,6 +321,7 @@ class ProjectHistoryLog(AuditLog):
             using=using,
             update_fields=update_fields,
         )
+
     @classmethod
     def create_from_request(cls, request):
         if request.resolver_match.url_name == 'asset-deployment':
