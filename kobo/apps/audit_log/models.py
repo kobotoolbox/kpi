@@ -379,12 +379,8 @@ class ProjectHistoryLog(AuditLog):
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
+            'latest_version_uid': updated_data['latest_version.uid']
         }
-
-        # always store the latest version uid
-        common_metadata.update(
-            {'latest_version_uid': updated_data['latest_version.uid']}
-        )
 
         changed_field_to_action_map = {
             'name': cls.name_change,
