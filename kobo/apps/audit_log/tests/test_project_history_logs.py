@@ -4,7 +4,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
@@ -173,8 +173,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.UPDATE_NAME,
         )
 
-        self.assertEqual(log_metadata['name']['new'], 'new_name')
-        self.assertEqual(log_metadata['name']['old'], old_name)
+        self.assertEqual(log_metadata['name'][NEW], 'new_name')
+        self.assertEqual(log_metadata['name'][OLD], old_name)
 
     def test_change_standard_project_settings_creates_log(self):
         old_settings = copy.deepcopy(self.asset.settings)
@@ -195,17 +195,15 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         # check non-list settings just store old and new information
         settings_dict = log_metadata['settings']
-        self.assertEqual(
-            settings_dict['description']['old'], old_settings['description']
-        )
-        self.assertEqual(settings_dict['description']['new'], 'New description')
+        self.assertEqual(settings_dict['description'][OLD], old_settings['description'])
+        self.assertEqual(settings_dict['description'][NEW], 'New description')
         # check list settings store added and removed fields
         self.assertListEqual(
-            settings_dict['country']['added'],
+            settings_dict['country'][ADDED],
             [{'label': 'Albania', 'value': 'ALB'}],
         )
         self.assertListEqual(
-            settings_dict['country']['removed'],
+            settings_dict['country'][REMOVED],
             [{'label': 'United States', 'value': 'USA'}],
         )
         # check default settings not recorded if not included in request
@@ -265,7 +263,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={'settings': {}},
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
-
         for setting, old_value in old_settings.items():
             if setting in Asset.STANDARDIZED_SETTINGS:
                 # if the setting is one of the standard ones, the new value after
@@ -283,14 +280,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 removed_values = [val for val in old_value if val not in new_value]
                 added_values = [val for val in new_value if val not in old_value]
                 self.assertListEqual(
-                    log_metadata['settings'][setting]['added'], added_values
+                    log_metadata['settings'][setting][ADDED], added_values
                 )
                 self.assertListEqual(
-                    log_metadata['settings'][setting]['removed'], removed_values
+                    log_metadata['settings'][setting][REMOVED], removed_values
                 )
             else:
-                self.assertEqual(log_metadata['settings'][setting]['new'], new_value)
-                self.assertEqual(log_metadata['settings'][setting]['old'], old_value)
+                self.assertEqual(log_metadata['settings'][setting][NEW], new_value)
+                self.assertEqual(log_metadata['settings'][setting][OLD], old_value)
 
     def test_add_new_settings_creates_log(self):
         log_metadata = self._base_endpoint_test(
@@ -301,5 +298,80 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.UPDATE_SETTINGS,
         )
 
-        self.assertEqual(log_metadata['settings']['new_setting']['new'], 'new_value')
-        self.assertEqual(log_metadata['settings']['new_setting']['old'], None)
+        self.assertEqual(log_metadata['settings']['new_setting'][NEW], 'new_value')
+        self.assertEqual(log_metadata['settings']['new_setting'][OLD], None)
+
+    def test_enable_sharing_creates_log(self):
+        log_metadata = self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {'enabled': True, 'fields': []}},
+            expected_action=AuditAction.ENABLE_SHARING,
+        )
+        self.assertEqual(log_metadata['shared_fields'][ADDED], [])
+
+    def test_truthy_field_creates_sharing_enabled_log(self):
+        log_metadata = self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {'enabled': 'truthy'}},
+            expected_action=AuditAction.ENABLE_SHARING,
+        )
+        self.assertEqual(log_metadata['shared_fields'][ADDED], [])
+
+    def test_disable_sharing_creates_log(self):
+        self.asset.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        self.asset.save()
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {'enabled': False}},
+            expected_action=AuditAction.DISABLE_SHARING,
+        )
+
+    def test_nullify_sharing_creates_sharing_disabled_log(self):
+        self.asset.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        self.asset.save()
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {}},
+            expected_action=AuditAction.DISABLE_SHARING,
+        )
+
+    def test_falsy_field_creates_sharing_disabled_log(self):
+        self.asset.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        self.asset.save()
+
+        self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {'enabled': 0}},
+            expected_action=AuditAction.DISABLE_SHARING,
+        )
+
+    def test_modify_sharing_creates_log(self):
+        self.asset.data_sharing = {
+            'enabled': True,
+            'fields': ['q1'],
+        }
+        self.asset.save()
+        log_metadata = self._base_endpoint_test(
+            patch=True,
+            url_name=self.detail_url,
+            request_data={'data_sharing': {'enabled': True, 'fields': ['q2']}},
+            expected_action=AuditAction.MODIFY_SHARING,
+        )
+        self.assertEqual(log_metadata['shared_fields'][ADDED], ['q2'])
+        self.assertEqual(log_metadata['shared_fields'][REMOVED], ['q1'])
