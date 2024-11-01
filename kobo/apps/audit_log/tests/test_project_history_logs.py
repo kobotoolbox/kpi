@@ -1,15 +1,17 @@
 import copy
+import json
 
 import jsonschema.exceptions
 from django.test import override_settings
 from django.urls import reverse
+from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.models import Asset
+from kpi.models import Asset, AssetFile, PairedData
 from kpi.models.asset import AssetSetting
 
 
@@ -22,6 +24,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         super().setUp()
         # log in as admin
         user = User.objects.get(username='admin')
+        self.user = user
         self.client.force_login(user=user)
         # use the same asset
         asset = Asset.objects.get(pk=3)
@@ -52,7 +55,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
-        method(
+        response = method(
             url,
             data=request_data,
             format='json',
@@ -509,3 +512,146 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
         self.assertEqual(log_metadata['hook']['active'], True)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
+
+    def test_connect_project_creates_log(self):
+        source = Asset.objects.get(pk=1)
+        source.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        # set the owner to be the same on the source so we don't have a permissions issue
+        source.owner = self.asset.owner
+        source.save()
+        asset_url = drf_reverse('api_v2:asset-detail', kwargs={'uid': source.uid})
+        request_data = {
+            'fields': ['q1'],
+            'filename': 'test_file',
+            'source': asset_url,
+        }
+
+        url = reverse('api_v2:paired-data-list', args=(self.asset.uid,))
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=url,
+            request_data=request_data,
+            expected_action=AuditAction.CONNECT_PROJECT,
+        )
+        self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
+        self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
+        self.assertEqual(log_metadata['paired-data']['fields'], ['q1'])
+
+    def test_disconnect_project_creates_log(self):
+        source = Asset.objects.get(pk=1)
+        source.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        # set the owner to be the same on the source so we don't have a permissions issue
+        source.owner = self.asset.owner
+        source.save()
+        paired_data = PairedData(
+            source_asset_or_uid=source,
+            fields=['q1'],
+            filename='data.txt',
+            asset=self.asset,
+        )
+        paired_data.save()
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                'api_v2:paired-data-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'paired_data_uid': paired_data.paired_data_uid,
+                },
+            ),
+            expected_action=AuditAction.DISCONNECT_PROJECT,
+            request_data=None,
+        )
+        self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
+        self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
+
+    def test_modify_imported_fields_creates_log(self):
+        source = Asset.objects.get(pk=1)
+        source.data_sharing = {
+            'enabled': True,
+            'fields': [],
+        }
+        # set the owner to be the same on the source so we don't have a permissions issue
+        source.owner = self.asset.owner
+        source.save()
+        paired_data = PairedData(
+            source_asset_or_uid=source,
+            fields=['q1'],
+            filename='data.txt',
+            asset=self.asset,
+        )
+        paired_data.save()
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse(
+                'api_v2:paired-data-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'paired_data_uid': paired_data.paired_data_uid,
+                },
+            ),
+            expected_action=AuditAction.MODIFY_IMPORTED_FIELDS,
+            request_data={'fields': ['q2']},
+        )
+        self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
+        self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
+        self.assertEqual(log_metadata['paired-data']['fields'], ['q2'])
+
+    def test_add_media_creates_log(self):
+        crab_png_b64 = (
+            'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
+            'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
+            'kmo4xAmEUgJpaYE9y0VLBrwVO9ZzUnSODidlthgossXf73pNDltav88X3Ncm'
+            'NcRl6K8AAAAASUVORK5CYII='
+        )
+
+        request_data = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'I have pincers',
+            'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
+            'metadata': json.dumps({'filename': 'crab.png'}),
+        }
+
+        url = reverse('api_v2:asset-file-list', args=(self.asset.uid,))
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=url,
+            request_data=request_data,
+            expected_action=AuditAction.ADD_MEDIA,
+        )
+        file = AssetFile.objects.filter(asset=self.asset).first()
+        self.assertEqual(log_metadata['asset-file']['uid'], file.uid)
+        self.assertEqual(log_metadata['asset-file']['filename'], file.filename)
+        self.assertEqual(log_metadata['asset-file']['download_url'], file.download_url)
+        self.assertEqual(log_metadata['asset-file']['md5_hash'], file.md5_hash)
+
+    def test_delete_media_creates_log(self):
+        media = AssetFile.objects.create(
+            asset=self.asset,
+            user=self.user,
+            file_type=AssetFile.FORM_MEDIA,
+            description='A file',
+            metadata={'filename': 'fish.txt'},
+        )
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                'api_v2:asset-file-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': media.uid,
+                },
+            ),
+            expected_action=AuditAction.DELETE_MEDIA,
+            request_data=None,
+        )
+        self.assertEqual(log_metadata['asset-file']['uid'], media.uid)
+        self.assertEqual(log_metadata['asset-file']['filename'], media.filename)
+        self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
+        self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)

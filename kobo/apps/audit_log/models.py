@@ -531,11 +531,15 @@ class ProjectHistoryLog(AuditLog):
         # what actually changed, so just return the new dict
         return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
 
+    @staticmethod
     def create_from_related_request(request, label, add_action, delete_action, modify_action):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
         source_data = updated_data if updated_data else initial_data
+        if not source_data:
+            # request failed, don't try to log
+            return
         object_id = source_data.pop('object_id')
 
         metadata = {
