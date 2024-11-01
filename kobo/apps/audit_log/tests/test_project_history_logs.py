@@ -43,7 +43,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         url = reverse(url_name, kwargs={'uid': self.asset.uid})
         method = self.client.patch if patch else self.client.post
         log_metadata = self._base_project_history_log_test(
-            patch, url, request_data, expected_action
+            method, url, request_data, expected_action
         )
         self.assertEqual(
             log_metadata['latest_version_uid'], self.asset.latest_version.uid
@@ -55,7 +55,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
-        response = method(
+        method(
             url,
             data=request_data,
             format='json',
@@ -316,7 +316,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['settings']['new_setting'][OLD], None)
 
     def test_enable_sharing_creates_log(self):
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': True, 'fields': []}},
@@ -325,7 +325,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['shared_fields'][ADDED], [])
 
     def test_truthy_field_creates_sharing_enabled_log(self):
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': 'truthy'}},
@@ -340,7 +340,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         self.asset.save()
 
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': False}},
@@ -354,7 +354,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         self.asset.save()
 
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {}},
@@ -368,7 +368,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         self.asset.save()
 
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': 0}},
@@ -381,7 +381,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'fields': ['q1'],
         }
         self.asset.save()
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'data_sharing': {'enabled': True, 'fields': ['q2']}},
@@ -391,7 +391,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['shared_fields'][REMOVED], ['q1'])
 
     def test_update_content_creates_log(self):
-        self._base_endpoint_test(
+        self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'content': {'some': 'thing'}},
@@ -418,7 +418,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             }
         }
 
-        log_metadata = self._base_endpoint_test(
+        log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data=request_data,
