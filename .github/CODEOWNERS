@@ -13,11 +13,11 @@
 .git-blame-ignore-revs              @magicznyleszek
 .gitattributes                      @magicznyleszek @noliveleger
 .gitignore                          @magicznyleszek @noliveleger
-CONTRIBUTING.md                     @magicznyleszek
+CONTRIBUTING.md                     @magicznyleszek @noliveleger
 dependabot.yml                      @magicznyleszek
-kpi.code-workspace                  @magicznyleszek 
 LICENSE                             @magicznyleszek @noliveleger @jnm
 README.md                           @magicznyleszek @noliveleger
+kpi.code-workspace                  @magicznyleszek @noliveleger
 
 # Translations
 .gitmodules                         @JacquelineMorrissette @jnm
