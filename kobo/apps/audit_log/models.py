@@ -1,3 +1,4 @@
+import jsonschema
 from django.conf import settings
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
@@ -5,6 +6,9 @@ from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
 from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.audit_log_metadata_schemas import (
+    PROJECT_HISTORY_LOG_METADATA_SCHEMA,
+)
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
@@ -288,9 +292,10 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
             'user_uid': user.extra_details.uid,
         }
         new_kwargs.update(**kwargs)
+
         return super().create(
             # set the fields that are always the same for all project history logs,
-            # along with the ones derived from the user and asset
+            # along with the ones derived from the user
             **new_kwargs,
         )
 
@@ -300,6 +305,22 @@ class ProjectHistoryLog(AuditLog):
 
     class Meta:
         proxy = True
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        # validate the metadata has the required fields
+        jsonschema.validate(self.metadata, PROJECT_HISTORY_LOG_METADATA_SCHEMA)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
     @classmethod
     def create_from_request(cls, request):
