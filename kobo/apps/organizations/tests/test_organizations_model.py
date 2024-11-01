@@ -19,4 +19,4 @@ class OrganizationsModelTestCase(BaseTestCase):
         assert org.pk == self.organization.pk
 
         org = Organization.get_from_user_id(self.anotheruser.pk)
-        assert org is None
+        assert org.pk != self.organization.pk
