@@ -43,6 +43,12 @@
   &:hover {
     color: colors.$kobo-gray-800;
   }
+
+  i {
+    font-size: 26px;
+    margin: 5px 4px 5px 1px;
+    display: inline-block;
+  }
 }
 
 .activeNavlink {
