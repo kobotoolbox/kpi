@@ -78,7 +78,7 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
   // Return -1 instead of null as that would allow
-  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
+  // `getQuestionOrChoiceDisplayName` to default to xml names.
   if (langString === XML_VALUES_OPTION_VALUE) {
     return -1;
   }
