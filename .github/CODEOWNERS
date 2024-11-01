@@ -58,12 +58,12 @@ tsconfig.json                       @magicznyleszek
 # Default owner
 .tx/*                               @noliveleger @jnm @JacquelineMorrissette
 dependencies/*                      @jnm @noliveleger
-docker/*                            @jnm @noliveleger
+docker/*                            @jnm @noliveleger @bufke
 hub/*                               @jnm @noliveleger
 kobo/*                              @jnm @noliveleger
 kobo/apps/audit_log/*               @rgraber
 kpi/*                               @jnm @noliveleger
-scripts/*                           @noliveleger @jnm
+scripts/*                           @noliveleger @jnm @bufke
 test/*                              @jnm @noliveleger
 .coveragerc                         @jnm
 .dockerignore                       @noliveleger @jnm
