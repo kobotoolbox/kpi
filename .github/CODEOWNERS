@@ -72,4 +72,4 @@ Dockerfile                          @noliveleger @jnm @bufke
 format-python.sh                    @noliveleger
 manage.py                           @noliveleger @jnm
 pip-compile.sh                      @noliveleger @jnm
-pyproject.toml                      @bufke
+pyproject.toml                      @noliveleger @jnm
