@@ -15,8 +15,8 @@
 .gitignore                          @magicznyleszek @noliveleger
 CONTRIBUTING.md                     @magicznyleszek @noliveleger
 dependabot.yml                      @magicznyleszek
-LICENSE                             @magicznyleszek @noliveleger @jnm
 kpi.code-workspace                  @magicznyleszek @noliveleger
+LICENSE                             @jnm @tinok
 README.md                           @magicznyleszek @noliveleger @jnm
 
 # Translations
