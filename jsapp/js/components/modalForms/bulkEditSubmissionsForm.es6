@@ -32,7 +32,7 @@ const EXCLUDED_TYPES = [
   QuestionTypeName['background-audio'],
   QuestionTypeName.video,
   QuestionTypeName.image,
-  QuestionTypeName.file
+  QuestionTypeName.file,
 ];
 
 /**
