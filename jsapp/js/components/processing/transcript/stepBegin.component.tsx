@@ -11,15 +11,12 @@ export default function StepBegin() {
     singleProcessingStore.setTranscriptDraft({});
   }
 
-  const typeLabel =
-    singleProcessingStore.currentQuestionType || t('source file');
-
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
       <header className={bodyStyles.header}>
         {t('This ##type## does not have a transcript yet').replace(
           '##type##',
-          typeLabel
+          singleProcessingStore.getProcessedFileLabel()
         )}
       </header>
 
