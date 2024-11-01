@@ -30,14 +30,13 @@ export const ValidateOrgPermissions = ({
   ) : true;
   const hasValidOrg = mmoOnly ? orgQuery.data?.is_mmo : true;
 
-  // Redirect to Account Settings if you're not the owner
+  // Redirect to Account Settings if conditions not met
   useEffect(() => {
     if (
       redirect &&
       !orgQuery.isPending &&
       orgQuery.data &&
-      !hasValidRole &&
-      !hasValidOrg
+      (!hasValidRole || !hasValidOrg)
     ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
