@@ -1,9 +1,9 @@
 # coding: utf-8
 import time
-from typing import Type
 
 import constance
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.core import mail
 from django.core.management import call_command
@@ -14,7 +14,7 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ExportTask, ImportExportTask, ImportTask
+from kpi.models.import_export_task import ExportTask, ImportTask
 
 
 @celery_app.task
@@ -31,10 +31,10 @@ def export_in_background(export_task_uid):
 
 @celery_app.task
 def export_task_in_background(
-    export_task_uid: str, username: str, export_task_class: Type[ImportExportTask]
+    export_task_uid: str, username: str, export_task_name: str
 ) -> None:
     user = User.objects.get(username=username)
-
+    export_task_class = apps.get_model(f'kpi.{export_task_name}')
     export_task = export_task_class.objects.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:

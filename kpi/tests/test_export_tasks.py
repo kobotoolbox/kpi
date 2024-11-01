@@ -27,7 +27,7 @@ class ExportTaskInBackgroundTests(TestCase):
         self.task.run = Mock(return_value=self.task)
 
         export_task_in_background(
-            self.task.uid, self.user.username, ProjectViewExportTask
+            self.task.uid, self.user.username, 'ProjectViewExportTask'
         )
 
         self.task.refresh_from_db()
@@ -61,7 +61,7 @@ class ExportTaskInBackgroundTests(TestCase):
             ObjectDoesNotExist, 'ProjectViewExportTask matching query does not exist.'
         ):
             export_task_in_background(
-                'invalid_uid', self.user.username, ProjectViewExportTask
+                'invalid_uid', self.user.username, 'ProjectViewExportTask'
             )
 
         mock_send_mail.assert_not_called()
@@ -73,7 +73,7 @@ class ExportTaskInBackgroundTests(TestCase):
             ObjectDoesNotExist, 'User matching query does not exist.'
         ):
             export_task_in_background(
-                self.task.uid, 'invalid_username', ProjectViewExportTask
+                self.task.uid, 'invalid_username', 'ProjectViewExportTask'
             )
 
         mock_send_mail.assert_not_called()
@@ -88,7 +88,7 @@ class ExportTaskInBackgroundTests(TestCase):
         mock_run_task.side_effect = Exception('Simulated task failure')
 
         export_task_in_background(
-            self.task.uid, self.user.username, ProjectViewExportTask
+            self.task.uid, self.user.username, 'ProjectViewExportTask'
         )
 
         self.task.refresh_from_db()
@@ -104,7 +104,7 @@ class ExportTaskInBackgroundTests(TestCase):
         mock_run_task.side_effect = Exception('Simulated task failure')
 
         export_task_in_background(
-            self.task.uid, self.user.username, ProjectViewExportTask
+            self.task.uid, self.user.username, 'ProjectViewExportTask'
         )
 
         mock_send_mail.assert_not_called()
