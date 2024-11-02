@@ -85,6 +85,7 @@ pyproject.toml                      @jnm @noliveleger
 
 docker/*                            @bufke @jnm @noliveleger
 scripts/*                           @bufke @jnm @noliveleger
+.github/*                           @bufke @jnm @noliveleger @magicznyleszek
 .gitlab-ci.yml                      @bufke
 Dockerfile                          @bufke @jnm @noliveleger
 
