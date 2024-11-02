@@ -1,13 +1,16 @@
-# This is a comment.
-# Each line is a file pattern followed by one or more owners.
-# Last matching entry wins.
+## This is a comment.
+## Each line is a file pattern followed by one or more owners.
+## Last matching entry wins.
 
-# Default owner for all missed or newly added files.
+
+
+
+## Default owner for all missed or newly added files.
 *                                   @magicznyleszek @noliveleger
 
 
 
-
+################
 #### Global section.
 .editorconfig                       @magicznyleszek
 .git-blame-ignore-revs              @magicznyleszek
@@ -17,15 +20,16 @@ CONTRIBUTING.md                     @magicznyleszek @noliveleger
 dependabot.yml                      @magicznyleszek
 kpi.code-workspace                  @p2edwards
 LICENSE                             @jnm @tinok
-README.md                           @magicznyleszek @noliveleger @jnm
+README.md                           @jnm @magicznyleszek @noliveleger
 
-# Translations
+## Translations
 .gitmodules                         @JacquelineMorrissette @jnm
 .tx/*                               @JacquelineMorrissette @jnm
 
 
 
 
+################
 #### Frontend section.
 
 # Default owner
@@ -56,22 +60,31 @@ tsconfig.json                       @magicznyleszek
 
 
 
+################
 #### Backend section
 
 # Default owner
 dependencies/*                      @jnm @noliveleger
-docker/*                            @jnm @noliveleger @bufke
 hub/*                               @jnm @noliveleger
 kobo/*                              @jnm @noliveleger
 kobo/apps/audit_log/*               @rgraber
 kpi/*                               @jnm @noliveleger
-scripts/*                           @noliveleger @jnm @bufke
 test/*                              @jnm @noliveleger
 .coveragerc                         @jnm
-.dockerignore                       @noliveleger @jnm
-.gitlab-ci.yml                      @bufke
-Dockerfile                          @noliveleger @jnm @bufke
+.dockerignore                       @jnm @noliveleger
 format-python.sh                    @noliveleger
-manage.py                           @noliveleger @jnm
-pip-compile.sh                      @noliveleger @jnm
-pyproject.toml                      @noliveleger @jnm
+manage.py                           @jnm @noliveleger
+pip-compile.sh                      @jnm @noliveleger
+pyproject.toml                      @jnm @noliveleger
+
+
+
+
+################
+#### Infra section
+
+docker/*                            @bufke @jnm @noliveleger
+scripts/*                           @bufke @jnm @noliveleger
+.gitlab-ci.yml                      @bufke
+Dockerfile                          @bufke @jnm @noliveleger
+
