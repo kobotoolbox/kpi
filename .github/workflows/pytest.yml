@@ -4,7 +4,7 @@ name: pytest
 
 on:
   push:
-    branches: [ master, beta ]
+    branches: [ main ]
   pull_request:
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       KOBOFORM_URL: http://kpi
     strategy:
       matrix:
-        python-version: ['3.8', '3.10']
+        python-version: ['3.10']
     services:
       postgres:
         image: postgis/postgis:14-3.4

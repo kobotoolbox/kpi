@@ -18,7 +18,7 @@ interface PaginatedQueryUniversalTableProps<DataItem> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
-  columns: UniversalTableColumn[];
+  columns: UniversalTableColumn<DataItem>[];
 }
 
 const PAGE_SIZES = [10, 30, 50, 100];
@@ -57,6 +57,7 @@ export default function PaginatedQueryUniversalTable<DataItem>(
     <UniversalTable<DataItem>
       columns={props.columns}
       data={data}
+      isSpinnerVisible={paginatedQuery.isFetching}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}

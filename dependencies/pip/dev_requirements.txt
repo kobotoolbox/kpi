@@ -47,8 +47,6 @@ azure-core==1.30.1
     #   django-storages
 azure-storage-blob==12.19.1
     # via django-storages
-backcall==0.2.0
-    # via ipython
 bcrypt==4.1.2
     # via paramiko
 begins==0.9
@@ -139,6 +137,8 @@ deprecated==1.2.14
     # via fabric
 dict2xml==1.7.5
     # via -r dependencies/pip/requirements.in
+diff-match-patch==20230430
+    # via django-import-export
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.8.3
@@ -158,6 +158,7 @@ django==4.2.15
     #   django-extensions
     #   django-filter
     #   django-guardian
+    #   django-import-export
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -195,6 +196,8 @@ django-extensions==3.2.3
 django-filter==24.2
     # via -r dependencies/pip/requirements.in
 django-guardian==2.4.0
+    # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
@@ -252,7 +255,9 @@ drf-extensions==0.7.1
 et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.2.0
-    # via pytest
+    # via
+    #   ipython
+    #   pytest
 execnet==2.1.1
     # via pytest-xdist
 executing==2.0.1
@@ -343,7 +348,7 @@ iniconfig==2.0.0
     # via pytest
 invoke==2.2.0
     # via fabric
-ipython==8.12.3
+ipython==8.28.0
     # via -r dependencies/pip/dev_requirements.in
 isodate==0.6.1
     # via azure-storage-blob
@@ -392,6 +397,8 @@ modilabs-python-utils==0.1.5
     # via -r dependencies/pip/requirements.in
 mongomock==4.1.2
     # via -r dependencies/pip/dev_requirements.in
+more-itertools==10.4.0
+    # via -r dependencies/pip/requirements.in
 multidict==6.0.5
     # via
     #   aiohttp
@@ -429,8 +436,6 @@ path-py==12.5.0
 pathspec==0.12.1
     # via black
 pexpect==4.9.0
-    # via ipython
-pickleshare==0.7.5
     # via ipython
 pillow==10.3.0
     # via django-markdownx
@@ -610,6 +615,8 @@ statistics==1.0.3.5
     # via formpack
 stripe==4.2.0
     # via dj-stripe
+tablib==3.5.0
+    # via django-import-export
 tabulate==0.9.0
     # via -r dependencies/pip/requirements.in
 toml==0.10.2
@@ -636,6 +643,7 @@ typing-extensions==4.10.0
     #   azure-core
     #   azure-storage-blob
     #   black
+    #   ipython
     #   jwcrypto
     #   psycopg
 tzdata==2024.1

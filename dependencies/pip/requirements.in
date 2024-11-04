@@ -37,6 +37,7 @@ django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
 django-extensions
 django-oauth-toolkit
 django-organizations
@@ -67,6 +68,7 @@ jsonfield
 jsonschema
 kombu
 lxml
+more-itertools
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x

@@ -1,4 +1,3 @@
-# coding: utf-8
 import logging
 import os
 import string
@@ -17,10 +16,7 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kobo.apps.stripe.constants import (
-    FREE_TIER_EMPTY_DISPLAY,
-    FREE_TIER_NO_THRESHOLDS,
-)
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
@@ -108,6 +104,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
     'hub.HubAppConfig',
+    'import_export',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -158,6 +155,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -589,6 +587,15 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
+    'ACCESS_LOG_LIFESPAN': (
+        60,
+        'Length of time in days to keep access logs.',
+        'positive_int'
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -652,6 +659,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
+        'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -924,7 +933,7 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
-    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
@@ -1222,6 +1231,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    }
 }
 
 
@@ -1503,7 +1517,7 @@ permission assignment that would've been done by KoBoCAT's user post_save
 signal handler. Here we record the content types of the models listed in KC's
 set_api_permissions_for_user(). Verify that this list still matches that
 function if you experience permission-related problems. See
-https://github.com/kobotoolbox/kobocat/blob/master/onadata/libs/utils/user_auth.py.
+https://github.com/kobotoolbox/kobocat/blob/main/onadata/libs/utils/user_auth.py.
 """
 KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
@@ -1561,6 +1575,10 @@ MONGO_DB = mongo_client[mongo_db_name]
 
 # If a request or task makes a database query and then times out, the database
 # server should not spin forever attempting to fulfill that query.
+# ⚠️⚠️
+# These settings should never be used directly.
+# Use MongoHelper.get_max_time_ms() in the code instead
+# ⚠️⚠️
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
@@ -1600,16 +1618,9 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
-# Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300  # seconds
 
-# Minimum size (in bytes) of files to allow fast calculation of hashes
-# Should match KoBoCAT setting
-HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
-
-# Chunk size in bytes to read per iteration when hash of a file is calculated
-# Should match KoBoCAT setting
-HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
+CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
 # add some mimetype
 add_type('application/wkt', '.wkt')
@@ -1759,6 +1770,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'video/webm',
     'audio/aac',
     'audio/aacp',
+    'audio/3gpp',
     'audio/flac',
     'audio/mp3',
     'audio/mp4',
@@ -1773,6 +1785,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/zip',
     'application/x-zip-compressed'
 ]
+
+ACCESS_LOG_DELETION_BATCH_SIZE = 1000
 
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended

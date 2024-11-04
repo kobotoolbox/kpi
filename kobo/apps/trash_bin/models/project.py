@@ -5,11 +5,7 @@ from django.db import models, transaction
 from django.utils.timezone import now
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.project_ownership.models import (
-    Invite,
-    InviteStatusChoices,
-    Transfer,
-)
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
@@ -90,9 +86,9 @@ class ProjectTrash(BaseTrash):
                     ).update(status=InviteStatusChoices.CANCELLED)
 
                 if not settings.TESTING:
-                    kc_updated = XForm.objects.filter(
-                        **kc_filter_params
-                    ).update(**kc_update_params)
+                    kc_updated = XForm.objects.filter(**kc_filter_params).update(
+                        **kc_update_params
+                    )
                     assert updated >= kc_updated
 
         return queryset, updated

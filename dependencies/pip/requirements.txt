@@ -106,6 +106,8 @@ defusedxml==0.7.1
     #   pyxform
 dict2xml==1.7.5
     # via -r dependencies/pip/requirements.in
+diff-match-patch==20230430
+    # via django-import-export
 dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.8.3
@@ -125,6 +127,7 @@ django==4.2.15
     #   django-extensions
     #   django-filter
     #   django-guardian
+    #   django-import-export
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -161,6 +164,8 @@ django-extensions==3.2.3
 django-filter==24.2
     # via -r dependencies/pip/requirements.in
 django-guardian==2.4.0
+    # via -r dependencies/pip/requirements.in
+django-import-export==4.1.0
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
@@ -315,6 +320,8 @@ markdown==3.6
 markupsafe==2.1.5
     # via werkzeug
 modilabs-python-utils==0.1.5
+    # via -r dependencies/pip/requirements.in
+more-itertools==10.4.0
     # via -r dependencies/pip/requirements.in
 multidict==6.0.5
     # via
@@ -472,6 +479,8 @@ statistics==1.0.3.5
     # via formpack
 stripe==4.2.0
     # via dj-stripe
+tablib==3.5.0
+    # via django-import-export
 tabulate==0.9.0
     # via -r dependencies/pip/requirements.in
 tornado==6.4

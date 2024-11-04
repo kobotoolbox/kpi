@@ -5,19 +5,17 @@ from concurrent.futures import TimeoutError
 from typing import Any
 
 import constance
-from google.cloud import storage
-from google.api_core.operation import Operation
-from googleapiclient import discovery
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.cache import cache
+from google.api_core.operation import Operation
+from google.cloud import storage
+from googleapiclient import discovery
 
 from kobo.apps.trackers.utils import update_nlp_counter
-from kpi.utils.log import logging
-from .utils import google_credentials_from_constance_config
-from ...models import SubmissionExtras
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
 from ...exceptions import SubsequenceTimeoutError
+from ...models import SubmissionExtras
+from .utils import google_credentials_from_constance_config
 
 
 class GoogleService(ABC):

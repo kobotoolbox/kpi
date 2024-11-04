@@ -1,13 +1,13 @@
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.contrib.auth.models import AbstractUser
-
+from django_request_cache import cache_for_request
 
 from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kpi.utils.database import use_db, update_autofield_sequence
+from kobo.apps.organizations.models import create_organization, Organization
+from kpi.utils.database import update_autofield_sequence, use_db
 
 
 class User(AbstractUser):
@@ -40,8 +40,35 @@ class User(AbstractUser):
         # Otherwise, check in KPI DB
         return super().has_perm(perm, obj)
 
+    @property
+    @cache_for_request
+    def is_org_owner(self):
+        """
+        Shortcut to check if the user is the owner of the organization, allowing
+        direct access via the User object instead of calling `organization.is_owner()`.
+        """
+        return self.organization.is_owner(self)
+
+    @property
+    @cache_for_request
+    def organization(self):
+        # Database allows multiple organizations per user, but we restrict it to one.
+        if organization := Organization.objects.filter(
+            organization_users__user=self
+        ).first():
+            return organization
+
+        try:
+            organization_name = self.extra_details.data['organization'].strip()
+        except (KeyError, AttributeError):
+            organization_name = None
+
+        return create_organization(
+            self, organization_name or f'{self.username}’s organization'
+        )
+
     def sync_to_openrosa_db(self):
-        User = self.__class__ # noqa
+        User = self.__class__  # noqa
         User.objects.using(settings.OPENROSA_DB_ALIAS).bulk_create(
             [self],
             update_conflicts=True,
@@ -56,6 +83,6 @@ class User(AbstractUser):
                 'is_active',
                 'date_joined',
             ],
-            unique_fields=['pk']
+            unique_fields=['pk'],
         )
         update_autofield_sequence(User)

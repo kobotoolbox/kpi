@@ -1,73 +1,57 @@
 # coding: utf-8
 import copy
 import json
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
-    ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    ASSET_TYPES,
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
-from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
-from kpi.exceptions import (
-    BadAssetTypeException,
-)
-from kpi.filters import (
-    AssetOrderingFilter,
-    KpiObjectPermissionsFilter,
-    SearchFilter,
-)
+from kpi.exceptions import BadAssetTypeException
+from kpi.filters import AssetOrderingFilter, KpiObjectPermissionsFilter, SearchFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import (
-    Asset,
-    UserAssetSubscription,
-)
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
+from kpi.models import Asset, UserAssetSubscription
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
-    get_perm_name,
     AssetPermission,
     PostMappedToChangePermission,
     ReportPermission,
+    get_perm_name,
 )
-from kpi.renderers import (
-    AssetJsonRenderer,
-    SSJsonRenderer,
-    XFormRenderer,
-    XlsRenderer,
-)
-from kpi.serializers.v2.deployment import DeploymentSerializer
+from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
     AssetSerializer,
 )
+from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-from kpi.utils.object_permission import (
-    get_database_user,
-    get_objects_for_user,
-)
 
 
 class AssetViewSet(
-    ObjectPermissionViewSetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
     * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
@@ -396,7 +380,19 @@ class AssetViewSet(
         'uid__icontains',
     ]
 
-    def get_object(self):
+    logged_fields = [
+        'has_deployment',
+        'id',
+        'name',
+        'settings',
+        'latest_version.uid',
+        'data_sharing',
+        'content',
+        'advanced_features.qual.qual_survey',
+    ]
+    log_type = AuditType.PROJECT_HISTORY
+
+    def get_object_override(self):
         if self.request.method in ['PATCH', 'GET']:
             try:
                 asset = Asset.objects.get(uid=self.kwargs['uid'])
@@ -416,7 +412,7 @@ class AssetViewSet(
 
             return asset
 
-        return super().get_object()
+        return super().get_object_override()
 
     @action(
         detail=False,
@@ -444,8 +440,9 @@ class AssetViewSet(
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(detail=True,
             methods=['get', 'post', 'patch'],
@@ -494,6 +491,11 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+                request._request.additional_audit_log_info = {
+                    'id': asset.id,
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
+                }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -518,6 +520,15 @@ class AssetViewSet(
                 )
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
+                only_active_changed = set(serializer.validated_data.keys()) == {
+                    'active'
+                }
+                request._request.additional_audit_log_info = {
+                    'only_active_changed': only_active_changed,
+                    'active': serializer.data['active'],
+                    'latest_deployed_version_uid': asset.latest_deployed_version_uid,
+                    'latest_version_uid': asset.latest_version.uid,
+                }
                 # TODO: Understand why this 404s when `serializer.data` is not
                 # coerced to a dict
                 return Response(dict(serializer.data))
@@ -740,7 +751,7 @@ class AssetViewSet(
             accessible_assets = (
                 get_objects_for_user(user, 'view_asset', Asset)
                 .filter(asset_type=ASSET_TYPE_SURVEY)
-                .order_by("uid")
+                .order_by('uid')
             )
 
             assets_version_ids = [
@@ -778,10 +789,10 @@ class AssetViewSet(
                                              partial=True)
 
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        super().perform_update(serializer)
         return Response(serializer.data)
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         user = get_database_user(self.request.user)
         serializer.save(
             owner=user,
@@ -789,7 +800,7 @@ class AssetViewSet(
             last_modified_by=user.username
         )
 
-    def perform_destroy(self, instance):
+    def perform_destroy_override(self, instance):
         self._bulk_asset_actions(
             {'payload': {'asset_uids': [instance.uid], 'action': 'delete'}}
         )
@@ -904,12 +915,14 @@ class AssetViewSet(
                 # Because we're updating an asset from another which can have another type,
                 # we need to remove `asset_type` from clone data to ensure it's not updated
                 # when serializer is initialized.
-                cloned_data.pop("asset_type", None)
+                cloned_data.pop('asset_type', None)
             else:
                 # Change asset_type if needed.
-                cloned_data["asset_type"] = self.request.data.get(ASSET_TYPE_ARG_NAME, original_asset.asset_type)
+                cloned_data['asset_type'] = self.request.data.get(
+                    ASSET_TYPE_ARG_NAME, original_asset.asset_type
+                )
 
-            cloned_asset_type = cloned_data.get("asset_type")
+            cloned_asset_type = cloned_data.get('asset_type')
             # Settings are: Country, Description, Sector and Share-metadata
             # Copy settings only when original_asset is `survey` or `template`
             # and `asset_type` property of `cloned_data` is `survey` or `template`
@@ -918,9 +931,9 @@ class AssetViewSet(
                     original_asset.asset_type in [ASSET_TYPE_TEMPLATE, ASSET_TYPE_SURVEY]:
 
                 settings = original_asset.settings.copy()
-                settings.pop("share-metadata", None)
+                settings.pop('share-metadata', None)
 
-                cloned_data_settings = cloned_data.get("settings", {})
+                cloned_data_settings = cloned_data.get('settings', {})
 
                 # Depending of the client payload. settings can be JSON or string.
                 # if it's a string. Let's load it to be able to merge it.
@@ -932,10 +945,12 @@ class AssetViewSet(
 
             # until we get content passed as a dict, transform the content obj to a str
             # TODO, verify whether `Asset.content.settings.id_string` should be cleared out.
-            cloned_data["content"] = json.dumps(cloned_data.get("content"))
+            cloned_data['content'] = json.dumps(cloned_data.get('content'))
             return cloned_data
         else:
-            raise BadAssetTypeException("Destination type is not compatible with source type")
+            raise BadAssetTypeException(
+                'Destination type is not compatible with source type'
+            )
 
     def _validate_destination_type(self, original_asset_):
         """

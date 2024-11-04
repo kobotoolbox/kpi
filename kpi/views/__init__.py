@@ -20,6 +20,7 @@ def home(request):
 def browser_tests(request):
     return TemplateResponse(request, 'browser_tests.html')
 
+
 def modern_browsers(request):
     return TemplateResponse(request, 'modern_browsers.html')
 

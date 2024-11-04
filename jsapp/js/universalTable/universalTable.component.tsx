@@ -12,6 +12,7 @@ import {
 } from '@tanstack/react-table';
 
 // Partial components
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Button from 'js/components/common/button';
 import KoboSelect from 'js/components/common/koboSelect';
 
@@ -21,7 +22,7 @@ import {generateUuid} from 'js/utils';
 // Styles
 import styles from './universalTable.module.scss';
 
-export interface UniversalTableColumn {
+export interface UniversalTableColumn<DataItem> {
   /**
    * Pairs to data object properties. It is using dot notation, so it's possible
    * to match data from a nested object :ok:.
@@ -40,15 +41,21 @@ export interface UniversalTableColumn {
   size?: number;
   /**
    * This is an optional formatter function that will be used when rendering
-   * the cell value. Without it a literal text value will be rendered.
+   * the cell value. Without it a literal text value will be rendered. For more
+   * flexibility, function receives whole original data object.
    */
-  cellFormatter?: (value: string) => React.ReactNode;
+  cellFormatter?: (value: DataItem) => React.ReactNode;
 }
 
 interface UniversalTableProps<DataItem> {
   /** A list of column definitions */
-  columns: UniversalTableColumn[];
+  columns: UniversalTableColumn<DataItem>[];
   data: DataItem[];
+  /**
+   * When set to `true`, a spinner with overlay will be displayed over the table
+   * rows.
+   */
+  isSpinnerVisible?: boolean;
   // PAGINATION
   // To see footer with pagination you need to pass all these below:
   /** Starts with `0` */
@@ -133,7 +140,7 @@ export default function UniversalTable<DataItem>(
       header: () => columnDef.label,
       cell: (cellProps: CellContext<DataItem, string>) => {
         if (columnDef.cellFormatter) {
-          return columnDef.cellFormatter(cellProps.getValue());
+          return columnDef.cellFormatter(cellProps.row.original);
         } else {
           return cellProps.renderValue();
         }
@@ -162,7 +169,7 @@ export default function UniversalTable<DataItem>(
     .map((col) => col.key);
   options.state.columnPinning = {left: pinnedColumns || []};
 
-  const hasPagination = (
+  const hasPagination = Boolean(
     props.pageIndex !== undefined &&
     props.pageCount &&
     props.pageSize &&
@@ -212,6 +219,12 @@ export default function UniversalTable<DataItem>(
   return (
     <div className={styles.universalTableRoot}>
       <div className={styles.tableContainer}>
+        {props.isSpinnerVisible &&
+          <div className={styles.spinnerOverlay}>
+            <LoadingSpinner message={false} />
+          </div>
+        }
+
         <table
           className={styles.table}
           style={{width: table.getTotalSize()}}

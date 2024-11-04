@@ -1,4 +1,5 @@
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from ..constants import QUAL_SOURCE_TYPES
+from ..actions.base import BaseAction
 from ..jsonschemas.qual_schema import DEFINITIONS as QUAL_DEFINITIONS
 
 
@@ -9,15 +10,15 @@ class QualAction(BaseAction):
     def build_params(cls, survey_content):
         _fields = []
         for row in survey_content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 _fields.append(row['name'])
         return {'values': _fields}
 
     def load_params(self, params):
-        '''
+        """
         Action.load_params is called when the instance is initialized
         for each Asset. It will
-        '''
+        """
         self.fields = params.get('values', [])
         self.qual_survey = params.get('qual_survey', [])
         self.everything_else = params
@@ -30,7 +31,7 @@ class QualAction(BaseAction):
         """
         values = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 values.append(cls.get_xpath(cls, row))
         return values
 

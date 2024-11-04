@@ -3,12 +3,11 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.http import (
-    HttpResponseNotAllowed,
-    HttpResponseForbidden,
     HttpRequest,
     HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
 )
 from django.middleware.locale import LocaleMiddleware
 from django.template import loader
