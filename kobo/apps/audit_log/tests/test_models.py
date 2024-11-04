@@ -2,10 +2,12 @@ import datetime
 from datetime import timedelta
 from unittest.mock import patch
 
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 from django.utils import timezone
+from jsonschema.exceptions import ValidationError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
@@ -348,6 +350,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         )
 
 
+@ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
@@ -366,13 +369,26 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         yesterday = timezone.now() - timedelta(days=1)
         log = ProjectHistoryLog.objects.create(
             user=user,
-            metadata={'foo': 'bar'},
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
             date_created=yesterday,
             object_id=asset.id,
         )
         self._check_common_fields(log, user, asset)
-        self.assertEquals(log.date_created, yesterday)
-        self.assertDictEqual(log.metadata, {'foo': 'bar'})
+        self.assertEqual(log.date_created, yesterday)
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
+        )
 
     @patch('kobo.apps.audit_log.models.logging.warning')
     def test_create_project_history_log_ignores_attempt_to_override_standard_fields(
@@ -385,9 +401,45 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             model_name='foo',
             app_label='bar',
             object_id=asset.id,
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
             user=user,
         )
         # the standard fields should be set the same as any other project history logs
         self._check_common_fields(log, user, asset)
         # we logged a warning for each attempt to override a field
         self.assertEquals(patched_warning.call_count, 3)
+
+    @data(
+        # source, asset_uid, ip_address, subtype
+        ('source', 'a1234', None, 'project'),  # missing ip
+        ('source', None, '1.2.3.4', 'project'),  # missing asset_uid
+        (None, 'a1234', '1.2.3.4', 'project'),  # missing source
+        ('source', 'a1234', '1.2.3.4', None),  # missing subtype
+        ('source', 'a1234', '1.2.3.4', 'bad_type'),  # bad subtype
+    )
+    @unpack
+    def test_create_project_history_log_requires_metadata_fields(
+        self, source, ip_address, asset_uid, subtype
+    ):
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.get(pk=1)
+        metadata = {
+            'source': source,
+            'ip_address': ip_address,
+            'asset_uid': asset_uid,
+            'log_subtype': subtype,
+        }
+        # remove whatever we set to None
+        # filtered = { k:v for k,v in metadata.items() if v is not None }
+
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=metadata,
+                user=user,
+            )
