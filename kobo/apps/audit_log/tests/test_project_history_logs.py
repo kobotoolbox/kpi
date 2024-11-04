@@ -39,7 +39,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
 
-    def _base_asset_detail_endpoint_test(self, patch, url_name, request_data, expected_action):
+    def _base_asset_detail_endpoint_test(
+        self, patch, url_name, request_data, expected_action
+    ):
         url = reverse(url_name, kwargs={'uid': self.asset.uid})
         method = self.client.patch if patch else self.client.post
         log_metadata = self._base_project_history_log_test(
@@ -478,10 +480,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
-            url=reverse('api_v2:hook-detail', kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'uid': new_hook.uid,
-            }),
+            url=reverse(
+                'api_v2:hook-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': new_hook.uid,
+                },
+            ),
             request_data=request_data,
             expected_action=AuditAction.MODIFY_SERVICE,
         )

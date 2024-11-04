@@ -300,6 +300,7 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
         )
 
 class ProjectHistoryLog(AuditLog):
+
     objects = ProjectHistoryLogManager()
 
     class Meta:
@@ -532,7 +533,9 @@ class ProjectHistoryLog(AuditLog):
         return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
 
     @staticmethod
-    def create_from_related_request(request, label, add_action, delete_action, modify_action):
+    def create_from_related_request(
+        request, label, add_action, delete_action, modify_action
+    ):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
@@ -556,8 +559,5 @@ class ProjectHistoryLog(AuditLog):
         else:
             action = modify_action
         ProjectHistoryLog.objects.create(
-            user = request.user,
-            object_id = object_id,
-            action = action,
-            metadata = metadata
+            user=request.user, object_id=object_id, action=action, metadata=metadata
         )
