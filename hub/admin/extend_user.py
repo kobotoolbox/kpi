@@ -235,8 +235,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
 
     def get_search_results(self, request, queryset, search_term):
-
         if request.path != '/admin/auth/user/':
+            queryset = self._filter_queryset(request, queryset)
+
             # If search comes from autocomplete field, use parent class method
             return super(UserAdmin, self).get_search_results(
                 request, queryset, search_term
@@ -260,6 +261,28 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             month=today.month,
         ).aggregate(counter=Sum('counter'))
         return instances.get('counter')
+
+    def _filter_queryset(self, request, queryset):
+        auto_complete = request.path == '/admin/autocomplete/'
+        app_label = request.GET.get('app_label')
+        model_name = request.GET.get('model_name')
+
+        if (
+            auto_complete
+            and app_label == 'organizations'
+            and model_name == 'organizationuser'
+        ):
+            return self._filter_queryset_for_organization_user(queryset)
+
+        return queryset
+
+    def _filter_queryset_for_organization_user(self, queryset):
+        """
+        Displays only users whose organization has a single member.
+        """
+        return queryset.annotate(
+            user_count=Count('organizations_organization__organization_users')
+        ).filter(user_count=1).order_by('username')
 
     def _remove_or_delete(
         self,
