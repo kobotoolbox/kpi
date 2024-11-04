@@ -8,7 +8,7 @@
 6. [ ] review thyself: read the diff and repro the preview as written
 7. [ ] open PR & confirm that CI passes
 8. [ ] request reviewers, if needed
-9. [ ] delete this section once checklist is done
+9. [ ] delete this section before merging
 
 ### 📣 Summary
 <!-- Delete this section if changes are internal only. -->
