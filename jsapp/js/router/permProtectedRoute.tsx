@@ -27,6 +27,10 @@ interface PermProtectedRouteState {
   userHasRequiredPermissions: boolean | null;
   errorMessage?: string;
   asset: AssetResponse | null;
+  /**
+   * Tells the `dmix` mixin (from `mixins.tsx`) that this route component
+   * already handled asset load, so `dmix` doesn't have to.
+   */
   initialAssetLoadNotNeeded: boolean;
 }
 
