@@ -61,6 +61,17 @@ class PermProtectedRoute extends React.Component<
       return;
     }
 
+    // Listen to incoming load of asset
+    this.unlisteners.push(
+      actions.resources.loadAsset.completed.listen(
+        this.onLoadAssetCompleted.bind(this)
+      ),
+      actions.resources.loadAsset.failed.listen(
+        this.onLoadAssetFailed.bind(this)
+      )
+    );
+
+    // See if the asset is already loaded in the store
     const assetFromStore = assetStore.getAsset(this.props.params.uid);
     if (assetFromStore) {
       // If this asset was already loaded before, we are not going to be picky
@@ -68,17 +79,12 @@ class PermProtectedRoute extends React.Component<
       // those are most probably up to date.
       // This helps us avoid unnecessary API calls and spinners being displayed
       // in the UI (from this component; see `render()` below).
-      this.onLoadAssetCompleted(assetFromStore);
+      // This code previously was simply calling `onLoadAssetCompleted`, but it
+      // caused some edge cases bugs. We will instead call the usual load action
+      // but telling the function to return cached result
+      actions.resources.loadAsset({id: this.props.params.uid}, false);
     } else {
       this.setState({initialAssetLoadNotNeeded: true});
-      this.unlisteners.push(
-        actions.resources.loadAsset.completed.listen(
-          this.onLoadAssetCompleted.bind(this)
-        ),
-        actions.resources.loadAsset.failed.listen(
-          this.onLoadAssetFailed.bind(this)
-        )
-      );
       actions.resources.loadAsset({id: this.props.params.uid}, true);
     }
   }
