@@ -5,7 +5,7 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP, USAGE_LIMIT_MAP_STRIPE
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_plan_subscription
 from kobo.apps.trackers.utils import (
     get_organization_remaining_usage,
@@ -86,10 +86,9 @@ class TrackersUtilitiesTestCase(BaseTestCase):
 
     @data('characters', 'seconds')
     def test_organization_usage_utils(self, usage_type):
-        stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         sub_metadata = {
-            stripe_key: 1000,
+            usage_key: 1000,
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }

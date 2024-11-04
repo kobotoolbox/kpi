@@ -5,7 +5,7 @@ from django.db.models import F
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP_STRIPE
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
 
 def get_default_add_on_limits():
@@ -50,7 +50,7 @@ def get_organization_plan_limit(
     """
     if not settings.STRIPE_ENABLED:
         return None
-    stripe_key = f'{USAGE_LIMIT_MAP_STRIPE[usage_type]}_limit'
+    stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
     query_product_type = (
         'djstripe_customers__subscriptions__items__price__'
         'product__metadata__product_type'
