@@ -513,7 +513,8 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         request.user = User.objects.get(username='someuser')
         request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
-        # if an object has been modified, both `initial_data` and `updated_data` should be filled
+        # if an object has been modified, both `initial_data`
+        # and `updated_data` should be filled
         request.initial_data = {
             'object_id': 1,
             'field_1': 'a',

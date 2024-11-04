@@ -524,7 +524,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'enabled': True,
             'fields': [],
         }
-        # set the owner to be the same on the source so we don't have a permissions issue
+        # set the owner to be the same on the source
+        # so we don't have a permissions issue
         source.owner = self.asset.owner
         source.save()
         asset_url = drf_reverse('api_v2:asset-detail', kwargs={'uid': source.uid})
@@ -551,7 +552,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'enabled': True,
             'fields': [],
         }
-        # set the owner to be the same on the source so we don't have a permissions issue
+        # set the owner to be the same on the source
+        # so we don't have a permissions issue
         source.owner = self.asset.owner
         source.save()
         paired_data = PairedData(
@@ -582,7 +584,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'enabled': True,
             'fields': [],
         }
-        # set the owner to be the same on the source so we don't have a permissions issue
+        # set the owner to be the same on the source
+        # so we don't have a permissions issue
         source.owner = self.asset.owner
         source.save()
         paired_data = PairedData(

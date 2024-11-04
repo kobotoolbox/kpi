@@ -299,8 +299,8 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
             **new_kwargs,
         )
 
-class ProjectHistoryLog(AuditLog):
 
+class ProjectHistoryLog(AuditLog):
     objects = ProjectHistoryLogManager()
 
     class Meta:
