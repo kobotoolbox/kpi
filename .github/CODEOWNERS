@@ -22,7 +22,7 @@
 
 ## Translations
 /.gitmodules                        @JacquelineMorrissette @jnm
-/.tx/*                              @JacquelineMorrissette @jnm
+/.tx/                               @JacquelineMorrissette @jnm
 
 
 
@@ -31,12 +31,12 @@
 #### Frontend section.
 
 # Default owner
-/.storybook/*                       @magicznyleszek
-/cypress/*                          @magicznyleszek
-/jsapp/*                            @magicznyleszek
-/patches/*                          @p2edwards
-/static/*                           @magicznyleszek
-/webpack/*                          @magicznyleszek
+/.storybook/                        @magicznyleszek
+/cypress/                           @magicznyleszek
+/jsapp/                             @magicznyleszek
+/patches/                           @p2edwards
+/static/                            @magicznyleszek
+/webpack/                           @magicznyleszek
 /.babelrc.json                      @magicznyleszek
 /.browserlistrc                     @magicznyleszek
 /.eslintignore                      @magicznyleszek
@@ -52,7 +52,7 @@
 /tsconfig.json                      @magicznyleszek
 
 # Billing
-/jsapp/js/account/*                 @jamesrkiger
+/jsapp/js/account/                  @jamesrkiger
 /jsapp/js/components/usageLimits    @jamesrkiger
 
 
@@ -62,13 +62,13 @@
 #### Backend section
 
 # Default owner
-/dependencies/*                     @jnm @noliveleger
-/hub/*                              @jnm @noliveleger
-/kobo/*                             @jnm @noliveleger
-/kobo/apps/audit_log/*              @rgraber
-/kobo/apps/subsequences/*           @Guitlle
-/kpi/*                              @jnm @noliveleger
-/test/*                             @jnm @noliveleger
+/dependencies/                      @jnm @noliveleger
+/hub/                               @jnm @noliveleger
+/kobo/                              @jnm @noliveleger
+/kobo/apps/audit_log/               @rgraber
+/kobo/apps/subsequences/            @Guitlle
+/kpi/                               @jnm @noliveleger
+/test/                              @jnm @noliveleger
 /.coveragerc                        @jnm
 /.dockerignore                      @jnm @noliveleger
 /format-python.sh                   @noliveleger
@@ -82,9 +82,9 @@
 ################
 #### Infrastructure section
 
-/docker/*                           @bufke @jnm @noliveleger
-/scripts/*                          @bufke @jnm @noliveleger
-/.github/*                          @bufke @jnm @noliveleger @magicznyleszek
+/docker/                            @bufke @jnm @noliveleger
+/scripts/                           @bufke @jnm @noliveleger
+/.github/                           @bufke @jnm @noliveleger @magicznyleszek
 /.gitlab-ci.yml                     @bufke
 /Dockerfile                         @bufke @jnm @noliveleger
 
