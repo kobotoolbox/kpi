@@ -32,14 +32,14 @@
 <!-- If behavior change or merely may, outline minimal happy path. -->
 
 Bug template:
-1. :information_source: have an account and a project
+1. ℹ️ have an account and a project
 2. do this
 3. do that
 4. 🔴 [on main] notice that this isn't anywhere BUT it should be here
 5. 🟢 [on PR] notice that this is here
 
 Feature/no-change template:
-1. :information_source: have account and a project
+1. ℹ️ have account and a project
 2. do this
 3. do that
 4. 🟢 notice that this is there
