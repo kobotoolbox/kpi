@@ -1,41 +1,42 @@
-### Checklist
+### :spiral_notepad: Checklist
 
 1. [ ] run linter locally
-1. [ ] update all related docs (API, README, inline, JSDocs, etc.), if any
-1. [ ] draft PR with a good title `<type>(<scope>)<!>: <title> TASK-1234`
-1. [ ] tag PR: at least `frontend` or `backend` unless it's global
-1. [ ] fill in the template below
-1. [ ] review thyself - once more read the full diff and do the repro as written
-1. [ ] open PR & confirm that CI passes
-1. [ ] request reviewers, if needed
-1. [ ] delete this section once checklist is done.
+2. [ ] update all related docs (API, README, inline, etc.), if any
+3. [ ] draft PR with a title `<type>(<scope>)<!>: <title> TASK-1234`
+4. [ ] tag PR: at least `frontend` or `backend` unless it's global
+5. [ ] fill in the template below and delete template comments
+6. [ ] review thyself: read the diff and repro the preview as written
+7. [ ] open PR & confirm that CI passes
+8. [ ] request reviewers, if needed
+9. [ ] delete this section once checklist is done
 
-### Summary
+### :mega: Summary
 <!-- One sentence summary for the public changelog, worded for non-technical seasoned Kobo users. -->
 
 
 
-### Description
+### :book: Description
 <!-- Delete this section if summary already said everything. -->
 <!-- Full description for the public changelog, worded for non-technical seasoned Kobo users. -->
 
 
 
-### Description for instance maintainers
+### :construction_worker: Description for instance maintainers
 <!-- Delete this section if everything is already said above. -->
 <!-- Full description for the public changelog, worded for technical Kobo instance maintainers. -->
 
 
 
-### Preview steps
-<!-- Delete this section if behavior can't change. If it does or merely may, outline minimal happy path. -->
+### :eyes: Preview steps
+<!-- Delete this section if behavior can't change. -->
+<!-- If behavior change or merely may, outline minimal happy path. -->
 
 Bug template:
 1. 🔼 have account and a project
 2. ➡️ do this
 3. ➡️ do that
-4. 🔴 [on main] notice that this isn't anywhere BUT it should be somewhere
-5. 🟢 [on PR] notice that this is over there
+4. 🔴 [on main] notice that this isn't anywhere BUT it should be here
+5. 🟢 [on PR] notice that this is here
 
 Feature/no-change template:
 1. 🔼 have account and a project
@@ -46,12 +47,12 @@ Feature/no-change template:
 6. 🟢 notice that this changed like that
 
 
-### Notes
+### :thought_balloon: Notes
 <!-- Delete this section if empty. -->
-<!-- Anything else useful that's not said above, worded for reviewers, testers, and future git archaeologists.
-- screenshots,
+<!-- Anything else useful that's not said above,worded for
+reviewers, testers, and future git archaeologist collegues. Examples:
+- screenshots, copy-pasted logs, etc.
 - what was tried but didn't work,
 - conscious short-term vs long-term tradeoffs,
 - proactively answer likely questions,
-- etc.
 -->
