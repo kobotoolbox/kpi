@@ -8,6 +8,7 @@ from more_itertools import chunked
 from kobo.apps.audit_log.models import (
     AccessLog,
     AuditLog,
+    ProjectHistoryLog,
 )
 from kobo.celery import celery_app
 from kpi.utils.log import logging
@@ -20,21 +21,18 @@ def batch_delete_audit_logs_by_id(ids):
     logging.info(f'Deleted {count} audit logs from database')
 
 
-@celery_app.task()
-def spawn_logs_cleaning_tasks():
-    """
-    Enqueue tasks to delete access logs older than ACCESS_LOG_LIFESPAN days old.
+def delete_logs(LogModel: AuditLog, log_lifespan: int):
+    """Delete the logs for an audit log model considering a lifespan
+    given in number of days.
 
-    ACCESS_LOG_LIFESPAN is configured via constance.
     Ids are batched into multiple tasks.
     """
-
     expiration_date = timezone.now() - timedelta(
-        days=config.ACCESS_LOG_LIFESPAN
+        days=log_lifespan
     )
 
     expired_logs = (
-        AccessLog.objects.filter(date_created__lt=expiration_date)
+        LogModel.objects.filter(date_created__lt=expiration_date)
         .values_list('id', flat=True)
         .iterator()
     )
@@ -43,3 +41,12 @@ def spawn_logs_cleaning_tasks():
     ):
         # queue up a new task for each batch of expired ids
         batch_delete_audit_logs_by_id.delay(ids=id_batch)
+
+
+@celery_app.task()
+def spawn_logs_cleaning_tasks():
+    """
+    Enqueue tasks to delete logs older than the configured lifespan
+    """
+    delete_logs(AccessLog, config.ACCESS_LOG_LIFESPAN)
+    delete_logs(ProjectHistoryLog, config.PROJECT_HISTORY_LOG_LIFESPAN)

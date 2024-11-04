@@ -586,14 +586,15 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'PROJECT_HISTORY_RETENTION_DAYS': (
+    'PROJECT_HISTORY_LOG_LIFESPAN': (
         60,
         'Length of time days to keep project history logs.',
+        'positive_int',
     ),
     'ACCESS_LOG_LIFESPAN': (
         60,
         'Length of time in days to keep access logs.',
-        'positive_int'
+        'positive_int',
     )
 }
 
@@ -659,6 +660,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
         'ACCESS_LOG_LIFESPAN',
+        'PROJECT_HISTORY_LOG_LIFESPAN'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -723,9 +725,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FREE_TIER_THRESHOLDS',
         'FREE_TIER_DISPLAY',
         'FREE_TIER_CUTOFF_DATE',
-    ),
-    'Logs': (
-        'PROJECT_HISTORY_RETENTION_DAYS'
     ),
 }
 
