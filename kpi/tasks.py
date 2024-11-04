@@ -34,7 +34,7 @@ def export_task_in_background(
     export_task_uid: str, username: str, export_task_name: str
 ) -> None:
     user = User.objects.get(username=username)
-    export_task_class = apps.get_model(f'kpi.{export_task_name}')
+    export_task_class = apps.get_model(export_task_name)
     export_task = export_task_class.objects.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
