@@ -11,6 +11,7 @@
 9. [ ] delete this section once checklist is done
 
 ### 📣 Summary
+<!-- Delete this section if changes are internal only. -->
 <!-- One sentence summary for the public changelog, worded for non-technical seasoned Kobo users. -->
 
 
