@@ -20,13 +20,15 @@ from kpi.models.import_export_task import ExportTask, ImportTask
 @celery_app.task
 def import_in_background(import_task_uid):
     import_task = ImportTask.objects.get(uid=import_task_uid)
-    import_task.run()
+    result = import_task.run()
+    return result
 
 
 @celery_app.task
 def export_in_background(export_task_uid):
     export_task = ExportTask.objects.get(uid=export_task_uid)
-    export_task.run()
+    result = export_task.run()
+    return result
 
 
 @celery_app.task

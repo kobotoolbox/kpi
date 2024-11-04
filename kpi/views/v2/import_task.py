@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_human_readable_client_user_agent, get_client_ip
 from kpi.models import ImportTask
 from kpi.serializers.v2.import_task import ImportTaskListSerializer, ImportTaskSerializer
 from kpi.tasks import import_in_background
@@ -84,6 +85,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             'filename': request.POST.get('name', None),
             'destination': request.POST.get('destination', None),
             'desired_type': request.POST.get('desired_type', None),
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request)
         }
         if 'base64Encoded' in request.POST:
             encoded_str = request.POST['base64Encoded']

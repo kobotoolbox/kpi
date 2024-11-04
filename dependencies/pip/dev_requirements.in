@@ -14,6 +14,7 @@ pytest-django
 pytest-env
 pytest-xdist
 freezegun
+watchdog
 
 # KoboCAT
 httmock

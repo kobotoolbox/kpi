@@ -11,7 +11,6 @@ from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
 
 import dateutil.parser
-
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
@@ -291,7 +290,6 @@ class ImportTask(ImportExportTask):
             # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
-
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=filename,
@@ -354,6 +352,15 @@ class ImportTask(ImportExportTask):
                             'uid': asset.uid,
                             'kind': 'asset',
                             'owner__username': self.user.username,
+                        })
+                    if asset.asset_type == ASSET_TYPE_SURVEY:
+                        messages['audit_log'].append({
+                            'asset_uid': asset.uid,
+                            'asset_id': asset.id,
+                            'username': self.user.username,
+                            'latest_version_uid': asset.latest_version.uid,
+                            'ip_address': self.data['ip_address'],
+                            'source': self.data['source'],
                         })
 
             if item.parent:
@@ -444,8 +451,18 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
+                old_name = asset.name
+                # saving sometimes changes the name
                 asset.save()
                 msg_key = 'updated'
+                messages['audit_log'].append({
+                        'asset_uid': asset.uid,
+                        'asset_id': asset.id,
+                        'username': self.user.username,
+                        'latest_version_uid': asset.latest_version.uid,
+                        'ip_address': self.data['ip_address'],
+                        'source': self.data['source'],
+                })
 
             messages[msg_key].append({
                 'uid': asset.uid,
