@@ -113,7 +113,7 @@ class ProjectViewViewSet(
             export_task_in_background.delay(
                 export_task_uid=export_task.uid,
                 username=user.username,
-                export_task_name='ProjectViewExportTask',
+                export_task_name='kpi.ProjectViewExportTask',
             )
 
             return Response({'status': export_task.status})
