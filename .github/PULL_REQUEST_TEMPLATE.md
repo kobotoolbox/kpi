@@ -1,4 +1,4 @@
-### :spiral_notepad: Checklist
+### 🗒️ Checklist
 
 1. [ ] run linter locally
 2. [ ] update all related docs (API, README, inline, etc.), if any
@@ -10,24 +10,24 @@
 8. [ ] request reviewers, if needed
 9. [ ] delete this section once checklist is done
 
-### :mega: Summary
+### 📣 Summary
 <!-- One sentence summary for the public changelog, worded for non-technical seasoned Kobo users. -->
 
 
 
-### :book: Description
+### 📖 Description
 <!-- Delete this section if summary already said everything. -->
 <!-- Full description for the public changelog, worded for non-technical seasoned Kobo users. -->
 
 
 
-### :construction_worker: Description for instance maintainers
+### 👷 Description for instance maintainers
 <!-- Delete this section if everything is already said above. -->
 <!-- Full description for the public changelog, worded for technical Kobo instance maintainers. -->
 
 
 
-### :eyes: Preview steps
+### 👀 Preview steps
 <!-- Delete this section if behavior can't change. -->
 <!-- If behavior change or merely may, outline minimal happy path. -->
 
@@ -47,7 +47,7 @@ Feature/no-change template:
 6. 🟢 notice that this changed like that
 
 
-### :thought_balloon: Notes
+### 💭 Notes
 <!-- Delete this section if empty. -->
 <!-- Anything else useful that's not said above,worded for
 reviewers, testers, and future git archaeologist collegues. Examples:
