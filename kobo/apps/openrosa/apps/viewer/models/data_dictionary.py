@@ -19,6 +19,7 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
     DictOrganizer,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kpi.constants import DEFAULT_SURVEY_NAME
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.pyxform_compatibility import NamedBytesIO
 

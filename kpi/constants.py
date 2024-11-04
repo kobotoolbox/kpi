@@ -61,6 +61,8 @@ CLONE_COMPATIBLE_TYPES = {
     ASSET_TYPE_TEMPLATE: [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]
 }
 
+DEFAULT_SURVEY_NAME = '__kobo_default_survey_name_value__'
+
 ASSET_TYPE_ARG_NAME = 'asset_type'
 
 # List of app labels that need to read/write data from KoBoCAT database
