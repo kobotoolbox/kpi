@@ -794,14 +794,9 @@ class TestAssetNameSettingHandling(AssetsTestCase):
         content = {
             'survey': [
                 {
-                    'type': 'select_one',
-                    'label': 'q1',
-                    'select_from_list_name': 'iu0sl99',
+                    'text': 'select_one',
+                    'label': 'q1'
                 },
-            ],
-            'choices': [
-                {'name': 'a11', 'label': ['a11'], 'list_name': 'iu0sl99'},
-                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
             ],
             'settings': {'name': 'custom_root_node_name'}
         }
@@ -823,24 +818,19 @@ class TestAssetNameSettingHandling(AssetsTestCase):
         root_element = instance_node.firstChild
 
         # Assert that the name setting matches the root node name
-        self.assertEqual(asset.content['settings']['name'], root_element.nodeName)
+        assert root_element.nodeName == 'custom_root_node_name'
 
     def test_asset_without_name_setting(self):
         """
         Test if 'name' setting is not provided, the root node should fall back
-        to xform.id_string
+        to asset UID
         """
         content = {
             'survey': [
                 {
-                    'type': 'select_one',
+                    'text': 'select_one',
                     'label': 'q1',
-                    'select_from_list_name': 'iu0sl99',
                 },
-            ],
-            'choices': [
-                {'name': 'a11', 'label': ['a11'], 'list_name': 'iu0sl99'},
-                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
             ],
             # No 'name' setting provided in this case
         }
@@ -861,5 +851,5 @@ class TestAssetNameSettingHandling(AssetsTestCase):
         instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
         root_element = instance_node.firstChild
 
-        # Assert that the root node name is the xform.id_sting
-        self.assertEqual(xform.id_string, root_element.nodeName)
+        # Assert that the root node name is the asset.uid
+        assert root_element.nodeName == asset.uid
