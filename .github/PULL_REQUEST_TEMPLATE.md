@@ -30,7 +30,7 @@
 
 ### 👀 Preview steps
 <!-- Delete this section if behavior can't change. -->
-<!-- If behavior change or merely may, outline minimal happy path. -->
+<!-- If behavior changes or merely may change, add a preview of a minimal happy path. -->
 
 Bug template:
 1. ℹ️ have an account and a project
