@@ -794,8 +794,9 @@ class TestAssetNameSettingHandling(AssetsTestCase):
         content = {
             'survey': [
                 {
-                    'text': 'select_one',
-                    'label': 'q1'
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
                 },
             ],
             'settings': {'name': 'custom_root_node_name'}
@@ -828,8 +829,9 @@ class TestAssetNameSettingHandling(AssetsTestCase):
         content = {
             'survey': [
                 {
-                    'text': 'select_one',
-                    'label': 'q1',
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
                 },
             ],
             # No 'name' setting provided in this case
