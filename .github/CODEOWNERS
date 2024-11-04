@@ -68,6 +68,7 @@ dependencies/*                      @jnm @noliveleger
 hub/*                               @jnm @noliveleger
 kobo/*                              @jnm @noliveleger
 kobo/apps/audit_log/*               @rgraber
+kobo/apps/subsequences/*            @Guitlle
 kpi/*                               @jnm @noliveleger
 test/*                              @jnm @noliveleger
 .coveragerc                         @jnm
