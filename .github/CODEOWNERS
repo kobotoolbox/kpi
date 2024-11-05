@@ -37,6 +37,7 @@
 /patches/                           @p2edwards
 /static/                            @magicznyleszek
 /static/js/                         @magicznyleszek @p2edwards
+/test/                              @magicznyleszek @p2edwards
 /webpack/                           @magicznyleszek @p2edwards
 /.babelrc.json                      @magicznyleszek @p2edwards
 /.browserslistrc                    @magicznyleszek @p2edwards
@@ -65,11 +66,12 @@
 # Default owner
 /dependencies/                      @jnm @noliveleger
 /hub/                               @jnm @noliveleger
+/hub/tests/                         @jnm @noliveleger
 /kobo/                              @jnm @noliveleger
 /kobo/apps/audit_log/               @rgraber
 /kobo/apps/subsequences/            @Guitlle
 /kpi/                               @jnm @noliveleger
-/test/                              @jnm @noliveleger
+/kpi/tests/                         @jnm @noliveleger
 /.coveragerc                        @jnm
 /.dockerignore                      @jnm @noliveleger
 /format-python.sh                   @noliveleger
