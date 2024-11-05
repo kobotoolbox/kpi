@@ -508,4 +508,4 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
         limit = get_organization_plan_limit(self.organization, usage_type)
-        assert limit == 'unlimited'
+        assert limit == float('inf')
