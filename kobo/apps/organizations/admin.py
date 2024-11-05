@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db.models import Count
+from django import forms
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.fields import Field
@@ -20,6 +21,41 @@ from .models import (
 )
 
 
+class OrgUserInlineFormSet(forms.models.BaseInlineFormSet):
+    def clean(self):
+        if self.is_valid():
+            members = 0
+            users = []
+            for form in self.forms:
+                if form.cleaned_data:
+                    members += 1
+                    users.append(form.cleaned_data['user'].pk)
+
+            if not self.instance.is_mmo and members > 0:
+                raise forms.ValidationError(
+                    'Users cannot be added to an organization that is not multi-member'
+                )
+
+            if members > 0:
+                queryset = OrganizationUser.objects.filter(user_id__in=users)
+                if self.instance.pk:
+                    queryset = queryset.exclude(organization_id=self.instance.pk)
+
+                queryset = (
+                    queryset.values('user_id')
+                    .annotate(org_count=Count('organization_id', distinct=True))
+                    .filter(org_count__gt=1)
+                )
+
+                if queryset.exists():
+                    raise forms.ValidationError(
+                        'You cannot add users who are already members of another '
+                        'multi-member organization.'
+                    )
+
+                # TODO transfer users
+
+
 class OwnerInline(BaseOwnerInline):
     model = OrganizationOwner
     autocomplete_fields = ['organization_user']
@@ -37,6 +73,7 @@ class OwnerInline(BaseOwnerInline):
 
 class OrgUserInline(admin.StackedInline):
     model = OrganizationUser
+    formset = OrgUserInlineFormSet
     raw_id_fields = ('user',)
     view_on_site = False
     extra = 0
@@ -53,6 +90,7 @@ class OrgUserInline(admin.StackedInline):
 @admin.register(Organization)
 class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline, OrgUserInline]
+    view_on_site = False
     readonly_fields = ['id']
     fields = ['id', 'name', 'slug', 'is_active', 'mmo_override']
 
