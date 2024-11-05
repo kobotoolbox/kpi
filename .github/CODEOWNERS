@@ -16,11 +16,9 @@
 .git-blame-ignore-revs              @magicznyleszek
 .gitattributes                      @magicznyleszek @noliveleger
 .gitignore                          @magicznyleszek @noliveleger
-CONTRIBUTING.md                     @magicznyleszek @noliveleger
 dependabot.yml                      @magicznyleszek
 kpi.code-workspace                  @p2edwards
 LICENSE                             @jnm @tinok
-README.md                           @jnm @magicznyleszek @noliveleger
 
 ## Translations
 .gitmodules                         @JacquelineMorrissette @jnm
@@ -82,11 +80,24 @@ pyproject.toml                      @jnm @noliveleger
 
 
 ################
-#### Infra section
+#### Infrastructure section
 
 docker/*                            @bufke @jnm @noliveleger
 scripts/*                           @bufke @jnm @noliveleger
 .github/*                           @bufke @jnm @noliveleger @magicznyleszek
 .gitlab-ci.yml                      @bufke
 Dockerfile                          @bufke @jnm @noliveleger
+
+
+
+
+################
+#### Documentation section
+CONTRIBUTING.md                     @Akuukis @magicznyleszek @noliveleger
+README.md                           @Akuukis @jnm @magicznyleszek @noliveleger
+.github/CODEOWNERS.md               @Akuukis @jnm @noliveleger @magicznyleszek
+.github/FUNDING.md                  @Akuukis @jnm @noliveleger @magicznyleszek
+.github/ISSUE_TEMPLATE.md           @Akuukis @jnm @noliveleger @magicznyleszek
+.github/PULL_REQUEST_TEMPLATE.md    @Akuukis @jnm @noliveleger @magicznyleszek
+
 
