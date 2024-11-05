@@ -91,6 +91,10 @@
 /.gitlab-ci.yml                     @bufke
 /Dockerfile                         @bufke @jnm @noliveleger
 
+# FE infrastructure
+/.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
+/scripts/*.js                       @magicznyleszek @p2edwards
+/scripts/hints.js                   @p2edwards
 
 
 
