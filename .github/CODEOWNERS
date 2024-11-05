@@ -38,7 +38,7 @@
 /static/                            @magicznyleszek
 /webpack/                           @magicznyleszek
 /.babelrc.json                      @magicznyleszek
-/.browserlistrc                     @magicznyleszek
+/.browserslistrc                    @magicznyleszek
 /.eslintignore                      @magicznyleszek
 /.eslintrc.js                       @magicznyleszek
 /.node-version                      @magicznyleszek
@@ -46,7 +46,7 @@
 /.prettierrc.js                     @magicznyleszek
 /.stylelintrc.js                    @magicznyleszek
 /.swcrc                             @magicznyleszek
-/.coffeelnt.json                    @magicznyleszek
+/.coffeelint.json                   @magicznyleszek
 /package-lock.json                  @magicznyleszek
 /package.json                       @magicznyleszek
 /tsconfig.json                      @magicznyleszek
@@ -95,8 +95,8 @@
 #### Documentation section
 /CONTRIBUTING.md                    @Akuukis @magicznyleszek @noliveleger
 /README.md                          @Akuukis @jnm @magicznyleszek @noliveleger
-/.github/CODEOWNERS.md              @Akuukis @jnm @noliveleger @magicznyleszek
-/.github/FUNDING.md                 @Akuukis @jnm @noliveleger @magicznyleszek
+/.github/CODEOWNERS                 @Akuukis @jnm @noliveleger @magicznyleszek
+/.github/FUNDING.yml                @Akuukis @jnm @noliveleger @magicznyleszek
 /.github/ISSUE_TEMPLATE.md          @Akuukis @jnm @noliveleger @magicznyleszek
 /.github/PULL_REQUEST_TEMPLATE.md   @Akuukis @jnm @noliveleger @magicznyleszek
 
