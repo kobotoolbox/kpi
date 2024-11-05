@@ -93,14 +93,11 @@ _registration.scss                  @magicznyleszek @p2edwards
 
 /docker/                            @bufke @jnm @noliveleger
 /scripts/                           @bufke @jnm @noliveleger
+/scripts/*.js                       @magicznyleszek @p2edwards
 /.github/                           @bufke @jnm @noliveleger @magicznyleszek
+/.github/workflows/npm-test.yml     @bufke @jnm @noliveleger @magicznyleszek @p2edwards
 /.gitlab-ci.yml                     @bufke
 /Dockerfile                         @bufke @jnm @noliveleger
-
-# Frontend infrastructure
-/.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
-/scripts/*.js                       @magicznyleszek @p2edwards
-/scripts/hints.js                   @p2edwards
 
 
 
