@@ -1,4 +1,4 @@
-from celery.signals import task_prerun, task_postrun, task_success
+from celery.signals import task_success
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 
@@ -16,6 +16,7 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request, user)
     else:
         AccessLog.create_from_request(request)
+
 
 @receiver(task_success, sender=import_in_background)
 def create_ph_log_for_import(sender, result, **kwargs):

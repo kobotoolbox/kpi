@@ -572,13 +572,13 @@ class ProjectHistoryLog(AuditLog):
                 user=user,
                 object_id=audit_log_info['asset_id'],
                 action=AuditAction.REPLACE_FORM,
-                metadata = {
+                metadata={
                     'asset_uid': audit_log_info['asset_uid'],
                     'latest_version_uid': audit_log_info['latest_version_uid'],
                     'ip_address': audit_log_info['ip_address'],
                     'source': audit_log_info['source'],
                     'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                }
+                },
             )
             if audit_log_info['old_name'] != audit_log_info['new_name']:
                 ProjectHistoryLog.objects.create(
@@ -594,6 +594,6 @@ class ProjectHistoryLog(AuditLog):
                         'name': {
                             OLD: audit_log_info['old_name'],
                             NEW: audit_log_info['new_name'],
-                        }
-                    }
+                        },
+                    },
                 )
