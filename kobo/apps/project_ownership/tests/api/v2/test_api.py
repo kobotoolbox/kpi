@@ -8,7 +8,6 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
@@ -502,8 +501,8 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             assert attachment['filename'].startswith('anotheruser/')
 
         # Get the mongo_uuid for the transferred asset (XForm)
-        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
-        mongo_uuid = xform.mongo_uuid
+        self.asset.deployment.xform.refresh_from_db()
+        mongo_uuid = self.asset.deployment.xform.mongo_uuid
 
         assert (
             settings.MONGO_DB.instances.count_documents(
@@ -556,9 +555,9 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
             response = self.client.post(self.invite_url, data=payload, format='json')
         assert response.status_code == status.HTTP_201_CREATED
 
-        # Retrieve the mongo_uuid for the transferred asset (XForm)
-        xform = XForm.objects.get(kpi_asset_uid=self.asset.uid)
-        mongo_uuid = xform.mongo_uuid
+        # Get the mongo_uuid for the transferred asset (XForm)
+        self.asset.deployment.xform.refresh_from_db()
+        mongo_uuid = self.asset.deployment.xform.mongo_uuid
 
         # Verify MongoDB now uses mongo_uuid as the identifier
         assert (

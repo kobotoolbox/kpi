@@ -11,8 +11,6 @@ try:
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-import secrets
-import string
 import redis.exceptions
 import requests
 from defusedxml import ElementTree as DET
@@ -63,6 +61,7 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
+from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -967,6 +966,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             server_url,
         )
 
+    def set_mongo_uuid(self):
+        """
+        Set the `mongo_uuid` for the associated XForm if it's not already set.
+        """
+        if not self.xform.mongo_uuid:
+            self.xform.mongo_uuid = KpiUidField.generate_unique_id()
+            self.xform.save(update_fields=['mongo_uuid'])
+
     def set_validation_status(
         self,
         submission_id: int,
@@ -1242,20 +1249,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             raise InvalidXFormException
         self._xform = xform
         return self._xform
-
-    def generate_unique_key(self, length=20):
-
-        characters = string.ascii_letters + string.digits
-        # Generate a secure key with the specified length
-        return ''.join(secrets.choice(characters) for _ in range(length))
-
-    def set_mongo_uuid(self):
-        """
-        Set the `mongo_uuid` for the associated XForm if it's not already set.
-        """
-        if not self.xform.mongo_uuid:
-            self.xform.mongo_uuid = self.generate_unique_key()
-            self.xform.save(update_fields=['mongo_uuid'])
 
     @property
     def xform_id(self):
