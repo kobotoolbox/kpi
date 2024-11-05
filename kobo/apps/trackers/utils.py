@@ -109,6 +109,8 @@ def handle_usage_deduction(
     PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
     plan_limit = get_organization_plan_limit(organization, usage_type)
+    if plan_limit == 'unlimited':
+        return
     current_usage = get_organization_usage(organization, usage_type)
     if current_usage is None:
         current_usage = 0

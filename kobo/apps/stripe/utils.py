@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models import F
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
+from kobo.apps.organizations.types import UsageLimit, UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
 
@@ -44,7 +44,7 @@ def generate_return_url(product_metadata):
 
 def get_organization_plan_limit(
     organization: Organization, usage_type: UsageType
-) -> int:
+) -> UsageLimit:
     """
     Get organization plan limit for a given usage type
     """
@@ -90,5 +90,8 @@ def get_organization_plan_limit(
     if relevant_limit is None:
         # TODO: get the limits from the community plan, overrides
         relevant_limit = 2000
+    # Limits in Stripe metadata are strings. They may be numbers or 'unlimited'
+    if relevant_limit != 'unlimited':
+        relevant_limit = int(relevant_limit)
 
     return relevant_limit
