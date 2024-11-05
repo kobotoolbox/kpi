@@ -87,8 +87,10 @@ class OrgInline(admin.StackedInline):
         'organization',
         'is_admin',
     ]
+    can_delete = False
+    # Override H2 style to make inline section like other fieldsets
+    classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
-    readonly_fields = settings.STRIPE_ENABLED and ('active_subscription_status',) or []
 
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
@@ -97,6 +99,12 @@ class OrgInline(admin.StackedInline):
                 if obj.active_subscription_status
                 else 'None'
             )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = ['organization', 'is_admin']
+        if settings.STRIPE_ENABLED:
+            readonly_fields.append('active_subscription_status')
+        return readonly_fields
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
@@ -157,6 +165,11 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         ),
     )
     actions = ['remove', 'delete']
+
+    class Media:
+        css = {
+            'all': ('admin/css/inline_as_fieldset.css',)
+        }
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
