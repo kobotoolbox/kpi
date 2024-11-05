@@ -22,6 +22,7 @@ import {formatTime, notify} from 'js/utils';
 // Styles
 import styles from './emailSection.module.scss';
 import securityStyles from 'js/account/security/securityRoute.module.scss';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 interface EmailState {
   emails: EmailResponse[];
@@ -32,6 +33,8 @@ interface EmailState {
 
 export default function EmailSection() {
   const [session] = useState(() => sessionStore);
+
+  const orgQuery = useOrganizationQuery();
 
   let initialEmail = '';
   if ('email' in session.currentAccount) {
@@ -112,6 +115,14 @@ export default function EmailSection() {
     }
   }
 
+  function userCanChangeEmail() {
+    if (orgQuery.data?.is_mmo) {
+      return orgQuery.data.request_user_role !== 'member';
+    } else {
+      return true;
+    }
+  }
+
   const currentAccount = session.currentAccount;
   const unverifiedEmail = email.emails.find(
     (userEmail) => !userEmail.verified && !userEmail.primary
@@ -120,20 +131,24 @@ export default function EmailSection() {
   return (
     <section className={securityStyles.securitySection}>
       <div className={securityStyles.securitySectionTitle}>
-        <h2 className={securityStyles.securitySectionTitleText}>{t('Email address')}</h2>
+        <h2 className={securityStyles.securitySectionTitleText}>
+          {t('Email address')}
+        </h2>
       </div>
-
       <div className={cx(securityStyles.securitySectionBody, styles.body)}>
         {!session.isPending &&
-          session.isInitialLoadComplete &&
-          'email' in currentAccount && (
-            <TextBox
-              value={email.newEmail}
-              placeholder={t('Type new email address')}
-              onChange={onTextFieldChange.bind(onTextFieldChange)}
-              type='email'
-            />
-          )}
+        session.isInitialLoadComplete &&
+        'email' in currentAccount &&
+        userCanChangeEmail() ? (
+          <TextBox
+            value={email.newEmail}
+            placeholder={t('Type new email address')}
+            onChange={onTextFieldChange.bind(onTextFieldChange)}
+            type='email'
+          />
+        ) : (
+          <div className={styles.emailText}>{email.newEmail}</div>
+        )}
 
         {unverifiedEmail?.email &&
           !session.isPending &&
@@ -185,7 +200,6 @@ export default function EmailSection() {
             </>
           )}
       </div>
-
       <form
         className={styles.options}
         onSubmit={(e) => {
@@ -193,12 +207,14 @@ export default function EmailSection() {
           handleSubmit();
         }}
       >
-        <Button
-          label='Change'
-          size='m'
-          type='primary'
-          onClick={handleSubmit}
-        />
+        {userCanChangeEmail() && (
+          <Button
+            label='Change'
+            size='m'
+            type='primary'
+            onClick={handleSubmit}
+          />
+        )}
       </form>
     </section>
   );
