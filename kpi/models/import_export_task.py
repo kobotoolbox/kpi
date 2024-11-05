@@ -57,9 +57,9 @@ from kpi.constants import (
 from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.data_exports import create_data_export
 from kpi.utils.log import logging
 from kpi.utils.models import _load_library_content, create_assets, resolve_url_to_asset
-from kpi.utils.project_view_exports import create_project_view_export
 from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
     NoFromSheetError,
@@ -469,9 +469,11 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ProjectViewExportTask(ImportExportTask):
-    uid = KpiUidField(uid_prefix='pve')
+class CommonExportTask(ImportExportTask):
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    def _get_export_details(self) -> tuple:
+        return self.data['type'], self.data['view']
 
     def _build_export_filename(
         self, export_type: str, username: str, view: str
@@ -479,16 +481,10 @@ class ProjectViewExportTask(ImportExportTask):
         time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         return f'{export_type}-{username}-view_{view}-{time}.csv'
 
-    def _run_task(self, messages: list) -> None:
-        export_type = self.data['type']
-        view = self.data['view']
-
-        filename = self._build_export_filename(
-            export_type, self.user.username, view
-        )
+    def _run_task_base(self, messages: list, buff) -> None:
+        export_type, view = self._get_export_details()
+        filename = self._build_export_filename(export_type, self.user.username, view)
         absolute_filepath = self.get_absolute_filepath(filename)
-
-        buff = create_project_view_export(export_type, self.user.username, view)
 
         with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             output_file.write(buff.read().encode())
@@ -500,6 +496,27 @@ class ProjectViewExportTask(ImportExportTask):
         # removing exported file from storage
         self.result.delete(save=False)
         super().delete(*args, **kwargs)
+
+
+class AccessLogExportTask(CommonExportTask):
+    uid = KpiUidField(uid_prefix='ale')
+    get_all_logs = models.BooleanField(default=False)
+
+    def _run_task(self, messages: list) -> None:
+        if self.get_all_logs and not self.user.is_superuser:
+            raise PermissionError('Only superusers can export all access logs.')
+
+        export_type, view = self._get_export_details()
+        buff = create_data_export(export_type, self.user.username, self.uid, self.get_all_logs)
+        self._run_task_base(messages, buff)
+
+class ProjectViewExportTask(CommonExportTask):
+    uid = KpiUidField(uid_prefix='pve')
+
+    def _run_task(self, messages: list) -> None:
+        export_type, view = self._get_export_details()
+        buff = create_data_export(export_type, self.user.username, view, False)
+        self._run_task_base(messages, buff)
 
 
 class ExportTaskBase(ImportExportTask):

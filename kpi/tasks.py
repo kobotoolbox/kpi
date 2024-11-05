@@ -45,8 +45,22 @@ def export_task_in_background(
             'Regards,\n'
             'KoboToolbox'
         )
+        subject_map = {
+            'AccessLog': 'Access Log Report Complete',
+            'ProjectView': 'Project View Report Complete',
+        }
+
+        subject = next(
+            (
+                subject
+                for key, subject in subject_map.items()
+                if key in export_task_name
+            ),
+            'Report Complete',
+        )
+
         mail.send_mail(
-            subject='Project View Report Complete',
+            subject=subject,
             message=msg,
             from_email=constance.config.SUPPORT_EMAIL,
             recipient_list=[user.email],
