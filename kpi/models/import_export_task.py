@@ -455,13 +455,15 @@ class ImportTask(ImportExportTask):
                 # saving sometimes changes the name
                 asset.save()
                 msg_key = 'updated'
-                messages['audit_log'].append({
+                messages['audit_logs'].append({
                         'asset_uid': asset.uid,
                         'asset_id': asset.id,
                         'username': self.user.username,
                         'latest_version_uid': asset.latest_version.uid,
                         'ip_address': self.data['ip_address'],
                         'source': self.data['source'],
+                        'old_name': old_name,
+                        'new_name': asset.name,
                 })
 
             messages[msg_key].append({

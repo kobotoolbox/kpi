@@ -18,7 +18,5 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request)
 
 @receiver(task_success, sender=import_in_background)
-def create_ph_log(sender, result, **kwargs):
-    audit_logs = result.messages['audit_log']
-    for audit_log_info in audit_logs:
-        ProjectHistoryLog.create_from_import_task_result(audit_log_info)
+def create_ph_log_for_import(sender, result, **kwargs):
+    ProjectHistoryLog.create_from_import_task(result)

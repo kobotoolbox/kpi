@@ -1,3 +1,4 @@
+import base64
 import datetime
 from datetime import timedelta
 from unittest.mock import Mock, patch
@@ -23,7 +24,7 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -353,7 +354,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 @ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
-    fixtures = ['test_data']
+    fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def _check_common_fields(self, log: ProjectHistoryLog, user, asset):
         self.assertEqual(log.user.id, user.id)
@@ -545,7 +546,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         factory = RequestFactory()
         request = factory.post('/')
         request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
+        request.resolver_match = Mock()['label'], {'field_1': 'new_field1', 'field_2': 'new_field2'}
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
         ProjectHistoryLog.create_from_related_request(
@@ -556,3 +557,4 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             modify_action=AuditAction.UPDATE,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+

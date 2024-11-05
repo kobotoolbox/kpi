@@ -22,7 +22,7 @@ from kpi.constants import (
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
 
 NEW = 'new'
@@ -563,19 +563,37 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def create_from_import_task_result(cls, audit_log_info):
-        # we can't pass a user back directly from a task, so look it up from the username
-        user = User.objects.get(username=audit_log_info['username'])
-        breakpoint()
-        ProjectHistoryLog.objects.create(
-            user=user,
-            object_id=audit_log_info['asset_id'],
-            action=AuditAction.REPLACE_FORM,
-            metadata = {
-                'asset_uid': audit_log_info['asset_uid'],
-                'latest_version_uid': audit_log_info['latest_version_uid'],
-                'ip_address': audit_log_info['ip_address'],
-                'source': audit_log_info['source'],
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            }
-        )
+    def create_from_import_task(cls, task: ImportTask):
+        audit_log_blocks = task.messages.get('audit_logs', [])
+        for audit_log_info in audit_log_blocks:
+            # we can't pass a user back directly from a task, so look it up from the username
+            user = User.objects.get(username=audit_log_info['username'])
+            ProjectHistoryLog.objects.create(
+                user=user,
+                object_id=audit_log_info['asset_id'],
+                action=AuditAction.REPLACE_FORM,
+                metadata = {
+                    'asset_uid': audit_log_info['asset_uid'],
+                    'latest_version_uid': audit_log_info['latest_version_uid'],
+                    'ip_address': audit_log_info['ip_address'],
+                    'source': audit_log_info['source'],
+                    'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                }
+            )
+            if audit_log_info['old_name'] != audit_log_info['new_name']:
+                ProjectHistoryLog.objects.create(
+                    user=user,
+                    object_id=audit_log_info['asset_id'],
+                    action=AuditAction.UPDATE_NAME,
+                    metadata={
+                        'asset_uid': audit_log_info['asset_uid'],
+                        'latest_version_uid': audit_log_info['latest_version_uid'],
+                        'ip_address': audit_log_info['ip_address'],
+                        'source': audit_log_info['source'],
+                        'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                        'name': {
+                            OLD: audit_log_info['old_name'],
+                            NEW: audit_log_info['new_name'],
+                        }
+                    }
+                )

@@ -1,3 +1,4 @@
+import base64
 import copy
 import json
 
@@ -12,13 +13,16 @@ from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryL
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.models import Asset, AssetFile, PairedData
+from kpi.models import Asset, AssetFile, PairedData, ImportTask
 from kpi.models.asset import AssetSetting
 
 
 @ddt
 @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
 class TestProjectHistoryLogs(BaseAuditLogTestCase):
+    """
+    Integration tests for flows that create ProjectHistoryLogs
+    """
 
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
@@ -690,3 +694,83 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['filename'], media.filename)
         self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)
+
+    def test_create_from_import_task(self):
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        xlsx_io = self.asset.to_xlsx_io()
+        encoded_xls = base64.b64encode(xlsx_io.read()).decode('utf-8')
+        import_task = ImportTask.objects.create(
+            user=User.objects.get(username='admin'),
+            data={
+                'base64Encoded': encoded_xls,
+                'destination': reverse(
+                    'api_v2:asset-detail',
+                    kwargs={'uid': self.asset.uid},
+                ),
+                'filename': f'{self.asset.uid}.xlsx',
+                'assetUid': self.asset.uid,
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+            },
+        )
+        import_task.run()
+        ProjectHistoryLog.create_from_import_task(import_task)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.REPLACE_FORM)
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': self.asset.uid,
+                'log_subtype': 'project',
+                'latest_version_uid': self.asset.latest_version.uid,
+            }
+        )
+
+    def test_create_from_import_task_new_name(self):
+        old_name = self.asset.name
+        new_asset = Asset.objects.get(pk=1)
+        new_asset.save()
+        new_asset.deploy(backend='mock', active=True)
+        xlsx_io = new_asset.to_xlsx_io(versioned=True)
+        encoded_xls = base64.b64encode(xlsx_io.read()).decode('utf-8')
+        import_task = ImportTask.objects.create(
+            user=User.objects.get(username='admin'),
+            data={
+                'base64Encoded': encoded_xls,
+                'destination': reverse(
+                    'api_v2:asset-detail',
+                    kwargs={'uid': self.asset.uid},
+                ),
+                'filename': f'{new_asset.name}.xlsx',
+                'assetUid': self.asset.uid,
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+            },
+        )
+        import_task.run()
+        # in real life a celery signal would pass the import task
+        # to ProjectHistoryLog but that's very hard to recreate
+        # in test
+        ProjectHistoryLog.create_from_import_task(import_task)
+        log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid, action=AuditAction.UPDATE_NAME)
+        self.assertTrue(log_query.exists())
+        log = log_query.first()
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': self.asset.uid,
+                'log_subtype': 'project',
+                'latest_version_uid': self.asset.latest_version.uid,
+                'name': {
+                    OLD: old_name,
+                    NEW: new_asset.name,
+                }
+            }
+        )
