@@ -36,20 +36,21 @@
 /jsapp/                             @magicznyleszek
 /patches/                           @p2edwards
 /static/                            @magicznyleszek
-/webpack/                           @magicznyleszek
-/.babelrc.json                      @magicznyleszek
-/.browserslistrc                    @magicznyleszek
-/.eslintignore                      @magicznyleszek
-/.eslintrc.js                       @magicznyleszek
-/.node-version                      @magicznyleszek
-/.nvmrc                             @magicznyleszek
-/.prettierrc.js                     @magicznyleszek
-/.stylelintrc.js                    @magicznyleszek
-/.swcrc                             @magicznyleszek
-/.coffeelint.json                   @magicznyleszek
-/package-lock.json                  @magicznyleszek
-/package.json                       @magicznyleszek
-/tsconfig.json                      @magicznyleszek
+/static/js/                         @magicznyleszek @p2edwards
+/webpack/                           @magicznyleszek @p2edwards
+/.babelrc.json                      @magicznyleszek @p2edwards
+/.browserslistrc                    @magicznyleszek @p2edwards
+/.eslintignore                      @magicznyleszek @p2edwards
+/.eslintrc.js                       @magicznyleszek @p2edwards
+/.node-version                      @magicznyleszek @p2edwards
+/.nvmrc                             @magicznyleszek @p2edwards
+/.prettierrc.js                     @magicznyleszek @p2edwards
+/.stylelintrc.js                    @magicznyleszek @p2edwards
+/.swcrc                             @magicznyleszek @p2edwards
+/.coffeelint.json                   @magicznyleszek @p2edwards
+/package-lock.json                  @magicznyleszek @p2edwards
+/package.json                       @magicznyleszek @p2edwards
+/tsconfig.json                      @magicznyleszek @p2edwards
 
 # Billing
 /jsapp/js/account/                  @jamesrkiger
