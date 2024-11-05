@@ -24,9 +24,6 @@
 /.gitmodules                        @JacquelineMorrissette @jnm
 /.tx/                               @JacquelineMorrissette @jnm
 
-# a test CODEOWNERS change
-
-
 ################
 #### Frontend section.
 
