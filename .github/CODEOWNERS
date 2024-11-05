@@ -79,6 +79,12 @@
 /pip-compile.sh                     @jnm @noliveleger
 /pyproject.toml                     @jnm @noliveleger
 
+# Django Static Templates, HTML, JS, CSS
+/kpi/static/css/                    @magicznyleszek @p2edwards
+/kpi/templates/                     @magicznyleszek @p2edwards
+/kpi/templates/search/              @jnm
+/kobo/apps/accounts/templates/      @magicznyleszek @p2edwards
+_registration.scss                  @magicznyleszek @p2edwards
 
 
 
