@@ -22,6 +22,17 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 @receiver(post_save, sender=User)
+def create_organization(sender, instance, created, raw, **kwargs):
+    """
+    Create organization for user
+    """
+    user = instance
+    if created:
+        # calling the property will create the organization if it does not exist.
+        user.organization
+
+
+@receiver(post_save, sender=User)
 def default_permissions_post_save(sender, instance, created, raw, **kwargs):
     """
     Users must have both model-level and object-level permissions to satisfy

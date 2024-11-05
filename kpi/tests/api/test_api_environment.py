@@ -1,8 +1,7 @@
-# coding: utf-8
-# 😇
 import datetime
 
 import constance
+import pytest
 from constance.test import override_config
 from django.conf import settings
 from django.http import HttpRequest
@@ -129,6 +128,7 @@ class EnvironmentTests(BaseTestCase):
             'terms_of_service__sitewidemessage__exists': False,
             'project_history_log_lifespan':
                 constance.config.PROJECT_HISTORY_LOG_LIFESPAN,
+            'use_team_label': False,
         }
 
     def _check_response_dict(self, response_dict):
@@ -263,6 +263,10 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
         self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
 
+    @pytest.mark.skip(
+        'The "FREE_TIER_CUTOFF_DATE" has passed. '
+        'The related conditions are no longer applicable.'
+    )
     @override_config(
         FREE_TIER_CUTOFF_DATE=today.date(),
         FREE_TIER_THRESHOLDS=free_tier_thresholds,
@@ -271,8 +275,10 @@ class EnvironmentTests(BaseTestCase):
     def test_free_tier_override_uses_organization_owner_join_date(
         self,
     ):
-        """ If the user is in an organization, the custom free tier should only
-        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE """
+        """
+        If the user is in an organization, the custom free tier should only
+        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE
+        """
         org_user = baker.make(
             settings.AUTH_USER_MODEL,
             username='org_user',
@@ -309,7 +315,7 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 25)
+        queries = FuzzyInt(18, 26)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -328,7 +334,7 @@ class EnvironmentTests(BaseTestCase):
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 25)
+        queries = FuzzyInt(18, 26)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
 
@@ -361,3 +367,31 @@ class EnvironmentTests(BaseTestCase):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] == 'fake_public_key'
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_use_team_label_without_stripe_enabled(self):
+        # Set the USE_TEAM_LABEL in the constance config to True
+        with override_config(USE_TEAM_LABEL=True):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue(response.data['use_team_label'])
+
+        # Set the USE_TEAM_LABEL in the constance config to False
+        with override_config(USE_TEAM_LABEL=False):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertFalse(response.data['use_team_label'])
+
+    @override_settings(STRIPE_ENABLED=True)
+    def test_use_team_label_with_stripe_enabled(self):
+        # Set the USE_TEAM_LABEL in the constance config to True
+        with override_config(USE_TEAM_LABEL=True):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertFalse(response.data['use_team_label'])
+
+        # Set the USE_TEAM_LABEL in the constance config to False
+        with override_config(USE_TEAM_LABEL=False):
+            response = self.client.get(self.url, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertFalse(response.data['use_team_label'])
