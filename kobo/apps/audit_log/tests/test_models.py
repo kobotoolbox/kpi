@@ -353,7 +353,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
 @ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
-    fixtures = ['test_data', 'asset_with_settings_and_qa']
+    fixtures = ['test_data']
 
     def _check_common_fields(self, log: ProjectHistoryLog, user, asset):
         self.assertEqual(log.user.id, user.id)
