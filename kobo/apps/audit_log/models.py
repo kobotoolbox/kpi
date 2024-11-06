@@ -582,6 +582,7 @@ class ProjectHistoryLog(AuditLog):
                 action=AuditAction.REPLACE_FORM,
                 metadata=metadata,
             )
+            # imports may change the name of an asset, log that too
             if audit_log_info['old_name'] != audit_log_info['new_name']:
                 metadata.update(
                     {

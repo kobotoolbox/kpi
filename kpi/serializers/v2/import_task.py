@@ -1,6 +1,5 @@
 # coding: utf-8
 from rest_framework import serializers
-
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import ImportTask
 
@@ -38,3 +37,4 @@ class ImportTaskListSerializer(ImportTaskSerializer):
             'uid',
             'date_created',
         )
+
