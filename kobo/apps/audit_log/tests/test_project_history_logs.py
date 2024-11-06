@@ -4,7 +4,8 @@ import json
 from unittest.mock import patch
 
 import jsonschema.exceptions
-from ddt import data, ddt
+import responses
+from ddt import data, ddt, unpack
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.reverse import reverse as drf_reverse
@@ -715,74 +716,86 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)
 
-    def test_create_from_import_task(self):
-        # create an xlsx stream by dumping self.asset
-        xlsx_io = self.asset.to_xlsx_io()
-        encoded_xls = base64.b64encode(xlsx_io.read())
+    @responses.activate
+    @data(
+        # File or url, change asset name?
+        ('file', True),
+        ('file', False),
+        ('url', True),
+        ('url', False),
+    )
+    @unpack
+    def test_create_from_import_task(self, file_or_url, change_name):
         task_data = {
-            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
-            'name': 'file',
             'destination': reverse(
                 'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
             ),
+            'name': 'name',
         }
-        #
-        with patch('kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'):
-            with patch(
-                'kpi.views.v2.import_task.get_human_readable_client_user_agent',
-                return_value='source',
-            ):
-                self.client.post(reverse('api_v2:importtask-list'), task_data)
-        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
-        log = ProjectHistoryLog.objects.first()
-        self.assertEqual(log.action, AuditAction.REPLACE_FORM)
-        self.assertEqual(log.object_id, self.asset.id)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(
-            log.metadata['latest_version_uid'], self.asset.latest_version.uid
-        )
-
-    def test_create_from_import_task_new_name(self):
         old_name = self.asset.name
-        # Get an asset with a different name to dump to a file
-        new_asset = Asset.objects.get(pk=1)
-        new_asset.save()
-        # if you pass versioned=True, the asset name
-        # will be put in the 'settings' tab of the file
-        # and used when importing. asset must be deployed to work
-        new_asset.deploy(backend='mock')
-        xlsx_io = new_asset.to_xlsx_io(versioned=True)
-        encoded_xls = base64.b64encode(xlsx_io.read()).decode('utf-8')
 
-        task_data = {
-            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
-            'name': 'file',
-            'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
-            ),
-        }
-        #
+        # create an xlsx file to import
+        # if changing the name of the asset, create a file from an asset with
+        # a different name and versioned=True, which will add the name to the
+        # 'settings' sheet (only works for deployed assets)
+        if change_name:
+            new_asset = Asset.objects.get(pk=1)
+            new_asset.save()
+            new_asset.deploy(backend='mock')
+            xlsx_io = new_asset.to_xlsx_io(versioned=True).read()
+        else:
+            xlsx_io = self.asset.to_xlsx_io().read()
+
+        if file_or_url == 'url':
+            # pretend to host the file somewhere
+            mock_xls_url = 'http://mock.kbtdev.org/form.xls'
+            responses.add(
+                responses.GET,
+                mock_xls_url,
+                content_type='application/xls',
+                body=xlsx_io,
+            )
+            task_data['url'] = mock_xls_url
+        else:
+            encoded_xls = base64.b64encode(xlsx_io)
+            task_data['base64Encoded'] = ('base64:{}'.format(to_str(encoded_xls)),)
+
+        # hit the endpoint that creates and runs the ImportTask
+        # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
+
         with patch('kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'):
             with patch(
                 'kpi.views.v2.import_task.get_human_readable_client_user_agent',
                 return_value='source',
             ):
                 self.client.post(reverse('api_v2:importtask-list'), task_data)
-
-        log_query = ProjectHistoryLog.objects.filter(
-            metadata__asset_uid=self.asset.uid, action=AuditAction.UPDATE_NAME
+        expected_logs_count = 2 if change_name else 1
+        log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
+        self.assertEqual(log_query.count(), expected_logs_count)
+        form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
+        self.assertEqual(form_replace_log.object_id, self.asset.id)
+        self._check_common_metadata(
+            form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
         )
-        self.assertTrue(log_query.exists())
-        log = log_query.first()
-        self.assertEqual(log.object_id, self.asset.id)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(
-            log.metadata['latest_version_uid'], self.asset.latest_version.uid
+            form_replace_log.metadata['latest_version_uid'],
+            self.asset.latest_version.uid,
         )
-        self.assertDictEqual(
-            log.metadata['name'],
-            {
-                OLD: old_name,
-                NEW: new_asset.name,
-            },
-        )
+
+        if change_name:
+            # if the import also changed the name of the asset, check that was logged as well
+            change_name_log = log_query.filter(action=AuditAction.UPDATE_NAME).first()
+            self._check_common_metadata(
+                change_name_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
+            )
+            self.assertEqual(
+                change_name_log.metadata['latest_version_uid'],
+                self.asset.latest_version.uid,
+            )
+            self.assertDictEqual(
+                change_name_log.metadata['name'],
+                {
+                    OLD: old_name,
+                    NEW: new_asset.name,
+                },
+            )

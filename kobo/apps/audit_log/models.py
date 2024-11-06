@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
-    PROJECT_HISTORY_LOG_METADATA_SCHEMA,
+    PROJECT_HISTORY_LOG_METADATA_SCHEMA
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -564,36 +564,31 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def create_from_import_task(cls, task: ImportTask):
+        # this will probably only ever be a list of size 1 or 0,
+        # sent as a list because of how ImportTask is implemented
+        # if somehow a task updates multiple assets, this should handle it
         audit_log_blocks = task.messages.get('audit_logs', [])
         for audit_log_info in audit_log_blocks:
+            metadata = {
+                'asset_uid': audit_log_info['asset_uid'],
+                'latest_version_uid': audit_log_info['latest_version_uid'],
+                'ip_address': audit_log_info['ip_address'],
+                'source': audit_log_info['source'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            }
             # we can't pass a user back directly from a task, so look it up from the username
             user = User.objects.get(username=audit_log_info['username'])
             ProjectHistoryLog.objects.create(
                 user=user,
                 object_id=audit_log_info['asset_id'],
                 action=AuditAction.REPLACE_FORM,
-                metadata={
-                    'asset_uid': audit_log_info['asset_uid'],
-                    'latest_version_uid': audit_log_info['latest_version_uid'],
-                    'ip_address': audit_log_info['ip_address'],
-                    'source': audit_log_info['source'],
-                    'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                },
+                metadata=metadata
             )
             if audit_log_info['old_name'] != audit_log_info['new_name']:
+                metadata.update({'name': { OLD: audit_log_info['old_name'], NEW: audit_log_info['new_name']}})
                 ProjectHistoryLog.objects.create(
                     user=user,
                     object_id=audit_log_info['asset_id'],
                     action=AuditAction.UPDATE_NAME,
-                    metadata={
-                        'asset_uid': audit_log_info['asset_uid'],
-                        'latest_version_uid': audit_log_info['latest_version_uid'],
-                        'ip_address': audit_log_info['ip_address'],
-                        'source': audit_log_info['source'],
-                        'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                        'name': {
-                            OLD: audit_log_info['old_name'],
-                            NEW: audit_log_info['new_name'],
-                        },
-                    },
+                    metadata=metadata
                 )
