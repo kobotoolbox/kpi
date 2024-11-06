@@ -58,15 +58,20 @@ export default function EmailSection() {
   }, []);
 
   function setNewUserEmail(newEmail: string) {
-    setUserEmail(newEmail).then(() => {
-      getUserEmails().then((data) => {
-        setEmail({
-          ...email,
-          emails: data.results,
-          newEmail: '',
+    setUserEmail(newEmail).then(
+      () => {
+        getUserEmails().then((data) => {
+          setEmail({
+            ...email,
+            emails: data.results,
+            newEmail: '',
+          });
         });
-      });
-    }, () => {/* Avoid crashing app when 500 error happens */});
+      },
+      () => {
+        /* Avoid crashing app when 500 error happens */
+      }
+    );
   }
 
   function deleteNewUserEmail() {
@@ -200,22 +205,24 @@ export default function EmailSection() {
             </>
           )}
       </div>
-      <form
-        className={styles.options}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
-      >
+      <div className={styles.options}>
         {userCanChangeEmail() && (
-          <Button
-            label='Change'
-            size='m'
-            type='primary'
-            onClick={handleSubmit}
-          />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <Button
+              label='Change'
+              size='m'
+              type='primary'
+              onClick={handleSubmit}
+            />
+            )
+          </form>
         )}
-      </form>
+      </div>
     </section>
   );
 }
