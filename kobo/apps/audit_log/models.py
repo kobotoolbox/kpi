@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
-    PROJECT_HISTORY_LOG_METADATA_SCHEMA
+    PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -582,13 +582,20 @@ class ProjectHistoryLog(AuditLog):
                 user=user,
                 object_id=audit_log_info['asset_id'],
                 action=AuditAction.REPLACE_FORM,
-                metadata=metadata
+                metadata=metadata,
             )
             if audit_log_info['old_name'] != audit_log_info['new_name']:
-                metadata.update({'name': { OLD: audit_log_info['old_name'], NEW: audit_log_info['new_name']}})
+                metadata.update(
+                    {
+                        'name': {
+                            OLD: audit_log_info['old_name'],
+                            NEW: audit_log_info['new_name'],
+                        }
+                    }
+                )
                 ProjectHistoryLog.objects.create(
                     user=user,
                     object_id=audit_log_info['asset_id'],
                     action=AuditAction.UPDATE_NAME,
-                    metadata=metadata
+                    metadata=metadata,
                 )
