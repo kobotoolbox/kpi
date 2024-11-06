@@ -1,18 +1,33 @@
+// Libraries
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import classNames from 'classnames';
+import cx from 'classnames';
+
+// Partial components
 import Icon from 'js/components/common/icon';
 import KoboDropdown from 'js/components/common/koboDropdown';
-import {PROJECTS_ROUTES} from 'jsapp/js/router/routerConstants';
+
+// Stores and hooks
 import projectViewsStore from './projectViewsStore';
-import styles from './viewSwitcher.module.scss';
+
+// Constants
+import {PROJECTS_ROUTES} from 'js/router/routerConstants';
 import {HOME_VIEW} from './constants';
+
+// Styles
+import styles from './viewSwitcher.module.scss';
 
 interface ViewSwitcherProps {
   selectedViewUid: string;
 }
 
+/**
+ * A component that displays a view selector or just "My projects" text. What
+ * options are available depends on multiple factors: belonging to MMO
+ * organization, custom views being defined and user having permission to view
+ * them.
+ */
 function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -45,7 +60,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   if (projectViews.views.length === 0) {
     return (
       <button
-        className={classNames(styles.trigger, styles.triggerSimple)}
+        className={cx(styles.trigger, styles.triggerSimple)}
         title={triggerLabel}
       >
         <label>{triggerLabel}</label>
@@ -55,7 +70,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
 
   return (
     <div
-      className={classNames({
+      className={cx({
         [styles.root]: true,
         [styles.isMenuVisible]: isMenuVisible,
       })}
@@ -73,6 +88,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
         }
         menuContent={
           <div className={styles.menu}>
+            {/* This is the "My projects" option - always there */}
             <button
               key={HOME_VIEW.uid}
               className={styles.menuOption}
@@ -80,6 +96,7 @@ function ViewSwitcher(props: ViewSwitcherProps) {
             >
               {HOME_VIEW.name}
             </button>
+
             {projectViews.views.map((view) => (
               <button
                 key={view.uid}
