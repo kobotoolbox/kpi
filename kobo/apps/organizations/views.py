@@ -1,26 +1,34 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import QuerySet
+from django.db.models import (
+    QuerySet,
+    Case,
+    When,
+    Value,
+    CharField,
+    OuterRef,
+)
+from django.db.models.expressions import Exists
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
-from kpi import filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination
+from kpi.paginators import AssetUsagePagination, OrganizationPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
-from .models import Organization
+from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import IsOrgAdminOrReadOnly
-from .serializers import OrganizationSerializer
+from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
@@ -194,3 +202,173 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             page, many=True, context=context
         )
         return self.get_paginated_response(serializer.data)
+
+
+class OrganizationMemberViewSet(viewsets.ModelViewSet):
+    """
+    * Manage organization members and their roles within an organization.
+    * Run a partial update on an organization member to promote or demote.
+
+    ## Organization Members API
+
+    This API allows authorized users to view and manage the members of an
+    organization, including their roles. It handles existing members. It also
+    allows updating roles, such as promoting a member to an admin or assigning
+    a new owner.
+
+    ### List Members
+
+    Retrieves all members in the specified organization.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/members/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
+    >                   members/foo_bar/",
+    >                   "user": "http://[kpi]/api/v2/users/foo_bar/",
+    >                   "user__username": "foo_bar",
+    >                   "user__email": "foo_bar@example.com",
+    >                   "user__name": "Foo Bar",
+    >                   "role": "owner",
+    >                   "has_mfa_enabled": true,
+    >                   "date_joined": "2024-08-11T12:36:32Z",
+    >                   "is_active": true
+    >               },
+    >               {
+    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
+    >                   members/john_doe/",
+    >                   "user": "http://[kpi]/api/v2/users/john_doe/",
+    >                   "user__username": "john_doe",
+    >                   "user__email": "john_doe@example.com",
+    >                   "user__name": "John Doe",
+    >                   "role": "admin",
+    >                   "has_mfa_enabled": false,
+    >                   "date_joined": "2024-10-21T06:38:45Z",
+    >                   "is_active": true
+    >               }
+    >           ]
+    >       }
+
+    The response includes detailed information about each member, such as their
+    username, email, role (owner, admin, member), and account status.
+
+    ### Retrieve Member Details
+
+    Retrieves the details of a specific member within an organization by username.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
+
+    > Response 200
+
+    >       {
+    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
+    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
+    >           "user__username": "foo_bar",
+    >           "user__email": "foo_bar@example.com",
+    >           "user__name": "Foo Bar",
+    >           "role": "owner",
+    >           "has_mfa_enabled": true,
+    >           "date_joined": "2024-08-11T12:36:32Z",
+    >           "is_active": true
+    >       }
+
+    ### Update Member Role
+
+    Updates the role of a member within the organization to `owner`, `admin`, or
+     `member`.
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    #### Payload
+    >       {
+    >           "role": "admin"
+    >       }
+
+    - **admin**: Grants the member admin privileges within the organization
+    - **member**: Revokes admin privileges, setting the member as a regular user
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/ \
+    >       members/demo_user/ -d '{"role": "admin"}'
+
+    ### Remove Member
+
+    Removes a member from the organization.
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
+
+    ## Permissions
+
+    - The user must be authenticated to perform these actions.
+
+    ## Notes
+
+    - **Role Validation**: Only valid roles ('admin', 'member') are accepted
+    in updates.
+    """
+    serializer_class = OrganizationUserSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = OrganizationPagination
+    lookup_field = 'user__username'
+
+    def get_queryset(self):
+        organization_id = self.kwargs['organization_id']
+
+        # Subquery to check if the user is the owner
+        owner_subquery = OrganizationOwner.objects.filter(
+            organization_id=organization_id,
+            organization_user=OuterRef('pk')
+        ).values('pk')
+
+        # Annotate with role based on organization ownership and admin status
+        queryset = OrganizationUser.objects.filter(
+            organization_id=organization_id
+        ).annotate(
+            role=Case(
+                When(Exists(owner_subquery), then=Value('owner')),
+                When(is_admin=True, then=Value('admin')),
+                default=Value('member'),
+                output_field=CharField()
+            )
+        )
+        return queryset
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        role = serializer.validated_data.get('role')
+        if role:
+            instance.is_admin = (role == 'admin')
+            instance.save()
+        return super().partial_update(request, *args, **kwargs)

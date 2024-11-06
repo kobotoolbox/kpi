@@ -121,7 +121,7 @@ class DataPagination(LimitOffsetPagination):
     offset_query_param = 'start'
     max_limit = settings.SUBMISSION_LIST_LIMIT
 
-    
+
 class FastAssetPagination(Paginated):
     """
     Pagination class optimized for faster counting for DISTINCT queries on large tables.
@@ -142,3 +142,10 @@ class TinyPaginated(PageNumberPagination):
     Same as Paginated with a small page size
     """
     page_size = 50
+
+
+class OrganizationPagination(PageNumberPagination):
+    """
+    Pagination class for Organization
+    """
+    page_size = 10
