@@ -5,6 +5,11 @@ export const HOME_VIEW = {
   name: t('My Projects'),
 };
 
+export const ORG_VIEW = {
+  uid: 'kobo_my_organization_projects',
+  name: t('##organization name## Projects'),
+};
+
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName;
   condition?: FilterConditionName;

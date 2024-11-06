@@ -6,6 +6,9 @@ import {PROJECTS_ROUTES} from 'js/router/routerConstants';
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')
 );
+const MyOrgProjectsRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './myOrgProjectsRoute')
+);
 const CustomViewRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './customViewRoute')
 );
@@ -22,6 +25,14 @@ export default function routes() {
         element={
           <RequireAuth>
             <MyProjectsRoute />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={PROJECTS_ROUTES.MY_ORG_PROJECTS}
+        element={
+          <RequireAuth>
+            <MyOrgProjectsRoute />
           </RequireAuth>
         }
       />
