@@ -172,6 +172,8 @@ def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
     if not transfer.asset.has_deployment:
         return
 
+    transfer.asset.deployment.set_mongo_uuid()
+
     if not transfer.asset.deployment.transfer_submissions_ownership(
         old_owner.username
     ):
