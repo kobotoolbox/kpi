@@ -28,3 +28,4 @@ require('../jsapp/js/projects/customViewStore.tests')
 require('../jsapp/js/projects/projectViews/utils.tests');
 require('../jsapp/js/components/processing/processingUtils.tests');
 require('../jsapp/js/components/processing/routes.utils.tests');
+require('../jsapp/js/components/submissions/tableUtils.tests');

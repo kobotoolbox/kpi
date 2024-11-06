@@ -20,7 +20,11 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {MetaQuestionTypeName, AnyRowTypeName} from 'js/constants';
+import type {
+  AnyRowTypeName,
+  QuestionTypeName,
+  MetaQuestionTypeName,
+} from 'js/constants';
 import './submissionDataTable.scss';
 import type {
   AssetResponse,
@@ -28,6 +32,7 @@ import type {
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
+import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -55,7 +60,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   openProcessing(name: string) {
     if (this.props.asset?.content) {
       const foundRow = findRow(this.props.asset?.content, name);
-      if (foundRow) {
+      if (foundRow && foundRow.$xpath !== undefined) {
         goToProcessing(
           this.props.asset.uid,
           foundRow.$xpath,
@@ -254,7 +259,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
         <bem.SimpleTable__body>
           {pointsArray.map((pointArray, pointIndex) => (
-            <bem.SimpleTable__row>
+            <bem.SimpleTable__row key={pointIndex}>
               <bem.SimpleTable__cell>
                 P<sub>{pointIndex + 1}</sub>
               </bem.SimpleTable__cell>
@@ -277,7 +282,12 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderAttachment(type: AnyRowTypeName, filename: string, name: string, xpath: string) {
+  renderAttachment(
+    type: AnyRowTypeName | null,
+    filename: string,
+    name: string,
+    xpath: string
+  ) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
       return (
@@ -295,7 +305,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               />
             </>
           }
-
           {type === QUESTION_TYPES.image.id &&
             <a href={attachment.download_url} target='_blank'>
               <img src={attachment.download_medium_url}/>

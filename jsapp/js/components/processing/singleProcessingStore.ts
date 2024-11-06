@@ -26,7 +26,7 @@ import type {
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import type {AnyRowTypeName} from 'js/constants';
+import {QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE} from 'js/constants';
 import {destroyConfirm} from 'js/alertify';
 import {
   isAnyProcessingRoute,
@@ -985,6 +985,16 @@ class SingleProcessingStore extends Reflux.Store {
     return undefined;
   }
 
+  getProcessedFileLabel() {
+    if (this.currentQuestionType === QUESTION_TYPES.audio.id) {
+      return QUESTION_TYPES.audio.label.toLowerCase();
+    } else if (this.currentQuestionType === QUESTION_TYPES['background-audio'].id) {
+      return QUESTION_TYPES['background-audio'].label.toLowerCase();
+    }
+    // Fallback
+    return t('source file');
+  }
+
   getSubmissionsEditIds() {
     return this.data.submissionsEditIds;
   }
@@ -1024,10 +1034,12 @@ class SingleProcessingStore extends Reflux.Store {
   getDisplayedLanguagesList(): KoboSelectOption[] {
     const languagesList = [];
 
-    languagesList.push({label: t('XML names'), value: 'xml_names'});
+    languagesList.push({label: t('XML values'), value: XML_VALUES_OPTION_VALUE});
     const asset = assetStore.getAsset(this.currentAssetUid);
     const baseLabel = t('Labels');
 
+    // If there are some languages defined in the form, we build a list of
+    // options - one for each language…
     if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
       asset.summary.languages.forEach((language) => {
         let label = baseLabel;
@@ -1036,6 +1048,8 @@ class SingleProcessingStore extends Reflux.Store {
         }
         languagesList.push({label: label, value: language});
       });
+    // …otherwise we creat a single "default language" option that uses empty
+    // string as value.
     } else {
       languagesList.push({label: baseLabel, value: ''});
     }

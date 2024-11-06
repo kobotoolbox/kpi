@@ -5,16 +5,18 @@ def get_nested_field(obj, field: str):
     """
     Retrieve a period-separated nested field from an object or dict
 
-    Raises an exception if the field is not found
+    Returns None if the field is not found
     """
     split = field.split('.')
-    attribute = getattr(obj, split[0])
-    if len(split) > 1:
-        for inner_field in split[1:]:
-            if isinstance(attribute, dict):
-                attribute = attribute.get(inner_field)
-            else:
-                attribute = getattr(attribute, inner_field)
+    attribute = obj
+
+    for inner_field in split:
+        if attribute is None:
+            break
+        if isinstance(attribute, dict):
+            attribute = attribute.get(inner_field, None)
+        else:
+            attribute = getattr(attribute, inner_field, None)
     return attribute
 
 
@@ -34,6 +36,11 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
 
     logged_fields = []
 
+    def initialize_request(self, request, *args, **kwargs):
+        request = super().initialize_request(request, *args, **kwargs)
+        request._request.log_type = self.log_type
+        return request
+
     def get_object(self):
         # actually fetch the object
         obj = self.get_object_override()
@@ -42,8 +49,10 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             return obj
         audit_log_data = {}
         for field in self.logged_fields:
-            value = get_nested_field(obj, field)
-            audit_log_data[field] = value
+            field_path = field[1] if isinstance(field, tuple) else field
+            field_label = field[0] if isinstance(field, tuple) else field
+            value = get_nested_field(obj, field_path)
+            audit_log_data[field_label] = value
         self.request._request.initial_data = audit_log_data
         return obj
 
@@ -51,23 +60,29 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         self.perform_update_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
-            value = get_nested_field(serializer.instance, field)
-            audit_log_data[field] = value
+            field_path = field[1] if isinstance(field, tuple) else field
+            field_label = field[0] if isinstance(field, tuple) else field
+            value = get_nested_field(serializer.instance, field_path)
+            audit_log_data[field_label] = value
         self.request._request.updated_data = audit_log_data
 
     def perform_create(self, serializer):
         self.perform_create_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
-            value = get_nested_field(serializer.instance, field)
-            audit_log_data[field] = value
+            field_path = field[1] if isinstance(field, tuple) else field
+            field_label = field[0] if isinstance(field, tuple) else field
+            value = get_nested_field(serializer.instance, field_path)
+            audit_log_data[field_label] = value
         self.request._request.updated_data = audit_log_data
 
     def perform_destroy(self, instance):
         audit_log_data = {}
         for field in self.logged_fields:
-            value = get_nested_field(instance, field)
-            audit_log_data[field] = value
+            field_path = field[1] if isinstance(field, tuple) else field
+            field_label = field[0] if isinstance(field, tuple) else field
+            value = get_nested_field(instance, field_path)
+            audit_log_data[field_label] = value
         self.request._request.initial_data = audit_log_data
         self.perform_destroy_override(instance)
 
