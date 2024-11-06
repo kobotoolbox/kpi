@@ -34,13 +34,12 @@ export const ValidateOrgPermissions = ({
   useEffect(() => {
     if (
       redirect &&
-      !orgQuery.isPending &&
       orgQuery.data &&
       (!hasValidRole || !hasValidOrg)
     ) {
       navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
     }
-  }, [redirect, orgQuery.isSuccess, orgQuery.data, navigate]);
+  }, [redirect, orgQuery.data, navigate]);
 
   return redirect && hasValidRole && hasValidOrg ? (
     <Suspense fallback={null}>{children}</Suspense>
