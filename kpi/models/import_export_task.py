@@ -355,17 +355,6 @@ class ImportTask(ImportExportTask):
                             'owner__username': self.user.username,
                         }
                     )
-                    if asset.asset_type == ASSET_TYPE_SURVEY:
-                        messages['audit_log'].append(
-                            {
-                                'asset_uid': asset.uid,
-                                'asset_id': asset.id,
-                                'username': self.user.username,
-                                'latest_version_uid': asset.latest_version.uid,
-                                'ip_address': self.data['ip_address'],
-                                'source': self.data['source'],
-                            }
-                        )
 
             if item.parent:
                 collections_to_assign.append([
@@ -463,7 +452,6 @@ class ImportTask(ImportExportTask):
                     {
                         'asset_uid': asset.uid,
                         'asset_id': asset.id,
-                        'username': self.user.username,
                         'latest_version_uid': asset.latest_version.uid,
                         'ip_address': self.data['ip_address'],
                         'source': self.data['source'],

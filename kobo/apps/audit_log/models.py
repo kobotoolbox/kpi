@@ -576,11 +576,8 @@ class ProjectHistoryLog(AuditLog):
                 'source': audit_log_info['source'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             }
-            # we can't pass a user back directly from a task,
-            # so look it up from the username
-            user = User.objects.get(username=audit_log_info['username'])
             ProjectHistoryLog.objects.create(
-                user=user,
+                user=task.user,
                 object_id=audit_log_info['asset_id'],
                 action=AuditAction.REPLACE_FORM,
                 metadata=metadata,
@@ -595,7 +592,7 @@ class ProjectHistoryLog(AuditLog):
                     }
                 )
                 ProjectHistoryLog.objects.create(
-                    user=user,
+                    user=task.user,
                     object_id=audit_log_info['asset_id'],
                     action=AuditAction.UPDATE_NAME,
                     metadata=metadata,
