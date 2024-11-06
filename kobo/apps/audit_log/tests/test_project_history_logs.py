@@ -73,7 +73,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
-        response = method(
+        method(
             url,
             data=request_data,
             format='json',
@@ -783,7 +783,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
 
         if change_name:
-            # if the import also changed the name of the asset, check that was logged as well
+            # if the import also changed the name of the asset,
+            # check that was logged as well
             change_name_log = log_query.filter(action=AuditAction.UPDATE_NAME).first()
             self._check_common_metadata(
                 change_name_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE

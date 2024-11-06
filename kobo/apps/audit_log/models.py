@@ -576,7 +576,8 @@ class ProjectHistoryLog(AuditLog):
                 'source': audit_log_info['source'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             }
-            # we can't pass a user back directly from a task, so look it up from the username
+            # we can't pass a user back directly from a task,
+            # so look it up from the username
             user = User.objects.get(username=audit_log_info['username'])
             ProjectHistoryLog.objects.create(
                 user=user,
