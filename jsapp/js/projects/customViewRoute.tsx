@@ -15,7 +15,7 @@ import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 
-// Stores, hooks, and utils
+// Stores, hooks and utilities
 import {notify} from 'js/utils';
 import {handleApiFail, fetchPostUrl} from 'js/api';
 import customViewStore from './customViewStore';

@@ -8,7 +8,7 @@ import cx from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown from 'js/components/common/koboDropdown';
 
-// Stores and hooks
+// Stores
 import projectViewsStore from './projectViewsStore';
 
 // Constants
@@ -97,6 +97,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
               {HOME_VIEW.name}
             </button>
 
+            {/* This is the list of all options for custom views. These are only
+            being added if custom views are defined (at least one). */}
             {projectViews.views.map((view) => (
               <button
                 key={view.uid}

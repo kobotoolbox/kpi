@@ -9,7 +9,7 @@ import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import ProjectsFilterEditor from './projectsFilterEditor';
 
-// Utils
+// Utilities
 import {removeIncorrectFilters} from './utils';
 
 // Constants and types

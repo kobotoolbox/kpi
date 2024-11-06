@@ -6,7 +6,7 @@ import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import KoboSelect from 'js/components/common/koboSelect';
 
-// Stores and utils
+// Stores and utilities
 import {generateUuid} from 'js/utils';
 import {isFilterConditionValueRequired} from './utils';
 import envStore from 'js/envStore';
