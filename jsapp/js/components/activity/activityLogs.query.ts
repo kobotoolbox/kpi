@@ -2,16 +2,15 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import moment from 'moment';
+import {
+  AuditActions,
+  AuditTypes,
+  AuditSubTypes,
+  type ActivityLogsItem,
+} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 
-export interface ActivityLogsItem {
-  id: number;
-  who: string;
-  action: string;
-  what: string;
-  date: string;
-}
-
+// =============================================================================
 // MOCK DATA GENERATION
 const mockOptions: KoboSelectOption[] = [
   {value: '1', label: 'Option 1'},
@@ -20,13 +19,58 @@ const mockOptions: KoboSelectOption[] = [
 ];
 
 const getRandomMockDescriptionData = () => {
-  const who = ['Trent', 'Jane', 'Alice', 'Bob', 'Charlie'];
-  const action = ['created', 'updated', 'deleted', 'added', 'removed'];
-  const what = ['project property', 'the form', 'the permissions'];
+  // user info
+  const testUsernames = ['Trent', 'Jane', 'Alice', 'Bob', 'Charlie'];
+  const username = testUsernames[Math.floor(Math.random() * testUsernames.length)];
+  const user = `https://kf.beta.kbtdev.org/api/v2/users/${username.toLowerCase()}>/`;
+  const user_uid = String(Math.random());
+
+  // action
+  const action = Object.keys(AuditActions)[Math.floor(Math.random() * Object.keys(AuditActions).length)];
+
+  // log type
+  const log_type = Object.keys(AuditTypes)[Math.floor(Math.random() * Object.keys(AuditTypes).length)];
+
+  // metadata
+  const log_subtype = Object.keys(AuditSubTypes)[Math.floor(Math.random() * Object.keys(AuditSubTypes).length)];
+  const testSources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux'];
+  const source = testSources[Math.floor(Math.random() * testSources.length)];
+  const asset_uid = String(Math.random());
+  const ip_address = (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255));
+
+  const metadata: ActivityLogsItem['metadata'] = {
+    source,
+    asset_uid,
+    ip_address,
+    log_subtype: log_subtype as AuditSubTypes,
+  };
+
+  if (action === 'update-name') {
+    metadata.old_name = 'I kwno somethign';
+    metadata.new_name = 'I know something';
+  }
+  if (action === 'deploy' || action === 'redeploy') {
+    metadata.latest_deployed_version_id = 'asd123f3fz';
+  }
+  if (action === 'replace-form' || action === 'update-form') {
+    metadata.latest_version_id = 'aet4b1213c';
+  }
+  if (
+    action === 'add-user' ||
+    action === 'remove-user' ||
+    action === 'update-permission' ||
+    action === 'transfer'
+  ) {
+    metadata.second_user = 'Josh';
+  }
+
   return {
-    who: who[Math.floor(Math.random() * who.length)],
-    action: action[Math.floor(Math.random() * action.length)],
-    what: what[Math.floor(Math.random() * what.length)],
+    user,
+    user_uid,
+    username,
+    action: action as AuditActions,
+    log_type: log_type as AuditTypes,
+    metadata: metadata,
   };
 };
 
@@ -36,16 +80,16 @@ const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
   return {
     id: index,
     ...getRandomMockDescriptionData(),
-    date: moment(curDate).format('YYYY-MM-DD HH:mm:ss'),
+    date_created: moment(curDate).format('YYYY-MM-DD HH:mm:ss'),
   };
 });
 // END OF MOCK GENERATION
+// =============================================================================
 
 /**
  * Fetches the activity logs from the server.
- * @param {number} limit Pagination parameter: number of items per page
- * @param {number} offset Pagination parameter: offset of the page
- * @returns {Promise<PaginatedResponse<ActivityLogsItem>>} The paginated response
+ * @param limit Pagination parameter: number of items per page
+ * @param offset Pagination parameter: offset of the page
  */
 const getActivityLogs = async (limit: number, offset: number) =>
   new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
@@ -63,7 +107,6 @@ const getActivityLogs = async (limit: number, offset: number) =>
 
 /**
  * Fetches the filter options for the activity logs.
- * @returns {Promise<KoboSelectOption[]>} The filter options
  */
 const getFilterOptions = async () =>
   new Promise<KoboSelectOption[]>((resolve) => {
@@ -91,12 +134,10 @@ const startActivityLogsExport = async () =>
   });
 
 /**
+ * This is a hook that fetches activity logs from the server.
  *
- *  This is a hook that fetches activity logs from the server.
- *
- * @param {number} itemLimit Pagination parameter: number of items per page
- * @param {number} pageOffset Pagination parameter: offset of the page
- * @returns {UseQueryResult<PaginatedResponse<ActivityLogsItem>>} The react query result
+ * @param itemLimit Pagination parameter: number of items per page
+ * @param pageOffset Pagination parameter: offset of the page
  */
 export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) =>
   useQuery({
@@ -107,7 +148,6 @@ export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) =>
 
 /**
  * This is a hook to fetch the filter options for the activity logs.
- * @returns {UseQueryResult<KoboSelectOption[]>} The react query result
  */
 export const useActivityLogsFilterOptionsQuery = () =>
   useQuery({
