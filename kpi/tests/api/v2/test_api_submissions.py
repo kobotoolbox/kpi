@@ -5,12 +5,12 @@ import random
 import string
 import uuid
 from datetime import datetime
+from unittest import mock
 try:
     from zoneinfo import ZoneInfo
 except ImportError:
     from backports.zoneinfo import ZoneInfo
 
-from unittest import mock
 
 import lxml
 import pytest
@@ -1972,7 +1972,6 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         someuser is the owner of the project.
         someuser is allowed to duplicate their own data
         """
-        print('URL :', self.submission_url, flush=True)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
