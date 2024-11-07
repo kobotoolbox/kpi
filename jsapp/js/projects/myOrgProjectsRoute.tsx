@@ -41,6 +41,9 @@ interface InviteState {
   currentOwner: string;
 }
 
+/**
+ * Component responsible for rendering organization projects route (`#/projects/organization`).
+ */
 function MyOrgProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);

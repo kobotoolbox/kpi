@@ -49,7 +49,7 @@ export const ROUTES = Object.freeze({
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
-  MY_ORG_PROJECTS: ROUTES.PROJECTS_ROOT + '/my-organization',
+  MY_ORG_PROJECTS: ROUTES.PROJECTS_ROOT + '/organization',
   CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
 
