@@ -58,20 +58,15 @@ export default function EmailSection() {
   }, []);
 
   function setNewUserEmail(newEmail: string) {
-    setUserEmail(newEmail).then(
-      () => {
-        getUserEmails().then((data) => {
-          setEmail({
-            ...email,
-            emails: data.results,
-            newEmail: '',
-          });
+    setUserEmail(newEmail).then(() => {
+      getUserEmails().then((data) => {
+        setEmail({
+          ...email,
+          emails: data.results,
+          newEmail: '',
         });
-      },
-      () => {
-        /* Avoid crashing app when 500 error happens */
-      }
-    );
+      });
+    }, () => {/* Avoid crashing app when 500 error happens */});
   }
 
   function deleteNewUserEmail() {
@@ -120,31 +115,29 @@ export default function EmailSection() {
     }
   }
 
-  function userCanChangeEmail() {
-    if (orgQuery.data?.is_mmo) {
-      return orgQuery.data.request_user_role !== 'member';
-    } else {
-      return true;
-    }
-  }
-
   const currentAccount = session.currentAccount;
   const unverifiedEmail = email.emails.find(
     (userEmail) => !userEmail.verified && !userEmail.primary
   );
 
+  const isReady =
+    !session.isPending &&
+    session.isInitialLoadComplete &&
+    'email' in currentAccount;
+
+  // Only users who are members in a MMO cannot change their email
+  const userCanChangeEmail = orgQuery.data?.is_mmo
+    ? orgQuery.data.request_user_role !== 'member'
+    : true;
+
   return (
     <section className={securityStyles.securitySection}>
       <div className={securityStyles.securitySectionTitle}>
-        <h2 className={securityStyles.securitySectionTitleText}>
-          {t('Email address')}
-        </h2>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Email address')}</h2>
       </div>
+
       <div className={cx(securityStyles.securitySectionBody, styles.body)}>
-        {!session.isPending &&
-        session.isInitialLoadComplete &&
-        'email' in currentAccount &&
-        userCanChangeEmail() ? (
+        {isReady && userCanChangeEmail ? (
           <TextBox
             value={email.newEmail}
             placeholder={t('Type new email address')}
@@ -155,58 +148,55 @@ export default function EmailSection() {
           <div className={styles.emailText}>{email.newEmail}</div>
         )}
 
-        {unverifiedEmail?.email &&
-          !session.isPending &&
-          session.isInitialLoadComplete &&
-          'email' in currentAccount && (
-            <>
-              <div className={styles.unverifiedEmail}>
-                <Icon name='alert' />
-                <p className={styles.blurb}>
-                  <strong>
-                    {t('Check your email ##UNVERIFIED_EMAIL##. ').replace(
-                      '##UNVERIFIED_EMAIL##',
-                      unverifiedEmail.email
-                    )}
-                  </strong>
-
-                  {t(
-                    'A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##'
-                  ).replace('##UNVERIFIED_EMAIL##', currentAccount.email)}
-                </p>
-              </div>
-
-              <div className={styles.unverifiedEmailButtons}>
-                <Button
-                  label='Resend'
-                  size='m'
-                  type='secondary'
-                  onClick={resendNewUserEmail.bind(
-                    resendNewUserEmail,
+        {unverifiedEmail?.email && isReady && (
+          <>
+            <div className={styles.unverifiedEmail}>
+              <Icon name='alert' />
+              <p className={styles.blurb}>
+                <strong>
+                  {t('Check your email ##UNVERIFIED_EMAIL##. ').replace(
+                    '##UNVERIFIED_EMAIL##',
                     unverifiedEmail.email
                   )}
-                />
-                <Button
-                  label='Remove'
-                  size='m'
-                  type='secondary-danger'
-                  onClick={deleteNewUserEmail}
-                />
-              </div>
+                </strong>
 
-              {email.refreshedEmail && (
-                <label>
-                  {t('Email was sent again: ##TIMESTAMP##').replace(
-                    '##TIMESTAMP##',
-                    email.refreshedEmailDate
-                  )}
-                </label>
-              )}
-            </>
-          )}
+                {t(
+                  'A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##'
+                ).replace('##UNVERIFIED_EMAIL##', currentAccount.email)}
+              </p>
+            </div>
+
+            <div className={styles.unverifiedEmailButtons}>
+              <Button
+                label='Resend'
+                size='m'
+                type='secondary'
+                onClick={resendNewUserEmail.bind(
+                  resendNewUserEmail,
+                  unverifiedEmail.email
+                )}
+              />
+              <Button
+                label='Remove'
+                size='m'
+                type='secondary-danger'
+                onClick={deleteNewUserEmail}
+              />
+            </div>
+
+            {email.refreshedEmail && (
+              <label>
+                {t('Email was sent again: ##TIMESTAMP##').replace(
+                  '##TIMESTAMP##',
+                  email.refreshedEmailDate
+                )}
+              </label>
+            )}
+          </>
+        )}
       </div>
       <div className={styles.options}>
-        {userCanChangeEmail() && (
+        {userCanChangeEmail && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -219,7 +209,6 @@ export default function EmailSection() {
               type='primary'
               onClick={handleSubmit}
             />
-            )
           </form>
         )}
       </div>
