@@ -139,23 +139,31 @@ def mark_as_expired():
     """
     # Avoid circular import
     Invite = apps.get_model('project_ownership', 'Invite')  # noqa
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
 
     expiry_threshold = timezone.now() - timedelta(
         days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
     )
 
     invites_to_update = []
+    transfer_statuses_to_update = []
     for invite in Invite.objects.filter(
         date_created__lte=expiry_threshold,
         status=InviteStatusChoices.PENDING,
     ):
         invite.status = InviteStatusChoices.EXPIRED
         invites_to_update.append(invite)
+        # Mark transfers as cancelled
+        for transfer in invite.transfers.all():
+            for transfer_status in transfer.statuses.all():
+                transfer_status.status = TransferStatusChoices.CANCELLED
+                transfer_statuses_to_update.append(transfer_status)
 
     if not invites_to_update:
         return
 
     # Notify senders
+    TransferStatus.objects.bulk_update(transfer_statuses_to_update, fields=['status'])
     Invite.objects.bulk_update(invites_to_update, fields=['status'])
     email_messages = []
 

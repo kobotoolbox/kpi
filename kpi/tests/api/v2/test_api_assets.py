@@ -11,6 +11,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -1264,6 +1265,31 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         # Even 'fields' are not provided in payload, they should
         # exist after `PATCH`
         self.assertTrue('fields' in data_sharing)
+
+    def test_ownership_transfer_status(self):
+        # No transfer yet, no status
+        response = self.client.get(self.asset_url)
+        assert response.data['project_ownership'] is None
+
+        anotheruser = User.objects.get(username='anotheruser')
+        invite = Invite.objects.create(sender=self.asset.owner, recipient=anotheruser)
+        Transfer.objects.create(invite=invite, asset=self.asset)
+
+        # Invite has been created, but not accepted/declined yet
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.PENDING
+        )
+
+        # Simulate expiration
+        invite.status = InviteStatusChoices.EXPIRED
+        invite.save()
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.EXPIRED
+        )
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
