@@ -75,7 +75,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
  * @param value
  */
 export function decodeURLParamWithSlash(value: string) {
-  return value.replace('|', '/');
+  return value.replace(/\|/g, '/');
 }
 
 /**

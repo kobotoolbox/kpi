@@ -61,6 +61,7 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
+from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -731,7 +732,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+        return (
+            self.xform.mongo_uuid
+            or f'{self.asset.owner.username}_{self.xform_id_string}'
+        )
 
     @staticmethod
     def nlp_tracking_data(
@@ -958,6 +962,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'openRosaServer',
             server_url,
         )
+
+    def set_mongo_uuid(self):
+        """
+        Set the `mongo_uuid` for the associated XForm if it's not already set.
+        """
+        if not self.xform.mongo_uuid:
+            self.xform.mongo_uuid = KpiUidField.generate_unique_id()
+            self.xform.save(update_fields=['mongo_uuid'])
 
     def set_validation_status(
         self,
@@ -1218,6 +1230,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'attachment_storage_bytes',
                 'require_auth',
                 'uuid',
+                'mongo_uuid',
             )
             .select_related('user')  # Avoid extra query to validate username below
             .first()

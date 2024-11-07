@@ -1,5 +1,10 @@
 @use 'scss/colors';
 
+.root {
+  // Avoids taking space
+  position: fixed;
+}
+
 .modalBody {
   line-height: 24px;
   padding: 0 30px;

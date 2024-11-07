@@ -381,8 +381,14 @@ class AssetViewSet(
     ]
 
     logged_fields = [
-        'id',
         'has_deployment',
+        'id',
+        'name',
+        'settings',
+        'latest_version.uid',
+        'data_sharing',
+        'content',
+        'advanced_features.qual.qual_survey',
     ]
     log_type = AuditType.PROJECT_HISTORY
 

@@ -1,11 +1,18 @@
+// Libraries
 import React, {useState} from 'react';
-import {fetchPost, handleApiFail} from 'js/api';
-import {notify} from 'js/utils';
+
+// Partial components
 import KoboPrompt from 'js/components/modals/koboPrompt';
 import Checkbox from 'js/components/common/checkbox';
-import styles from './bulkDeletePrompt.module.scss';
+
+// Stores, hooks and utilities
+import {fetchPost, handleApiFail} from 'js/api';
+import {notify} from 'js/utils';
 import customViewStore from 'js/projects/customViewStore';
 import {searches} from 'js/searches';
+
+// Styles
+import styles from './bulkDeletePrompt.module.scss';
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive';
 interface AssetsBulkResponse {

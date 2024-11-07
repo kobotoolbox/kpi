@@ -797,6 +797,12 @@ export interface AccountResponse {
     tag: string | boolean;
   };
   social_accounts: SocialAccount[];
+  // Organization details
+  organization?: {
+    url: string;
+    name: string;
+    uid: string;
+  };
 }
 
 export interface AccountRequest {
