@@ -188,7 +188,7 @@ export default function SidebarDisplaySettings() {
                 options={displayedLanguageList}
                 selectedOption={labelLanguage}
                 onChange={(languageCode) => {
-                  if (languageCode) {
+                  if (languageCode !== null) {
                     setLabelLanguage(languageCode);
                   }
                 }}

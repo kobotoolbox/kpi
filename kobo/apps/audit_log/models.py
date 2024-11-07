@@ -1,3 +1,4 @@
+import jsonschema
 from django.conf import settings
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
@@ -5,6 +6,9 @@ from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
 from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.audit_log_metadata_schemas import (
+    PROJECT_HISTORY_LOG_METADATA_SCHEMA,
+)
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
@@ -288,9 +292,10 @@ class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
             'user_uid': user.extra_details.uid,
         }
         new_kwargs.update(**kwargs)
+
         return super().create(
             # set the fields that are always the same for all project history logs,
-            # along with the ones derived from the user and asset
+            # along with the ones derived from the user
             **new_kwargs,
         )
 
@@ -301,12 +306,39 @@ class ProjectHistoryLog(AuditLog):
     class Meta:
         proxy = True
 
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        # validate the metadata has the required fields
+        jsonschema.validate(self.metadata, PROJECT_HISTORY_LOG_METADATA_SCHEMA)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
+
     @classmethod
     def create_from_request(cls, request):
-        if request.resolver_match.url_name == 'asset-deployment':
-            cls.create_from_deployment_request(request)
-        elif request.resolver_match.url_name == 'asset-detail':
-            cls.create_from_detail_request(request)
+        url_name_to_action = {
+            'asset-deployment': cls.create_from_deployment_request,
+            'asset-detail': cls.create_from_detail_request,
+            'hook-detail': cls.create_from_hook_request,
+            'hook-list': cls.create_from_hook_request,
+            'paired-data-detail': cls.create_from_paired_data_request,
+            'paired-data-list': cls.create_from_paired_data_request,
+            'asset-file-detail': cls.create_from_file_request,
+            'asset-file-list': cls.create_from_file_request,
+        }
+        url_name = request.resolver_match.url_name
+        method = url_name_to_action.get(url_name, None)
+        if not method:
+            return
+        method(request)
 
     @staticmethod
     def create_from_deployment_request(request):
@@ -432,6 +464,33 @@ class ProjectHistoryLog(AuditLog):
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
 
+    @classmethod
+    def create_from_hook_request(cls, request):
+        cls.create_from_related_request(
+            request,
+            'hook',
+            AuditAction.REGISTER_SERVICE,
+            AuditAction.DELETE_SERVICE,
+            AuditAction.MODIFY_SERVICE,
+        )
+
+    @classmethod
+    def create_from_file_request(cls, request):
+        # we don't have a concept of 'modifying' a media file
+        cls.create_from_related_request(
+            request, 'asset-file', AuditAction.ADD_MEDIA, AuditAction.DELETE_MEDIA, None
+        )
+
+    @classmethod
+    def create_from_paired_data_request(cls, request):
+        cls.create_from_related_request(
+            request,
+            'paired-data',
+            AuditAction.CONNECT_PROJECT,
+            AuditAction.DISCONNECT_PROJECT,
+            AuditAction.MODIFY_IMPORTED_FIELDS,
+        )
+
     @staticmethod
     def sharing_change(old_fields, new_fields):
         old_enabled = old_fields.get('enabled', False)
@@ -472,3 +531,33 @@ class ProjectHistoryLog(AuditLog):
         # qa dictionary is complicated to parse and determine
         # what actually changed, so just return the new dict
         return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
+
+    @staticmethod
+    def create_from_related_request(
+        request, label, add_action, delete_action, modify_action
+    ):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        source_data = updated_data if updated_data else initial_data
+        if not source_data:
+            # request failed, don't try to log
+            return
+        object_id = source_data.pop('object_id')
+
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            label: source_data,
+        }
+        if updated_data is None:
+            action = delete_action
+        elif initial_data is None:
+            action = add_action
+        else:
+            action = modify_action
+        ProjectHistoryLog.objects.create(
+            user=request.user, object_id=object_id, action=action, metadata=metadata
+        )

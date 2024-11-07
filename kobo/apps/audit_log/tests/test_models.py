@@ -1,11 +1,13 @@
 import datetime
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import AnonymousUser
 from django.test.client import RequestFactory
 from django.urls import resolve, reverse
 from django.utils import timezone
+from jsonschema.exceptions import ValidationError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
@@ -94,7 +96,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
         # the standard fields should be set the same as any other access logs
         self._check_common_fields(log, AccessLogModelTestCase.super_user)
         # we logged a warning for each attempt to override a field
-        self.assertEquals(patched_warning.call_count, 4)
+        self.assertEqual(patched_warning.call_count, 4)
 
     def test_basic_create_auth_log_from_request(self):
         request = self._create_request(
@@ -348,6 +350,7 @@ class AccessLogModelManagerTestCase(BaseTestCase):
         )
 
 
+@ddt
 class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
@@ -366,13 +369,26 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         yesterday = timezone.now() - timedelta(days=1)
         log = ProjectHistoryLog.objects.create(
             user=user,
-            metadata={'foo': 'bar'},
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
             date_created=yesterday,
             object_id=asset.id,
         )
         self._check_common_fields(log, user, asset)
-        self.assertEquals(log.date_created, yesterday)
-        self.assertDictEqual(log.metadata, {'foo': 'bar'})
+        self.assertEqual(log.date_created, yesterday)
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
+        )
 
     @patch('kobo.apps.audit_log.models.logging.warning')
     def test_create_project_history_log_ignores_attempt_to_override_standard_fields(
@@ -385,9 +401,158 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             model_name='foo',
             app_label='bar',
             object_id=asset.id,
+            metadata={
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
             user=user,
         )
         # the standard fields should be set the same as any other project history logs
         self._check_common_fields(log, user, asset)
         # we logged a warning for each attempt to override a field
-        self.assertEquals(patched_warning.call_count, 3)
+        self.assertEqual(patched_warning.call_count, 3)
+
+    @data(
+        # source, asset_uid, ip_address, subtype
+        ('source', 'a1234', None, 'project'),  # missing ip
+        ('source', None, '1.2.3.4', 'project'),  # missing asset_uid
+        (None, 'a1234', '1.2.3.4', 'project'),  # missing source
+        ('source', 'a1234', '1.2.3.4', None),  # missing subtype
+        ('source', 'a1234', '1.2.3.4', 'bad_type'),  # bad subtype
+    )
+    @unpack
+    def test_create_project_history_log_requires_metadata_fields(
+        self, source, ip_address, asset_uid, subtype
+    ):
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.get(pk=1)
+        metadata = {
+            'source': source,
+            'ip_address': ip_address,
+            'asset_uid': asset_uid,
+            'log_subtype': subtype,
+        }
+
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=metadata,
+                user=user,
+            )
+
+        # remove key
+        filtered = {k: v for k, v in metadata.items() if v is not None}
+        with self.assertRaises(ValidationError):
+            ProjectHistoryLog.objects.create(
+                object_id=asset.id,
+                metadata=filtered,
+                user=user,
+            )
+
+    def test_create_from_related_request_object_created(self):
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        # if an object has been created, only `updated_data` will be set
+        request.updated_data = {
+            'object_id': 1,
+            'field_1': 'a',
+            'field_2': 'b',
+        }
+        ProjectHistoryLog.create_from_related_request(
+            request,
+            label='fieldname',
+            add_action=AuditAction.CREATE,
+            delete_action=AuditAction.DELETE,
+            modify_action=AuditAction.UPDATE,
+        )
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.CREATE)
+        self.assertEqual(log.object_id, 1)
+        # metadata should contain all additional fields that were stored in updated_data
+        # under the given label
+        self.assertDictEqual(
+            log.metadata['fieldname'], {'field_1': 'a', 'field_2': 'b'}
+        )
+        self.assertEqual(log.metadata['asset_uid'], 'a12345')
+
+    def test_create_from_related_request_object_deleted(self):
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        # if an object has been created, only `initial_data` will be set
+        request.initial_data = {
+            'object_id': 1,
+            'field_1': 'a',
+            'field_2': 'b',
+        }
+        ProjectHistoryLog.create_from_related_request(
+            request,
+            label='label',
+            add_action=AuditAction.CREATE,
+            delete_action=AuditAction.DELETE,
+            modify_action=AuditAction.UPDATE,
+        )
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.DELETE)
+        self.assertEqual(log.object_id, 1)
+        # metadata should contain all additional fields that were stored in updated_data
+        # under the given label
+        self.assertDictEqual(log.metadata['label'], {'field_1': 'a', 'field_2': 'b'})
+        self.assertEqual(log.metadata['asset_uid'], 'a12345')
+
+    def test_create_from_related_request_object_modified(self):
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        # if an object has been modified, both `initial_data`
+        # and `updated_data` should be filled
+        request.initial_data = {
+            'object_id': 1,
+            'field_1': 'a',
+            'field_2': 'b',
+        }
+        request.updated_data = {
+            'object_id': 1,
+            'field_1': 'new_field1',
+            'field_2': 'new_field2',
+        }
+        ProjectHistoryLog.create_from_related_request(
+            request,
+            label='label',
+            add_action=AuditAction.CREATE,
+            delete_action=AuditAction.DELETE,
+            modify_action=AuditAction.UPDATE,
+        )
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.UPDATE)
+        self.assertEqual(log.object_id, 1)
+        # we should use the updated data for the log
+        self.assertDictEqual(
+            log.metadata['label'], {'field_1': 'new_field1', 'field_2': 'new_field2'}
+        )
+        self.assertEqual(log.metadata['asset_uid'], 'a12345')
+
+    def test_create_from_related_request_no_log_created_if_no_data(self):
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        # no `initial_data` or `updated_data` present
+        ProjectHistoryLog.create_from_related_request(
+            request,
+            label='label',
+            add_action=AuditAction.CREATE,
+            delete_action=AuditAction.DELETE,
+            modify_action=AuditAction.UPDATE,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
