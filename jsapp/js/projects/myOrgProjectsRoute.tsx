@@ -12,10 +12,10 @@ import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
-import Icon from 'js/components/common/icon';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
 import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
+import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 // Stores, hooks and utilities

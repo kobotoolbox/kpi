@@ -1,24 +1,24 @@
 // Libraries
 import React, {useState, useEffect} from 'react';
-import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
+import {useParams} from 'react-router-dom';
 
 // Partial components
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
-import Button from 'js/components/common/button';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
-import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import Button from 'js/components/common/button';
 
 // Stores, hooks and utilities
+import customViewStore from './customViewStore';
 import {notify} from 'js/utils';
 import {handleApiFail, fetchPostUrl} from 'js/api';
-import customViewStore from './customViewStore';
 import projectViewsStore from './projectViews/projectViewsStore';
 
 // Constants and types

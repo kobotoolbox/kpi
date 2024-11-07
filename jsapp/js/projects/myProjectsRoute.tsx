@@ -2,8 +2,8 @@
 import React, {useState, useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
-import Dropzone from 'react-dropzone';
 import {useSearchParams} from 'react-router-dom';
+import Dropzone from 'react-dropzone';
 
 // Partial components
 import ProjectsFilter from './projectViews/projectsFilter';
@@ -13,19 +13,19 @@ import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
-import Icon from 'js/components/common/icon';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
 import Button from 'js/components/common/button';
+import Icon from 'js/components/common/icon';
+import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
-import {validFileTypes} from 'js/utils';
-import {dropImportXLSForms} from 'js/dropzone.utils';
 import {
   isInviteForLoggedInUser,
   TransferStatuses,
 } from 'js/components/permissions/transferProjects/transferProjects.api';
+import {validFileTypes} from 'js/utils';
+import {dropImportXLSForms} from 'js/dropzone.utils';
 
 // Constants and types
 import type {
