@@ -1778,6 +1778,3 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
-
-
-DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'

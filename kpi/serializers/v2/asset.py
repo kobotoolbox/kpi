@@ -687,9 +687,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ).data
 
     def get_project_ownership(self, asset) -> Optional[dict]:
-        pass
-
-    def get_project_ownership(self, asset) -> Optional[dict]:
         if not (transfer := asset.transfers.order_by('-date_created').first()):
             return
 
@@ -711,7 +708,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ),
             'sender': transfer.invite.sender.username,
             'recipient': transfer.invite.recipient.username,
-            'status': transfer.status
+            'status': transfer.invite.status
         }
 
     def get_exports(self, obj: Asset) -> str:
