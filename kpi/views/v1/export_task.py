@@ -5,14 +5,14 @@ from rest_framework import exceptions, serializers, status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kpi.models import Asset, ExportTask
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.models import remove_string_prefix, resolve_url_to_asset
-from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
-class ExportTaskViewSet(NoUpdateModelViewSet):
+class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     """
     ## This document is for a deprecated version of kpi's API.
 
@@ -133,6 +133,8 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     queryset = ExportTask.objects.all()
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
+    log_type = 'project-history'
+
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:
@@ -198,6 +200,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         except Asset.DoesNotExist:
             raise serializers.ValidationError(
                 {'source': 'The specified asset does not exist.'})
+        request._request.updated_data = {'asset_id': source.id, 'asset_uid': source.uid}
         # Complain if it's not deployed
         if not source.has_deployment:
             raise serializers.ValidationError(

@@ -14,6 +14,7 @@ class AuditAction(models.TextChoices):
     DISABLE_SHARING = 'disable-sharing'
     DISCONNECT_PROJECT = 'disconnect-project'
     ENABLE_SHARING = 'enable-sharing'
+    EXPORT = 'export'
     IN_TRASH = 'in-trash'
     MODIFY_IMPORTED_FIELDS = 'modify-imported-fields'
     MODIFY_SERVICE = 'modify-service'
