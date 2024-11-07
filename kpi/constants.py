@@ -61,6 +61,8 @@ CLONE_COMPATIBLE_TYPES = {
     ASSET_TYPE_TEMPLATE: [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]
 }
 
+DEFAULT_SURVEY_NAME = '__kobo_default_survey_name_value__'
+
 ASSET_TYPE_ARG_NAME = 'asset_type'
 
 # List of app labels that need to read/write data from KoBoCAT database
@@ -143,3 +145,4 @@ ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE = 'submission-group'
 ACCESS_LOG_AUTHORIZED_APP_TYPE = 'authorized-application'
 
 PROJECT_HISTORY_LOG_PROJECT_SUBTYPE = 'project'
+PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE = 'permission'

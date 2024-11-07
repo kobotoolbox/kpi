@@ -20,7 +20,9 @@ from kobo.apps.openrosa.libs.utils.export_tools import (
     DictOrganizer,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kpi.constants import DEFAULT_SURVEY_NAME
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.pyxform_compatibility import NamedBytesIO
 
 
 class ColumnRename(models.Model):
@@ -157,17 +159,15 @@ class DataDictionary(XForm):
 
     def save(self, *args, **kwargs):
         if self.xls:
-            file_obj = self.xls.read()
-            if file_obj:
-                # Wrap the file data in a BytesIO object to simulate a file
-                xls_bytes_io = io.BytesIO(file_obj)
-                xls_bytes_io.name = self.xls.name
-
+            xls_io = NamedBytesIO.fromfieldfile(self.xls)
+            survey = create_survey_from_xls(
+                xls_io, default_name=DEFAULT_SURVEY_NAME
+            )
+            if survey.name == DEFAULT_SURVEY_NAME:
+                survey.name = survey.id_string
                 survey = create_survey_from_xls(xls_bytes_io)
                 survey.update(
                     {
-                        'name': survey.id_string,
-                    }
                 )
                 self.json = survey.to_json()
                 self.xml = survey.to_xml()
