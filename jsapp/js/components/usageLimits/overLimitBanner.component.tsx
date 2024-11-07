@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import cx from 'classnames';
 import Button from 'js/components/common/button';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
 import Icon from 'js/components/common/icon';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
+import envStore from 'jsapp/js/envStore';
 
 interface OverLimitBannerProps {
   warning?: boolean;
@@ -13,11 +15,66 @@ interface OverLimitBannerProps {
   accountPage: boolean;
 }
 
+const limitsText: {
+  [key: string]: {
+    month: string;
+    year: string;
+  };
+} = {
+  submission: {
+    month: t('monthly submissions'),
+    year: t('yearly submissions'),
+  },
+  'machine translation': {
+    month: t('monthly machine translation'),
+    year: t('yearly machine translation'),
+  },
+  'automated transcription': {
+    month: t('monthly automated transcription'),
+    year: t('yearly automated transcription'),
+  },
+};
+
+const getLimitText = (limit: string, interval: string) => {
+  if (limit === 'storage') {return t('storage');}
+  return limitsText[limit][interval as 'month' | 'year'];
+};
+
+const getMessage = (isWarning: boolean, isMmo: boolean, shouldUseTeamlabel: boolean) => {
+  if (isWarning) {
+    if (isMmo && shouldUseTeamlabel) {
+      return t('Your team is approaching the following limits:');
+    } else if (isMmo) {
+      return t('Your organization is approaching the following limits:');
+    }
+    return t('You are approaching the following limits:');
+  }
+  if (isMmo && shouldUseTeamlabel) {
+    return t('Your team has reached the following limits:');
+  } else if (isMmo) {
+    return t('Your organization has reached the following limits:');
+  }
+  return t('You have reached the following limits:');
+};
+
 const OverLimitBanner = (props: OverLimitBannerProps) => {
   const navigate = useNavigate();
-  if (!props.limits.length) {
+
+  const orgQuery = useOrganizationQuery();
+
+  console.log('Org data:', orgQuery.data);
+
+  if (!orgQuery.data || !props.limits.length) {
     return null;
   }
+
+  const {limits, interval, warning} = props;
+  const {is_mmo} = orgQuery.data;
+  const shouldUseTeamlabel = !!envStore.data?.use_team_label;
+
+  const textMessage = getMessage(!!warning, is_mmo, shouldUseTeamlabel);
+  const textLimits = limits.map((limit) => getLimitText(limit, interval)).join(', ');
+
   return (
     <div
       className={cx(styles.limitBannerContainer, {
@@ -27,7 +84,12 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     >
       <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'mid-red'} />
       <div className={styles.bannerContent}>
-        {props.warning
+        {textMessage}{' '}
+        <strong>
+        {textLimits}
+        </strong>
+        {'. '}
+        {/* {props.warning
           ? t('You are approaching your')
           : t('You have reached your')}
         <strong>
@@ -45,7 +107,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           ))}{' '}
           {props.limits.length > 1 ? t('limit') : t('limits')}
         </strong>
-        {'. '}
+        {'. '} */}
         {props.warning && (
           <>
             <a

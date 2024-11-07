@@ -65,8 +65,16 @@ const loadUsage = async (
 
 export const useUsage = (organizationId: string | null) => {
   const fetcher = useApiFetcher(
-    () => {
-      return loadUsage(organizationId);
+    async () => {
+      const usage = await loadUsage(organizationId);
+      const highVal = 999999;
+      if(usage) {
+        usage.storage = highVal;
+        usage.submissions = highVal;
+        usage.transcriptionMinutes = highVal;
+        usage.translationChars = highVal;
+      }
+      return usage;
     },
     INITIAL_USAGE_STATE,
     {
