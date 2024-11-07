@@ -545,10 +545,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         factory = RequestFactory()
         request = factory.post('/')
         request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()['label'], {
-            'field_1': 'new_field1',
-            'field_2': 'new_field2',
-        }
+        request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
         ProjectHistoryLog.create_from_related_request(

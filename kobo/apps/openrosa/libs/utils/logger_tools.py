@@ -529,7 +529,6 @@ def publish_xls_form(xls_file, user, id_string=None):
 
 def publish_xml_form(xml_file, user, id_string=None):
     xml = smart_str(xml_file.read())
-    breakpoint()
     survey = create_survey_element_from_xml(xml)
     form_json = survey.to_json()
     if id_string:
