@@ -718,14 +718,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     @responses.activate
     @data(
-        # File or url, change asset name?
-        ('file', True),
-        ('file', False),
-        ('url', True),
-        ('url', False),
+        # File or url, change asset name?, use v2?
+        ('file', True, True),
+        ('file', False, True),
+        ('url', True, True),
+        ('url', False, True),
+        ('file', True, False),
+        ('file', False, False),
+        ('url', True, False),
+        ('url', False, False),
     )
     @unpack
-    def test_create_from_import_task(self, file_or_url, change_name):
+    def test_create_from_import_task(self, file_or_url, change_name, use_v2):
         task_data = {
             'destination': reverse(
                 'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
@@ -762,13 +766,16 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         # hit the endpoint that creates and runs the ImportTask
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
-
-        with patch('kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'):
+        version = 'v2' if use_v2 else 'v1'
+        url_prefix = 'api_v2:' if use_v2 else ''
+        with patch(
+            f'kpi.views.{version}.import_task.get_client_ip', return_value='127.0.0.1'
+        ):
             with patch(
-                'kpi.views.v2.import_task.get_human_readable_client_user_agent',
+                f'kpi.views.{version}.import_task.get_human_readable_client_user_agent',
                 return_value='source',
             ):
-                self.client.post(reverse('api_v2:importtask-list'), task_data)
+                self.client.post(reverse(f'{url_prefix}importtask-list'), task_data)
         expected_logs_count = 2 if change_name else 1
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
