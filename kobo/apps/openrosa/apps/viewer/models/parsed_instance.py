@@ -259,12 +259,17 @@ class ParsedInstance(models.Model):
 
     def to_dict_for_mongo(self):
         d = self.to_dict()
+
+        userform_id = (
+            self.instance.xform.mongo_uuid
+            if self.instance.xform.mongo_uuid
+            else f'{self.instance.xform.user.username}_{self.instance.xform.id_string}'
+        )
+
         data = {
             UUID: self.instance.uuid,
             ID: self.instance.id,
-            self.USERFORM_ID: '%s_%s' % (
-                self.instance.xform.user.username,
-                self.instance.xform.id_string),
+            self.USERFORM_ID: userform_id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
