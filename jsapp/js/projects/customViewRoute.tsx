@@ -29,6 +29,7 @@ import type {
 import {
   DEFAULT_VISIBLE_FIELDS,
   DEFAULT_ORDERABLE_FIELDS,
+  DEFAULT_EXCLUDED_FIELDS,
 } from './projectViews/constants';
 import {ROOT_URL} from 'js/constants';
 
@@ -100,6 +101,14 @@ function CustomViewRoute() {
     selectedRows.includes(asset.uid)
   );
 
+  /** Filters out excluded fields */
+  const getTableVisibleFields = () => {
+    const outcome = toJS(customView.fields) || customView.defaultVisibleFields;
+    return outcome.filter(
+      (fieldName) => !DEFAULT_EXCLUDED_FIELDS.includes(fieldName)
+    );
+  };
+
   return (
     <section className={styles.root}>
       <header className={styles.header}>
@@ -108,11 +117,13 @@ function CustomViewRoute() {
         <ProjectsFilter
           onFiltersChange={customView.setFilters.bind(customView)}
           filters={toJS(customView.filters)}
+          excludedFields={DEFAULT_EXCLUDED_FIELDS}
         />
 
         <ProjectsFieldsSelector
           onFieldsChange={customView.setFields.bind(customView)}
           selectedFields={toJS(customView.fields)}
+          excludedFields={DEFAULT_EXCLUDED_FIELDS}
         />
 
         <Button
@@ -131,9 +142,7 @@ function CustomViewRoute() {
 
         {selectedAssets.length === 1 && (
           <div className={styles.actions}>
-            <ProjectQuickActions
-              asset={selectedAssets[0]}
-            />
+            <ProjectQuickActions asset={selectedAssets[0]} />
           </div>
         )}
 
@@ -144,15 +153,11 @@ function CustomViewRoute() {
         )}
       </header>
 
-      <LimitNotifications useModal />
-
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}
         highlightedFields={getFilteredFieldsNames()}
-        visibleFields={
-          toJS(customView.fields) || customView.defaultVisibleFields
-        }
+        visibleFields={getTableVisibleFields()}
         orderableFields={DEFAULT_ORDERABLE_FIELDS}
         order={customView.order}
         onChangeOrderRequested={customView.setOrder.bind(customView)}
@@ -162,6 +167,8 @@ function CustomViewRoute() {
         selectedRows={selectedRows}
         onRowsSelected={setSelectedRows}
       />
+
+      <LimitNotifications useModal />
     </section>
   );
 }

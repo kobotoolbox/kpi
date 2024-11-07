@@ -143,8 +143,6 @@ function MyProjectsRoute() {
         <h1>{t('Drop files to upload')}</h1>
       </div>
 
-      <LimitNotifications useModal />
-
       <section className={styles.root}>
         {invite.status && banner && (
           <div className={styles.banner}>
@@ -237,6 +235,8 @@ function MyProjectsRoute() {
           selectedRows={selectedRows}
           onRowsSelected={setSelectedRows}
         />
+
+        <LimitNotifications useModal />
 
         {invite.valid && invite.uid !== '' && (
           <TransferProjectsInvite

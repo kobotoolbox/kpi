@@ -146,110 +146,108 @@ function MyOrgProjectsRoute() {
   }
 
   return (
-    <>
-      <LimitNotifications useModal />
+    <section className={styles.root}>
+      {invite.status && banner && (
+        <div className={styles.banner}>
+          <Icon
+            name='information'
+            color='blue'
+            className={styles.bannerIcon}
+          />
 
-      <section className={styles.root}>
-        {invite.status && banner && (
-          <div className={styles.banner}>
-            <Icon
-              name='information'
-              color='blue'
-              className={styles.bannerIcon}
-            />
+          {invite.status === TransferStatuses.Declined && (
+            <>
+              {t(
+                'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
+              )
+                .replace('##PROJECT_NAME##', invite.name)
+                .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+              &nbsp;
+              {t(
+                '##CURRENT_OWNER_NAME## will remain the project owner.'
+              ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+            </>
+          )}
+          {invite.status === TransferStatuses.Accepted && (
+            <>
+              {t(
+                'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
+              )
+                .replace('##PROJECT_NAME##', invite.name)
+                .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
+            </>
+          )}
 
-            {invite.status === TransferStatuses.Declined && (
-              <>
-                {t(
-                  'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
-                )
-                  .replace('##PROJECT_NAME##', invite.name)
-                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-                &nbsp;
-                {t(
-                  '##CURRENT_OWNER_NAME## will remain the project owner.'
-                ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-              </>
-            )}
-            {invite.status === TransferStatuses.Accepted && (
-              <>
-                {t(
-                  'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
-                )
-                  .replace('##PROJECT_NAME##', invite.name)
-                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-              </>
-            )}
+          <Button
+            type='text'
+            size='s'
+            startIcon='close'
+            onClick={() => {
+              setBanner(false);
+            }}
+            className={styles.bannerButton}
+          />
+        </div>
+      )}
 
-            <Button
-              type='text'
-              size='s'
-              startIcon='close'
-              onClick={() => {
-                setBanner(false);
-              }}
-              className={styles.bannerButton}
-            />
+      <header className={styles.header}>
+        <ViewSwitcher selectedViewUid={ORG_VIEW.uid} />
+
+        <ProjectsFilter
+          onFiltersChange={customView.setFilters.bind(customView)}
+          filters={toJS(customView.filters)}
+          excludedFields={HOME_EXCLUDED_FIELDS}
+        />
+
+        <ProjectsFieldsSelector
+          onFieldsChange={customView.setFields.bind(customView)}
+          selectedFields={toJS(customView.fields)}
+          excludedFields={HOME_EXCLUDED_FIELDS}
+        />
+
+        {selectedAssets.length === 0 && (
+          <div className={styles.actions}>
+            <ProjectQuickActionsEmpty />
           </div>
         )}
 
-        <header className={styles.header}>
-          <ViewSwitcher selectedViewUid={ORG_VIEW.uid} />
-
-          <ProjectsFilter
-            onFiltersChange={customView.setFilters.bind(customView)}
-            filters={toJS(customView.filters)}
-            excludedFields={HOME_EXCLUDED_FIELDS}
-          />
-
-          <ProjectsFieldsSelector
-            onFieldsChange={customView.setFields.bind(customView)}
-            selectedFields={toJS(customView.fields)}
-            excludedFields={HOME_EXCLUDED_FIELDS}
-          />
-
-          {selectedAssets.length === 0 && (
-            <div className={styles.actions}>
-              <ProjectQuickActionsEmpty />
-            </div>
-          )}
-
-          {selectedAssets.length === 1 && (
-            <div className={styles.actions}>
-              <ProjectQuickActions asset={selectedAssets[0]} />
-            </div>
-          )}
-
-          {selectedAssets.length > 1 && (
-            <div className={styles.actions}>
-              <ProjectBulkActions assets={selectedAssets} />
-            </div>
-          )}
-        </header>
-
-        <ProjectsTable
-          assets={customView.assets}
-          isLoading={!customView.isFirstLoadComplete}
-          highlightedFields={getFilteredFieldsNames()}
-          visibleFields={getTableVisibleFields()}
-          orderableFields={HOME_ORDERABLE_FIELDS}
-          order={customView.order}
-          onChangeOrderRequested={customView.setOrder.bind(customView)}
-          onHideFieldRequested={customView.hideField.bind(customView)}
-          onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
-          hasMorePages={customView.hasMoreAssets}
-          selectedRows={selectedRows}
-          onRowsSelected={setSelectedRows}
-        />
-
-        {invite.valid && invite.uid !== '' && (
-          <TransferProjectsInvite
-            setInvite={setInviteDetail}
-            inviteUid={invite.uid}
-          />
+        {selectedAssets.length === 1 && (
+          <div className={styles.actions}>
+            <ProjectQuickActions asset={selectedAssets[0]} />
+          </div>
         )}
-      </section>
-    </>
+
+        {selectedAssets.length > 1 && (
+          <div className={styles.actions}>
+            <ProjectBulkActions assets={selectedAssets} />
+          </div>
+        )}
+      </header>
+
+      <ProjectsTable
+        assets={customView.assets}
+        isLoading={!customView.isFirstLoadComplete}
+        highlightedFields={getFilteredFieldsNames()}
+        visibleFields={getTableVisibleFields()}
+        orderableFields={HOME_ORDERABLE_FIELDS}
+        order={customView.order}
+        onChangeOrderRequested={customView.setOrder.bind(customView)}
+        onHideFieldRequested={customView.hideField.bind(customView)}
+        onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
+        hasMorePages={customView.hasMoreAssets}
+        selectedRows={selectedRows}
+        onRowsSelected={setSelectedRows}
+      />
+
+      <LimitNotifications useModal />
+
+      {invite.valid && invite.uid !== '' && (
+        <TransferProjectsInvite
+          setInvite={setInviteDetail}
+          inviteUid={invite.uid}
+        />
+      )}
+    </section>
   );
 }
 
