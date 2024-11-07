@@ -453,8 +453,8 @@ class ImportTask(ImportExportTask):
                         'asset_uid': asset.uid,
                         'asset_id': asset.id,
                         'latest_version_uid': asset.latest_version.uid,
-                        'ip_address': self.data['ip_address'],
-                        'source': self.data['source'],
+                        'ip_address': self.data.get('ip_address', None),
+                        'source': self.data.get('source',None),
                         'old_name': old_name,
                         'new_name': asset.name,
                     }
