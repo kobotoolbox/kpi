@@ -1,4 +1,3 @@
-import React, {useCallback} from 'react';
 import cx from 'classnames';
 import Button from 'js/components/common/button';
 import {useNavigate} from 'react-router-dom';
@@ -37,6 +36,8 @@ const limitsText: {
 
 const getLimitText = (limit: string, interval: string) => {
   if (limit === 'storage') {return t('storage');}
+  if (!limitsText[limit]) {return limit;}
+
   return limitsText[limit][interval as 'month' | 'year'];
 };
 
@@ -62,11 +63,10 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
 
   const orgQuery = useOrganizationQuery();
 
-  console.log('Org data:', orgQuery.data);
-
-  if (!orgQuery.data || !props.limits.length) {
+  if (!orgQuery.data || !envStore.isReady || !props.limits.length) {
     return null;
   }
+
 
   const {limits, interval, warning} = props;
   const {is_mmo} = orgQuery.data;
@@ -89,25 +89,6 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         {textLimits}
         </strong>
         {'. '}
-        {/* {props.warning
-          ? t('You are approaching your')
-          : t('You have reached your')}
-        <strong>
-          {' '}
-          {(props.limits.length > 1 || props.limits[0] !== 'storage') &&
-          props.interval === 'month'
-            ? t('monthly')
-            : t('yearly')}{' '}
-          {props.limits.map((item, i) => (
-            <span key={i}>
-              {i > 0 && props.limits.length > 2 && ', '}
-              {i === props.limits.length - 1 && i > 0 && t(' and ')}
-              {item}
-            </span>
-          ))}{' '}
-          {props.limits.length > 1 ? t('limit') : t('limits')}
-        </strong>
-        {'. '} */}
         {props.warning && (
           <>
             <a
