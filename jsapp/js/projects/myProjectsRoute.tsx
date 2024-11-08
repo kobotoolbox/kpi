@@ -51,7 +51,7 @@ function MyProjectsRoute() {
       `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
-  });
+  }, [customView]);
 
   // Whenever we do a full page (of results) reload, we need to clear up
   // `selectedRows` to not end up with a project selected (e.g. on page of

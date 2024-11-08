@@ -62,7 +62,7 @@ function MyOrgProjectsRoute() {
         false
       );
     }
-  });
+  }, [orgQuery.data, customView]);
 
   // Whenever we do a full page (of results) reload, we need to clear up
   // `selectedRows` to not end up with a project selected (e.g. on page of
