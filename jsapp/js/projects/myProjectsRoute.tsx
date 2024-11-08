@@ -2,7 +2,6 @@
 import React, {useState, useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
-import {useSearchParams} from 'react-router-dom';
 import Dropzone from 'react-dropzone';
 
 // Partial components
@@ -14,16 +13,11 @@ import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
+import TransferModalWithBanner from 'js/components/permissions/transferProjects/transferModalWithBanner';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
-import {
-  isInviteForLoggedInUser,
-  TransferStatuses,
-} from 'js/components/permissions/transferProjects/transferProjects.api';
 import {validFileTypes} from 'js/utils';
 import {dropImportXLSForms} from 'js/dropzone.utils';
 
@@ -44,29 +38,12 @@ import {ROOT_URL} from 'js/constants';
 import styles from './projectViews.module.scss';
 import routeStyles from './myProjectsRoute.module.scss';
 
-interface InviteState {
-  valid: boolean;
-  uid: string;
-  status: TransferStatuses.Accepted | TransferStatuses.Declined | null;
-  name: string;
-  currentOwner: string;
-}
-
 /**
  * Component responsible for rendering "My projects" route (`#/projects/home`).
  */
 function MyProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [invite, setInvite] = useState<InviteState>({
-    valid: false,
-    uid: '',
-    status: null,
-    name: '',
-    currentOwner: '',
-  });
-  const [banner, setBanner] = useState(true);
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     customView.setUp(
@@ -74,16 +51,7 @@ function MyProjectsRoute() {
       `${ROOT_URL}/api/v2/assets/`,
       HOME_DEFAULT_VISIBLE_FIELDS
     );
-
-    const inviteParams = searchParams.get('invite');
-    if (inviteParams) {
-      isInviteForLoggedInUser(inviteParams).then((data) => {
-        setInvite({...invite, valid: data, uid: inviteParams});
-      });
-    } else {
-      setInvite({...invite, valid: false, uid: ''});
-    }
-  }, [searchParams]);
+  });
 
   // Whenever we do a full page (of results) reload, we need to clear up
   // `selectedRows` to not end up with a project selected (e.g. on page of
@@ -116,19 +84,6 @@ function MyProjectsRoute() {
     );
   };
 
-  const setInviteDetail = (
-    newStatus: TransferStatuses.Accepted | TransferStatuses.Declined,
-    name: string,
-    currentOwner: string
-  ) => {
-    setInvite({
-      ...invite,
-      status: newStatus,
-      name: name,
-      currentOwner: currentOwner,
-    });
-  };
-
   return (
     <Dropzone
       onDrop={dropImportXLSForms}
@@ -144,48 +99,7 @@ function MyProjectsRoute() {
       </div>
 
       <section className={styles.root}>
-        {invite.status && banner && (
-          <div className={styles.banner}>
-            <Icon
-              name='information'
-              color='blue'
-              className={styles.bannerIcon}
-            />
-
-            {invite.status === TransferStatuses.Declined && (
-              <>
-                {t(
-                  'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
-                )
-                  .replace('##PROJECT_NAME##', invite.name)
-                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-                &nbsp;
-                {t(
-                  '##CURRENT_OWNER_NAME## will remain the project owner.'
-                ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-              </>
-            )}
-            {invite.status === TransferStatuses.Accepted && (
-              <>
-                {t(
-                  'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
-                )
-                  .replace('##PROJECT_NAME##', invite.name)
-                  .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-              </>
-            )}
-
-            <Button
-              type='text'
-              size='s'
-              startIcon='close'
-              onClick={() => {
-                setBanner(false);
-              }}
-              className={styles.bannerButton}
-            />
-          </div>
-        )}
+        <TransferModalWithBanner />
 
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
@@ -237,13 +151,6 @@ function MyProjectsRoute() {
         />
 
         <LimitNotifications useModal />
-
-        {invite.valid && invite.uid !== '' && (
-          <TransferProjectsInvite
-            setInvite={setInviteDetail}
-            inviteUid={invite.uid}
-          />
-        )}
       </section>
     </Dropzone>
   );
