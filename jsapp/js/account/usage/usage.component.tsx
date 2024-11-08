@@ -121,17 +121,17 @@ export default function Usage() {
           storageByteRemainingLimit: limits.remainingLimits.storage_bytes_limit,
           storageByteRecurringLimit: limits.recurringLimits.storage_bytes_limit,
           nlpCharacterRemainingLimit:
-            limits.remainingLimits.nlp_character_limit,
+            limits.remainingLimits.mt_characters_limit,
           nlpCharacterRecurringLimit:
-            limits.recurringLimits.nlp_character_limit,
+            limits.recurringLimits.mt_characters_limit,
           nlpMinuteRemainingLimit:
-            typeof limits.remainingLimits.nlp_seconds_limit === 'number'
-              ? convertSecondsToMinutes(limits.remainingLimits.nlp_seconds_limit)
-              : limits.remainingLimits.nlp_seconds_limit,
+            typeof limits.remainingLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(limits.remainingLimits.asr_seconds_limit)
+              : limits.remainingLimits.asr_seconds_limit,
           nlpMinuteRecurringLimit:
-            typeof limits.recurringLimits.nlp_seconds_limit === 'number'
-              ? convertSecondsToMinutes(limits.recurringLimits.nlp_seconds_limit)
-              : limits.recurringLimits.nlp_seconds_limit,
+            typeof limits.recurringLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(limits.recurringLimits.asr_seconds_limit)
+              : limits.recurringLimits.asr_seconds_limit,
           submissionsRemainingLimit: limits.remainingLimits.submission_limit,
           submissionsRecurringLimit: limits.recurringLimits.submission_limit,
           isLoaded: true,

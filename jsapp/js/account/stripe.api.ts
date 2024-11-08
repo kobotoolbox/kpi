@@ -23,8 +23,8 @@ import sessionStore from 'js/stores/session';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
-  nlp_seconds_limit: Limits.unlimited,
-  nlp_character_limit: Limits.unlimited,
+  asr_seconds_limit: Limits.unlimited,
+  mt_characters_limit: Limits.unlimited,
   storage_bytes_limit: Limits.unlimited,
 });
 
@@ -208,10 +208,10 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
     newLimits['submission_limit'] = thresholds.data;
   }
   if (thresholds.translation_chars) {
-    newLimits['nlp_character_limit'] = thresholds.translation_chars;
+    newLimits['mt_characters_limit'] = thresholds.translation_chars;
   }
   if (thresholds.transcription_minutes) {
-    newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60;
+    newLimits['asr_seconds_limit'] = thresholds.transcription_minutes * 60;
   }
   return newLimits;
 };
@@ -259,15 +259,15 @@ const addRemainingOneTimeAddOnLimits = (
       }
       if (
         addon.limits_remaining.asr_seconds_limit &&
-        limits.nlp_seconds_limit !== Limits.unlimited
+        limits.asr_seconds_limit !== Limits.unlimited
       ) {
-        limits.nlp_seconds_limit += addon.limits_remaining.asr_seconds_limit;
+        limits.asr_seconds_limit += addon.limits_remaining.asr_seconds_limit;
       }
       if (
         addon.limits_remaining.mt_characters_limit &&
-        limits.nlp_character_limit !== Limits.unlimited
+        limits.mt_characters_limit !== Limits.unlimited
       ) {
-        limits.nlp_character_limit +=
+        limits.mt_characters_limit +=
           addon.limits_remaining.mt_characters_limit;
       }
     });
