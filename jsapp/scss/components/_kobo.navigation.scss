@@ -151,7 +151,7 @@
     width: calc(100% - 70px);
     line-height: 20px;
     margin-top: 5px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 
     span {
       display: inline-block;
@@ -168,6 +168,7 @@
 
   .account-box__menu-item--settings {
     text-align: right;
+    margin-top: 16px;
   }
 
   .account-box__menu-li {
