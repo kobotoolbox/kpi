@@ -119,12 +119,7 @@ export default function EmailSection() {
   const unverifiedEmail = email.emails.find(
     (userEmail) => !userEmail.verified && !userEmail.primary
   );
-
-  const isReady =
-    !session.isPending &&
-    session.isInitialLoadComplete &&
-    'email' in currentAccount;
-
+  const isReady = session.isInitialLoadComplete && 'email' in currentAccount;
   // Only users who are members in a MMO cannot change their email
   const userCanChangeEmail = orgQuery.data?.is_mmo
     ? orgQuery.data.request_user_role !== 'member'
