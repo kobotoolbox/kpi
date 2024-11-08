@@ -2,7 +2,8 @@
 import React, {useState, useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
-import {useSearchParams, useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
+import Dropzone from 'react-dropzone';
 
 // Partial components
 import ProjectsFilter from './projectViews/projectsFilter';
@@ -13,18 +14,15 @@ import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
-import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import TransferProjectsInvite from 'js/components/permissions/transferProjects/transferProjectsInvite.component';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import TransferModalWithBanner from 'js/components/permissions/transferProjects/transferModalWithBanner';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
-import {
-  isInviteForLoggedInUser,
-  TransferStatuses,
-} from 'js/components/permissions/transferProjects/transferProjects.api';
 import {useOrganizationQuery} from 'js/account/stripe.api';
+import {validFileTypes} from 'js/utils';
+import {dropImportXLSForms} from 'js/dropzone.utils';
 
 // Constants and types
 import type {
@@ -43,14 +41,7 @@ import {PROJECTS_ROUTES} from 'js/router/routerConstants';
 
 // Styles
 import styles from './projectViews.module.scss';
-
-interface InviteState {
-  valid: boolean;
-  uid: string;
-  status: TransferStatuses.Accepted | TransferStatuses.Declined | null;
-  name: string;
-  currentOwner: string;
-}
+import routeStyles from './myProjectsRoute.module.scss';
 
 /**
  * Component responsible for rendering organization projects route (`#/projects/organization`).
@@ -58,15 +49,6 @@ interface InviteState {
 function MyOrgProjectsRoute() {
   const [customView] = useState(customViewStore);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [invite, setInvite] = useState<InviteState>({
-    valid: false,
-    uid: '',
-    status: null,
-    name: '',
-    currentOwner: '',
-  });
-  const [banner, setBanner] = useState(true);
-  const [searchParams] = useSearchParams();
   const orgQuery = useOrganizationQuery();
   const navigate = useNavigate();
 
@@ -80,16 +62,7 @@ function MyOrgProjectsRoute() {
         false
       );
     }
-
-    const inviteParams = searchParams.get('invite');
-    if (inviteParams) {
-      isInviteForLoggedInUser(inviteParams).then((data) => {
-        setInvite({...invite, valid: data, uid: inviteParams});
-      });
-    } else {
-      setInvite({...invite, valid: false, uid: ''});
-    }
-  }, [searchParams, orgQuery.data]);
+  });
 
   // Whenever we do a full page (of results) reload, we need to clear up
   // `selectedRows` to not end up with a project selected (e.g. on page of
@@ -128,126 +101,80 @@ function MyOrgProjectsRoute() {
     );
   };
 
-  const setInviteDetail = (
-    newStatus: TransferStatuses.Accepted | TransferStatuses.Declined,
-    name: string,
-    currentOwner: string
-  ) => {
-    setInvite({
-      ...invite,
-      status: newStatus,
-      name: name,
-      currentOwner: currentOwner,
-    });
-  };
 
   if (orgQuery.data === undefined) {
     return <LoadingSpinner />;
   }
 
   return (
-    <section className={styles.root}>
-      {invite.status && banner && (
-        <div className={styles.banner}>
-          <Icon
-            name='information'
-            color='blue'
-            className={styles.bannerIcon}
+    <Dropzone
+      onDrop={dropImportXLSForms}
+      disableClick
+      multiple
+      className={routeStyles.dropzone}
+      activeClassName={routeStyles.dropzoneActive}
+      accept={validFileTypes()}
+    >
+      <div className={routeStyles.dropzoneOverlay}>
+        <Icon name='upload' size='xl' />
+        <h1>{t('Drop files to upload')}</h1>
+      </div>
+
+      <section className={styles.root}>
+        <TransferModalWithBanner />
+
+        <header className={styles.header}>
+          <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
+
+          <ProjectsFilter
+            onFiltersChange={customView.setFilters.bind(customView)}
+            filters={toJS(customView.filters)}
+            excludedFields={HOME_EXCLUDED_FIELDS}
           />
 
-          {invite.status === TransferStatuses.Declined && (
-            <>
-              {t(
-                'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
-              )
-                .replace('##PROJECT_NAME##', invite.name)
-                .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-              &nbsp;
-              {t(
-                '##CURRENT_OWNER_NAME## will remain the project owner.'
-              ).replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-            </>
-          )}
-          {invite.status === TransferStatuses.Accepted && (
-            <>
-              {t(
-                'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
-              )
-                .replace('##PROJECT_NAME##', invite.name)
-                .replace('##CURRENT_OWNER_NAME##', invite.currentOwner)}
-            </>
-          )}
-
-          <Button
-            type='text'
-            size='s'
-            startIcon='close'
-            onClick={() => {
-              setBanner(false);
-            }}
-            className={styles.bannerButton}
+          <ProjectsFieldsSelector
+            onFieldsChange={customView.setFields.bind(customView)}
+            selectedFields={toJS(customView.fields)}
+            excludedFields={HOME_EXCLUDED_FIELDS}
           />
-        </div>
-      )}
 
-      <header className={styles.header}>
-        <ViewSwitcher selectedViewUid={ORG_VIEW.uid} />
+          {selectedAssets.length === 0 && (
+            <div className={styles.actions}>
+              <ProjectQuickActionsEmpty />
+            </div>
+          )}
 
-        <ProjectsFilter
-          onFiltersChange={customView.setFilters.bind(customView)}
-          filters={toJS(customView.filters)}
-          excludedFields={HOME_EXCLUDED_FIELDS}
+          {selectedAssets.length === 1 && (
+            <div className={styles.actions}>
+              <ProjectQuickActions asset={selectedAssets[0]} />
+            </div>
+          )}
+
+          {selectedAssets.length > 1 && (
+            <div className={styles.actions}>
+              <ProjectBulkActions assets={selectedAssets} />
+            </div>
+          )}
+        </header>
+
+        <ProjectsTable
+          assets={customView.assets}
+          isLoading={!customView.isFirstLoadComplete}
+          highlightedFields={getFilteredFieldsNames()}
+          visibleFields={getTableVisibleFields()}
+          orderableFields={HOME_ORDERABLE_FIELDS}
+          order={customView.order}
+          onChangeOrderRequested={customView.setOrder.bind(customView)}
+          onHideFieldRequested={customView.hideField.bind(customView)}
+          onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
+          hasMorePages={customView.hasMoreAssets}
+          selectedRows={selectedRows}
+          onRowsSelected={setSelectedRows}
         />
 
-        <ProjectsFieldsSelector
-          onFieldsChange={customView.setFields.bind(customView)}
-          selectedFields={toJS(customView.fields)}
-          excludedFields={HOME_EXCLUDED_FIELDS}
-        />
-
-        {selectedAssets.length === 0 && (
-          <div className={styles.actions}>
-            <ProjectQuickActionsEmpty />
-          </div>
-        )}
-
-        {selectedAssets.length === 1 && (
-          <div className={styles.actions}>
-            <ProjectQuickActions asset={selectedAssets[0]} />
-          </div>
-        )}
-
-        {selectedAssets.length > 1 && (
-          <div className={styles.actions}>
-            <ProjectBulkActions assets={selectedAssets} />
-          </div>
-        )}
-      </header>
-
-      <ProjectsTable
-        assets={customView.assets}
-        isLoading={!customView.isFirstLoadComplete}
-        highlightedFields={getFilteredFieldsNames()}
-        visibleFields={getTableVisibleFields()}
-        orderableFields={HOME_ORDERABLE_FIELDS}
-        order={customView.order}
-        onChangeOrderRequested={customView.setOrder.bind(customView)}
-        onHideFieldRequested={customView.hideField.bind(customView)}
-        onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
-        hasMorePages={customView.hasMoreAssets}
-        selectedRows={selectedRows}
-        onRowsSelected={setSelectedRows}
-      />
-
-      <LimitNotifications useModal />
-
-      {invite.valid && invite.uid !== '' && (
-        <TransferProjectsInvite
-          setInvite={setInviteDetail}
-          inviteUid={invite.uid}
-        />
-      )}
-    </section>
+        <LimitNotifications useModal />
+      </section>
+    </Dropzone>
   );
 }
 
