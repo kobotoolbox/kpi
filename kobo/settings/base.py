@@ -1800,3 +1800,5 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 # in the ObjectPermission table), but the code will still conduct the permission
 # checks as if they were.
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
+
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 20

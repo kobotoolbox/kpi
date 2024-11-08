@@ -19,6 +19,7 @@ from kpi.deployment_backends.kc_access.utils import (
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -27,7 +28,7 @@ from .choices import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .invite import Invite
+from .invite import Invite, InviteType, OrgMembershipAutoInvite
 
 
 class Transfer(AbstractTimeStampedModel):
@@ -43,6 +44,16 @@ class Transfer(AbstractTimeStampedModel):
         related_name='transfers',
         on_delete=models.CASCADE,
     )
+    # The `invite_type` field is **always** copied from the `Invite` model during the
+    # save process to eliminate the need to load the related `Invite` model solely to
+    # determine its type.
+    # This optimization allows directly resolving the appropriate model with
+    # `get_invite_model()`.
+    invite_type = models.CharField(
+        choices=InviteType.choices,
+        default=InviteType.USER_OWNERSHIP_TRANSFER,
+        max_length=30,
+    )
 
     class Meta:
         verbose_name = 'project ownership transfer'
@@ -54,9 +65,18 @@ class Transfer(AbstractTimeStampedModel):
             f'{self.invite.recipient.username}'
         )
 
+    def get_invite_model(self) -> Invite | OrgMembershipAutoInvite:
+        if self.invite_type == InviteType.USER_OWNERSHIP_TRANSFER:
+            return Invite
+        if self.invite_type == InviteType.ORG_MEMBERSHIP:
+            return OrgMembershipAutoInvite
+
+        raise NotImplementedError
+
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
+        self.invite_type = self.invite.invite_type
         super().save(*args, **kwargs)
 
         if is_new:
@@ -269,8 +289,8 @@ class Transfer(AbstractTimeStampedModel):
         This method must be called within a transaction because of the lock
         acquired the object row (with `select_for_update`)
         """
-        invite = self.invite.__class__.objects.select_for_update().get(
-            pk=self.invite.pk
+        invite = self.get_invite_model().objects.select_for_update().get(
+            pk=self.invite_id
         )
         previous_status = invite.status
         is_complete = True
@@ -296,8 +316,8 @@ class Transfer(AbstractTimeStampedModel):
             if invite.status == InviteStatusChoices.FAILED:
                 send_email_to_admins.delay(invite.uid)
 
-        if previous_status != invite.status:
-            self.invite.refresh_from_db()
+            self.invite.status = invite.status
+            self.invite.date_modified = invite.date_modified
 
 
 class TransferStatus(AbstractTimeStampedModel):
