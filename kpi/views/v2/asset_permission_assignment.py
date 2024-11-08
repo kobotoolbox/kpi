@@ -12,6 +12,7 @@ from rest_framework.mixins import (
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kpi.constants import (
     CLONE_ARG_NAME,
     PERM_MANAGE_ASSET,
@@ -37,7 +38,7 @@ class AssetPermissionAssignmentViewSet(
     RetrieveModelMixin,
     DestroyModelMixin,
     ListModelMixin,
-    viewsets.GenericViewSet,
+    AuditLoggedViewSet,
 ):
     """
     ## Permission assignments of an asset
@@ -169,6 +170,8 @@ class AssetPermissionAssignmentViewSet(
     pagination_class = None
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
+    log_type = 'project-history'
+    logged_fields = []
 
     @action(
         detail=False,
@@ -183,12 +186,20 @@ class AssetPermissionAssignmentViewSet(
         :param request:
         :return: JSON
         """
+        request._request.initial_data = {
+            'permissions': list(self.asset.permissions.order_by('user').values('user__username','permission__codename')),
+            'object_id': self.asset.id,
+            'object_uid': self.asset.uid,
+        }
         serializer = AssetBulkInsertPermissionSerializer(
             data={'assignments': request.data},
             context=self.get_serializer_context(),
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        request._request.updated_data = {
+            'permissions': list(self.asset.permissions.order_by('user').values('user__username', 'permission__codename'))
+        }
         return self.list(request, *args, **kwargs)
 
     @action(

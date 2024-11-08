@@ -2,6 +2,7 @@ from django.db import models
 
 
 class AuditAction(models.TextChoices):
+    ADD_USER = 'add-user'
     ADD_MEDIA = 'add-media'
     ARCHIVE = 'archive'
     AUTH = 'auth'
@@ -19,10 +20,12 @@ class AuditAction(models.TextChoices):
     MODIFY_IMPORTED_FIELDS = 'modify-imported-fields'
     MODIFY_SERVICE = 'modify-service'
     MODIFY_SHARING = 'modify_sharing'
+    MODIFY_USER_PERMISSIONS = 'modify-user-permissions'
     PUT_BACK = 'put-back'
     REDEPLOY = 'redeploy'
     REGISTER_SERVICE = 'register-service'
     REMOVE = 'remove'
+    REMOVE_USER = 'remove-user'
     REPLACE_FORM = 'replace-form'
     UNARCHIVE = 'unarchive'
     UPDATE = 'update'

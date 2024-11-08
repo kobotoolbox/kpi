@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import jsonschema
 from django.conf import settings
 from django.db import models
@@ -324,6 +326,7 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def create_from_request(cls, request):
+        logging.info(f'create from request to {request.resolver_match.url_name}')
         url_name_to_action = {
             'asset-deployment': cls.create_from_deployment_request,
             'asset-detail': cls.create_from_detail_request,
@@ -335,12 +338,66 @@ class ProjectHistoryLog(AuditLog):
             'asset-file-list': cls.create_from_file_request,
             'asset-export-list': cls.create_from_export_request,
             'exporttask-list': cls.create_from_v1_export,
+            'asset-permission-assignment-bulk-assignments': cls.create_from_bulk_assignment
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
         if not method:
             return
         method(request)
+
+    @classmethod
+    def create_from_bulk_assignment(cls, request):
+        old_permissions = request.initial_data['permissions']
+
+        new_permissions = request.updated_data['permissions']
+
+        old_permissions_by_user = defaultdict(list)
+        new_permissions_by_user = defaultdict(list)
+        logs = []
+        for permission in old_permissions:
+            old_permissions_by_user[permission['user__username']].append(permission['permission__codename'])
+        for permission in new_permissions:
+            new_permissions_by_user[permission['user__username']].append(permission['permission__codename'])
+
+
+        for username in {*old_permissions_by_user, *new_permissions_by_user}:
+            user = User.objects.get(username=username)
+            old_user_perms = old_permissions_by_user[username]
+            new_user_perms = new_permissions_by_user[username]
+
+            if len(old_user_perms) == 0 and len(new_user_perms) > 0:
+                action = AuditAction.ADD_USER
+                added_perms = new_user_perms
+                removed_perms = []
+            elif len(new_user_perms) == 0 and len(old_user_perms) > 0:
+                action = AuditAction.REMOVE_USER
+                added_perms = []
+                removed_perms = old_user_perms
+            else:
+                action = AuditAction.MODIFY_USER_PERMISSIONS
+                added_perms = [perm for perm in new_user_perms if perm not in old_user_perms]
+                removed_perms = [perm for perm in old_user_perms if perm not in new_user_perms]
+                if len(added_perms) == 0 and len(removed_perms) == 0:
+                    continue
+            logs.append(cls(
+                user = user,
+                app_label = Asset._meta.app_label,
+                model_name = Asset._meta.model_name,
+                log_type = AuditType.PROJECT_HISTORY,
+                action = action,
+                user_uid = user.extra_details.uid,
+                object_id = request.initial_data['object_id'],
+                metadata = {
+                    'username': username,
+                    'permissions': {
+                        ADDED: added_perms,
+                        REMOVED: removed_perms
+                    },
+                    'asset_uid': request.initial_data['object_uid']
+                }
+            ))
+        res = ProjectHistoryLog.objects.bulk_create(logs)
 
     @staticmethod
     def create_from_deployment_request(request):
