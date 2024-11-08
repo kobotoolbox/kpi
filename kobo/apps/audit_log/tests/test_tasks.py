@@ -15,6 +15,7 @@ from kobo.apps.audit_log.tasks import (
     spawn_logs_cleaning_tasks,
 )
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -36,8 +37,14 @@ class AuditLogTasksTestCase(BaseTestCase):
         ProjectHistoryLog.objects.create(
             user=self.user,
             date_created=self.three_days_ago,
-            metadata={'foo': 'bar'},
-            asset=self.asset,
+            metadata={
+                'asset_uid': self.asset.uid,
+                'ip_address': '0.0.0.0',
+                'source': 'source',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'latest_version_uid': '0',
+            },
+            object_id=self.asset.id,
         )
 
         self.assertEqual(AccessLog.objects.count(), 1)
