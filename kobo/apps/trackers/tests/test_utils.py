@@ -88,7 +88,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     def test_organization_usage_utils(self, usage_type):
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         sub_metadata = {
-            usage_key: 1000,
+            usage_key: '1000',
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
@@ -97,7 +97,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         addon_metadata = {
             'product_type': 'addon_onetime',
-            usage_key: 2000,
+            usage_key: '2000',
             'valid_tags': 'all',
         }
         product, price = self._create_product(addon_metadata)

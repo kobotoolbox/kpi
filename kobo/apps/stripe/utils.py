@@ -1,4 +1,4 @@
-from math import ceil, floor
+from math import ceil, floor, inf
 
 from django.conf import settings
 from django.db.models import F
@@ -44,7 +44,7 @@ def generate_return_url(product_metadata):
 
 def get_organization_plan_limit(
     organization: Organization, usage_type: UsageType
-) -> int:
+) -> int | float:
     """
     Get organization plan limit for a given usage type
     """
@@ -90,5 +90,8 @@ def get_organization_plan_limit(
     if relevant_limit is None:
         # TODO: get the limits from the community plan, overrides
         relevant_limit = 2000
+    # Limits in Stripe metadata are strings. They may be numbers or 'unlimited'
+    if relevant_limit == 'unlimited':
+        return inf
 
-    return relevant_limit
+    return int(relevant_limit)

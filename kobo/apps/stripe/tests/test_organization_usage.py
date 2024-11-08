@@ -488,10 +488,24 @@ class OrganizationsUtilsTestCase(BaseTestCase):
     def test_get_suscription_limit(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         product_metadata = {
-            stripe_key: 1234,
+            stripe_key: '1234',
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == 1234
+
+    # Currently submissions and storage are the only usage types that can be
+    # 'unlimited'
+    @data('submission', 'storage')
+    def test_get_suscription_limit_unlimited(self, usage_type):
+        stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        product_metadata = {
+            stripe_key: 'unlimited',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+        limit = get_organization_plan_limit(self.organization, usage_type)
+        assert limit == float('inf')
