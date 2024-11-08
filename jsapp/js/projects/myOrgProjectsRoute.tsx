@@ -2,8 +2,8 @@
 import React, {useState, useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
-import {useNavigate} from 'react-router-dom';
 import Dropzone from 'react-dropzone';
+import {useNavigate} from 'react-router-dom';
 
 // Partial components
 import ProjectsFilter from './projectViews/projectsFilter';
@@ -15,14 +15,14 @@ import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import Icon from 'js/components/common/icon';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
 import TransferModalWithBanner from 'js/components/permissions/transferProjects/transferModalWithBanner';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
-import {useOrganizationQuery} from 'js/account/stripe.api';
 import {validFileTypes} from 'js/utils';
 import {dropImportXLSForms} from 'js/dropzone.utils';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 // Constants and types
 import type {
@@ -124,7 +124,7 @@ function MyOrgProjectsRoute() {
         <TransferModalWithBanner />
 
         <header className={styles.header}>
-          <ViewSwitcher selectedViewUid={HOME_VIEW.uid} />
+          <ViewSwitcher selectedViewUid={ORG_VIEW.uid} />
 
           <ProjectsFilter
             onFiltersChange={customView.setFilters.bind(customView)}
