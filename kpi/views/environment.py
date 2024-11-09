@@ -49,6 +49,7 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
     ]
 
     OTHER_CONFIGS = [
@@ -180,7 +181,6 @@ class EnvironmentView(APIView):
                         type='publishable', livemode=settings.STRIPE_LIVE_MODE
                     ).secret
                 )
-                data['use_team_label'] = False
             except MultipleObjectsReturned as e:
                 raise MultipleObjectsReturned(
                     'Remove extra api keys from the django admin.'
@@ -191,7 +191,6 @@ class EnvironmentView(APIView):
                 ) from e
         else:
             data['stripe_public_key'] = None
-            data['use_team_label'] = constance.config.USE_TEAM_LABEL
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
