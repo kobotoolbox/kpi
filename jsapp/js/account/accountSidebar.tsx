@@ -7,7 +7,7 @@ import Icon from 'js/components/common/icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Badge from '../components/common/badge';
 import subscriptionStore from 'js/account/subscriptionStore';
-import envStore from '../envStore';
+import envStore from 'js/envStore';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useOrganizationQuery} from './stripe.api';
