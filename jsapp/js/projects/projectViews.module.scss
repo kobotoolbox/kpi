@@ -1,4 +1,7 @@
+@use 'scss/z-indexes';
 @use 'scss/mixins';
+@use 'scss/colors';
+@use 'sass:color';
 
 .root {
   display: flex;
@@ -17,4 +20,39 @@
   @include mixins.centerRowFlex;
   flex: 1;
   justify-content: flex-end;
+}
+
+.dropzone {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.dropzoneOverlay {
+  display: none;
+}
+
+.dropzoneActive .dropzoneOverlay {
+  @include mixins.centerRowFlex;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  background-color: color.change(colors.$kobo-white, $alpha: 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: z-indexes.$z-dropzone;
+  color: colors.$kobo-blue;
+  border: 6px dashed currentcolor;
+
+  :global {
+    h1 {
+      width: 100%;
+      margin: 6px 0 0;
+      font-size: 18px;
+      font-weight: normal;
+    }
+  }
 }

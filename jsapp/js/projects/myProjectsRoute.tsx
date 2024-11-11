@@ -36,7 +36,6 @@ import {ROOT_URL} from 'js/constants';
 
 // Styles
 import styles from './projectViews.module.scss';
-import routeStyles from './myProjectsRoute.module.scss';
 
 /**
  * Component responsible for rendering "My projects" route (`#/projects/home`).
@@ -89,11 +88,11 @@ function MyProjectsRoute() {
       onDrop={dropImportXLSForms}
       disableClick
       multiple
-      className={routeStyles.dropzone}
-      activeClassName={routeStyles.dropzoneActive}
+      className={styles.dropzone}
+      activeClassName={styles.dropzoneActive}
       accept={validFileTypes()}
     >
-      <div className={routeStyles.dropzoneOverlay}>
+      <div className={styles.dropzoneOverlay}>
         <Icon name='upload' size='xl' />
         <h1>{t('Drop files to upload')}</h1>
       </div>

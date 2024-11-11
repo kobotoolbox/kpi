@@ -2,6 +2,7 @@
 import React, {useState, useEffect} from 'react';
 import {observer} from 'mobx-react-lite';
 import {toJS} from 'mobx';
+import Dropzone from 'react-dropzone';
 import {useParams} from 'react-router-dom';
 
 // Partial components
@@ -13,11 +14,14 @@ import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import Icon from 'js/components/common/icon';
+import TransferModalWithBanner from 'js/components/permissions/transferProjects/transferModalWithBanner';
 import Button from 'js/components/common/button';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
-import {notify} from 'js/utils';
+import {validFileTypes, notify} from 'js/utils';
+import {dropImportXLSForms} from 'js/dropzone.utils';
 import {handleApiFail, fetchPostUrl} from 'js/api';
 import projectViewsStore from './projectViews/projectViewsStore';
 
@@ -112,66 +116,82 @@ function CustomViewRoute() {
   };
 
   return (
-    <section className={styles.root}>
-      <header className={styles.header}>
-        <ViewSwitcher selectedViewUid={viewUid} />
+    <Dropzone
+      onDrop={dropImportXLSForms}
+      disableClick
+      multiple
+      className={styles.dropzone}
+      activeClassName={styles.dropzoneActive}
+      accept={validFileTypes()}
+    >
+      <div className={styles.dropzoneOverlay}>
+        <Icon name='upload' size='xl' />
+        <h1>{t('Drop files to upload')}</h1>
+      </div>
 
-        <ProjectsFilter
-          onFiltersChange={customView.setFilters.bind(customView)}
-          filters={toJS(customView.filters)}
-          excludedFields={DEFAULT_EXCLUDED_FIELDS}
+      <section className={styles.root}>
+        <TransferModalWithBanner />
+
+        <header className={styles.header}>
+          <ViewSwitcher selectedViewUid={viewUid} />
+
+          <ProjectsFilter
+            onFiltersChange={customView.setFilters.bind(customView)}
+            filters={toJS(customView.filters)}
+            excludedFields={DEFAULT_EXCLUDED_FIELDS}
+          />
+
+          <ProjectsFieldsSelector
+            onFieldsChange={customView.setFields.bind(customView)}
+            selectedFields={toJS(customView.fields)}
+            excludedFields={DEFAULT_EXCLUDED_FIELDS}
+          />
+
+          <Button
+            type='secondary'
+            size='s'
+            startIcon='download'
+            label={t('Export all data')}
+            onClick={exportAllData}
+          />
+
+          {selectedAssets.length === 0 && (
+            <div className={styles.actions}>
+              <ProjectQuickActionsEmpty />
+            </div>
+          )}
+
+          {selectedAssets.length === 1 && (
+            <div className={styles.actions}>
+              <ProjectQuickActions asset={selectedAssets[0]} />
+            </div>
+          )}
+
+          {selectedAssets.length > 1 && (
+            <div className={styles.actions}>
+              <ProjectBulkActions assets={selectedAssets} />
+            </div>
+          )}
+        </header>
+
+        <ProjectsTable
+          assets={customView.assets}
+          isLoading={!customView.isFirstLoadComplete}
+          highlightedFields={getFilteredFieldsNames()}
+          visibleFields={getTableVisibleFields()}
+          orderableFields={DEFAULT_ORDERABLE_FIELDS}
+          order={customView.order}
+          onChangeOrderRequested={customView.setOrder.bind(customView)}
+          onHideFieldRequested={customView.hideField.bind(customView)}
+          onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
+          hasMorePages={customView.hasMoreAssets}
+          selectedRows={selectedRows}
+          onRowsSelected={setSelectedRows}
         />
 
-        <ProjectsFieldsSelector
-          onFieldsChange={customView.setFields.bind(customView)}
-          selectedFields={toJS(customView.fields)}
-          excludedFields={DEFAULT_EXCLUDED_FIELDS}
-        />
-
-        <Button
-          type='secondary'
-          size='s'
-          startIcon='download'
-          label={t('Export all data')}
-          onClick={exportAllData}
-        />
-
-        {selectedAssets.length === 0 && (
-          <div className={styles.actions}>
-            <ProjectQuickActionsEmpty />
-          </div>
-        )}
-
-        {selectedAssets.length === 1 && (
-          <div className={styles.actions}>
-            <ProjectQuickActions asset={selectedAssets[0]} />
-          </div>
-        )}
-
-        {selectedAssets.length > 1 && (
-          <div className={styles.actions}>
-            <ProjectBulkActions assets={selectedAssets} />
-          </div>
-        )}
-      </header>
-
-      <ProjectsTable
-        assets={customView.assets}
-        isLoading={!customView.isFirstLoadComplete}
-        highlightedFields={getFilteredFieldsNames()}
-        visibleFields={getTableVisibleFields()}
-        orderableFields={DEFAULT_ORDERABLE_FIELDS}
-        order={customView.order}
-        onChangeOrderRequested={customView.setOrder.bind(customView)}
-        onHideFieldRequested={customView.hideField.bind(customView)}
-        onRequestLoadNextPage={customView.fetchMoreAssets.bind(customView)}
-        hasMorePages={customView.hasMoreAssets}
-        selectedRows={selectedRows}
-        onRowsSelected={setSelectedRows}
-      />
-
-      <LimitNotifications useModal />
-    </section>
+        <LimitNotifications useModal />
+      </section>
+    </Dropzone>
   );
 }
 
