@@ -1,7 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -15,6 +15,7 @@ from organizations.base_admin import (
 )
 
 from kobo.apps.kobo_auth.shortcuts import User
+from .forms import OrgUserAdminForm
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -212,6 +213,7 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
     resource_classes = [OrgUserResource]
     search_fields = ('user__username',)
     autocomplete_fields = ['user', 'organization']
+    form = OrgUserAdminForm
 
     def get_search_results(self, request, queryset, search_term):
         auto_complete = request.path == '/admin/autocomplete/'
@@ -227,6 +229,23 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
             ).filter(user_count__lte=1).order_by('user__username')
 
         return super().get_search_results(request, queryset, search_term)
+
+    def save_model(self, request, obj, form, change):
+        previous_organization = form.cleaned_data.get('previous_organization')
+        super().save_model(request, obj, form, change)
+        if previous_organization:
+            transfer_user_ownership_to_org.delay(obj.user.pk)
+            message = (
+                f'User <b>{obj.user.username}</b> has been added to '
+                f'<b>{obj.organization.name}</b>, and their project transfers have '
+                f'started'
+            )
+
+            self.message_user(
+                request,
+                mark_safe(message),
+                messages.INFO,
+            )
 
 
 @admin.register(OrganizationOwner)
