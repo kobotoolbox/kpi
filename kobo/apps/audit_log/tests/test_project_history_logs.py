@@ -2,6 +2,7 @@ import copy
 import json
 
 import jsonschema.exceptions
+from ddt import data, ddt
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.reverse import reverse as drf_reverse
@@ -15,6 +16,7 @@ from kpi.models import Asset, AssetFile, PairedData
 from kpi.models.asset import AssetSetting
 
 
+@ddt
 @override_settings(DEFAULT_DEPLOYMENT_BACKEND='mock')
 class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
@@ -31,8 +33,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # save to create a version
         asset.save()
         self.asset = asset
-        self.detail_url = 'api_v2:asset-detail'
-        self.deployment_url = 'api_v2:asset-deployment'
+        self.detail_url = 'asset-detail'
+        self.deployment_url = 'asset-deployment'
 
     def _check_common_metadata(self, metadata_dict):
         self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
@@ -40,9 +42,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['source'], 'source')
 
     def _base_asset_detail_endpoint_test(
-        self, patch, url_name, request_data, expected_action
+        self, patch, url_name, request_data, expected_action, use_v2=True
     ):
-        url = reverse(url_name, kwargs={'uid': self.asset.uid})
+        url_name_prefix = 'api_v2:' if use_v2 else ''
+        url = reverse(f'{url_name_prefix}{url_name}', kwargs={'uid': self.asset.uid})
         method = self.client.patch if patch else self.client.post
         log_metadata = self._base_project_history_log_test(
             method, url, request_data, expected_action
@@ -179,7 +182,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # no logs should be created
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    def test_change_project_name_creates_log(self):
+    @data(True, False)
+    def test_change_project_name_creates_log(self, use_v2):
         old_name = self.asset.name
 
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -187,12 +191,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data={'name': 'new_name'},
             expected_action=AuditAction.UPDATE_NAME,
+            use_v2=use_v2,
         )
 
         self.assertEqual(log_metadata['name'][NEW], 'new_name')
         self.assertEqual(log_metadata['name'][OLD], old_name)
 
-    def test_change_standard_project_settings_creates_log(self):
+    @data(True, False)
+    def test_change_standard_project_settings_creates_log(self, use_v2):
         old_settings = copy.deepcopy(self.asset.settings)
         # both country and description are in Asset.STANDARDIZED_SETTINGS
         patch_data = {
@@ -207,6 +213,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data=patch_data,
             expected_action=AuditAction.UPDATE_SETTINGS,
+            use_v2=use_v2,
         )
 
         # check non-list settings just store old and new information
@@ -228,7 +235,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             if setting not in ['country', 'settings', 'country_codes']:
                 self.assertNotIn(setting, log_metadata)
 
-    def test_unchanged_settings_not_recorded_on_log(self):
+    @data(True, False)
+    def test_unchanged_settings_not_recorded_on_log(self, use_v2):
         """
         Check settings not included on log if in the request but did not change
         """
@@ -245,6 +253,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data=patch_data,
             expected_action=AuditAction.UPDATE_SETTINGS,
+            use_v2=use_v2,
         )
 
         self.assertNotIn('sector', log_metadata)
@@ -252,7 +261,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertNotIn('operational_purpose', log_metadata)
         self.assertNotIn('collects_pii', log_metadata)
 
-    def test_no_log_if_settings_unchanged(self):
+    @data(True, False)
+    def test_no_log_if_settings_unchanged(self, use_v2):
         # fill request with only existing values
         patch_data = {
             'settings': {
@@ -261,16 +271,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'description': self.asset.settings['description'],
             }
         }
+        url_name_prefix = 'api_v2:' if use_v2 else ''
 
         self.client.patch(
-            reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
+            reverse(f'{url_name_prefix}asset-detail', kwargs={'uid': self.asset.uid}),
             data=patch_data,
             format='json',
         )
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    def test_nullify_settings_creates_log(self):
+    @data(True, False)
+    def test_nullify_settings_creates_log(self, use_v2):
         old_settings = copy.deepcopy(self.asset.settings)
 
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -278,6 +290,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url_name=self.detail_url,
             request_data={'settings': {}},
             expected_action=AuditAction.UPDATE_SETTINGS,
+            use_v2=use_v2,
         )
         for setting, old_value in old_settings.items():
             if setting in Asset.STANDARDIZED_SETTINGS:
@@ -305,13 +318,15 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 self.assertEqual(log_metadata['settings'][setting][NEW], new_value)
                 self.assertEqual(log_metadata['settings'][setting][OLD], old_value)
 
-    def test_add_new_settings_creates_log(self):
+    @data(True, False)
+    def test_add_new_settings_creates_log(self, use_v2):
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             # set a setting not in Asset.STANDARDIZED_SETTINGS
             request_data={'settings': {'new_setting': 'new_value'}},
             expected_action=AuditAction.UPDATE_SETTINGS,
+            use_v2=use_v2,
         )
 
         self.assertEqual(log_metadata['settings']['new_setting'][NEW], 'new_value')
@@ -392,12 +407,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['shared_fields'][ADDED], ['q2'])
         self.assertEqual(log_metadata['shared_fields'][REMOVED], ['q1'])
 
-    def test_update_content_creates_log(self):
+    @data(True, False)
+    def test_update_content_creates_log(self, use_v2):
         self._base_asset_detail_endpoint_test(
             patch=True,
             url_name=self.detail_url,
             request_data={'content': {'some': 'thing'}},
             expected_action=AuditAction.UPDATE_CONTENT,
+            use_v2=use_v2,
         )
 
     def test_update_qa_creates_log(self):
@@ -444,7 +461,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    def test_register_service_creates_log(self):
+    @data(True, False)
+    def test_register_service_creates_log(self, use_v2):
         request_data = {
             'name': 'test',
             'endpoint': 'http://www.google.com',
@@ -456,7 +474,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'settings': {'custom_headers': {}},
             'payload_template': '',
         }
-        url = reverse('api_v2:hook-list', args=(self.asset.uid,))
+        url_prefix = 'api_v2:' if use_v2 else ''
+        url = reverse(f'{url_prefix}hook-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -468,7 +487,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], True)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.google.com')
 
-    def test_modify_service_creates_log(self):
+    @data(True, False)
+    def test_modify_service_creates_log(self, use_v2):
         new_hook = Hook.objects.create(
             name='test',
             endpoint='http://www.example.com',
@@ -478,10 +498,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         request_data = {
             'active': False,
         }
+        url_prefix = 'api_v2:' if use_v2 else ''
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
             url=reverse(
-                'api_v2:hook-detail',
+                f'{url_prefix}hook-detail',
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'uid': new_hook.uid,
@@ -494,7 +515,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['hook']['active'], False)
         self.assertEqual(log_metadata['hook']['endpoint'], 'http://www.example.com')
 
-    def test_delete_service_creates_log(self):
+    @data(True, False)
+    def test_delete_service_creates_log(self, use_v2):
         new_hook = Hook.objects.create(
             name='test',
             endpoint='http://www.example.com',
@@ -502,10 +524,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         new_hook.save()
         request_data = {}
+        url_prefix = 'api_v2:' if use_v2 else ''
+
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                'api_v2:hook-detail',
+                f'{url_prefix}hook-detail',
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'uid': new_hook.uid,
@@ -611,7 +635,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
         self.assertEqual(log_metadata['paired-data']['fields'], ['q2'])
 
-    def test_add_media_creates_log(self):
+    @data(True, False)
+    def test_add_media_creates_log(self, use_v2):
         crab_png_b64 = (
             'iVBORw0KGgoAAAANSUhEUgAAABIAAAAPAgMAAACU6HeBAAAADFBMVEU7PTqv'
             'OD/m6OX////GxYKhAAAAR0lEQVQI1y2MMQrAMAwD9Ul5yJQ1+Y8zm0Ig9iur'
@@ -625,8 +650,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
             'metadata': json.dumps({'filename': 'crab.png'}),
         }
-
-        url = reverse('api_v2:asset-file-list', args=(self.asset.uid,))
+        url_prefix = 'api_v2:' if use_v2 else ''
+        url = reverse(f'{url_prefix}asset-file-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -639,7 +664,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], file.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], file.md5_hash)
 
-    def test_delete_media_creates_log(self):
+    @data(True, False)
+    def test_delete_media_creates_log(self, use_v2):
         media = AssetFile.objects.create(
             asset=self.asset,
             user=self.user,
@@ -647,10 +673,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             description='A file',
             metadata={'filename': 'fish.txt'},
         )
+        url_prefix = 'api_v2:' if use_v2 else ''
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                'api_v2:asset-file-detail',
+                f'{url_prefix}asset-file-detail',
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'uid': media.uid,
