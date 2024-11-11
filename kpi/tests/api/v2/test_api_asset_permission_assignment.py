@@ -938,3 +938,62 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_bulk_assign_perms_reduces_queries(self):
+        permissions = [PERM_VIEW_ASSET, PERM_CHANGE_ASSET]
+
+        # Assign permissions one by one
+        with self.assertNumQueries(46):
+            for user in [self.someuser, self.anotheruser]:
+                for perm in permissions:
+                    self.asset.assign_perm(user, perm)
+
+        # Bulk assign permissions
+        with self.assertNumQueries(12):
+            for user in [self.someuser, self.anotheruser]:
+                self.asset.assign_perms(user, permissions)
+
+    def test_bulk_remove_perms_reduces_queries(self):
+        permissions = [
+            PERM_VIEW_SUBMISSIONS,
+            PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
+        ]
+
+        for user in [self.someuser, self.anotheruser]:
+            self.asset.assign_perms(user, permissions)
+
+        # Remove permissions one by one
+        with self.assertNumQueries(114):
+            for user in [self.someuser, self.anotheruser]:
+                for perm in permissions:
+                    self.asset.remove_perm(user, perm)
+
+        # Bulk remove permissions
+        with self.assertNumQueries(42):
+            for user in [self.someuser, self.anotheruser]:
+                self.asset.remove_perms(user, permissions)
+
+    def test_assign_perms_with_multiple_permissions(self):
+        # Assign multiple permissions at once
+        permissions = [
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_VIEW_SUBMISSIONS,
+            PERM_ADD_SUBMISSIONS,
+            PERM_CHANGE_SUBMISSIONS,
+        ]
+        self.asset.assign_perms(self.someuser, permissions)
+
+        # Assert the user has been assigned the correct permissions
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
+        self.assertTrue(
+            self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS)
+        )
+        self.assertTrue(
+            self.asset.has_perm(self.someuser, PERM_ADD_SUBMISSIONS)
+        )
+        self.assertTrue(
+            self.asset.has_perm(self.someuser, PERM_CHANGE_SUBMISSIONS)
+        )

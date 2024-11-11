@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import copy
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
@@ -19,6 +19,7 @@ from kpi.constants import (
     ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
     PERM_FROM_KC_ONLY,
+    PERM_PARTIAL_SUBMISSIONS,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -548,12 +549,175 @@ class ObjectPermissionMixin:
             sender=self.__class__,
             instance=self,
             user=user_obj,
-            codename=codename,
+            codenames=codename,
         )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
         return new_permission
+
+    @transaction.atomic
+    @kc_transaction_atomic
+    def assign_perms(
+        self,
+        user_obj: 'User',
+        perms: list[str],
+        deny: bool = False,
+        defer_recalc: bool = False,
+        skip_kc: bool = False,
+        partial_perms: Optional[dict] = None,
+    ) -> Union[list['ObjectPermission'], None]:
+        r"""
+        Assign `user_obj` a list of permissions (`perms`) on this object,
+        or break inheritance from a parent object. This method allows bulk
+        assignment of multiple permissions at once.
+
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perms: list[str]. A list of `codenames` of the `Permissions`
+        :param deny: bool. When `True`, break inheritance from parent object
+        :param defer_recalc: bool. When `True`, skip recalculating descendants
+        :param skip_kc: bool. When `True`, skip assignment of applicable KC
+            permissions
+        :param partial_perms: dict. Filters used to narrow down query for
+            partial permissions
+        :return: A list of `ObjectPermission` instances or `None`
+        """
+        assignable_permissions = self.get_assignable_permissions()
+        user_obj = get_database_user(user_obj)
+
+        if is_user_anonymous(user_obj):
+            for p in perms:
+                # Is an anonymous user allowed to have this permission?
+                parsed_perm = perm_parse(p, self)
+                fq_permission = f'{parsed_perm[0]}.{parsed_perm[1]}'
+                if (
+                    not deny
+                    and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
+                ):
+                    raise serializers.ValidationError(
+                        {
+                            'permission': (
+                                f'Anonymous users cannot be granted the '
+                                f'permission {p}.'
+                            )
+                        }
+                    )
+
+        new_permissions = []
+        implied_permissions = set()
+
+        for p in perms:
+            app_label, codename = perm_parse(p, self)
+            if codename not in assignable_permissions:
+                # Some permissions are calculated and not stored in the database
+                raise serializers.ValidationError(
+                    {
+                        'permission': (
+                            f'{codename} cannot be assigned explicitly to {self}'
+                        )
+                    }
+                )
+
+            perm_model = Permission.objects.get(
+                content_type__app_label=app_label, codename=codename
+            )
+            existing_perms = self.permissions.filter(user=user_obj)
+            identical_existing_perm = existing_perms.filter(
+                user=user_obj,
+                inherited=False,
+                permission_id=perm_model.pk,
+                deny=deny,
+            )
+            if identical_existing_perm.exists():
+                # We need to always update partial permissions because
+                # they may have changed even if `perm` is the same.
+                self._update_partial_permissions(
+                    user_obj, p, partial_perms=partial_perms
+                )
+                # The user already has this permission directly applied
+                continue
+
+            # Remove any explicitly-defined contradictory grants or denials
+            contradictory_filters = models.Q(
+                user=user_obj,
+                permission_id=perm_model.pk,
+                deny=not deny,
+                inherited=False,
+            )
+            if not deny and p in self.CONTRADICTORY_PERMISSIONS.keys():
+                contradictory_filters |= models.Q(
+                    user=user_obj,
+                    permission__codename__in=self.CONTRADICTORY_PERMISSIONS.get(
+                        p
+                    ),
+                )
+            contradictory_perms = existing_perms.filter(contradictory_filters)
+            contradictory_codenames = list(
+                contradictory_perms.values_list(
+                    'permission__codename', flat=True
+                )
+            )
+
+            contradictory_perms.delete()
+            # Check if any KC permissions should be removed as well
+            if deny and not skip_kc:
+                remove_applicable_kc_permissions(
+                    self, user_obj, contradictory_codenames
+                )
+            # Add permission to the list of permissions
+            new_permissions.append(
+                ObjectPermission(
+                    asset=self,
+                    user=user_obj,
+                    permission_id=perm_model.pk,
+                    deny=deny,
+                    inherited=False,
+                )
+            )
+            # Assign any applicable KC permissions
+            if not deny and not skip_kc:
+                assign_applicable_kc_permissions(self, user_obj, codename)
+            # Resolve implied permissions, e.g. granting change implies granting
+            # view
+            implied_permissions.update(
+                self.get_implied_perms(
+                    codename, reverse=deny, for_instance=self
+                ).intersection(assignable_permissions)
+            )
+
+        if new_permissions:
+            ObjectPermission.objects.bulk_create(new_permissions, ignore_conflicts=True)
+        if implied_permissions:
+            self.assign_perms(
+                user_obj=user_obj,
+                perms=list(implied_permissions),
+                deny=deny,
+                defer_recalc=True,
+                skip_kc=skip_kc,
+                partial_perms=partial_perms,
+            )
+        # We might have been called by ourselves to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return new_permissions
+
+        for p in perms:
+            if p in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
+                continue
+            else:
+                self._update_partial_permissions(
+                    user_obj, p, partial_perms=partial_perms
+                )
+        post_assign_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codenames=perms,
+        )
+
+        # Recalculate all descendants
+        self.recalculate_descendants_perms()
+        return new_permissions
 
     def get_perms(self, user_obj: settings.AUTH_USER_MODEL) -> list[str]:
         """
@@ -716,6 +880,102 @@ class ObjectPermissionMixin:
             user=user_obj,
             codename=codename,
         )
+
+        # Recalculate all descendants
+        self.recalculate_descendants_perms()
+
+    @transaction.atomic
+    @kc_transaction_atomic
+    def remove_perms(
+        self,
+        user_obj: 'User',
+        perms: list[str],
+        defer_recalc: bool = False,
+        skip_kc: bool = False,
+    ) -> None:
+        """
+        Bulk remove the list of permissions on this object from
+        `user_obj`. By default, recalculate descendant objects'
+        permissions and remove any applicable KC permissions.  May delete
+        granted permissions or add deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm list[str]: The `codenames` of the `Permissions`
+        :param defer_recalc bool: When `True`, skip recalculating
+            descendants
+        :param skip_kc bool: When `True`, skip assignment of applicable KC
+            permissions
+        :return: None
+        """
+        user_obj = get_database_user(user_obj)
+        permissions_to_delete = self.permissions.none()
+        all_perms_to_remove = perms.copy()
+
+        while all_perms_to_remove:
+            current_perm = all_perms_to_remove.pop(0)
+            app_label, codename = perm_parse(current_perm, self)
+            # Get all assignable permissions, regardless of asset type. That way,
+            # we can allow invalid permissions to be removed
+            if codename not in self.get_assignable_permissions(
+                ignore_type=True
+            ):
+                # Some permissions are calculated and not stored in the database
+                raise serializers.ValidationError(
+                    {'permission': f'{codename} cannot be removed explicitly.'}
+                )
+            all_permissions = self.permissions.filter(
+                user=user_obj, permission__codename=codename, deny=False
+            )
+            direct_permissions = all_permissions.filter(inherited=False)
+            inherited_permissions = all_permissions.filter(inherited=True)
+            # Resolve implied permissions, e.g. revoking view implies revoking
+            # change
+            implied_perms = self.get_implied_perms(
+                codename, reverse=True, for_instance=self
+            )
+            all_perms_to_remove.extend(implied_perms)
+            # Add permissions to the list for deletion
+            permissions_to_delete = permissions_to_delete | direct_permissions
+            if inherited_permissions.exists():
+                permissions_to_delete = (
+                    permissions_to_delete | inherited_permissions
+                )
+                # Add a deny permission to block future inheritance
+                self.assign_perm(
+                    user_obj, current_perm, deny=True, defer_recalc=True
+                )
+            # Remove any applicable KC permissions
+            if not skip_kc:
+                remove_applicable_kc_permissions(self, user_obj, codename)
+
+        # Perform bulk delete of all permissions at once
+        if permissions_to_delete.exists():
+            permissions_to_delete.delete()
+
+        # We might have been called by ourself to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return
+
+        # Ensure partial permissions are removed
+        if 'partial_submissions' in perms:
+            self._update_partial_permissions(
+                user_obj, 'partial_submissions', remove=True
+            )
+
+        for p in perms:
+            app_label, codename = perm_parse(p, self)
+            post_remove_perm.send(
+                sender=self.__class__,
+                instance=self,
+                user=user_obj,
+                codename=codename,
+            )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()

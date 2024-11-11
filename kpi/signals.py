@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 
 from django.conf import settings
@@ -40,17 +42,20 @@ def post_assign_asset_perm(
     sender,
     instance,
     user: Union[settings.AUTH_USER_MODEL, 'AnonymousUser'],
-    codename: str,
+    codenames: Union[str, list[str]],
     **kwargs
 ):
+    # If codenames is a string, convert it to a list
+    if isinstance(codenames, str):
+        codenames = [codenames]
 
-    if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
-        return
-
-    try:
-        instance.deployment.set_enketo_open_rosa_server(require_auth=False)
-    except DeploymentNotFound:
-        return
+    for codename in codenames:
+        if not (is_user_anonymous(user) and codename == PERM_ADD_SUBMISSIONS):
+            continue
+        try:
+            instance.deployment.set_enketo_open_rosa_server(require_auth=False)
+        except DeploymentNotFound:
+            return
 
 
 @receiver(post_remove_perm, sender=Asset)

@@ -345,12 +345,22 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             asset, user_pk_to_obj_cache
         )
 
-        # Perform the removals
+        # Identify the removals and group by user
+        user_permissions_to_remove = defaultdict(list)
         for removal in existing_assignments.difference(incoming_assignments):
-            asset.remove_perm(
-                user_pk_to_obj_cache[removal.user_pk],
-                removal.permission_codename,
+            user_permissions_to_remove[removal.user_pk].append(
+                removal.permission_codename
             )
+
+        # Perform the removals for each user
+        for user_pk, permissions in user_permissions_to_remove.items():
+            asset.remove_perms(
+                user_obj=user_pk_to_obj_cache[user_pk],
+                perms=permissions
+            )
+
+        user_permissions = defaultdict(list)
+        user_partial_perms = defaultdict(dict)
 
         # Perform the new assignments
         for addition in incoming_assignments.difference(existing_assignments):
@@ -358,14 +368,24 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
                 )
+
+            # Group permissions by user
+            user_permissions[addition.user_pk].append(addition.permission_codename)
+
             if addition.partial_permissions_json:
                 partial_perms = json.loads(addition.partial_permissions_json)
-            else:
-                partial_perms = None
-            asset.assign_perm(
-                user_obj=user_pk_to_obj_cache[addition.user_pk],
-                perm=addition.permission_codename,
-                partial_perms=partial_perms,
+                user_partial_perms[addition.user_pk].update(partial_perms)
+
+        # Assign the permissions for each user
+        for user_pk, permissions in user_permissions.items():
+            asset.assign_perms(
+                user_obj=user_pk_to_obj_cache[user_pk],
+                perms=permissions,
+                partial_perms=(
+                    user_partial_perms[user_pk]
+                    if user_partial_perms[user_pk]
+                    else None
+                ),
             )
 
         # Return nothing, in a nice way, because the view is responsible for
