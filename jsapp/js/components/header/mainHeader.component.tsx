@@ -161,7 +161,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
         )}
 
         <div className={styles.accountSection}>
-          <OrganizationBadge style='header'/>
+          <OrganizationBadge />
           <AccountMenu />
         </div>
 
