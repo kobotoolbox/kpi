@@ -178,7 +178,8 @@ class AssetFileViewSet(
         # permissions
         def can_access_file(self, private_file):
             return private_file.request.user.has_perm(
-                PERM_VIEW_ASSET, private_file.parent_object.asset)
+                PERM_VIEW_ASSET, private_file.parent_object.asset
+            )
 
     @action(detail=True, methods=['GET'])
     def content(self, *args, **kwargs):
