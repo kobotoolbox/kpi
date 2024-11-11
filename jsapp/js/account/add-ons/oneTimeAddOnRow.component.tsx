@@ -104,6 +104,8 @@ export const OneTimeAddOnRow = ({
     }
   };
 
+  // TODO: Merge functionality of onClickBuy and onClickManage so we can unduplicate
+  // the billing button in priceTableCells
   const onClickBuy = () => {
     if (isBusy || !selectedPrice) {
       return;
@@ -121,7 +123,7 @@ export const OneTimeAddOnRow = ({
       return;
     }
     setIsBusy(true);
-    postCustomerPortal(organization.id, selectedPrice.id)
+    postCustomerPortal(organization.id)
       .then((response) => window.location.assign(response.url))
       .catch(() => setIsBusy(false));
   };
@@ -137,9 +139,9 @@ export const OneTimeAddOnRow = ({
         {isSubscribedAddOnPrice && (
           <BillingButton
             size={'m'}
-            label={t('Buy now')}
+            label={t('Manage')}
             isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickBuy}
+            onClick={onClickManage}
             isFullWidth
           />
         )}
