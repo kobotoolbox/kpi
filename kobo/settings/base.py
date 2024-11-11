@@ -18,6 +18,7 @@ from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.utils.json import LazyJSONSerializable
+from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -1793,3 +1794,8 @@ ACCESS_LOG_DELETION_BATCH_SIZE = 1000
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+# Admins will not be explicitly granted these permissions, (i.e., not referenced
+# in the ObjectPermission table), but the code will still conduct the permission
+# checks as if they were.
+ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]

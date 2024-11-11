@@ -31,10 +31,12 @@ def update_organization_names(apps, schema_editor):
                 except (KeyError, AttributeError):
                     continue
 
-                organization.name = organization_name
-                organizations.append(organization)
+                if organization_name:
+                    organization.name = organization_name
+                    organizations.append(organization)
 
-        Organization.objects.bulk_update(organizations, ['name'])
+        if organizations:
+            Organization.objects.bulk_update(organizations, ['name'])
 
 
 def noop(apps, schema_editor):
