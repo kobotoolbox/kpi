@@ -42,6 +42,8 @@ import styles from './projectViews.module.scss';
 function CustomViewRoute() {
   const {viewUid} = useParams();
 
+  // This condition is here to satisfy TS, as without it the code below would
+  // need to be unnecessarily more lengthy.
   if (viewUid === undefined) {
     return null;
   }
