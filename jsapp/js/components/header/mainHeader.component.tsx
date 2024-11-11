@@ -160,7 +160,7 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
           </React.Fragment>
         )}
 
-        <OrganizationBadge/>
+        <OrganizationBadge style='header'/>
 
         <AccountMenu />
 

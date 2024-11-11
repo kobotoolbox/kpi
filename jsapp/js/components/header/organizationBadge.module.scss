@@ -1,12 +1,20 @@
 @use 'scss/colors';
 
 .root {
-  color: colors.$kobo-white;
-  background-color: colors.$kobo-gray-700;
   padding: 6px 10px;
   border-radius: 48px;
   font-weight: 600;
   font-size: .85em;
-  line-height: 12px;
   margin-right: 20px;
+  width: fit-content;
+}
+
+.header {
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-gray-700;
+}
+
+.dropdown {
+  color: colors.$kobo-dark-blue;
+  background-color: colors.$kobo-light-blue;
 }
