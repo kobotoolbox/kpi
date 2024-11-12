@@ -44,6 +44,7 @@ export interface EnvironmentResponse {
    */
   terms_of_service__sitewidemessage__exists: boolean;
   open_rosa_server: string;
+  project_history_log_lifespan: number;
 }
 
 /*
