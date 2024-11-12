@@ -1,22 +1,33 @@
-# coding: utf-8
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import filters
 from rest_framework.exceptions import ParseError
 from rest_framework.filters import BaseFilterBackend
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.libs.utils.guardian import get_objects_for_user
+from kpi.utils.object_permission import get_database_user
 
 
 class GuardianObjectPermissionsFilter(BaseFilterBackend):
     """
     Copy from django-rest-framework-guardian `ObjectPermissionsFilter`
-    Avoid importing  the library (which does not seem to be maintained anymore)
+    Avoid importing the library (which does not seem to be maintained anymore)
     """
 
     perm_format = '%(app_label)s.view_%(model_name)s'
     shortcut_kwargs = {
         'accept_global_perms': False,
+    }
+
+    ORG_ADMIN_EXEMPT_VIEWS = {
+        'XFormListApi': [
+            'manifest',
+            'list',
+        ]
     }
 
     def filter_queryset(self, request, queryset, view):
@@ -26,9 +37,51 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
             'model_name': queryset.model._meta.model_name,
         }
 
+        if org_admin_queryset := self._get_objects_for_org_admin(
+            request, queryset, view
+        ):
+            return org_admin_queryset
+
         return get_objects_for_user(
             user, permission, queryset, **self.shortcut_kwargs
         )
+
+    def _get_objects_for_org_admin(self, request, queryset, view):
+        """
+        Bypasses the Django Guardian permission mechanism to retrieve all objects
+        belonging to the owner of an organization.
+
+        If the current user is an admin of the organization associated with the
+        owner of the given object, this method returns all related objects
+        without applying Guardian's usual filtering.
+        """
+
+        # Only check for specific view and action
+        if not (
+            view.action
+            in self.ORG_ADMIN_EXEMPT_VIEWS.get(view.__class__.__name__, {})
+        ):
+            return
+
+        xform_id_string = request.query_params.get('formID', False)
+        object_id = request.parser_context['kwargs'].get('pk', False)
+
+        if xform_id_string or object_id:
+
+            xform_filter = (
+                {'xforms__id_string': xform_id_string}
+                if xform_id_string
+                else {'xforms__pk': object_id}
+            )
+
+            if (
+                owner := User.objects.using(settings.OPENROSA_DB_ALIAS)
+                .filter(**xform_filter)
+                .first()
+            ):
+                user = get_database_user(request.user)
+                if owner.organization.is_admin_only(user):
+                    return queryset.filter(user=owner)
 
 
 class AnonDjangoObjectPermissionFilter(GuardianObjectPermissionsFilter):
@@ -51,13 +104,12 @@ class RowLevelObjectPermissionFilter(GuardianObjectPermissionsFilter):
 
         # Queryset cannot be narrowed down for anonymous and superusers because
         # they do not have object level permissions (actually a superuser could
-        # have object level permissions but `ServiceAccountUser` does not).
+        # have object level permission).
         # Thus, we return queryset immediately even if it is a larger subset and
         # some of its objects are not allowed to accessed by `request.user`.
         # We need to avoid `guardian` filter to allow:
         # - anonymous user to see public data
-        # - ServiceAccountUser to take actions on all objects on behalf of the
-        #   real user who is making the call to the API.
+        # - superuser to take actions on all objects
         # The permissions validation is handled by the permission classes and
         # should deny access to forbidden data.
         if request.user.is_anonymous or request.user.is_superuser:
@@ -180,7 +232,7 @@ class AttachmentFilter(
             try:
                 int(instance_id)
             except ValueError:
-                raise ParseError("Invalid value for instance %s." % instance_id)
+                raise ParseError('Invalid value for instance %s.' % instance_id)
             instance = get_object_or_404(Instance, pk=instance_id)
             queryset = queryset.filter(instance=instance)
 

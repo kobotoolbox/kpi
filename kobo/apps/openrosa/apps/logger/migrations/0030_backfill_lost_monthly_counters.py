@@ -1,12 +1,12 @@
 from django.db import migrations
 from django.db.migrations.recorder import MigrationRecorder
-from django.db.models import Sum
-from django.db.models import Value, F, DateField
-from django.db.models.functions import Cast, Concat
-from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import DateField, F, Sum, Value
+from django.db.models.functions import Cast, Concat, ExtractMonth, ExtractYear
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.utils import delete_null_user_daily_counters
+from kobo.apps.openrosa.apps.logger.utils.counters import (
+    delete_null_user_daily_counters,
+)
 
 
 def populate_missing_monthly_counters(apps, schema_editor):

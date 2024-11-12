@@ -5,7 +5,6 @@ from typing import Union
 
 from django.conf import settings
 from django.http import Http404
-from kobo_service_account.utils import get_real_user
 from rest_framework import exceptions, permissions
 from rest_framework.permissions import IsAuthenticated as DRFIsAuthenticated
 
@@ -85,7 +84,9 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             return cls._get_asset(view)
 
     def _get_user_permissions(
-        self, object_: Union['kpi.Asset', 'kpi.Collection'], user: settings.AUTH_USER_MODEL
+        self,
+        object_: Union['kpi.Asset', 'kpi.Collection'],
+        user: settings.AUTH_USER_MODEL,
     ) -> list[str]:
         """
         Returns a list of `user`'s permission for `asset`
@@ -115,7 +116,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         perms = [perm % kwargs for perm in perm_list]
         # Because `ObjectPermissionMixin.get_perms()` returns codenames only,
         # remove the `app_label` prefix before returning
-        return [perm.replace("{}.".format(app_label), "") for perm in perms]
+        return [perm.replace('{}.'.format(app_label), '') for perm in perms]
 
     def has_object_permission(self, request, view, obj):
         # Because authentication checks has already executed via
@@ -257,25 +258,43 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
-class AssetExportSettingsPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-
 class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
 
     perms_map = AssetNestedObjectPermission.perms_map.copy()
     # This change allows users with `view_asset` to permissions to
     # remove themselves from an asset that has been shared with them
     perms_map['DELETE'] = perms_map['GET']
+
+
+class AssetSnapshotPermission(AssetPermission):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Do NOT mutate `perms_map` from the parent class! Doing so will affect
+        # *every* instance of `DjangoObjectPermissions` and all its subclasses
+        app_label = Asset._meta.app_label
+        model_name = Asset._meta.model_name
+
+        self.perms_map = self.perms_map.copy()
+        for action in self.perms_map.keys():
+            for idx, perm in enumerate(self.perms_map[action]):
+                self.perms_map[action][idx] = perm % {
+                    'app_label': app_label,
+                    'model_name': model_name,
+                }
+
+    def has_object_permission(self, request, view, obj):
+        if (
+            view.action == 'submission'
+            or (
+                view.action == 'retrieve'
+                and request.accepted_renderer.format == 'xml'
+            )
+        ):
+            return True
+
+        asset = obj.asset
+        return super().has_object_permission(request, view, asset)
 
 
 class AssetVersionReadOnlyPermission(AssetNestedObjectPermission):
@@ -342,7 +361,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
     Permissions for submissions.
     """
 
-    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
+    MODEL_NAME = 'submissions'  # Hard-code `model_name` to match permissions
 
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
@@ -480,7 +499,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         except (DeploymentNotFound, AttributeError):
             require_auth = True
 
-        real_user = get_real_user(request)
+        real_user = request.user
 
         # If authentication is required, `request.user` should have
         # 'add_submission' permission on `obj`

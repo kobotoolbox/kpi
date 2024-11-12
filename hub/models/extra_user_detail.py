@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from kpi.deployment_backends.kc_access.shadow_models import KobocatUserProfile
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.fields import KpiUidField
 from kpi.mixins import StandardizeSearchableFieldMixin
 
@@ -21,7 +21,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
     validated_password = models.BooleanField(default=True)
 
     def __str__(self):
-        return '{}\'s data: {}'.format(self.user.__str__(), repr(self.data))
+        return "{}'s data: {}".format(self.user.__str__(), repr(self.data))
 
     def save(
         self,
@@ -35,6 +35,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         if not update_fields or (update_fields and 'data' in update_fields):
             self.standardize_json_field('data', 'organization', str)
             self.standardize_json_field('data', 'name', str)
+            if not created:
+                self._sync_org_name()
 
         super().save(
             force_insert=force_insert,
@@ -43,9 +45,9 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             update_fields=update_fields,
         )
 
-        # Sync `validated_password` field to `KobocatUserProfile` only when
+        # Sync `validated_password` field to `UserProfile` only when
         # this object is updated to avoid a race condition and an IntegrityError
-        # when trying to save `KobocatUserProfile` object whereas the related
+        # when trying to save `UserProfile` object whereas the related
         # `KobocatUser` object has not been created yet.
         if (
             not settings.TESTING
@@ -55,7 +57,27 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 or (update_fields and 'validated_password' in update_fields)
             )
         ):
-            KobocatUserProfile.set_password_details(
+            UserProfile.set_password_details(
                 self.user.id,
                 self.validated_password,
             )
+
+    def _sync_org_name(self):
+        """
+        Synchronizes the `name` field of the Organization model with the
+        "organization" attribute found in the `data` field of ExtraUserDetail,
+        but only if the user is the owner.
+
+        This ensures that any updates in the metadata are accurately reflected
+        in the organization's name.
+        """
+        user_organization = self.user.organization
+        if user_organization.is_owner(self.user):
+            try:
+                organization_name = self.data['organization'].strip()
+            except (KeyError, AttributeError):
+                organization_name = None
+
+            if organization_name:
+                user_organization.name = organization_name
+                user_organization.save(update_fields=['name'])

@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import os
 import re
@@ -6,39 +5,37 @@ from copy import deepcopy
 from io import BytesIO
 from xml.sax.saxutils import escape as xml_escape
 
+from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.db import models
+from django.urls import reverse
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.fields import LazyDefaultBooleanField
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
-from kobo.apps.openrosa.libs.models.base_model import BaseModel
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS,
-    CAN_VALIDATE_XFORM,
     CAN_DELETE_DATA_XFORM,
     CAN_TRANSFER_OWNERSHIP,
+    CAN_VALIDATE_XFORM,
 )
-from kobo.apps.openrosa.libs.utils.guardian import (
-    assign_perm,
-    get_perms_for_model
-)
-from kobo.apps.openrosa.libs.utils.hash import get_hash
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from kpi.models.asset import Asset
+from kpi.utils.database import use_db
+from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import perm_parse
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
-title_pattern = re.compile(r"<h:title>([^<]+)</h:title>")
+title_pattern = re.compile(r'<h:title>([^<]+)</h:title>')
 
 
 def upload_to(instance, filename):
@@ -56,18 +53,19 @@ class XFormAllManager(models.Manager):
     pass
 
 
-class XForm(BaseModel, AbstractTimeStampedModel):
+class XForm(AbstractTimeStampedModel):
+
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = models.FileField(
-        storage=default_storage, upload_to=upload_to, null=True
-    )
+    xls = ExtendedFileField(storage=default_storage, upload_to=upload_to, null=True)
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()
 
-    user = models.ForeignKey(User, related_name='xforms', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='xforms', null=True, on_delete=models.CASCADE
+    )
     require_auth = models.BooleanField(
         default=True,
         verbose_name=t('Require authentication to see form and submit data'),
@@ -78,14 +76,15 @@ class XForm(BaseModel, AbstractTimeStampedModel):
     encrypted = models.BooleanField(default=False)
 
     id_string = models.SlugField(
-        editable=False,
-        verbose_name=t("ID"),
-        max_length=MAX_ID_LENGTH
+        editable=False, verbose_name=t('ID'), max_length=MAX_ID_LENGTH
     )
     title = models.CharField(editable=False, max_length=XFORM_TITLE_LENGTH)
     last_submission_time = models.DateTimeField(blank=True, null=True)
     has_start_time = models.BooleanField(default=False)
     uuid = models.CharField(max_length=32, default='', db_index=True)
+    mongo_uuid = models.CharField(
+        max_length=100, null=True, unique=True, db_index=True
+    )
 
     uuid_regex = re.compile(r'(<instance>.*?id="[^"]+">)(.*</instance>)(.*)',
                             re.DOTALL)
@@ -99,16 +98,15 @@ class XForm(BaseModel, AbstractTimeStampedModel):
 
     tags = TaggableManager()
 
-    has_kpi_hooks = LazyDefaultBooleanField(default=False)
     kpi_asset_uid = models.CharField(max_length=32, null=True, db_index=True)
     pending_delete = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'logger'
-        unique_together = (("user", "id_string"),)
-        verbose_name = t("XForm")
-        verbose_name_plural = t("XForms")
-        ordering = ("id_string",)
+        unique_together = (('user', 'id_string'),)
+        verbose_name = t('XForm')
+        verbose_name_plural = t('XForms')
+        ordering = ('id_string',)
         permissions = (
             (CAN_ADD_SUBMISSIONS, t('Can make submissions to the form')),
             (CAN_TRANSFER_OWNERSHIP, t('Can transfer form ownership.')),
@@ -119,8 +117,8 @@ class XForm(BaseModel, AbstractTimeStampedModel):
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()
 
-    def file_name(self):
-        return self.id_string + '.xml'
+    def __str__(self):
+        return getattr(self, 'id_string', '')
 
     @property
     def asset(self):
@@ -130,34 +128,40 @@ class XForm(BaseModel, AbstractTimeStampedModel):
         Useful to display form disclaimer in Enketo.
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
-        if not hasattr(self, '_cache_asset'):
+        Asset = apps.get_model('kpi', 'Asset')  # noqa
+        if not hasattr(self, '_cached_asset'):
             # We only need to load the PK because XMLFormWithDisclaimer
             # uses an Asset object only to narrow down a query with a filter,
             # thus uses only asset PK
             try:
-                asset = Asset.objects.only('pk').get(uid=self.kpi_asset_uid)
+                asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
+                    uid=self.kpi_asset_uid
+                )
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only('pk').get(
-                        _deployment_data__formid=self.pk
-                    )
+                    asset = Asset.objects.only(
+                        'pk', 'name', 'uid', 'owner_id'
+                    ).get(_deployment_data__formid=self.pk)
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(uid=self.id_string)
+                    asset = Asset(
+                        uid=self.id_string,
+                        name=self.title,
+                        owner_id=self.user.id,
+                    )
 
-            setattr(self, '_cache_asset', asset)
+            setattr(self, '_cached_asset', asset)
 
-        return getattr(self, '_cache_asset')
+        return getattr(self, '_cached_asset')
 
-    def url(self):
-        return reverse(
-            'download_xform',
-            kwargs={
-                'username': self.user.username,
-                'pk': self.pk
-            }
-        )
+    @property
+    def can_be_replaced(self):
+        if hasattr(self.submission_count, '__call__'):
+            num_submissions = self.submission_count()
+        else:
+            num_submissions = self.submission_count
+        return num_submissions == 0
 
     def data_dictionary(self, use_cache: bool = False):
         from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
@@ -167,57 +171,63 @@ class XForm(BaseModel, AbstractTimeStampedModel):
 
         xform_dict = deepcopy(self.__dict__)
         xform_dict.pop('_state', None)
+        xform_dict.pop('_cached_asset', None)
         return DataDictionary(**xform_dict)
+
+    def file_name(self):
+        return self.id_string + '.xml'
+
+    def geocoded_submission_count(self):
+        """Number of geocoded submissions."""
+        return self.instances.filter(geom__isnull=False).count()
 
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
 
+    def has_mapped_perm(self, user_obj: User, perm: str) -> bool:
+        """
+        Checks if a role-based user (e.g., an organization admin) has access to an
+        object  by validating against equivalent permissions defined in KPI.
+
+        In the context of OpenRosa, roles such as organization admins do not have
+        permissions explicitly recorded in the database. Since django-guardian cannot
+        determine access for such roles directly, this method maps the role to
+        its equivalent permissions in KPI, allowing for accurate permission validation.
+        """
+        _, codename = perm_parse(perm)
+
+        with use_db(DEFAULT_DB_ALIAS):
+            kc_permission_map = self.asset.KC_PERMISSIONS_MAP
+            try:
+                kpi_perm = list(kc_permission_map.keys())[
+                    list(kc_permission_map.values()).index(codename)
+                ]
+            except ValueError:
+                return False
+
+            has_perm = self.asset.has_perm(user_obj, kpi_perm)
+
+        return has_perm
+
     @property
-    def kpi_hook_service(self):
+    def md5_hash(self):
+        return calculate_hash(self.xml)
+
+    @property
+    def md5_hash_with_disclaimer(self):
+        return calculate_hash(self.xml_with_disclaimer)
+
+    @property
+    def prefixed_hash(self):
         """
-        Returns kpi hook service if it exists. XForm should have only one occurrence in any case.
-        :return: RestService
+        Matches what's returned by the KC API
         """
-        return self.restservices.filter(name="kpi_hook").first()
+        return f'md5:{self.md5_hash}'
 
-    def _set_id_string(self):
-        matches = self.instance_id_regex.findall(self.xml)
-        if len(matches) != 1:
-            raise XLSFormError(t("There should be a single id string."))
-        self.id_string = matches[0]
-
-    def _set_title(self):
-        self.xml = smart_str(self.xml)
-        text = re.sub(r'\s+', ' ', self.xml)
-        matches = title_pattern.findall(text)
-        title_xml = matches[0][:XFORM_TITLE_LENGTH]
-
-        if len(matches) != 1:
-            raise XLSFormError(t("There should be a single title."), matches)
-
-        if self.title and title_xml != self.title:
-            title_xml = self.title[:XFORM_TITLE_LENGTH]
-            title_xml = xml_escape(title_xml)
-            self.xml = title_pattern.sub(
-                "<h:title>%s</h:title>" % title_xml, self.xml)
-
-        self.title = title_xml
-
-    def _set_description(self):
-        self.description = self.description \
-            if self.description and self.description != '' else self.title
-
-    def _set_encrypted_field(self):
-        if self.json and self.json != '':
-            json_dict = json.loads(self.json)
-            if 'submission_url' in json_dict and 'public_key' in json_dict:
-                self.encrypted = True
-            else:
-                self.encrypted = False
-
-    def update(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    @classmethod
+    def public_forms(cls):
+        return cls.objects.filter(shared=True)
 
     def save(self, *args, **kwargs):
         self._set_title()
@@ -233,15 +243,17 @@ class XForm(BaseModel, AbstractTimeStampedModel):
                   "the existing forms' id_string '%(old_id)s'." %
                   {'new_id': self.id_string, 'old_id': old_id_string}))
 
-        if getattr(settings, 'STRICT', True) and \
-                not re.search(r"^[\w-]+$", self.id_string):
-            raise XLSFormError(t('In strict mode, the XForm ID must be a '
-                               'valid slug and contain no spaces.'))
+        if getattr(settings, 'STRICT', True) and not re.search(
+            r'^[\w-]+$', self.id_string
+        ):
+            raise XLSFormError(
+                t(
+                    'In strict mode, the XForm ID must be a '
+                    'valid slug and contain no spaces.'
+                )
+            )
 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return getattr(self, "id_string", "")
 
     def submission_count(self, force_update=False):
         if self.num_of_submissions == 0 or force_update:
@@ -249,16 +261,13 @@ class XForm(BaseModel, AbstractTimeStampedModel):
             self.num_of_submissions = count
             self.save(update_fields=['num_of_submissions'])
         return self.num_of_submissions
-    submission_count.short_description = t("Submission Count")
 
-    def geocoded_submission_count(self):
-        """Number of geocoded submissions."""
-        return self.instances.filter(geom__isnull=False).count()
+    submission_count.short_description = t('Submission Count')
 
     def time_of_last_submission(self):
         if self.last_submission_time is None and self.num_of_submissions > 0:
             try:
-                last_submission = self.instances.latest("date_created")
+                last_submission = self.instances.latest('date_created')
             except ObjectDoesNotExist:
                 pass
             else:
@@ -270,29 +279,62 @@ class XForm(BaseModel, AbstractTimeStampedModel):
         try:
             # We don't need to filter on `deleted_at` field anymore.
             # Instances are really deleted and not flagged as deleted.
-            return self.instances.latest("date_modified").date_modified
+            return self.instances.latest('date_modified').date_modified
         except ObjectDoesNotExist:
             pass
 
-    @property
-    def md5_hash(self):
-        return get_hash(self.xml)
+    def update(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def url(self):
+        return reverse(
+            'download_xform',
+            kwargs={
+                'username': self.user.username,
+                'pk': self.pk
+            }
+        )
 
     @property
-    def md5_hash_with_disclaimer(self):
-        return get_hash(self.xml_with_disclaimer)
+    def xml_with_disclaimer(self):
+        return XMLFormWithDisclaimer(self).get_object().xml
 
-    @property
-    def can_be_replaced(self):
-        if hasattr(self.submission_count, '__call__'):
-            num_submissions = self.submission_count()
-        else:
-            num_submissions = self.submission_count
-        return num_submissions == 0
+    def _set_id_string(self):
+        matches = self.instance_id_regex.findall(self.xml)
+        if len(matches) != 1:
+            raise XLSFormError(t('There should be a single id string.'))
+        self.id_string = matches[0]
 
-    @classmethod
-    def public_forms(cls):
-        return cls.objects.filter(shared=True)
+    def _set_description(self):
+        self.description = (
+            self.description
+            if self.description and self.description != ''
+            else self.title
+        )
+
+    def _set_encrypted_field(self):
+        if self.json and self.json != '':
+            json_dict = json.loads(self.json)
+            if 'submission_url' in json_dict and 'public_key' in json_dict:
+                self.encrypted = True
+            else:
+                self.encrypted = False
+
+    def _set_title(self):
+        self.xml = smart_str(self.xml)
+        text = re.sub(r'\s+', ' ', self.xml)
+        matches = title_pattern.findall(text)
+        title_xml = matches[0][:XFORM_TITLE_LENGTH]
+
+        if len(matches) != 1:
+            raise XLSFormError(t('There should be a single title.'), matches)
+
+        if self.title and title_xml != self.title:
+            title_xml = self.title[:XFORM_TITLE_LENGTH]
+            title_xml = xml_escape(title_xml)
+            self.xml = title_pattern.sub('<h:title>%s</h:title>' % title_xml, self.xml)
+
+        self.title = title_xml
 
     def _xls_file_io(self):
         """
@@ -308,26 +350,3 @@ class XForm(BaseModel, AbstractTimeStampedModel):
                     return convert_csv_to_xls(ff.read())
                 else:
                     return BytesIO(ff.read())
-
-    @property
-    def settings(self):
-        """
-        Mimic Asset settings.
-        :return: Object
-        """
-        # As soon as we need to add custom validation statuses in Asset settings,
-        # validation in add_validation_status_to_instance
-        # (kobocat/kobo.apps.openrosa/apps/api/tools.py) should still work
-        default_validation_statuses = getattr(settings, "DEFAULT_VALIDATION_STATUSES", [])
-
-        # Later purpose, default_validation_statuses could be merged with a custom validation statuses dict
-        # for example:
-        #   self._validation_statuses.update(default_validation_statuses)
-
-        return {
-            "validation_statuses": default_validation_statuses
-        }
-
-    @property
-    def xml_with_disclaimer(self):
-        return XMLFormWithDisclaimer(self).get_object().xml

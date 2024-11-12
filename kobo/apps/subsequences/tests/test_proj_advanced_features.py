@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
-
 from model_bakery import baker
 
 from kpi.models import Asset

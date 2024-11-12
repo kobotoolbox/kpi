@@ -43,7 +43,7 @@ export default class TranscriptTab extends React.Component<{}> {
     }
 
     // Step 2: Config - for selecting the transcript language and mode.
-    // We display it when there is ongoing draft, but it doesn't have a language 
+    // We display it when there is ongoing draft, but it doesn't have a language
     // or a value, and the region code is not selected.
     if (
       draft !== undefined &&
@@ -53,9 +53,9 @@ export default class TranscriptTab extends React.Component<{}> {
       return <StepConfig />;
     }
 
-    // Step 2.1: Config Automatic - for selecting region and other automatic 
+    // Step 2.1: Config Automatic - for selecting region and other automatic
     // options.
-    // We display it when there is ongoing draft, but it doesn't have a language 
+    // We display it when there is ongoing draft, but it doesn't have a language
     // or a value, and the region code is selected.
     if (
       draft !== undefined &&
@@ -71,7 +71,7 @@ export default class TranscriptTab extends React.Component<{}> {
     }
 
     // Step 4: Viewer - display existing (on backend) transcript.
-    // We display it when there is transcript in the store, and there is no 
+    // We display it when there is transcript in the store, and there is no
     // ongoing draft (we only support single transcript ATM).
     if (
       singleProcessingStore.getTranscript() !== undefined &&

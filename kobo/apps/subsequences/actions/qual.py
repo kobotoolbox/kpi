@@ -1,4 +1,5 @@
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
+from ..constants import QUAL_SOURCE_TYPES
+from ..actions.base import BaseAction
 from ..jsonschemas.qual_schema import DEFINITIONS as QUAL_DEFINITIONS
 
 
@@ -6,32 +7,32 @@ class QualAction(BaseAction):
     ID = 'qual'
 
     @classmethod
-    def build_params(kls, survey_content):
+    def build_params(cls, survey_content):
         _fields = []
         for row in survey_content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
+            if row['type'] in QUAL_SOURCE_TYPES:
                 _fields.append(row['name'])
         return {'values': _fields}
 
     def load_params(self, params):
-        '''
+        """
         Action.load_params is called when the instance is initialized
-        for each Asset. It will 
-        '''
+        for each Asset. It will
+        """
         self.fields = params.get('values', [])
         self.qual_survey = params.get('qual_survey', [])
         self.everything_else = params
 
     @classmethod
-    def get_values_for_content(kls, content):
-        '''
+    def get_values_for_content(cls, content):
+        """
         If no "values" are defined for a given asset, then this method will
         generate a set of defaults.
-        '''
+        """
         values = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video']:
-                values.append(kls.get_qpath(kls, row))
+            if row['type'] in QUAL_SOURCE_TYPES:
+                values.append(cls.get_xpath(cls, row))
         return values
 
     def modify_jsonschema(self, schema):
@@ -40,29 +41,32 @@ class QualAction(BaseAction):
 
         for qual_item in self.qual_survey:
             if qual_item.get('scope') != 'by_question#survey':
-                raise NotImplementedError('by_question#survey is '
-                                          'the only implementation')
-            item_qpath = qual_item.get('qpath')
-            field_def = schema['properties'].setdefault(
-                item_qpath,
-                {'type': 'object',
-                 'additionalProperties': False,
-                 'properties': {
-                    self.ID: {
-                        'type': 'array',
-                        'items': {
-                            '$ref': '#/definitions/qual_item',
+                raise NotImplementedError(
+                    'by_question#survey is the only implementation'
+                )
+            item_xpath = qual_item.get('xpath')
+            schema['properties'].setdefault(
+                item_xpath,
+                {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        self.ID: {
+                            'type': 'array',
+                            'items': {
+                                '$ref': '#/definitions/qual_item',
+                            },
                         }
-                    }
-                }},
+                    },
+                },
             )
         return schema
 
     def compile_revised_record(self, content, edits):
-        '''
+        """
         a method that applies changes to a json structure but stores NO
         revision history
-        '''
+        """
         for field_name, vals in edits.items():
             if field_name == 'submission':
                 continue

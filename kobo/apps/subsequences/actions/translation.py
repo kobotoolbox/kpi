@@ -1,7 +1,6 @@
-from django.utils import timezone
-
-from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 from kobo.apps.subsequences.constants import GOOGLETX
+from ..constants import TRANSLATABLE_SOURCE_TYPES
+from ..actions.base import BaseAction
 
 TRANSLATED = 'translation'
 
@@ -11,21 +10,20 @@ class TranslationAction(BaseAction):
     MANUAL = 'user_translated'
 
     @classmethod
-    def build_params(kls, survey_content):
-        audio_questions = []
+    def build_params(cls, survey_content):
         translatable_fields = []
         for row in survey_content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
-                translatable_fields.append(kls.get_qpath(kls, row))
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
+                translatable_fields.append(cls.get_xpath(cls, row))
         params = {'values': translatable_fields}
         return params
 
     @classmethod
-    def get_values_for_content(kls, content):
+    def get_values_for_content(cls, content):
         translatable_fields = []
         for row in content.get('survey', []):
-            if row['type'] in ['audio', 'video', 'text']:
-                name = kls.get_qpath(kls, row)
+            if row['type'] in TRANSLATABLE_SOURCE_TYPES:
+                name = cls.get_xpath(cls, row)
                 if name:
                     translatable_fields.append(name)
         return translatable_fields

@@ -958,7 +958,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
-              if (q.type !== QUESTION_TYPES.text.id) {
+              if (q.type !== QUESTION_TYPES.text.id && q.$xpath !== undefined) {
                 mediaAttachment = getMediaAttachment(
                   row.original,
                   row.value,
@@ -968,15 +968,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
               if (
                 q.type === QUESTION_TYPES.audio.id ||
-                q.type === META_QUESTION_TYPES['background-audio']
+                q.type === QUESTION_TYPES['background-audio'].id
               ) {
                 const submissionEditId = row.original['meta/rootUuid'] || row.original._uuid;
 
-                if (mediaAttachment !== null) {
+                if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
-                      qpath={q.$qpath}
+                      xpath={q.$xpath}
                       submissionEditId={submissionEditId}
                       mediaAttachment={mediaAttachment}
                     />
@@ -984,7 +984,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 }
               }
 
-              if (mediaAttachment !== null) {
+              if (mediaAttachment !== null && q.$xpath !== undefined) {
                 return (
                   <MediaCell
                     questionType={q.type}
@@ -993,7 +993,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
                     assetUid={this.props.asset.uid}
-                    qpath={q.$qpath}
+                    xpath={q.$xpath}
                     submissionUuid={row.original._uuid}
                   />
                 );

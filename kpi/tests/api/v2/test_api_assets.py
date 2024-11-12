@@ -1,11 +1,8 @@
-# coding: utf-8
-import base64
 import copy
-import dateutil.parser
 import json
 import os
-from io import StringIO
 
+import dateutil.parser
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -32,9 +29,8 @@ from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-)
+from kpi.utils.project_views import get_region_for_view
+from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -89,13 +85,13 @@ class AssetListApiTests(BaseAssetTestCase):
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
     def test_assets_hash(self):
-        another_user = User.objects.get(username="anotheruser")
+        another_user = User.objects.get(username='anotheruser')
         user_asset = Asset.objects.get(pk=1)
         user_asset.save()
-        user_asset.assign_perm(another_user, "view_asset")
+        user_asset.assign_perm(another_user, 'view_asset')
 
         self.client.logout()
-        self.client.login(username="anotheruser", password="anotheruser")
+        self.client.login(username='anotheruser', password='anotheruser')
         creation_response = self.create_asset()
 
         another_user_asset = another_user.assets.last()
@@ -107,9 +103,9 @@ class AssetListApiTests(BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = calculate_hash(''.join(versions_ids))
-        hash_url = reverse("asset-hash")
+        hash_url = reverse('asset-hash')
         hash_response = self.client.get(hash_url)
-        self.assertEqual(hash_response.data.get("hash"), expected_hash)
+        self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
     def test_assets_search_query(self):
         someuser = User.objects.get(username='someuser')
@@ -300,6 +296,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.region_views_url = reverse(self._get_endpoint('projectview-list'))
         asset_country_settings = [
@@ -379,7 +376,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
             ['Overview', 'Test view 1']
         )
 
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         # anotheruser should only see view 1 and 2
@@ -413,7 +410,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_countries & region_for_view
 
     def test_project_views_anotheruser_submission_count(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         for asset in Asset.objects.all():
             if asset.has_deployment:
                 submissions = [
@@ -443,7 +440,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
     def test_project_views_for_anotheruser(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -485,7 +482,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert data_res.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         user = User.objects.get(username='anotheruser')
         res = self.client.get(self.region_views_url)
         data = res.json()
@@ -511,7 +508,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         self,
     ):
         # get the first asset from the first project view
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         anotheruser = User.objects.get(username='anotheruser')
         proj_view_list = self.client.get(self.region_views_url).data['results']
         first_proj_view = proj_view_list[0]
@@ -593,7 +590,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         assert snap_response.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_change_metadata(self):
-        self._login_as_anotheruser()
+        self.client.force_login(self.anotheruser)
         res = self.client.get(self.region_views_url)
         data = res.json()
         results = data['results']
@@ -1051,19 +1048,19 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.asset.deploy(backend='mock', active=True)
         submissions = [
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a1",
-                "q2": "a2",
-                "_id": 1,
-                "_submitted_by": ""
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                'q2': 'a2',
+                '_id': 1,
+                '_submitted_by': '',
             },
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a3",
-                "q2": "a4",
-                "_id": 2,
-                "_submitted_by": anotheruser.username
-            }
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a3',
+                'q2': 'a4',
+                '_id': 2,
+                '_submitted_by': anotheruser.username,
+            },
         ]
 
         self.asset.deployment.mock_submissions(submissions)
@@ -1308,7 +1305,7 @@ class AssetExportTaskTest(BaseTestCase):
     pass
 
 
-class AssetFileTest(BaseTestCase):
+class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -1332,136 +1329,16 @@ class AssetFileTest(BaseTestCase):
             ),
         )
 
-    def get_asset_file_content(self, url):
-        response = self.client.get(url)
-        return b''.join(response.streaming_content)
-
-    @property
-    def asset_file_payload(self):
-        geojson_ = StringIO(json.dumps(
-            {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [125.6, 10.1]
-                },
-                "properties": {
-                    "name": "Dinagat Islands"
-                }
-            }
-        ))
-        geojson_.name = 'dingagat_island.geojson'
-        return {
-            'file_type': AssetFile.MAP_LAYER,
-            'description': 'Dinagat Islands',
-            'content': geojson_,
-            'metadata': json.dumps({'source': 'http://geojson.org/'}),
-        }
-
     def switch_user(self, *args, **kwargs):
         self.client.logout()
         self.client.login(*args, **kwargs)
         self.current_username = kwargs['username']
 
-    def create_asset_file(self,
-                          payload=None,
-                          status_code=status.HTTP_201_CREATED):
-        payload = self.asset_file_payload if payload is None else payload
-
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json.loads(response.content)['count'], 0)
-        response = self.client.post(self.list_url, payload)
-        self.assertEqual(response.status_code, status_code)
-        return response
-
-    def verify_asset_file(self, response, payload=None, form_media=False):
-        posted_payload = self.asset_file_payload if payload is None else payload
-        response_dict = json.loads(response.content)
-        self.assertEqual(
-            response_dict['asset'],
-            self.absolute_reverse(
-                self._get_endpoint('asset-detail'), args=[self.asset.uid]
-            ),
-        )
-        self.assertEqual(
-            response_dict['user'],
-            self.absolute_reverse(
-                self._get_endpoint('user-kpi-detail'),
-                args=[self.current_username],
-            ),
-        )
-        self.assertEqual(
-            response_dict['user__username'],
-            self.current_username,
-        )
-
-        # Some metadata properties are added when file is created.
-        # Let's compare without them
-        response_metadata = dict(response_dict['metadata'])
-
-        if not form_media:
-            # `filename` is only mandatory with form media files
-            response_metadata.pop('filename', None)
-
-        response_metadata.pop('mimetype', None)
-        response_metadata.pop('hash', None)
-
-        self.assertEqual(
-            json.dumps(response_metadata),
-            posted_payload['metadata']
-        )
-        for field in 'file_type', 'description':
-            self.assertEqual(response_dict[field], posted_payload[field])
-
-        # Content uploaded as binary
-        try:
-            posted_payload['content'].seek(0)
-        except KeyError:
-            pass
-        else:
-            expected_content = posted_payload['content'].read().encode()
-            self.assertEqual(
-                self.get_asset_file_content(response_dict['content']),
-                expected_content
-            )
-            return response_dict['uid']
-
-        # Content uploaded as base64
-        try:
-            base64_encoded = posted_payload['base64Encoded']
-        except KeyError:
-            pass
-        else:
-            media_content = base64_encoded[base64_encoded.index('base64') + 7:]
-            expected_content = base64.decodebytes(media_content.encode())
-            self.assertEqual(
-                self.get_asset_file_content(response_dict['content']),
-                expected_content
-            )
-            return response_dict['uid']
-
-        # Content uploaded as a URL
-        metadata = json.loads(posted_payload['metadata'])
-        payload_url = metadata['redirect_url']
-        # if none of the other upload methods have been chosen,
-        # `redirect_url` should be present in the response because user
-        # must have provided a redirect url. Otherwise, a validation error
-        # should have been raised about invalid payload.
-        response_url = response_dict['metadata']['redirect_url']
-        assert response_url == payload_url and response_url != ''
-        return response_dict['uid']
-
     def test_owner_can_create_file(self):
         self.verify_asset_file(self.create_asset_file())
 
     def test_owner_can_delete_file(self):
-        af_uid = self.verify_asset_file(self.create_asset_file())
-        detail_url = reverse(self._get_endpoint('asset-file-detail'),
-                             args=(self.asset.uid, af_uid))
-        response = self.client.delete(detail_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # TODO: test that the file itself is removed
+        self.delete_asset_file()
 
     def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
@@ -1785,6 +1662,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_200_OK)
+
         # Validate version id
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.version_id,

@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import os
 import re
@@ -9,13 +8,16 @@ import requests
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 
 from kpi.utils.log import logging
+from kpi.utils.strings import split_lines_to_list
 from .hook import Hook
 from .hook_log import HookLog
 from ..constants import (
-    HOOK_LOG_SUCCESS,
     HOOK_LOG_FAILED,
+    HOOK_LOG_SUCCESS,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
+    RETRIABLE_STATUS_CODES,
 )
+from ..exceptions import HookRemoteServerDownError
 
 
 class ServiceDefinitionInterface(metaclass=ABCMeta):
@@ -41,7 +43,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 'service_json.ServiceDefinition._get_data: '
                 f'Hook #{self._hook.uid} - Data #{self._submission_id} - '
                 f'{str(e)}',
-                exc_info=True)
+                exc_info=True,
+            )
         return None
 
     @abstractmethod
@@ -71,106 +74,138 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         """
         pass
 
-    def send(self):
+    def send(self) -> bool:
         """
-        Sends data to external endpoint
-        :return: bool
+        Sends data to external endpoint.
+
+        Raise an exception if something is wrong. Retries are only allowed
+        when `HookRemoteServerDownError` is raised.
         """
 
-        success = False
+        if not self._data:
+            self.save_log(
+                KOBO_INTERNAL_ERROR_STATUS_CODE,
+                'Submission has been deleted',
+                allow_retries=False,
+            )
+            return False
+
         # Need to declare response before requests.post assignment in case of
         # RequestException
         response = None
-        if self._data:
-            try:
-                request_kwargs = self._prepare_request_kwargs()
+        try:
+            request_kwargs = self._prepare_request_kwargs()
 
-                # Add custom headers
-                request_kwargs.get("headers").update(
-                    self._hook.settings.get("custom_headers", {}))
-
-                # Add user agent
-                public_domain = "- {} ".format(os.getenv("PUBLIC_DOMAIN_NAME")) \
-                    if os.getenv("PUBLIC_DOMAIN_NAME") else ""
-                request_kwargs.get("headers").update({
-                    "User-Agent": "KoboToolbox external service {}#{}".format(
-                        public_domain,
-                        self._hook.uid)
-                })
-
-                # If the request needs basic authentication with username and
-                # password, let's provide them
-                if self._hook.auth_level == Hook.BASIC_AUTH:
-                    request_kwargs.update({
-                        "auth": (self._hook.settings.get("username"),
-                                 self._hook.settings.get("password"))
-                    })
-
-                ssrf_protect_options = {}
-                if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
-                    ssrf_protect_options['allowed_ip_addresses'] = constance.\
-                        config.SSRF_ALLOWED_IP_ADDRESS.strip().split('\r\n')
-
-                if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
-                    ssrf_protect_options['denied_ip_addresses'] = constance.\
-                        config.SSRF_DENIED_IP_ADDRESS.strip().split('\r\n')
-
-                SSRFProtect.validate(self._hook.endpoint,
-                                     options=ssrf_protect_options)
-
-                response = requests.post(self._hook.endpoint, timeout=30,
-                                         **request_kwargs)
-                response.raise_for_status()
-                self.save_log(response.status_code, response.text, True)
-                success = True
-            except requests.exceptions.RequestException as e:
-                # If request fails to communicate with remote server.
-                # Exception is raised before request.post can return something.
-                # Thus, response equals None
-                status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
-                text = str(e)
-                if response is not None:
-                    text = response.text
-                    status_code = response.status_code
-                self.save_log(status_code, text)
-            except SSRFProtectException as e:
-                logging.error(
-                    'service_json.ServiceDefinition.send: '
-                    f'Hook #{self._hook.uid} - '
-                    f'Data #{self._submission_id} - '
-                    f'{str(e)}',
-                    exc_info=True)
-                self.save_log(
-                    KOBO_INTERNAL_ERROR_STATUS_CODE,
-                    f'{self._hook.endpoint} is not allowed')
-            except Exception as e:
-                logging.error(
-                    'service_json.ServiceDefinition.send: '
-                    f'Hook #{self._hook.uid} - '
-                    f'Data #{self._submission_id} - '
-                    f'{str(e)}',
-                    exc_info=True)
-                self.save_log(
-                    KOBO_INTERNAL_ERROR_STATUS_CODE,
-                    "An error occurred when sending data to external endpoint")
-        else:
-            self.save_log(
-                KOBO_INTERNAL_ERROR_STATUS_CODE,
-                'Submission has been deleted'
+            # Add custom headers
+            request_kwargs.get('headers').update(
+                self._hook.settings.get('custom_headers', {})
             )
 
-        return success
+            # Add user agent
+            public_domain = (
+                '- {} '.format(os.getenv('PUBLIC_DOMAIN_NAME'))
+                if os.getenv('PUBLIC_DOMAIN_NAME')
+                else ''
+            )
+            request_kwargs.get('headers').update(
+                {
+                    'User-Agent': 'KoboToolbox external service {}#{}'.format(
+                        public_domain, self._hook.uid
+                    )
+                }
+            )
 
-    def save_log(self, status_code: int, message: str, success: bool = False):
+            # If the request needs basic authentication with username and
+            # password, let's provide them
+            if self._hook.auth_level == Hook.BASIC_AUTH:
+                request_kwargs.update(
+                    {
+                        'auth': (
+                            self._hook.settings.get('username'),
+                            self._hook.settings.get('password'),
+                        )
+                    }
+                )
+
+            ssrf_protect_options = {}
+            if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
+                ssrf_protect_options['allowed_ip_addresses'] = (
+                    split_lines_to_list(
+                        constance.config.SSRF_ALLOWED_IP_ADDRESS
+                    )
+                )
+
+            if constance.config.SSRF_DENIED_IP_ADDRESS.strip():
+                ssrf_protect_options['denied_ip_addresses'] = (
+                    split_lines_to_list(
+                        constance.config.SSRF_DENIED_IP_ADDRESS
+                    )
+                )
+
+            SSRFProtect.validate(self._hook.endpoint, options=ssrf_protect_options)
+
+            response = requests.post(self._hook.endpoint, timeout=30, **request_kwargs)
+            response.raise_for_status()
+            self.save_log(response.status_code, response.text, success=True)
+
+            return True
+
+        except requests.exceptions.RequestException as e:
+            # If request fails to communicate with remote server.
+            # Exception is raised before request.post can return something.
+            # Thus, response equals None
+            status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
+            text = str(e)
+            if response is not None:
+                text = response.text
+                status_code = response.status_code
+
+            if status_code in RETRIABLE_STATUS_CODES:
+                self.save_log(status_code, text, allow_retries=True)
+                raise HookRemoteServerDownError
+
+            self.save_log(status_code, text)
+            raise
+        except SSRFProtectException as e:
+            logging.error(
+                'service_json.ServiceDefinition.send: '
+                f'Hook #{self._hook.uid} - '
+                f'Data #{self._submission_id} - '
+                f'{str(e)}',
+                exc_info=True,
+            )
+            self.save_log(
+                KOBO_INTERNAL_ERROR_STATUS_CODE, f'{self._hook.endpoint} is not allowed'
+            )
+            raise
+        except Exception as e:
+            logging.error(
+                'service_json.ServiceDefinition.send: '
+                f'Hook #{self._hook.uid} - '
+                f'Data #{self._submission_id} - '
+                f'{str(e)}',
+                exc_info=True,
+            )
+            self.save_log(
+                KOBO_INTERNAL_ERROR_STATUS_CODE,
+                'An error occurred when sending '
+                f'data to external endpoint: {str(e)}',
+            )
+            raise
+
+    def save_log(
+        self,
+        status_code: int,
+        message: str,
+        success: bool = False,
+        allow_retries: bool = False,
+    ):
         """
         Updates/creates log entry with:
         - `status_code` as the HTTP status code of the remote server response
         - `message` as the content of the remote server response
         """
-        fields = {
-            'hook': self._hook,
-            'submission_id': self._submission_id
-        }
+        fields = {'hook': self._hook, 'submission_id': self._submission_id}
         try:
             # Try to load the log with a multiple field FK because
             # we don't know the log `uid` in this context, but we do know
@@ -181,7 +216,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
         if success:
             log.status = HOOK_LOG_SUCCESS
-        elif log.tries >= constance.config.HOOK_MAX_RETRIES:
+        elif not allow_retries or log.tries >= constance.config.HOOK_MAX_RETRIES:
             log.status = HOOK_LOG_FAILED
 
         log.status_code = status_code
@@ -192,7 +227,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         try:
             json.loads(message)
         except ValueError:
-            message = re.sub(r"<[^>]*>", " ", message).strip()
+            message = re.sub(r'<[^>]*>', ' ', message).strip()
 
         log.message = message
 

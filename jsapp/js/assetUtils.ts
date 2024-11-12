@@ -25,6 +25,7 @@ import {
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
+  XML_VALUES_OPTION_VALUE,
 } from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
@@ -77,8 +78,12 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
   // Return -1 instead of null as that would allow
-  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
-  let foundIndex = -1;
+  // `getQuestionOrChoiceDisplayName` to default to xml names.
+  if (langString === XML_VALUES_OPTION_VALUE) {
+    return -1;
+  }
+
+  let foundIndex = 0;
 
   if (
     Array.isArray(asset.summary?.languages) &&
@@ -119,7 +124,7 @@ export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsse
 export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   let output = '-';
 
-  if (asset.settings.sector?.value) {
+  if (asset.settings.sector && 'value' in asset.settings.sector) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language
@@ -214,6 +219,8 @@ export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): D
 /**
  * Returns usable name of the question or choice when possible, fallbacks to
  * "Unlabelled". `translationIndex` defaults to first (default) language.
+ *
+ * TODO: see how does this function output differs from `getTranslatedRowLabel`
  */
 export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
@@ -414,6 +421,8 @@ export function isRowSpecialLabelHolder(
  * @param rowName - could be either a survey row name or choices row name
  * @param data - is either a survey or choices
  * Returns null for not found
+ *
+ * TODO: see how does this function output differs from `getQuestionOrChoiceDisplayName`
  */
 export function getTranslatedRowLabel(
   rowName: string,
@@ -422,6 +431,16 @@ export function getTranslatedRowLabel(
 ): string | null {
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users. If translation we want is `-1`, it means we want to
+  // display xml name.
+  if (
+    translationIndex !== -1 &&
+    rowName === QUESTION_TYPES['background-audio'].id
+  ) {
+    return t('Background audio');
+  }
 
   if (data === undefined) {
     return null;
@@ -451,8 +470,8 @@ export function findRow(assetContent: AssetContent, rowName: string) {
   return assetContent?.survey?.find((row) => getRowName(row) === rowName);
 }
 
-export function findRowByQpath(assetContent: AssetContent, qpath: string) {
-  return assetContent?.survey?.find((row) => row.$qpath === qpath);
+export function findRowByXpath(assetContent: AssetContent, xpath: string) {
+  return assetContent?.survey?.find((row) => row.$xpath === xpath);
 }
 
 export function getRowType(assetContent: AssetContent, rowName: string) {
@@ -460,8 +479,8 @@ export function getRowType(assetContent: AssetContent, rowName: string) {
   return foundRow?.type;
 }
 
-export function getRowNameByQpath(assetContent: AssetContent, qpath: string) {
-  const foundRow = findRowByQpath(assetContent, qpath);
+export function getRowNameByXpath(assetContent: AssetContent, xpath: string) {
+  const foundRow = findRowByXpath(assetContent, xpath);
   if (foundRow) {
     return getRowName(foundRow);
   }
@@ -480,9 +499,7 @@ export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
     return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
-  if (rowType === META_QUESTION_TYPES['background-audio']) {
-    return 'background-rec';
-  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+  if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
     return 'qt-meta-default';
   }
 
@@ -552,9 +569,8 @@ export function injectSupplementalRowsIntoListOfRows(
   // Step 4: Inject all the extra columns immediately after source question
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
-    const qpath = col.replace(/\//g, '-');
     outputWithCols.push(col);
-    (extraColsBySource[qpath] || []).forEach((extraCol) => {
+    (extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`);
     });
   });
@@ -702,7 +718,7 @@ export function getAssetSubmissionProcessingUrl(
   return undefined;
 }
 
-/** Returns a list of all rows (their `qpath`s) activated for advanced features. */
+/** Returns a list of all rows (their `xpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset?.advanced_submission_schema?.properties) {
@@ -723,9 +739,9 @@ export function getAssetProcessingRows(assetUid: string) {
   return undefined;
 }
 
-export function isRowProcessingEnabled(assetUid: string, qpath: string) {
+export function isRowProcessingEnabled(assetUid: string, xpath: string) {
   const processingRows = getAssetProcessingRows(assetUid);
-  return Array.isArray(processingRows) && processingRows.includes(qpath);
+  return Array.isArray(processingRows) && processingRows.includes(xpath);
 }
 
 export function isAssetProcessingActivated(assetUid: string) {

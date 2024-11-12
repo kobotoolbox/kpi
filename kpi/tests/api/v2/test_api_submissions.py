@@ -1,21 +1,17 @@
-# coding: utf-8
 import copy
 import json
-import lxml
-import mock
+import os
 import random
 import string
-import time
 import uuid
 from datetime import datetime
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
+from unittest import mock
+
+import lxml
 import pytest
 import responses
-from dict2xml import dict2xml
 from django.conf import settings
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
@@ -23,41 +19,45 @@ from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
-    PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.tests.utils.xml import get_form_and_submission_tag_names
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.tests.utils.mixins import (
+    SubmissionDeleteTestCaseMixin,
+    SubmissionEditTestCaseMixin,
+    SubmissionValidationStatusTestCaseMixin,
+    SubmissionViewTestCaseMixin,
+)
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_edit_instance_response_with_root_name_validation,
     enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
+from kpi.tests.utils.xml import get_form_and_submission_tag_names
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 
 
-def dict2xml_with_encoding_declaration(*args, **kwargs):
-    return '<?xml version="1.0" encoding="utf-8"?>' + dict2xml(
-        *args, **kwargs
-    )
-
-
-def dict2xml_with_namespace(*args, **kwargs):
-    xml_string = dict2xml(*args, **kwargs)
-    xml_root = fromstring_preserve_root_xmlns(xml_string)
+def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
+    xml_string = dict2xform(submission, xform_id_string)
+    xml_root = lxml.etree.fromstring(xml_string.encode())
     xml_root.set('xmlns', 'http://opendatakit.org/submissions')
     return xml_tostring(xml_root)
 
@@ -74,103 +74,72 @@ class BaseSubmissionTestCase(BaseTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.client.login(username="someuser", password="someuser")
-        self.someuser = User.objects.get(username="someuser")
-        self.anotheruser = User.objects.get(username="anotheruser")
+        self.client.login(username='someuser', password='someuser')
+        self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.unknownuser = User.objects.create(username='unknownuser')
+        UserProfile.objects.create(user=self.unknownuser)
+
         content_source_asset = Asset.objects.get(id=1)
-        self.asset = Asset.objects.create(content=content_source_asset.content,
-                                          owner=self.someuser,
-                                          asset_type='survey')
+        self.asset = Asset.objects.create(
+            content=content_source_asset.content,
+            owner=self.someuser,
+            asset_type='survey',
+        )
 
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
 
-        self.__add_submissions()
-
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
         self._deployment = self.asset.deployment
 
-    def get_random_submission(self, user: settings.AUTH_USER_MODEL) -> dict:
-        return self.get_random_submissions(user, 1)[0]
-
-    def get_random_submissions(
-        self, user: settings.AUTH_USER_MODEL, limit: int = 1
-    ) -> list:
-        """
-        Get random submissions within all generated submissions.
-        If user is the owner, we only return submissions submitted by unknown.
-        It is useful to ensure restricted users fail tests with forbidden
-        submissions.
-        """
-        query = {}
-        if self.asset.owner == user:
-            query = {'_submitted_by': ''}
-
-        submissions = self.asset.deployment.get_submissions(user, query=query)
-        random.shuffle(submissions)
-        return submissions[:limit]
-
-    def _log_in_as_another_user(self):
-        """
-        Helper to switch user from `someuser` to `anotheruser`.
-        """
-        self.client.logout()
-        self.client.login(username="anotheruser", password="anotheruser")
-
-    def __add_submissions(self):
+    def _add_submissions(self, other_fields: dict = None):
         letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
         self.submissions_submitted_by_someuser = []
-        self.submissions_submitted_by_unknown = []
+        self.submissions_submitted_by_unknownuser = []
         self.submissions_submitted_by_anotheruser = []
 
-        submitted_by_choices = ['', 'someuser', 'anotheruser']
-        for i in range(20):
-            # We want to have at least one submission from each
-            if i <= 2:
-                submitted_by = submitted_by_choices[i]
-            else:
-                submitted_by = random.choice(submitted_by_choices)
-            uuid_ = uuid.uuid4()
-            submission = {
-                '__version__': v_uid,
-                'q1': ''.join(random.choice(letters) for l in range(10)),
-                'q2': ''.join(random.choice(letters) for l in range(10)),
-                'meta/instanceID': f'uuid:{uuid_}',
-                '_uuid': str(uuid_),
-                '_validation_status': {
-                    'by_whom': 'someuser',
-                    'timestamp': int(time.time()),
-                    'uid': 'validation_status_on_hold',
-                    'color': '#0000ff',
-                    'label': 'On Hold'
-                },
-                '_submitted_by': submitted_by
-            }
+        submitted_by_choices = ['unknownuser', 'someuser', 'anotheruser']
+        for submitted_by in submitted_by_choices:
+            for i in range(2):
+                uuid_ = uuid.uuid4()
+                submission = {
+                    '__version__': v_uid,
+                    'q1': ''.join(random.choice(letters) for letter in range(10)),
+                    'q2': ''.join(random.choice(letters) for letter in range(10)),
+                    'meta/instanceID': f'uuid:{uuid_}',
+                    '_uuid': str(uuid_),
+                    '_submitted_by': submitted_by,
+                }
+                if other_fields is not None:
+                    submission.update(**other_fields)
 
-            if submitted_by == 'someuser':
-                self.submissions_submitted_by_someuser.append(submission)
-
-            if submitted_by == '':
-                self.submissions_submitted_by_unknown.append(submission)
-
-            if submitted_by == 'anotheruser':
-                self.submissions_submitted_by_anotheruser.append(submission)
-
-            submissions.append(submission)
+                submissions.append(submission)
 
         self.asset.deployment.mock_submissions(submissions)
+
+        self.submissions_submitted_by_unknownuser = submissions[0:2]
+        self.submissions_submitted_by_someuser = submissions[2:4]
+        self.submissions_submitted_by_anotheruser = submissions[4:6]
         self.submissions = submissions
 
 
-class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
+class BulkDeleteSubmissionsApiTests(
+    SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase
+):
 
     # TODO, Add tests with ids and query
 
     def setUp(self):
         super().setUp()
+
+        self._add_submissions()
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
@@ -187,14 +156,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         someuser is the project owner
         someuser can delete their own data
         """
-        data = {'payload': {'confirm': True}}
-        response = self.client.delete(self.submission_bulk_url,
-                                      data=data,
-                                      format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(self.submission_list_url, {'format': 'json'})
-
-        self.assertEqual(response.data['count'], 0)
+        self._delete_submissions()
 
     def test_audit_log_on_bulk_delete(self):
         """
@@ -207,22 +169,18 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                 self.asset.owner, fields=['_id']
             )
         ]
-        (
-            app_label,
-            model_name,
-        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label=app_label, model_name=model_name
+            user=self.someuser, app_label='logger', model_name='instance'
         ).count()
         # No submissions have been deleted yet
         assert audit_log_count == 0
         # Delete all submissions
-        self.test_delete_submissions_as_owner()
+        self._delete_submissions()
 
         # All submissions have been deleted and should be logged
-        deleted_submission_ids = AuditLog.objects.values_list(
-            'pk', flat=True
-        ).filter(user=self.someuser, app_label=app_label, model_name=model_name)
+        deleted_submission_ids = AuditLog.objects.values_list('pk', flat=True).filter(
+            user=self.someuser, app_label='logger', model_name='instance'
+        )
         assert len(expected_submission_ids) > 0
         assert sorted(expected_submission_ids), sorted(deleted_submission_ids)
 
@@ -247,7 +205,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data, therefore cannot delete it.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {'payload': {'confirm': True}}
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
@@ -262,7 +220,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         """
 
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {'payload': {'confirm': True}}
 
         response = self.client.delete(self.submission_bulk_url,
@@ -281,7 +239,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         Test that anotheruser can delete all their data at once and if they do,
         only delete their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -310,7 +268,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         unknown_submission_ids = [
-            sub['_id'] for sub in self.submissions_submitted_by_unknown
+            sub['_id'] for sub in self.submissions_submitted_by_unknownuser
         ]
         someuser_submission_ids = [
             sub['_id'] for sub in self.submissions_submitted_by_someuser
@@ -333,7 +291,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
         Test that anotheruser can delete part of their data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -346,43 +304,41 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        random_submissions = self.get_random_submissions(self.asset.owner, 3)
-        data = {
-            'payload': {
-                'submission_ids': [rs['_id'] for rs in random_submissions]
-            }
-        }
-        response = self.client.delete(self.submission_bulk_url,
-                                      data=data,
-                                      format='json')
+        submissions = self.submissions_submitted_by_unknownuser
+        data = {'payload': {'submission_ids': [submissions[0]['_id']]}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
         count = self._deployment.calculated_submission_count(self.anotheruser)
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        assert count == 2
+        submissions = self.submissions_submitted_by_anotheruser
         data = {
             'payload': {
-                'submission_ids': [rs['_id'] for rs in random_submissions],
+                'submission_ids': [submissions[0]['_id']],
             }
         }
-        response = self.client.delete(self.submission_bulk_url,
-                                      data=data,
-                                      format='json')
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
-        self.assertEqual(response.data['count'], count - len(random_submissions))
+        self.assertEqual(response.data['count'], count - 1)
 
-    def test_cannot_delete_view_only_submissions_with_partial_perms_as_anotheruser(self):
+    def test_cant_delete_view_only_submissions_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project
         anotheruser is allowed to view someuser's data and delete their own data
 
         Test that anotheruser cannot delete someuser's data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}],
-            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]  # view_submission is implied
+            # view_submission is implied
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
 
         # Allow anotheruser to delete their own data
@@ -428,7 +384,11 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class SubmissionApiTests(BaseSubmissionTestCase):
+class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self._add_submissions()
 
     def test_cannot_create_submission(self):
         """
@@ -439,8 +399,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         Test that no one can create submissions (with KPI endpoint)
         """
         submission = {
-            "q1": "a5",
-            "q2": "a6",
+            'q1': 'a5',
+            'q2': 'a6',
         }
         # Owner
         response = self.client.post(self.submission_list_url, data=submission)
@@ -448,7 +408,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         # Shared
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -462,10 +422,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         They can list their own data
         """
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('results'), self.submissions)
-        self.assertEqual(response.data.get('count'), len(self.submissions))
+        response_ids = [r['_id'] for r in response.data.get('results')]
+        submissions_ids = [s['_id'] for s in self.submissions]
+        self.assertEqual(sorted(response_ids), sorted(submissions_ids))
 
     def test_list_submissions_as_owner_with_params(self):
         """
@@ -474,14 +435,19 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         params
         """
         response = self.client.get(
-            self.submission_list_url, {
+            self.submission_list_url,
+            {
                 'format': 'json',
                 'start': 1,
                 'limit': 5,
                 'sort': '{"q1": -1}',
                 'fields': '["q1", "_submitted_by"]',
-                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
-            }
+                'query': '{"_submitted_by": {'
+                         '  "$in": '
+                         '    ["unknownuser", "someuser", "anotheruser"]'
+                         ' }'
+                         '}',
+            },
         )
         # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data['results']), 5)
@@ -497,7 +463,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         asset = Asset.objects.create(
             name='Lots of submissions',
             owner=self.asset.owner,
-            content={'survey': [{'name': 'q', 'type': 'integer'}]},
+            content={'survey': [{'label': 'q', 'type': 'integer'}]},
         )
         asset.deploy(backend='mock', active=True)
         asset.deployment.set_namespace(self.URL_NAMESPACE)
@@ -509,18 +475,19 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             } for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
+        submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
+        )
 
         # Server-wide limit should apply if no limit specified
-        response = self.client.get(
-            asset.deployment.submission_list_url, {'format': 'json'}
-        )
+        response = self.client.get(submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), limit)
         # Limit specified in query parameters should not be able to exceed
         # server-wide limit
         response = self.client.get(
-            asset.deployment.submission_list_url,
-            {'limit': limit + excess, 'format': 'json'}
+            submission_list_url, {'limit': limit + excess, 'format': 'json'}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -533,8 +500,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        self.client.force_login(self.anotheruser)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_shared_as_anotheruser(self):
@@ -543,11 +510,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has view access on someuser's data. They can view all
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        self.client.force_login(self.anotheruser)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data.get('results'), self.submissions)
-        self.assertEqual(response.data.get('count'), len(self.submissions))
+        response_ids = [r['_id'] for r in response.data.get('results')]
+        submissions_ids = [s['_id'] for s in self.submissions]
+        self.assertEqual(sorted(response_ids), sorted(submissions_ids))
 
     def test_list_submissions_with_partial_permissions_as_anotheruser(self):
         """
@@ -555,16 +523,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial view access on someuser's project.
         They can view only the data they submitted to someuser's project.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # User `anotheruser` should only see submissions where `submitted_by`
@@ -582,7 +550,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.client.logout()
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_asset_publicly_shared_as_anonymous(self):
@@ -594,7 +562,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.client.logout()
         anonymous_user = get_anonymous_user()
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_submissions_asset_publicly_shared_as_authenticated_user(self):
@@ -608,7 +576,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
 
         anonymous_user = get_anonymous_user()
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         # Give the user who will access the public data--without any explicit
         # permission assignment--their own asset. This is needed to expose a
@@ -618,11 +586,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # `self.asset` is owned by `someuser`; `anotheruser` has no
         # explicitly-granted access to it
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_list_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
-    def test_list_submissions_asset_publicly_shared_and_shared_with_user_as_anotheruser(self):
+    def test_list_subs_asset_publicly_shared_and_shared_with_user_as_anotheruser(self):
         """
         Running through behaviour described in issue kpi/#2870 where an asset
         that has been publicly shared and then explicity shared with a user, the
@@ -630,7 +598,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         unable to view submission data.
         """
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         anonymous_user = get_anonymous_user()
 
         assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
@@ -668,18 +636,26 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         """
         Ensure query is able to filter on an array
         """
-        submission = self.submissions[0]
+        submission = copy.deepcopy(self.submissions_submitted_by_someuser[0])
+        del submission['_id']
+        uuid_ = str(uuid.uuid4())
+        submission['meta/instanceID'] = f'uuid:{uuid_}'
+        submission['_uuid'] = str(uuid_)
         group = 'group_lx4sf58'
         question = 'q3'
         submission[group] = [
             {
                 f'{group}/{question}': 'whap.gif',
             },
+            {
+                f'{group}/{question}': 'whop.gif',
+            },
         ]
-        self.asset.deployment.mock_submissions(self.submissions)
+
+        self.asset.deployment.mock_submissions([submission])
 
         data = {
-            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',
+            'query': f'{{"{group}":{{"$elemMatch":{{"{group}/{question}":{{"$exists":true}}}}}}}}',  # noqa: E501
             'format': 'json',
         }
         response = self.client.get(self.submission_list_url, data)
@@ -695,12 +671,17 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can view one of their submission.
         """
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
-
-        response = self.client.get(url, {"format": "json"})
+        submission = self.submissions_submitted_by_someuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, submission)
+        self.assertEqual(response.data['_id'], submission['_id'])
 
     def test_retrieve_submission_by_uuid(self):
         """
@@ -708,11 +689,17 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser can view one of their submission.
         """
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission['_uuid'])
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_uuid'],
+            },
+        )
 
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, submission)
+        self.assertEqual(response.data['_id'], submission['_id'])
 
     def test_retrieve_submission_not_shared_as_anotheruser(self):
         """
@@ -720,10 +707,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has no access to someuser's data
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.get(url, {"format": "json"})
+        self.client.force_login(self.anotheruser)
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_submission_shared_as_anotheruser(self):
@@ -732,12 +725,18 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has view access to someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.get(url, {"format": "json"})
+        self.client.force_login(self.anotheruser)
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, submission)
+        self.assertEqual(response.data['_id'], submission['_id'])
 
     def test_retrieve_submission_with_partial_permissions_as_anotheruser(self):
         """
@@ -745,23 +744,38 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial view access to someuser's data.
         They can only see their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
-        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
-                               partial_perms=partial_perms)
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.asset.owner)
-        url = self._deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.get(url, {"format": "json"})
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Try second submission submitted by another
         submission = self.submissions_submitted_by_anotheruser[0]
-        url = self._deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.get(url, {"format": "json"})
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_as_owner(self):
@@ -770,13 +784,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser can delete their own data.
         """
         submission = self.submissions_submitted_by_someuser[0]
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
-
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.get(self.submission_list_url, {'format': 'json'})
-
-        self.assertEqual(response.data['count'], len(self.submissions) - 1)
+        self._delete_submission(submission)
 
     def test_audit_log_on_delete(self):
         """
@@ -784,14 +792,10 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         deleted.
         """
         submission = self.submissions_submitted_by_someuser[0]
-        (
-            app_label,
-            model_name,
-        ) = self.asset.deployment.submission_model.get_app_label_and_model_name()
         audit_log_count = AuditLog.objects.filter(
             user=self.someuser,
-            app_label=app_label,
-            model_name=model_name,
+            app_label='logger',
+            model_name='instance',
             log_type=AuditType.SUBMISSION_MANAGEMENT,
         ).count()
         # No submissions have been deleted yet
@@ -804,8 +808,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             'pk', flat=True
         ).filter(
             user=self.someuser,
-            app_label=app_label,
-            model_name=model_name,
+            app_label='logger',
+            model_name='instance',
             log_type=AuditType.SUBMISSION_MANAGEMENT,
         )
         assert len(deleted_submission_ids) > 0
@@ -817,7 +821,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser should receive a 404 if they try to delete a non-existing
         submission.
         """
-        url = self.asset.deployment.get_submission_detail_url(9999)
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': 9999,
+            },
+        )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -829,8 +839,15 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.client.logout()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
+        submission = self.submissions_submitted_by_someuser[0]
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
 
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -842,9 +859,15 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser cannot view someuser's data, therefore they cannot delete it.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
+        self.client.force_login(self.anotheruser)
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
 
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -856,9 +879,15 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser can view someuser's data but they cannot delete it.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
-        submission = self.get_random_submission(self.asset.owner)
-        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
+        self.client.force_login(self.anotheruser)
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -881,7 +910,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         anotheruser has partial access to someuser's data.
         anotheruser can only view/delete their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -894,20 +923,32 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
-        url = self._deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.delete(url,
-                                      content_type='application/json',
-                                      HTTP_ACCEPT='application/json')
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.delete(
+            url, content_type='application/json', HTTP_ACCEPT='application/json'
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
         anotheruser_submission_count = len(self.submissions_submitted_by_anotheruser)
-        submission = self.get_random_submission(self.anotheruser)
-        url = self._deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.delete(url,
-                                      content_type='application/json',
-                                      HTTP_ACCEPT='application/json')
+        submission = self.submissions_submitted_by_anotheruser[0]
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.delete(
+            url, content_type='application/json', HTTP_ACCEPT='application/json'
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(
@@ -970,7 +1011,6 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         v_uid = asset.latest_deployed_version.uid
 
         submission = {
-            '_id': 1000,
             '__version__': v_uid,
             '_xform_id_string': asset.uid,
             'formhub/uuid': 'formhub-uuid',
@@ -979,17 +1019,20 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                 {
                     'group_ec9yq67/group_dq8as25/group_xt0za80': [
                         {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'IMG_4266-11_38_22.jpg'
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment':
+                                'IMG_4266-11_38_22.jpg'
                         },
                         {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'كوبو-رائع-10_7_41.jpg'
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment':
+                                'كوبو-رائع-10_7_41.jpg'
                         },
                     ]
                 },
                 {
                     'group_ec9yq67/group_dq8as25/group_xt0za80': [
                         {
-                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment': 'Screenshot 2024-02-14 at 18.31.39-11_38_35.png'
+                            'group_ec9yq67/group_dq8as25/group_xt0za80/my_attachment':
+                                'Screenshot 2024-02-14 at 18.31.39-11_38_35.jpg'
                         }
                     ]
                 },
@@ -1001,7 +1044,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                     'download_medium_url': 'http://kc.testserver/1.jpg',
                     'download_small_url': 'http://kc.testserver/1.jpg',
                     'mimetype': 'image/jpeg',
-                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/IMG_4266-11_38_22.jpg',
+                    'filename': os.path.join(
+                        'anotheruser',
+                        'attachments',
+                        'formhub-uuid',
+                        'submission-uuid',
+                        'IMG_4266-11_38_22.jpg'
+                    ),
                     'instance': 1,
                     'xform': 1,
                     'id': 1,
@@ -1012,7 +1061,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                     'download_medium_url': 'http://kc.testserver/2.jpg',
                     'download_small_url': 'http://kc.testserver/2.jpg',
                     'mimetype': 'image/jpeg',
-                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/كوبو-رايع-10_7_41.jpg',
+                    'filename': os.path.join(
+                        'anotheruser',
+                        'attachments',
+                        'formhub-uuid',
+                        'submission-uuid',
+                        'كوبو-رايع-10_7_41.jpg'
+                    ),
                     'instance': 1,
                     'xform': 1,
                     'id': 2,
@@ -1023,7 +1078,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                     'download_medium_url': 'http://kc.testserver/3.jpg',
                     'download_small_url': 'http://kc.testserver/3.jpg',
                     'mimetype': 'image/jpeg',
-                    'filename': 'anotheruser/attachments/formhub-uuid/submission-uuid/Screenshot_2024-02-14_at_18.31.39-11_38_35.png',
+                    'filename': os.path.join(
+                        'anotheruser',
+                        'attachments',
+                        'formhub-uuid',
+                        'submission-uuid',
+                        'Screenshot_2024-02-14_at_18.31.39-11_38_35.jpg'
+                    ),
                     'instance': 1,
                     'xform': 1,
                     'id': 3,
@@ -1034,8 +1095,14 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         asset.deployment.mock_submissions([submission])
         asset.deployment.set_namespace(self.URL_NAMESPACE)
 
-        self._log_in_as_another_user()
-        url = asset.deployment.get_submission_detail_url(submission['_id'])
+        self.client.force_login(self.anotheruser)
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': asset.uid,
+                'pk': submission['_id'],
+            },
+        )
 
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1047,16 +1114,22 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             'group_ec9yq67/group_dq8as25[1]/group_xt0za80[2]/my_attachment',
             'group_ec9yq67/group_dq8as25[2]/group_xt0za80[1]/my_attachment'
         ]
+
+        submission_id = submission['_id']
+        attachment_0_id = submission['_attachments'][0]['id']
+        attachment_1_id = submission['_attachments'][1]['id']
+        attachment_2_id = submission['_attachments'][2]['id']
+
         expected_new_download_urls = [
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/1/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_0_id}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/2/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_1_id}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + '/data/1000/attachments/3/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_2_id}/?format=json',
         ]
 
         for idx, attachment in enumerate(attachments):
@@ -1064,17 +1137,19 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
 
-class SubmissionEditApiTests(BaseSubmissionTestCase):
+class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editin submissions.
 
-    WARNING: Tests in this class must work in v1 as well, or else be added to the skipped tests
-    in kpi/tests/api/v1/test_api_submissions.py
+    WARNING: Tests in this class must work in v1 as well, or else be added to the
+    skipped tests in kpi/tests/api/v1/test_api_submissions.py
     """
 
     def setUp(self):
         super().setUp()
-        self.submission = self.get_random_submission(self.asset.owner)
+
+        self._add_submissions()
+        self.submission = self.submissions_submitted_by_someuser[0]
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
@@ -1121,23 +1196,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can retrieve enketo edit link
         """
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
-        )
-        # Mock Enketo response
-        responses.add_callback(
-            responses.POST, ee_url,
-            callback=enketo_edit_instance_response,
-            content_type='application/json',
-        )
-
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
-        expected_response = {
-            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
-            'version_uid': self.asset.latest_deployed_version.uid,
-        }
-        self.assertEqual(response.data, expected_response)
+        self._get_edit_link()
 
     @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):
@@ -1182,7 +1241,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser cannot view the project, therefore cannot edit data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -1193,7 +1252,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         someuser's data existence should not be revealed.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_url, {'format': 'json'})
 
         # FIXME if anotheruser has view permissions, they should receive a 403
@@ -1207,7 +1266,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser can retrieve enketo edit link
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         ee_url = (
             f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
@@ -1230,7 +1289,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         anotheruser has partial permissions on someuser's data
         anotheruser can only view/edit their own data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -1243,7 +1302,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
@@ -1255,7 +1314,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
@@ -1374,7 +1433,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # for POSTing to later
         submission_urls = []
         for _ in range(2):
-            submission = self.get_random_submission(self.asset.owner)
+            submission = self.submissions_submitted_by_someuser[0]
             edit_url = reverse(
                 self._get_endpoint('submission-enketo-edit'),
                 kwargs={
@@ -1460,61 +1519,63 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     @responses.activate
     def test_edit_submission_with_xml_encoding_declaration(self):
-        with mock.patch(
-            'kpi.deployment_backends.mock_backend.dict2xml'
-        ) as mock_dict2xml:
-            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
-            submission = self.submissions[-1]
-            submission_xml = self.asset.deployment.get_submissions(
-                user=self.asset.owner,
-                format_type=SUBMISSION_FORMAT_TYPE_XML,
-                submission_ids=[submission['_id']],
-            )[0]
-            assert submission_xml.startswith(
-                '<?xml version="1.0" encoding="utf-8"?>'
-            )
+        submission = self.submissions[-1]
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[submission['_id']],
+        )[0]
+        assert submission_xml.startswith('<?xml version="1.0" encoding="utf-8"?>')
 
-            # Get edit endpoint
-            edit_url = reverse(
-                self._get_endpoint('submission-enketo-edit'),
-                kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'pk': submission['_id'],
-                },
-            )
+        # Get edit endpoint
+        edit_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
 
-            # Set up a mock Enketo response and attempt the edit request
-            ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
-            responses.add_callback(
-                responses.POST,
-                ee_url,
-                callback=enketo_edit_instance_response_with_uuid_validation,
-                content_type='application/json',
-            )
-            response = self.client.get(edit_url, {'format': 'json'})
-            assert response.status_code == status.HTTP_200_OK
+        # Set up a mock Enketo response and attempt the edit request
+        ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        responses.add_callback(
+            responses.POST,
+            ee_url,
+            callback=enketo_edit_instance_response_with_uuid_validation,
+            content_type='application/json',
+        )
+        response = self.client.get(edit_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
 
     @responses.activate
     def test_edit_submission_with_xml_missing_uuids(self):
         # Make a new submission without UUIDs
         submission = copy.deepcopy(self.submissions[-1])
         submission['_id'] += 1
+
         del submission['meta/instanceID']
+        del submission['_uuid']
+
         submission['find_this'] = 'hello!'
         # The form UUID is already omitted by these tests, but fail if that
         # changes in the future
         assert 'formhub/uuid' not in submission.keys()
-        self.asset.deployment.mock_submissions([submission])
+        self.asset.deployment.mock_submissions([submission], create_uuids=False)
 
         # Find and verify the new submission
         submission_xml = self.asset.deployment.get_submissions(
             user=self.asset.owner,
             format_type=SUBMISSION_FORMAT_TYPE_XML,
-            find_this='hello!',
+            query={'find_this': 'hello!'},
         )[0]
+        submission_json = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_JSON,
+            query={'find_this': 'hello!'},
+        )[0]
+
         submission_xml_root = fromstring_preserve_root_xmlns(submission_xml)
-        submission_id = int(submission_xml_root.find('./_id').text)
-        assert submission_id == submission['_id']
+        assert submission_json['_id'] == submission['_id']
         assert submission_xml_root.find('./find_this').text == 'hello!'
         assert submission_xml_root.find('./meta/instanceID') is None
         assert submission_xml_root.find('./formhub/uuid') is None
@@ -1524,7 +1585,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submission_id,
+                'pk': submission_json['_id'],
             },
         )
 
@@ -1567,9 +1628,10 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             {
                 'type': 'note',
                 'name': 'n',
-                'label': 'A new note',
+                'label': ['A new note'],
             }
         )
+
         self.asset.save()
         assert self.asset.asset_versions.count() == original_versions_count + 1
         assert (
@@ -1627,11 +1689,12 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class SubmissionViewApiTests(BaseSubmissionTestCase):
+class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.submission = self.get_random_submission(self.asset.owner)
+        self._add_submissions()
+        self.submission = self.submissions_submitted_by_someuser[0]
         self.submission_view_link_url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
@@ -1652,25 +1715,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can get enketo view link
         """
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
-        )
-
-        # Mock Enketo response
-        responses.add_callback(
-            responses.POST, ee_url,
-            callback=enketo_view_instance_response,
-            content_type='application/json',
-        )
-
-        response = self.client.get(self.submission_view_link_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
-
-        expected_response = {
-            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
-            'version_uid': self.asset.latest_deployed_version.uid,
-        }
-        assert response.data == expected_response
+        self._get_view_link()
 
     @responses.activate
     def test_get_view_submission_redirect_as_owner(self):
@@ -1716,7 +1761,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser cannot view the project, therefore cannot retrieve enketo link.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -1728,7 +1773,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser can retrieve enketo view link.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         ee_url = (
             f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
@@ -1750,7 +1795,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         anotheruser has partial view permissions on someuser's data
         anotheruser can only view their own data
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
@@ -1763,7 +1808,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
@@ -1804,7 +1849,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data, expected_response)
 
 
-class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
+class SubmissionDuplicateBaseApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -1818,17 +1863,9 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             }
         }
         current_time = datetime.now(tz=ZoneInfo('UTC')).isoformat('T', 'milliseconds')
-        # TODO: also test a submission that's missing `start` or `end`; see
-        # #3054. Right now that would be useless, though, because the
-        # MockDeploymentBackend doesn't use XML at all and won't fail if an
-        # expected field is missing
-        for submission in self.submissions:
-            submission['start'] = current_time
-            submission['end'] = current_time
+        self._add_submissions(other_fields={'start': current_time, 'end': current_time})
 
-        self.asset.deployment.mock_submissions(self.submissions)
-
-        self.submission = self.get_random_submission(self.asset.owner)
+        self.submission = self.submissions_submitted_by_someuser[0]
         self.submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
@@ -1846,13 +1883,41 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         submission = submission if submission else self.submission
         duplicate_submission = response.data
 
-        expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
+        expected_next_id = max(sub['_id'] for sub in self.submissions) + 1
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
+
         assert submission['meta/instanceID'] != duplicate_submission['meta/instanceID']
-        assert submission['meta/instanceID'] == duplicate_submission['meta/deprecatedID']
         assert submission['start'] != duplicate_submission['start']
         assert submission['end'] != duplicate_submission['end']
+
+
+class SubmissionDuplicateWithXMLNamespaceApiTests(SubmissionDuplicateBaseApiTests):
+
+    def setUp(self):
+        with mock.patch(
+            'kpi.deployment_backends.mock_backend.dict2xform'
+        ) as mock_dict2xform:
+            mock_dict2xform.side_effect = dict2xform_with_namespace
+            super().setUp()
+
+    def test_duplicate_submission_with_xml_namespace(self):
+
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[self.submission['_id']],
+        )[0]
+        assert 'xmlns="http://opendatakit.org/submissions"' in submission_xml
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+
+class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
+
+    def setUp(self):
+        super().setUp()
 
     def test_duplicate_submission_as_owner_allowed(self):
         """
@@ -1864,34 +1929,25 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         self._check_duplicate(response)
 
     def test_duplicate_submission_with_xml_encoding(self):
-        with mock.patch(
-            'kpi.deployment_backends.mock_backend.dict2xml'
-        ) as mock_dict2xml:
-            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
-            submission_xml = self.asset.deployment.get_submissions(
-                user=self.asset.owner,
-                format_type=SUBMISSION_FORMAT_TYPE_XML,
-                submission_ids=[self.submission['_id']],
-            )[0]
-            assert submission_xml.startswith(
-                '<?xml version="1.0" encoding="utf-8"?>'
-            )
-            self.test_duplicate_submission_as_owner_allowed()
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[self.submission['_id']],
+        )[0]
+        assert submission_xml.startswith('<?xml version="1.0" encoding="utf-8"?>')
+        self.test_duplicate_submission_as_owner_allowed()
 
-    def test_duplicate_submission_with_xml_namespace(self):
-        with mock.patch(
-            'kpi.deployment_backends.mock_backend.dict2xml'
-        ) as mock_dict2xml:
-            mock_dict2xml.side_effect = dict2xml_with_namespace
-            submission_xml = self.asset.deployment.get_submissions(
-                user=self.asset.owner,
-                format_type=SUBMISSION_FORMAT_TYPE_XML,
-                submission_ids=[self.submission['_id']],
-            )[0]
-            assert (
-                'xmlns="http://opendatakit.org/submissions"' in submission_xml
-            )
-            self.test_duplicate_submission_as_owner_allowed()
+    def test_duplicate_submission_without_xml_encoding(self):
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[self.submission['_id']],
+        )[0]
+        assert submission_xml.startswith('<?xml version="1.0" encoding="utf-8"?>')
+        Instance.objects.filter(pk=self.submission['_id']).update(
+            xml=submission_xml.replace('<?xml version="1.0" encoding="utf-8"?>', '')
+        )
+        self.test_duplicate_submission_as_owner_allowed()
 
     def test_duplicate_submission_as_anotheruser_not_allowed(self):
         """
@@ -1900,7 +1956,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         anotheruser has no access to someuser's data and someuser's data existence
         should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -1923,7 +1979,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         edit/duplicate someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -1935,7 +1991,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         someuser's data.
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
@@ -1950,7 +2006,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         """
         for perm in [PERM_VIEW_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
             self.asset.assign_perm(self.anotheruser, perm)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -1961,7 +2017,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         anotheruser has partial change submissions permissions.
         They can edit/duplicate their own data only.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
@@ -1975,7 +2031,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_unknownuser[0]
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
@@ -1987,7 +2043,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
@@ -2035,6 +2091,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
+        self._add_submissions()
         self.submission_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
@@ -2042,9 +2099,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
             },
         )
 
-        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        submissions = self.submissions_submitted_by_someuser
         self.updated_submission_data = {
-            'submission_ids': [rs['_id'] for rs in random_submissions],
+            'submission_ids': [rs['_id'] for rs in submissions],
             'data': {
                 'q1': 'Updated value',
                 'q_new': 'A new question and value'
@@ -2078,22 +2135,16 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         )
     )
     def test_bulk_update_submissions_with_xml_encoding(self):
-        with mock.patch(
-            'kpi.deployment_backends.mock_backend.dict2xml'
-        ) as mock_dict2xml:
-            mock_dict2xml.side_effect = dict2xml_with_encoding_declaration
-            submission = self.submissions[
-                self.updated_submission_data['submission_ids'][-1]
-            ]
-            submission_xml = self.asset.deployment.get_submissions(
-                user=self.asset.owner,
-                format_type=SUBMISSION_FORMAT_TYPE_XML,
-                submission_ids=[submission['_id']],
-            )[0]
-            assert submission_xml.startswith(
-                '<?xml version="1.0" encoding="utf-8"?>'
-            )
-            self.test_bulk_update_submissions_allowed_as_owner()
+        submission = self.submissions[
+            self.updated_submission_data['submission_ids'][-1]
+        ]
+        submission_xml = self.asset.deployment.get_submissions(
+            user=self.asset.owner,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
+            submission_ids=[submission['_id']],
+        )[0]
+        assert submission_xml.startswith('<?xml version="1.0" encoding="utf-8"?>')
+        self.test_bulk_update_submissions_allowed_as_owner()
 
     @pytest.mark.skip(
         reason=(
@@ -2103,9 +2154,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
     )
     def test_bulk_update_submissions_with_xml_namespace(self):
         with mock.patch(
-            'kpi.deployment_backends.mock_backend.dict2xml'
-        ) as mock_dict2xml:
-            mock_dict2xml.side_effect = dict2xml_with_namespace
+            'kpi.deployment_backends.mock_backend.dict2xform'
+        ) as mock_dict2xform:
+            mock_dict2xform.side_effect = dict2xform_with_namespace
             submission = self.submissions[
                 self.updated_submission_data['submission_ids'][-1]
             ]
@@ -2126,7 +2177,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser cannot access someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2153,7 +2204,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         update someuser's data
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2166,7 +2217,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         anotheruser can edit view someuser's data
         """
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
         )
@@ -2179,7 +2230,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         The project is partially shared with anotheruser
         anotheruser can only edit their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         # Allow anotheruser to update their own data
         partial_perms = {
@@ -2200,9 +2251,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Update some of another's submissions
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        submissions = self.submissions_submitted_by_anotheruser
         self.updated_submission_data['submission_ids'] = [
-            rs['_id'] for rs in random_submissions
+            rs['_id'] for rs in submissions
         ]
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
@@ -2211,15 +2262,20 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self._check_bulk_update(response)
 
 
-class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
+class SubmissionValidationStatusApiTests(
+    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
+):
 
     def setUp(self):
         super().setUp()
-        self.submission = self.get_random_submission(self.asset.owner)
-        self.validation_status_url = (
-            self._deployment.get_submission_validation_status_url(
-                self.submission['_id']
-            )
+        self._add_submissions()
+        self.submission = self.submissions_submitted_by_someuser[0]
+        self.validation_status_url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
         )
 
     def test_retrieve_status_as_owner(self):
@@ -2229,7 +2285,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         """
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submission.get("_validation_status"))
+        self.assertEqual(response.data, {})
 
     def test_cannot_retrieve_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2238,7 +2294,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser has no access to someuser's data.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2250,10 +2306,10 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can view validation status of submissions.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submission.get("_validation_status"))
+        self.assertEqual(response.data, {})
 
     def test_cannot_retrieve_status_of_shared_submission_as_anonymous(self):
         """
@@ -2271,13 +2327,8 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can delete the validation status of submissions
         """
-        response = self.client.delete(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # Ensure delete worked.
-        response = self.client.get(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {})
+        self._update_status('someuser')
+        self._delete_status()
 
     def test_cannot_delete_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2287,7 +2338,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         validation status.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2299,7 +2350,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can delete validation status of the project.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.delete(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -2324,17 +2375,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can update validation status.
         """
-        data = {
-            'validation_status.uid': 'validation_status_not_approved'
-        }
-        response = self.client.patch(self.validation_status_url, data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Ensure update worked.
-        response = self.client.get(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['by_whom'], 'someuser')
-        self.assertEqual(response.data['uid'], data['validation_status.uid'])
+        self._update_status('someuser')
 
     def test_cannot_edit_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2344,7 +2385,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         validate them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.patch(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -2356,7 +2397,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser can edit validation status of the project.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'validation_status.uid': 'validation_status_not_approved'
         }
@@ -2387,33 +2428,40 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         anotheruser has partial access to someuser's data.
         anotheruser can only view and validate their data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
         # Allow anotheruser to validate someuser's data
-        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
-                               partial_perms=partial_perms)
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
         data = {
             'validation_status.uid': 'validation_status_not_approved'
         }
 
         # Try first submission submitted by unknown
-        submission = self.submissions_submitted_by_unknown[0]
-        url = (
-            self._deployment.get_submission_validation_status_url(
-                submission['_id']
-            )
+        submission = self.submissions_submitted_by_unknownuser[0]
+        url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
         )
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
         submission = self.submissions_submitted_by_anotheruser[0]
-        url = (
-            self._deployment.get_submission_validation_status_url(
-                submission['_id']
-            )
+        url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
         )
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2425,13 +2473,13 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data['uid'], data['validation_status.uid'])
 
 
-class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
+class SubmissionValidationStatusesApiTests(
+    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
+):
 
     def setUp(self):
         super().setUp()
-        for submission in self.submissions:
-            submission['_validation_status']['uid'] = 'validation_status_not_approved'
-        self.asset.deployment.mock_submissions(self.submissions)
+        self._add_submissions()
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
@@ -2441,36 +2489,23 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
         )
 
-    def test_delete_all_status_as_owner(self):
+        self._validate_statuses(empty=True)
+        self._update_statuses(status_uid='validation_status_not_approved')
+
+    def test_all_validation_statuses_applied(self):
+        self._validate_statuses(
+            uid='validation_status_not_approved', username='someuser'
+        )
+
+    def test_delete_all_statuses_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can bulk delete the status of all their submissions.
         """
-        data = {
-            'payload': {
-                'validation_status.uid': None,
-            }
-        }
-        response = self.client.delete(self.validation_statuses_url,
-                                      data=data,
-                                      format='json')
-        # `confirm` must be sent within the payload (when all submissions are
-        # modified). Otherwise, a ValidationError is raised
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        data['payload']['confirm'] = True
-        response = self.client.delete(self.validation_statuses_url,
-                                      data=data,
-                                      format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self._delete_statuses()
         count = self._deployment.calculated_submission_count(self.someuser)
         expected_response = {'detail': f'{count} submissions have been updated'}
-        self.assertEqual(response.data, expected_response)
-
-        # Ensure update worked.
-        response = self.client.get(self.submission_list_url)
-        for submission in response.data['results']:
-            self.assertEqual(submission['_validation_status'], {})
+        assert response.data == expected_response
 
     def test_delete_some_statuses_as_owner(self):
         """
@@ -2512,7 +2547,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         bulk delete the validation status of them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -2534,7 +2569,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         """
 
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': None,
@@ -2659,7 +2694,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         bulk edit the validation status of them.
         someuser's data existence should not be revealed.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
@@ -2681,7 +2716,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         at once.
         """
         self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
@@ -2728,7 +2763,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_edit_all_submission_validation_statuses_with_partial_perms_as_anotheruser(self):
+    def test_edit_all_sub_validation_statuses_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
         The project is partially shared with anotheruser.
@@ -2736,14 +2771,17 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         `confirm=true` must be sent when the request alters all their submissions
         at once.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [
                 {'_submitted_by': 'anotheruser'}]
         }
         # Allow anotheruser to validate their own data
-        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
-                               partial_perms=partial_perms)
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
@@ -2752,20 +2790,19 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         }
 
         # Update all submissions anotheruser is allowed to edit
-        response = self.client.patch(self.validation_statuses_url,
-                                     data=data,
-                                     format='json')
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        count = self._deployment.calculated_submission_count(
-            self.anotheruser)
+        count = self._deployment.calculated_submission_count(self.anotheruser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
         # Get all submissions and ensure only the ones that anotheruser is
         # allowed to edit have been modified
         self.client.logout()
-        self.client.login(username="someuser", password="someuser")
+        self.client.login(username='someuser', password='someuser')
         response = self.client.get(self.submission_list_url)
         for submission in response.data['results']:
             validation_status = submission['_validation_status']
@@ -2782,13 +2819,13 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                     data['payload']['validation_status.uid']
                 )
 
-    def test_edit_some_submission_validation_statuses_with_partial_perms_as_anotheruser(self):
+    def test_edit_some_sub_validation_statuses_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
         The project is partially shared with anotheruser.
         anotheruser can only validate their own data.
         """
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [
                 {'_submitted_by': 'anotheruser'}]
@@ -2797,13 +2834,11 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
 
-        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        submissions = self.submissions_submitted_by_someuser
         data = {
             'payload': {
                 'validation_status.uid': 'validation_status_approved',
-                'submission_ids': [
-                    rs['_id'] for rs in random_submissions
-                ]
+                'submission_ids': [rs['_id'] for rs in submissions],
             }
         }
 
@@ -2814,13 +2849,11 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try 2nd submission submitted by anotheruser
-        random_submissions = self.get_random_submissions(self.anotheruser, 3)
-        data['payload']['submission_ids'] = [
-            rs['_id'] for rs in random_submissions
-        ]
-        response = self.client.patch(self.validation_statuses_url,
-                                     data=data,
-                                     format='json')
+        submissions = self.submissions_submitted_by_anotheruser
+        data['payload']['submission_ids'] = [rs['_id'] for rs in submissions]
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         count = self._deployment.calculated_submission_count(
@@ -2831,7 +2864,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         # Get all submissions and ensure only the ones that anotheruser is
         # allowed to edit have been modified
         self.client.logout()
-        self.client.login(username="someuser", password="someuser")
+        self.client.login(username='someuser', password='someuser')
         response = self.client.get(self.submission_list_url)
         for submission in response.data['results']:
             validation_status = submission['_validation_status']
@@ -2853,13 +2886,13 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
 
-    fixtures = ["test_data"]
+    fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.client.login(username="someuser", password="someuser")
-        self.someuser = User.objects.get(username="someuser")
+        self.client.login(username='someuser', password='someuser')
+        self.someuser = User.objects.get(username='someuser')
         self.asset = a = Asset()
         a.name = 'Two points and one text'
         a.owner = self.someuser
@@ -2896,7 +2929,12 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         ]
         a.deployment.mock_submissions(self.submissions)
         a.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_list_url = a.deployment.submission_list_url
+        self.submission_list_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={
+                'parent_lookup_asset': a.uid,
+            },
+        )
 
     def test_list_submissions_geojson_defaults(self):
         response = self.client.get(

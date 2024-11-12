@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .mediaWrapper {
   border-radius: sizes.$x6;
@@ -11,7 +10,7 @@
 
   &.mediaWrapperAudio {
     // right padding is for the audio player to appear centered
-    padding: sizes.$x20 #{sizes.$x20 + sizes.$x12} sizes.$x14 sizes.$x20;
+    padding: 20px #{20px + 12px} 14px 20px;
   }
 
   &.mediaWrapperVideo {

@@ -10,7 +10,7 @@ Details pulled from ODK documents / google docs. Notably this one:
 
 _ = require 'underscore'
 Backbone = require 'backbone'
-$utils = require './model.utils'
+txtid = require('js/utils').txtid
 
 module.exports = do ->
   configs = {}
@@ -340,7 +340,7 @@ module.exports = do ->
   configs.newGroupDetails =
     name:
       value: ->
-        "group_#{$utils.txtid()}"
+        "group_#{txtid()}"
     label:
       value: "Group"
     type:

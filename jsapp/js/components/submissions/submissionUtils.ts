@@ -373,8 +373,8 @@ export function getSubmissionDisplayData(
         );
         parentGroup.addChild(rowObj);
 
-        const rowqpath = flatPaths[rowName].replace(/\//g, '-');
-        supplementalDetailKeys[rowqpath]?.forEach((sdKey: string) => {
+        const rowxpath = flatPaths[rowName];
+        supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
           parentGroup.addChild(
             new DisplayResponse(
               null,
@@ -718,6 +718,7 @@ export function getSupplementalDetailsContent(
       // For `qual_select_one` we get object
       if (
         typeof foundResponse.val === 'object' &&
+        foundResponse.val !== null &&
         'labels' in foundResponse.val
       ) {
         return foundResponse.val.labels._default;

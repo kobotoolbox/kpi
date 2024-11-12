@@ -21,7 +21,11 @@ import type {
 } from './components/processing/analysis/constants';
 import type {TransxObject} from './components/processing/processingActions';
 import type {UserResponse} from 'js/users/userExistence.store';
-import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {
+  ReportsPaginatedResponse,
+  AssetResponseReportStyles,
+  AssetResponseReportCustom,
+} from 'js/components/reports/reportsConstants';
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
 import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
@@ -360,14 +364,15 @@ interface ExportSettingSettings {
 /**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
+ * Interesting fact: a `SurveyRow` with the least amount of properties is group
+ * end - it only has `$kuid` and `type`.
  */
 export interface SurveyRow {
-  /** This is a unique identifier that includes both name and path (names of parents). */
-  $qpath: string;
-  $xpath: string;
-  $autoname: string;
   $kuid: string;
   type: AnyRowTypeName;
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $xpath?: string;
+  $autoname?: string;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -382,7 +387,7 @@ export interface SurveyRow {
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
   /** HXL tags. */
-  tags: string[];
+  tags?: string[];
   select_from_list_name?: string;
 }
 
@@ -393,6 +398,9 @@ export interface SurveyChoice {
   list_name: string;
   name: string;
   'media::image'?: string[];
+  // Possibly deprecated? Most code doesn't use it at all, old reports code was
+  // using it as fallback.
+  $autoname?: string;
 }
 
 interface AssetLockingProfileDefinition {
@@ -458,14 +466,6 @@ interface AssetSummary {
   naming_conflicts?: string[];
 }
 
-interface AssetReportStylesSpecified {
-  [name: string]: {};
-}
-
-interface AssetReportStylesKuidNames {
-  [name: string]: {};
-}
-
 interface AdvancedSubmissionSchema {
   type: 'string' | 'object';
   $description: string;
@@ -473,7 +473,7 @@ interface AdvancedSubmissionSchema {
   properties?: AdvancedSubmissionSchemaDefinition;
   additionalProperties?: boolean;
   required?: string[];
-  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition};
+  definitions?: AdvancedSubmissionSchemaDefinition;
 }
 
 export interface AssetAdvancedFeatures {
@@ -496,11 +496,13 @@ export interface AssetAdvancedFeatures {
 
 interface AdvancedSubmissionSchemaDefinition {
   [name: string]: {
-    type: 'string' | 'object';
-    description: string;
+    type?: 'string' | 'object';
+    description?: string;
     properties?: {[name: string]: {}};
     additionalProperties?: boolean;
     required?: string[];
+    anyOf?: Array<{$ref: string}>;
+    allOf?: Array<{$ref: string}>;
   };
 }
 
@@ -532,13 +534,14 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 }
 
 export interface AssetSettings {
-  sector?: LabelValuePair | null;
+  sector?: LabelValuePair | null | {};
   country?: LabelValuePair | LabelValuePair[] | null;
   description?: string;
   'data-table'?: AssetTableSettings;
   organization?: string;
   collects_pii?: LabelValuePair | null;
   operational_purpose?: LabelValuePair | null;
+  country_codes?: string[];
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -548,26 +551,10 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles?: {
-    default?: {};
-    specified?: AssetReportStylesSpecified;
-    kuid_names?: AssetReportStylesKuidNames;
-  };
-  report_custom?: {
-    [reportName: string]: {
-      crid: string;
-      name: string;
-      questions: string[];
-      reportStyle: {
-        groupDataBy: string;
-        report_type: string;
-        report_colors: string[];
-        translationIndex: number;
-      };
-    };
-  };
-  map_styles?: {};
-  map_custom?: {};
+  report_styles: AssetResponseReportStyles;
+  report_custom: AssetResponseReportCustom;
+  map_styles: {};
+  map_custom: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
@@ -591,12 +578,16 @@ export interface AnalysisFormJsonField {
   type: string;
   language: string;
   source: string;
-  qpath: string;
+  xpath: string;
   settings: {
     mode: string;
     engine: string;
-  };
+  } | '??';
   path: string[];
+  choices?: Array<{
+    uuid: string;
+    labels: {[key: string]: string};
+  }>
 }
 
 /**
@@ -612,6 +603,7 @@ export interface AssetResponse extends AssetRequestObject {
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
+  date_deployed?: string;
   version_id: string | null;
   version__content_hash?: string | null;
   version_count?: number;
@@ -681,6 +673,7 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number;
   status: string;
   access_types: string[] | null;
+  files?: any[];
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -691,7 +684,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
-  project_ownership: ProjectTransferAssetDetail;
+  project_ownership: ProjectTransferAssetDetail | null;
 }
 
 /** This is the asset object returned by project-views endpoint. */
@@ -816,6 +809,12 @@ export interface AccountResponse {
     tag: string | boolean;
   };
   social_accounts: SocialAccount[];
+  // Organization details
+  organization?: {
+    url: string;
+    name: string;
+    uid: string;
+  };
 }
 
 export interface AccountRequest {
@@ -1125,7 +1124,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
+  }): JQuery.jqXHR<ReportsPaginatedResponse> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;

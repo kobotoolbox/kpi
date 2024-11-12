@@ -31,7 +31,7 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba(colors.$kobo-gray-800, 0.8);
+    background: rgba(colors.$kobo-gray-800, 0.9);
     padding: 20px 30px;
     border-radius: 10px;
 
@@ -54,7 +54,8 @@
     }
 
     hr {
-      border-top: 1px solid colors.$kobo-storm;
+      border-top: 1px solid colors.$kobo-light-storm;
+      opacity: 0.4;
     }
 
     // accounts/{{provider}}/login variant
@@ -78,6 +79,11 @@
       max-width: 500px; // to be revised
       padding-bottom: 60px;
 
+      .registration__legal {
+        margin-top: 10px;
+        margin-bottom: -20px;
+      }
+
       h1 {
         font-weight: bold;
       }
@@ -94,7 +100,7 @@
     // SSO section styles
     .registration__sso {
       font-size: variables.$base-font-size;
-      padding-bottom: 20px;
+      padding-bottom: 10px;
 
       // Login page variant
       &.registration__sso--login {
@@ -259,7 +265,7 @@
   }
 
   span.required {
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin-left: 3px;
   }
 
@@ -305,7 +311,7 @@
 
   ul.errorlist {
     padding: 0px;
-    color: colors.$kobo-red;
+    color: colors.$kobo-mid-red;
     margin: 8px 0px;
   }
 }
@@ -331,7 +337,7 @@ form.registration--login > p > span.helptext{
 }
 
 .registration__create-or-forgot {
-  margin: 20px 0;
+  margin: 20px 0 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -339,33 +345,43 @@ form.registration--login > p > span.helptext{
   gap: 10px;
 }
 
+.registration__legal {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.registration__legal .links {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.registration__legal a {
+  color: colors.$kobo-white;
+  text-decoration: none !important;
+  font-size: 14px;
+}
+
+.registration__legal a:hover {
+  text-decoration: underline !important;
+  opacity: 1;
+}
+
 .registration__footer {
   clear: both;
   text-align: center;
-  margin: 20px 10px 10px 10px;
+  margin: 30px;
   text-shadow: colors.$kobo-gray-900 0 0 2px; // contrast against photo background
-
-  a {
-    color: colors.$kobo-white;
-
-    &:hover {
-      color: colors.$kobo-light-storm;
-    }
-  }
-
-  .registration__legal {
-    margin: 0 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
 }
 
 .error-message {
   font-size: variables.$base-font-size;
-  color: colors.$kobo-red;
+  color: colors.$kobo-mid-red;
   background-color: rgba(colors.$kobo-mid-red, 0.075);
 }
 
@@ -430,6 +446,10 @@ form.registration--login > p > span.helptext{
 
     .registration__second-half {
       order: 2;
+    }
+
+    .registration__legal {
+      order: 4;
     }
 
     div.field {

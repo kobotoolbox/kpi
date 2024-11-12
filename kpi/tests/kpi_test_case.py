@@ -1,23 +1,16 @@
-# coding: utf-8
 """
 Created on Apr 6, 2015
 
 @author: esmail
 """
-import re
-
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_COLLECTION
-
 # FIXME: Remove the following line when the permissions API is in place.
 from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
 from ..models.asset import Asset
-from ..models.object_permission import ObjectPermission
 
 
 class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
@@ -39,64 +32,13 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             kwargs = {'username': username, 'password': password}
         self.assertEqual(self.client.login(**kwargs), expect_success)
 
-    @staticmethod
-    def _url_to_uid(url):
-        return re.match(r'.+/(.+)/.*$', url).groups()[0]
-
-    def url_to_obj(self, url):
-        uid = self._url_to_uid(url)
-        if uid.startswith('a'):
-            klass = Asset
-        elif uid.startswith('p'):
-            klass = ObjectPermission
-        else:
-            raise NotImplementedError()
-        obj = klass.objects.get(uid=uid)
-        return obj
-
-    def obj_to_url(self, obj):
-        # Add more types as you need them
-        if isinstance(obj, ObjectPermission):
-            return reverse(
-                self._get_endpoint('asset-permission-assignment-detail'),
-                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
-            )
-        if isinstance(obj, Permission):
-            return reverse(
-                self._get_endpoint('permission-detail'),
-                kwargs={'codename': obj.codename},
-            )
-        elif isinstance(obj, get_user_model()):
-            return reverse(
-                self._get_endpoint('user-kpi-detail'),
-                kwargs={'username': obj.username},
-            )
-        raise NotImplementedError
-
-    def get_asset_perm_assignment_list_url(self, asset):
-        return reverse(
-            self._get_endpoint('asset-permission-assignment-list'),
-            kwargs={'parent_lookup_asset': asset.uid}
-        )
-
-    def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
-        return [
-            self.absolute_reverse(
-                self._get_endpoint('asset-permission-assignment-detail'),
-                kwargs={'uid': uid, 'parent_lookup_asset': asset.uid},
-            )
-            for uid in perm_assignments.values_list('uid', flat=True)
-        ]
-
     def create_collection(self, name, owner=None, owner_password=None,
                           **kwargs):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
         kwargs.update({'name': name, 'asset_type': ASSET_TYPE_COLLECTION})
-        response = self.client.post(
-            reverse(self._get_endpoint("asset-list")), kwargs
-        )
+        response = self.client.post(reverse(self._get_endpoint('asset-list')), kwargs)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -105,8 +47,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         collection = self.url_to_obj(response.data['url'])
         return collection
 
-    def create_asset(self, name, content=None, owner=None,
-                     owner_password=None, **kwargs):
+    def create_asset(
+        self, name, content=None, owner=None, owner_password=None, **kwargs
+    ):
         if owner and owner_password:
             if isinstance(owner, str):
                 self.login(owner, owner_password)

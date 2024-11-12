@@ -1,31 +1,43 @@
+// Libraries
 import React, {useState, useEffect} from 'react';
 import {useParams} from 'react-router-dom';
 import {observer} from 'mobx-react-lite';
-import {notify} from 'js/utils';
-import {handleApiFail, fetchPostUrl} from 'js/api';
-import type {
-  ProjectsFilterDefinition,
-  ProjectFieldName,
-} from './projectViews/constants';
+import {toJS} from 'mobx';
+
+// Partial components
 import ProjectsFilter from './projectViews/projectsFilter';
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector';
-import {
-  DEFAULT_VISIBLE_FIELDS,
-  DEFAULT_ORDERABLE_FIELDS,
-} from './projectViews/constants';
 import ViewSwitcher from './projectViews/viewSwitcher';
 import ProjectsTable from 'js/projects/projectsTable/projectsTable';
 import Button from 'js/components/common/button';
-import customViewStore from './customViewStore';
-import projectViewsStore from './projectViews/projectViewsStore';
-import styles from './projectViews.module.scss';
-import {toJS} from 'mobx';
-import {ROOT_URL} from 'js/constants';
 import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty';
 import ProjectQuickActions from './projectsTable/projectQuickActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 
+// Stores, hooks and utilities
+import {notify} from 'js/utils';
+import {handleApiFail, fetchPostUrl} from 'js/api';
+import customViewStore from './customViewStore';
+import projectViewsStore from './projectViews/projectViewsStore';
+
+// Constants and types
+import type {
+  ProjectsFilterDefinition,
+  ProjectFieldName,
+} from './projectViews/constants';
+import {
+  DEFAULT_VISIBLE_FIELDS,
+  DEFAULT_ORDERABLE_FIELDS,
+} from './projectViews/constants';
+import {ROOT_URL} from 'js/constants';
+
+// Styles
+import styles from './projectViews.module.scss';
+
+/**
+ * Component responsible for rendering a custom project view route (`#/projects/<vid>`).
+ */
 function CustomViewRoute() {
   const {viewUid} = useParams();
 
@@ -45,6 +57,14 @@ function CustomViewRoute() {
       false
     );
   }, [viewUid]);
+
+  // Whenever we do a full page (of results) reload, we need to clear up
+  // `selectedRows` to not end up with a project selected (e.g. on page of
+  // results that wasn't loaded/scrolled down into yet) and user not knowing
+  // about it.
+  useEffect(() => {
+    setSelectedRows([]);
+  }, [customView.isFirstLoadComplete]);
 
   /** Returns a list of names for fields that have at least 1 filter defined. */
   const getFilteredFieldsNames = () => {
@@ -123,7 +143,9 @@ function CustomViewRoute() {
           </div>
         )}
       </header>
+
       <LimitNotifications useModal />
+
       <ProjectsTable
         assets={customView.assets}
         isLoading={!customView.isFirstLoadComplete}

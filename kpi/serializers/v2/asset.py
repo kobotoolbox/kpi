@@ -7,21 +7,22 @@ from typing import Optional
 
 from constance import config
 from django.conf import settings
-from django.db.models import QuerySet, F
-from django.utils.translation import gettext as t, ngettext as nt
+from django.db import transaction
+from django.db.models import F, QuerySet
+from django.utils.translation import gettext as t
+from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
-from rest_framework import serializers, exceptions
+from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.trash_bin.exceptions import (
-    TrashIntegrityError,
-    TrashTaskInProgressError,
-)
+from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
+from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
 from kpi.constants import (
@@ -29,13 +30,13 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_STATUS_SHARED,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPES,
-    ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -46,8 +47,8 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetVersion,
     AssetExportSettings,
+    AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
 )
@@ -58,18 +59,15 @@ from kpi.utils.object_permission import (
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
-
-from .asset_file import AssetFileSerializer
-
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
     view_has_perm,
 )
-
-from .asset_version import AssetVersionListSerializer
-from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
+from .asset_file import AssetFileSerializer
+from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_version import AssetVersionListSerializer
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -202,6 +200,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not asset_uids or self.__user.is_superuser:
             return
 
+        user_filter = [self.__user]
+        if self.__user.organization.is_admin(self.__user):
+            user_filter.append(self.__user.organization.owner_user_object)
+
         if not delete_request:
             if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
                 raise exceptions.PermissionDenied()
@@ -209,14 +211,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             code_names = get_cached_code_names(Asset)
             perm_dict = code_names[PERM_MANAGE_ASSET]
             objects_count = ObjectPermission.objects.filter(
-                user=self.__user,
+                user__in=user_filter,
                 permission_id=perm_dict['id'],
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
         else:
             objects_count = Asset.objects.filter(
-                owner=self.__user,
+                owner__in=user_filter,
                 uid__in=asset_uids,
             ).count()
 
@@ -297,7 +299,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     report_custom = WritableJSONField(required=False)
     map_styles = WritableJSONField(required=False)
     map_custom = WritableJSONField(required=False)
-    advanced_features = WritableJSONField(required=False)
+    advanced_features = WritableAdvancedFeaturesField(required=False)
     advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
@@ -413,6 +415,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'read_only': True,
             },
         }
+
+    def create(self, validated_data):
+        current_owner = validated_data['owner']
+        real_owner = self._get_real_owner(current_owner)
+        if real_owner != current_owner:
+            with transaction.atomic():
+                validated_data['owner'] = real_owner
+                instance = super().create(validated_data)
+                instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
+        else:
+            instance = super().create(validated_data)
+
+        return instance
 
     def update(self, asset, validated_data):
         request = self.context['request']
@@ -658,10 +673,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # No need to read all permissions if `AnonymousUser`'s permissions
         # are found.
         # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
-        perm_assignments = asset.permissions. \
-            values('user_id', 'permission__codename'). \
-            exclude(user_id=asset.owner_id). \
-            order_by('user_id', 'permission__codename')
+        perm_assignments = (
+            asset.permissions.values('user_id', 'permission__codename')
+            .exclude(user_id=asset.owner_id)
+            .order_by('user_id', 'permission__codename')
+        )
 
         return self._get_status(perm_assignments)
 
@@ -685,9 +701,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return AssetPermissionAssignmentSerializer(
             queryset.all(), many=True, read_only=True, context=context
         ).data
-
-    def get_project_ownership(self, asset) -> Optional[dict]:
-        pass
 
     def get_project_ownership(self, asset) -> Optional[dict]:
         if not (transfer := asset.transfers.order_by('-date_created').first()):
@@ -802,6 +815,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
+        if obj.owner.organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+            access_types.extend(['shared', 'org-admin'])
+            access_types = list(set(access_types))
+
         if not access_types:
             raise Exception(
                 f'{request.user.username} has unexpected access to {obj.uid}'
@@ -897,6 +914,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
+    def _get_real_owner(self, current_owner: 'User') -> 'User':
+
+        if current_owner.is_org_owner:
+            return current_owner
+
+        # If `owner` is not the owner of the organization they belong to,
+        # they must belong to a multi-member organization. Thus, the asset
+        # must be owned by the organization('s owner).
+        return current_owner.organization.owner_user_object
+
     def _get_status(self, perm_assignments):
         """
         Returns asset status.
@@ -945,9 +972,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('asset-table-view',
-                       args=(obj.uid,),
-                       request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class AssetListSerializer(AssetSerializer):
@@ -995,7 +1020,7 @@ class AssetListSerializer(AssetSerializer):
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
-            # be always a property of `self.context`
+            # always be a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context

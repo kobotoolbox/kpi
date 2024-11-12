@@ -1,30 +1,24 @@
-# coding: utf-8
-# 😬
 import copy
 import re
 from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
-from django.db import models
-from django.db import transaction
-from django.db.models import Prefetch, Q, F
+from django.db import models, transaction
+from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
-from jsonschema import validate as jsonschema_validate
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
 
-from kobo.apps.reports.constants import (
-    SPECIFIC_REPORTS_KEY,
-    DEFAULT_REPORTS_KEY,
-)
+from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
@@ -32,10 +26,14 @@ from kobo.apps.subsequences.utils import (
     advanced_feature_instances,
     advanced_submission_jsonschema,
 )
+from kobo.apps.subsequences.utils.deprecation import (
+    get_sanitized_advanced_features,
+    get_sanitized_dict_keys,
+    get_sanitized_known_columns,
+    qpath_to_xpath,
+)
 from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
 from kpi.constants import (
-    ASSET_TYPES,
-    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -43,6 +41,8 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     ASSET_TYPE_TEXT,
+    ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ATTACHMENT_QUESTION_TYPES,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -64,15 +64,12 @@ from kpi.exceptions import (
     BadPermissionsException,
     DeploymentDataException,
 )
-from kpi.fields import (
-    KpiUidField,
-    LazyDefaultJSONBField,
-)
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     ObjectPermissionMixin,
-    XlsExportableMixin,
     StandardizeSearchableFieldMixin,
+    XlsExportableMixin,
 )
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.models.asset_file import AssetFile
@@ -89,6 +86,30 @@ class AssetDeploymentStatus(models.TextChoices):
     ARCHIVED = 'archived', 'Archived'
     DEPLOYED = 'deployed', 'Deployed'
     DRAFT = 'draft', 'Draft'
+
+
+class AssetSetting:
+    """
+    Utility class for standardizing settings
+
+    Used with calls to standardize_searchable_field
+
+    Parameters:
+      setting_type [type]: can be str, dict, or list
+      default_val [object|Callable]: can be either a value or a callable on an asset
+      force_default [boolean]: if true, always use the default value
+    """
+    def __init__(self, setting_type, default_val=None, force_default=False):
+        standard_defaults = {
+            list: [],
+            dict: {},
+            str: '',
+        }
+        self.setting_type = setting_type
+        self.default_val = (
+            default_val if default_val else standard_defaults[setting_type]
+        )
+        self.force_default = force_default
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -141,15 +162,15 @@ class KpiTaggableManager(_TaggableManager):
         strips leading and trailng whitespace. Behavior should match the
         cleanupTags function in jsapp/js/utils.ts. """
         tags_out = []
-        for t in tags:
+        for tag in tags:
             # Modify strings only; the superclass' add() method will then
             # create Tags or use existing ones as appropriate.  We do not fix
             # existing Tag objects, which could also be passed into this
             # method, because a fixed name could collide with the name of
             # another Tag object already in the database.
-            if isinstance(t, str):
-                t = t.strip().replace(' ', '-')
-            tags_out.append(t)
+            if isinstance(tag, str):
+                tag = tag.strip().replace(' ', '-')
+            tags_out.append(tag)
         super().add(*tags_out, **kwargs)
 
 
@@ -264,7 +285,7 @@ class Asset(
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, t('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, t('Can delete submitted data for asset')),
-            (PERM_VALIDATE_SUBMISSIONS, t("Can validate submitted data asset")),
+            (PERM_VALIDATE_SUBMISSIONS, t('Can validate submitted data asset')),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
             # interaction with KPI
@@ -332,7 +353,7 @@ class Asset(
     # Depending on our `asset_type`, only some permissions might be applicable
     ASSIGNABLE_PERMISSIONS_BY_TYPE = {
         ASSET_TYPE_SURVEY: tuple(
-            (p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET)
+            p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET
         ),
         ASSET_TYPE_TEMPLATE: (
             PERM_VIEW_ASSET,
@@ -380,11 +401,9 @@ class Asset(
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_MANAGE_ASSET: tuple(
-            (
-                p
-                for p in ASSIGNABLE_PERMISSIONS
-                if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
-            )
+            p
+            for p in ASSIGNABLE_PERMISSIONS
+            if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
         ),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
@@ -426,6 +445,18 @@ class Asset(
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
 
+    STANDARDIZED_SETTINGS = {
+        'country': AssetSetting(setting_type=list, default_val=[]),
+        'sector': AssetSetting(setting_type=dict, default_val={}),
+        'description': AssetSetting(setting_type=str, default_val=None),
+        'organization': AssetSetting(setting_type=str, default_val=None),
+        'country_codes': AssetSetting(
+            setting_type=list,
+            default_val=lambda asset: [c['value'] for c in asset.settings['country']],
+            force_default=True,
+        ),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # The two fields below are needed to keep a trace of the object state
@@ -451,7 +482,7 @@ class Asset(
         self._strip_empty_rows(self.content)
         self._assign_kuids(self.content)
         self._autoname(self.content)
-        self._insert_qpath(self.content)
+        self._insert_xpath(self.content)
         self._unlink_list_items(self.content)
         self._remove_empty_expressions(self.content)
         self._remove_version(self.content)
@@ -495,21 +526,25 @@ class Asset(
             #
             # See also injectSupplementalRowsIntoListOfRows() in
             # assetUtils.ts
-            qpath = qual_question['qpath']
+            try:
+                xpath = qual_question['xpath']
+            except KeyError:
+                xpath = qpath_to_xpath(qual_question['qpath'], self)
+
             field = dict(
                 label=qual_question['labels']['_default'],
-                name=f"{qpath}/{qual_question['uuid']}",
-                dtpath=f"{qpath}/{qual_question['uuid']}",
+                name=f"{xpath}/{qual_question['uuid']}",
+                dtpath=f"{xpath}/{qual_question['uuid']}",
                 type=qual_question['type'],
                 # could say '_default' or the language of the transcript,
                 # but really that would be meaningless and misleading
                 language='??',
-                source=qpath,
-                qpath=f"{qpath}-{qual_question['uuid']}",
+                source=xpath,
+                xpath=f"{xpath}/{qual_question['uuid']}",
                 # seems not applicable given the transx questions describe
                 # manual vs. auto here and which engine was used
                 settings='??',
-                path=[qpath, qual_question['uuid']],
+                path=[xpath, qual_question['uuid']],
             )
             if field['type'] in omit_question_types:
                 continue
@@ -518,6 +553,7 @@ class Asset(
             except KeyError:
                 pass
             additional_fields.append(field)
+
         return output
 
     def clone(self, version_uid=None):
@@ -572,9 +608,14 @@ class Asset(
         return advanced_feature_instances(self.content, self.advanced_features)
 
     def get_advanced_submission_schema(self, url=None, content=False):
+
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
+
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
+
         last_deployed_version = self.deployed_versions.first()
         if content:
             return advanced_submission_jsonschema(
@@ -621,7 +662,7 @@ class Asset(
         if xpaths := _get_xpaths(survey):
             return xpaths
 
-        self._insert_qpath(content)
+        self._insert_xpath(content)
         return _get_xpaths(survey)
 
     def get_filters_for_partial_perm(
@@ -734,8 +775,11 @@ class Asset(
         If user doesn't have any partial permissions, it returns `None`.
         """
 
-        perms = self.asset_partial_permissions.filter(user_id=user_id)\
-            .values_list("permissions", flat=True).first()
+        perms = (
+            self.asset_partial_permissions.filter(user_id=user_id)
+            .values_list('permissions', flat=True)
+            .first()
+        )
 
         if perms:
             if with_filters:
@@ -744,15 +788,6 @@ class Asset(
                 return list(perms)
 
         return None
-
-    @property
-    def has_active_hooks(self):
-        """
-        Returns if asset has active hooks.
-        Useful to update `kc.XForm.has_kpi_hooks` field.
-        :return: {boolean}
-        """
-        return self.hooks.filter(active=True).exists()
 
     @property
     def has_advanced_features(self):
@@ -925,17 +960,19 @@ class Asset(
             (not update_fields or update_fields and 'settings' in update_fields)
             and self.asset_type in [ASSET_TYPE_COLLECTION, ASSET_TYPE_SURVEY]
         ):
-            self.standardize_json_field('settings', 'country', list)
-            self.standardize_json_field(
-                'settings',
-                'country_codes',
-                list,
-                [c['value'] for c in self.settings['country']],
-                force_default=True
-            )
-            self.standardize_json_field('settings', 'sector', dict)
-            self.standardize_json_field('settings', 'description', str)
-            self.standardize_json_field('settings', 'organization', str)
+            # TODO: add a settings jsonschema to validate these
+            for setting_name, setting in self.STANDARDIZED_SETTINGS.items():
+                self.standardize_json_field(
+                    'settings',
+                    setting_name,
+                    setting.setting_type,
+                    (
+                        setting.default_val(self)
+                        if callable(setting.default_val)
+                        else setting.default_val
+                    ),
+                    setting.force_default,
+                )
 
         # populate summary (only when required)
         if not update_fields or update_fields and 'summary' in update_fields:
@@ -1092,7 +1129,11 @@ class Asset(
                 .first()
             )
             instances = self.get_advanced_feature_instances()
+            if sub_extra_content := get_sanitized_dict_keys(sub.content, self):
+                sub.content = sub_extra_content
+
             compiled_content = {**sub.content}
+
             for instance in instances:
                 compiled_content = instance.compile_revised_record(
                     compiled_content, edits=content
@@ -1122,16 +1163,17 @@ class Asset(
 
         if children:
             languages = set(obj_languages)
-            children_languages = [child.summary.get('languages')
-                                  for child in children
-                                  if child.summary.get('languages')]
+            children_languages = [
+                child.summary.get('languages')
+                for child in children
+                if child.summary.get('languages')
+            ]
         else:
-            children_languages = list(self.children
-                                      .values_list('summary__languages',
-                                                   flat=True)
-                                      .exclude(Q(summary__languages=[]) |
-                                               Q(summary__languages=[None]))
-                                      .order_by())
+            children_languages = list(
+                self.children.values_list('summary__languages', flat=True)
+                .exclude(Q(summary__languages=[]) | Q(summary__languages=[None]))
+                .order_by()
+            )
 
         if children_languages:
             # Flatten `children_languages` to 1-dimension list.
@@ -1151,7 +1193,11 @@ class Asset(
     def validate_advanced_features(self):
         if self.advanced_features is None:
             self.advanced_features = {}
-        jsonschema_validate(
+
+        if advanced_features := get_sanitized_advanced_features(self):
+            self.advanced_features = advanced_features
+
+        jsonschema.validate(
             instance=self.advanced_features,
             schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
         )
@@ -1185,12 +1231,16 @@ class Asset(
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _get_additional_fields(self):
+
+        # TODO Remove line below when when every asset is repopulated with `xpath`
+        self.known_cols = get_sanitized_known_columns(self)
+
         return parse_known_cols(self.known_cols)
 
     def _get_engines(self):
-        '''
+        """
         engines are individual NLP services that can be used
-        '''
+        """
         for instance in self.get_advanced_feature_instances():
             if hasattr(instance, 'engines'):
                 for key, val in instance.engines():

@@ -8,6 +8,7 @@ import assetStore from 'js/assetStore';
 import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {WithRouterProps} from 'jsapp/js/router/legacy';
 import type {AssetResponse, FailResponse} from 'js/dataInterface';
+import {decodeURLParamWithSlash} from "js/components/processing/routes.utils";
 
 interface PermProtectedRouteProps extends WithRouterProps {
   /** One of PATHS */
@@ -26,6 +27,10 @@ interface PermProtectedRouteState {
   userHasRequiredPermissions: boolean | null;
   errorMessage?: string;
   asset: AssetResponse | null;
+  /**
+   * Tells the `dmix` mixin (from `mixins.tsx`) that this route component
+   * already handled asset load, so `dmix` doesn't have to.
+   */
   initialAssetLoadNotNeeded: boolean;
 }
 
@@ -60,6 +65,17 @@ class PermProtectedRoute extends React.Component<
       return;
     }
 
+    // Listen to incoming load of asset
+    this.unlisteners.push(
+      actions.resources.loadAsset.completed.listen(
+        this.onLoadAssetCompleted.bind(this)
+      ),
+      actions.resources.loadAsset.failed.listen(
+        this.onLoadAssetFailed.bind(this)
+      )
+    );
+
+    // See if the asset is already loaded in the store
     const assetFromStore = assetStore.getAsset(this.props.params.uid);
     if (assetFromStore) {
       // If this asset was already loaded before, we are not going to be picky
@@ -67,17 +83,12 @@ class PermProtectedRoute extends React.Component<
       // those are most probably up to date.
       // This helps us avoid unnecessary API calls and spinners being displayed
       // in the UI (from this component; see `render()` below).
-      this.onLoadAssetCompleted(assetFromStore);
+      // This code previously was simply calling `onLoadAssetCompleted`, but it
+      // caused some edge cases bugs. We will instead call the usual load action
+      // but telling the function to return cached result
+      actions.resources.loadAsset({id: this.props.params.uid}, false);
     } else {
       this.setState({initialAssetLoadNotNeeded: true});
-      this.unlisteners.push(
-        actions.resources.loadAsset.completed.listen(
-          this.onLoadAssetCompleted.bind(this)
-        ),
-        actions.resources.loadAsset.failed.listen(
-          this.onLoadAssetFailed.bind(this)
-        )
-      );
       actions.resources.loadAsset({id: this.props.params.uid}, true);
     }
   }
@@ -137,6 +148,32 @@ class PermProtectedRoute extends React.Component<
     }
   }
 
+  /**
+   * This function is needed to override the `xpath` in the route params. If it
+   * is not present, `params` would be returned untouched.
+   */
+  filterProps(props: any) {
+    const {params, ...rest} = props;
+    if (!params?.xpath) {
+      return props;
+    }
+
+    const {xpath, ...restParams} = params;
+    const decodedXPath = decodeURLParamWithSlash(xpath);
+
+    if (xpath !== decodedXPath) {
+      return {
+        ...rest,
+        params: {
+          xpath: decodedXPath,
+          ...restParams,
+        },
+      };
+    } else {
+      return props;
+    }
+  }
+
   getUserHasRequiredPermission(
     asset: AssetResponse,
     requiredPermission: PermissionCodename
@@ -168,10 +205,11 @@ class PermProtectedRoute extends React.Component<
     if (!this.state.isLoadAssetFinished) {
       return <LoadingSpinner />;
     } else if (this.state.userHasRequiredPermissions) {
+      const filteredProps = this.filterProps(this.props);
       return (
         <Suspense fallback={<LoadingSpinner />}>
           <this.props.protectedComponent
-            {...this.props}
+            {...filteredProps}
             initialAssetLoadNotNeeded={this.state.initialAssetLoadNotNeeded}
           />
         </Suspense>

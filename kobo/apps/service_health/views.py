@@ -7,13 +7,14 @@ from django.conf import settings
 from django.core.cache import cache, caches
 from django.http import HttpResponse
 
+from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.celery import celery_app
 from kpi.models import Asset
 from kpi.utils.log import logging
 
 
 def get_response(url_):
-    message = "OK"
+    message = 'OK'
     failure = False
     content = None
 
@@ -35,7 +36,7 @@ def get_response(url_):
             response_ = None
             content = None
             failure = True
-            message = "Response status code is {}".format(status_code)
+            message = 'Response status code is {}'.format(status_code)
 
     return failure, message, content
 
@@ -53,9 +54,7 @@ def check_status(
     try:
         check_function()
     except Exception as exception:
-        logging.error(
-            f'Service health {service_name} check failure', exc_info=True
-        )
+        logging.error(f'Service health {service_name} check failure', exc_info=True)
         error = repr(type(exception).__name__)
     cache_time = time.time() - t0
     return error, cache_time
@@ -68,7 +67,8 @@ def service_health(request):
     """
     all_checks = {
         'Mongo': lambda: settings.MONGO_DB.instances.find_one(),
-        'Postgres': lambda: Asset.objects.order_by().exists(),
+        'Postgres kpi': lambda: Asset.objects.order_by().exists(),
+        'Postgres kobocat': lambda: UserProfile.objects.exists(),
         'Cache': lambda: cache.set('a', True, 1),
         'Broker': lambda: celery_app.backend.client.ping(),
         'Session': lambda: request.session.save(),
@@ -81,34 +81,14 @@ def service_health(request):
     check_results = []
     any_failure = False
     for service_name, check_function in all_checks.items():
-        service_message, service_time = check_status(
-            service_name, check_function
-        )
+        service_message, service_time = check_status(service_name, check_function)
         any_failure = True if service_message else any_failure
         check_results.append(
             f"{service_name}: {service_message or 'OK'} in {service_time:.3} seconds"
         )
 
-    t0 = time.time()
-    failure, kobocat_message, kobocat_content = get_response(
-        settings.KOBOCAT_INTERNAL_URL + '/legacy/service_health/'
-    )
-    any_failure = True if failure else any_failure
-    kobocat_time = time.time() - t0
-    check_results.append(
-        f'Kobocat: {kobocat_message} in {kobocat_time:.3} seconds'
-    )
-
     output = f"{'FAIL' if any_failure else 'OK'} KPI\r\n\r\n"
-    output += "\r\n".join(check_results)
-
-    if kobocat_content:
-        output += (
-            '\r\n\r\n'
-            '----BEGIN KOBOCAT RESPONSE----\r\n'
-            '{}\r\n'
-            '---- END KOBOCAT RESPONSE ----\r\n'
-        ).format(kobocat_content)
+    output += '\r\n'.join(check_results)
 
     return HttpResponse(
         output, status=(500 if any_failure else 200), content_type='text/plain'

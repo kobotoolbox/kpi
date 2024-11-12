@@ -8,12 +8,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'js/utils';
 import pageState from 'js/pageState.store';
-import {
-  MODAL_TYPES,
-  META_QUESTION_TYPES,
-  EnketoActions,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import {MODAL_TYPES, QuestionTypeName, EnketoActions} from 'js/constants';
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
@@ -451,7 +446,7 @@ export default class SubmissionModal extends React.Component<
    */
   hasBackgroundAudioEnabled() {
     return this.props.asset?.content?.survey?.some(
-      (question) => question.type === META_QUESTION_TYPES['background-audio']
+      (question) => question.type === QuestionTypeName['background-audio']
     );
   }
 
@@ -795,7 +790,7 @@ export default class SubmissionModal extends React.Component<
 
               <AttachmentActionsDropdown
                 asset={this.props.asset}
-                questionType={MetaQuestionTypeName['background-audio']}
+                questionType={QuestionTypeName['background-audio']}
                 attachmentUrl={bgAudio.download_medium_url || bgAudio.download_url}
                 submissionData={this.state.submission}
                 onDeleted={() => {

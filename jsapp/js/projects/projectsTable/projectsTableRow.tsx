@@ -1,21 +1,30 @@
+// Libraries
 import React from 'react';
 import {Link} from 'react-router-dom';
+import cx from 'classnames';
+
+// Partial components
+import Badge from 'js/components/common/badge';
+import Avatar from 'js/components/common/avatar';
+import AssetName from 'js/components/common/assetName';
+import AssetStatusBadge from 'js/components/common/assetStatusBadge';
+import Checkbox from 'js/components/common/checkbox';
+
+// Stores, hooks and utilities
+import {formatTime} from 'js/utils';
+import assetUtils, {isSelfOwned} from 'js/assetUtils';
+
+// Constants and types
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
   ProjectFieldName,
   ProjectFieldDefinition,
 } from 'js/projects/projectViews/constants';
-import Badge from 'js/components/common/badge';
-import Avatar from 'js/components/common/avatar';
-import AssetName from 'js/components/common/assetName';
-import AssetStatusBadge from 'js/components/common/assetStatusBadge';
-import {formatTime} from 'js/utils';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
-import assetUtils, {isSelfOwned} from 'js/assetUtils';
+
+// Styles
 import styles from './projectsTableRow.module.scss';
-import classNames from 'classnames';
-import Checkbox from 'js/components/common/checkbox';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse | ProjectViewAsset;
@@ -49,7 +58,13 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         if (isSelfOwned(props.asset)) {
           return t('me');
         } else {
-          return <Avatar username={props.asset.owner__username} />;
+          return (
+            <Avatar
+              username={props.asset.owner__username}
+              size='s'
+              isUsernameVisible
+            />
+          );
         }
       case 'ownerFullName':
         return 'owner__name' in props.asset ? props.asset.owner__name : null;
@@ -64,7 +79,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'dateDeployed':
         if (
           'date_deployed' in props.asset &&
-          props.asset.date_deployed !== null
+          props.asset.date_deployed
         ) {
           return formatTime(props.asset.date_deployed);
         }
@@ -104,7 +119,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   };
 
   return (
-    <div className={classNames(styles.row, styles.rowTypeProject)}>
+    <div className={cx(styles.row, styles.rowTypeProject)}>
       {/* First column is always visible and displays a checkbox. */}
       <div
         className={styles.cell}
@@ -133,7 +148,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
 
         return (
           <div
-            className={classNames({
+            className={cx({
               [styles.cell]: true,
               [styles.cellHighlighted]: props.highlightedFields.includes(
                 field.name

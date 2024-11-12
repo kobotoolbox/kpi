@@ -1,4 +1,7 @@
+from typing import Literal
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
 
@@ -16,18 +19,32 @@ from organizations.utils import create_organization as create_organization_base
 
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
+from .constants import (
+    ORG_ADMIN_ROLE,
+    ORG_EXTERNAL_ROLE,
+    ORG_MEMBER_ROLE,
+    ORG_OWNER_ROLE,
+)
+from .exceptions import NotMultiMemberOrganizationException
+
+
+OrganizationRole = Literal[
+    ORG_ADMIN_ROLE, ORG_EXTERNAL_ROLE, ORG_MEMBER_ROLE, ORG_OWNER_ROLE
+]
 
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
+    mmo_override = models.BooleanField(
+        default=False, verbose_name='Multi-members override'
+    )
 
-    @property
-    def email(self):
-        """
-        As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute
-        """
-        return self.owner.organization_user.user.email
+    def add_user(self, user, is_admin=False):
+        if not self.is_mmo and self.users.all().count():
+            raise NotMultiMemberOrganizationException
+
+        user.organization.delete()
+        super().add_user(user, is_admin=is_admin)
 
     @cache_for_request
     def active_subscription_billing_details(self):
@@ -51,7 +68,7 @@ class Organization(AbstractOrganization):
                 ).first()
 
         return None
-    
+
     @cache_for_request
     def canceled_subscription_billing_cycle_anchor(self):
         """
@@ -69,8 +86,82 @@ class Organization(AbstractOrganization):
                 ).first()
             if qs:
                 return qs['anchor']
-            
+
         return None
+
+    @property
+    def email(self):
+        """
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute.
+        """
+        try:
+            return self.owner_user_object.email
+        except AttributeError:
+            return
+
+    @cache_for_request
+    def get_user_role(self, user: 'User') -> OrganizationRole:
+
+        if not self.users.filter(pk=user.pk).exists():
+            return ORG_EXTERNAL_ROLE
+
+        if self.is_owner(user):
+            return ORG_OWNER_ROLE
+
+        if self.is_admin(user):
+            return ORG_ADMIN_ROLE
+
+        return ORG_MEMBER_ROLE
+
+    @cache_for_request
+    def is_admin(self, user: 'User') -> bool:
+        """
+        Only extends super() to add decorator @cache_for_request and avoid
+        multiple calls to DB in the same request.
+        """
+
+        # Be aware: Owners are also Admins
+        return super().is_admin(user)
+
+    @property
+    def is_mmo(self):
+        """
+        Determines if the multi-members feature is active for the organization
+
+        This returns True if:
+        - A superuser has enabled the override (`mmo_override`), or
+        - The organization has an active subscription.
+
+        If the override is enabled, it takes precedence over the subscription status
+        """
+        return self.mmo_override or bool(self.active_subscription_billing_details())
+
+    @cache_for_request
+    def is_admin_only(self, user: 'User') -> bool:
+
+        # Be aware: Owners are also Admins
+        return super().is_admin(user) and not self.is_owner(user)
+
+    @cache_for_request
+    def is_owner(self, user: 'User') -> bool:
+        """
+        Overrides `is_owner()` with `owner_user_object()` instead of
+        using `super().is_owner()` to take advantage of `@cache_for_request`
+        in both scenarios.
+        (i.e., when calling either `is_owner()` or `owner_user_object()`).
+        """
+
+        return self.owner_user_object == user
+
+    @property
+    @cache_for_request
+    def owner_user_object(self) -> 'User':
+
+        try:
+            return self.owner.organization_user.user
+        except ObjectDoesNotExist:
+            return
 
 
 class OrganizationUser(AbstractOrganizationUser):
@@ -96,9 +187,10 @@ class OrganizationUser(AbstractOrganizationUser):
     @property
     def active_subscription_status(self):
         """
-        Return a comma-separated string of active subscriptions for the organization user.
+        Return a comma-separated string of active subscriptions for the organization
+        user.
         """
-        return ", ".join(self.active_subscription_statuses)
+        return ', '.join(self.active_subscription_statuses)
 
 
 class OrganizationOwner(AbstractOrganizationOwner):
