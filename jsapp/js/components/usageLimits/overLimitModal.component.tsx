@@ -1,5 +1,4 @@
-import cx from 'classnames';
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -9,6 +8,9 @@ import sessionStore from 'js/stores/session';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import TextFormatter from '../textFormatter/textFormatter.component';
+import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
+import envStore from 'jsapp/js/envStore';
 
 interface OverLimitModalProps {
   show: boolean;
@@ -16,6 +18,16 @@ interface OverLimitModalProps {
   dismissed: () => void;
   interval: 'month' | 'year';
 }
+
+const getLimitReachedMessage = (isMmo: boolean, shouldUseTeamlabel: boolean) => {
+  if (isMmo && shouldUseTeamlabel) {
+    return t('Your team has reached the following limits included with your current plan:');
+  } else if (isMmo) {
+    return t('Your organization has reached the following limits included with your current plan:');
+  }
+  return t('You have reached the following limits included with your current plan:');
+};
+
 
 function OverLimitModal(props: OverLimitModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -36,6 +48,30 @@ function OverLimitModal(props: OverLimitModalProps) {
     setShow(props.show);
   }, [props.show]);
 
+  const orgQuery = useOrganizationQuery();
+
+  if (!orgQuery.data || !envStore.isReady || !props.limits.length) {
+    return null;
+  }
+
+  const {is_mmo} = orgQuery.data;
+  const shouldUseTeamlabel = !!envStore.data?.use_team_label;
+
+
+  const geretingsMessage = t('Dear ##ACCOUNT_NAME##,').replace(
+    '##ACCOUNT_NAME##',
+    accountName
+  );
+  const limitReachedMessage = getLimitReachedMessage(is_mmo, shouldUseTeamlabel);
+
+  const upgradeMessage = t(
+    'Please upgrade your plan as soon as possible or [contact us](##CONTACT_LINK##){:target="_blank"} to speak with our team.'
+  ).replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact/');
+
+  const reviewUsageMessage = t(
+    'You can [review your usage in account settings](##USAGE_LINK##).'
+  ).replace('##USAGE_LINK##', `#${ACCOUNT_ROUTES.USAGE}`);
+
   return (
     <div>
       <KoboModal isOpen={show} onRequestClose={toggleModal} size='medium'>
@@ -44,40 +80,20 @@ function OverLimitModal(props: OverLimitModalProps) {
         </KoboModalHeader>
 
         <KoboModalContent>
-          <div>
-            <div className={styles.messageGreeting}>
-              {t('Dear')} {accountName},
+          <div className={styles.content}>
+            <div className={styles.messageGreeting}>{geretingsMessage}</div>
+            <div>
+              {limitReachedMessage}{' '}
+              {props.limits.map((limit, index) => (
+                <>
+                  <strong>{limit}</strong>
+                  {index < props.limits.length - 1 && ', '}
+                </>
+              ))}
             </div>
             <div>
-              {t('You have reached the')}{' '}
-              {props.limits.map((limit, i) => (
-                <span key={i}>
-                  {i > 0 && props.limits.length > 2 && ','}
-                  {i === props.limits.length - 1 && i > 0 && ' and '}
-                  {limit}
-                </span>
-              ))}{' '}
-              {t('limit')} {props.limits.length > 1 && 's'}{' '}
-              {t('included with your current plan.')}
-            </div>
-            <div>
-              {t('Please')}{' '}
-              <a href={`#${ACCOUNT_ROUTES.PLAN}`} className={styles.link}>
-                {t('upgrade your plan')}
-              </a>{' '}
-              {'as soon as possible or ' /* tone down the language for now */}
-              <a
-                href='https://www.kobotoolbox.org/contact/'
-                target='_blank'
-                className={styles.link}
-              >
-                {'contact us'}
-              </a>
-              {' to speak with our team. You can '}
-              <a href={`#${ACCOUNT_ROUTES.USAGE}`} className={styles.link}>
-                {t('review your usage in account settings')}
-              </a>
-              {'.'}
+              <TextFormatter text={upgradeMessage} />
+              <TextFormatter text={reviewUsageMessage} />
             </div>
           </div>
         </KoboModalContent>
