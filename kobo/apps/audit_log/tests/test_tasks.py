@@ -11,7 +11,7 @@ from kobo.apps.audit_log.models import (
 )
 from kobo.apps.audit_log.tasks import (
     batch_delete_audit_logs_by_id,
-    delete_logs,
+    enqueue_logs_for_deletion,
     spawn_logs_cleaning_tasks,
 )
 from kobo.apps.kobo_auth.shortcuts import User
@@ -48,12 +48,12 @@ class AuditLogTasksTestCase(BaseTestCase):
         )
 
         self.assertEqual(AccessLog.objects.count(), 1)
-        delete_logs(AccessLog, 1)
+        enqueue_logs_for_deletion(AccessLog, 1)
         self.assertEqual(AccessLog.objects.count(), 0)
         # Ensure that the delete_logs function only deletes the objects for the given
         # log class
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
-        delete_logs(ProjectHistoryLog, 1)
+        enqueue_logs_for_deletion(ProjectHistoryLog, 1)
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     def test_spawn_deletion_task_identifies_expired_logs(self):

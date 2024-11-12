@@ -21,8 +21,8 @@ def batch_delete_audit_logs_by_id(ids):
     logging.info(f'Deleted {count} audit logs from database')
 
 
-def delete_logs(LogModel: AuditLog, log_lifespan: int):
-    """Delete the logs for an audit log model considering a lifespan
+def enqueue_logs_for_deletion(LogModel: AuditLog, log_lifespan: int):
+    """Delete the logs for an audit log proxy model considering a lifespan
     given in number of days.
 
     Ids are batched into multiple tasks.
@@ -48,5 +48,5 @@ def spawn_logs_cleaning_tasks():
     """
     Enqueue tasks to delete logs older than the configured lifespan
     """
-    delete_logs(AccessLog, config.ACCESS_LOG_LIFESPAN)
-    delete_logs(ProjectHistoryLog, config.PROJECT_HISTORY_LOG_LIFESPAN)
+    enqueue_logs_for_deletion(AccessLog, config.ACCESS_LOG_LIFESPAN)
+    enqueue_logs_for_deletion(ProjectHistoryLog, config.PROJECT_HISTORY_LOG_LIFESPAN)
