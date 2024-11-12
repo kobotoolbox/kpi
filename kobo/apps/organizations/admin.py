@@ -23,6 +23,7 @@ from .models import (
     OrganizationUser,
 )
 from .tasks import transfer_user_ownership_to_org
+from .utils import revoke_org_asset_perms
 
 
 def _max_users_for_edit_mode():
@@ -146,6 +147,13 @@ class OrgAdmin(BaseOrganizationAdmin):
                 self._transfer_user_ownership(request, new_members)
                 self._delete_previous_organizations(new_members, organization_id)
 
+                deleted_user_ids = []
+                for obj in formset.deleted_objects:
+                    deleted_user_ids.append(obj.user_id)
+
+                if deleted_user_ids:
+                    revoke_org_asset_perms(form.instance, deleted_user_ids)
+
     def _delete_previous_organizations(
         self, new_members: 'QuerySet', organization_id: int
     ):
@@ -246,6 +254,7 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
                 mark_safe(message),
                 messages.INFO,
             )
+            revoke_org_asset_perms(previous_organization, [obj.user.pk])
 
 
 @admin.register(OrganizationOwner)
