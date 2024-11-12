@@ -29,10 +29,12 @@ import './submissionDataTable.scss';
 import type {
   AssetResponse,
   SubmissionResponse,
+  SubmissionAttachment,
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
-import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
+import AttachmentActionsDropdown from './attachmentActionsDropdown.component';
+import DeletedAttachment from './deletedAttachment.component';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -45,6 +47,7 @@ interface SubmissionDataTableProps {
   submissionData: SubmissionResponse;
   translationIndex: number;
   showXMLNames?: boolean;
+  onAttachmentDeleted: (attachment: SubmissionAttachment) => void;
 }
 
 /**
@@ -264,16 +267,24 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                 P<sub>{pointIndex + 1}</sub>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                {pointArray[0]}
+                <bem.SubmissionDataTable__value>
+                  {pointArray[0]}
+                </bem.SubmissionDataTable__value>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                {pointArray[1]}
+                <bem.SubmissionDataTable__value>
+                  {pointArray[1]}
+                </bem.SubmissionDataTable__value>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                {pointArray[2]}
+                <bem.SubmissionDataTable__value>
+                  {pointArray[2]}
+                </bem.SubmissionDataTable__value>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                {pointArray[3]}
+                <bem.SubmissionDataTable__value>
+                  {pointArray[3]}
+                </bem.SubmissionDataTable__value>
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
           ))}
@@ -290,6 +301,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   ) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
+      if (attachment.is_deleted) {
+        return <DeletedAttachment />
+      }
+
       return (
         <>
           {type === QUESTION_TYPES.audio.id &&
@@ -323,6 +338,17 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
               {filename}
             </a>
           }
+
+          <AttachmentActionsDropdown
+            asset={this.props.asset}
+            questionType={type}
+            attachmentUrl={attachment.download_url}
+            submissionData={this.props.submissionData}
+            onDeleted={() => {
+              // We're letting know upstream that the attachment was deleted
+              this.props.onAttachmentDeleted(attachment);
+            }}
+          />
         </>
       );
     // In the case that an attachment is missing, don't crash the page
