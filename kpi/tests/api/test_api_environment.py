@@ -127,7 +127,7 @@ class EnvironmentTests(BaseTestCase):
             'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
             'project_history_log_lifespan': (
-                constance.config.PROJECT_HISTORY_LOG_LIFESPAN,
+                constance.config.PROJECT_HISTORY_LOG_LIFESPAN
             ),
             'use_team_label': constance.config.USE_TEAM_LABEL,
         }
