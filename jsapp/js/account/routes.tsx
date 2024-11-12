@@ -11,6 +11,7 @@ import {
   DataStorage,
   PlansRoute,
   SecurityRoute,
+  MembersRoute,
 } from 'js/account/routes.constants';
 import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
@@ -109,7 +110,7 @@ export default function routes() {
             element={
               <RequireAuth>
                 <ValidateOrgPermissions mmoOnly>
-                  <div>Organization members view to be implemented</div>
+                  <MembersRoute />
                 </ValidateOrgPermissions>
               </RequireAuth>
             }
