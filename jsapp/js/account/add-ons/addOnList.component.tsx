@@ -41,9 +41,10 @@ const AddOnList = (props: {
   const oneTimeAddOnProducts = addOnProducts.filter(
     (product) => product.metadata.product_type === 'addon_onetime'
   );
-  const filteredAddOnProducts = addOnProducts.filter(
+  const recurringAddOnProducts = addOnProducts.filter(
     (product) => product.metadata.product_type === 'addon'
   );
+  const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length;
 
   /**
    * Extract the add-on products and prices from the list of all products
@@ -165,7 +166,6 @@ const AddOnList = (props: {
       </table>
     );
   }
-
   return (
     <>
       <table className={styles.table}>
@@ -180,10 +180,10 @@ const AddOnList = (props: {
           </p>
         </caption>
         <tbody>
-          {!subscribedPlans.length && (
+          {showRecurringAddons && (
             <OneTimeAddOnRow
-              key={filteredAddOnProducts.map((product) => product.id).join('-')}
-              products={filteredAddOnProducts}
+              key={recurringAddOnProducts.map((product) => product.id).join('-')}
+              products={recurringAddOnProducts}
               isBusy={props.isBusy}
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
@@ -191,15 +191,17 @@ const AddOnList = (props: {
               organization={props.organization}
             />
           )}
-          <OneTimeAddOnRow
-            key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
-            products={oneTimeAddOnProducts}
-            isBusy={props.isBusy}
-            setIsBusy={props.setIsBusy}
-            subscribedAddOns={subscribedAddOns}
-            activeSubscriptions={activeSubscriptions}
-            organization={props.organization}
-          />
+          {oneTimeAddOnProducts.length > 0 && (
+            <OneTimeAddOnRow
+              key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
+              products={oneTimeAddOnProducts}
+              isBusy={props.isBusy}
+              setIsBusy={props.setIsBusy}
+              subscribedAddOns={subscribedAddOns}
+              activeSubscriptions={activeSubscriptions}
+              organization={props.organization}
+            />
+          )}
         </tbody>
       </table>
       {subscribedAddOns.some((product) => product.status === 'active') ||
