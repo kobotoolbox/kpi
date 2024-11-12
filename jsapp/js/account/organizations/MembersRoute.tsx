@@ -3,10 +3,12 @@ import React from 'react';
 
 // Partial components
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
-import useOrganiztionMembersQuery from './membersQuery';
+import {useOrganizationQuery} from 'js/account/stripe.api';
+import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -15,6 +17,14 @@ import type {OrganizationMember} from './membersQuery';
 import styles from './membersRoute.module.scss';
 
 export default function MembersRoute() {
+  const orgQuery = useOrganizationQuery();
+
+  if (!orgQuery.data?.id) {
+    return (
+      <LoadingSpinner />
+    );
+  }
+
   return (
     <div className={styles.membersRouteRoot}>
       <header className={styles.header}>
@@ -22,7 +32,9 @@ export default function MembersRoute() {
       </header>
 
       <PaginatedQueryUniversalTable<OrganizationMember>
-        queryHook={useOrganiztionMembersQuery}
+        // TOOD: how to pass organization id to the query?
+        // Build something similar to PaginatedQueryUniversalTable here??
+        queryHook={useOrganizationMembersQuery}
         columns={[
           {
             key: 'user__username',
