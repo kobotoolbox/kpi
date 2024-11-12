@@ -19,8 +19,8 @@ interface OverLimitModalProps {
   interval: 'month' | 'year';
 }
 
-const getLimitReachedMessage = (isMmo: boolean, shouldUseTeamlabel: boolean) => {
-  if (isMmo && shouldUseTeamlabel) {
+const getLimitReachedMessage = (isMmo: boolean, shouldUseTeamLabel: boolean) => {
+  if (isMmo && shouldUseTeamLabel) {
     return t('Your team has reached the following limits included with your current plan:');
   } else if (isMmo) {
     return t('Your organization has reached the following limits included with your current plan:');
@@ -55,14 +55,14 @@ function OverLimitModal(props: OverLimitModalProps) {
   }
 
   const {is_mmo} = orgQuery.data;
-  const shouldUseTeamlabel = !!envStore.data?.use_team_label;
+  const shouldUseTeamLabel = !!envStore.data?.use_team_label;
 
 
-  const geretingsMessage = t('Dear ##ACCOUNT_NAME##,').replace(
+  const greetingMessage = t('Dear ##ACCOUNT_NAME##,').replace(
     '##ACCOUNT_NAME##',
     accountName
   );
-  const limitReachedMessage = getLimitReachedMessage(is_mmo, shouldUseTeamlabel);
+  const limitReachedMessage = getLimitReachedMessage(is_mmo, shouldUseTeamLabel);
 
   const upgradeMessage = t(
     'Please upgrade your plan as soon as possible or [contact us](##CONTACT_LINK##){:target="_blank"} to speak with our team.'
@@ -81,7 +81,7 @@ function OverLimitModal(props: OverLimitModalProps) {
 
         <KoboModalContent>
           <div className={styles.content}>
-            <div className={styles.messageGreeting}>{geretingsMessage}</div>
+            <div className={styles.messageGreeting}>{greetingMessage}</div>
             <div>
               {limitReachedMessage}{' '}
               {props.limits.map((limit, index) => (
