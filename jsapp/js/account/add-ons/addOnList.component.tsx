@@ -15,6 +15,7 @@ import type {BadgeColor} from 'jsapp/js/components/common/badge';
 import Badge from 'jsapp/js/components/common/badge';
 import {formatDate} from 'js/utils';
 import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
+import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 /**
  * A table of add-on products along with dropdowns to purchase them.
@@ -37,6 +38,7 @@ const AddOnList = (props: {
   >([]);
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([]);
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
+  const areOneTimeAddonsEnabled = useFeatureFlag(FeatureFlag.oneTimeAddonsEnabled);
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns;
   const oneTimeAddOnProducts = addOnProducts.filter(
     (product) => product.metadata.product_type === 'addon_onetime'
@@ -45,6 +47,7 @@ const AddOnList = (props: {
     (product) => product.metadata.product_type === 'addon'
   );
   const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length;
+  const showOneTimeAddons = areOneTimeAddonsEnabled && !!oneTimeAddOnProducts.length;
 
   /**
    * Extract the add-on products and prices from the list of all products
@@ -191,7 +194,7 @@ const AddOnList = (props: {
               organization={props.organization}
             />
           )}
-          {oneTimeAddOnProducts.length > 0 && (
+          {showOneTimeAddons && (
             <OneTimeAddOnRow
               key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
               products={oneTimeAddOnProducts}
