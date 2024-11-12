@@ -86,7 +86,6 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         self.perform_destroy_override(instance)
         self.request._request.initial_data = audit_log_data
 
-
     def perform_destroy_override(self, instance):
         super().perform_destroy(instance)
 
