@@ -44,6 +44,8 @@ def user_has_project_view_asset_perm(
     Returns True if user has specified permission for asset within project view
     if not explicitly granted through Asset.assign_perm()
     """
+    if not asset:
+        return False
     return perm in get_project_view_user_permissions_for_asset(asset, user)
 
 
