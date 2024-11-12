@@ -31,13 +31,17 @@ export interface OrganizationMember {
   };
 }
 
-async function getOrganizationMembers(limit: number, offset: number) {
+async function getOrganizationMembers(
+  organizationId: string,
+  limit: number,
+  offset: number
+) {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
   });
   return fetchGet<PaginatedResponse<OrganizationMember>>(
-    endpoints.ORGANIZATION_MEMBERS_URL + '?' + params,
+    endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', organizationId) + '?' + params,
     {
       errorMessageDisplay: t('There was an error getting the list.'),
     }
@@ -45,12 +49,13 @@ async function getOrganizationMembers(limit: number, offset: number) {
 }
 
 export default function useOrganizationMembersQuery(
+  organizationId: string,
   itemLimit: number,
   pageOffset: number
 ) {
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset],
-    queryFn: () => getOrganizationMembers(itemLimit, pageOffset),
+    queryKey: [QueryKeys.organizationMembers, organizationId, itemLimit, pageOffset],
+    queryFn: () => getOrganizationMembers(organizationId, itemLimit, pageOffset),
     placeholderData: keepPreviousData,
     // We might want to improve this in future, for now let's not retry
     retry: false,
