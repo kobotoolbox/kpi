@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from rest_framework import status
 from rest_framework.exceptions import server_error
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from kpi.utils.urls import is_request_for_html
 
@@ -17,6 +18,13 @@ admin.site.login = staff_member_required(
 )
 
 urlpatterns = [
+
+    # YOUR PATTERNS
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Optional UI:
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
     # Disable admin login form

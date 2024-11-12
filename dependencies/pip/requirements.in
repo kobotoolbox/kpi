@@ -111,3 +111,5 @@ modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
 pandas
+
+drf-spectacular # OpenAPI v3 schema generator
