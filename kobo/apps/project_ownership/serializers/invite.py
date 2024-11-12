@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from constance import config
 from django.contrib.auth import get_user_model
-from django.db import transaction
 from django.db.models import Max, Prefetch
 from django.utils.translation import gettext as t
 from rest_framework import exceptions, serializers
@@ -16,7 +14,6 @@ from ..models import (
     InviteStatusChoices,
     Transfer,
     TransferStatus,
-    TransferStatusChoices,
     TransferStatusTypeChoices,
 )
 from ..utils import create_invite, update_invite
