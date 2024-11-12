@@ -67,8 +67,8 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     return null;
   }
 
-  // If there are no custom views defined, there's no point in displaying
-  // the dropdown, we will display a "simple" header.
+  // If there is only one option in the switcher, there is no point in making
+  // this piece of UI interactive. We display a "simple" header instead.
   if (!hasMultipleOptions) {
     return (
       <button

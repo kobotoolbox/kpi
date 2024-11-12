@@ -49,6 +49,10 @@ export const ROUTES = Object.freeze({
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  /**
+   * We break from the default way to set routes here, as we want to be
+   * consistent with other organization related routes.
+   */
   MY_ORG_PROJECTS: '/organization/projects',
   CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
