@@ -14,7 +14,7 @@ import ProjectQuickActions from './projectsTable/projectQuickActions';
 import ProjectBulkActions from './projectsTable/projectBulkActions';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
 import Icon from 'js/components/common/icon';
-import TransferModalWithBanner from 'js/components/permissions/transferProjects/transferModalWithBanner';
+import ProjectOwnershipTransferModalWithBanner from 'js/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner';
 import Button from 'js/components/common/button';
 
 // Stores, hooks and utilities
@@ -135,7 +135,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
       </div>
 
       <section className={styles.root}>
-        <TransferModalWithBanner />
+        <ProjectOwnershipTransferModalWithBanner />
 
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={props.viewUid} />

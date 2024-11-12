@@ -2,9 +2,9 @@ import React from 'react';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
 import {TransferStatuses} from 'js/components/permissions/transferProjects/transferProjects.api';
-import styles from './inviteBanner.module.scss';
+import styles from './projectTransferInviteBanner.module.scss';
 
-export interface InviteState {
+export interface TransferInviteState {
   valid: boolean;
   uid: string;
   status: TransferStatuses.Accepted | TransferStatuses.Declined | null;
@@ -12,15 +12,15 @@ export interface InviteState {
   currentOwner: string;
 }
 
-interface InviteBannerProps {
-  invite: InviteState;
+interface ProjectTransferInviteBannerProps {
+  invite: TransferInviteState;
   onRequestClose: () => void;
 }
 
 /**
  * Displays a banner about accepting or declining project transfer invitation.
  */
-export default function InviteBanner(props: InviteBannerProps) {
+export default function ProjectTransferInviteBanner(props: ProjectTransferInviteBannerProps) {
   if (props.invite.status) {
     return (
       <div className={styles.banner}>

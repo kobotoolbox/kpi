@@ -4,7 +4,7 @@ import {useSearchParams} from 'react-router-dom';
 
 // Partial components
 import TransferProjectsInvite from './transferProjectsInvite.component';
-import InviteBanner from './inviteBanner';
+import ProjectTransferInviteBanner from './projectTransferInviteBanner';
 
 // Stores, hooks and utilities
 import {
@@ -13,14 +13,15 @@ import {
 } from './transferProjects.api';
 
 // Constants and types
-import type {InviteState} from './inviteBanner';
+import type {TransferInviteState} from './projectTransferInviteBanner';
 
 /**
  * This is a glue component that displays a modal from `TransferProjectsInvite`
- * and a banner from `InviteBanner` as an outcome of the modal action.
+ * and a banner from `ProjectTransferInviteBanner` as an outcome of the modal
+ * action.
  */
-export default function TransferModalWithBanner() {
-  const [invite, setInvite] = useState<InviteState>({
+export default function ProjectOwnershipTransferModalWithBanner() {
+  const [invite, setInvite] = useState<TransferInviteState>({
     valid: false,
     uid: '',
     status: null,
@@ -57,7 +58,7 @@ export default function TransferModalWithBanner() {
   return (
     <>
       {isBannerVisible &&
-        <InviteBanner
+        <ProjectTransferInviteBanner
           invite={invite}
           onRequestClose={() => {setIsBannerVisible(false);}}
         />
