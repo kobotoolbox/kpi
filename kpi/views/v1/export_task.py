@@ -135,7 +135,6 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     lookup_field = 'uid'
     log_type = 'project-history'
 
-
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:
             return ExportTask.objects.none()
