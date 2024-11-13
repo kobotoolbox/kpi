@@ -555,20 +555,42 @@ class ObjectPermissionMixin:
         self.recalculate_descendants_perms()
         return new_permission
 
+    @classmethod
+    def get_org_admin_inherited_perms(
+        cls, for_instance: Optional['kpi.models.Asset'] = None
+    ):
+        return set(
+            perm
+            for inherit_perm in settings.ADMIN_ORG_INHERITED_PERMS
+            for perm in [
+                inherit_perm,
+                *cls.get_implied_perms(inherit_perm, for_instance=for_instance),
+            ]
+        )
+
     def get_perms(self, user_obj: settings.AUTH_USER_MODEL) -> list[str]:
         """
         Return a list of codenames of all effective grant permissions that
         user_obj has on this object.
         """
-        user_perm_ids = self._get_effective_perms(user=user_obj)
+        user = get_database_user(user_obj)
+        user_perm_ids = self._get_effective_perms(user=user)
         perm_ids = [x[1] for x in user_perm_ids]
-        assigned_perms = Permission.objects.filter(pk__in=perm_ids).values_list(
-            'codename', flat=True
+        assigned_perms = list(
+            Permission.objects.filter(pk__in=perm_ids).values_list(
+                'codename', flat=True
+            )
         )
         project_views_perms = get_project_view_user_permissions_for_asset(
-            self, user_obj
+            self, user
         )
-        return list(set(list(assigned_perms) + project_views_perms))
+
+        other_perms = []
+        if self.owner and self.owner.organization.is_admin_only(user):
+            # Admins do not receive explicit permission assignments.
+            other_perms = list(self.get_org_admin_inherited_perms(self))
+
+        return list(set(assigned_perms + project_views_perms + other_perms))
 
     def get_partial_perms(self, user_id, with_filters=False):
         """
@@ -622,7 +644,17 @@ class ObjectPermissionMixin:
             user=user_obj,
             codename=codename
         )) == 1
+
         if not result and not is_anonymous:
+            org_admin_perms = self.get_org_admin_inherited_perms()
+
+            if (
+                self.owner
+                and self.owner.organization.is_admin_only(user_obj)
+                and codename in org_admin_perms
+            ):
+                return True
+
             if perm in ProjectView.ALLOWED_PERMISSIONS:
                 result = user_has_project_view_asset_perm(self, user_obj, perm)
 
@@ -911,9 +943,9 @@ class ObjectPermissionMixin:
 
     @staticmethod
     @cache_for_request
-    def __get_permissions_for_content_type(content_type_id,
-                                           codename=None,
-                                           codename__startswith=None):
+    def __get_permissions_for_content_type(
+        content_type_id, codename=None, codename__startswith=None
+    ):
         """
         Gets permissions for specific content type and permission's codename
         This method is cached per request because it can be called several times
@@ -936,8 +968,9 @@ class ObjectPermissionMixin:
         if codename__startswith is not None:
             filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters). \
-            values_list('pk', 'codename')
+        permissions = Permission.objects.filter(**filters).values_list(
+            'pk', 'codename'
+        )
 
         return permissions
 
@@ -945,7 +978,6 @@ class ObjectPermissionMixin:
 class ObjectPermissionViewSetMixin:
 
     def cache_all_assets_perms(self, asset_ids: list) -> dict:
-
         object_permissions = ObjectPermission.objects.filter(
             asset_id__in=asset_ids,
             deny=False,

@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
@@ -13,6 +12,7 @@ from kpi.constants import (
 from kpi.models import Asset, ObjectPermission
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.tests.utils.mixins import PermissionAssignmentTestCaseMixin
 from kpi.utils.object_permission import get_anonymous_user
 
 
@@ -658,7 +658,9 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class ApiAssignedPermissionsTestCase(KpiTestCase):
+class ApiAssignedPermissionsTestCase(
+    PermissionAssignmentTestCaseMixin, KpiTestCase
+):
     """
     An obnoxiously large amount of code to test that the endpoint for listing
     assigned permissions complies with the following rules:
