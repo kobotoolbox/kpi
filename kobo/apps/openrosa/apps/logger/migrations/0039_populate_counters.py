@@ -96,7 +96,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('logger', '0037_remove_xform_has_kpi_hooks_and_instance_posted_to_kpi'),
+        ('logger', '0038_add_mongo_uuid_field_to_xform'),
         ('main', '0017_userprofile_submissions_suspended'),
     ]
 
