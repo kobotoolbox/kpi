@@ -3,7 +3,9 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
 from kpi.filters import SearchFilter
+# from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
+# from kpi.tasks import export_task_in_background
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog
 from .permissions import SuperUserPermission
@@ -324,31 +326,83 @@ class AccessLogViewSet(AuditLogViewSet):
     serializer_class = AccessLogSerializer
 
 
-class AccessLogsExportViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated,)
+# class AccessLogsExportViewSet(viewsets.ViewSet):
+#     permission_classes = (IsAuthenticated,)
+#     lookup_field = 'uid'
 
-    def create(self, request, *args, **kwargs):
-        if not request.user.is_superuser and 'access-logs/export' in request.path:
-            raise exceptions.PermissionDenied(
-                'Only superusers can export all access logs.'
-            )
+#     def create(self, request, uid=None, type=None, *args, **kwargs):
+#         if not request.user.is_superuser and 'access-logs/export' in request.path:
+#             raise exceptions.PermissionDenied(
+#                 'Only superusers can export all access logs.'
+#             )
 
-        # TODO: after AccessLogExportTask is implemented
-        # - Check if the user already has a running job
-        # - Create and trigger the export task
+#         get_all_logs = 'access-logs/export' in request.path
 
-        return Response(
-            {'status': 'Export task started successfully'},
-            status=status.HTTP_202_ACCEPTED,
-        )
+#         # Superuser handling: one job for all logs and another for their own logs
+#         if request.user.is_superuser:
+#             # Check if the superuser has a task running for all or just their own logs
+#             if AccessLogExportTask.objects.filter(
+#                 user=request.user,
+#                 status=AccessLogExportTask.PROCESSING,
+#                 get_all_logs=get_all_logs,
+#             ).exists():
+#                 return Response(
+#                     {'error': 'You already have a running export task for this type.'},
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
+#         else:
+#             # Non-superusers can only run one task for their own logs at a time
+#             if AccessLogExportTask.objects.filter(
+#                 user=request.user,
+#                 status=AccessLogExportTask.PROCESSING,
+#                 get_all_logs=False,
+#             ).exists():
+#                 return Response(
+#                     {
+#                         'error': (
+#                             'You already have a running export task for your own logs.'
+#                         )
+#                     },
+#                     status=status.HTTP_400_BAD_REQUEST,
+#                 )
 
-    def list(self, request, *args, **kwargs):
-        if not request.user.is_superuser and 'access-logs/export' in request.path:
-            raise exceptions.PermissionDenied(
-                'Only superusers can export all access logs.'
-            )
+#         export_task = AccessLogExportTask.objects.create(
+#             user=request.user,
+#             get_all_logs=get_all_logs,
+#             data={
+#                 'view': uid,
+#                 'type': 'access_logs_export',
+#             },
+#         )
 
-        # TODO: retrieve the status of a given task after AccessLogExportTask is
-        # implemented.
+#         export_task_in_background.delay(
+#             export_task_uid=export_task.uid,
+#             username=export_task.user.username,
+#             export_task_name='kpi.AccessLogExportTask',
+#         )
+#         return Response(
+#             {f'status: {export_task.status}'},
+#             status=status.HTTP_202_ACCEPTED,
+#         )
 
-        return Response(status=status.HTTP_200_OK)
+#     def list(self, request, *args, **kwargs):
+#         if not request.user.is_superuser and 'access-logs/export' in request.path:
+#             raise exceptions.PermissionDenied(
+#                 'Only superusers can export all access logs.'
+#             )
+
+#         task = (
+#             AccessLogExportTask.objects.filter(user=request.user)
+#             .order_by('-date_created')
+#             .first()
+#         )
+
+#         if task:
+#             return Response(
+#                 {'uid': task.uid, 'status': task.status}, status=status.HTTP_200_OK
+#             )
+#         else:
+#             return Response(
+#                 {'error': 'No export task found for this user.'},
+#                 status=status.HTTP_404_NOT_FOUND,
+#             )
