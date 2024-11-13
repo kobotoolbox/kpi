@@ -8,6 +8,7 @@ import responses
 from ddt import data, ddt, unpack
 from django.test import override_settings
 from django.urls import reverse
+from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -89,6 +90,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(log.metadata, expected_subtype)
         return log.metadata
+
+    def _make_bulk_request(self, asset_uids, action) -> Response:
+        """
+        Make a bulk action request for a list of asset uid's and an action name
+
+        asset_uids: [list_of_uids]
+        action: [archive, unarchive, delete, undelete]
+        """
+        payload = {
+            'payload': {
+                'asset_uids': asset_uids,
+                'action': action,
+            }
+        }
+        url = reverse(self._get_endpoint('asset-bulk'))
+        response = self.client.post(url, data=payload, format='json')
+        return response
 
     def test_first_time_deployment_creates_log(self):
         post_data = {
@@ -862,3 +880,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log.object_id, self.asset.id)
+
+    def test_bulk_archive(self):
+        action = 'archive'
+        someuser = User.objects.get(username='someuser')
+        user_assets = Asset.objects.filter(owner=someuser).all()
+        uids = [asset.uid for asset in user_assets]
+        response = self._make_bulk_request(uids, action)
+        archived_logs = ProjectHistoryLog.objects.filter(
+            object_id__in=[asset.id for asset in user_assets],
+            action=AuditAction.ARCHIVE
+        )
+        self.assertEqual(archived_logs.count(), 2)
+
+    def test_bulk_delete(self):
+        pass

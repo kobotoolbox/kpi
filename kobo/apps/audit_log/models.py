@@ -343,6 +343,36 @@ class ProjectHistoryLog(AuditLog):
         method(request)
 
     @staticmethod
+    def create_from_bulk_action(request, payload):
+        bulk_action_to_audit_action = {
+            'archive': AuditAction.ARCHIVE,
+            'unarchive': AuditAction.UNARCHIVE,
+            'delete': AuditAction.DELETE,
+            'undelete': AuditAction.UNDELETE,
+        }
+        audit_action = bulk_action_to_audit_action[payload.get('action')]
+        if audit_action is None: # Unsupported action
+            return
+
+        source = get_human_readable_client_user_agent(request)
+        client_ip = get_client_ip(request)
+
+        for asset_uid in payload.get('asset_uids', []):
+            asset = Asset.objects.get(uid=asset_uid)
+            metadata = {
+                'asset_uid': asset_uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': client_ip,
+                'source': source,
+            }
+            ProjectHistoryLog.objects.create(
+                user=request.user,
+                object_id=asset.pk,
+                action=audit_action,
+                metadata=metadata,
+            )
+
+    @staticmethod
     def create_from_deployment_request(request):
         audit_log_info = getattr(request, 'additional_audit_log_info', None)
         if audit_log_info is None:
