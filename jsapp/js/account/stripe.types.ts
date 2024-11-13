@@ -180,8 +180,8 @@ export type LimitAmount = number | 'unlimited';
 
 export interface AccountLimit {
   submission_limit: LimitAmount;
-  nlp_seconds_limit: LimitAmount;
-  nlp_character_limit: LimitAmount;
+  asr_seconds_limit: LimitAmount;
+  mt_characters_limit: LimitAmount;
   storage_bytes_limit: LimitAmount;
 }
 
