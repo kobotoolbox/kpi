@@ -1,7 +1,7 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ValidateOrgPermissions} from 'js/account/organizations/validateOrgPermissions.component';
+import { ValidateOrgPermissions } from 'js/router/validateOrgPermissions.component';
 import {OrganizationUserRole} from './stripe.types';
 import {
   ACCOUNT_ROUTES,
