@@ -19,7 +19,7 @@ from rest_framework.response import Response
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination, OrganizationPagination
+from kpi.paginators import AssetUsagePagination, OrganizationMemberPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
@@ -29,6 +29,7 @@ from kpi.utils.object_permission import get_database_user
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
@@ -336,11 +337,18 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrganizationUserSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = OrganizationPagination
+    pagination_class = OrganizationMemberPagination
+    http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
+
+        # Subquery to check if the user has an active MFA method
+        mfa_subquery = MfaMethod.objects.filter(
+            user=OuterRef('user_id'),
+            is_active=True
+        ).values('pk')
 
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
@@ -357,7 +365,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 When(is_admin=True, then=Value('admin')),
                 default=Value('member'),
                 output_field=CharField()
-            )
+            ),
+            has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
 

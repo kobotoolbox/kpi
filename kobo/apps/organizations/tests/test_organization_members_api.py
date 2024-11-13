@@ -13,22 +13,14 @@ class OrganizationMemberAPITestCase(BaseTestCase):
     URL_NAMESPACE = URL_NAMESPACE
 
     def setUp(self):
-        self.organization = baker.make(Organization, id='org_12345')
+        self.organization = baker.make(
+            Organization, id='org_12345', mmo_override=True
+        )
         self.owner_user = baker.make(User, username='owner')
         self.member_user = baker.make(User, username='member')
-        self.invited_user = baker.make(User, username='invited')
 
-        self.organization_user_owner = baker.make(
-            OrganizationUser,
-            organization=self.organization,
-            user=self.owner_user,
-            is_admin=True,
-        )
-        self.organization_user_member = baker.make(
-            OrganizationUser,
-            organization=self.organization,
-            user=self.member_user
-        )
+        self.organization.add_user(self.owner_user)
+        self.organization.add_user(self.member_user, is_admin=False)
 
         self.client.force_login(self.owner_user)
         self.list_url = reverse(

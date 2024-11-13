@@ -144,7 +144,7 @@ class TinyPaginated(PageNumberPagination):
     page_size = 50
 
 
-class OrganizationPagination(PageNumberPagination):
+class OrganizationMemberPagination(PageNumberPagination):
     """
     Pagination class for Organization
     """

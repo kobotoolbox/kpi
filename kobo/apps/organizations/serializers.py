@@ -21,7 +21,9 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         view_name='user-kpi-detail',
     )
     role = serializers.CharField()
-    has_mfa_enabled = serializers.SerializerMethodField()
+    user__has_mfa_enabled = serializers.BooleanField(
+        source='has_mfa_enabled', read_only=True
+    )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
         source='user.date_joined', format='%Y-%m-%dT%H:%M:%SZ'
@@ -29,7 +31,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     user__username = serializers.ReadOnlyField(source='user.username')
     user__name = serializers.ReadOnlyField(source='user.get_full_name')
     user__email = serializers.ReadOnlyField(source='user.email')
-    is_active = serializers.ReadOnlyField(source='user.is_active')
+    user__is_active = serializers.ReadOnlyField(source='user.is_active')
 
     class Meta:
         model = OrganizationUser
@@ -40,13 +42,15 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user__email',
             'user__name',
             'role',
-            'has_mfa_enabled',
+            'user__has_mfa_enabled',
             'date_joined',
-            'is_active'
+            'user__is_active'
         ]
 
-    def get_has_mfa_enabled(self, obj):
-        return config.MFA_ENABLED
+    def update(self, instance, validated_data):
+        if role := validated_data.get('role', None):
+            validated_data['is_admin'] = role == 'admin'
+        return super().update(instance, validated_data)
 
     def get_url(self, obj):
         request = self.context.get('request')
