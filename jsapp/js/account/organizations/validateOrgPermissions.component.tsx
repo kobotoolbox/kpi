@@ -7,9 +7,9 @@ import {OrganizationUserRole} from '../stripe.types';
 
 interface Props {
   children: React.ReactNode;
+  redirectRoute: string;
   validRoles?: OrganizationUserRole[];
   mmoOnly?: boolean;
-  redirect?: boolean;
 }
 
 /**
@@ -19,9 +19,9 @@ interface Props {
  */
 export const ValidateOrgPermissions = ({
   children,
+  redirectRoute,
   validRoles = undefined,
   mmoOnly = false,
-  redirect = true,
 }: Props) => {
   const navigate = useNavigate();
   const orgQuery = useOrganizationQuery();
@@ -30,18 +30,16 @@ export const ValidateOrgPermissions = ({
   ) : true;
   const hasValidOrg = mmoOnly ? orgQuery.data?.is_mmo : true;
 
-  // Redirect to Account Settings if conditions not met
   useEffect(() => {
     if (
-      redirect &&
       orgQuery.data &&
       (!hasValidRole || !hasValidOrg)
     ) {
-      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
+      navigate(redirectRoute);
     }
-  }, [redirect, orgQuery.data, navigate]);
+  }, [redirectRoute, orgQuery.data, navigate]);
 
-  return redirect && hasValidRole && hasValidOrg ? (
+  return hasValidRole && hasValidOrg ? (
     <Suspense fallback={null}>{children}</Suspense>
   ) : (
     <LoadingSpinner />
