@@ -165,9 +165,11 @@ class XFormSubmissionApi(
             username = user.username
 
         if request.method.upper() == 'HEAD':
-            return Response(status=status.HTTP_204_NO_CONTENT,
-                            headers=self.get_openrosa_headers(request),
-                            template_name=self.template_name)
+            return Response(
+                status=status.HTTP_204_NO_CONTENT,
+                headers=self.get_openrosa_headers(request),
+                template_name=self.template_name,
+            )
 
         is_json_request = is_json(request)
 

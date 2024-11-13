@@ -18,6 +18,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import constance
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -26,13 +27,6 @@ from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
-import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -43,6 +37,12 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -291,7 +291,6 @@ class ImportTask(ImportExportTask):
             # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
-
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=filename,
@@ -354,7 +353,8 @@ class ImportTask(ImportExportTask):
                             'uid': asset.uid,
                             'kind': 'asset',
                             'owner__username': self.user.username,
-                        })
+                        }
+                    )
 
             if item.parent:
                 collections_to_assign.append([
@@ -444,8 +444,21 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
+                old_name = asset.name
+                # saving sometimes changes the name
                 asset.save()
                 msg_key = 'updated'
+                messages['audit_logs'].append(
+                    {
+                        'asset_uid': asset.uid,
+                        'asset_id': asset.id,
+                        'latest_version_uid': asset.latest_version.uid,
+                        'ip_address': self.data.get('ip_address', None),
+                        'source': self.data.get('source', None),
+                        'old_name': old_name,
+                        'new_name': asset.name,
+                    }
+                )
 
             messages[msg_key].append({
                 'uid': asset.uid,

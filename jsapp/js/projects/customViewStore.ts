@@ -1,22 +1,27 @@
+// Libraries
 import $ from 'jquery';
 import isEqual from 'lodash.isequal';
 import {makeAutoObservable, reaction} from 'mobx';
+
+// Stores and utilities
+import {handleApiFail} from 'js/api';
+import {buildQueriesFromFilters} from './projectViews/utils';
+import session from 'js/stores/session';
+import searchBoxStore from 'js/components/header/searchBoxStore';
+
+// Constants and types
 import type {
   AssetResponse,
   ProjectViewAsset,
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
-import {handleApiFail} from 'js/api';
 import {DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,
   ProjectsFilterDefinition,
 } from './projectViews/constants';
-import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
-import session from 'js/stores/session';
-import searchBoxStore from 'js/components/header/searchBoxStore';
 import {COMMON_QUERIES} from 'js/constants';
 
 const SAVE_DATA_NAME = 'project_views_settings';
@@ -95,7 +100,7 @@ class CustomViewStore {
     viewUid: string,
     baseUrl: string,
     defaultVisibleFields: ProjectFieldName[],
-    includeTypeFilter: boolean = true,
+    includeTypeFilter = true,
   ) {
     this.viewUid = viewUid;
     this.baseUrl = baseUrl;
@@ -278,8 +283,7 @@ class CustomViewStore {
       // `Asset Response` we need to find the last deployed version
       originalAsset.date_deployed !==
         modifiedAsset.deployed_versions?.results[0].date_modified ||
-      originalAsset.settings.sector?.value !==
-        modifiedAsset.settings.sector?.value ||
+      !isEqual(originalAsset.settings.sector, modifiedAsset.settings.sector) ||
       !isEqual(
         originalAsset.settings.country,
         modifiedAsset.settings.country
@@ -371,8 +375,7 @@ class CustomViewStore {
     // Then we load the saved settings (if they exist)
     if (
       'email' in session.currentAccount &&
-      session.currentAccount.extra_details[SAVE_DATA_NAME] &&
-      session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
+      session.currentAccount.extra_details[SAVE_DATA_NAME]?.[this.viewUid]
     ) {
       const savedViewData =
         session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];

@@ -5,7 +5,7 @@ import type {UserFieldName} from './account/account.constants';
 
 const ENV_ENDPOINT = '/environment/';
 
-interface EnvironmentResponse {
+export interface EnvironmentResponse {
   mfa_has_availability_list: boolean;
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -22,6 +22,7 @@ interface EnvironmentResponse {
   transcription_languages: TransxLanguages;
   translation_languages: TransxLanguages;
   submission_placeholder: string;
+  use_team_label: boolean;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
@@ -110,6 +111,7 @@ export class EnvStoreData {
   public transcription_languages: TransxLanguages = {};
   public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
+  public use_team_label = true;
   public asr_mt_features_enabled = false;
   public mfa_localized_help_text = '';
   public mfa_enabled = false;
@@ -212,6 +214,7 @@ class EnvStore {
     this.data.project_metadata_fields = response.project_metadata_fields;
     this.data.user_metadata_fields = response.user_metadata_fields;
     this.data.submission_placeholder = response.submission_placeholder;
+    this.data.use_team_label = response.use_team_label;
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_per_user_availability = response.mfa_per_user_availability;

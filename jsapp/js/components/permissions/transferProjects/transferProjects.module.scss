@@ -1,13 +1,12 @@
-@use 'scss/sizes';
 @use 'scss/breakpoints';
 @use 'scss/colors';
 
 .root {
   background: colors.$kobo-white;
-  padding: sizes.$x20;
-  margin: sizes.$x24 sizes.$x40;
+  padding: 20px;
+  margin: 24px 40px;
   border: 1px solid colors.$kobo-gray-300;
-  border-radius: sizes.$x5;
+  border-radius: 5px;
 }
 
 .form {
@@ -22,21 +21,21 @@
   gap: 12px;
 
   .transferButton {
-    max-width: sizes.$x180;
+    max-width: 180px;
   }
 }
 
 .description {
-  margin-right: sizes.$x16;
+  margin-right: 16px;
 }
 
 .copy {
-  margin-top: sizes.$x8;
+  margin-top: 8px;
 }
 
 .modalBody {
-  line-height: sizes.$x24;
-  padding: 0 sizes.$x24;
+  line-height: 24px;
+  padding: 0 24px;
 
   p {
     // Reset browser defaults
@@ -44,7 +43,7 @@
   }
 
   p:not(:last-child) {
-    margin-bottom: sizes.$x16;
+    margin-bottom: 16px;
   }
 }
 

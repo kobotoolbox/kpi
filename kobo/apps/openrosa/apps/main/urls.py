@@ -10,7 +10,6 @@ from kobo.apps.openrosa.apps.api.urls import BriefcaseApi
 from kobo.apps.openrosa.apps.api.urls import XFormListApi
 from kobo.apps.openrosa.apps.api.urls import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.urls import router, router_with_patch_list
-from kobo.apps.openrosa.apps.main.service_health import service_health
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
@@ -34,7 +33,6 @@ urlpatterns = [
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     re_path('^api/v1/', include(router.urls)),
     re_path('^api/v1/', include(router_with_patch_list.urls)),
-    re_path(r'^legacy/service_health/$', service_health, name='legacy-service-health'),
 
     # main website views
     re_path(

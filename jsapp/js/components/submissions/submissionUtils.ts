@@ -717,6 +717,7 @@ export function getSupplementalDetailsContent(
       // For `qual_select_one` we get object
       if (
         typeof foundResponse.val === 'object' &&
+        foundResponse.val !== null &&
         'labels' in foundResponse.val
       ) {
         return foundResponse.val.labels._default;

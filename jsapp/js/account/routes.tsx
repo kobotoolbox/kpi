@@ -1,7 +1,8 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {RequireOrgOwner} from 'js/account/organizations/requireOrgOwner.component';
+import {ValidateOrgPermissions} from 'js/router/validateOrgPermissions.component';
+import {OrganizationUserRole} from './stripe.types';
 import {
   ACCOUNT_ROUTES,
   AccountSettings,
@@ -11,8 +12,11 @@ import {
   PlansRoute,
   SecurityRoute,
 } from 'js/account/routes.constants';
+import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export default function routes() {
+  const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
+
   return (
     <>
       <Route
@@ -32,9 +36,12 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <RequireOrgOwner>
+            <ValidateOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <PlansRoute />
-            </RequireOrgOwner>
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />
@@ -43,9 +50,12 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <RequireOrgOwner>
+            <ValidateOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <AddOnsRoute />
-            </RequireOrgOwner>
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />
@@ -54,9 +64,15 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <RequireOrgOwner>
+            <ValidateOrgPermissions
+              validRoles={[
+                OrganizationUserRole.owner,
+                OrganizationUserRole.admin,
+              ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
-            </RequireOrgOwner>
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />
@@ -64,7 +80,17 @@ export default function routes() {
         path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
         element={
           <RequireAuth>
-            <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN} />
+            <ValidateOrgPermissions
+              validRoles={[
+                OrganizationUserRole.owner,
+                OrganizationUserRole.admin,
+              ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <DataStorage
+                activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
+              />
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />
@@ -84,6 +110,40 @@ export default function routes() {
           </RequireAuth>
         }
       />
+      {enableMMORoutes && (
+        <>
+          <Route
+            path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
+            element={
+              <RequireAuth>
+                <ValidateOrgPermissions
+                  mmoOnly
+                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+                >
+                  <div>Organization members view to be implemented</div>
+                </ValidateOrgPermissions>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+            element={
+              <RequireAuth>
+                <ValidateOrgPermissions
+                  validRoles={[
+                    OrganizationUserRole.owner,
+                    OrganizationUserRole.admin,
+                  ]}
+                  mmoOnly
+                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+                >
+                  <div>Organization settings view to be implemented</div>
+                </ValidateOrgPermissions>
+              </RequireAuth>
+            }
+          />
+        </>
+      )}
     </>
   );
 }

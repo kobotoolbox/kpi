@@ -25,7 +25,7 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
   };
 
   return (
-    <div>
+    <div className={styles.root}>
       <KoboModal
         isOpen={props.isModalOpen}
         onRequestClose={handleClose}

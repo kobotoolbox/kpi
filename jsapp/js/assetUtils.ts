@@ -25,6 +25,7 @@ import {
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
+  XML_VALUES_OPTION_VALUE,
 } from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
@@ -77,8 +78,12 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
   // Return -1 instead of null as that would allow
-  // `getQuestionOrChoiceDisplayName` to defualt to xml names.
-  let foundIndex = -1;
+  // `getQuestionOrChoiceDisplayName` to default to xml names.
+  if (langString === XML_VALUES_OPTION_VALUE) {
+    return -1;
+  }
+
+  let foundIndex = 0;
 
   if (
     Array.isArray(asset.summary?.languages) &&
@@ -119,7 +124,7 @@ export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsse
 export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   let output = '-';
 
-  if (asset.settings.sector?.value) {
+  if (asset.settings.sector && 'value' in asset.settings.sector) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language
@@ -214,6 +219,8 @@ export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): D
 /**
  * Returns usable name of the question or choice when possible, fallbacks to
  * "Unlabelled". `translationIndex` defaults to first (default) language.
+ *
+ * TODO: see how does this function output differs from `getTranslatedRowLabel`
  */
 export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
@@ -414,6 +421,8 @@ export function isRowSpecialLabelHolder(
  * @param rowName - could be either a survey row name or choices row name
  * @param data - is either a survey or choices
  * Returns null for not found
+ *
+ * TODO: see how does this function output differs from `getQuestionOrChoiceDisplayName`
  */
 export function getTranslatedRowLabel(
   rowName: string,
@@ -422,6 +431,16 @@ export function getTranslatedRowLabel(
 ): string | null {
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users. If translation we want is `-1`, it means we want to
+  // display xml name.
+  if (
+    translationIndex !== -1 &&
+    rowName === QUESTION_TYPES['background-audio'].id
+  ) {
+    return t('Background audio');
+  }
 
   if (data === undefined) {
     return null;
@@ -480,9 +499,7 @@ export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
     return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
-  if (rowType === META_QUESTION_TYPES['background-audio']) {
-    return 'background-rec';
-  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+  if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
     return 'qt-meta-default';
   }
 

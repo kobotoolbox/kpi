@@ -35,6 +35,8 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
         if not update_fields or (update_fields and 'data' in update_fields):
             self.standardize_json_field('data', 'organization', str)
             self.standardize_json_field('data', 'name', str)
+            if not created:
+                self._sync_org_name()
 
         super().save(
             force_insert=force_insert,
@@ -59,3 +61,23 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 self.user.id,
                 self.validated_password,
             )
+
+    def _sync_org_name(self):
+        """
+        Synchronizes the `name` field of the Organization model with the
+        "organization" attribute found in the `data` field of ExtraUserDetail,
+        but only if the user is the owner.
+
+        This ensures that any updates in the metadata are accurately reflected
+        in the organization's name.
+        """
+        user_organization = self.user.organization
+        if user_organization.is_owner(self.user):
+            try:
+                organization_name = self.data['organization'].strip()
+            except (KeyError, AttributeError):
+                organization_name = None
+
+            if organization_name:
+                user_organization.name = organization_name
+                user_organization.save(update_fields=['name'])

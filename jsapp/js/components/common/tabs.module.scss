@@ -1,30 +1,29 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
 .root {
   width: auto;
-  padding-top: sizes.$x20;
-  margin: 0 sizes.$x40;
+  padding-top: 20px;
+  margin: 0 40px;
   display: flex;
   flex-direction: row;
-  border-bottom: sizes.$x2 solid colors.$kobo-gray-400;
+  border-bottom: 2px solid colors.$kobo-gray-400;
 }
 
 .tab {
   background: transparent;
   cursor: pointer;
-  font-size: sizes.$x18;
+  font-size: 18px;
   color: colors.$kobo-gray-600;
   font-weight: 600;
-  padding: sizes.$x14 sizes.$x30 sizes.$x10;
-  margin-bottom: -(sizes.$x2);
+  padding: 14px 30px 10px;
+  margin-bottom: -(2px);
   outline: none;
 
   &.active {
     color: colors.$kobo-dark-blue;
     background-color: colors.$kobo-bg-blue;
-    border-bottom: sizes.$x2 solid colors.$kobo-dark-blue;
-    border-radius: sizes.$x8 sizes.$x8 0 0;
+    border-bottom: 2px solid colors.$kobo-dark-blue;
+    border-radius: 8px 8px 0 0;
   }
 }
 

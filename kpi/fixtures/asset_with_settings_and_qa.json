@@ -1,0 +1,64 @@
+[
+    {
+        "model":"kpi.asset",
+        "pk":3,
+        "parent":3,
+        "fields":{
+            "name":"fixture asset with settings and qa",
+            "content":{
+                "survey":[
+                    {
+                        "type":"text",
+                        "label":"settings fixture q1",
+                        "name":"settings_fixture_q1",
+                        "kuid":"abc"
+                    },
+                    {
+                        "type":"text",
+                        "label":"settings fixture q2",
+                        "name":"settings_fixture_q2",
+                        "kuid":"def"
+                    }
+                ]
+            },
+            "settings":{
+                "description":"Description",
+                "country":[
+                    {
+                        "label":"United States",
+                        "value":"USA"
+                    }
+                ],
+                "sector":{
+                    "label":"Education",
+                    "value":"Education"
+                },
+                "country_codes": ["USA"],
+                "organization" : "An organization"
+            },
+            "data_sharing":{
+                "fields":[],
+                "enabled":false
+            },
+            "advanced_features":{
+                "qual":{
+                    "qual_survey":[
+                        {
+                            "type":"qual_note",
+                            "uuid":"12345",
+                            "scope":"by_question#survey",
+                            "xpath":"q1",
+                            "labels":{
+                                "_default":"QA Question"
+                            }
+                        }
+                    ]
+                }
+            },
+            "date_created":"2022-04-05T21:00:22.402Z",
+            "date_modified":"2022-04-05T21:00:33.946Z",
+            "owner":1,
+            "uid":"aNp9yMt4zKpUtTeZUnozYG"
+        }
+    }
+  ]

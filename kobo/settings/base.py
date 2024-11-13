@@ -18,6 +18,7 @@ from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.utils.json import LazyJSONSerializable
+from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -155,6 +156,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -586,6 +588,15 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
+    'ACCESS_LOG_LIFESPAN': (
+        60,
+        'Length of time in days to keep access logs.',
+        'positive_int'
+    )
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +660,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
+        'ACCESS_LOG_LIFESPAN',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -921,7 +934,7 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
-    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
@@ -1219,6 +1232,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    }
 }
 
 
@@ -1769,8 +1787,15 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
+ACCESS_LOG_DELETION_BATCH_SIZE = 1000
+
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+# Admins will not be explicitly granted these permissions, (i.e., not referenced
+# in the ObjectPermission table), but the code will still conduct the permission
+# checks as if they were.
+ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
