@@ -187,6 +187,10 @@ class Organization(AbstractOrganization):
 
 
 class OrganizationUser(AbstractOrganizationUser):
+
+    def __str__(self):
+        return f'<OrganizationUser #{self.pk}: {self.user.username}>'
+
     @property
     def active_subscription_statuses(self):
         """
