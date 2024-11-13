@@ -1,5 +1,6 @@
 {expect} = require('../helper/fauxChai')
 $utils = require("../../jsapp/xlform/src/model.utils")
+_ = require('underscore')
 
 pasted = [
             ["list_name", "name", "label", "state", "county"],
@@ -126,7 +127,8 @@ do ->
         splitted = $utils.split_paste(pasted)
         expect(splitted.length).toEqual(expectation.length)
         for i in [0..splitted.length]
-            _eqKeyVals(splitted[i], expectation[i])
+          _eqKeyVals(splitted[i], expectation[i])
+        return
 
     describe 'sluggify', ->
       it 'lowerCases: true', ->
@@ -142,6 +144,7 @@ do ->
         ]
         for str in valid_xml
           expect($utils.isValidXmlTag(str)).toBeTruthy()
+        return
       it 'isValidXmlTag fails with invalid strings', ->
         invalid_xml = [
           '1xyz',
@@ -150,6 +153,7 @@ do ->
         ]
         for str in invalid_xml
           expect($utils.isValidXmlTag(str)).not.toBeTruthy()
+        return
 
       it 'handles a number of strings consistenly', ->
         inp_exps = [
@@ -164,4 +168,5 @@ do ->
           [str, additionals] = inps
           _out = $utils.sluggifyLabel(str, additionals)
           expect(_out).toBe(exps)
+        return
 

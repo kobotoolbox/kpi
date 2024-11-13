@@ -28,13 +28,26 @@ const hints = {
            ${s.darkblue}Enjoy a quicker-launching dev server!
   `,
 
-  'test-autobuild': `
+  /** @deprecated Use `npm run test` instead */
+  'test-mocha': `
+    This uses mocha-chrome as a test runner.
+
+    @deprecated: Use \`npm run test\` instead.
+  `,
+
+  'test-mocha-autobuild': `
     This will rebuild the js tests on change.
 
     Open ${s.underline}file://${process.cwd()}/test/tests.html${s.nounderline}
     to see the test results in your browser.
 
     Reload the page to re-run the tests.
+
+    If you don't need to inspect objects interactively
+    using the browser console,
+
+    you can use 'npm run test-watch' to watch
+    or filter tests in the terminal console.
   `,
 
   SKIP_TS_CHECK: `${s.red}

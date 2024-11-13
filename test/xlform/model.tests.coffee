@@ -42,6 +42,7 @@ xlform_survey_model = ($model)->
 
   it "ensures every node has access to the parent survey", ->
     @pizzaSurvey.getSurvey
+    return
 
   it "can append a survey to another", ->
     dead_simple = @createSurvey(['text,q1,Question1,q1hint', 'text,q2,Question2,q2hint'])
@@ -325,6 +326,7 @@ xlform_survey_model = ($model)->
       survey_kuids = _as_json.survey.map((r)=>r['$kuid'])
       for kuid in survey_kuids
         expect(kuid).toBeDefined()
+      return
 
   describe "automatic naming", ->
     it "can import questions without names", ->
