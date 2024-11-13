@@ -32,9 +32,8 @@ export default function MembersRoute() {
       </header>
 
       <PaginatedQueryUniversalTable<OrganizationMember>
-        // TOOD: how to pass organization id to the query?
-        // Build something similar to PaginatedQueryUniversalTable here??
         queryHook={useOrganizationMembersQuery}
+        queryHookOptions={{organizationId: orgQuery.data.id}}
         columns={[
           {
             key: 'user__username',
