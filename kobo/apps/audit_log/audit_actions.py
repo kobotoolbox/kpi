@@ -22,6 +22,7 @@ class AuditAction(models.TextChoices):
     REDEPLOY = 'redeploy'
     REGISTER_SERVICE = 'register-service'
     REMOVE = 'remove'
+    REPLACE_FORM = 'replace-form'
     UNARCHIVE = 'unarchive'
     UPDATE = 'update'
     UPDATE_CONTENT = 'update-content'

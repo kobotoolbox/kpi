@@ -1,7 +1,7 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ValidateOrgPermissions} from 'js/account/organizations/validateOrgPermissions.component';
+import {ValidateOrgPermissions} from 'js/router/validateOrgPermissions.component';
 import {OrganizationUserRole} from './stripe.types';
 import {
   ACCOUNT_ROUTES,
@@ -36,7 +36,10 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <ValidateOrgPermissions validRoles={[OrganizationUserRole.owner]}>
+            <ValidateOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <PlansRoute />
             </ValidateOrgPermissions>
           </RequireAuth>
@@ -47,7 +50,10 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <ValidateOrgPermissions validRoles={[OrganizationUserRole.owner]}>
+            <ValidateOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <AddOnsRoute />
             </ValidateOrgPermissions>
           </RequireAuth>
@@ -63,6 +69,7 @@ export default function routes() {
                 OrganizationUserRole.owner,
                 OrganizationUserRole.admin,
               ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
               <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
             </ValidateOrgPermissions>
@@ -78,6 +85,7 @@ export default function routes() {
                 OrganizationUserRole.owner,
                 OrganizationUserRole.admin,
               ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
               <DataStorage
                 activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
@@ -108,7 +116,10 @@ export default function routes() {
             path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
             element={
               <RequireAuth>
-                <ValidateOrgPermissions mmoOnly>
+                <ValidateOrgPermissions
+                  mmoOnly
+                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+                >
                   <div>Organization members view to be implemented</div>
                 </ValidateOrgPermissions>
               </RequireAuth>
@@ -124,6 +135,7 @@ export default function routes() {
                     OrganizationUserRole.admin,
                   ]}
                   mmoOnly
+                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
                 >
                   <div>Organization settings view to be implemented</div>
                 </ValidateOrgPermissions>
