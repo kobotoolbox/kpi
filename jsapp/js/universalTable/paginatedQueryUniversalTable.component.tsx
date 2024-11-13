@@ -31,7 +31,7 @@ interface PaginatedQueryUniversalTableProps<DataItem> {
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
-  columns: UniversalTableColumn<DataItem>[];
+  columns: Array<UniversalTableColumn<DataItem>>;
 }
 
 const PAGE_SIZES = [10, 30, 50, 100];
