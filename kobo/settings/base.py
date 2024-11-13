@@ -641,9 +641,6 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
     }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -943,7 +940,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'KoboToolbox API',
-    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'DESCRIPTION': 'Warning: experimental schema generation. Use at your own risk.',
     'VERSION': '0.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
