@@ -1,5 +1,6 @@
 import copy
 import re
+from collections import defaultdict
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -15,6 +16,7 @@ from django_request_cache import cache_for_request
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from rest_framework.request import Request as DRFRequest
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -1332,6 +1334,7 @@ class Asset(
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
+        request: Optional[DRFRequest] = None,
     ):
         """
         Stores, updates, and removes permissions that apply only to a subset of
@@ -1394,16 +1397,24 @@ class Asset(
                     t("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
-            new_partial_perms = AssetUserPartialPermission\
-                .update_partial_perms_to_include_implied(
-                    self,
-                    partial_perms
+            new_partial_perms = (
+                AssetUserPartialPermission.update_partial_perms_to_include_implied(
+                    self, partial_perms
                 )
+            )
+            if request and getattr(request._request, 'permissions_added', None) is None:
+                request._request.permissions_added = defaultdict(list)
 
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,
                 user_id=user.pk,
-                defaults={'permissions': new_partial_perms})
+                defaults={'permissions': new_partial_perms},
+            )
+
+            for perm, filters in new_partial_perms.items():
+                request._request.permissions_added[user.username].append(
+                    {'permission': perm, 'filters': filters}
+                )
 
             # There are no real partial permissions for 'add_submissions' but
             # 'change_submissions' implies it. So if 'add_submissions' is in the

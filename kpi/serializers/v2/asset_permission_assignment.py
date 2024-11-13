@@ -72,7 +72,10 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         partial_permissions = validated_data.get('partial_permissions', None)
 
         return asset.assign_perm(
-            user, permission.codename, partial_perms=partial_permissions
+            user,
+            permission.codename,
+            partial_perms=partial_permissions,
+            request=self.context['request'],
         )
 
     def get_label(self, object_permission):
@@ -350,6 +353,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             asset.remove_perm(
                 user_pk_to_obj_cache[removal.user_pk],
                 removal.permission_codename,
+                request=self.context['request'],
             )
 
         # Perform the new assignments
@@ -366,6 +370,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 user_obj=user_pk_to_obj_cache[addition.user_pk],
                 perm=addition.permission_codename,
                 partial_perms=partial_perms,
+                request=self.context['request'],
             )
 
         # Return nothing, in a nice way, because the view is responsible for

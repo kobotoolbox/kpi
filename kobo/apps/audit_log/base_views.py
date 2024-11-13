@@ -68,6 +68,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
 
     def perform_create(self, serializer):
         self.perform_create_override(serializer)
+
         audit_log_data = {}
         for field in self.logged_fields:
             field_path = field[1] if isinstance(field, tuple) else field

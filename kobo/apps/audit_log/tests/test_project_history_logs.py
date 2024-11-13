@@ -15,8 +15,12 @@ from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryL
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
+<<<<<<< HEAD
 from kpi.constants import PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
 from kpi.models import Asset, AssetFile, PairedData
+=======
+from kpi.models import Asset, AssetFile, ObjectPermission, PairedData
+>>>>>>> 524793a9f (fixup!: stuff)
 from kpi.models.asset import AssetSetting
 from kpi.utils.strings import to_str
 
@@ -716,6 +720,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['asset-file']['download_url'], media.download_url)
         self.assertEqual(log_metadata['asset-file']['md5_hash'], media.md5_hash)
 
+<<<<<<< HEAD
     @responses.activate
     @data(
         # File or url, change asset name?, use v2?
@@ -862,3 +867,190 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log.object_id, self.asset.id)
+
+    def test_bulk_assign_permissions_creates_logs(self):
+        user = User.objects.get(username='someuser')
+        self.asset.assign_perm(user_obj=user, perm='change_asset')
+        request_data = [
+            {
+                'permission': drf_reverse(
+                    'api_v2:permission-detail', kwargs={'codename': 'view_submissions'}
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+            {
+                'permission': drf_reverse(
+                    'api_v2:permission-detail',
+                    kwargs={'codename': 'change_submissions'},
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'anotheruser'}
+                ),
+            },
+        ]
+        self.client.post(
+            reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data=request_data,
+            format='json',
+        )
+        # there should be one log per user
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        # user 'someuser' removed 'change_asset', added 'view_submissions'
+        someuser_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid,
+            metadata__permissions__username='someuser',
+        ).first()
+        self.assertEqual(
+            someuser_log.metadata['permissions'][ADDED], ['view_submissions']
+        )
+        self.assertEqual(
+            someuser_log.metadata['permissions'][REMOVED], ['change_asset']
+        )
+        # user 'someuser' added 'edit_submissions' permission and all implied
+        anotheruser_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid,
+            metadata__permissions__username='anotheruser',
+        ).first()
+        self.assertEqual(len(anotheruser_log.metadata['permissions'][ADDED]), 4)
+        self.assertIn('view_asset', anotheruser_log.metadata['permissions'][ADDED])
+        self.assertIn(
+            'view_submissions', anotheruser_log.metadata['permissions'][ADDED]
+        )
+        self.assertIn('add_submissions', anotheruser_log.metadata['permissions'][ADDED])
+        self.assertIn(
+            'change_submissions', anotheruser_log.metadata['permissions'][ADDED]
+        )
+        self.assertEqual(anotheruser_log.metadata['permissions'][REMOVED], [])
+
+    def test_bulk_assign_permissions_logs_partial_permissions(self):
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                f'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            expected_action=AuditAction.MODIFY_USER_PERMISSIONS,
+            request_data=[
+                {
+                    'partial_permissions': [
+                        {
+                            'filters': [{'_submitted_by': 'anotheruser'}],
+                            'url': drf_reverse(
+                                'api_v2:permission-detail',
+                                kwargs={'codename': 'view_submissions'},
+                            ),
+                        }
+                    ],
+                    'permission': drf_reverse(
+                        'api_v2:permission-detail',
+                        kwargs={'codename': 'partial_submissions'},
+                    ),
+                    'user': drf_reverse(
+                        'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                    ),
+                },
+            ],
+        )
+        partial_view_sub_permission_dict = {
+            'permission': 'view_submissions',
+            'filters': [{'_submitted_by': 'anotheruser'}],
+        }
+        self.assertIn(
+            partial_view_sub_permission_dict, log_metadata['permissions'][ADDED]
+        )
+        self.assertIn('partial_submissions', log_metadata['permissions'][ADDED])
+        self.assertIn('view_asset', log_metadata['permissions'][ADDED])
+        self.assertEqual(log_metadata['permissions'][REMOVED], [])
+        self.assertEqual(log_metadata['permissions']['username'], 'someuser')
+
+    def test_delete_permission_creates_log(self):
+        user = User.objects.get(username='someuser')
+        self.asset.assign_perm(user_obj=user, perm='change_submissions')
+        perm = ObjectPermission.objects.filter(
+            user=user, permission__codename='view_submissions', asset=self.asset
+        ).first()
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                f'api_v2:asset-permission-assignment-detail',
+                kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm.uid},
+            ),
+            expected_action=AuditAction.MODIFY_USER_PERMISSIONS,
+            request_data=None,
+        )
+        # removing view submission also removes change submission
+        self.assertIn('change_submissions', log_metadata['permissions'][REMOVED])
+        self.assertIn('view_submissions', log_metadata['permissions'][REMOVED])
+        self.assertEqual(len(log_metadata['permissions'][REMOVED]), 2)
+        self.assertEqual(log_metadata['permissions'][ADDED], [])
+        self.assertEqual(log_metadata['permissions']['username'], 'someuser')
+
+    def test_create_permission_creates_log(self):
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                f'api_v2:asset-permission-assignment-list',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            expected_action=AuditAction.MODIFY_USER_PERMISSIONS,
+            request_data={
+                'permission': drf_reverse(
+                    'api_v2:permission-detail', kwargs={'codename': 'view_submissions'}
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+        )
+        # add view submission also adds view asset
+        self.assertIn('view_asset', log_metadata['permissions'][ADDED])
+        self.assertIn('view_submissions', log_metadata['permissions'][ADDED])
+        self.assertEqual(len(log_metadata['permissions'][ADDED]), 2)
+        self.assertEqual(log_metadata['permissions'][REMOVED], [])
+        self.assertEqual(log_metadata['permissions']['username'], 'someuser')
+
+    def test_create_partial_permission_creates_log(self):
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                f'api_v2:asset-permission-assignment-list',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            expected_action=AuditAction.MODIFY_USER_PERMISSIONS,
+            request_data={
+                'partial_permissions': [
+                    {
+                        'filters': [{'_submitted_by': 'anotheruser'}],
+                        'url': drf_reverse(
+                            'api_v2:permission-detail',
+                            kwargs={'codename': 'view_submissions'},
+                        ),
+                    }
+                ],
+                'permission': drf_reverse(
+                    'api_v2:permission-detail',
+                    kwargs={'codename': 'partial_submissions'},
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+        )
+        # add view submission also adds view asset
+        partial_view_sub_permission_dict = {
+            'permission': 'view_submissions',
+            'filters': [{'_submitted_by': 'anotheruser'}],
+        }
+        self.assertIn(
+            partial_view_sub_permission_dict, log_metadata['permissions'][ADDED]
+        )
+        self.assertIn('view_asset', log_metadata['permissions'][ADDED])
+        self.assertIn('partial_submissions', log_metadata['permissions'][ADDED])
+        self.assertEqual(len(log_metadata['permissions'][ADDED]), 2)
+        self.assertEqual(log_metadata['permissions'][REMOVED], [])
+        self.assertEqual(log_metadata['permissions']['username'], 'someuser')

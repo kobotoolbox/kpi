@@ -12,19 +12,20 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
+from rest_framework.request import Request as DRFRequest
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
-    ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    ASSET_TYPES_WITH_CHILDREN,
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-    remove_applicable_kc_permissions,
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
+    remove_applicable_kc_permissions,
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
@@ -89,7 +90,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def copy_permissions_from(self, source_object):
+    def copy_permissions_from(self, source_object, request=None):
         """
         Copies permissions from `source_object` to `self` object.
         Both objects must have the same type.
@@ -141,7 +142,8 @@ class ObjectPermissionMixin:
                     kwargs = {
                         'user_obj': source_permission.user,
                         'perm': source_permission.permission.codename,
-                        'deny': source_permission.deny
+                        'deny': source_permission.deny,
+                        'request': request,
                     }
                     if source_permission.permission.codename.startswith(PREFIX_PARTIAL_PERMS):
                         kwargs.update({
@@ -442,23 +444,35 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def assign_perm(self, user_obj, perm, deny=False, defer_recalc=False,
-                    skip_kc=False, partial_perms=None):
+    def assign_perm(
+        self,
+        user_obj,
+        perm,
+        deny=False,
+        defer_recalc=False,
+        skip_kc=False,
+        partial_perms=None,
+        request: DRFRequest = None,
+    ):
         r"""
-            Assign `user_obj` the given `perm` on this object, or break
-            inheritance from a parent object. By default, recalculate
-            descendant objects' permissions and apply any applicable KC
-            permissions.
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm: str. The `codename` of the `Permission`
-            :param deny: bool. When `True`, break inheritance from parent object
-            :param defer_recalc: bool. When `True`, skip recalculating
-                descendants
-            :param skip_kc: bool. When `True`, skip assignment of applicable KC
-                permissions
-            :param partial_perms: dict. Filters used to narrow down query for
-              partial permissions
+        Assign `user_obj` the given `perm` on this object, or break
+        inheritance from a parent object. By default, recalculate
+        descendant objects' permissions and apply any applicable KC
+        permissions.
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm: str. The `codename` of the `Permission`
+        :param deny: bool. When `True`, break inheritance from parent object
+        :param defer_recalc: bool. When `True`, skip recalculating
+            descendants
+        :param skip_kc: bool. When `True`, skip assignment of applicable KC
+            permissions
+        :param partial_perms: dict. Filters used to narrow down query for
+          partial permissions
+        :param request: :py:class:`Request` request that initiated the call
         """
+        if request and getattr(request._request, 'permissions_added', None) is None:
+            request._request.permissions_added = defaultdict(list)
+
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
         if codename not in assignable_permissions:
@@ -525,6 +539,10 @@ class ObjectPermissionMixin:
             deny=deny,
             inherited=False
         )
+        if request and not deny:
+            request._request.permissions_added[user_obj.username].append(
+                perm_model.codename
+            )
         # Assign any applicable KC permissions
         if not deny and not skip_kc:
             assign_applicable_kc_permissions(self, user_obj, codename)
@@ -535,14 +553,18 @@ class ObjectPermissionMixin:
         ).intersection(assignable_permissions)
         for implied_perm in implied_perms:
             self.assign_perm(
-                user_obj, implied_perm, deny=deny, defer_recalc=True)
+                user_obj, implied_perm, deny=deny, defer_recalc=True, request=request
+            )
         # We might have been called by ourselves to assign a related
         # permission. In that case, don't recalculate here.
         if defer_recalc:
             return new_permission
 
         self._update_partial_permissions(
-            user_obj, perm, partial_perms=partial_perms
+            user_obj,
+            perm,
+            partial_perms=partial_perms,
+            request=request,
         )
         post_assign_perm.send(
             sender=self.__class__,
@@ -681,25 +703,35 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
+    def remove_perm(
+        self,
+        user_obj,
+        perm,
+        defer_recalc=False,
+        skip_kc=False,
+        request: DRFRequest = None,
+    ):
         """
-            Revoke the given `perm` on this object from `user_obj`. By default,
-            recalculate descendant objects' permissions and remove any
-            applicable KC permissions.  May delete granted permissions or add
-            deny permissions as appropriate:
-            Current access      Action
-            ==============      ======
-            None                None
-            Direct              Remove direct permission
-            Inherited           Add deny permission
-            Direct & Inherited  Remove direct permission; add deny permission
-            :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
-            :param perm str: The `codename` of the `Permission`
-            :param defer_recalc bool: When `True`, skip recalculating
-                descendants
-            :param skip_kc bool: When `True`, skip assignment of applicable KC
-                permissions
+        Revoke the given `perm` on this object from `user_obj`. By default,
+        recalculate descendant objects' permissions and remove any
+        applicable KC permissions.  May delete granted permissions or add
+        deny permissions as appropriate:
+        Current access      Action
+        ==============      ======
+        None                None
+        Direct              Remove direct permission
+        Inherited           Add deny permission
+        Direct & Inherited  Remove direct permission; add deny permission
+        :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
+        :param perm str: The `codename` of the `Permission`
+        :param defer_recalc bool: When `True`, skip recalculating
+            descendants
+        :param skip_kc bool: When `True`, skip assignment of applicable KC
+            permissions
+        :param request :py:class:`Request` request that initiated the removal
         """
+        if request and getattr(request._request, 'permissions_removed', None) is None:
+            request._request.permissions_removed = defaultdict(list)
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
         # Get all assignable permissions, regardless of asset type. That way,
@@ -722,9 +754,12 @@ class ObjectPermissionMixin:
             codename, reverse=True, for_instance=self
         )
         for implied_perm in implied_perms:
-            self.remove_perm(
-                user_obj, implied_perm, defer_recalc=True)
+            self.remove_perm(user_obj, implied_perm, defer_recalc=True, request=request)
         # Delete directly assigned permissions, if any
+        if request:
+            request._request.permissions_removed[user_obj.username].extend(
+                direct_permissions.values_list('permission__codename', flat=True)
+            )
         direct_permissions.delete()
         if inherited_permissions.exists():
             # Delete inherited permissions
@@ -740,7 +775,7 @@ class ObjectPermissionMixin:
         if defer_recalc:
             return
 
-        self._update_partial_permissions(user_obj, perm, remove=True)
+        self._update_partial_permissions(user_obj, perm, remove=True, request=request)
 
         post_remove_perm.send(
             sender=self.__class__,
@@ -758,6 +793,7 @@ class ObjectPermissionMixin:
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
+        request: Optional[DRFRequest] = None,
     ):
         # Class is not an abstract class. Just pass.
         # Let the dev implement within the classes that inherit from this mixin

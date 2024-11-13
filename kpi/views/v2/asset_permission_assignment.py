@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -13,11 +13,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
-from kpi.constants import (
-    CLONE_ARG_NAME,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
+from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
@@ -25,20 +21,18 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission import (
-    get_user_permission_assignments_queryset,
-)
+from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class AssetPermissionAssignmentViewSet(
+    AuditLoggedViewSet,
     AssetNestedObjectViewsetMixin,
     NestedViewSetMixin,
     CreateModelMixin,
     RetrieveModelMixin,
     DestroyModelMixin,
     ListModelMixin,
-    AuditLoggedViewSet,
 ):
     """
     ## Permission assignments of an asset
@@ -171,7 +165,7 @@ class AssetPermissionAssignmentViewSet(
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
     log_type = 'project-history'
-    logged_fields = []
+    logged_fields = [('object_id', 'asset.id'), ('object_uid', 'asset.uid')]
 
     @action(
         detail=False,
@@ -187,7 +181,6 @@ class AssetPermissionAssignmentViewSet(
         :return: JSON
         """
         request._request.initial_data = {
-            'permissions': list(self.asset.permissions.order_by('user').values('user__username','permission__codename')),
             'object_id': self.asset.id,
             'object_uid': self.asset.uid,
         }
@@ -197,9 +190,6 @@ class AssetPermissionAssignmentViewSet(
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        request._request.updated_data = {
-            'permissions': list(self.asset.permissions.order_by('user').values('user__username', 'permission__codename'))
-        }
         return self.list(request, *args, **kwargs)
 
     @action(
@@ -253,7 +243,7 @@ class AssetPermissionAssignmentViewSet(
             )
 
         codename = object_permission.permission.codename
-        self.asset.remove_perm(user, codename)
+        self.asset.remove_perm(user, codename, request=request)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_context(self):
@@ -277,5 +267,5 @@ class AssetPermissionAssignmentViewSet(
             self.asset, self.request.user
         )
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         serializer.save(asset=self.asset)
