@@ -137,7 +137,7 @@ def check_edit_submission_permissions(
         ))
 
 
-@transaction.atomic  # paranoia; redundant since `ATOMIC_REQUESTS` set to `True`
+@transaction.atomic
 def create_instance(
     username: str,
     xml_file: File,

@@ -2,7 +2,7 @@ import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
-import {QueryKeys} from '../queryKeys';
+import {QueryKeys} from 'js/query/queryKeys';
 
 export interface AccessLog {
   /** User URL */
