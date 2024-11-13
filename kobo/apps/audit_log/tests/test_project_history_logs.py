@@ -1054,3 +1054,36 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(len(log_metadata['permissions'][ADDED]), 2)
         self.assertEqual(log_metadata['permissions'][REMOVED], [])
         self.assertEqual(log_metadata['permissions']['username'], 'someuser')
+
+    def test_clone_permissions_creates_logs(self):
+        second_asset = Asset.objects.get(pk=1)
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(user_obj=someuser, perm='view_submissions')
+
+        second_asset.assign_perm(user_obj=someuser, perm='change_asset')
+        second_asset.assign_perm(user_obj=anotheruser, perm='view_asset')
+        self.client.patch(
+            reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data={'clone_from': second_asset.uid},
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        # user 'someuser' removed 'change_asset', added 'view_submissions'
+        someuser_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid,
+            metadata__permissions__username='someuser',
+        ).first()
+        self.assertEqual(someuser_log.metadata['permissions'][ADDED], ['change_asset'])
+        self.assertEqual(
+            someuser_log.metadata['permissions'][REMOVED], ['view_submissions']
+        )
+        # user 'someuser' added 'edit_submissions' permission and all implied
+        anotheruser_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid,
+            metadata__permissions__username='anotheruser',
+        ).first()
+        self.assertEqual(anotheruser_log.metadata['permissions'][ADDED], ['view_asset'])
+        self.assertEqual(anotheruser_log.metadata['permissions'][REMOVED], [])

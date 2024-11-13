@@ -90,7 +90,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def copy_permissions_from(self, source_object, request=None):
+    def copy_permissions_from(self, source_object, request: DRFRequest = None):
         """
         Copies permissions from `source_object` to `self` object.
         Both objects must have the same type.
@@ -115,11 +115,12 @@ class ObjectPermissionMixin:
             # If any permissions are present in KoBoCAT but not in KPI, these
             # permissions will not be deleted and will have to be deleted manually
             # with KoBoCAT.
-
+            if request and getattr(request._request, 'permissions_added', None) is None:
+                request._request.permissions_removed = defaultdict(list)
             user_codenames = (
                 ObjectPermission.objects.filter(asset_id=self.pk, deny=False)
                 .exclude(user_id=self.owner_id)
-                .values('user_id')
+                .values('user_id', 'user__username')
                 .annotate(
                     all_codenames=ArrayAgg(
                         'permission__codename', distinct=True
@@ -127,6 +128,10 @@ class ObjectPermissionMixin:
                 )
             )
             for user_codename in user_codenames:
+                for code_name in user_codename['all_codenames']:
+                    request._request.permissions_removed[
+                        user_codename['user__username']
+                    ].append(code_name)
                 remove_applicable_kc_permissions(
                     self, user_codename['user_id'], user_codename['all_codenames']
                 )

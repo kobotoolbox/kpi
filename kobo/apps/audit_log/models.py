@@ -336,9 +336,10 @@ class ProjectHistoryLog(AuditLog):
             'asset-file-list': cls.create_from_file_request,
             'asset-export-list': cls.create_from_export_request,
             'exporttask-list': cls.create_from_v1_export,
-            'asset-permission-assignment-bulk-assignments': cls.create_from_bulk_assignment,
-            'asset-permission-assignment-detail': cls.create_from_bulk_assignment,
-            'asset-permission-assignment-list': cls.create_from_bulk_assignment,
+            'asset-permission-assignment-bulk-assignments': cls.create_from_permission_request,
+            'asset-permission-assignment-detail': cls.create_from_permission_request,
+            'asset-permission-assignment-list': cls.create_from_permission_request,
+            'asset-permission-assignment-clone': cls.create_from_cloning_permissions,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -347,7 +348,7 @@ class ProjectHistoryLog(AuditLog):
         method(request)
 
     @classmethod
-    def create_from_bulk_assignment(cls, request):
+    def create_from_permission_request(cls, request):
         logs = []
         permissions_added = getattr(request, 'permissions_added', {})
         permissions_removed = getattr(request, 'permissions_removed', {})
@@ -358,7 +359,7 @@ class ProjectHistoryLog(AuditLog):
         )
         for username in {*permissions_added, *permissions_removed}:
             logs.append(
-                cls(
+                ProjectHistoryLog(
                     user=request.user,
                     app_label=Asset._meta.app_label,
                     model_name=Asset._meta.model_name,
@@ -372,6 +373,51 @@ class ProjectHistoryLog(AuditLog):
                             'username': username,
                             ADDED: permissions_added.get(username, []),
                             REMOVED: permissions_removed.get(username, []),
+                        },
+                        'asset_uid': audit_log_data_dict['object_uid'],
+                        'ip_address': get_client_ip(request),
+                        'source': get_human_readable_client_user_agent(request),
+                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                    },
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def create_from_cloning_permissions(cls, request):
+        logs = []
+        permissions_added = getattr(request, 'permissions_added', {})
+        permissions_removed = getattr(request, 'permissions_removed', {})
+        audit_log_data_dict = (
+            request.initial_data
+            if getattr(request, 'initial_data', []) != []
+            else request.updated_data
+        )
+        for username in {*permissions_added, *permissions_removed}:
+            # sometimes permissions get removed and then re-added. ignore those
+            user_perms_added = permissions_added.get(username, [])
+            user_perms_removed = permissions_removed.get(username, [])
+            user_perms_added_filtered = [
+                perm for perm in user_perms_added if perm not in user_perms_removed
+            ]
+            user_perms_removed_filtered = [
+                perm for perm in user_perms_removed if perm not in user_perms_added
+            ]
+            logs.append(
+                ProjectHistoryLog(
+                    user=request.user,
+                    app_label=Asset._meta.app_label,
+                    model_name=Asset._meta.model_name,
+                    log_type=AuditType.PROJECT_HISTORY,
+                    action=AuditAction.MODIFY_USER_PERMISSIONS,
+                    user_uid=request.user.extra_details.uid,
+                    object_id=audit_log_data_dict['object_id'],
+                    metadata={
+                        'username': username,
+                        'permissions': {
+                            'username': username,
+                            ADDED: user_perms_added_filtered,
+                            REMOVED: user_perms_removed_filtered,
                         },
                         'asset_uid': audit_log_data_dict['object_uid'],
                         'ip_address': get_client_ip(request),

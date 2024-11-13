@@ -202,10 +202,15 @@ class AssetPermissionAssignmentViewSet(
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
 
+        request._request.initial_data = {
+            'object_id': self.asset.id,
+            'object_uid': self.asset.uid,
+        }
+
         if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
             PERM_VIEW_ASSET, source_asset
         ):
-            if not self.asset.copy_permissions_from(source_asset):
+            if not self.asset.copy_permissions_from(source_asset, request=request):
                 http_status = status.HTTP_400_BAD_REQUEST
                 response = {
                     'detail': t(
