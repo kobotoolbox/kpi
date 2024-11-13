@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from ddt import ddt, data
+from ddt import data, ddt
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse

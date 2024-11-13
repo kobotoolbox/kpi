@@ -360,9 +360,7 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         MagicMock()
     )
     @override_settings(
-        CACHES={
-            'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
-        }
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):

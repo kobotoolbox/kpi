@@ -1,11 +1,6 @@
 # coding: utf-8
 from hashlib import sha256
 
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 import reversion
 from django.apps import apps
 from django.contrib.gis.db import models

@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
-from .transfer import TransferListSerializer
+
 from ..models import (
     Invite,
     InviteStatusChoices,
@@ -17,6 +17,7 @@ from ..models import (
     TransferStatusTypeChoices,
 )
 from ..utils import create_invite, update_invite
+from .transfer import TransferListSerializer
 
 
 class InviteSerializer(serializers.ModelSerializer):

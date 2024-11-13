@@ -27,21 +27,30 @@ class PlanAddOn(models.Model):
         to_field='id',
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
     )
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
         help_text='''The historical usage limits when the add-on was purchased.
-        Multiply this value by `quantity` to get the total limits for this add-on. Possible keys:
+        Multiply this value by `quantity` to get the total limits for this add-on.
+        Possible keys:
         "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"''',
     )
     limits_remaining = models.JSONField(
         default=get_default_add_on_limits,
         help_text="The amount of each of the add-on's individual limits left to use.",
     )
-    product = models.ForeignKey('djstripe.Product', to_field='id', on_delete=models.SET_NULL, null=True, blank=True)
-    charge = models.ForeignKey('djstripe.Charge', to_field='id', on_delete=models.CASCADE)
+    product = models.ForeignKey(
+        'djstripe.Product',
+        to_field='id',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    charge = models.ForeignKey(
+        'djstripe.Charge', to_field='id', on_delete=models.CASCADE
+    )
 
     class Meta:
         verbose_name = 'plan add-on'
@@ -59,18 +68,18 @@ class PlanAddOn(models.Model):
         Returns True if a PlanAddOn was created, false otherwise.
         """
         if (
-            charge.payment_intent.status != PaymentIntentStatus.succeeded or
-            not charge.metadata.get('price_id', None) or
-            not charge.metadata.get('quantity', None)
+            charge.payment_intent.status != PaymentIntentStatus.succeeded
+            or not charge.metadata.get('price_id', None)
+            or not charge.metadata.get('quantity', None)
         ):
             # make sure the charge is for a successful addon purchase
             return False
 
         try:
-            product = Price.objects.get(
-                id=charge.metadata.get('price_id', '')
-            ).product
-            organization = Organization.objects.get(id=charge.metadata['organization_id'])
+            product = Price.objects.get(id=charge.metadata.get('price_id', '')).product
+            organization = Organization.objects.get(
+                id=charge.metadata['organization_id']
+            )
         except ObjectDoesNotExist:
             # no product/price/org/subscription, just bail
             return False
@@ -80,11 +89,15 @@ class PlanAddOn(models.Model):
             return False
 
         tags = product.metadata.get('valid_tags', '').split(',')
-        if tags and ('all' not in tags) and not Subscription.objects.filter(
-            customer__subscriber=organization,
-            items__price__product__metadata__has_key__in=[tags],
-            status__in=ACTIVE_STRIPE_STATUSES
-        ).exists():
+        if (
+            tags
+            and ('all' not in tags)
+            and not Subscription.objects.filter(
+                customer__subscriber=organization,
+                items__price__product__metadata__has_key__in=[tags],
+                status__in=ACTIVE_STRIPE_STATUSES,
+            ).exists()
+        ):
             # this user doesn't have the subscription level they need for this addon, bail
             return False
 
@@ -101,7 +114,9 @@ class PlanAddOn(models.Model):
             # not a valid plan add-on
             return False
 
-        add_on, add_on_created = PlanAddOn.objects.get_or_create(charge=charge, created=charge.djstripe_created)
+        add_on, add_on_created = PlanAddOn.objects.get_or_create(
+            charge=charge, created=charge.djstripe_created
+        )
         if add_on_created:
             add_on.product = product
             add_on.quantity = int(charge.metadata['quantity'])
@@ -154,9 +169,9 @@ class PlanAddOn(models.Model):
 
     @admin.display(boolean=True, description='available')
     def is_available(self):
-        return not (
-            self.is_expended or self.charge.refunded
-        ) and bool(self.organization)
+        return not (self.is_expended or self.charge.refunded) and bool(
+            self.organization
+        )
 
     def deduct(self, limit_type, amount_used):
         """
@@ -169,7 +184,8 @@ class PlanAddOn(models.Model):
             amount_to_use = min(amount_used, limit_available)
             PlanAddOn.objects.filter(pk=self.id).update(
                 limits_remaining=DeductUsageValue(
-                    'limits_remaining', keyname=limit_type, amount=amount_used)
+                    'limits_remaining', keyname=limit_type, amount=amount_used
+                )
             )
             return amount_to_use
         return 0
@@ -206,14 +222,12 @@ class PlanAddOn(models.Model):
             organization__id=organization.id,
             limits_remaining__has_key=limit_key,
             charge__refunded=False,
-            **{f'{metadata_key}__gt': 0}
+            **{f'{metadata_key}__gt': 0},
         ).order_by(metadata_key)
         remaining = amount
         for add_on in add_ons.iterator():
             if add_on.is_available():
-                remaining -= add_on.deduct(
-                    limit_type=limit_key, amount_used=remaining
-                )
+                remaining -= add_on.deduct(limit_type=limit_key, amount_used=remaining)
         return remaining
 
     @property

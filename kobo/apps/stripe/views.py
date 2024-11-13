@@ -21,8 +21,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.serializers import (
     ChangePlanSerializer,
     CheckoutLinkSerializer,
@@ -31,10 +31,7 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
-from kobo.apps.stripe.utils import (
-    generate_return_url,
-    get_total_price_for_quantity,
-)
+from kobo.apps.stripe.utils import generate_return_url, get_total_price_for_quantity
 from kpi.permissions import IsAuthenticated
 
 
@@ -90,7 +87,10 @@ class ChangePlanView(APIView):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
         subscription_item = subscription.items.get()
         # Exit immediately if the price/quantity we're changing to is the price/quantity they're currently subscribed to
-        if quantity == subscription_item.quantity and price.id == subscription_item.price.id:
+        if (
+            quantity == subscription_item.quantity
+            and price.id == subscription_item.price.id
+        ):
             return Response(
                 {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -294,7 +294,8 @@ class CheckoutLinkView(APIView):
                 'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
-            success_url=generate_return_url(price.product.metadata) + f'?checkout={price.id}',
+            success_url=generate_return_url(price.product.metadata)
+            + f'?checkout={price.id}',
             **kwargs,
         )
 
@@ -373,7 +374,10 @@ class CustomerPortalView(APIView):
             )
 
             if not len(all_configs):
-                return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
+                return Response(
+                    {'error': 'Missing Stripe billing configuration.'},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
 
             """
             Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.

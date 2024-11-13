@@ -2,28 +2,24 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import responses
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import parse_http_date
-from ddt import ddt, data, unpack
 from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
-from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
+from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.utils.mixins import (
     AssetFileTestCaseMixin,
-    SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
+    SubmissionEditTestCaseMixin,
     SubmissionValidationStatusTestCaseMixin,
     SubmissionViewTestCaseMixin,
 )
@@ -106,7 +102,7 @@ class OrganizationApiTestCase(BaseTestCase):
         response = self.client.get(url_service_usage)
         last_updated_timestamp = parse_http_date(response.headers['Date'])
         assert (now.timestamp() - last_updated_timestamp) > 3
-        
+
     def test_api_response_includes_is_mmo_with_mmo_override(self):
         """
         Test that is_mmo is True when mmo_override is enabled and there is no
@@ -266,7 +262,7 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
                         'label': 'How many pages?',
                     }
                 ],
-            }
+            },
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['owner__username'] == self.bob.username
@@ -477,9 +473,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         assert_detail_url = reverse(
             self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
         )
-        data = {
-            'name': 'Week-end breakfast'
-        }
+        data = {'name': 'Week-end breakfast'}
 
         self.client.force_login(user)
         response = self.client.patch(assert_detail_url, data)
@@ -513,7 +507,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('asset-detail'),
             # Use JSON format to prevent HtmlRenderer from returning a 200 status
             # instead of 204.
-            kwargs={'uid': asset_uid, 'format': 'json'}
+            kwargs={'uid': asset_uid, 'format': 'json'},
         )
 
         self.client.force_login(user)
@@ -610,7 +604,7 @@ class OrganizationAdminsDataApiTestCase(
     SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
     SubmissionViewTestCaseMixin,
-    BaseOrganizationAdminsDataApiTestCase
+    BaseOrganizationAdminsDataApiTestCase,
 ):
     """
     This test suite shares logic with `SubmissionEditApiTests`,
@@ -729,19 +723,23 @@ class OrganizationAdminsRestServiceApiTestCase(
 
     def test_can_list_rest_services(self):
         hook = self._create_hook()
-        list_url = reverse(self._get_endpoint('hook-list'), kwargs={
-            'parent_lookup_asset': self.asset.uid
-        })
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
 
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert response.data['results'][0]['uid'] == hook.uid
 
-        detail_url = reverse('hook-detail', kwargs={
-            'parent_lookup_asset': self.asset.uid,
-            'uid': hook.uid,
-        })
+        detail_url = reverse(
+            'hook-detail',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': hook.uid,
+            },
+        )
 
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_200_OK

@@ -72,6 +72,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -1261,15 +1262,15 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     @staticmethod
     @contextmanager
     def suspend_submissions(user_ids: list[int]):
-        UserProfile.objects.filter(
-            user_id__in=user_ids
-        ).update(submissions_suspended=True)
+        UserProfile.objects.filter(user_id__in=user_ids).update(
+            submissions_suspended=True
+        )
         try:
             yield
         finally:
-            UserProfile.objects.filter(
-                user_id__in=user_ids
-            ).update(submissions_suspended=False)
+            UserProfile.objects.filter(user_id__in=user_ids).update(
+                submissions_suspended=False
+            )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 

@@ -117,6 +117,4 @@ def handle_usage_deduction(
         deduction = (
             amount if current_usage >= plan_limit else new_total_usage - plan_limit
         )
-        PlanAddOn.deduct_add_ons_for_organization(
-            organization, usage_type, deduction
-        )
+        PlanAddOn.deduct_add_ons_for_organization(organization, usage_type, deduction)

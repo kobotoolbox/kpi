@@ -28,6 +28,7 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
+
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 

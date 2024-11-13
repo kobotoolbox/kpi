@@ -80,9 +80,9 @@ from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uui
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.utils.object_permission import get_database_user
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'

@@ -1,4 +1,4 @@
-from ddt import ddt, data
+from ddt import data, ddt
 from django.urls import reverse
 from django.utils import timezone
 from djstripe.models import (
@@ -54,9 +54,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.product.save()
 
-    def _create_payment(
-        self, payment_status='succeeded', refunded=False, quantity=1
-    ):
+    def _create_payment(self, payment_status='succeeded', refunded=False, quantity=1):
         payment_total = quantity * 2000
         self.payment_intent = baker.make(
             PaymentIntent,

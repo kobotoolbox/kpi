@@ -1,13 +1,13 @@
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
     ORG_OWNER_ROLE,
 )
+from kobo.apps.organizations.models import Organization
 
 
 class OrganizationTestCase(TestCase):

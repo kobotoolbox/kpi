@@ -167,12 +167,12 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
-            2*nlp_usage_A['asr_seconds_current_month'] ==
-            nlp_usage_B['asr_seconds_current_month']
+            2 * nlp_usage_A['asr_seconds_current_month']
+            == nlp_usage_B['asr_seconds_current_month']
         )
         assert (
-            2*nlp_usage_A['mt_characters_current_month'] ==
-            nlp_usage_B['mt_characters_current_month']
+            2 * nlp_usage_A['mt_characters_current_month']
+            == nlp_usage_B['mt_characters_current_month']
         )
 
     def test_nlp_usage_counters(self):

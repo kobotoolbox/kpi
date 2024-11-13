@@ -21,9 +21,10 @@ class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
     def __init__(
-        self, user: User,
+        self,
+        user: User,
         organization: Optional['Organization'],
-        disable_cache: bool = False
+        disable_cache: bool = False,
     ):
         self.user = user
         self.organization = organization

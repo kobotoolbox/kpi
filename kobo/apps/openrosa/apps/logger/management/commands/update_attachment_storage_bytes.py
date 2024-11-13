@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
-from django.db.models import Sum, OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Sum
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             '--chunks',
             type=int,
             default=2000,
-            help="Number of records to process per query"
+            help='Number of records to process per query',
         )
 
         parser.add_argument(

@@ -33,8 +33,8 @@ class PlanAddOnAdmin(ModelAdmin):
         self.message_user(
             request,
             ngettext(
-                "%d plan add-on was created.",
-                "%d plan add-ons were created.",
+                '%d plan add-on was created.',
+                '%d plan add-ons were created.',
                 created,
             )
             % created,
@@ -42,7 +42,10 @@ class PlanAddOnAdmin(ModelAdmin):
         )
 
     def changelist_view(self, request, extra_context=None):
-        if 'action' in request.POST and request.POST['action'] in self.universal_actions:
+        if (
+            'action' in request.POST
+            and request.POST['action'] in self.universal_actions
+        ):
             if not request.POST.getlist(ACTION_CHECKBOX_NAME):
                 post = request.POST.copy()
                 post.update({ACTION_CHECKBOX_NAME: str(1)})
@@ -50,11 +53,7 @@ class PlanAddOnAdmin(ModelAdmin):
         return super(PlanAddOnAdmin, self).changelist_view(request, extra_context)
 
     def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .prefetch_related('organization', 'product')
-        )
+        return super().get_queryset(request).prefetch_related('organization', 'product')
 
     def valid_tags(self, obj):
         return obj.product.metadata.get('valid_tags', '')

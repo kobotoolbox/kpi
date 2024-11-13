@@ -1,6 +1,6 @@
 from functools import partial
-
 from typing import Literal
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -23,6 +23,7 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
+
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
@@ -30,7 +31,6 @@ from .constants import (
     ORG_OWNER_ROLE,
 )
 from .exceptions import NotMultiMemberOrganizationException
-
 
 OrganizationRole = Literal[
     ORG_ADMIN_ROLE, ORG_EXTERNAL_ROLE, ORG_MEMBER_ROLE, ORG_OWNER_ROLE
@@ -59,19 +59,35 @@ class Organization(AbstractOrganization):
         """
         # Only check for subscriptions if Stripe is enabled
         if settings.STRIPE_ENABLED:
-            return Organization.objects.prefetch_related('djstripe_customers').filter(
+            return (
+                Organization.objects.prefetch_related('djstripe_customers')
+                .filter(
                     djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
                     djstripe_customers__subscriber=self.id,
-                ).order_by(
-                    '-djstripe_customers__subscriptions__start_date'
-                ).values(
-                    billing_cycle_anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
-                    current_period_start=F('djstripe_customers__subscriptions__current_period_start'),
-                    current_period_end=F('djstripe_customers__subscriptions__current_period_end'),
-                    recurring_interval=F('djstripe_customers__subscriptions__items__price__recurring__interval'),
-                    product_metadata=F('djstripe_customers__subscriptions__items__price__product__metadata'),
-                    price_metadata=F('djstripe_customers__subscriptions__items__price__metadata')
-                ).first()
+                )
+                .order_by('-djstripe_customers__subscriptions__start_date')
+                .values(
+                    billing_cycle_anchor=F(
+                        'djstripe_customers__subscriptions__billing_cycle_anchor'
+                    ),
+                    current_period_start=F(
+                        'djstripe_customers__subscriptions__current_period_start'
+                    ),
+                    current_period_end=F(
+                        'djstripe_customers__subscriptions__current_period_end'
+                    ),
+                    recurring_interval=F(
+                        'djstripe_customers__subscriptions__items__price__recurring__interval'
+                    ),
+                    product_metadata=F(
+                        'djstripe_customers__subscriptions__items__price__product__metadata'
+                    ),
+                    price_metadata=F(
+                        'djstripe_customers__subscriptions__items__price__metadata'
+                    ),
+                )
+                .first()
+            )
 
         return None
 
@@ -105,12 +121,16 @@ class Organization(AbstractOrganization):
         Get organization that this user is a member of.
         """
         # TODO: validate this is the correct way to get a user's organization
-        org = cls.objects.filter(
-            organization_users__user__id=user_id,
-        ).order_by("-organization_users__created").first()
+        org = (
+            cls.objects.filter(
+                organization_users__user__id=user_id,
+            )
+            .order_by('-organization_users__created')
+            .first()
+        )
 
         return org
-    
+
     @property
     def email(self):
         """

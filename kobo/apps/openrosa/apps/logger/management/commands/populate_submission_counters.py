@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.db.models import Count, Value, F, DateField
+from django.db.models import Count, DateField, F, Value
 from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 
@@ -22,14 +22,14 @@ from kobo.apps.openrosa.libs.utils.jsonbfield_helper import ReplaceValues
 
 class Command(BaseCommand):
 
-    help = "Updates monthly and daily submission counters"
+    help = 'Updates monthly and daily submission counters'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--chunks',
             type=int,
             default=2000,
-            help="Number of records to process per query"
+            help='Number of records to process per query',
         )
 
         days_default = settings.DAILY_COUNTERS_MAX_DAYS
@@ -38,8 +38,8 @@ class Command(BaseCommand):
             type=int,
             default=days_default,
             help=(
-                f"Number of days taken into account to populate the counters. "
-                f"Default is {days_default}"
+                f'Number of days taken into account to populate the counters. '
+                f'Default is {days_default}'
             ),
         )
 
@@ -231,7 +231,7 @@ class Command(BaseCommand):
                 'metadata',
                 updates=updates,
             ),
-            submissions_suspended=False
+            submissions_suspended=False,
         )
 
     def update_user_profile(self, user: settings.AUTH_USER_MODEL):

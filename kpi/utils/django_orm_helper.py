@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Optional, Literal
 
-from django.db.models import Lookup, Field
+from django.db.models import Field, Lookup
 from django.db.models.expressions import Func, Value
 
 
@@ -112,7 +111,7 @@ class RemoveJSONFieldAttribute(Func):
     """
 
     arg_joiner = ' #- '
-    template = "%(expressions)s"
+    template = '%(expressions)s'
     arity = 2
 
     def __init__(
@@ -141,7 +140,7 @@ class UpdateJSONFieldAttributes(Func):
     > structure is merged
     """
     arg_joiner = ' || '
-    template = "%(expressions)s"
+    template = '%(expressions)s'
     arity = 2
 
     def __init__(

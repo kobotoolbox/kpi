@@ -17,8 +17,9 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
-from kpi.utils.json import LazyJSONSerializable
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.utils.json import LazyJSONSerializable
+
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
