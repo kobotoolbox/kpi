@@ -22,8 +22,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -556,3 +557,90 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             modify_action=AuditAction.UPDATE,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_create_from_import_task_no_name_change(self):
+        asset = Asset.objects.get(pk=1)
+        task = ImportTask.objects.create(
+            user=User.objects.get(username='someuser'), data={}
+        )
+        task.messages = {
+            'audit_logs': [
+                {
+                    'asset_uid': asset.uid,
+                    'latest_version_uid': 'av12345',
+                    'ip_address': '1.2.3.4',
+                    'source': 'source',
+                    'asset_id': asset.id,
+                    'old_name': asset.name,
+                    'new_name': asset.name,
+                }
+            ]
+        }
+        ProjectHistoryLog.create_from_import_task(task)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.REPLACE_FORM)
+        self.assertEqual(log.object_id, asset.id)
+
+        # data from 'messages' should be copied to the log
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            },
+        )
+
+    def test_create_from_import_task_with_name_change(self):
+        asset = Asset.objects.get(pk=1)
+        old_name = asset.name
+        task = ImportTask.objects.create(
+            user=User.objects.get(username='someuser'), data={}
+        )
+        task.messages = {
+            'audit_logs': [
+                {
+                    'asset_uid': asset.uid,
+                    'latest_version_uid': 'av12345',
+                    'ip_address': '1.2.3.4',
+                    'source': 'source',
+                    'asset_id': asset.id,
+                    'old_name': old_name,
+                    'new_name': 'new_name',
+                }
+            ]
+        }
+        ProjectHistoryLog.create_from_import_task(task)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        log = ProjectHistoryLog.objects.filter(action=AuditAction.REPLACE_FORM).first()
+        self.assertEqual(log.object_id, asset.id)
+
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            },
+        )
+        name_log = ProjectHistoryLog.objects.filter(
+            action=AuditAction.UPDATE_NAME
+        ).first()
+        self.assertEqual(log.object_id, asset.id)
+
+        self.assertDictEqual(
+            name_log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'name': {'old': old_name, 'new': 'new_name'},
+            },
+        )
