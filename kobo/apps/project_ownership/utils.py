@@ -1,17 +1,60 @@
 import os
 import time
-from typing import Optional
+from typing import Literal, Optional, Union
 
+from django.db import transaction
 from django.apps import apps
 from django.utils import timezone
 
 
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kpi.models.asset import AssetFile
+from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.models.asset import Asset, AssetFile
 from .exceptions import AsyncTaskException
 from .constants import ASYNC_TASK_HEARTBEAT, FILE_MOVE_CHUNK_SIZE
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
+
+
+def create_invite(
+    sender: 'User',
+    recipient: 'User',
+    assets: list[Asset],
+    invite_class_name: str = Literal['Invite', 'OrgMembershipAutoInvite'],
+) -> Union['Invite', 'OrgMembershipAutoInvite']:
+
+    InviteModel = apps.get_model('project_ownership', invite_class_name)
+    Transfer = apps.get_model('project_ownership', 'Transfer')
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
+
+    with transaction.atomic():
+        invite = InviteModel.objects.create(
+            sender=sender,
+            recipient=recipient
+        )
+        transfers = Transfer.objects.bulk_create(
+            [
+                Transfer(invite=invite, asset=asset)
+                for asset in assets
+            ]
+        )
+        statuses = []
+        for transfer in transfers:
+            for status_type in TransferStatusTypeChoices.values:
+                statuses.append(
+                    TransferStatus(
+                        transfer=transfer,
+                        status_type=status_type,
+                    )
+                )
+        TransferStatus.objects.bulk_create(statuses)
+
+    if invite.auto_accept_invites:
+        update_invite(invite, status=InviteStatusChoices.ACCEPTED)
+    else:
+        invite.send_invite_email()
+
+    return invite
 
 
 def get_target_folder(
@@ -184,6 +227,36 @@ def rewrite_mongo_userform_id(transfer: 'project_ownership.Transfer'):
     _mark_task_as_successful(
         transfer, TransferStatusTypeChoices.SUBMISSIONS
     )
+
+
+def update_invite(
+    invite: Union['Invite', 'OrgMembershipAutoInvite'],
+    status: str,
+) -> Union['Invite', 'OrgMembershipAutoInvite']:
+
+    # Keep `status` value to email condition below
+    invite.status = (
+        InviteStatusChoices.IN_PROGRESS
+        if status == InviteStatusChoices.ACCEPTED
+        else status
+    )
+    invite.save(update_fields=['status', 'date_modified'])
+
+    for transfer in invite.transfers.all():
+        if invite.status != InviteStatusChoices.IN_PROGRESS:
+            transfer.statuses.update(
+                status=TransferStatusChoices.CANCELLED
+            )
+        else:
+            transfer.transfer_project()
+
+    if not invite.auto_accept_invites:
+        if status == InviteStatusChoices.DECLINED:
+            invite.send_refusal_email()
+        elif status == InviteStatusChoices.ACCEPTED:
+            invite.send_acceptance_email()
+
+    return invite
 
 
 def _mark_task_as_successful(
