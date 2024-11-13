@@ -3,6 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
+import type {PaginatedQueryHookOptions} from 'js/universalTable/paginatedQueryUniversalTable.component';
 
 export interface OrganizationMember {
   /**
@@ -32,16 +33,22 @@ export interface OrganizationMember {
 }
 
 async function getOrganizationMembers(
-  organizationId: string,
   limit: number,
-  offset: number
+  offset: number,
+  options?: PaginatedQueryHookOptions
 ) {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
   });
+
+  let apiUrl = endpoints.ORGANIZATION_MEMBERS_URL;
+  if (options?.organizationId) {
+    apiUrl = apiUrl.replace(':organization_id', options.organizationId);
+  }
+
   return fetchGet<PaginatedResponse<OrganizationMember>>(
-    endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', organizationId) + '?' + params,
+    apiUrl + '?' + params,
     {
       errorMessageDisplay: t('There was an error getting the list.'),
     }
@@ -49,13 +56,18 @@ async function getOrganizationMembers(
 }
 
 export default function useOrganizationMembersQuery(
-  organizationId: string,
   itemLimit: number,
-  pageOffset: number
+  pageOffset: number,
+  /**
+   * This is optional only to satisfy TS in `PaginatedQueryUniversalTable`. In
+   * reality, data will not be fetched properly without `organizationId` passed
+   * in the `options` object - see `getOrganizationMembers()` for details.
+   */
+  options?: PaginatedQueryHookOptions
 ) {
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers, organizationId, itemLimit, pageOffset],
-    queryFn: () => getOrganizationMembers(organizationId, itemLimit, pageOffset),
+    queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset, options],
+    queryFn: () => getOrganizationMembers(itemLimit, pageOffset, options),
     placeholderData: keepPreviousData,
     // We might want to improve this in future, for now let's not retry
     retry: false,
