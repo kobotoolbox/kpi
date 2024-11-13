@@ -14,14 +14,16 @@ export interface OrganizationMember {
   /** `/api/v2/users/<username>/` */
   user: string;
   user__username: string;
-  user__email: string;
-  user__name: string;
+  /** can be empty an string in some edge cases */
+  user__email: string | '';
+  /** can be empty an string in some edge cases */
+  user__name: string | '';
   role: 'admin' | 'owner' | 'member' | 'external';
   user__has_mfa_enabled: boolean;
+  user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
   date_joined: string;
-  user__is_active: boolean;
-  invite: {
+  invite?: {
     /** '/api/v2/organizations/<organization_uid>/invites/<invite_uid>/' */
     url: string;
     /** yyyy-mm-dd HH:MM:SS */

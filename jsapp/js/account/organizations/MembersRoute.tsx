@@ -50,8 +50,14 @@ export default function MembersRoute() {
             },
           },
           {
-            key: 'invite.status',
+            key: 'invite',
             label: t('Status'),
+            cellFormatter: (member: OrganizationMember) => {
+              if (member.invite?.status) {
+                return member.invite.status;
+              }
+              return null;
+            },
           },
           {
             key: 'date_joined',
@@ -68,9 +74,8 @@ export default function MembersRoute() {
             cellFormatter: (member: OrganizationMember) => {
               if (member.user__has_mfa_enabled) {
                 return 'yes';
-              } else {
-                return null;
               }
+              return null;
             },
           },
           {
