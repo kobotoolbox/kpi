@@ -19,7 +19,10 @@ $avatar-size-l: 48px;
 }
 
 .avatar {
-  @include mixins.centerRowFlex;
+  display: inline-flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
 }
 
 .avatar-size-s {
@@ -42,4 +45,43 @@ $avatar-size-l: 48px;
   color: colors.$kobo-white;
   // actual background color is provided by JS, this is just safeguard
   background-color: colors.$kobo-storm;
+}
+
+.text {
+  flex: 1;
+  display: inline-flex;
+  align-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.fullName {
+  font-weight: 600;
+  color: colors.$kobo-gray-800;
+}
+
+// If `fullName` is being displayed, we want the username to be less prominent
+.text.hasFullName .username {
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 400;
+  color: colors.$kobo-gray-700;
+}
+
+// If `fullName` is missing, we want the username to be more visible
+.text:not(.hasFullName) .username {
+  font-weight: 600;
+  color: colors.$kobo-gray-800;
+}
+
+.email {
+  font-weight: 400;
+  color: colors.$kobo-gray-700;
+  // Force email to always wrap to new line:
+  flex-basis: 100%;
+  width: 0;
 }

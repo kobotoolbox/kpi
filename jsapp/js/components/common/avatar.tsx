@@ -18,19 +18,30 @@ function stringToHSL(string: string, saturation: number, lightness: number) {
 }
 
 interface AvatarProps {
+  /** It is not recommended to display full name or email with `s` size. */
+  size: AvatarSize;
   /**
    * First letter of the username would be used as avatar. Whole username would
    * be used to generate the color of the avatar.
    */
   username: string;
-  /**
-   * Username is not being displayed by default.
-   */
+  /** Username is required, but will not be displayed by default. */
   isUsernameVisible?: boolean;
-  size: AvatarSize;
+  fullName?: string;
+  email?: string;
 }
 
+/**
+ * Displays an avatar (a letter in a circle) and optionally also username, full
+ * name and email.
+ */
 export default function Avatar(props: AvatarProps) {
+  const isAnyTextBeingDisplayed = (
+    props.isUsernameVisible ||
+    props.fullName !== undefined ||
+    props.email !== undefined
+  );
+
   return (
     <div className={cx(styles.avatar, styles[`avatar-size-${props.size}`])}>
       <div
@@ -40,8 +51,25 @@ export default function Avatar(props: AvatarProps) {
         {props.username.charAt(0)}
       </div>
 
-      {props.isUsernameVisible &&
-        <label>{props.username}</label>
+      {isAnyTextBeingDisplayed &&
+        <div
+          className={cx(
+            styles.text,
+            {[styles.hasFullName]: props.fullName !== undefined}
+          )}
+        >
+          {props.fullName !== undefined &&
+            <span className={styles.fullName}>{props.fullName}</span>
+          }
+
+          {props.isUsernameVisible &&
+            <span className={styles.username}>{'@' + props.username}</span>
+          }
+
+          {props.email !== undefined &&
+            <div className={styles.email}>{props.email}</div>
+          }
+        </div>
       }
     </div>
   );

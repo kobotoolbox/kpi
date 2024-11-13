@@ -1,5 +1,5 @@
 import React from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
+import type {ComponentStory, ComponentMeta, StoryObj} from '@storybook/react';
 
 import Avatar from './avatar';
 import type {AvatarSize} from './avatar';
@@ -10,22 +10,52 @@ export default {
   title: 'common/Avatar',
   component: Avatar,
   argTypes: {
-    username: {type: 'string'},
     size: {
       options: avatarSizes,
       control: {type: 'select'},
     },
+    username: {type: 'string'},
     isUsernameVisible: {type: 'boolean'},
+    hasFullName: {
+      type: 'boolean',
+      description: 'Allows testing `fullName` being empty string or not existing',
+    },
+    fullName: {type: 'string', if: {arg: 'hasFullName', truthy: true}},
+    hasEmail: {
+      type: 'boolean',
+      description: 'Allows testing `email` being empty string or not existing',
+    },
+    email: {type: 'string', if: {arg: 'hasEmail', truthy: true}},
   },
 } as ComponentMeta<typeof Avatar>;
 
-const Template: ComponentStory<typeof Avatar> = (args) => <Avatar {...args} />;
+const Template: ComponentStory<typeof Avatar> = (args) => (
+  <Avatar
+    size={args.size}
+    username={args.username}
+    isUsernameVisible={args.isUsernameVisible}
+    fullName={args.fullName}
+    email={args.email}
+  />
+);
 
 export const Primary = Template.bind({});
 Primary.args = {
-  username: 'Leszek',
   size: avatarSizes[0],
+  username: 'Leszek',
   isUsernameVisible: true,
+};
+
+export const Full: StoryObj<typeof Avatar> = {
+  render: () => (
+    <Avatar
+      size='l'
+      username='wilhelm_lg_swh'
+      isUsernameVisible
+      fullName='Wilhelm Ludwig Georg zu Sayn-Wittgenstein-Hohenstein'
+      email='wilhelm@swh.de'
+    />
+  ),
 };
 
 // We want to test how the avatar colors look like with some ~random usernames.
