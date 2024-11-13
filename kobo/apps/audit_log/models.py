@@ -22,7 +22,7 @@ from kpi.constants import (
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
 
 NEW = 'new'
@@ -561,3 +561,40 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.create(
             user=request.user, object_id=object_id, action=action, metadata=metadata
         )
+
+    @classmethod
+    def create_from_import_task(cls, task: ImportTask):
+        # this will probably only ever be a list of size 1 or 0,
+        # sent as a list because of how ImportTask is implemented
+        # if somehow a task updates multiple assets, this should handle it
+        audit_log_blocks = task.messages.get('audit_logs', [])
+        for audit_log_info in audit_log_blocks:
+            metadata = {
+                'asset_uid': audit_log_info['asset_uid'],
+                'latest_version_uid': audit_log_info['latest_version_uid'],
+                'ip_address': audit_log_info['ip_address'],
+                'source': audit_log_info['source'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            }
+            ProjectHistoryLog.objects.create(
+                user=task.user,
+                object_id=audit_log_info['asset_id'],
+                action=AuditAction.REPLACE_FORM,
+                metadata=metadata,
+            )
+            # imports may change the name of an asset, log that too
+            if audit_log_info['old_name'] != audit_log_info['new_name']:
+                metadata.update(
+                    {
+                        'name': {
+                            OLD: audit_log_info['old_name'],
+                            NEW: audit_log_info['new_name'],
+                        }
+                    }
+                )
+                ProjectHistoryLog.objects.create(
+                    user=task.user,
+                    object_id=audit_log_info['asset_id'],
+                    action=AuditAction.UPDATE_NAME,
+                    metadata=metadata,
+                )
