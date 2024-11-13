@@ -1,15 +1,22 @@
+// Libraries
 import React from 'react';
+import cx from 'classnames';
+
+// Partial components
+import ColumnResizer from './columnResizer';
+import SortableProjectColumnHeader from './sortableProjectColumnHeader';
+
+// Constants and types
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
   ProjectFieldDefinition,
   ProjectFieldName,
 } from 'js/projects/projectViews/constants';
 import type {ProjectsTableOrder} from './projectsTable';
+
+// Styles
 import tableStyles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
-import classNames from 'classnames';
-import ColumnResizer from './columnResizer';
-import SortableProjectColumnHeader from './sortableProjectColumnHeader';
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[];
@@ -48,7 +55,7 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
   return (
     <header className={tableStyles.header}>
       <ColumnResizer />
-      <div className={classNames(rowStyles.row, rowStyles.rowTypeHeader)}>
+      <div className={cx(rowStyles.row, rowStyles.rowTypeHeader)}>
         {/* First column is always visible and displays a checkbox. */}
         <div className={rowStyles.cell} data-field='checkbox' />
 

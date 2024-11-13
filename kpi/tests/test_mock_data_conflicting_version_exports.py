@@ -27,8 +27,13 @@ class ConflictingVersionsMockDataExports(TestCase):
         self.maxDiff = None
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.get(uid='axD3Wc8ZnfgLXBcURRt5fM')
+        # To avoid cluttering the fixture, redeploy asset to set related XForm properly
+        self.asset.deployment.redeploy(active=True)
         # To avoid cluttering the fixture, assign permissions here
         self.asset.assign_perm(self.user, PERM_VIEW_SUBMISSIONS)
+        self.asset.deployment.mock_submissions(
+            submissions=self.asset._deployment_data['submissions'],
+        )
         self.submissions = self.asset.deployment.get_submissions(self.asset.owner)
         self.submission_id_field = '_id'
         self.formpack, self.submission_stream = report_data.build_formpack(

@@ -198,7 +198,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
     @override_settings(STRIPE_ENABLED=True)
     def test_organization_setup(self):
-        organization = baker.make(Organization, id='org_abcd1234')
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
         generate_enterprise_subscription(organization)

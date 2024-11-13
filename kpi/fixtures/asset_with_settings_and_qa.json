@@ -9,14 +9,14 @@
                 "survey":[
                     {
                         "type":"text",
-                        "label":"fixture q1",
-                        "name":"q1",
+                        "label":"settings fixture q1",
+                        "name":"settings_fixture_q1",
                         "kuid":"abc"
                     },
                     {
                         "type":"text",
-                        "label":"fixture q2",
-                        "name":"q2",
+                        "label":"settings fixture q2",
+                        "name":"settings_fixture_q2",
                         "kuid":"def"
                     }
                 ]
@@ -37,9 +37,7 @@
                 "organization" : "An organization"
             },
             "data_sharing":{
-                "fields":[
-
-                ],
+                "fields":[],
                 "enabled":false
             },
             "advanced_features":{
@@ -63,4 +61,4 @@
             "uid":"aNp9yMt4zKpUtTeZUnozYG"
         }
     }
-]
+  ]

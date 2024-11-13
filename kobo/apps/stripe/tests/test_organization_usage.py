@@ -56,7 +56,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         cls.now = timezone.now()
 
         cls.organization = baker.make(
-            Organization, id=cls.org_id, name='test organization'
+            Organization, id=cls.org_id, name='test organization', mmo_override=True
         )
         cls.organization.add_user(cls.anotheruser, is_admin=True)
         assets = create_mock_assets([cls.anotheruser], cls.assets_per_user)

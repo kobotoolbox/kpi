@@ -6,8 +6,10 @@ from kpi import filters
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
 from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
@@ -16,12 +18,51 @@ from kpi.serializers.v2.service_usage import (
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
+from kpi.views.v2.asset import AssetViewSet
 from .models import Organization
-from .permissions import IsOrgAdminOrReadOnly
+from .permissions import IsOrgAdmin, IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
+class OrganizationAssetViewSet(AssetViewSet):
+    """
+    This class is specifically designed for the `assets` action of the
+    OrganizationViewSet below.
+
+    It overrides the queryset of the parent class (AssetViewSet), limiting
+    results to assets owned by the organization. The `permission_classes`
+    attribute is deliberately left empty to prevent duplicate permission checks
+    with OrganizationViewSet.asset(). It relies on `permissions_checked` being
+    passed as a `self.request` attribute to confirm that permissions have been
+    properly validated beforehand.
+    """
+
+    permission_classes = []
+    filter_backends = [
+        SearchFilter,
+        AssetOrderingFilter,
+    ]
+
+    def get_queryset(self, *args, **kwargs):
+        if not getattr(self.request, 'permissions_checked', False):
+            # Perform a sanity check to ensure that permissions have been properly
+            # validated within `OrganizationViewSet.assets()`.
+            raise AttributeError('`permissions_checked` is missing')
+
+        queryset = super().get_queryset(*args, **kwargs)
+        if self.action == 'list':
+            return queryset.filter(
+                owner=self.request.user.organization.owner_user_object
+            )
+        else:
+            raise NotImplementedError
+
+
+@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='service_usage')
+# django uses the Vary header in its caching, and each middleware can potentially add more Vary headers
+# we use this decorator to remove any Vary headers except 'origin' (we don't want to cache between different installs)
+@method_decorator(only_vary_on('Origin'), name='service_usage')
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
@@ -37,8 +78,34 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
     pagination_class = AssetUsagePagination
 
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdmin]
+    )
+    def assets(self, request: Request, *args, **kwargs):
+        """
+        ### Retrieve Organization Assets
+
+        This endpoint returns all assets associated with a specific organization.
+        The assets listed here are restricted to those owned by the specified
+        organization.
+
+        Only the owner or administrators of the organization can access this endpoint.
+
+        ### Additional Information
+        For more details, please refer to `/api/v2/assets/`.
+        """
+        self.get_object()  # Call check permissions
+
+        # Permissions check is done by `OrganizationAssetViewSet` permission classes
+        asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
+        django_http_request = request._request
+        django_http_request.permissions_checked = True
+        return asset_view(request=django_http_request)
+
     def get_queryset(self) -> QuerySet:
-        user = self.request.user
+        user = get_database_user(self.request.user)
         return super().get_queryset().filter(users=user)
 
     @action(detail=True, methods=['get'])

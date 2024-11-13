@@ -3,10 +3,10 @@ from django.test import TestCase
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.constants import (
-    ADMIN_ORG_ROLE,
-    EXTERNAL_ORG_ROLE,
-    MEMBER_ORG_ROLE,
-    OWNER_ORG_ROLE,
+    ORG_ADMIN_ROLE,
+    ORG_EXTERNAL_ROLE,
+    ORG_MEMBER_ROLE,
+    ORG_OWNER_ROLE,
 )
 
 
@@ -16,9 +16,10 @@ class OrganizationTestCase(TestCase):
 
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
-
         # someuser is the only member their organization, and the owner as well.
         self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
 
     def test_owner_user_object_property(self):
         anotheruser = User.objects.get(username='anotheruser')
@@ -33,10 +34,10 @@ class OrganizationTestCase(TestCase):
         )
         self.organization.add_user(anotheruser, is_admin=True)
         self.organization.add_user(alice)
-        assert self.organization.get_user_role(self.someuser) == OWNER_ORG_ROLE
-        assert self.organization.get_user_role(anotheruser) == ADMIN_ORG_ROLE
-        assert self.organization.get_user_role(alice) == MEMBER_ORG_ROLE
-        assert self.organization.get_user_role(external) == EXTERNAL_ORG_ROLE
+        assert self.organization.get_user_role(self.someuser) == ORG_OWNER_ROLE
+        assert self.organization.get_user_role(anotheruser) == ORG_ADMIN_ROLE
+        assert self.organization.get_user_role(alice) == ORG_MEMBER_ROLE
+        assert self.organization.get_user_role(external) == ORG_EXTERNAL_ROLE
 
     def test_create_organization_on_user_creation(self):
         assert not Organization.objects.filter(name__startswith='alice').exists()
@@ -57,6 +58,12 @@ class OrganizationTestCase(TestCase):
         """
         # someuser is the owner
         assert self.organization.name == 'someuser’s organization'
+        someuser_extra_details = self.someuser.extra_details
+        someuser_extra_details.data['organization'] = ''
+        someuser_extra_details.save()
+        self.organization.refresh_from_db()
+        assert self.organization.name == 'someuser’s organization'
+
         someuser_extra_details = self.someuser.extra_details
         someuser_extra_details.data['organization'] = 'SomeUser Technologies'
         someuser_extra_details.save()

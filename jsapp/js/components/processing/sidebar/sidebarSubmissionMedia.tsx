@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import singleProcessingStore from 'js/components/processing/singleProcessingStore';
 import type {AssetContent} from 'js/dataInterface';
-import {QUESTION_TYPES, META_QUESTION_TYPES} from 'js/constants';
+import {QUESTION_TYPES} from 'js/constants';
 import {getAttachmentForProcessing} from 'js/components/processing/transcript/transcript.utils';
 import styles from './sidebarSubmissionMedia.module.scss';
 
@@ -28,7 +28,7 @@ export default function SidebarSubmissionMedia(
 
   switch (store.currentQuestionType) {
     case QUESTION_TYPES.audio.id:
-    case META_QUESTION_TYPES['background-audio']:
+    case QUESTION_TYPES['background-audio'].id:
       return (
         <section
           className={`

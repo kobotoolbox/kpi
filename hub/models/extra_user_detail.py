@@ -78,5 +78,6 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             except (KeyError, AttributeError):
                 organization_name = None
 
-            user_organization.name = organization_name
-            user_organization.save(update_fields=['name'])
+            if organization_name:
+                user_organization.name = organization_name
+                user_organization.save(update_fields=['name'])

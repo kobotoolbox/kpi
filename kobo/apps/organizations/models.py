@@ -24,14 +24,16 @@ from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
 from .constants import (
-    ADMIN_ORG_ROLE,
-    EXTERNAL_ORG_ROLE,
-    MEMBER_ORG_ROLE,
-    OWNER_ORG_ROLE,
+    ORG_ADMIN_ROLE,
+    ORG_EXTERNAL_ROLE,
+    ORG_MEMBER_ROLE,
+    ORG_OWNER_ROLE,
 )
+from .exceptions import NotMultiMemberOrganizationException
+
 
 OrganizationRole = Literal[
-    ADMIN_ORG_ROLE, EXTERNAL_ORG_ROLE, MEMBER_ORG_ROLE, OWNER_ORG_ROLE
+    ORG_ADMIN_ROLE, ORG_EXTERNAL_ROLE, ORG_MEMBER_ROLE, ORG_OWNER_ROLE
 ]
 
 
@@ -40,6 +42,13 @@ class Organization(AbstractOrganization):
     mmo_override = models.BooleanField(
         default=False, verbose_name='Multi-members override'
     )
+
+    def add_user(self, user, is_admin=False):
+        if not self.is_mmo and self.users.all().count():
+            raise NotMultiMemberOrganizationException
+
+        user.organization.delete()
+        super().add_user(user, is_admin=is_admin)
 
     @cache_for_request
     def active_subscription_billing_details(self):
@@ -106,7 +115,7 @@ class Organization(AbstractOrganization):
     def email(self):
         """
         As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute
+        it has an email address attribute.
         """
         try:
             return self.owner_user_object.email
@@ -117,23 +126,24 @@ class Organization(AbstractOrganization):
     def get_user_role(self, user: 'User') -> OrganizationRole:
 
         if not self.users.filter(pk=user.pk).exists():
-            return EXTERNAL_ORG_ROLE
+            return ORG_EXTERNAL_ROLE
 
         if self.is_owner(user):
-            return OWNER_ORG_ROLE
+            return ORG_OWNER_ROLE
 
         if self.is_admin(user):
-            return ADMIN_ORG_ROLE
+            return ORG_ADMIN_ROLE
 
-        return MEMBER_ORG_ROLE
+        return ORG_MEMBER_ROLE
 
     @cache_for_request
     def is_admin(self, user: 'User') -> bool:
         """
         Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request
+        multiple calls to DB in the same request.
         """
 
+        # Be aware: Owners are also Admins
         return super().is_admin(user)
 
     @property
@@ -150,13 +160,21 @@ class Organization(AbstractOrganization):
         return self.mmo_override or bool(self.active_subscription_billing_details())
 
     @cache_for_request
-    def is_owner(self, user):
+    def is_admin_only(self, user: 'User') -> bool:
+
+        # Be aware: Owners are also Admins
+        return super().is_admin(user) and not self.is_owner(user)
+
+    @cache_for_request
+    def is_owner(self, user: 'User') -> bool:
         """
-        Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request
+        Overrides `is_owner()` with `owner_user_object()` instead of
+        using `super().is_owner()` to take advantage of `@cache_for_request`
+        in both scenarios.
+        (i.e., when calling either `is_owner()` or `owner_user_object()`).
         """
 
-        return super().is_owner(user)
+        return self.owner_user_object == user
 
     @property
     @cache_for_request

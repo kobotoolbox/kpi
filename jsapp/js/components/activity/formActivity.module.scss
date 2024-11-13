@@ -38,40 +38,19 @@
   padding: 0 20px 20px;
 }
 
-.eventDescription {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 14px;
-}
-
-.profilePicture {
-  background: colors.$kobo-gray-800;
-  border-radius: 50%;
-  color: colors.$kobo-white;
-  width: 24px;
-  height: 24px;
-  font-weight: 500;
-  text-transform: uppercase;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.who {
-  margin-left: 4px;
-  font-style: normal;
-  font-weight: bold;
-}
-
-.action {
-  font-style: italic;
-}
-
-.seeDetails {
+.seeDetailsButton {
   background: transparent;
   border: none;
   color: colors.$kobo-gray-900;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.detailsModalContent {
+  padding: 30px;
+  overflow-x: auto;
+}
+
+.detailsModalContent pre {
+  margin: 0;
 }
