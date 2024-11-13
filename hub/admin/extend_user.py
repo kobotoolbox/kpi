@@ -295,7 +295,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         """
         return queryset.annotate(
             user_count=Count('organizations_organization__organization_users')
-        ).filter(user_count=1).order_by('username')
+        ).filter(user_count__lte=1).order_by('username')
 
     def _remove_or_delete(
         self,

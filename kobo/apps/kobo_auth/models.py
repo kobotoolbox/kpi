@@ -59,7 +59,7 @@ class User(AbstractUser):
         # Database allows multiple organizations per user, but we restrict it to one.
         if organization := Organization.objects.filter(
             organization_users__user=self
-        ).first():
+        ).order_by('-organization_users__created').first():
             return organization
 
         try:
