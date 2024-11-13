@@ -3,10 +3,10 @@ from typing import Union
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
-from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 
 
@@ -105,6 +105,7 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     Revokes permissions assigned to removed members on all assets belonging to
     the organization.
     """
+    Asset = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
     subquery = Asset.objects.values_list('pk', flat=True).filter(
         owner=organization.owner_user_object
     )
