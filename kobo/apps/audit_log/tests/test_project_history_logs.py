@@ -889,24 +889,22 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ('delete', AuditAction.DELETE),
     )
     @unpack
-    def test_bulk_archive(self, bulk_action, audit_action):
-        assets = [(
-            Asset.objects.create(
-                content={
-                    'survey': [
-                        {
-                            'type': 'text',
-                            'label': 'Question 1',
-                            'name': 'q1',
-                            '$kuid': 'abc',
-                        },
-                    ]
-                },
-                owner=self.user,
-                asset_type='survey',
-            )
-            for i in range(0, 2)
-        )]
+    def test_bulk_actions(self, bulk_action, audit_action):
+        assets = [Asset.objects.create(
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'label': 'Question 1',
+                        'name': 'q1',
+                        '$kuid': 'abc',
+                    },
+                ]
+            },
+            owner=self.user,
+            asset_type='survey',
+        ) for i in range(0, 2)]
+
         for asset in assets:
             asset.deploy(backend='mock', active=True)
 
