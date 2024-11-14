@@ -166,7 +166,7 @@ class DataDictionary(XForm):
                 survey.name = survey.id_string
             self.json = survey.to_json()
             self.xml = survey.to_xml()
-            self._mark_start_time_boolean()
+            self.mark_start_time_boolean()
             set_uuid(self)
             self.set_uuid_in_xml(id_string=survey.id_string)
         super().save(*args, **kwargs)
@@ -418,7 +418,7 @@ class DataDictionary(XForm):
                 self._expand_geocodes(d, key, e)
             yield d
 
-    def _mark_start_time_boolean(self):
+    def mark_start_time_boolean(self):
         starttime_substring = 'jr:preloadParams="start"'
         if self.xml.find(starttime_substring) != -1:
             self.has_start_time = True
