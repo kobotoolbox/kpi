@@ -905,9 +905,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         someuser = User.objects.get(username='someuser')
         uids = [asset.uid for asset in assets]
 
-        if bulk_action == "undelete":
-            response = self._make_bulk_request(uids, "delete")
-
         response = self._make_bulk_request(uids, bulk_action)
         archived_logs = ProjectHistoryLog.objects.filter(
             object_id__in=[asset.id for asset in assets],

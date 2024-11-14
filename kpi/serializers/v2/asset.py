@@ -89,6 +89,11 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         super().__init__(instance=instance, data=data, **kwargs)
 
     def create(self, validated_data):
+        ProjectHistoryLog.create_from_bulk_action(
+            self.context['request'],
+            validated_data['payload'],
+        )
+
         delete_request, put_back_ = self._get_action_type_and_direction(
             validated_data['payload']
         )
@@ -108,10 +113,6 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if delete_request:
             self._toggle_trash(queryset, put_back_)
 
-        ProjectHistoryLog.create_from_bulk_action(
-            self.context['request'],
-            validated_data['payload'],
-        )
         return validated_data
 
     def validate_payload(self, payload: dict) -> dict:
