@@ -11,7 +11,6 @@ from google.api_core.exceptions import InvalidArgument
 from google.cloud import speech
 
 from kpi.utils.log import logging
-
 from ...constants import GOOGLETS
 from ...exceptions import (
     AudioTooLongError,
@@ -73,7 +72,6 @@ class GoogleTranscriptionService(GoogleService):
         submission_uuid = self.submission.submission_uuid
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
-
         # Create the parameters required for the transcription
         speech_client = speech.SpeechClient(credentials=self.credentials)
         config = speech.RecognitionConfig(

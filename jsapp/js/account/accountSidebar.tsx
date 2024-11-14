@@ -48,6 +48,10 @@ function AccountSidebar() {
     setShowPlans(true);
   }, [subscriptionStore.isInitialised]);
 
+  const showAddOnsLink = useMemo(() => {
+    return !subscriptionStore.planResponse.length;
+  }, [subscriptionStore.isInitialised]);
+
   return (
     <nav className={styles.accountSidebar}>
       <AccountNavLink
@@ -74,12 +78,14 @@ function AccountSidebar() {
                 name={t('Plans')}
                 to={ACCOUNT_ROUTES.PLAN}
               />
-              <AccountNavLink
-                iconName='plus'
-                name={t('Add-ons')}
-                to={ACCOUNT_ROUTES.ADD_ONS}
-                isNew
-              />
+              {showAddOnsLink && (
+                <AccountNavLink
+                  iconName='plus'
+                  name={t('Add-ons')}
+                  to={ACCOUNT_ROUTES.ADD_ONS}
+                  isNew
+                />
+              )}
             </>
           )}
         </>

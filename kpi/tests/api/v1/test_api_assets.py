@@ -10,7 +10,7 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
-from kpi.models import Asset, SubmissionsExportTask
+from kpi.models import Asset, ExportTask
 from kpi.models.import_export_task import export_upload_to
 from kpi.serializers.v1.asset import AssetListSerializer
 
@@ -280,7 +280,7 @@ class AssetExportTaskTest(BaseTestCase):
         )
 
     def test_owner_can_create_export(self):
-        post_url = reverse('submissionsexporttask-list')
+        post_url = reverse('exporttask-list')
         asset_url = reverse('asset-detail', args=[self.asset.uid])
         task_data = {
             'source': asset_url,
@@ -349,12 +349,12 @@ class AssetExportTaskTest(BaseTestCase):
         )
         file_path = export_upload_to(self, file_name)
 
-        detail_url = reverse('submissionsexporttask-detail', kwargs={
+        detail_url = reverse('exporttask-detail', kwargs={
             'uid': detail_response.data['uid']
             })
 
         # checking if file exists before attempting to delete
-        file_exists_before_delete = SubmissionsExportTask.result.field.storage.exists(
+        file_exists_before_delete = ExportTask.result.field.storage.exists(
             name=file_path
         )
         assert file_exists_before_delete
@@ -364,7 +364,7 @@ class AssetExportTaskTest(BaseTestCase):
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 
         # checking if file still exists after attempting to delete it
-        file_exists_after_delete = SubmissionsExportTask.result.field.storage.exists(
+        file_exists_after_delete = ExportTask.result.field.storage.exists(
             name=file_path
         )
         assert not file_exists_after_delete

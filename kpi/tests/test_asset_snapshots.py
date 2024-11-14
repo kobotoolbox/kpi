@@ -78,7 +78,7 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
             'settings': {},
         }
         snap = AssetSnapshot.objects.create(source=content)
-        assert snap.xml.count('<name>ABC</name>') == 2
+        assert snap.xml.count('<value>ABC</value>') == 2
 
 
 class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):

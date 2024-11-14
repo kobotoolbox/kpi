@@ -1,21 +1,12 @@
-// Libraries
 import React, {useState} from 'react';
 import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
-
-// Partial components
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import ProjectsFilterEditor from './projectsFilterEditor';
-
-// Utilities
-import {removeIncorrectFilters} from './utils';
-
-// Constants and types
 import type {ProjectFieldName, ProjectsFilterDefinition} from './constants';
-
-// Styles
+import ProjectsFilterEditor from './projectsFilterEditor';
+import {removeIncorrectFilters} from './utils';
 import styles from './projectsFilter.module.scss';
 
 // If there are "many" filters being displayed, we want the modal content to be

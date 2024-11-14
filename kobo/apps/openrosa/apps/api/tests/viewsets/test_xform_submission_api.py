@@ -378,9 +378,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         self.assertContains(response, 'No submission key provided.', status_code=400)
 
     def test_submission_blocking_flag(self):
-        # Set 'submissions_suspended' True in the profile to test if
+        # Set 'submissions_suspended' True in the profile metadata to test if
         # submission do fail with the flag set
-        self.xform.user.profile.submissions_suspended = True
+        self.xform.user.profile.metadata['submissions_suspended'] = True
         self.xform.user.profile.save()
 
         # No need auth for this test
@@ -421,7 +421,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 f.seek(0)
 
                 # check that users can submit data again when flag is removed
-                self.xform.user.profile.submissions_suspended = False
+                self.xform.user.profile.metadata['submissions_suspended'] = False
                 self.xform.user.profile.save()
 
                 request = self.factory.post(

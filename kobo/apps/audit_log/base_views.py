@@ -49,10 +49,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             return obj
         audit_log_data = {}
         for field in self.logged_fields:
-            field_path = field[1] if isinstance(field, tuple) else field
-            field_label = field[0] if isinstance(field, tuple) else field
-            value = get_nested_field(obj, field_path)
-            audit_log_data[field_label] = value
+            value = get_nested_field(obj, field)
+            audit_log_data[field] = value
         self.request._request.initial_data = audit_log_data
         return obj
 
@@ -60,31 +58,25 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         self.perform_update_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
-            field_path = field[1] if isinstance(field, tuple) else field
-            field_label = field[0] if isinstance(field, tuple) else field
-            value = get_nested_field(serializer.instance, field_path)
-            audit_log_data[field_label] = value
+            value = get_nested_field(serializer.instance, field)
+            audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data
 
     def perform_create(self, serializer):
         self.perform_create_override(serializer)
         audit_log_data = {}
         for field in self.logged_fields:
-            field_path = field[1] if isinstance(field, tuple) else field
-            field_label = field[0] if isinstance(field, tuple) else field
-            value = get_nested_field(serializer.instance, field_path)
-            audit_log_data[field_label] = value
+            value = get_nested_field(serializer.instance, field)
+            audit_log_data[field] = value
         self.request._request.updated_data = audit_log_data
 
     def perform_destroy(self, instance):
         audit_log_data = {}
         for field in self.logged_fields:
-            field_path = field[1] if isinstance(field, tuple) else field
-            field_label = field[0] if isinstance(field, tuple) else field
-            value = get_nested_field(instance, field_path)
-            audit_log_data[field_label] = value
-        self.perform_destroy_override(instance)
+            value = get_nested_field(instance, field)
+            audit_log_data[field] = value
         self.request._request.initial_data = audit_log_data
+        self.perform_destroy_override(instance)
 
     def perform_destroy_override(self, instance):
         super().perform_destroy(instance)

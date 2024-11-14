@@ -1,2 +1,0 @@
-class NotMultiMemberOrganizationException(Exception):
-    pass

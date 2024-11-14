@@ -1,20 +1,13 @@
-// Libraries
 import React, {useState, useEffect} from 'react';
-
-// Partial components
 import Button from 'js/components/common/button';
+import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
 import KoboModalFooter from 'js/components/modals/koboModalFooter';
-
-// Constants and types
-import type {MultiCheckboxItem} from 'js/components/common/multiCheckbox';
 import type {ProjectFieldName} from './constants';
 import {PROJECT_FIELDS, DEFAULT_VISIBLE_FIELDS} from './constants';
-
-// Styles
 import styles from './projectsFieldsSelector.module.scss';
 
 interface ProjectsFieldsSelectorProps {

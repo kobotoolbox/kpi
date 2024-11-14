@@ -1,18 +1,9 @@
-// Libraries
 import React, {useState} from 'react';
-
-// Partial components
-import Button from 'js/components/common/button';
-import BulkDeletePrompt from './bulkActions/bulkDeletePrompt';
-
-// Stores, hooks and utilities
-import {userCan} from 'js/components/permissions/utils';
-
-// Constants and types
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
-
-// Styles
+import Button from 'js/components/common/button';
 import actionsStyles from './projectActions.module.scss';
+import BulkDeletePrompt from './bulkActions/bulkDeletePrompt';
+import {userCan} from 'js/components/permissions/utils';
 
 interface ProjectBulkActionsProps {
   /** A list of selected assets for bulk operations. */

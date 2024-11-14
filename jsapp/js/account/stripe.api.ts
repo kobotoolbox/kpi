@@ -9,7 +9,6 @@ import type {
   AccountLimit,
   ChangePlan,
   Checkout,
-  OneTimeAddOn,
   Organization,
   PriceMetadata,
   Product,
@@ -23,20 +22,14 @@ import sessionStore from 'js/stores/session';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
-  asr_seconds_limit: Limits.unlimited,
-  mt_characters_limit: Limits.unlimited,
+  nlp_seconds_limit: Limits.unlimited,
+  nlp_character_limit: Limits.unlimited,
   storage_bytes_limit: Limits.unlimited,
 });
 
 export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL, {
     errorMessageDisplay: t('There was an error getting the list of plans.'),
-  });
-}
-
-export async function getOneTimeAddOns() {
-  return fetchGet<PaginatedResponse<OneTimeAddOn>>(endpoints.ADD_ONS_URL, {
-    errorMessageDisplay: t('There was an error getting one-time add-ons.'),
   });
 }
 
@@ -208,10 +201,10 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
     newLimits['submission_limit'] = thresholds.data;
   }
   if (thresholds.translation_chars) {
-    newLimits['mt_characters_limit'] = thresholds.translation_chars;
+    newLimits['nlp_character_limit'] = thresholds.translation_chars;
   }
   if (thresholds.transcription_minutes) {
-    newLimits['asr_seconds_limit'] = thresholds.transcription_minutes * 60;
+    newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60;
   }
   return newLimits;
 };
@@ -237,41 +230,6 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
     newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
   });
   return newLimits;
-};
-
-/**
- * Add one-time addon limits to already calculated account limits
- */
-const addRemainingOneTimeAddOnLimits = (
-  limits: AccountLimit,
-  oneTimeAddOns: OneTimeAddOn[]
-) => {
-  // This yields a separate object, so we need to make a copy
-  limits = {...limits}
-  oneTimeAddOns
-    .filter((addon) => addon.is_available)
-    .forEach((addon) => {
-      if (
-        addon.limits_remaining.submission_limit &&
-        limits.submission_limit !== Limits.unlimited
-      ) {
-        limits.submission_limit += addon.limits_remaining.submission_limit;
-      }
-      if (
-        addon.limits_remaining.asr_seconds_limit &&
-        limits.asr_seconds_limit !== Limits.unlimited
-      ) {
-        limits.asr_seconds_limit += addon.limits_remaining.asr_seconds_limit;
-      }
-      if (
-        addon.limits_remaining.mt_characters_limit &&
-        limits.mt_characters_limit !== Limits.unlimited
-      ) {
-        limits.mt_characters_limit +=
-          addon.limits_remaining.mt_characters_limit;
-      }
-    });
-  return limits;
 };
 
 /**
@@ -322,33 +280,24 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits(
-  products: Product[],
-  oneTimeAddOns: OneTimeAddOn[]
-) {
+export async function getAccountLimits(products: Product[]) {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
     products
   );
 
   // initialize to unlimited
-  let recurringLimits: AccountLimit = {...DEFAULT_LIMITS};
+  let limits: AccountLimit = {...DEFAULT_LIMITS};
 
   // apply any limits from the metadata
-  recurringLimits = {...recurringLimits, ...getLimitsForMetadata(metadata)};
+  limits = {...limits, ...getLimitsForMetadata(metadata)};
 
   if (hasFreeTier) {
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
-    recurringLimits = await getFreeTierLimits(recurringLimits);
+    limits = await getFreeTierLimits(limits);
 
-    // if the user has active recurring add-ons, use those as their limits
-    recurringLimits = getRecurringAddOnLimits(recurringLimits);
+    // if the user has active recurring add-ons, use those as the final say on their limits
+    limits = getRecurringAddOnLimits(limits);
   }
 
-  // create separate object with one-time addon limits added to the limits calculated so far
-  let remainingLimits = addRemainingOneTimeAddOnLimits(
-    recurringLimits,
-    oneTimeAddOns
-  );
-
-  return {recurringLimits, remainingLimits};
+  return limits;
 }

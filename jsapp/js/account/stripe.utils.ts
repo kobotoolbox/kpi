@@ -1,12 +1,8 @@
 import {when} from 'mobx';
-import prettyBytes from 'pretty-bytes';
-import {useCallback} from 'react';
 
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import envStore from 'js/envStore';
 import {
-  Limits,
-  USAGE_TYPE,
   Price,
   BaseProduct,
   ChangePlan,
@@ -15,7 +11,6 @@ import {
   SubscriptionChangeType,
   SubscriptionInfo,
   TransformQuantity,
-  LimitAmount,
 } from 'js/account/stripe.types';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {convertUnixTimestampToUtc, notify} from 'js/utils';
@@ -48,16 +43,12 @@ export async function hasActiveSubscription() {
   );
 }
 
-export function isOneTimeAddonProduct(product: Product) {
-  return product.metadata?.product_type === 'addon_onetime';
+export function isAddonProduct(product: Product) {
+  return product.metadata.product_type === 'addon';
 }
 
 export function isRecurringAddonProduct(product: Product) {
-  return product.metadata?.product_type === 'addon';
-}
-
-export function isAddonProduct(product: Product) {
-  return isOneTimeAddonProduct(product) || isRecurringAddonProduct(product);
+  return product.prices.some((price) => price?.recurring);
 }
 
 export function processCheckoutResponse(data: Checkout) {
@@ -223,41 +214,4 @@ export const isDowngrade = (
     price.unit_amount *
     getAdjustedQuantityForPrice(newQuantity, price.transform_quantity);
   return currentTotalPrice > newTotalPrice;
-};
-
-/**
- * Render a limit amount, usage amount, or total balance as readable text
- * @param {USAGE_TYPE} type - The limit/usage amount
- * @param {number|'unlimited'} amount - The limit/usage amount
- * @param {number|'unlimited'|null} [available=null] - If we're showing a balance,
- * `amount` takes the usage amount and this takes the limit amount
- */
-export const useLimitDisplay = () => {
-  const limitDisplay = useCallback(
-    (
-      type: USAGE_TYPE,
-      amount: LimitAmount,
-      available: LimitAmount | null = null
-    ) => {
-      if (amount === Limits.unlimited || available === Limits.unlimited) {
-        return t('Unlimited');
-      }
-      const total = available ? available - amount : amount;
-      switch (type) {
-        case USAGE_TYPE.STORAGE:
-          return prettyBytes(total);
-        case USAGE_TYPE.TRANSCRIPTION:
-          return t('##minutes## mins').replace(
-            '##minutes##',
-            typeof total === 'number'
-              ? Math.floor(total).toLocaleString()
-              : total
-          );
-        default:
-          return total.toLocaleString();
-      }
-    },
-    []
-  );
-  return {limitDisplay};
 };

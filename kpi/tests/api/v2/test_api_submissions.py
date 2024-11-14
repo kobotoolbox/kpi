@@ -5,6 +5,11 @@ import random
 import string
 import uuid
 from datetime import datetime
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 from unittest import mock
 
 import lxml
@@ -14,7 +19,6 @@ from django.conf import settings
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
-from zoneinfo import ZoneInfo
 
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
@@ -36,12 +40,6 @@ from kpi.constants import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.tests.utils.mixins import (
-    SubmissionDeleteTestCaseMixin,
-    SubmissionEditTestCaseMixin,
-    SubmissionValidationStatusTestCaseMixin,
-    SubmissionViewTestCaseMixin,
-)
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_edit_instance_response_with_root_name_validation,
@@ -129,9 +127,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions = submissions
 
 
-class BulkDeleteSubmissionsApiTests(
-    SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase
-):
+class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
     # TODO, Add tests with ids and query
 
@@ -155,7 +151,14 @@ class BulkDeleteSubmissionsApiTests(
         someuser is the project owner
         someuser can delete their own data
         """
-        self._delete_submissions()
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(
+            self.submission_bulk_url, data=data, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+
+        self.assertEqual(response.data['count'], 0)
 
     def test_audit_log_on_bulk_delete(self):
         """
@@ -174,7 +177,7 @@ class BulkDeleteSubmissionsApiTests(
         # No submissions have been deleted yet
         assert audit_log_count == 0
         # Delete all submissions
-        self._delete_submissions()
+        self.test_delete_submissions_as_owner()
 
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list('pk', flat=True).filter(
@@ -383,7 +386,7 @@ class BulkDeleteSubmissionsApiTests(
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
+class SubmissionApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -783,7 +786,19 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         someuser can delete their own data.
         """
         submission = self.submissions_submitted_by_someuser[0]
-        self._delete_submission(submission)
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+
+        self.assertEqual(response.data['count'], len(self.submissions) - 1)
 
     def test_audit_log_on_delete(self):
         """
@@ -1136,7 +1151,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
 
-class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
+class SubmissionEditApiTests(BaseSubmissionTestCase):
     """
     Tests for editin submissions.
 
@@ -1195,7 +1210,23 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         someuser is the owner of the project.
         someuser can retrieve enketo edit link
         """
-        self._get_edit_link()
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        )
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
+        self.assertEqual(response.data, expected_response)
 
     @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):
@@ -1688,7 +1719,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
+class SubmissionViewApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -1714,7 +1745,25 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         someuser is the owner of the project.
         someuser can get enketo view link
         """
-        self._get_view_link()
+        ee_url = (
+            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
+        )
+
+        # Mock Enketo response
+        responses.add_callback(
+            responses.POST, ee_url,
+            callback=enketo_view_instance_response,
+            content_type='application/json',
+        )
+
+        response = self.client.get(self.submission_view_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_response = {
+            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
+            'version_uid': self.asset.latest_deployed_version.uid,
+        }
+        assert response.data == expected_response
 
     @responses.activate
     def test_get_view_submission_redirect_as_owner(self):
@@ -1923,6 +1972,7 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         someuser is the owner of the project.
         someuser is allowed to duplicate their own data
         """
+        print('URL :', self.submission_url, flush=True)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
@@ -2261,9 +2311,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self._check_bulk_update(response)
 
 
-class SubmissionValidationStatusApiTests(
-    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
-):
+class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -2326,8 +2374,13 @@ class SubmissionValidationStatusApiTests(
         someuser is the owner of the project.
         someuser can delete the validation status of submissions
         """
-        self._update_status('someuser')
-        self._delete_status()
+        response = self.client.delete(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Ensure delete worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {})
 
     def test_cannot_delete_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2374,7 +2427,17 @@ class SubmissionValidationStatusApiTests(
         someuser is the owner of the project.
         someuser can update validation status.
         """
-        self._update_status('someuser')
+        data = {
+            'validation_status.uid': 'validation_status_not_approved'
+        }
+        response = self.client.patch(self.validation_status_url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Ensure update worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['by_whom'], 'someuser')
+        self.assertEqual(response.data['uid'], data['validation_status.uid'])
 
     def test_cannot_edit_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2472,9 +2535,7 @@ class SubmissionValidationStatusApiTests(
         self.assertEqual(response.data['uid'], data['validation_status.uid'])
 
 
-class SubmissionValidationStatusesApiTests(
-    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
-):
+class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -2488,23 +2549,64 @@ class SubmissionValidationStatusesApiTests(
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
         )
 
-        self._validate_statuses(empty=True)
-        self._update_statuses(status_uid='validation_status_not_approved')
+        # Ensure all submissions have no validation status
+        response = self.client.get(self.submission_list_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        emptied = [not s['_validation_status'] for s in response.data['results']]
+        self.assertTrue(all(emptied))
+
+        # Make the owner change validation status of all submissions
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_not_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(
+            self.validation_statuses_url, data=data, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_all_validation_statuses_applied(self):
-        self._validate_statuses(
-            uid='validation_status_not_approved', username='someuser'
-        )
+        # ensure all submissions are not approved
+        response = self.client.get(self.submission_list_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        applied = [
+            s['_validation_status']['uid'] == 'validation_status_not_approved'
+            for s in response.data['results']
+        ]
+        self.assertTrue(all(applied))
 
-    def test_delete_all_statuses_as_owner(self):
+    def test_delete_all_status_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can bulk delete the status of all their submissions.
         """
-        response = self._delete_statuses()
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        # `confirm` must be sent within the payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data['payload']['confirm'] = True
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         count = self._deployment.calculated_submission_count(self.someuser)
         expected_response = {'detail': f'{count} submissions have been updated'}
-        assert response.data == expected_response
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submission_list_url)
+        for submission in response.data['results']:
+            self.assertEqual(submission['_validation_status'], {})
 
     def test_delete_some_statuses_as_owner(self):
         """

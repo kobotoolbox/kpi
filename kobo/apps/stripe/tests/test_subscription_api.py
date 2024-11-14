@@ -5,6 +5,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import Organization
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -18,7 +19,8 @@ class SubscriptionAPITestCase(BaseTestCase):
         self.url_list = reverse('subscriptions-list')
 
     def _insert_data(self):
-        organization = self.someuser.organization
+        organization = baker.make(Organization)
+        organization.add_user(self.someuser, is_admin=True)
         customer = baker.make(Customer, subscriber=organization)
         self.subscription = baker.make(
             'djstripe.Subscription',

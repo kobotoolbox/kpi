@@ -239,8 +239,8 @@ export const PlanContainer = ({
   const asrMinutes = useMemo(() => {
     return (
       (adjustedQuantity *
-        (parseInt(product.metadata?.asr_seconds_limit || '0') ||
-          parseInt(product.price.metadata?.asr_seconds_limit || '0'))) /
+        (parseInt(product.metadata?.nlp_seconds_limit || '0') ||
+          parseInt(product.price.metadata?.nlp_seconds_limit || '0'))) /
       60
     );
   }, [adjustedQuantity, product]);
@@ -248,8 +248,8 @@ export const PlanContainer = ({
   const mtCharacters = useMemo(() => {
     return (
       adjustedQuantity *
-      (parseInt(product.metadata?.mt_characters_limit || '0') ||
-        parseInt(product.price.metadata?.mt_characters_limit || '0'))
+      (parseInt(product.metadata?.nlp_character_limit || '0') ||
+        parseInt(product.price.metadata?.nlp_character_limit || '0'))
     );
   }, [adjustedQuantity, product]);
 

@@ -336,8 +336,6 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'ownerUsername',
 ];
 
-export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = [];
-
 /**
  * The inital fields that are going to be displayed. We also use them with
  * "reset" fields button.

@@ -798,11 +798,7 @@ export interface AccountResponse {
   };
   social_accounts: SocialAccount[];
   // Organization details
-  organization?: {
-    url: string;
-    name: string;
-    uid: string;
-  };
+  organization?: {url: string};
 }
 
 export interface AccountRequest {

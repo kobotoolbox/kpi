@@ -1,4 +1,5 @@
 import copy
+from typing import Optional
 
 import requests
 from django.conf import settings
@@ -10,11 +11,12 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetFile, AssetSnapshot, PairedData
-from kpi.permissions import AssetSnapshotPermission, EditSubmissionPermission
+from kpi.permissions import EditSubmissionPermission
 from kpi.renderers import (
     OpenRosaFormListRenderer,
     OpenRosaManifestRenderer,
@@ -23,6 +25,8 @@ from kpi.renderers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.object_permission import get_database_user
+from kpi.utils.project_views import user_has_project_view_asset_perm
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
@@ -39,7 +43,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.all()
-    permission_classes = [AssetSnapshotPermission]
 
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
         XMLRenderer,
@@ -48,7 +51,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     @property
     def asset(self):
         if not hasattr(self, '_asset'):
-            self.get_object()
+            self._set_asset()
         return self._asset
 
     def filter_queryset(self, queryset):
@@ -73,10 +76,8 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             owned_snapshots = queryset.none()
             if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
-
-            return owned_snapshots | RelatedAssetPermissionsFilter().filter_queryset(
-                self.request, queryset, view=self
-            )
+            return owned_snapshots | RelatedAssetPermissionsFilter(
+                ).filter_queryset(self.request, queryset, view=self)
 
     @action(
         detail=True,
@@ -87,7 +88,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         """
         Implements part of the OpenRosa Form List API.
         This route is used by Enketo when it fetches external resources.
-        It lets us specify manifests for preview
+        It let us specify manifests for preview
         """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
@@ -100,18 +101,31 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     def get_object(self):
         try:
-            snapshot = (
-                self.queryset.select_related('asset')
-                .defer('asset__content')
-                .get(uid=self.kwargs[self.lookup_field])
-            )
-        except AssetSnapshot.DoesNotExist:
-            raise Http404
+            # Trivial case, try access the object with normal flow
+            snapshot = super().get_object()
+        except Http404 as e:
+            # If 404, fall back on project view permissions
+            try:
+                snapshot = self.queryset.select_related('asset').defer(
+                    'asset__content'
+                ).get(uid=self.kwargs[self.lookup_field])
+            except AssetSnapshot.DoesNotExist:
+                raise e
 
-        self._asset = snapshot.asset
-        self.check_object_permissions(self.request, snapshot)
+            user = get_database_user(self.request.user)
 
-        return self._add_disclaimer(snapshot)
+            if (
+                self.request.method == 'GET'
+                and user_has_project_view_asset_perm(
+                    snapshot.asset, user, PERM_VIEW_ASSET
+                )
+            ):
+                return self._add_disclaimer(snapshot)
+            else:
+                # Access to user is still denied, raise 404
+                raise Http404
+        else:
+            return self._add_disclaimer(snapshot)
 
     @action(
         detail=True,
@@ -267,5 +281,15 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         if not self.action == 'xml_with_disclaimer':
             return snapshot
 
-        # self._set_asset(snapshot)
+        self._set_asset(snapshot)
         return XMLFormWithDisclaimer(snapshot).get_object()
+
+    def _set_asset(self, snapshot: Optional[AssetSnapshot] = None):
+        if not snapshot:
+            snapshot = self.get_object()
+        # Calling `snapshot.asset.__class__` instead of `Asset` to avoid circular
+        # import
+        snapshot.asset = snapshot.asset.__class__.objects.defer(
+            'content'
+        ).get(pk=snapshot.asset_id)
+        setattr(self, '_asset', snapshot.asset)

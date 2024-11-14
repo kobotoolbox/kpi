@@ -1,3 +1,4 @@
+# coding: utf-8
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
@@ -11,7 +12,6 @@ from kpi.constants import (
 )
 from kpi.models import Asset, ObjectPermission
 from kpi.tests.kpi_test_case import KpiTestCase
-from kpi.tests.utils.mixins import PermissionAssignmentTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -50,11 +50,8 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         url = reverse(self._get_endpoint('asset-list'))
         data = {'name': 'my asset', 'content': ''}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_401_UNAUTHORIZED,
-            msg='anonymous user cannot create a asset',
-        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED,
+                         msg="anonymous user cannot create a asset")
 
 
 class ApiPermissionsPublicAssetTestCase(KpiTestCase):
@@ -661,7 +658,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class ApiAssignedPermissionsTestCase(PermissionAssignmentTestCaseMixin, KpiTestCase):
+class ApiAssignedPermissionsTestCase(KpiTestCase):
     """
     An obnoxiously large amount of code to test that the endpoint for listing
     assigned permissions complies with the following rules:
@@ -712,7 +709,9 @@ class ApiAssignedPermissionsTestCase(PermissionAssignmentTestCaseMixin, KpiTestC
                     kwargs={'username': username},
                 )
             )
-        self.assertSetEqual(set(a['user'] for a in response.data), set(user_urls))
+        self.assertSetEqual(
+            set((a['user'] for a in response.data)), set(user_urls)
+        )
 
     def test_user_sees_relevant_permissions_on_assigned_objects(self):
         # A user with explicitly-assigned permissions should see their

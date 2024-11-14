@@ -5,13 +5,15 @@ from typing import Optional
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from django.utils import timezone
-from rest_framework.reverse import reverse as drf_reverse
+from rest_framework.reverse import reverse
 
 from kpi.fields import KpiUidField
 from kpi.fields.file import PrivateExtendedFileField
-from kpi.interfaces import OpenRosaManifestInterface, SyncBackendMediaInterface
+from kpi.interfaces import (
+    OpenRosaManifestInterface,
+    SyncBackendMediaInterface,
+)
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from kpi.utils.models import DjangoModelABCMetaclass
@@ -148,17 +150,13 @@ class AssetFile(AbstractTimeStampedModel, AbstractFormMedia):
         self.set_filename()
         return self.metadata['filename']
 
-    @property
-    def download_url(self):
-        return reverse('asset-file-content', args=(self.asset.uid, self.uid))
-
     def get_download_url(self, request):
         """
         Implements `OpenRosaManifestInterface.get_download_url()`
         """
-        return drf_reverse(
-            'asset-file-content', args=(self.asset.uid, self.uid), request=request
-        )
+        return reverse('asset-file-content',
+                       args=(self.asset.uid, self.uid),
+                       request=request)
 
     @staticmethod
     def get_path(asset, file_type, filename):

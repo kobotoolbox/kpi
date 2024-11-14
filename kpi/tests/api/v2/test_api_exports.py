@@ -11,7 +11,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, SubmissionsExportTask, AssetExportSettings
+from kpi.models import Asset, ExportTask, AssetExportSettings
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -26,7 +26,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         uid = self.asset.uid if asset is None else asset.uid
         user = self.user if user is None else user
 
-        export_task = SubmissionsExportTask()
+        export_task = ExportTask()
         export_task.user = user
         export_task.data = {
             'source': reverse(

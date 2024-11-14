@@ -35,10 +35,6 @@
   }
 }
 
-// We want the button to look distinct if there are any filters enabled, so that
-// user is not confused why some of their projects might not appear on the list.
 .buttonHasFilters {
   background-color: colors.$kobo-bg-blue;
-  padding-left: 8px !important;
-  padding-right: 8px !important;
 }

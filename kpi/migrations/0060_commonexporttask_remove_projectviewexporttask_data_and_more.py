@@ -22,48 +22,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CommonExportTask',
             fields=[
-                (
-                    'id',
-                    models.AutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name='ID',
-                    ),
-                ),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('data', models.JSONField()),
                 ('messages', models.JSONField(default=dict)),
-                (
-                    'status',
-                    models.CharField(
-                        choices=[
-                            ('created', 'created'),
-                            ('processing', 'processing'),
-                            ('error', 'error'),
-                            ('complete', 'complete'),
-                        ],
-                        default='created',
-                        max_length=32,
-                    ),
-                ),
+                ('status', models.CharField(choices=[('created', 'created'), ('processing', 'processing'), ('error', 'error'), ('complete', 'complete')], default='created', max_length=32)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
-                (
-                    'result',
-                    private_storage.fields.PrivateFileField(
-                        max_length=380,
-                        storage=(
-                            private_storage.storage.files.PrivateFileSystemStorage()
-                        ),
-                        upload_to=kpi.models.import_export_task.export_upload_to,
-                    ),
-                ),
-                (
-                    'user',
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
+                ('result', private_storage.fields.PrivateFileField(max_length=380, storage=private_storage.storage.files.PrivateFileSystemStorage(), upload_to=kpi.models.import_export_task.export_upload_to)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
@@ -100,30 +65,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assetfile',
             name='content',
-            field=kpi.fields.file.PrivateExtendedFileField(
-                max_length=380,
-                null=True,
-                upload_to=kpi.models.asset_file.upload_to,
-            ),
+            field=kpi.fields.file.PrivateExtendedFileField(max_length=380, null=True, upload_to=kpi.models.asset_file.upload_to),
         ),
         migrations.CreateModel(
             name='AccessLogExportTask',
             fields=[
-                (
-                    'commonexporttask_ptr',
-                    models.OneToOneField(
-                        auto_created=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        parent_link=True,
-                        primary_key=True,
-                        serialize=False,
-                        to='kpi.commonexporttask',
-                    ),
-                ),
-                (
-                    'uid',
-                    kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='ale'),
-                ),
+                ('commonexporttask_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='kpi.commonexporttask')),
+                ('uid', kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='ale')),
                 ('get_all_logs', models.BooleanField(default=False)),
             ],
             options={
@@ -134,15 +82,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='projectviewexporttask',
             name='commonexporttask_ptr',
-            field=models.OneToOneField(
-                auto_created=True,
-                default=None,
-                on_delete=django.db.models.deletion.CASCADE,
-                parent_link=True,
-                primary_key=True,
-                serialize=False,
-                to='kpi.commonexporttask',
-            ),
+            field=models.OneToOneField(auto_created=True, default=None, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='kpi.commonexporttask'),
             preserve_default=False,
         ),
     ]

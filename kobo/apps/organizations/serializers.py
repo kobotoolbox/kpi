@@ -1,14 +1,13 @@
 from rest_framework import serializers
 
 from kobo.apps.organizations.models import (
+    create_organization,
     Organization,
     OrganizationOwner,
     OrganizationUser,
-    create_organization,
 )
 from kpi.utils.object_permission import get_database_user
-
-from .constants import ORG_EXTERNAL_ROLE
+from .constants import EXTERNAL_ORG_ROLE
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
@@ -67,4 +66,4 @@ class OrganizationSerializer(serializers.ModelSerializer):
             user = get_database_user(request.user)
             return organization.get_user_role(user)
 
-        return ORG_EXTERNAL_ROLE
+        return EXTERNAL_ORG_ROLE

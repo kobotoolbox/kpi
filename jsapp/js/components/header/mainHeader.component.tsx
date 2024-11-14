@@ -160,10 +160,9 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
           </React.Fragment>
         )}
 
-        <div className={styles.accountSection}>
-          <OrganizationBadge />
-          <AccountMenu />
-        </div>
+        <OrganizationBadge/>
+
+        <AccountMenu />
 
         {!isLoggedIn && this.renderLoginButton()}
       </MainHeaderBase>

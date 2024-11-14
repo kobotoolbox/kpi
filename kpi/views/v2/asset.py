@@ -1,3 +1,4 @@
+# coding: utf-8
 import copy
 import json
 from collections import OrderedDict, defaultdict
@@ -53,10 +54,7 @@ class AssetViewSet(
     ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
-    * Assign an asset to a collection
-      <span class='label label-warning'>
-        partially implemented
-      </span>
+    * Assign a asset to a collection <span class='label label-warning'>partially implemented</span>
     * Run a partial update of a asset <span class='label label-danger'>TODO</span>
 
     ## List of asset endpoints
@@ -394,6 +392,28 @@ class AssetViewSet(
     ]
     log_type = AuditType.PROJECT_HISTORY
 
+    def get_object_override(self):
+        if self.request.method in ['PATCH', 'GET']:
+            try:
+                asset = Asset.objects.get(uid=self.kwargs['uid'])
+            except Asset.DoesNotExist:
+                raise Http404
+
+            self.check_object_permissions(self.request, asset)
+
+            # Cope with kobotoolbox/formpack#322, which wrote invalid content
+            # into the database. For performance, consider only the current
+            # content, not previous versions. Previous versions are handled in
+            # `kobo.apps.reports.report_data.build_formpack()`
+            if self.request.method == 'GET':
+                repair_file_column_content_and_save(
+                    asset, include_versions=False
+                )
+
+            return asset
+
+        return super().get_object_override()
+
     @action(
         detail=False,
         methods=['POST'],
@@ -541,28 +561,6 @@ class AssetViewSet(
         return super().finalize_response(
             request, response, *args, **kwargs)
 
-    def get_object_override(self):
-        """
-        This `get_object` method bypasses the filter backends because the UID
-        already explicitly filters the object to be retrieved.
-        It relies on `check_object_permissions` to validate access to the object.
-        """
-        try:
-            asset = Asset.objects.get(uid=self.kwargs['uid'])
-        except Asset.DoesNotExist:
-            raise Http404
-
-        self.check_object_permissions(self.request, asset)
-
-        # Cope with kobotoolbox/formpack#322, which wrote invalid content
-        # into the database. For performance, consider only the current
-        # content, not previous versions. Previous versions are handled in
-        # `kobo.apps.reports.report_data.build_formpack()`
-        if self.request.method == 'GET':
-            repair_file_column_content_and_save(asset, include_versions=False)
-
-        return asset
-
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
@@ -708,12 +706,8 @@ class AssetViewSet(
             # 4) Get children count per asset
             # Ordering must be cleared otherwise group_by is wrong
             # (i.e. default ordered field `date_modified` must be removed)
-            records = (
-                Asset.objects.filter(parent_id__in=asset_ids)
-                .values('parent_id')
-                .annotate(children_count=Count('id'))
-                .order_by()
-            )
+            records = Asset.objects.filter(parent_id__in=asset_ids). \
+                values('parent_id').annotate(children_count=Count('id')).order_by()
 
             children_count_per_asset = {
                 r.get('parent_id'): r.get('children_count', 0)

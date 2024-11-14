@@ -1,6 +1,11 @@
 # coding: utf-8
 from hashlib import sha256
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 import reversion
 from django.apps import apps
 from django.contrib.gis.db import models
@@ -129,7 +134,7 @@ class Instance(AbstractTimeStampedModel):
             'main', 'UserProfile'
         )  # noqa - Avoid circular imports
         profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
-        if not created and profile.submissions_suspended:
+        if not created and profile.metadata.get('submissions_suspended', False):
             raise TemporarilyUnavailableError()
         return
 

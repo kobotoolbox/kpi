@@ -1,19 +1,12 @@
-// Libraries
 import React, {useState} from 'react';
-import cx from 'classnames';
-
-// Partial components
+import classNames from 'classnames';
 import Icon from 'js/components/common/icon';
 import Button from 'jsapp/js/components/common/button';
-import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
-
-// Constants and types
 import type {ProjectsTableOrder} from './projectsTable';
 import {type ProjectFieldDefinition, type ProjectFieldName} from '../projectViews/constants';
-
-// Styles
 import styles from './projectsTableHeader.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
+import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
 
 interface SortableProjectColumnHeaderProps {
   styling: boolean;
@@ -25,6 +18,7 @@ interface SortableProjectColumnHeaderProps {
   onHideFieldRequested?: (fieldName: ProjectFieldName) => void;
 }
 
+
 export default function SortableProjectColumnHeader(props: SortableProjectColumnHeaderProps) {
   // We track the menu visibility for the trigger icon.
   const [visibleMenuNames, setVisibleMenuNames] = useState<string[]>([]);
@@ -33,7 +27,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
   return (
       <div
         title={props.field.label}
-        className={cx({
+        className={classNames({
           [styles.columnRoot]: props.styling,
           [styles.isMenuVisible]: isMenuVisible,
           [rowStyles.cell]: props.styling,

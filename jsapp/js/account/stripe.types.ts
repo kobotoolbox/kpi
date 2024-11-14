@@ -180,14 +180,9 @@ export type LimitAmount = number | 'unlimited';
 
 export interface AccountLimit {
   submission_limit: LimitAmount;
-  asr_seconds_limit: LimitAmount;
-  mt_characters_limit: LimitAmount;
+  nlp_seconds_limit: LimitAmount;
+  nlp_character_limit: LimitAmount;
   storage_bytes_limit: LimitAmount;
-}
-
-export interface AccountLimitDetail {
-  recurringLimits: AccountLimit;
-  remainingLimits: AccountLimit;
 }
 
 export interface Checkout {
@@ -222,28 +217,3 @@ export type ChangePlan =
   | {
       status: ChangePlanStatus.error;
     };
-
-export interface OneTimeAddOn {
-  id: string;
-  created: string;
-  is_available: boolean;
-  usage_limits: Partial<OneTimeUsageLimits>;
-  total_usage_limits: Partial<OneTimeUsageLimits>;
-  limits_remaining: Partial<OneTimeUsageLimits>;
-  organization: string;
-  product: string;
-  quantity: number;
-}
-
-export interface OneTimeUsageLimits {
-  submission_limit: number;
-  asr_seconds_limit: number;
-  mt_characters_limit: number;
-}
-
-export enum USAGE_TYPE {
-  'SUBMISSIONS',
-  'TRANSCRIPTION',
-  'TRANSLATION',
-  'STORAGE',
-}

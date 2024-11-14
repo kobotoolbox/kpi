@@ -1,24 +1,29 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
-import type {
+import {
   Price,
   Organization,
   Product,
+  SubscriptionChangeType,
   SubscriptionInfo,
-  OneTimeAddOn,
 } from 'js/account/stripe.types';
-import {isAddonProduct} from 'js/account/stripe.utils';
-import styles from './addOnList.module.scss';
-import {OneTimeAddOnRow} from 'js/account/add-ons/oneTimeAddOnRow.component';
-import type {BadgeColor} from 'jsapp/js/components/common/badge';
-import Badge from 'jsapp/js/components/common/badge';
+import {
+  getSubscriptionChangeDetails,
+  isAddonProduct,
+  isChangeScheduled,
+  isRecurringAddonProduct,
+  processCheckoutResponse,
+} from 'js/account/stripe.utils';
 import {formatDate} from 'js/utils';
-import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
-import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
+import {postCustomerPortal} from 'js/account/stripe.api';
+import styles from './addOnList.module.scss';
+import BillingButton from 'js/account/plans/billingButton.component';
+import Badge, {BadgeColor} from 'js/components/common/badge';
 
 /**
- * A table of add-on products along with dropdowns to purchase them.
+ * A table of add-on products along with buttons to purchase/manage them.
+ * @TODO Until one-time add-ons are complete, this only displays recurring add-ons.
  */
 const AddOnList = (props: {
   products: Product[];
@@ -37,17 +42,6 @@ const AddOnList = (props: {
     SubscriptionInfo[]
   >([]);
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([]);
-  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
-  const areOneTimeAddonsEnabled = useFeatureFlag(FeatureFlag.oneTimeAddonsEnabled);
-  const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns;
-  const oneTimeAddOnProducts = addOnProducts.filter(
-    (product) => product.metadata.product_type === 'addon_onetime'
-  );
-  const recurringAddOnProducts = addOnProducts.filter(
-    (product) => product.metadata.product_type === 'addon'
-  );
-  const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length;
-  const showOneTimeAddons = areOneTimeAddonsEnabled && !!oneTimeAddOnProducts.length;
 
   /**
    * Extract the add-on products and prices from the list of all products
@@ -57,7 +51,9 @@ const AddOnList = (props: {
       return;
     }
     const addonProducts = props.products
-      .filter((product) => isAddonProduct(product))
+      .filter(isAddonProduct)
+      // TODO: remove the next line when one-time add-ons are ready
+      .filter(isRecurringAddonProduct)
       .map((product) => {
         return {
           ...product,
@@ -66,6 +62,18 @@ const AddOnList = (props: {
       });
     setAddOnProducts(addonProducts);
   }, [props.products]);
+
+  const currentAddon = useMemo(() => {
+    if (subscriptionStore.addOnsResponse.length) {
+      return subscriptionStore.addOnsResponse[0];
+    } else {
+      return null;
+    }
+  }, [subscriptionStore.isInitialised]);
+
+  const subscriptionUpdate = useMemo(() => {
+    return getSubscriptionChangeDetails(currentAddon, props.products);
+  }, [currentAddon, props.products]);
 
   useWhen(
     () => subscriptionStore.isInitialised,
@@ -77,166 +85,127 @@ const AddOnList = (props: {
     []
   );
 
-  if (!addOnProducts.length || !props.organization) {
+  const isSubscribedAddOnPrice = useCallback(
+    (price: Price) =>
+      isChangeScheduled(price, activeSubscriptions) ||
+      subscribedAddOns.some(
+        (subscription) => subscription.items[0].price.id === price.id
+      ),
+    [subscribedAddOns]
+  );
+
+  const handleCheckoutError = () => {
+    props.setIsBusy(false);
+  };
+
+  const onClickManage = (price?: Price) => {
+    if (!props.organization || props.isBusy) {
+      return;
+    }
+    props.setIsBusy(true);
+    postCustomerPortal(props.organization.id, price?.id)
+      .then(processCheckoutResponse)
+      .catch(handleCheckoutError);
+  };
+
+  const renderUpdateBadge = (price: Price) => {
+    if (!(subscriptionUpdate && isSubscribedAddOnPrice(price))) {
+      return null;
+    }
+
+    let color: BadgeColor;
+    let label;
+    switch (subscriptionUpdate.type) {
+      case SubscriptionChangeType.CANCELLATION:
+        color = 'light-red';
+        label = t('Ends on ##cancel_date##').replace(
+          '##cancel_date##',
+          formatDate(subscriptionUpdate.date)
+        );
+        break;
+      case SubscriptionChangeType.RENEWAL:
+        color = 'light-blue';
+        label = t('Renews on ##renewal_date##').replace(
+          '##renewal_date##',
+          formatDate(subscriptionUpdate.date)
+        );
+        break;
+      case SubscriptionChangeType.PRODUCT_CHANGE:
+        if (currentAddon?.items[0].price.product.id === price.product) {
+          color = 'light-amber';
+          label = t('Ends on ##end_date##').replace(
+            '##end_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        } else {
+          color = 'light-teal';
+          label = t('Starts on ##start_date##').replace(
+            '##start_date##',
+            formatDate(subscriptionUpdate.date)
+          );
+        }
+        break;
+      default:
+        return null;
+    }
+    return <Badge size={'s'} color={color} label={label} />;
+  };
+
+  if (!addOnProducts.length || subscribedPlans.length || !props.organization) {
     return null;
   }
 
-  function ActivePreviousAddons(
-    addOns: SubscriptionInfo[],
-    oneTimeAddOns: OneTimeAddOn[],
-    activeStatus: string,
-    available: boolean,
-    label: string,
-    badgeLabel: string,
-    color: BadgeColor
-  ) {
-    return (
-      <table className={styles.table}>
-        <caption className={`${styles.caption} ${styles.purchasedAddOns}`}>
-          <label className={styles.header}>{label}</label>
-        </caption>
-        <tbody>
-          {addOns.map((product) => {
-            if (product.status === activeStatus) {
-              return (
-                <tr className={styles.row} key={product.id}>
-                  <td className={styles.product}>
-                    <span className={styles.productName}>
-                      {product.items[0].price.product.name}
-                    </span>
-                    <Badge color={color} size={'s'} label={badgeLabel} />
-                    <p className={styles.description}>
-                      {t('Added on ##date##').replace(
-                        '##date##',
-                        formatDate(product.created)
-                      )}
-                    </p>
-                  </td>
-                  <td className={styles.activePrice}>
-                    {product.items[0].price.human_readable_price
-                      .replace('USD/month', '')
-                      .replace('USD/year', '')}
-                  </td>
-                </tr>
-              );
-            }
-            return null;
-          })}
-          {oneTimeAddOns.map((oneTimeAddOn: OneTimeAddOn) => {
-            if (oneTimeAddOn.is_available === available) {
-              return (
-                <tr className={styles.row} key={oneTimeAddOn.id}>
-                  <td className={styles.product}>
-                    <span className={styles.productName}>
-                      {t('##name## x ##quantity##')
-                        .replace(
-                          '##name##',
-                          oneTimeAddOnProducts.find(
-                            (product) => product.id === oneTimeAddOn.product
-                          )?.name || label
-                        )
-                        .replace(
-                          '##quantity##',
-                          oneTimeAddOn.quantity.toString()
-                        )}
-                    </span>
-                    <Badge color={color} size={'s'} label={badgeLabel} />
-                    <p className={styles.addonDescription}>
-                      {t('Added on ##date##').replace(
-                        '##date##',
-                        formatDate(oneTimeAddOn.created)
-                      )}
-                    </p>
-                  </td>
-                  <td className={styles.activePrice}>
-                    {'$##price##'.replace(
-                      '##price##',
-                      (
-                        (oneTimeAddOn.quantity *
-                          (oneTimeAddOnProducts.find(
-                            (product) => product.id === oneTimeAddOn.product
-                          )?.prices[0].unit_amount || 0)) /
-                        100
-                      ).toFixed(2)
-                    )}
-                  </td>
-                </tr>
-              );
-            }
-            return null;
-          })}
-        </tbody>
-      </table>
-    );
-  }
   return (
-    <>
-      <table className={styles.table}>
-        <caption className={styles.caption}>
-          <label className={styles.header}>{t('available add-ons')}</label>
-          <p>
-            {t(
-              `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
-              have reached the usage limits included with your plan, increase your limits with add-ons to continue
-              data collection.`
-            )}
-          </p>
-        </caption>
-        <tbody>
-          {showRecurringAddons && (
-            <OneTimeAddOnRow
-              key={recurringAddOnProducts.map((product) => product.id).join('-')}
-              products={recurringAddOnProducts}
-              isBusy={props.isBusy}
-              setIsBusy={props.setIsBusy}
-              subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
-              organization={props.organization}
-            />
+    <table className={styles.table}>
+      <caption className={styles.caption}>
+        <label className={styles.header}>{t('available add-ons')}</label>
+        <p>
+          {t(
+            `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
+            have reached the usage limits included with your plan, increase your limits with add-ons to continue
+            data collection.`
           )}
-          {showOneTimeAddons && (
-            <OneTimeAddOnRow
-              key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
-              products={oneTimeAddOnProducts}
-              isBusy={props.isBusy}
-              setIsBusy={props.setIsBusy}
-              subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
-              organization={props.organization}
-            />
-          )}
-        </tbody>
-      </table>
-      {subscribedAddOns.some((product) => product.status === 'active') ||
-      oneTimeAddOnSubscriptions.some(
-        (oneTimeAddOns) => oneTimeAddOns.is_available
-      )
-        ? ActivePreviousAddons(
-            subscribedAddOns,
-            oneTimeAddOnSubscriptions,
-            'active',
-            true,
-            t('your active add-ons'),
-            t('Active'),
-            'light-teal'
-          )
-        : null}
+        </p>
+      </caption>
+      <tbody>
+        {addOnProducts.map((product) =>
+          product.prices.map((price) => (
+            <tr key={price.id}>
+              <td>
+                <div className={styles.productAndPrice}>
+                  <div>
+                    <span className={styles.productName}>{product.name}</span>
+                    {renderUpdateBadge(price)}
+                  </div>
+                  <div className={styles.price}>{price.human_readable_price}</div>
+                </div>
+              </td>
 
-      {subscribedAddOns.some((product) => product.status !== 'active') ||
-      oneTimeAddOnSubscriptions.some(
-        (oneTimeAddOns) => !oneTimeAddOns.is_available
-      )
-        ? ActivePreviousAddons(
-            subscribedAddOns,
-            oneTimeAddOnSubscriptions,
-            'inactive',
-            false,
-            t('previous add-ons'),
-            t('Inactive'),
-            'light-storm'
-          )
-        : null}
-    </>
+              <td className={styles.buy}>
+                {isSubscribedAddOnPrice(price) && (
+                  <BillingButton
+                    size={'m'}
+                    label={t('Manage')}
+                    isDisabled={props.isBusy}
+                    onClick={onClickManage}
+                    isFullWidth
+                  />
+                )}
+                {!isSubscribedAddOnPrice(price) && (
+                  <BillingButton
+                    size={'m'}
+                    label={t('Buy now')}
+                    isDisabled={props.isBusy}
+                    onClick={() => props.onClickBuy(price)}
+                    isFullWidth
+                  />
+                )}
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
   );
 };
 

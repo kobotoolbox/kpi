@@ -1,4 +1,3 @@
-from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -43,7 +42,9 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert (
             response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
         )
-        assert response.data['total_storage_bytes'] == self.expected_file_size()
+        assert (
+            response.data['total_storage_bytes'] == self.expected_file_size()
+        )
 
     def test_multiple_forms(self):
         """
@@ -64,9 +65,6 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
             self.expected_file_size() * 3
         )
 
-    @override_settings(
-        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
-    )
     def test_service_usages_with_projects_in_trash_bin(self):
         self.test_multiple_forms()
         # Simulate trash bin

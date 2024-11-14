@@ -22,7 +22,8 @@ export interface EnvironmentResponse {
   transcription_languages: TransxLanguages;
   translation_languages: TransxLanguages;
   submission_placeholder: string;
-  use_team_label: boolean;
+  // TODO: Remove optional marker when PR#5182 is merged
+  use_team_label?: boolean;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
@@ -214,7 +215,8 @@ class EnvStore {
     this.data.project_metadata_fields = response.project_metadata_fields;
     this.data.user_metadata_fields = response.user_metadata_fields;
     this.data.submission_placeholder = response.submission_placeholder;
-    this.data.use_team_label = response.use_team_label;
+    // TODO: Assign response value when PR#5182 is merged
+    this.data.use_team_label = true;
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_per_user_availability = response.mfa_per_user_availability;

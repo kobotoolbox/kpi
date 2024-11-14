@@ -5,14 +5,14 @@ from rest_framework import exceptions, serializers, status
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
-from kpi.models import Asset,  SubmissionsExportTask
+from kpi.models import Asset, ExportTask
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.models import remove_string_prefix, resolve_url_to_asset
+from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
-class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
+class ExportTaskViewSet(NoUpdateModelViewSet):
     """
     ## This document is for a deprecated version of kpi's API.
 
@@ -36,8 +36,7 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     > List can be filtered through the following methods:
 
     * Source URL or UID if `q=source:[URL|UID]`;
-    * Comma-separated list of `SubmissionsExportTask` UIDs if
-    `q=uid__in:[UID],[UID],...` was provided
+    * Comma-separated list of `ExportTask` UIDs if `q=uid__in:[UID],[UID],...` was provided
     * Data source URL if `q=data__source:[URL]`
 
     > Examples:
@@ -131,21 +130,20 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
 
     ### CURRENT ENDPOINT
     """
-    queryset = SubmissionsExportTask.objects.all()
+    queryset = ExportTask.objects.all()
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
-    log_type = 'project-history'
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:
-            return SubmissionsExportTask.objects.none()
+            return ExportTask.objects.none()
 
-        queryset = SubmissionsExportTask.objects.filter(
+        queryset = ExportTask.objects.filter(
             user=self.request.user).order_by('date_created')
 
         # Ultra-basic filtering by:
         # * source URL or UID if `q=source:[URL|UID]` was provided;
-        # * comma-separated list of `SubmissionsExportTask` UIDs if
+        # * comma-separated list of `ExportTask` UIDs if
         #   `q=uid__in:[UID],[UID],...` was provided
         q = self.request.query_params.get('q', False)
         if not q:
@@ -167,7 +165,7 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
         else:
             # Filter requested that we don't understand; make it obvious by
             # returning nothing
-            return SubmissionsExportTask.objects.none()
+            return ExportTask.objects.none()
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -200,22 +198,20 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
         except Asset.DoesNotExist:
             raise serializers.ValidationError(
                 {'source': 'The specified asset does not exist.'})
-        request._request.updated_data = {'asset_id': source.id, 'asset_uid': source.uid}
         # Complain if it's not deployed
         if not source.has_deployment:
             raise serializers.ValidationError(
                 {'source': 'The specified asset must be deployed.'})
         # Create a new export task
-        export_task = SubmissionsExportTask.objects.create(
-            user=request.user, data=task_data
-        )
+        export_task = ExportTask.objects.create(user=request.user,
+                                                data=task_data)
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)
         return Response({
             'uid': export_task.uid,
             'url': reverse(
-                'submissionsexporttask-detail',
+                'exporttask-detail',
                 kwargs={'uid': export_task.uid},
                 request=request),
-            'status': SubmissionsExportTask.PROCESSING
+            'status': ExportTask.PROCESSING
         }, status.HTTP_201_CREATED)

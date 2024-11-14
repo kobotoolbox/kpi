@@ -10,11 +10,21 @@ class ServiceHealthTestCase(TestCase):
     @responses.activate
     def test_service_health(self):
         responses.add(responses.GET, settings.ENKETO_INTERNAL_URL, status=200)
+        responses.add(
+            responses.GET,
+            settings.KOBOCAT_INTERNAL_URL + '/legacy/service_health/',
+            status=200,
+        )
         res = self.client.get(self.url)
         self.assertContains(res, 'OK')
 
     @responses.activate
     def test_service_health_failure(self):
         responses.add(responses.GET, settings.ENKETO_INTERNAL_URL, status=500)
+        responses.add(
+            responses.GET,
+            settings.KOBOCAT_INTERNAL_URL + '/legacy/service_health/',
+            status=200,
+        )
         res = self.client.get(self.url)
         self.assertContains(res, 'HTTPError', status_code=500)

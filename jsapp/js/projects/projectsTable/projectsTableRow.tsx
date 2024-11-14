@@ -1,30 +1,21 @@
-// Libraries
 import React from 'react';
 import {Link} from 'react-router-dom';
-import cx from 'classnames';
-
-// Partial components
-import Badge from 'js/components/common/badge';
-import Avatar from 'js/components/common/avatar';
-import AssetName from 'js/components/common/assetName';
-import AssetStatusBadge from 'js/components/common/assetStatusBadge';
-import Checkbox from 'js/components/common/checkbox';
-
-// Stores, hooks and utilities
-import {formatTime} from 'js/utils';
-import assetUtils, {isSelfOwned} from 'js/assetUtils';
-
-// Constants and types
 import {ROUTES} from 'js/router/routerConstants';
 import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
 import type {
   ProjectFieldName,
   ProjectFieldDefinition,
 } from 'js/projects/projectViews/constants';
+import Badge from 'js/components/common/badge';
+import Avatar from 'js/components/common/avatar';
+import AssetName from 'js/components/common/assetName';
+import AssetStatusBadge from 'js/components/common/assetStatusBadge';
+import {formatTime} from 'js/utils';
 import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
-
-// Styles
+import assetUtils, {isSelfOwned} from 'js/assetUtils';
 import styles from './projectsTableRow.module.scss';
+import classNames from 'classnames';
+import Checkbox from 'js/components/common/checkbox';
 
 interface ProjectsTableRowProps {
   asset: AssetResponse | ProjectViewAsset;
@@ -119,7 +110,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   };
 
   return (
-    <div className={cx(styles.row, styles.rowTypeProject)}>
+    <div className={classNames(styles.row, styles.rowTypeProject)}>
       {/* First column is always visible and displays a checkbox. */}
       <div
         className={styles.cell}
@@ -148,7 +139,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
 
         return (
           <div
-            className={cx({
+            className={classNames({
               [styles.cell]: true,
               [styles.cellHighlighted]: props.highlightedFields.includes(
                 field.name

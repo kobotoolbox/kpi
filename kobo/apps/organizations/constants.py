@@ -1,4 +1,4 @@
-ORG_ADMIN_ROLE = 'admin'
-ORG_EXTERNAL_ROLE = 'external'
-ORG_MEMBER_ROLE = 'member'
-ORG_OWNER_ROLE = 'owner'
+ADMIN_ORG_ROLE = 'admin'
+EXTERNAL_ORG_ROLE = 'external'
+MEMBER_ORG_ROLE = 'member'
+OWNER_ORG_ROLE = 'owner'
