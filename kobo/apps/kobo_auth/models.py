@@ -6,7 +6,7 @@ from kobo.apps.openrosa.libs.constants import (
     OPENROSA_APP_LABELS,
 )
 from kobo.apps.openrosa.libs.permissions import get_model_permission_codenames
-from kobo.apps.organizations.models import create_organization, Organization
+from kobo.apps.organizations.models import Organization, create_organization
 from kpi.utils.database import update_autofield_sequence, use_db
 from kpi.utils.permissions import is_user_anonymous
 
@@ -57,9 +57,11 @@ class User(AbstractUser):
             return
 
         # Database allows multiple organizations per user, but we restrict it to one.
-        if organization := Organization.objects.filter(
-            organization_users__user=self
-        ).first():
+        if (
+            organization := Organization.objects.filter(organization_users__user=self)
+            .order_by('-organization_users__created')
+            .first()
+        ):
             return organization
 
         try:

@@ -8,12 +8,13 @@ import cx from 'classnames';
 import Icon from 'js/components/common/icon';
 import KoboDropdown from 'js/components/common/koboDropdown';
 
-// Stores
+// Stores and hooks
 import projectViewsStore from './projectViewsStore';
+import {useOrganizationQuery} from 'js/account/stripe.api';
 
 // Constants
 import {PROJECTS_ROUTES} from 'js/router/routerConstants';
-import {HOME_VIEW} from './constants';
+import {HOME_VIEW, ORG_VIEW} from './constants';
 
 // Styles
 import styles from './viewSwitcher.module.scss';
@@ -32,11 +33,14 @@ function ViewSwitcher(props: ViewSwitcherProps) {
   // We track the menu visibility for the trigger icon.
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [projectViews] = useState(() => projectViewsStore);
+  const orgQuery = useOrganizationQuery();
   const navigate = useNavigate();
 
   const onOptionClick = (viewUid: string) => {
     if (viewUid === HOME_VIEW.uid || viewUid === null) {
       navigate(PROJECTS_ROUTES.MY_PROJECTS);
+    } else if (viewUid === ORG_VIEW.uid) {
+      navigate(PROJECTS_ROUTES.MY_ORG_PROJECTS);
     } else {
       navigate(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', viewUid));
       // The store keeps a number of assets of each view, and that number
@@ -45,8 +49,16 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     }
   };
 
+  const hasMultipleOptions = (
+    projectViews.views.length !== 0 ||
+    orgQuery.data?.is_mmo
+  );
+  const organizationName = orgQuery.data?.name || t('Organization');
+
   let triggerLabel = HOME_VIEW.name;
-  if (props.selectedViewUid !== HOME_VIEW.uid) {
+  if (props.selectedViewUid === ORG_VIEW.uid) {
+    triggerLabel = ORG_VIEW.name.replace('##organization name##', organizationName);
+  } else if (props.selectedViewUid !== HOME_VIEW.uid) {
     triggerLabel = projectViews.getView(props.selectedViewUid)?.name || '-';
   }
 
@@ -55,9 +67,9 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     return null;
   }
 
-  // If there are no custom views defined, there's no point in displaying
-  // the dropdown, we will display a "simple" header.
-  if (projectViews.views.length === 0) {
+  // If there is only one option in the switcher, there is no point in making
+  // this piece of UI interactive. We display a "simple" header instead.
+  if (!hasMultipleOptions) {
     return (
       <button
         className={cx(styles.trigger, styles.triggerSimple)}
@@ -96,6 +108,18 @@ function ViewSwitcher(props: ViewSwitcherProps) {
             >
               {HOME_VIEW.name}
             </button>
+
+            {/* This is the organization view option - depends if user is in MMO
+            organization */}
+            {orgQuery.data?.is_mmo &&
+              <button
+                key={ORG_VIEW.uid}
+                className={styles.menuOption}
+                onClick={() => onOptionClick(ORG_VIEW.uid)}
+              >
+                {ORG_VIEW.name.replace('##organization name##', organizationName)}
+              </button>
+            }
 
             {/* This is the list of all options for custom views. These are only
             being added if custom views are defined (at least one). */}

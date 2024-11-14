@@ -6,13 +6,12 @@ from kpi.mixins.validation_password_permission import ValidationPasswordPermissi
 from kpi.utils.object_permission import get_database_user
 
 
-class IsOrgAdmin(
-    ValidationPasswordPermissionMixin, permissions.BasePermission
-):
+class IsOrgAdmin(ValidationPasswordPermissionMixin, permissions.BasePermission):
     """
     Object-level permission to only allow admin members of an object to access it.
     Assumes the model instance has an `is_admin` attribute.
     """
+
     def has_permission(self, request, view):
         self.validate_password(request)
         return super().has_permission(request=request, view=view)

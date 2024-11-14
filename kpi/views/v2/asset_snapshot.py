@@ -74,11 +74,8 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
 
-            return (
-                owned_snapshots
-                | RelatedAssetPermissionsFilter().filter_queryset(
-                    self.request, queryset, view=self
-                )
+            return owned_snapshots | RelatedAssetPermissionsFilter().filter_queryset(
+                self.request, queryset, view=self
             )
 
     @action(
@@ -103,9 +100,11 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     def get_object(self):
         try:
-            snapshot = self.queryset.select_related('asset').defer(
-                'asset__content'
-            ).get(uid=self.kwargs[self.lookup_field])
+            snapshot = (
+                self.queryset.select_related('asset')
+                .defer('asset__content')
+                .get(uid=self.kwargs[self.lookup_field])
+            )
         except AssetSnapshot.DoesNotExist:
             raise Http404
 

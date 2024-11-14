@@ -52,7 +52,7 @@ export const router = createHashRouter(
         element={<Navigate to={ROUTES.FORMS} replace />}
       />
       <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
-      <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
+      {projectsRoutes()}
       <Route path={ROUTES.LIBRARY}>
         <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />
         <Route
