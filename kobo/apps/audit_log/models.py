@@ -351,7 +351,8 @@ class ProjectHistoryLog(AuditLog):
             'undelete': AuditAction.UNDELETE,
         }
         audit_action = bulk_action_to_audit_action[payload.get('action')]
-        if audit_action is None: # Unsupported action
+        if audit_action is None:
+            # Unsupported action
             return
 
         source = get_human_readable_client_user_agent(request)

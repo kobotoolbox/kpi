@@ -890,24 +890,30 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     )
     @unpack
     def test_bulk_archive(self, bulk_action, audit_action):
-        assets = [
-            Asset.objects.create(content={'survey': [
-                {'type': 'text',
-                'label': 'Question 1',
-                'name': 'q1',
-                '$kuid': 'abc'},
-            ]}, owner=self.user, asset_type='survey')
-            for i in range(0,2)
-        ]
+        assets = [(
+            Asset.objects.create(
+                content={
+                    'survey': [
+                        {
+                            'type': 'text',
+                            'label': 'Question 1',
+                            'name': 'q1',
+                            '$kuid': 'abc',
+                        },
+                    ]
+                },
+                owner=self.user,
+                asset_type='survey',
+            )
+            for i in range(0, 2)
+        )]
         for asset in assets:
             asset.deploy(backend='mock', active=True)
 
-        someuser = User.objects.get(username='someuser')
         uids = [asset.uid for asset in assets]
 
-        response = self._make_bulk_request(uids, bulk_action)
+        self._make_bulk_request(uids, bulk_action)
         archived_logs = ProjectHistoryLog.objects.filter(
-            object_id__in=[asset.id for asset in assets],
-            action=audit_action
+            object_id__in=[asset.id for asset in assets], action=audit_action
         )
         self.assertEqual(archived_logs.count(), 2)
