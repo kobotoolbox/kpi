@@ -15,6 +15,7 @@ import redis.exceptions
 import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db.models import F, Sum
@@ -61,16 +62,17 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
+from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -731,7 +733,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+        return (
+            self.xform.mongo_uuid
+            or f'{self.asset.owner.username}_{self.xform_id_string}'
+        )
 
     @staticmethod
     def nlp_tracking_data(
@@ -846,13 +851,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
         asset_uid = self.asset.uid
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-
         try:
+            enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}',
             )
+        except InvalidCacheBackendError:
+            # TODO: This handles the case when the cache is disabled and
+            # get_redis_connection fails, though we may need better error handling here
+            pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
             pass
@@ -958,6 +966,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             'openRosaServer',
             server_url,
         )
+
+    def set_mongo_uuid(self):
+        """
+        Set the `mongo_uuid` for the associated XForm if it's not already set.
+        """
+        if not self.xform.mongo_uuid:
+            self.xform.mongo_uuid = KpiUidField.generate_unique_id()
+            self.xform.save(update_fields=['mongo_uuid'])
 
     def set_validation_status(
         self,
@@ -1218,6 +1234,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'attachment_storage_bytes',
                 'require_auth',
                 'uuid',
+                'mongo_uuid',
             )
             .select_related('user')  # Avoid extra query to validate username below
             .first()
@@ -1246,19 +1263,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     @contextmanager
     def suspend_submissions(user_ids: list[int]):
         UserProfile.objects.filter(user_id__in=user_ids).update(
-            metadata=UpdateJSONFieldAttributes(
-                'metadata',
-                updates={'submissions_suspended': True},
-            ),
+            submissions_suspended=True
         )
         try:
             yield
         finally:
             UserProfile.objects.filter(user_id__in=user_ids).update(
-                metadata=UpdateJSONFieldAttributes(
-                    'metadata',
-                    updates={'submissions_suspended': False},
-                ),
+                submissions_suspended=False
             )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:

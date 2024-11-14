@@ -19,11 +19,12 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.mixins import PermissionAssignmentTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
 
-class BaseApiAssetPermissionTestCase(KpiTestCase):
+class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

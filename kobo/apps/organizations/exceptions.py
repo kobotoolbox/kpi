@@ -1,0 +1,2 @@
+class NotMultiMemberOrganizationException(Exception):
+    pass

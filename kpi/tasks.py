@@ -14,18 +14,19 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ExportTask, ImportTask
+from kpi.models.import_export_task import SubmissionsExportTask, ImportTask
 
 
 @celery_app.task
 def import_in_background(import_task_uid):
     import_task = ImportTask.objects.get(uid=import_task_uid)
     import_task.run()
+    return import_task.uid
 
 
 @celery_app.task
 def export_in_background(export_task_uid):
-    export_task = ExportTask.objects.get(uid=export_task_uid)
+    export_task = SubmissionsExportTask.objects.get(uid=export_task_uid)
     export_task.run()
 
 

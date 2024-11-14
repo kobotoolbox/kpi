@@ -1,9 +1,10 @@
+from unittest.mock import patch
+from urllib.parse import urlencode
+
 from django.urls import reverse
-from djstripe.models import Customer, Subscription, Price, Product
+from djstripe.models import Customer, Price, Product, Subscription
 from model_bakery import baker
 from rest_framework import status
-from urllib.parse import urlencode
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -28,12 +29,13 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         return f'{url}?{urlencode(query_params)}'
 
     def _create_stripe_data(self, create_subscription=True, product_type='plan'):
-        self.organization = baker.make(Organization, id='orgSALFMLFMSDGmgdlsgmsd')
-        self.customer = baker.make(Customer, subscriber=self.organization, livemode=False)
-        self.product = baker.make(
-            Product,
-            metadata={'product_type': product_type}
+        self.organization = baker.make(
+            Organization, id='orgSALFMLFMSDGmgdlsgmsd', mmo_override=True
         )
+        self.customer = baker.make(
+            Customer, subscriber=self.organization, livemode=False
+        )
+        self.product = baker.make(Product, metadata={'product_type': product_type})
         self.price = baker.make(
             Price,
             product=self.product,

@@ -18,6 +18,7 @@ except ImportError:
     from backports.zoneinfo import ZoneInfo
 
 import constance
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -26,13 +27,6 @@ from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
-import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -43,6 +37,12 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -134,7 +134,7 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
-        except ExportTaskBase.InaccessibleData as e:
+        except SubmissionsExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
             msgs['error'] = str(e)
             self.status = self.ERROR
@@ -291,7 +291,6 @@ class ImportTask(ImportExportTask):
             # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
-
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=filename,
@@ -354,7 +353,8 @@ class ImportTask(ImportExportTask):
                             'uid': asset.uid,
                             'kind': 'asset',
                             'owner__username': self.user.username,
-                        })
+                        }
+                    )
 
             if item.parent:
                 collections_to_assign.append([
@@ -444,8 +444,21 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
+                old_name = asset.name
+                # saving sometimes changes the name
                 asset.save()
                 msg_key = 'updated'
+                messages['audit_logs'].append(
+                    {
+                        'asset_uid': asset.uid,
+                        'asset_id': asset.id,
+                        'latest_version_uid': asset.latest_version.uid,
+                        'ip_address': self.data.get('ip_address', None),
+                        'source': self.data.get('source', None),
+                        'old_name': old_name,
+                        'new_name': asset.name,
+                    }
+                )
 
             messages[msg_key].append({
                 'uid': asset.uid,
@@ -507,8 +520,14 @@ class AccessLogExportTask(CommonExportTask):
             raise PermissionError('Only superusers can export all access logs.')
 
         export_type, view = self._get_export_details()
-        buff = create_data_export(export_type, self.user.username, self.uid, self.get_all_logs)
+        buff = create_data_export(
+            export_type,
+            self.user.username,
+            self.uid,
+            self.get_all_logs
+        )
         self._run_task_base(messages, buff)
+
 
 class ProjectViewExportTask(CommonExportTask):
     uid = KpiUidField(uid_prefix='pve')
@@ -519,7 +538,7 @@ class ProjectViewExportTask(CommonExportTask):
         self._run_task_base(messages, buff)
 
 
-class ExportTaskBase(ImportExportTask):
+class SubmissionsExportTaskBase(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -820,6 +839,16 @@ class ExportTaskBase(ImportExportTask):
         else:
             self.save(update_fields=['result', 'last_submission_time'])
 
+    @property
+    def asset(self):
+        source_url = self.data.get('source', False)
+        if not source_url:
+            raise Exception('no source specified for the export')
+        try:
+            return resolve_url_to_asset(source_url)
+        except Asset.DoesNotExist:
+            raise self.InaccessibleData
+
     def delete(self, *args, **kwargs):
         # removing exported file from storage
         self.result.delete(save=False)
@@ -837,13 +866,7 @@ class ExportTaskBase(ImportExportTask):
         submission_ids = self.data.get('submission_ids', [])
 
         if source is None:
-            source_url = self.data.get('source', False)
-            if not source_url:
-                raise Exception('no source specified for the export')
-            try:
-                source = resolve_url_to_asset(source_url)
-            except Asset.DoesNotExist:
-                raise self.InaccessibleData
+            source = self.asset
 
         source_perms = source.get_perms(self.user)
         if (
@@ -945,7 +968,7 @@ class ExportTaskBase(ImportExportTask):
             export.delete()
 
 
-class ExportTask(ExportTaskBase):
+class SubmissionsExportTask(SubmissionsExportTaskBase):
     """
     An asynchronous export task, to be run with Celery
     """
@@ -966,7 +989,7 @@ class ExportTask(ExportTaskBase):
         self.remove_excess(self.user, source_url)
 
 
-class SynchronousExport(ExportTaskBase):
+class SubmissionsSynchronousExport(SubmissionsExportTaskBase):
     """
     A synchronous export, with significant limitations on processing time, but
     offered for user convenience

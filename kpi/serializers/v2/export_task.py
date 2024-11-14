@@ -28,7 +28,7 @@ from formpack.constants import (
 )
 
 from kpi.fields import ReadOnlyJSONField
-from kpi.models import ExportTask, Asset
+from kpi.models import SubmissionsExportTask, Asset
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 from kpi.utils.object_permission import get_database_user
@@ -40,7 +40,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     data = ReadOnlyJSONField()
 
     class Meta:
-        model = ExportTask
+        model = SubmissionsExportTask
         fields = (
             'url',
             'status',
@@ -58,10 +58,10 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             'result',
         )
 
-    def create(self, validated_data: dict) -> ExportTask:
+    def create(self, validated_data: dict) -> SubmissionsExportTask:
         # Create a new export task
         user = get_database_user(self._get_request.user)
-        export_task = ExportTask.objects.create(
+        export_task = SubmissionsExportTask.objects.create(
             user=user, data=validated_data
         )
         # Have Celery run the export in the background
@@ -262,7 +262,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             )
         return export_type
 
-    def get_url(self, obj: ExportTask) -> str:
+    def get_url(self, obj: SubmissionsExportTask) -> str:
         return reverse(
             'asset-export-detail',
             args=(self._get_asset.uid, obj.uid),
@@ -276,4 +276,3 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     @property
     def _get_request(self) -> Request:
         return self.context['request']
-
