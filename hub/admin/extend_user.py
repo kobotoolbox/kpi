@@ -25,6 +25,7 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models.asset import AssetDeploymentStatus
+
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -87,8 +88,10 @@ class OrgInline(admin.StackedInline):
         'organization',
         'is_admin',
     ]
+    can_delete = False
+    # Override H2 style to make inline section like other fieldsets
+    classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
-    readonly_fields = settings.STRIPE_ENABLED and ('active_subscription_status',) or []
 
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
@@ -97,6 +100,12 @@ class OrgInline(admin.StackedInline):
                 if obj.active_subscription_status
                 else 'None'
             )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = ['organization', 'is_admin']
+        if settings.STRIPE_ENABLED:
+            readonly_fields.append('active_subscription_status')
+        return readonly_fields
 
     def has_add_permission(self, request, obj=OrganizationUser):
         return False
@@ -157,6 +166,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         ),
     )
     actions = ['remove', 'delete']
+
+    class Media:
+        css = {'all': ('admin/css/inline_as_fieldset.css',)}
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
@@ -235,8 +247,9 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
 
     def get_search_results(self, request, queryset, search_term):
-
         if request.path != '/admin/auth/user/':
+            queryset = self._filter_queryset(request, queryset)
+
             # If search comes from autocomplete field, use parent class method
             return super(UserAdmin, self).get_search_results(
                 request, queryset, search_term
@@ -260,6 +273,32 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             month=today.month,
         ).aggregate(counter=Sum('counter'))
         return instances.get('counter')
+
+    def _filter_queryset(self, request, queryset):
+        auto_complete = request.path == '/admin/autocomplete/'
+        app_label = request.GET.get('app_label')
+        model_name = request.GET.get('model_name')
+
+        if (
+            auto_complete
+            and app_label == 'organizations'
+            and model_name == 'organizationuser'
+        ):
+            return self._filter_queryset_for_organization_user(queryset)
+
+        return queryset
+
+    def _filter_queryset_for_organization_user(self, queryset):
+        """
+        Displays only users whose organization has a single member.
+        """
+        return (
+            queryset.annotate(
+                user_count=Count('organizations_organization__organization_users')
+            )
+            .filter(user_count__lte=1)
+            .order_by('username')
+        )
 
     def _remove_or_delete(
         self,

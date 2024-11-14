@@ -49,6 +49,11 @@ class EnvironmentView(APIView):
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
+    ]
+
+    OTHER_CONFIGS = [
+        'PROJECT_HISTORY_LOG_LIFESPAN',
     ]
 
     @classmethod
@@ -63,30 +68,18 @@ class EnvironmentView(APIView):
         'FREE_TIER_THRESHOLDS',
     ]
 
-    @classmethod
-    def process_json_configs(cls):
+    def get(self, request, *args, **kwargs):
         data = {}
-        for key in cls.JSON_CONFIGS:
-            value = getattr(constance.config, key)
-            try:
-                value = to_python_object(value)
-            except json.JSONDecodeError:
-                logging.error(
-                    f'Configuration value for `{key}` has invalid JSON'
-                )
-                continue
-            data[key.lower()] = value
-        return data
-
-    @staticmethod
-    def split_with_newline_kludge(value):
-        """
-        django-constance formerly (before 2.7) used `\r\n` for newlines but
-        later changed that to `\n` alone. See #3825, #3831. This fix-up process
-        is *only* needed for settings that existed prior to this change; do not
-        use it when adding new settings.
-        """
-        return (line.strip('\r') for line in value.split('\n'))
+        data.update(self.process_simple_configs())
+        data.update(self.process_json_configs())
+        data.update(self.process_choice_configs())
+        data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
+        data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_user_metadata_configs(request))
+        data.update(self.process_other_configs(request))
+        data.update(self.static_configs(request))
+        return Response(data)
 
     @classmethod
     def process_choice_configs(cls):
@@ -111,6 +104,21 @@ class EnvironmentView(APIView):
         )
         data['country_choices'] = COUNTRIES
         data['interface_languages'] = settings.LANGUAGES
+        return data
+
+    @classmethod
+    def process_json_configs(cls):
+        data = {}
+        for key in cls.JSON_CONFIGS:
+            value = getattr(constance.config, key)
+            try:
+                value = to_python_object(value)
+            except json.JSONDecodeError:
+                logging.error(
+                    f'Configuration value for `{key}` has invalid JSON'
+                )
+                continue
+            data[key.lower()] = value
         return data
 
     @staticmethod
@@ -149,13 +157,6 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
-    def process_user_metadata_configs(request):
-        data = {
-            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
-        }
-        return data
-
-    @staticmethod
     def process_other_configs(request):
         data = {}
 
@@ -168,14 +169,18 @@ class EnvironmentView(APIView):
         data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
 
+        for key in EnvironmentView.OTHER_CONFIGS:
+            data[key.lower()] = getattr(constance.config, key)
+
         if settings.STRIPE_ENABLED:
             from djstripe.models import APIKey
 
             try:
                 data['stripe_public_key'] = str(
-                    APIKey.objects.get(type='publishable', livemode=settings.STRIPE_LIVE_MODE).secret
+                    APIKey.objects.get(
+                        type='publishable', livemode=settings.STRIPE_LIVE_MODE
+                    ).secret
                 )
-                data['use_team_label'] = False
             except MultipleObjectsReturned as e:
                 raise MultipleObjectsReturned(
                     'Remove extra api keys from the django admin.'
@@ -186,7 +191,6 @@ class EnvironmentView(APIView):
                 ) from e
         else:
             data['stripe_public_key'] = None
-            data['use_team_label'] = constance.config.USE_TEAM_LABEL
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
@@ -210,18 +214,22 @@ class EnvironmentView(APIView):
 
         return data
 
+    @staticmethod
+    def process_user_metadata_configs(request):
+        data = {
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
+        }
+        return data
+
+    @staticmethod
+    def split_with_newline_kludge(value):
+        """
+        django-constance formerly (before 2.7) used `\r\n` for newlines but
+        later changed that to `\n` alone. See #3825, #3831. This fix-up process
+        is *only* needed for settings that existed prior to this change; do not
+        use it when adding new settings.
+        """
+        return (line.strip('\r') for line in value.split('\n'))
+
     def static_configs(self, request):
         return {'open_rosa_server': settings.KOBOCAT_URL}
-
-    def get(self, request, *args, **kwargs):
-        data = {}
-        data.update(self.process_simple_configs())
-        data.update(self.process_json_configs())
-        data.update(self.process_choice_configs())
-        data.update(self.process_mfa_configs(request))
-        data.update(self.process_password_configs(request))
-        data.update(self.process_project_metadata_configs(request))
-        data.update(self.process_user_metadata_configs(request))
-        data.update(self.process_other_configs(request))
-        data.update(self.static_configs(request))
-        return Response(data)

@@ -107,6 +107,7 @@ class ServiceUsageSerializer(serializers.Serializer):
     current_month_end = serializers.SerializerMethodField()
     current_year_start = serializers.SerializerMethodField()
     current_year_end = serializers.SerializerMethodField()
+    last_updated = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
@@ -130,6 +131,9 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def get_current_year_start(self, user):
         return self.calculator.current_year_start.isoformat()
+
+    def get_last_updated(self, user):
+        return self.calculator.get_last_updated().isoformat()
 
     def get_total_nlp_usage(self, user):
         return self.calculator.get_nlp_usage_counters()

@@ -3,6 +3,7 @@ import uuid
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +11,7 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
@@ -31,6 +33,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
     def setUp(self):
         super().setUp()
         self.client.login(username='anotheruser', password='anotheruser')
+        cache.clear()
 
     @classmethod
     def setUpTestData(cls):
@@ -158,6 +161,20 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_nlp_trackers()
         self.add_submissions(count=5)
 
+    def test_disable_cache(self):
+        calculator = ServiceUsageCalculator(self.anotheruser, None, disable_cache=True)
+        nlp_usage_A = calculator.get_nlp_usage_counters()
+        self.add_nlp_trackers()
+        nlp_usage_B = calculator.get_nlp_usage_counters()
+        assert (
+            2 * nlp_usage_A['asr_seconds_current_month']
+            == nlp_usage_B['asr_seconds_current_month']
+        )
+        assert (
+            2 * nlp_usage_A['mt_characters_current_month']
+            == nlp_usage_B['mt_characters_current_month']
+        )
+
     def test_nlp_usage_counters(self):
         calculator = ServiceUsageCalculator(self.anotheruser, None)
         nlp_usage = calculator.get_nlp_usage_counters()
@@ -165,16 +182,6 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['asr_seconds_all_time'] == 4728
         assert nlp_usage['mt_characters_current_month'] == 5473
         assert nlp_usage['mt_characters_all_time'] == 6726
-
-    def test_storage_usage(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None)
-        assert calculator.get_storage_usage() == 5 * self.expected_file_size()
-
-    def test_submission_counters(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None)
-        submission_counters = calculator.get_submission_counters()
-        assert submission_counters['current_month'] == 5
-        assert submission_counters['all_time'] == 5
 
     def test_no_data(self):
         calculator = ServiceUsageCalculator(self.someuser, None)
@@ -191,7 +198,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
     @override_settings(STRIPE_ENABLED=True)
     def test_organization_setup(self):
-        organization = baker.make(Organization, id='org_abcd1234')
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
         generate_enterprise_subscription(organization)
@@ -208,3 +215,16 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
+
+        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['characters']) == 5473
+        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
+
+    def test_storage_usage(self):
+        calculator = ServiceUsageCalculator(self.anotheruser, None)
+        assert calculator.get_storage_usage() == 5 * self.expected_file_size()
+
+    def test_submission_counters(self):
+        calculator = ServiceUsageCalculator(self.anotheruser, None)
+        submission_counters = calculator.get_submission_counters()
+        assert submission_counters['current_month'] == 5
+        assert submission_counters['all_time'] == 5

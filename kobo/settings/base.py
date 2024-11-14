@@ -17,7 +17,9 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
+from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
+
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -587,15 +589,20 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'USE_TEAM_LABEL': (
-        True,
-        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    'PROJECT_HISTORY_LOG_LIFESPAN': (
+        60,
+        'Length of time days to keep project history logs.',
+        'positive_int',
     ),
     'ACCESS_LOG_LIFESPAN': (
         60,
         'Length of time in days to keep access logs.',
-        'positive_int'
-    )
+        'positive_int',
+    ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -661,6 +668,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
         'ACCESS_LOG_LIFESPAN',
+        'PROJECT_HISTORY_LOG_LIFESPAN'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1231,11 +1239,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    'delete-expired-access-logs': {
-        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+    'delete-expired-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_logs_cleaning_tasks',
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
-    }
+    },
 }
 
 
@@ -1582,6 +1590,7 @@ MONGO_DB = mongo_client[mongo_db_name]
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
+
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
 redis_session_url = env.cache_url(
@@ -1786,10 +1795,17 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
-ACCESS_LOG_DELETION_BATCH_SIZE = 1000
+LOG_DELETION_BATCH_SIZE = 1000
 
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+# Admins will not be explicitly granted these permissions, (i.e., not referenced
+# in the ObjectPermission table), but the code will still conduct the permission
+# checks as if they were.
+ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
+
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 20

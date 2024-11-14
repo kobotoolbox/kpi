@@ -22,7 +22,7 @@ from kpi.constants import (
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
 
 NEW = 'new'
@@ -324,10 +324,23 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def create_from_request(cls, request):
-        if request.resolver_match.url_name == 'asset-deployment':
-            cls.create_from_deployment_request(request)
-        elif request.resolver_match.url_name == 'asset-detail':
-            cls.create_from_detail_request(request)
+        url_name_to_action = {
+            'asset-deployment': cls.create_from_deployment_request,
+            'asset-detail': cls.create_from_detail_request,
+            'hook-detail': cls.create_from_hook_request,
+            'hook-list': cls.create_from_hook_request,
+            'paired-data-detail': cls.create_from_paired_data_request,
+            'paired-data-list': cls.create_from_paired_data_request,
+            'asset-file-detail': cls.create_from_file_request,
+            'asset-file-list': cls.create_from_file_request,
+            'asset-export-list': cls.create_from_export_request,
+            'exporttask-list': cls.create_from_v1_export,
+        }
+        url_name = request.resolver_match.url_name
+        method = url_name_to_action.get(url_name, None)
+        if not method:
+            return
+        method(request)
 
     @staticmethod
     def create_from_deployment_request(request):
@@ -453,6 +466,37 @@ class ProjectHistoryLog(AuditLog):
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
 
+    @classmethod
+    def create_from_hook_request(cls, request):
+        cls.create_from_related_request(
+            request,
+            'hook',
+            AuditAction.REGISTER_SERVICE,
+            AuditAction.DELETE_SERVICE,
+            AuditAction.MODIFY_SERVICE,
+        )
+
+    @classmethod
+    def create_from_file_request(cls, request):
+        # we don't have a concept of 'modifying' a media file
+        cls.create_from_related_request(
+            request, 'asset-file', AuditAction.ADD_MEDIA, AuditAction.DELETE_MEDIA, None
+        )
+
+    @classmethod
+    def create_from_paired_data_request(cls, request):
+        cls.create_from_related_request(
+            request,
+            'paired-data',
+            AuditAction.CONNECT_PROJECT,
+            AuditAction.DISCONNECT_PROJECT,
+            AuditAction.MODIFY_IMPORTED_FIELDS,
+        )
+
+    @classmethod
+    def create_from_export_request(cls, request):
+        cls.create_from_related_request(request, None, AuditAction.EXPORT, None, None)
+
     @staticmethod
     def sharing_change(old_fields, new_fields):
         old_enabled = old_fields.get('enabled', False)
@@ -493,3 +537,91 @@ class ProjectHistoryLog(AuditLog):
         # qa dictionary is complicated to parse and determine
         # what actually changed, so just return the new dict
         return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
+
+    @staticmethod
+    def create_from_related_request(
+        request, label, add_action, delete_action, modify_action
+    ):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        source_data = updated_data if updated_data else initial_data
+        if not source_data:
+            # request failed, don't try to log
+            return
+        object_id = source_data.pop('object_id')
+
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+        }
+        if label:
+            metadata.update({label: source_data})
+        if updated_data is None:
+            action = delete_action
+        elif initial_data is None:
+            action = add_action
+        else:
+            action = modify_action
+        if action:
+            # some actions on related objects do not need to be logged,
+            # eg deleting an ExportTask
+            ProjectHistoryLog.objects.create(
+                user=request.user, object_id=object_id, action=action, metadata=metadata
+            )
+
+    @classmethod
+    def create_from_import_task(cls, task: ImportTask):
+        # this will probably only ever be a list of size 1 or 0,
+        # sent as a list because of how ImportTask is implemented
+        # if somehow a task updates multiple assets, this should handle it
+        audit_log_blocks = task.messages.get('audit_logs', [])
+        for audit_log_info in audit_log_blocks:
+            metadata = {
+                'asset_uid': audit_log_info['asset_uid'],
+                'latest_version_uid': audit_log_info['latest_version_uid'],
+                'ip_address': audit_log_info['ip_address'],
+                'source': audit_log_info['source'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            }
+            ProjectHistoryLog.objects.create(
+                user=task.user,
+                object_id=audit_log_info['asset_id'],
+                action=AuditAction.REPLACE_FORM,
+                metadata=metadata,
+            )
+            # imports may change the name of an asset, log that too
+            if audit_log_info['old_name'] != audit_log_info['new_name']:
+                metadata.update(
+                    {
+                        'name': {
+                            OLD: audit_log_info['old_name'],
+                            NEW: audit_log_info['new_name'],
+                        }
+                    }
+                )
+                ProjectHistoryLog.objects.create(
+                    user=task.user,
+                    object_id=audit_log_info['asset_id'],
+                    action=AuditAction.UPDATE_NAME,
+                    metadata=metadata,
+                )
+
+    @classmethod
+    def create_from_v1_export(cls, request):
+        updated_data = getattr(request, 'updated_data', None)
+        if not updated_data:
+            return
+        ProjectHistoryLog.objects.create(
+            user=request.user,
+            object_id=updated_data['asset_id'],
+            action=AuditAction.EXPORT,
+            metadata={
+                'asset_uid': updated_data['asset_uid'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+            },
+        )
