@@ -1,7 +1,5 @@
-# coding: utf-8
 import time
 
-import constance
 import requests
 from django.apps import apps
 from django.conf import settings
@@ -49,7 +47,7 @@ def export_task_in_background(
         mail.send_mail(
             subject='Project View Report Complete',
             message=msg,
-            from_email=constance.config.SUPPORT_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
         )
