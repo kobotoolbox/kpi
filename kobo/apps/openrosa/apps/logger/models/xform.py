@@ -7,6 +7,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.urls import reverse
@@ -28,7 +29,9 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.database import use_db
 from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import perm_parse
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -60,7 +63,9 @@ class XForm(AbstractTimeStampedModel):
     description = models.TextField(default='', null=True)
     xml = models.TextField()
 
-    user = models.ForeignKey(User, related_name='xforms', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='xforms', null=True, on_delete=models.CASCADE
+    )
     require_auth = models.BooleanField(
         default=True,
         verbose_name=t('Require authentication to see form and submit data'),
@@ -124,25 +129,31 @@ class XForm(AbstractTimeStampedModel):
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not hasattr(self, '_cache_asset'):
+        if not hasattr(self, '_cached_asset'):
             # We only need to load the PK because XMLFormWithDisclaimer
             # uses an Asset object only to narrow down a query with a filter,
             # thus uses only asset PK
             try:
-                asset = Asset.objects.only('pk').get(uid=self.kpi_asset_uid)
+                asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
+                    uid=self.kpi_asset_uid
+                )
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only('pk').get(
+                    asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
                         _deployment_data__formid=self.pk
                     )
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(uid=self.id_string)
+                    asset = Asset(
+                        uid=self.id_string,
+                        name=self.title,
+                        owner_id=self.user.id,
+                    )
 
-            setattr(self, '_cache_asset', asset)
+            setattr(self, '_cached_asset', asset)
 
-        return getattr(self, '_cache_asset')
+        return getattr(self, '_cached_asset')
 
     @property
     def can_be_replaced(self):
@@ -160,6 +171,7 @@ class XForm(AbstractTimeStampedModel):
 
         xform_dict = deepcopy(self.__dict__)
         xform_dict.pop('_state', None)
+        xform_dict.pop('_cached_asset', None)
         return DataDictionary(**xform_dict)
 
     def file_name(self):
@@ -172,6 +184,31 @@ class XForm(AbstractTimeStampedModel):
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
+
+    def has_mapped_perm(self, user_obj: User, perm: str) -> bool:
+        """
+        Checks if a role-based user (e.g., an organization admin) has access to an
+        object  by validating against equivalent permissions defined in KPI.
+
+        In the context of OpenRosa, roles such as organization admins do not have
+        permissions explicitly recorded in the database. Since django-guardian cannot
+        determine access for such roles directly, this method maps the role to
+        its equivalent permissions in KPI, allowing for accurate permission validation.
+        """
+        _, codename = perm_parse(perm)
+
+        with use_db(DEFAULT_DB_ALIAS):
+            kc_permission_map = self.asset.KC_PERMISSIONS_MAP
+            try:
+                kpi_perm = list(kc_permission_map.keys())[
+                    list(kc_permission_map.values()).index(codename)
+                ]
+            except ValueError:
+                return False
+
+            has_perm = self.asset.has_perm(user_obj, kpi_perm)
+
+        return has_perm
 
     @property
     def md5_hash(self):
@@ -227,18 +264,6 @@ class XForm(AbstractTimeStampedModel):
 
     submission_count.short_description = t('Submission Count')
 
-    def update(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-
-    def url(self):
-        return reverse(
-            'download_xform',
-            kwargs={
-                'username': self.user.username,
-                'pk': self.pk
-            }
-        )
-
     def time_of_last_submission(self):
         if self.last_submission_time is None and self.num_of_submissions > 0:
             try:
@@ -257,6 +282,14 @@ class XForm(AbstractTimeStampedModel):
             return self.instances.latest('date_modified').date_modified
         except ObjectDoesNotExist:
             pass
+
+    def update(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def url(self):
+        return reverse(
+            'download_xform', kwargs={'username': self.user.username, 'pk': self.pk}
+        )
 
     @property
     def xml_with_disclaimer(self):

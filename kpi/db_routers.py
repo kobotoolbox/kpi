@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 
-from kobo.apps.openrosa.libs.constants import (
-    OPENROSA_APP_LABELS,
-)
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kpi.utils.database import get_thread_local
+
 from .constants import SHADOW_MODEL_APP_LABELS, SHARED_APP_LABELS
 from .exceptions import ReadOnlyModelError
 
@@ -13,7 +12,7 @@ class DefaultDatabaseRouter:
 
     def db_for_read(self, model, **hints):
         """
-        Reads go to KoBoCAT database when `model` is a ShadowModel
+        Reads go to KoboCAT database when `model` is a ShadowModel
         """
         if (
             model._meta.app_label in SHADOW_MODEL_APP_LABELS
@@ -25,7 +24,7 @@ class DefaultDatabaseRouter:
 
     def db_for_write(self, model, **hints):
         """
-        Writes go to KoBoCAT database when `model` is a ShadowModel
+        Writes go to KoboCAT database when `model` is a ShadowModel
         """
 
         if getattr(model, 'read_only', False):

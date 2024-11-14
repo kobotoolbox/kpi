@@ -1,7 +1,7 @@
 # coding: utf-8
+from django.conf import settings
 from django.contrib.auth.backends import ModelBackend as DjangoModelBackend
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
-from django.conf import settings
 
 from .utils.database import get_thread_local
 from .utils.object_permission import get_database_user
@@ -39,6 +39,11 @@ class ObjectPermissionBackend(DjangoModelBackend):
                 # Obey limits on anonymous users' permissions
                 if perm not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                     return False
+
+            if hasattr(obj, 'has_mapped_perm'):
+                if obj.has_mapped_perm(user_obj, perm):
+                    return True
+
             return super().has_perm(user_obj, perm, obj)
         if not user_obj.is_active:
             # Inactive users are denied immediately

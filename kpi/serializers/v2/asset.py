@@ -18,6 +18,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
@@ -63,6 +64,7 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -199,6 +201,10 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if not asset_uids or self.__user.is_superuser:
             return
 
+        user_filter = [self.__user]
+        if self.__user.organization.is_admin(self.__user):
+            user_filter.append(self.__user.organization.owner_user_object)
+
         if not delete_request:
             if ProjectTrash.objects.filter(asset__uid__in=asset_uids).exists():
                 raise exceptions.PermissionDenied()
@@ -206,14 +212,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             code_names = get_cached_code_names(Asset)
             perm_dict = code_names[PERM_MANAGE_ASSET]
             objects_count = ObjectPermission.objects.filter(
-                user=self.__user,
+                user__in=user_filter,
                 permission_id=perm_dict['id'],
                 asset__uid__in=asset_uids,
                 deny=False
             ).count()
         else:
             objects_count = Asset.objects.filter(
-                owner=self.__user,
+                owner__in=user_filter,
                 uid__in=asset_uids,
             ).count()
 
@@ -668,10 +674,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # No need to read all permissions if `AnonymousUser`'s permissions
         # are found.
         # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
-        perm_assignments = asset.permissions. \
-            values('user_id', 'permission__codename'). \
-            exclude(user_id=asset.owner_id). \
-            order_by('user_id', 'permission__codename')
+        perm_assignments = (
+            asset.permissions.values('user_id', 'permission__codename')
+            .exclude(user_id=asset.owner_id)
+            .order_by('user_id', 'permission__codename')
+        )
 
         return self._get_status(perm_assignments)
 
@@ -808,6 +815,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # User is big brother.
         if request.user.is_superuser:
             access_types.append('superuser')
+
+        if obj.owner.organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+            access_types.extend(['shared', 'org-admin'])
+            access_types = list(set(access_types))
 
         if not access_types:
             raise Exception(
@@ -962,9 +973,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
-        return reverse('asset-table-view',
-                       args=(obj.uid,),
-                       request=request)
+        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class AssetListSerializer(AssetSerializer):
@@ -1012,7 +1021,7 @@ class AssetListSerializer(AssetSerializer):
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
-            # be always a property of `self.context`
+            # always be a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context
