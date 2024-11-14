@@ -881,17 +881,36 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log.object_id, self.asset.id)
 
-    def test_bulk_archive(self):
-        action = 'archive'
+    @data(
+        # File or url, change asset name?, use v2?
+        ('archive', AuditAction.ARCHIVE),
+        ('unarchive', AuditAction.UNARCHIVE),
+        ('undelete', AuditAction.UNDELETE),
+        ('delete', AuditAction.DELETE),
+    )
+    @unpack
+    def test_bulk_archive(self, bulk_action, audit_action):
+        assets = [
+            Asset.objects.create(content={'survey': [
+                {'type': 'text',
+                'label': 'Question 1',
+                'name': 'q1',
+                '$kuid': 'abc'},
+            ]}, owner=self.user, asset_type='survey')
+            for i in range(0,2)
+        ]
+        for asset in assets:
+            asset.deploy(backend='mock', active=True)
+
         someuser = User.objects.get(username='someuser')
-        user_assets = Asset.objects.filter(owner=someuser).all()
-        uids = [asset.uid for asset in user_assets]
-        response = self._make_bulk_request(uids, action)
+        uids = [asset.uid for asset in assets]
+
+        if bulk_action == "undelete":
+            response = self._make_bulk_request(uids, "delete")
+
+        response = self._make_bulk_request(uids, bulk_action)
         archived_logs = ProjectHistoryLog.objects.filter(
-            object_id__in=[asset.id for asset in user_assets],
-            action=AuditAction.ARCHIVE
+            object_id__in=[asset.id for asset in assets],
+            action=audit_action
         )
         self.assertEqual(archived_logs.count(), 2)
-
-    def test_bulk_delete(self):
-        pass
