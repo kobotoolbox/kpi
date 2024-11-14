@@ -725,7 +725,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ),
             'sender': transfer.invite.sender.username,
             'recipient': transfer.invite.recipient.username,
-            'status': transfer.status
+            'status': transfer.invite.status
         }
 
     def get_exports(self, obj: Asset) -> str:

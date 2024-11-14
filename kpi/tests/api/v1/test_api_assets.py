@@ -56,6 +56,12 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     def test_assignable_permissions(self):
         pass
 
+    @unittest.skip(
+        reason='`project_ownership` property only exists in v2 endpoint'
+    )
+    def test_ownership_transfer_status(self):
+        pass
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
