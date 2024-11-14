@@ -28,13 +28,6 @@ const hints = {
            ${s.darkblue}Enjoy a quicker-launching dev server!
   `,
 
-  /** @deprecated Use `npm run test` instead */
-  'test-mocha': `
-    This uses mocha-chrome as a test runner.
-
-    @deprecated: Use \`npm run test\` instead.
-  `,
-
   'test-mocha-autobuild': `
     This will rebuild the js tests on change.
 
