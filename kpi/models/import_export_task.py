@@ -816,6 +816,16 @@ class ExportTaskBase(ImportExportTask):
         else:
             self.save(update_fields=['result', 'last_submission_time'])
 
+    @property
+    def asset(self):
+        source_url = self.data.get('source', False)
+        if not source_url:
+            raise Exception('no source specified for the export')
+        try:
+            return resolve_url_to_asset(source_url)
+        except Asset.DoesNotExist:
+            raise self.InaccessibleData
+
     def delete(self, *args, **kwargs):
         # removing exported file from storage
         self.result.delete(save=False)
@@ -833,13 +843,7 @@ class ExportTaskBase(ImportExportTask):
         submission_ids = self.data.get('submission_ids', [])
 
         if source is None:
-            source_url = self.data.get('source', False)
-            if not source_url:
-                raise Exception('no source specified for the export')
-            try:
-                source = resolve_url_to_asset(source_url)
-            except Asset.DoesNotExist:
-                raise self.InaccessibleData
+            source = self.asset
 
         source_perms = source.get_perms(self.user)
         if (

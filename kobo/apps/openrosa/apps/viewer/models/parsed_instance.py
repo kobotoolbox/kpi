@@ -8,7 +8,6 @@ from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.celery import celery_app
 from kobo.apps.openrosa.apps.logger.models import Instance, Note
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
@@ -24,6 +23,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 
