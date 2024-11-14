@@ -7,6 +7,7 @@ from kobo.apps.organizations.tests.test_organizations_api import (
 )
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
+
 @ddt
 class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     fixtures = ['test_data']
@@ -40,7 +41,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     )
     @unpack
     def test_list_members_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f"{user_role}_user")
+        user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, expected_status)
@@ -52,8 +53,10 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('external', status.HTTP_404_NOT_FOUND),
     )
     @unpack
-    def test_retrieve_member_details_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f"{user_role}_user")
+    def test_retrieve_member_details_with_different_roles(
+            self, user_role, expected_status
+    ):
+        user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
         response = self.client.get(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
@@ -66,7 +69,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     )
     @unpack
     def test_update_member_role_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f"{user_role}_user")
+        user = getattr(self, f'{user_role}_user')
         data = {'role': 'admin'}
         self.client.force_login(user)
         response = self.client.patch(self.detail_url(self.member_user), data)
@@ -80,7 +83,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     )
     @unpack
     def test_delete_member_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f"{user_role}_user")
+        user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
         response = self.client.delete(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
@@ -97,12 +100,11 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     )
     @unpack
     def test_post_request_is_not_allowed(self, user_role, expected_status):
-        user = getattr(self, f"{user_role}_user")
+        user = getattr(self, f'{user_role}_user')
         data = {'role': 'admin'}
         self.client.force_login(user)
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, expected_status)
-
 
     def test_list_requires_authentication(self):
         self.client.logout()

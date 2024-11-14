@@ -40,7 +40,7 @@ class IsOrgAdminOrReadOnly(IsOrgAdmin):
             return True
 
         # Instance must have an attribute named `is_admin`
-        return obj.organization.is_admin(request.user)
+        return obj.is_admin(request.user)
 
 
 class IsOrgOwnerOrAdminOrMember(permissions.BasePermission):
@@ -59,7 +59,10 @@ class IsOrgOwnerOrAdminOrMember(permissions.BasePermission):
 
         # Allow admins to view and update, but not delete members
         if user_role == 'admin':
-            return request.method in permissions.SAFE_METHODS or request.method == 'PATCH'
+            return (
+                request.method in permissions.SAFE_METHODS or
+                request.method == 'PATCH'
+            )
 
         # Allow members to only view other members
         if user_role == 'member':
