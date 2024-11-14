@@ -2,6 +2,7 @@ import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {PROJECTS_ROUTES} from 'js/router/routerConstants';
+import {ValidateOrgPermissions} from 'js/router/validateOrgPermissions.component';
 
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')
@@ -32,7 +33,12 @@ export default function routes() {
         path={PROJECTS_ROUTES.MY_ORG_PROJECTS}
         element={
           <RequireAuth>
-            <MyOrgProjectsRoute />
+            <ValidateOrgPermissions
+              mmoOnly
+              redirectRoute={PROJECTS_ROUTES.MY_PROJECTS}
+            >
+              <MyOrgProjectsRoute />
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />
