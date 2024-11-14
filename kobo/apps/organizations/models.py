@@ -53,43 +53,45 @@ class Organization(AbstractOrganization):
     @cache_for_request
     def active_subscription_billing_details(self):
         """
-        Retrieve the billing dates, interval, and product/price metadata for the organization's newest subscription
+        Retrieve the billing dates, interval, and product/price metadata for the
+        organization's newest subscription
         Returns None if Stripe is not enabled
-        The status types that are considered 'active' are determined by ACTIVE_STRIPE_STATUSES
+        The status types that are considered 'active' are determined by
+        ACTIVE_STRIPE_STATUSES
         """
         # Only check for subscriptions if Stripe is enabled
-        if settings.STRIPE_ENABLED:
-            return (
-                Organization.objects.prefetch_related('djstripe_customers')
-                .filter(
-                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                    djstripe_customers__subscriber=self.id,
-                )
-                .order_by('-djstripe_customers__subscriptions__start_date')
-                .values(
-                    billing_cycle_anchor=F(
-                        'djstripe_customers__subscriptions__billing_cycle_anchor'
-                    ),
-                    current_period_start=F(
-                        'djstripe_customers__subscriptions__current_period_start'
-                    ),
-                    current_period_end=F(
-                        'djstripe_customers__subscriptions__current_period_end'
-                    ),
-                    recurring_interval=F(
-                        'djstripe_customers__subscriptions__items__price__recurring__interval'
-                    ),
-                    product_metadata=F(
-                        'djstripe_customers__subscriptions__items__price__product__metadata'
-                    ),
-                    price_metadata=F(
-                        'djstripe_customers__subscriptions__items__price__metadata'
-                    ),
-                )
-                .first()
-            )
+        if not settings.STRIPE_ENABLED:
+            return None
 
-        return None
+        return (
+            Organization.objects.prefetch_related('djstripe_customers')
+            .filter(
+                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriber=self.id,
+            )
+            .order_by('-djstripe_customers__subscriptions__start_date')
+            .values(
+                billing_cycle_anchor=F(
+                    'djstripe_customers__subscriptions__billing_cycle_anchor'
+                ),
+                current_period_start=F(
+                    'djstripe_customers__subscriptions__current_period_start'
+                ),
+                current_period_end=F(
+                    'djstripe_customers__subscriptions__current_period_end'
+                ),
+                recurring_interval=F(
+                    'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
+                ),
+                product_metadata=F(
+                    'djstripe_customers__subscriptions__items__price__product__metadata'
+                ),
+                price_metadata=F(
+                    'djstripe_customers__subscriptions__items__price__metadata'
+                ),
+            )
+            .first()
+        )
 
     @cache_for_request
     def canceled_subscription_billing_cycle_anchor(self):

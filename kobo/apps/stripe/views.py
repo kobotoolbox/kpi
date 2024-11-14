@@ -255,7 +255,8 @@ class CheckoutLinkView(APIView):
                     'organization_id': organization_id,
                     'price_id': price.id,
                     'quantity': quantity,
-                    # product metadata contains the usage limit values for one-time add-ons
+                    # product metadata contains the usage limit values
+                    # for one-time add-ons
                     **(price.product.metadata or {}),
                 },
             }
@@ -336,8 +337,9 @@ class CustomerPortalView(APIView):
         )
 
         if not customer:
+            error_str = f"Couldn't find customer with organization id {organization_id}"
             return Response(
-                {'error': f"Couldn't find customer with organization id {organization_id}"},
+                {'error': error_str},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

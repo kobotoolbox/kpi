@@ -98,7 +98,7 @@ class PlanAddOn(models.Model):
                 status__in=ACTIVE_STRIPE_STATUSES,
             ).exists()
         ):
-            # this user doesn't have the subscription level they need for this addon, bail
+            # this user doesn't have the subscription level they need for this addon
             return False
 
         quantity = int(charge.metadata['quantity'])
