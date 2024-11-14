@@ -534,7 +534,7 @@ def publish_xml_form(xml_file, user):
     dd = DataDictionary(user=user, xml=xml, json=form_json)
     dd.mark_start_time_boolean()
     set_uuid(dd)
-    dd.set_uuid_in_xml(file_name=xml_file.name)
+    dd.set_uuid_in_xml()
     dd.save()
     return dd
 
