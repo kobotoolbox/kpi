@@ -27,11 +27,7 @@ def extract_confirmation_message(xml_string: str) -> Optional[str]:
     if not confirmation_message_xpath:
         return
 
-    # Blocked by kpi#5137, this block below works as-is but won't work
-    # when kpi#5137 is merged.
-    confirmation_message_xpath = confirmation_message_xpath[0].replace(
-        '/data', f'/{root.tag}'
-    ).strip()
+    confirmation_message_xpath = confirmation_message_xpath[0].strip()
 
     try:
         # Evaluate the XPath expression to find the message
