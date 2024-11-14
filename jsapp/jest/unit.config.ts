@@ -1,11 +1,11 @@
 import type {Config} from 'jest';
 import {defaults} from 'jest-config';
 
-// Config to run ☕ unit tests using the Jest runner instead of mocha
+// Config to run ☕ unit tests using the Jest runner
 //
 // To run the unit tests: 🏃
 //
-//     npx jest --config ./jsapp/jest/mocha.config.ts
+//     npx jest --config ./jsapp/jest/unit.config.ts
 //
 
 const config: Config = {
@@ -49,7 +49,7 @@ const config: Config = {
   testEnvironment: 'jsdom',
 
   // Make Chai and jQuery globals available in the test environment
-  setupFilesAfterEnv: ['<rootDir>/setupMochaTest.ts'],
+  setupFilesAfterEnv: ['<rootDir>/setupUnitTest.ts'],
 
   // Appearance options (for console output)
   verbose: true,
