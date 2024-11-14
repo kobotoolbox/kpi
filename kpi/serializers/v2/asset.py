@@ -136,8 +136,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if delete_request:
             if put_back_:
                 message = nt(
-                    f'%(count)d project has been undeleted',
-                    f'%(count)d projects have been undeleted',
+                    '%(count)d project has been undeleted',
+                    '%(count)d projects have been undeleted',
                     instance['project_counts'],
                 ) % {'count': instance['project_counts']}
             else:

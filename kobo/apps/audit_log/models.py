@@ -359,7 +359,8 @@ class ProjectHistoryLog(AuditLog):
         client_ip = get_client_ip(request)
 
         for asset_uid in payload.get('asset_uids', []):
-            asset = Asset.objects.get(uid=asset_uid)
+            asset = Asset.all_objects.get(uid=asset_uid)
+            object_id = asset.pk
             metadata = {
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
@@ -368,7 +369,7 @@ class ProjectHistoryLog(AuditLog):
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
-                object_id=asset.pk,
+                object_id=object_id,
                 action=audit_action,
                 metadata=metadata,
             )
