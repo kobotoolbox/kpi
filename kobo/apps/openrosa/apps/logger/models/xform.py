@@ -296,6 +296,18 @@ class XForm(AbstractTimeStampedModel):
         )
 
     @property
+    def xforms_root_node_name(self):
+        """
+        Retrieves the name of the XML tag representing the root node of the "survey"
+        in the XForm XML structure.
+
+        It should always be present in `self.json`.
+        """
+
+        form_json = json.loads(self.json)
+        return form_json['name']
+
+    @property
     def xml_with_disclaimer(self):
         return XMLFormWithDisclaimer(self).get_object().xml
 

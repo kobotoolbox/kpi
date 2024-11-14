@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import re
@@ -373,6 +372,10 @@ class XMLFormWithDisclaimer:
     def __init__(self, obj: Union['kpi.AssetSnapshot', 'logger.XForm']):
         self._object = obj
         self._unique_id = obj.asset.uid
+
+        # Avoid initializing `_root_tag_name` immediately to prevent extra
+        # database queries. It will be set only when it is actually needed.
+        self._root_tag_name = None
         self._add_disclaimer()
 
     def get_object(self):
@@ -391,6 +394,7 @@ class XMLFormWithDisclaimer:
         translated, disclaimers_dict, default_language_code = value
 
         self._root_node = minidom.parseString(self._object.xml)
+        self._root_tag_name = self._object.xforms_root_node_name
 
         if translated:
             self._add_translation_nodes(disclaimers_dict, default_language_code)
@@ -413,7 +417,7 @@ class XMLFormWithDisclaimer:
         # Inject <bind nodeset /> inside <model odk:xforms-version="1.0.0">
         bind_node = self._root_node.createElement('bind')
         bind_node.setAttribute(
-            'nodeset', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+            'nodeset', f'/{self._root_tag_name}/_{self._unique_id}__disclaimer'
         )
         bind_node.setAttribute('readonly', 'true()')
         bind_node.setAttribute('required', 'false()')
@@ -421,9 +425,9 @@ class XMLFormWithDisclaimer:
         bind_node.setAttribute('relevant', 'false()')
         model_node.appendChild(bind_node)
 
-        # Inject note node inside <{self._unique_id}>
+        # Inject note node inside <{self._root_tag_name}>
         instance_node = model_node.getElementsByTagName('instance')[0]
-        instance_node = instance_node.getElementsByTagName(self._unique_id)[0]
+        instance_node = instance_node.getElementsByTagName(self._root_tag_name)[0]
         instance_node.appendChild(
             self._root_node.createElement(f'_{self._unique_id}__disclaimer')
         )
@@ -442,11 +446,11 @@ class XMLFormWithDisclaimer:
         disclaimer_input_label = self._root_node.createElement('label')
         disclaimer_input.setAttribute('appearance', 'kobo-disclaimer')
         disclaimer_input.setAttribute(
-            'ref', f'/{self._unique_id}/_{self._unique_id}__disclaimer'
+            'ref', f'/{self._root_tag_name}/_{self._unique_id}__disclaimer'
         )
 
         if translated:
-            itext = f'/{self._unique_id}/_{self._unique_id}__disclaimer:label'
+            itext = f'/{self._root_tag_name}/_{self._unique_id}__disclaimer:label'
             disclaimer_input_label.setAttribute(
                 'ref',
                 f"jr:itext('{itext}')",
@@ -474,7 +478,7 @@ class XMLFormWithDisclaimer:
                 disclaimer_translation = self._root_node.createElement('text')
                 disclaimer_translation.setAttribute(
                     'id',
-                    f'/{self._unique_id}/_{self._unique_id}__disclaimer:label',
+                    f'/{self._root_tag_name}/_{self._unique_id}__disclaimer:label',
                 )
                 value = self._root_node.createElement('value')
                 language = n.getAttribute('lang').lower().strip()
