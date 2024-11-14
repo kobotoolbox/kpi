@@ -155,7 +155,7 @@ class FormSummary extends React.Component {
             <Avatar
               key={ind}
               username={username}
-              size='s'
+              size='xs'
               isUsernameVisible
             />
           )}

@@ -1,20 +1,26 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 
-$avatar-size-s: 24px;
+$avatar-size-xs: 24px;
+$avatar-size-s: 28px;
 $avatar-size-m: 32px;
-$avatar-size-l: 48px;
+$avatar-size-l: 40px;
 
 @mixin avatar-size($size) {
   // This is the gap between the initials and the (optional) username
-  gap: $size * 0.25;
+  gap: $size * 0.375; // We want the gap to be 12px for "m" size
 
   .initials {
     width: $size;
     height: $size;
     border-radius: $size;
     line-height: $size;
-    font-size: $size * 0.6;
+    font-size: $size * 0.6875; // We want the initial to have 22px for "m" size
+    font-weight: 500;
+  }
+
+  .text {
+    line-height: $size * 0.6875; // We want it to be 22px for "m" size
   }
 }
 
@@ -25,17 +31,10 @@ $avatar-size-l: 48px;
   align-items: center;
 }
 
-.avatar-size-s {
-  @include avatar-size($avatar-size-s);
-}
-
-.avatar-size-m {
-  @include avatar-size($avatar-size-m);
-}
-
-.avatar-size-l {
-  @include avatar-size($avatar-size-l);
-}
+.avatar-size-xs {@include avatar-size($avatar-size-xs);}
+.avatar-size-s {@include avatar-size($avatar-size-s);}
+.avatar-size-m {@include avatar-size($avatar-size-m);}
+.avatar-size-l {@include avatar-size($avatar-size-l);}
 
 .initials {
   text-align: center;
@@ -56,22 +55,22 @@ $avatar-size-l: 48px;
   flex-wrap: wrap;
   gap: 0 8px;
   font-size: 14px;
-  line-height: 22px;
-}
-
-.fullName {
-  font-weight: 600;
-  color: colors.$kobo-gray-800;
 }
 
 // If `fullName` is being displayed, we want the username to be less prominent
+// and to have "@" prefix
 .text.hasFullName .username {
   font-size: 12px;
   line-height: 17px;
   font-weight: 400;
   color: colors.$kobo-gray-700;
+
+  &::before {
+    content: '@';
+  }
 }
 
+.fullName,
 // If `fullName` is missing, we want the username to be more visible
 .text:not(.hasFullName) .username {
   font-weight: 600;

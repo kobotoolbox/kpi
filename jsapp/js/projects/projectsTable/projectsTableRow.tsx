@@ -61,7 +61,7 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return (
             <Avatar
               username={props.asset.owner__username}
-              size='s'
+              size='xs'
               isUsernameVisible
             />
           );

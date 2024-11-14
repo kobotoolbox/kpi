@@ -4,7 +4,7 @@ import type {ComponentStory, ComponentMeta, StoryObj} from '@storybook/react';
 import Avatar from './avatar';
 import type {AvatarSize} from './avatar';
 
-const avatarSizes: AvatarSize[] = ['s', 'm', 'l'];
+const avatarSizes: AvatarSize[] = ['xs', 's', 'm', 'l'];
 
 export default {
   title: 'common/Avatar',
@@ -39,10 +39,10 @@ const Template: ComponentStory<typeof Avatar> = (args) => (
   />
 );
 
-export const Primary = Template.bind({});
-Primary.args = {
+export const Simple = Template.bind({});
+Simple.args = {
   size: avatarSizes[0],
-  username: 'Leszek',
+  username: 'leszek',
   isUsernameVisible: true,
 };
 
@@ -79,7 +79,7 @@ const bulkUsernames = [
 'Sunita', 'Andrea', 'Christine', 'Irina', 'Laura', 'Linda', 'Marina', 'Carmen',
 'Ghulam', 'Vladimir', 'Barbara', 'Angela', 'George', 'Roberto', 'Peng',
 ];
-export const BulkTest = () => (
+export const BulkColorsTest = () => (
   <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
     {bulkUsernames.map((username) => (
       <div key={username}>
