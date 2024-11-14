@@ -27,6 +27,7 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
+
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 

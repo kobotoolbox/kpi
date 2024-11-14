@@ -2,14 +2,15 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet
 from django.utils.decorators import method_decorator
+from django.utils.http import http_date
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
-from kpi import filters
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.response import Response
 
+from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
@@ -21,10 +22,11 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
+
+from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 from .models import Organization
 from .permissions import IsOrgAdmin, IsOrgAdminOrReadOnly
 from .serializers import OrganizationSerializer
-from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -80,11 +82,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
     pagination_class = AssetUsagePagination
 
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[IsOrgAdmin]
-    )
+    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdmin])
     def assets(self, request: Request, *args, **kwargs):
         """
         ### Retrieve Organization Assets
@@ -145,6 +143,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >           "current_month_start": {string (date), ISO format},
         >           "current_year_start": {string (date), ISO format},
         >           "billing_period_end": {string (date), ISO format}|{None},
+        >           "last_updated": {string (date), ISO format},
         >       }
         ### CURRENT ENDPOINT
         """
@@ -158,7 +157,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             get_database_user(request.user),
             context=context,
         )
-        return Response(data=serializer.data)
+        response = Response(
+            data=serializer.data,
+            headers={
+                'Date': http_date(serializer.calculator.get_last_updated().timestamp())
+            },
+        )
+
+        return response
 
     @action(detail=True, methods=['get'])
     def asset_usage(self, request, pk=None, *args, **kwargs):
@@ -210,7 +216,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             )[0]
         except IndexError:
             return Response(
-                {'error': "There was a problem finding the organization."},
+                {'error': 'There was a problem finding the organization.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
