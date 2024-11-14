@@ -8,6 +8,7 @@ from django.utils.translation import gettext as t
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.mailer import EmailMessage, Mailer
+
 from .choices import InviteStatusChoices
 
 
@@ -96,7 +97,7 @@ class Invite(AbstractTimeStampedModel):
             plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/accepted_invite.html',
-            language=self.recipient.extra_details.data.get('last_ui_language')
+            language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
         Mailer.send(email_message)
@@ -127,7 +128,7 @@ class Invite(AbstractTimeStampedModel):
             plain_text_content_or_template='emails/new_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/new_invite.html',
-            language=self.recipient.extra_details.data.get('last_ui_language')
+            language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
         Mailer.send(email_message)
@@ -153,7 +154,7 @@ class Invite(AbstractTimeStampedModel):
             plain_text_content_or_template='emails/declined_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/declined_invite.html',
-            language=self.recipient.extra_details.data.get('last_ui_language')
+            language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
         Mailer.send(email_message)
@@ -165,11 +166,7 @@ class OrgMembershipAutoInviteManager(models.Manager):
         return super().create(invite_type=InviteType.ORG_MEMBERSHIP, **kwargs)
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(invite_type=InviteType.ORG_MEMBERSHIP)
-        )
+        return super().get_queryset().filter(invite_type=InviteType.ORG_MEMBERSHIP)
 
 
 class OrgMembershipAutoInvite(Invite):

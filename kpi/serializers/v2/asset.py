@@ -64,6 +64,7 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer

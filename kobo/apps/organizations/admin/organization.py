@@ -4,14 +4,12 @@ from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
 
 from kobo.apps.kobo_auth.shortcuts import User
-from .organization_owner import OwnerInline
-from .organization_user import OrgUserInline
-from ..models import (
-    Organization,
-    OrganizationUser,
-)
+
+from ..models import Organization, OrganizationUser
 from ..tasks import transfer_user_ownership_to_org
 from ..utils import revoke_org_asset_perms
+from .organization_owner import OwnerInline
+from .organization_user import OrgUserInline
 
 
 @admin.register(Organization)
@@ -62,8 +60,7 @@ class OrgAdmin(BaseOrganizationAdmin):
         )
 
         queryset = (
-            User.objects
-            .filter(
+            User.objects.filter(
                 organizations_organizationuser__organization_id=organization_id
             )
             .filter(id__in=users_in_multiple_orgs)

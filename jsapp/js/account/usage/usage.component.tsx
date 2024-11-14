@@ -1,20 +1,19 @@
 import {when} from 'mobx';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {useLocation} from 'react-router-dom';
-import type {AccountLimit, LimitAmount} from 'js/account/stripe.types';
-import {Limits} from 'js/account/stripe.types';
+import type {AccountLimitDetail, LimitAmount, OneTimeAddOn} from 'js/account/stripe.types';
+import {Limits, USAGE_TYPE} from 'js/account/stripe.types';
 import {getAccountLimits} from 'js/account/stripe.api';
 import subscriptionStore from 'js/account/subscriptionStore';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import UsageContainer, {
-  USAGE_CONTAINER_TYPE,
-} from 'js/account/usage/usageContainer';
+import UsageContainer from 'js/account/usage/usageContainer';
 import envStore from 'js/envStore';
 import {convertSecondsToMinutes, formatDate} from 'js/utils';
 import styles from './usage.module.scss';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ProductsContext} from '../useProducts.hook';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {OneTimeAddOnsContext} from '../useOneTimeAddonList.hook';
 import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
@@ -22,10 +21,14 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
 
 interface LimitState {
-  storageByteLimit: LimitAmount;
-  nlpCharacterLimit: LimitAmount;
-  nlpMinuteLimit: LimitAmount;
-  submissionLimit: LimitAmount;
+  storageByteRemainingLimit: LimitAmount;
+  storageByteRecurringLimit: LimitAmount;
+  nlpCharacterRemainingLimit: LimitAmount;
+  nlpCharacterRecurringLimit: LimitAmount;
+  nlpMinuteRemainingLimit: LimitAmount;
+  nlpMinuteRecurringLimit: LimitAmount;
+  submissionsRemainingLimit: LimitAmount;
+  submissionsRecurringLimit: LimitAmount;
   isLoaded: boolean;
   stripeEnabled: boolean;
 }
@@ -33,13 +36,18 @@ interface LimitState {
 export default function Usage() {
   const [products] = useContext(ProductsContext);
   const [usage, loadUsage, usageStatus] = useContext(UsageContext);
+  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
   useRefreshApiFetcher(loadUsage, usageStatus);
 
   const [limits, setLimits] = useState<LimitState>({
-    storageByteLimit: Limits.unlimited,
-    nlpCharacterLimit: Limits.unlimited,
-    nlpMinuteLimit: Limits.unlimited,
-    submissionLimit: Limits.unlimited,
+    storageByteRemainingLimit: Limits.unlimited,
+    storageByteRecurringLimit: Limits.unlimited,
+    nlpCharacterRemainingLimit: Limits.unlimited,
+    nlpCharacterRecurringLimit: Limits.unlimited,
+    nlpMinuteRemainingLimit: Limits.unlimited,
+    nlpMinuteRecurringLimit: Limits.unlimited,
+    submissionsRemainingLimit: Limits.unlimited,
+    submissionsRecurringLimit: Limits.unlimited,
     isLoaded: false,
     stripeEnabled: false,
   });
@@ -51,8 +59,15 @@ export default function Usage() {
       !usageStatus.pending &&
       !usageStatus.error &&
       (products.isLoaded || !limits.stripeEnabled) &&
+      limits.isLoaded &&
+      oneTimeAddOnsContext.isLoaded,
+    [
+      usageStatus,
+      products.isLoaded,
       limits.isLoaded,
-    [usageStatus, products.isLoaded, limits.isLoaded, limits.stripeEnabled]
+      limits.stripeEnabled,
+      oneTimeAddOnsContext.isLoaded,
+    ]
   );
 
   const dateRange = useMemo(() => {
@@ -84,9 +99,12 @@ export default function Usage() {
   useEffect(() => {
     const getLimits = async () => {
       await when(() => envStore.isReady);
-      let limits: AccountLimit;
+      let limits: AccountLimitDetail;
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits(products.products);
+        limits = await getAccountLimits(
+          products.products,
+          oneTimeAddOnsContext.oneTimeAddOns
+        );
       } else {
         setLimits((prevState) => {
           return {
@@ -100,13 +118,22 @@ export default function Usage() {
       setLimits((prevState) => {
         return {
           ...prevState,
-          storageByteLimit: limits.storage_bytes_limit,
-          nlpCharacterLimit: limits.nlp_character_limit,
-          nlpMinuteLimit:
-            typeof limits.nlp_seconds_limit === 'number'
-              ? convertSecondsToMinutes(limits.nlp_seconds_limit)
-              : limits.nlp_seconds_limit,
-          submissionLimit: limits.submission_limit,
+          storageByteRemainingLimit: limits.remainingLimits.storage_bytes_limit,
+          storageByteRecurringLimit: limits.recurringLimits.storage_bytes_limit,
+          nlpCharacterRemainingLimit:
+            limits.remainingLimits.mt_characters_limit,
+          nlpCharacterRecurringLimit:
+            limits.recurringLimits.mt_characters_limit,
+          nlpMinuteRemainingLimit:
+            typeof limits.remainingLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(limits.remainingLimits.asr_seconds_limit)
+              : limits.remainingLimits.asr_seconds_limit,
+          nlpMinuteRecurringLimit:
+            typeof limits.recurringLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(limits.recurringLimits.asr_seconds_limit)
+              : limits.recurringLimits.asr_seconds_limit,
+          submissionsRemainingLimit: limits.remainingLimits.submission_limit,
+          submissionsRecurringLimit: limits.recurringLimits.submission_limit,
           isLoaded: true,
           stripeEnabled: true,
         };
@@ -114,7 +141,57 @@ export default function Usage() {
     };
 
     getLimits();
-  }, [products.isLoaded]);
+  }, [products.isLoaded, oneTimeAddOnsContext.isLoaded]);
+
+  function filterAddOns(type: USAGE_TYPE) {
+    const availableAddons = oneTimeAddOnsContext.oneTimeAddOns.filter(
+      (addon) => addon.is_available
+    );
+    
+    // Find the relevant addons, but first check and make sure add-on
+    // limits aren't superceded by an "unlimited" usage limit.
+    switch (type) {
+      case USAGE_TYPE.SUBMISSIONS:
+        return limits.submissionsRecurringLimit !== Limits.unlimited
+          ? availableAddons.filter(
+              (addon) => addon.total_usage_limits.submission_limit
+            )
+          : [];
+      case USAGE_TYPE.TRANSCRIPTION:
+        return limits.nlpMinuteRecurringLimit !== Limits.unlimited
+          ? availableAddons.filter(
+              (addon) => addon.total_usage_limits.asr_seconds_limit
+            )
+          : [];
+      case USAGE_TYPE.TRANSLATION:
+        return limits.nlpCharacterRecurringLimit !== Limits.unlimited
+          ? availableAddons.filter(
+              (addon) => addon.total_usage_limits.mt_characters_limit
+            )
+          : [];
+      default:
+        return [];
+    }
+  }
+
+  // Find out if any usage type has one-time addons so we can
+  // adjust the formatting of the usage containers to accommodate
+  // a detail link.
+  const hasAddOnsLayout = useMemo(() => {
+    let result = false;
+    for (const type of [
+      USAGE_TYPE.STORAGE,
+      USAGE_TYPE.SUBMISSIONS,
+      USAGE_TYPE.TRANSCRIPTION,
+      USAGE_TYPE.TRANSLATION,
+    ]) {
+      const relevantAddons = filterAddOns(type);
+      if (relevantAddons.length > 0) {
+        result = true;
+      }
+    }
+    return result;
+  }, [oneTimeAddOnsContext.isLoaded, limits.isLoaded]);
 
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {
@@ -149,8 +226,12 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usage.submissions}
-              limit={limits.submissionLimit}
+              remainingLimit={limits.submissionsRemainingLimit}
+              recurringLimit={limits.submissionsRecurringLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
+              type={USAGE_TYPE.SUBMISSIONS}
             />
           </div>
           <div className={styles.box}>
@@ -160,10 +241,13 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usage.storage}
-              limit={limits.storageByteLimit}
+              remainingLimit={limits.storageByteRemainingLimit}
+              recurringLimit={limits.storageByteRecurringLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
               label={t('Total')}
-              type={USAGE_CONTAINER_TYPE.STORAGE}
+              type={USAGE_TYPE.STORAGE}
             />
           </div>
         </div>
@@ -177,9 +261,12 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usage.transcriptionMinutes}
-              limit={limits.nlpMinuteLimit}
+              remainingLimit={limits.nlpMinuteRemainingLimit}
+              recurringLimit={limits.nlpMinuteRecurringLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
-              type={USAGE_CONTAINER_TYPE.TRANSCRIPTION}
+              type={USAGE_TYPE.TRANSCRIPTION}
             />
           </div>
           <div className={styles.box}>
@@ -191,8 +278,12 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usage.translationChars}
-              limit={limits.nlpCharacterLimit}
+              remainingLimit={limits.nlpCharacterRemainingLimit}
+              recurringLimit={limits.nlpCharacterRecurringLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
+              hasAddOnsLayout={hasAddOnsLayout}
               period={usage.trackingPeriod}
+              type={USAGE_TYPE.TRANSLATION}
             />
           </div>
         </div>

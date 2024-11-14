@@ -10,6 +10,7 @@ from import_export.widgets import ForeignKeyWidget
 from organizations.base_admin import BaseOrganizationUserAdmin
 
 from kobo.apps.kobo_auth.shortcuts import User
+
 from ..forms import OrgUserAdminForm
 from ..models import OrganizationUser
 from ..tasks import transfer_user_ownership_to_org
@@ -128,9 +129,11 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
             and app_label == 'organizations'
             and model_name == 'organizationowner'
         ):
-            queryset = queryset.annotate(
-                user_count=Count('organization__organization_users')
-            ).filter(user_count__lte=1).order_by('user__username')
+            queryset = (
+                queryset.annotate(user_count=Count('organization__organization_users'))
+                .filter(user_count__lte=1)
+                .order_by('user__username')
+            )
 
         return super().get_search_results(request, queryset, search_term)
 
