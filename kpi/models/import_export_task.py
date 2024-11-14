@@ -520,8 +520,11 @@ class AccessLogExportTask(CommonExportTask):
             raise PermissionError('Only superusers can export all access logs.')
 
         export_type, view = self._get_export_details()
-        buff = create_data_export(export_type, self.user.username, self.uid, self.get_all_logs)
+        buff = create_data_export(
+            export_type, self.user.username, self.uid, self.get_all_logs
+        )
         self._run_task_base(messages, buff)
+
 
 class ProjectViewExportTask(CommonExportTask):
     uid = KpiUidField(uid_prefix='pve')
