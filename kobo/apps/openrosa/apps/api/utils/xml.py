@@ -28,6 +28,10 @@ def extract_confirmation_message(xml_string: str) -> Optional[str]:
         return
 
     confirmation_message_xpath = confirmation_message_xpath[0].strip()
+    _, submit_message_root_tag, *other_parts = (
+        confirmation_message_xpath.split('/')
+    )
+    confirmation_message_xpath = f'/{root.tag}/' + '/'.join(other_parts)
 
     try:
         # Evaluate the XPath expression to find the message

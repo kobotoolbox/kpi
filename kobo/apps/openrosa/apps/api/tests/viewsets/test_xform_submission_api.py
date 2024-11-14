@@ -487,6 +487,12 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                         self.assertContains(
                             response, 'Successful submission.', status_code=201
                         )
+                    elif xml_file == (
+                        'transport_with_custom_attribute_and_different_root'
+                    ):
+                        self.assertContains(
+                            response, 'Custom submit message', status_code=201
+                        )
                     else:
                         self.assertContains(
                             response, 'Successful submission.', status_code=201
