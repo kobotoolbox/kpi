@@ -13,11 +13,11 @@
   line-height: 22px;
 
   a {
-    text-decoration: underline;
-    color: inherit;
+    text-decoration: none;
+    color: colors.$kobo-dark-blue;
 
     &:hover {
-      text-decoration: none;
+      text-decoration: underline;
     }
   }
 
