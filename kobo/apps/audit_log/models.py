@@ -333,6 +333,8 @@ class ProjectHistoryLog(AuditLog):
             'paired-data-list': cls.create_from_paired_data_request,
             'asset-file-detail': cls.create_from_file_request,
             'asset-file-list': cls.create_from_file_request,
+            'asset-export-list': cls.create_from_export_request,
+            'exporttask-list': cls.create_from_v1_export,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -491,6 +493,10 @@ class ProjectHistoryLog(AuditLog):
             AuditAction.MODIFY_IMPORTED_FIELDS,
         )
 
+    @classmethod
+    def create_from_export_request(cls, request):
+        cls.create_from_related_request(request, None, AuditAction.EXPORT, None, None)
+
     @staticmethod
     def sharing_change(old_fields, new_fields):
         old_enabled = old_fields.get('enabled', False)
@@ -550,17 +556,21 @@ class ProjectHistoryLog(AuditLog):
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
-            label: source_data,
         }
+        if label:
+            metadata.update({label: source_data})
         if updated_data is None:
             action = delete_action
         elif initial_data is None:
             action = add_action
         else:
             action = modify_action
-        ProjectHistoryLog.objects.create(
-            user=request.user, object_id=object_id, action=action, metadata=metadata
-        )
+        if action:
+            # some actions on related objects do not need to be logged,
+            # eg deleting an ExportTask
+            ProjectHistoryLog.objects.create(
+                user=request.user, object_id=object_id, action=action, metadata=metadata
+            )
 
     @classmethod
     def create_from_import_task(cls, task: ImportTask):
@@ -598,3 +608,20 @@ class ProjectHistoryLog(AuditLog):
                     action=AuditAction.UPDATE_NAME,
                     metadata=metadata,
                 )
+
+    @classmethod
+    def create_from_v1_export(cls, request):
+        updated_data = getattr(request, 'updated_data', None)
+        if not updated_data:
+            return
+        ProjectHistoryLog.objects.create(
+            user=request.user,
+            object_id=updated_data['asset_id'],
+            action=AuditAction.EXPORT,
+            metadata={
+                'asset_uid': updated_data['asset_uid'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+            },
+        )

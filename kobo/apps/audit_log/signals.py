@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from kpi.models import ImportTask
 from kpi.tasks import import_in_background
 from kpi.utils.log import logging
+
 from .models import AccessLog, ProjectHistoryLog
 
 

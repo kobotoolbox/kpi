@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import Optional, Literal
 
-from django.db.models import Lookup, Field
+from django.db.models import Field, Lookup
 from django.db.models.expressions import Func, Value
 
 
@@ -36,6 +35,31 @@ class IncrementValue(Func):
             expression,
             keyname=keyname,
             increment=increment,
+            **extra,
+        )
+
+
+class DeductUsageValue(Func):
+
+    function = 'jsonb_set'
+    usage_value = "COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int"
+    template = (
+        '%(function)s(%(expressions)s,'
+        '\'{"%(keyname)s"}\','
+        '('
+        f'CASE WHEN {usage_value} > %(amount)s '
+        f'THEN {usage_value} - %(amount)s '
+        'ELSE 0 '
+        'END '
+        ')::text::jsonb)'
+    )
+    arity = 1
+
+    def __init__(self, expression: str, keyname: str, amount: int, **extra):
+        super().__init__(
+            expression,
+            keyname=keyname,
+            amount=amount,
             **extra,
         )
 
@@ -87,7 +111,7 @@ class RemoveJSONFieldAttribute(Func):
     """
 
     arg_joiner = ' #- '
-    template = "%(expressions)s"
+    template = '%(expressions)s'
     arity = 2
 
     def __init__(
@@ -116,7 +140,7 @@ class UpdateJSONFieldAttributes(Func):
     > structure is merged
     """
     arg_joiner = ' || '
-    template = "%(expressions)s"
+    template = '%(expressions)s'
     arity = 2
 
     def __init__(

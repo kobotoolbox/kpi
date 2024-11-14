@@ -2,8 +2,8 @@ from django.conf import settings
 from more_itertools import chunked
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.celery import celery_app
 from kobo.apps.project_ownership.utils import create_invite
+from kobo.celery import celery_app
 
 
 @celery_app.task(

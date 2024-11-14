@@ -25,6 +25,7 @@ from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models.asset import AssetDeploymentStatus
+
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -167,9 +168,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     actions = ['remove', 'delete']
 
     class Media:
-        css = {
-            'all': ('admin/css/inline_as_fieldset.css',)
-        }
+        css = {'all': ('admin/css/inline_as_fieldset.css',)}
 
     @admin.action(description='Remove selected users (delete everything but their username)')
     def remove(self, request, queryset, **kwargs):
@@ -293,9 +292,13 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         """
         Displays only users whose organization has a single member.
         """
-        return queryset.annotate(
-            user_count=Count('organizations_organization__organization_users')
-        ).filter(user_count__lte=1).order_by('username')
+        return (
+            queryset.annotate(
+                user_count=Count('organizations_organization__organization_users')
+            )
+            .filter(user_count__lte=1)
+            .order_by('username')
+        )
 
     def _remove_or_delete(
         self,

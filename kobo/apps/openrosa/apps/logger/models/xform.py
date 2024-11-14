@@ -139,9 +139,9 @@ class XForm(AbstractTimeStampedModel):
                 )
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only(
-                        'pk', 'name', 'uid', 'owner_id'
-                    ).get(_deployment_data__formid=self.pk)
+                    asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
+                        _deployment_data__formid=self.pk
+                    )
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
@@ -288,11 +288,7 @@ class XForm(AbstractTimeStampedModel):
 
     def url(self):
         return reverse(
-            'download_xform',
-            kwargs={
-                'username': self.user.username,
-                'pk': self.pk
-            }
+            'download_xform', kwargs={'username': self.user.username, 'pk': self.pk}
         )
 
     @property

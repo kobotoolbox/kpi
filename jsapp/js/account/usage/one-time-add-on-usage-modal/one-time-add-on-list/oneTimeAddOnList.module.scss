@@ -1,0 +1,21 @@
+@use 'scss/colors';
+
+
+.oneTimeAddOnListContainer {
+  .oneTimeAddOnListEntry + .oneTimeAddOnListEntry {
+    margin-top: 8px;
+  }
+}
+
+.oneTimeAddOnListEntry {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 6px;
+
+  label {
+    margin-right: 30px;
+    font-weight: 600;
+  }
+}

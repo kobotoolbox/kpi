@@ -5,8 +5,6 @@ import random
 import string
 import uuid
 from datetime import datetime
-from zoneinfo import ZoneInfo
-
 from unittest import mock
 
 import lxml
@@ -16,6 +14,7 @@ from django.conf import settings
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
+from zoneinfo import ZoneInfo
 
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User

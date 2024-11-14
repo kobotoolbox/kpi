@@ -559,9 +559,7 @@ class AssetViewSet(
         # content, not previous versions. Previous versions are handled in
         # `kobo.apps.reports.report_data.build_formpack()`
         if self.request.method == 'GET':
-            repair_file_column_content_and_save(
-                asset, include_versions=False
-            )
+            repair_file_column_content_and_save(asset, include_versions=False)
 
         return asset
 
