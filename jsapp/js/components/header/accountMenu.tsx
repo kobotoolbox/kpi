@@ -89,7 +89,7 @@ export default function AccountMenu() {
           <bem.AccountBox__menuLI key='1'>
             <bem.AccountBox__menuItem m={'avatar'}>
               <Avatar
-                size='l'
+                size='m'
                 username={accountName}
                 fullName={accountName}
                 email={accountEmail}

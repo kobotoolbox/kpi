@@ -23,7 +23,7 @@ export function ActivityMessage(props: {data: ActivityLogsItem}) {
 
   return (
     <div className={styles.activityMessage}>
-      <Avatar size='xs' username={props.data.username} />
+      <Avatar size='s' username={props.data.username} />
       <span dangerouslySetInnerHTML={{__html: message}} />
     </div>
   );

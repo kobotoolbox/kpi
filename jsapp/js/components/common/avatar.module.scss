@@ -1,10 +1,8 @@
 @use 'scss/colors';
 @use 'scss/mixins';
 
-$avatar-size-xs: 24px;
-$avatar-size-s: 28px;
+$avatar-size-s: 20px;
 $avatar-size-m: 32px;
-$avatar-size-l: 40px;
 
 @mixin avatar-size($size) {
   // This is the gap between the initials and the (optional) username
@@ -31,10 +29,8 @@ $avatar-size-l: 40px;
   align-items: center;
 }
 
-.avatar-size-xs {@include avatar-size($avatar-size-xs);}
 .avatar-size-s {@include avatar-size($avatar-size-s);}
 .avatar-size-m {@include avatar-size($avatar-size-m);}
-.avatar-size-l {@include avatar-size($avatar-size-l);}
 
 .initials {
   text-align: center;

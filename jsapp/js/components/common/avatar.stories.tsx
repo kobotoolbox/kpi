@@ -4,7 +4,7 @@ import type {ComponentStory, ComponentMeta, StoryObj} from '@storybook/react';
 import Avatar from './avatar';
 import type {AvatarSize} from './avatar';
 
-const avatarSizes: AvatarSize[] = ['xs', 's', 'm', 'l'];
+const avatarSizes: AvatarSize[] = ['s', 'm'];
 
 export default {
   title: 'common/Avatar',
@@ -49,7 +49,7 @@ Simple.args = {
 export const Full: StoryObj<typeof Avatar> = {
   render: () => (
     <Avatar
-      size='l'
+      size='m'
       username='wilhelm_lg_swh'
       isUsernameVisible
       fullName='Wilhelm Ludwig Georg zu Sayn-Wittgenstein-Hohenstein'
@@ -83,7 +83,7 @@ export const BulkColorsTest = () => (
   <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
     {bulkUsernames.map((username) => (
       <div key={username}>
-        <Avatar size='m' username={username} isUsernameVisible/>
+        <Avatar size='m' username={username}/>
       </div>
     ))}
   </div>

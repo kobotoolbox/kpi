@@ -2,7 +2,7 @@ import React from 'react';
 import cx from 'classnames';
 import styles from './avatar.module.scss';
 
-export type AvatarSize = 'xs' | 's' | 'm' | 'l';
+export type AvatarSize = 's' | 'm';
 
 /**
  * A simple function that generates hsl color from given string. Saturation and
@@ -19,7 +19,7 @@ function stringToHSL(string: string, saturation: number, lightness: number) {
 
 interface AvatarProps {
   /**
-   * It is not recommended to display full name or email with `xs` or `s` size.
+   * It is not recommended to display full name or email with `s` size.
    */
   size: AvatarSize;
   /**
