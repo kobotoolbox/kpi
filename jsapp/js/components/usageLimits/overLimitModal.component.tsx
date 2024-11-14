@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {AnchorHTMLAttributes, ClassAttributes, Component, useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -8,9 +8,9 @@ import sessionStore from 'js/stores/session';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
-import TextFormatter from '../textFormatter/textFormatter.component';
 import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
 import envStore from 'jsapp/js/envStore';
+import Markdown from 'react-markdown';
 
 interface OverLimitModalProps {
   show: boolean;
@@ -28,6 +28,12 @@ const getLimitReachedMessage = (isMmo: boolean, shouldUseTeamLabel: boolean) => 
   return t('You have reached the following limits included with your current plan:');
 };
 
+// We need to use a custom component here to open links using target="_blank"
+const LinkRendererTargetBlank = (props: AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  <a href={props.href} target='_blank'>
+    {props.children}
+  </a>
+);
 
 function OverLimitModal(props: OverLimitModalProps) {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -65,7 +71,7 @@ function OverLimitModal(props: OverLimitModalProps) {
   const limitReachedMessage = getLimitReachedMessage(is_mmo, shouldUseTeamLabel);
 
   const upgradeMessage = t(
-    'Please upgrade your plan as soon as possible or [contact us](##CONTACT_LINK##){:target="_blank"} to speak with our team.'
+    'Please upgrade your plan as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.'
   ).replace('##CONTACT_LINK##', 'https://www.kobotoolbox.org/contact/');
 
   const reviewUsageMessage = t(
@@ -92,8 +98,8 @@ function OverLimitModal(props: OverLimitModalProps) {
               ))}
             </div>
             <div>
-              <TextFormatter text={upgradeMessage} />
-              <TextFormatter text={reviewUsageMessage} />
+              <Markdown components={{a: LinkRendererTargetBlank}}>{upgradeMessage}</Markdown>
+              <Markdown>{reviewUsageMessage}</Markdown>
             </div>
           </div>
         </KoboModalContent>
