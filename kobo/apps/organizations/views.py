@@ -30,7 +30,11 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
-from .permissions import IsOrgAdmin, IsOrgAdminOrReadOnly
+from .permissions import (
+    IsOrgAdmin,
+    IsOrgAdminOrReadOnly,
+    IsOrgOwnerOrAdminOrMember
+)
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -399,7 +403,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     in updates.
     """
     serializer_class = OrganizationUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOrgOwnerOrAdminOrMember]
     pagination_class = OrganizationMemberPagination
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
@@ -432,15 +436,3 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        role = serializer.validated_data.get('role')
-        if role:
-            instance.is_admin = (role == 'admin')
-            instance.save()
-        return super().partial_update(request, *args, **kwargs)

@@ -41,4 +41,33 @@ class IsOrgAdminOrReadOnly(IsOrgAdmin):
             return True
 
         # Instance must have an attribute named `is_admin`
-        return obj.is_admin(request.user)
+        return obj.organization.is_admin(request.user)
+
+
+class IsOrgOwnerOrAdminOrMember(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Ensure the user is authenticated
+        if not request.user.is_authenticated:
+            return False
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        user_role = obj.organization.get_user_role(request.user)
+
+        # Allow owners to view, update, and delete members
+        if user_role == 'owner':
+            return True
+
+        # Allow admins to view and update, but not delete members
+        if user_role == 'admin':
+            return request.method in permissions.SAFE_METHODS or request.method == 'PATCH'
+
+        # Allow members to only view other members
+        if user_role == 'member':
+            return request.method in permissions.SAFE_METHODS
+
+        # Deny access to external users
+        if user_role == 'external':
+            raise Http404()
+
+        return False

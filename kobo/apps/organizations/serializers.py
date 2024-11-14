@@ -1,4 +1,3 @@
-from constance import config
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as t
 from rest_framework import serializers
