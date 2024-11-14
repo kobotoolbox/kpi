@@ -5,12 +5,12 @@ import csv
 from io import StringIO
 from typing import Union
 
+from django.apps import apps
 from django.conf import settings
 from django.db.models import CharField, Count, F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
 
-from kobo.apps.audit_log.models import AccessLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import ASSET_TYPE_SURVEY
@@ -95,7 +95,7 @@ CONFIG = {
         'columns': USER_FIELDS + METADATA_FIELDS,
     },
     'access_logs_export': {
-        'queryset': AccessLog.objects.all(),
+        'queryset': lambda: apps.get_model('audit_log', 'AccessLog').objects.all(),
         'key': 'metadata',
         'columns': ACCESS_LOGS_EXPORT_FIELDS,
     },
@@ -109,11 +109,10 @@ def create_data_export(
 
     # For access logs, modify the queryset based on the user's superuser status
     if export_type == 'access_logs_export':
-        queryset = (
-            config['queryset'].all()
-            if get_all_logs
-            else config['queryset'].filter(user__username=username)
-        )
+        queryset = config['queryset']()
+
+        if not get_all_logs:
+            queryset = queryset.filter(user__username=username)
     else:
         region_for_view = get_region_for_view(uid)
         q = get_q(region_for_view, export_type)
