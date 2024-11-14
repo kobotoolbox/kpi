@@ -58,14 +58,6 @@ jobs:
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
 
-      # Run the Unit test suite (formbuilder and helpers)
-      - name: Run unit tests and xlform tests
-        run: npx jest --config ./jsapp/jest/mocha.config.ts --ci
-
-      # Run the Jest test suite (React components)
-      - name: Run component tests with Jest
-        run: npx jest --config ./jsapp/jest/jest.config.ts --ci
-
       # Check that the full build succeeds
       - name: Build Prod
         run: SKIP_TS_CHECK=true npm run build
@@ -77,3 +69,12 @@ jobs:
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
         run: npm run lint -- --quiet
+
+      # Run the Unit test suite (formbuilder and helpers)
+      - name: Run unit tests and xlform tests
+        run: npx jest --config ./jsapp/jest/mocha.config.ts --ci
+
+      # Run the Jest test suite (React components)
+      - name: Run component tests with Jest
+        run: npx jest --config ./jsapp/jest/jest.config.ts --ci
+
