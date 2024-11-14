@@ -807,3 +807,58 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     NEW: new_asset.name,
                 },
             )
+
+    def test_export_creates_log(self):
+        self.asset.deploy(backend='mock', active=True)
+        request_data = {
+            'fields_from_all_versions': True,
+            'fields': [],
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'xls',
+            'xls_types_as_text': False,
+            'include_media_url': True,
+        }
+        self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                'api_v2:asset-export-list',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            expected_action=AuditAction.EXPORT,
+            request_data=request_data,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+
+    def test_export_v1_creates_log(self):
+        self.asset.deploy(backend='mock', active=True)
+        request_data = {
+            'fields_from_all_versions': True,
+            'fields': [],
+            'group_sep': '/',
+            'hierarchy_in_labels': False,
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'xls',
+            'xls_types_as_text': False,
+            'include_media_url': True,
+            'source': reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
+        }
+        # can't use _base_project_history_log_test because
+        # the old endpoint doesn't like format=json
+        self.client.post(
+            path=reverse('exporttask-list'),
+            data=request_data,
+        )
+
+        log_query = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid, action=AuditAction.EXPORT
+        )
+        self.assertEqual(log_query.count(), 1)
+        log = log_query.first()
+        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log.object_id, self.asset.id)

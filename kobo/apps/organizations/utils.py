@@ -1,16 +1,13 @@
-from typing import Union
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 from datetime import datetime
+from typing import Union
+from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
+from kpi.models.asset import Asset
+from kpi.models.object_permission import ObjectPermission
 
 
 def get_monthly_billing_dates(organization: Union[Organization, None]):
@@ -101,3 +98,16 @@ def get_yearly_billing_dates(organization: Union[Organization, None]):
         anchor_date += relativedelta(years=1)
     period_end = period_start + relativedelta(years=1)
     return period_start, period_end
+
+
+def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
+    """
+    Revokes permissions assigned to removed members on all assets belonging to
+    the organization.
+    """
+    subquery = Asset.objects.values_list('pk', flat=True).filter(
+        owner=organization.owner_user_object
+    )
+    ObjectPermission.objects.filter(
+         asset_id__in=subquery, user_id__in=user_ids
+    ).delete()
