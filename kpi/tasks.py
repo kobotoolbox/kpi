@@ -1,7 +1,5 @@
-# coding: utf-8
 import time
 
-import constance
 import requests
 from django.conf import settings
 from django.core.mail import send_mail
@@ -47,7 +45,7 @@ def project_view_export_in_background(
         send_mail(
             subject='Project View Report Complete',
             message=msg,
-            from_email=constance.config.SUPPORT_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
         )

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
