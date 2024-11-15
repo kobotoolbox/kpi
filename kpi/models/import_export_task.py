@@ -134,7 +134,7 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
-        except ExportTaskBase.InaccessibleData as e:
+        except SubmissionExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
             msgs['error'] = str(e)
             self.status = self.ERROR
@@ -535,7 +535,7 @@ class ProjectViewExportTask(CommonExportTask):
         self._run_task_base(messages, buff)
 
 
-class ExportTaskBase(ImportExportTask):
+class SubmissionExportTaskBase(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -965,7 +965,7 @@ class ExportTaskBase(ImportExportTask):
             export.delete()
 
 
-class ExportTask(ExportTaskBase):
+class SubmissionExportTask(SubmissionExportTaskBase):
     """
     An asynchronous export task, to be run with Celery
     """
@@ -986,7 +986,7 @@ class ExportTask(ExportTaskBase):
         self.remove_excess(self.user, source_url)
 
 
-class SynchronousExport(ExportTaskBase):
+class SubmissionSynchronousExport(SubmissionExportTaskBase):
     """
     A synchronous export, with significant limitations on processing time, but
     offered for user convenience

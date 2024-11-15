@@ -24,7 +24,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.utils.mongo_helper import drop_mock_only
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -413,11 +413,11 @@ class MockDataExports(MockDataExportsBase):
                           UTF-8 encoded representation should match the export
                           result
         `export_options`: (optional) a list of extra options for
-                          `ExportTask.data`. Do not include `source` or `type`
+                          `SubmissionExportTask.data`. Do not include `source` or `type`
         `asset`: (optional) the asset to export. Defaults to `self.asset`
         `user`: (optional) the user to own the export. Defaults to `self.user`
         """
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         asset = self.asset if asset is None else asset
         export_task.user = self.user if user is None else user
         export_task.data = {
@@ -451,11 +451,11 @@ class MockDataExports(MockDataExportsBase):
         `expected_rows`: a list of strings *without* trailing newlines whose
                           UTF-8 encoded representation should match the export
                           result
-        `export_options`: a list of extra options for `ExportTask.data`. Do not
+        `export_options`: a list of extra options for `SubmissionExportTask.data`. Do not
                           include `source` or `type`
         """
         asset = self.asset if asset is None else asset
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user if user is None else user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),
@@ -1375,7 +1375,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_data, asset=asset, repeat_group=True)
 
     def test_export_spss_labels(self):
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
@@ -1473,22 +1473,22 @@ class MockDataExports(MockDataExportsBase):
         }
         # Create and run one export, so we can verify that it's `result` file
         # is later deleted
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
         export_task.run()
-        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
         result = export_task.result
         self.assertTrue(result.storage.exists(result.name))
         # Make an excessive amount of additional exports
         excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
         for _ in range(excess_count):
-            export_task = ExportTask()
+            export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask.objects.filter(
+        created_export_tasks = SubmissionExportTask.objects.filter(
             user=self.user, data__source=task_data['source']
         )
         self.assertEqual(excess_count + 1, created_export_tasks.count())
@@ -1497,13 +1497,13 @@ class MockDataExports(MockDataExportsBase):
             :settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM]
         # Call `run()` once more since it invokes the cleanup logic
         export_task.run()
-        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual(  # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
             list(
-                ExportTask.objects.filter(
+                SubmissionExportTask.objects.filter(
                     user=self.user, data__source=task_data['source']
                 ).order_by('-date_created').values_list('pk', flat=True)
             ),
@@ -1516,13 +1516,13 @@ class MockDataExports(MockDataExportsBase):
         }
         self.assertEqual(
             0,
-            ExportTask.objects.filter(
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).count(),
         )
         # Simulate a few stuck exports
-        for status in (ExportTask.CREATED, ExportTask.PROCESSING):
-            export_task = ExportTask()
+        for status in (SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING):
+            export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = task_data
             export_task.status = status
@@ -1530,21 +1530,21 @@ class MockDataExports(MockDataExportsBase):
             export_task.date_created -= datetime.timedelta(days=1)
             export_task.save()
         self.assertSequenceEqual(
-            [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask.objects.filter(
+            [SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING],
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),
         )
         # Run another export, which invokes the cleanup logic
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
         export_task.run()
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
-            [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask.objects.filter(
+            [SubmissionExportTask.ERROR, SubmissionExportTask.ERROR, SubmissionExportTask.COMPLETE],
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),
         )
@@ -1556,14 +1556,14 @@ class MockDataExports(MockDataExportsBase):
             'jugs dum cornelia legit flavia scribit et laeta est flavia quod '
             'cornelia iam in villa habitat et cornelia et flavia sunt amicae'
         )
-        assert len(what_a_title) > ExportTask.MAXIMUM_FILENAME_LENGTH
+        assert len(what_a_title) > SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
         self.asset.name = what_a_title
         self.asset.save()
         task_data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
@@ -1571,7 +1571,7 @@ class MockDataExports(MockDataExportsBase):
 
         assert (
             len(os.path.basename(export_task.result.name)) ==
-                ExportTask.MAXIMUM_FILENAME_LENGTH
+                SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
         )
 
     def test_export_latest_version_only(self):
@@ -1621,7 +1621,7 @@ class MockDataExports(MockDataExportsBase):
             } for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),

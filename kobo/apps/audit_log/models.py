@@ -334,7 +334,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-file-detail': cls.create_from_file_request,
             'asset-file-list': cls.create_from_file_request,
             'asset-export-list': cls.create_from_export_request,
-            'exporttask-list': cls.create_from_v1_export,
+            'submissionexporttask-list': cls.create_from_v1_export,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -567,7 +567,7 @@ class ProjectHistoryLog(AuditLog):
             action = modify_action
         if action:
             # some actions on related objects do not need to be logged,
-            # eg deleting an ExportTask
+            # eg deleting an SubmissionExportTask
             ProjectHistoryLog.objects.create(
                 user=request.user, object_id=object_id, action=action, metadata=metadata
             )
