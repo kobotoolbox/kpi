@@ -36,7 +36,8 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     > List can be filtered through the following methods:
 
     * Source URL or UID if `q=source:[URL|UID]`;
-    * Comma-separated list of `SubmissionExportTask` UIDs if `q=uid__in:[UID],[UID],...` was provided
+    * Comma-separated list of `SubmissionExportTask` UIDs
+    if `q=uid__in:[UID],[UID],...` was provided
     * Data source URL if `q=data__source:[URL]`
 
     > Examples:
@@ -205,8 +206,9 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
             raise serializers.ValidationError(
                 {'source': 'The specified asset must be deployed.'})
         # Create a new export task
-        export_task = SubmissionExportTask.objects.create(user=request.user,
-                                                data=task_data)
+        export_task = SubmissionExportTask.objects.create(
+            user=request.user, data=task_data
+        )
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)
         return Response({
