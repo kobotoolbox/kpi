@@ -1,28 +1,26 @@
+from ddt import ddt, data, unpack
 from django.urls import reverse
-from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization, OrganizationUser
-from kpi.tests.kpi_test_case import BaseTestCase
+from kobo.apps.organizations.tests.test_organizations_api import (
+    BaseOrganizationAssetApiTestCase
+)
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
-class OrganizationMemberAPITestCase(BaseTestCase):
+@ddt
+class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
     def setUp(self):
-        self.organization = baker.make(
-            Organization, id='org_12345', mmo_override=True
-        )
-        self.owner_user = baker.make(User, username='owner')
-        self.member_user = baker.make(User, username='member')
+        super().setUp()
+        self.organization = self.someuser.organization
+        self.owner_user = self.someuser
+        self.member_user = self.alice
+        self.admin_user = self.anotheruser
+        self.external_user = self.bob
 
-        self.organization.add_user(self.owner_user)
-        self.organization.add_user(self.member_user, is_admin=False)
-
-        self.client.force_login(self.owner_user)
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
             kwargs={'organization_id': self.organization.id},
@@ -35,36 +33,78 @@ class OrganizationMemberAPITestCase(BaseTestCase):
             },
         )
 
-    def test_list_members(self):
+    @data(
+        ('owner', status.HTTP_200_OK),
+        ('admin', status.HTTP_200_OK),
+        ('member', status.HTTP_200_OK),
+        ('external', status.HTTP_200_OK),
+    )
+    @unpack
+    def test_list_members_with_different_roles(self, user_role, expected_status):
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
         response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn(
-            'owner',
-            [member['user__username'] for member in response.data.get('results')]
-        )
-        self.assertIn(
-            'member',
-            [member['user__username'] for member in response.data.get('results')]
-        )
+        self.assertEqual(response.status_code, expected_status)
 
-    def test_retrieve_member_details(self):
-        response = self.client.get(self.detail_url('member'))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user__username'], 'member')
-        self.assertEqual(response.data['role'], 'member')
+    @data(
+        ('owner', status.HTTP_200_OK),
+        ('admin', status.HTTP_200_OK),
+        ('member', status.HTTP_200_OK),
+        ('external', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_retrieve_member_details_with_different_roles(
+            self, user_role, expected_status
+    ):
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
+        response = self.client.get(self.detail_url(self.member_user))
+        self.assertEqual(response.status_code, expected_status)
 
-    def test_update_member_role(self):
+    @data(
+        ('owner', status.HTTP_200_OK),
+        ('admin', status.HTTP_200_OK),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_update_member_role_with_different_roles(self, user_role, expected_status):
+        user = getattr(self, f'{user_role}_user')
         data = {'role': 'admin'}
-        response = self.client.patch(self.detail_url('member'), data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['role'], 'admin')
+        self.client.force_login(user)
+        response = self.client.patch(self.detail_url(self.member_user), data)
+        self.assertEqual(response.status_code, expected_status)
 
-    def test_delete_member(self):
-        response = self.client.delete(self.detail_url('member'))
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # Confirm deletion
-        response = self.client.get(self.detail_url('member'))
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    @data(
+        ('owner', status.HTTP_204_NO_CONTENT),
+        ('admin', status.HTTP_403_FORBIDDEN),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_delete_member_with_different_roles(self, user_role, expected_status):
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
+        response = self.client.delete(self.detail_url(self.member_user))
+        self.assertEqual(response.status_code, expected_status)
+        if expected_status == status.HTTP_204_NO_CONTENT:
+            # Confirm deletion
+            response = self.client.get(self.detail_url(self.member_user))
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @data(
+        ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
+        ('admin', status.HTTP_405_METHOD_NOT_ALLOWED),
+        ('member', status.HTTP_405_METHOD_NOT_ALLOWED),
+        ('external', status.HTTP_405_METHOD_NOT_ALLOWED),
+    )
+    @unpack
+    def test_post_request_is_not_allowed(self, user_role, expected_status):
+        user = getattr(self, f'{user_role}_user')
+        data = {'role': 'admin'}
+        self.client.force_login(user)
+        response = self.client.post(self.list_url, data)
+        self.assertEqual(response.status_code, expected_status)
 
     def test_list_requires_authentication(self):
         self.client.logout()

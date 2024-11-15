@@ -10,12 +10,13 @@ from django.db.models import (
 )
 from django.db.models.expressions import Exists
 from django.utils.decorators import method_decorator
+from django.utils.http import http_date
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.response import Response
 
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
@@ -30,7 +31,11 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
-from .permissions import IsOrgAdmin, IsOrgAdminOrReadOnly
+from .permissions import (
+    IsOrgAdmin,
+    IsOrgAdminOrReadOnly,
+    IsOrgOwnerOrAdminOrMember
+)
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -89,11 +94,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
     pagination_class = AssetUsagePagination
 
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[IsOrgAdmin]
-    )
+    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdmin])
     def assets(self, request: Request, *args, **kwargs):
         """
         ### Retrieve Organization Assets
@@ -154,6 +155,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >           "current_month_start": {string (date), ISO format},
         >           "current_year_start": {string (date), ISO format},
         >           "billing_period_end": {string (date), ISO format}|{None},
+        >           "last_updated": {string (date), ISO format},
         >       }
         ### CURRENT ENDPOINT
         """
@@ -167,7 +169,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             get_database_user(request.user),
             context=context,
         )
-        return Response(data=serializer.data)
+        response = Response(
+            data=serializer.data,
+            headers={
+                'Date': http_date(serializer.calculator.get_last_updated().timestamp())
+            },
+        )
+
+        return response
 
     @action(detail=True, methods=['get'])
     def asset_usage(self, request, pk=None, *args, **kwargs):
@@ -219,7 +228,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             )[0]
         except IndexError:
             return Response(
-                {'error': "There was a problem finding the organization."},
+                {'error': 'There was a problem finding the organization.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -399,7 +408,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     in updates.
     """
     serializer_class = OrganizationUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOrgOwnerOrAdminOrMember]
     pagination_class = OrganizationMemberPagination
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
@@ -432,15 +441,3 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        role = serializer.validated_data.get('role')
-        if role:
-            instance.is_admin = (role == 'admin')
-            instance.save()
-        return super().partial_update(request, *args, **kwargs)

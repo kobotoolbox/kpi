@@ -1,8 +1,10 @@
 export const endpoints = {
   ASSET_URL: '/api/v2/assets/:uid/',
+  ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
   SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/',
+  ADD_ONS_URL: '/api/v2/stripe/addons/',
   ORGANIZATION_URL: '/api/v2/organizations/',
   ORGANIZATION_MEMBERS_URL: '/api/v2/organizations/:organization_id/members/',
   /** Expected parameters: price_id and organization_id **/

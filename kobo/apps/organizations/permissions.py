@@ -6,13 +6,12 @@ from kpi.mixins.validation_password_permission import ValidationPasswordPermissi
 from kpi.utils.object_permission import get_database_user
 
 
-class IsOrgAdmin(
-    ValidationPasswordPermissionMixin, permissions.BasePermission
-):
+class IsOrgAdmin(ValidationPasswordPermissionMixin, permissions.BasePermission):
     """
     Object-level permission to only allow admin members of an object to access it.
     Assumes the model instance has an `is_admin` attribute.
     """
+
     def has_permission(self, request, view):
         self.validate_password(request)
         return super().has_permission(request=request, view=view)
@@ -42,3 +41,35 @@ class IsOrgAdminOrReadOnly(IsOrgAdmin):
 
         # Instance must have an attribute named `is_admin`
         return obj.is_admin(request.user)
+
+
+class IsOrgOwnerOrAdminOrMember(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # Ensure the user is authenticated
+        if not request.user.is_authenticated:
+            return False
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        user_role = obj.organization.get_user_role(request.user)
+
+        # Allow owners to view, update, and delete members
+        if user_role == 'owner':
+            return True
+
+        # Allow admins to view and update, but not delete members
+        if user_role == 'admin':
+            return (
+                request.method in permissions.SAFE_METHODS or
+                request.method == 'PATCH'
+            )
+
+        # Allow members to only view other members
+        if user_role == 'member':
+            return request.method in permissions.SAFE_METHODS
+
+        # Deny access to external users
+        if user_role == 'external':
+            raise Http404()
+
+        return False
