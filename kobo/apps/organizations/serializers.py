@@ -47,11 +47,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user__is_active'
         ]
 
-    def update(self, instance, validated_data):
-        if role := validated_data.get('role', None):
-            validated_data['is_admin'] = role == 'admin'
-        return super().update(instance, validated_data)
-
     def get_url(self, obj):
         request = self.context.get('request')
         return reverse(
@@ -62,6 +57,11 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             },
             request=request
         )
+
+    def update(self, instance, validated_data):
+        if role := validated_data.get('role', None):
+            validated_data['is_admin'] = role == 'admin'
+        return super().update(instance, validated_data)
 
     def validate_role(self, role):
         if role not in ['admin', 'member']:
