@@ -30,7 +30,7 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
-from .permissions import HasOrgRolePermission
+from .permissions import HasOrgRolePermission, IsOrgAdminPermission
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -90,7 +90,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     pagination_class = AssetUsagePagination
 
     @action(
-        detail=True, methods=['GET'], permission_classes=[HasOrgRolePermission]
+        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
     )
     def assets(self, request: Request, *args, **kwargs):
         """

@@ -349,7 +349,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     def test_list_not_found_as_anonymous(self):
         self.client.logout()
         response = self.client.get(self.org_assets_list_url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_only_organization_assets(self):
         # The organization's assets endpoint only returns assets where the `owner`
