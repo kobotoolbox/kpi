@@ -22,8 +22,7 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination, OrganizationMemberPagination
-from kpi.permissions import IsAuthenticated
+from kpi.paginators import AssetUsagePagination, OrganizationMembersPagination
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -31,11 +30,7 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
-from .permissions import (
-    IsOrgAdmin,
-    IsOrgAdminOrReadOnly,
-    IsOrgOwnerOrAdminOrMember
-)
+from .permissions import HasOrgRolePermission
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -91,10 +86,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
-    permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
+    permission_classes = [HasOrgRolePermission]
     pagination_class = AssetUsagePagination
 
-    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdmin])
+    @action(
+        detail=True, methods=['GET'], permission_classes=[HasOrgRolePermission]
+    )
     def assets(self, request: Request, *args, **kwargs):
         """
         ### Retrieve Organization Assets
@@ -279,6 +276,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
+    Used `ModelViewSet` instead of `NestedViewSetMixin` to maintain explicit
+    control over the queryset.
+
     * Manage organization members and their roles within an organization.
     * Run a partial update on an organization member to promote or demote.
 
@@ -408,8 +408,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     in updates.
     """
     serializer_class = OrganizationUserSerializer
-    permission_classes = [IsOrgOwnerOrAdminOrMember]
-    pagination_class = OrganizationMemberPagination
+    permission_classes = [HasOrgRolePermission]
+    pagination_class = OrganizationMembersPagination
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
