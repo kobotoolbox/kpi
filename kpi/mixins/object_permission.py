@@ -475,8 +475,6 @@ class ObjectPermissionMixin:
           partial permissions
         :param request: :py:class:`Request` request that initiated the call
         """
-        if request and getattr(request._request, 'permissions_added', None) is None:
-            request._request.permissions_added = defaultdict(list)
 
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
@@ -510,8 +508,9 @@ class ObjectPermissionMixin:
         if identical_existing_perm.exists():
             # We need to always update partial permissions because
             # they may have changed even if `perm` is the same.
-            self._update_partial_permissions(user_obj, perm,
-                                             partial_perms=partial_perms)
+            self._update_partial_permissions(
+                user_obj, perm, partial_perms=partial_perms, request=request
+            )
             # The user already has this permission directly applied
             return identical_existing_perm.first()
 
@@ -544,10 +543,6 @@ class ObjectPermissionMixin:
             deny=deny,
             inherited=False
         )
-        if request and not deny:
-            request._request.permissions_added[user_obj.username].append(
-                perm_model.codename
-            )
         # Assign any applicable KC permissions
         if not deny and not skip_kc:
             assign_applicable_kc_permissions(self, user_obj, codename)
@@ -576,6 +571,7 @@ class ObjectPermissionMixin:
             instance=self,
             user=user_obj,
             codename=codename,
+            request=request,
         )
 
         # Recalculate all descendants
@@ -735,8 +731,7 @@ class ObjectPermissionMixin:
             permissions
         :param request :py:class:`Request` request that initiated the removal
         """
-        if request and getattr(request._request, 'permissions_removed', None) is None:
-            request._request.permissions_removed = defaultdict(list)
+
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
         # Get all assignable permissions, regardless of asset type. That way,
@@ -761,10 +756,6 @@ class ObjectPermissionMixin:
         for implied_perm in implied_perms:
             self.remove_perm(user_obj, implied_perm, defer_recalc=True, request=request)
         # Delete directly assigned permissions, if any
-        if request:
-            request._request.permissions_removed[user_obj.username].extend(
-                direct_permissions.values_list('permission__codename', flat=True)
-            )
         direct_permissions.delete()
         if inherited_permissions.exists():
             # Delete inherited permissions
@@ -787,6 +778,7 @@ class ObjectPermissionMixin:
             instance=self,
             user=user_obj,
             codename=codename,
+            request=request,
         )
 
         # Recalculate all descendants

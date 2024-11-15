@@ -19,6 +19,9 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    PERM_ADD_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
     PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
@@ -339,7 +342,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-bulk-assignments': cls.create_from_permission_request,
             'asset-permission-assignment-detail': cls.create_from_permission_request,
             'asset-permission-assignment-list': cls.create_from_permission_request,
-            'asset-permission-assignment-clone': cls.create_from_cloning_permissions,
+            'asset-permission-assignment-clone': cls.create_from_permission_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -352,47 +355,15 @@ class ProjectHistoryLog(AuditLog):
         logs = []
         permissions_added = getattr(request, 'permissions_added', {})
         permissions_removed = getattr(request, 'permissions_removed', {})
+        # for deletion, cloning, and bulk assignment, asset information comes in
+        # the 'initial_data' dict. For creation, it's in 'updated_data'
         audit_log_data_dict = (
             request.initial_data
-            if getattr(request, 'initial_data', []) != []
-            else request.updated_data
+            if getattr(request, 'initial_data', None) is not None
+            else getattr(request, 'updated_data', None)
         )
-        for username in {*permissions_added, *permissions_removed}:
-            logs.append(
-                ProjectHistoryLog(
-                    user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
-                    action=AuditAction.MODIFY_USER_PERMISSIONS,
-                    user_uid=request.user.extra_details.uid,
-                    object_id=audit_log_data_dict['object_id'],
-                    metadata={
-                        'username': username,
-                        'permissions': {
-                            'username': username,
-                            ADDED: permissions_added.get(username, []),
-                            REMOVED: permissions_removed.get(username, []),
-                        },
-                        'asset_uid': audit_log_data_dict['object_uid'],
-                        'ip_address': get_client_ip(request),
-                        'source': get_human_readable_client_user_agent(request),
-                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                    },
-                )
-            )
-        ProjectHistoryLog.objects.bulk_create(logs)
-
-    @classmethod
-    def create_from_cloning_permissions(cls, request):
-        logs = []
-        permissions_added = getattr(request, 'permissions_added', {})
-        permissions_removed = getattr(request, 'permissions_removed', {})
-        audit_log_data_dict = (
-            request.initial_data
-            if getattr(request, 'initial_data', []) != []
-            else request.updated_data
-        )
+        if not audit_log_data_dict:
+            return
         for username in {*permissions_added, *permissions_removed}:
             # sometimes permissions get removed and then re-added. ignore those
             user_perms_added = permissions_added.get(username, [])
@@ -403,30 +374,71 @@ class ProjectHistoryLog(AuditLog):
             user_perms_removed_filtered = [
                 perm for perm in user_perms_removed if perm not in user_perms_added
             ]
-            logs.append(
-                ProjectHistoryLog(
-                    user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
-                    action=AuditAction.MODIFY_USER_PERMISSIONS,
-                    user_uid=request.user.extra_details.uid,
-                    object_id=audit_log_data_dict['object_id'],
-                    metadata={
-                        'username': username,
-                        'permissions': {
-                            'username': username,
-                            ADDED: user_perms_added_filtered,
-                            REMOVED: user_perms_removed_filtered,
-                        },
-                        'asset_uid': audit_log_data_dict['object_uid'],
-                        'ip_address': get_client_ip(request),
-                        'source': get_human_readable_client_user_agent(request),
-                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                    },
+            actions = [AuditAction.MODIFY_USER_PERMISSIONS]
+            if username == 'AnonymousUser':
+                actions = cls._determine_actions_for_anonymous_users(
+                    user_perms_added_filtered, user_perms_removed_filtered
                 )
-            )
+
+            # one log per normal user, possibly >1 for anonymous permissions
+            for action in actions:
+                metadata = {
+                    'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                    'asset_uid': audit_log_data_dict['object_uid'],
+                    'ip_address': get_client_ip(request),
+                    'source': get_human_readable_client_user_agent(request),
+                }
+                if action == AuditAction.MODIFY_USER_PERMISSIONS:
+                    metadata['permissions'] = {
+                        'username': username,
+                        ADDED: user_perms_added_filtered,
+                        REMOVED: user_perms_removed_filtered,
+                    }
+                logs.append(
+                    # since we're using bulk_create, we have to manually set all fields
+                    ProjectHistoryLog(
+                        user=request.user,
+                        app_label=Asset._meta.app_label,
+                        model_name=Asset._meta.model_name,
+                        log_type=AuditType.PROJECT_HISTORY,
+                        action=action,
+                        user_uid=request.user.extra_details.uid,
+                        object_id=audit_log_data_dict['object_id'],
+                        metadata=metadata,
+                )
+                )
         ProjectHistoryLog.objects.bulk_create(logs)
+
+    @staticmethod
+    def _determine_actions_for_anonymous_users(permissions_added, permissions_removed):
+        # this method expects permissions_added and permissions_removed to be deduped
+        actions = []
+        if PERM_VIEW_SUBMISSIONS in permissions_added:
+            permissions_added.remove(PERM_VIEW_SUBMISSIONS)
+            permissions_added.remove(PERM_VIEW_ASSET)
+            actions.append(AuditAction.SHARE_DATA_PUBLICLY)
+        if PERM_VIEW_ASSET in permissions_added:
+            permissions_added.remove(PERM_VIEW_ASSET)
+            actions.append(AuditAction.SHARE_FORM_PUBLICLY)
+        if PERM_ADD_SUBMISSIONS in permissions_added:
+            actions.append(AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS)
+            permissions_added.remove(PERM_ADD_SUBMISSIONS)
+
+        if PERM_VIEW_SUBMISSIONS in permissions_removed:
+            actions.append(AuditAction.UNSHARE_DATA_PUBLICLY)
+            permissions_removed.remove(PERM_VIEW_SUBMISSIONS)
+            permissions_removed.remove(PERM_VIEW_ASSET)
+        if PERM_VIEW_ASSET in permissions_removed:
+            actions.append(AuditAction.UNSHARE_FORM_PUBLICLY)
+            permissions_removed.remove(PERM_VIEW_ASSET)
+        if PERM_ADD_SUBMISSIONS in permissions_removed:
+            actions.append(AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS)
+            permissions_removed.remove(PERM_ADD_SUBMISSIONS)
+
+        # any other permissions, just log them as regular modify_user_permission logs
+        if len(permissions_added) > 0 or len(permissions_removed) > 0:
+            actions.append(AuditAction.MODIFY_USER_PERMISSIONS)
+        return actions
 
     @staticmethod
     def create_from_deployment_request(request):

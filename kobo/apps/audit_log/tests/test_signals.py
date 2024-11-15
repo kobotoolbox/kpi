@@ -5,12 +5,15 @@ from allauth.account.models import EmailAddress
 from django.contrib.auth.signals import user_logged_in
 from django.test import override_settings
 from django.urls import reverse
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
 from trench.utils import get_mfa_model
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.audit_log.signals import create_access_log
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -35,6 +38,8 @@ class AuditLogSignalsTestCase(BaseTestCase):
     are in test_models.py. Also, AuditLogs for SSO logins are tested as part of the SSO tests
     to avoid copying lots of complicated setup.
     """
+
+    fixtures = ['test_data']
 
     @classmethod
     def setUpClass(cls):
@@ -138,3 +143,127 @@ class AuditLogSignalsTestCase(BaseTestCase):
         audit_log = AuditLog.objects.first()
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+    def test_add_permission(self):
+        user = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        factory = APIRequestFactory()
+        request = factory.post(
+            reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
+            ),
+            data={},
+        )
+        drf_request = Request(request)
+        asset = Asset.objects.get(pk=1)
+        asset.assign_perm(user_obj=user, perm='view_asset', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_added, {'someuser': ['view_asset']}
+        )
+
+        asset.assign_perm(user_obj=user, perm='add_submissions', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_added,
+            {'someuser': ['view_asset', 'add_submissions']},
+        )
+
+        asset.assign_perm(user_obj=anotheruser, perm='view_asset', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_added,
+            {
+                'someuser': ['view_asset', 'add_submissions'],
+                'anotheruser': ['view_asset'],
+            },
+        )
+
+    def test_remove_permission(self):
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.get(pk=1)
+        anotheruser = User.objects.get(username='anotheruser')
+        asset.assign_perm(user_obj=user, perm='view_asset')
+        asset.assign_perm(user_obj=user, perm='add_submissions')
+        asset.assign_perm(user_obj=anotheruser, perm='view_asset')
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
+            ),
+            data={},
+        )
+        drf_request = Request(request)
+        asset.remove_perm(user_obj=user, perm='view_asset', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_removed, {'someuser': ['view_asset']}
+        )
+
+        asset.remove_perm(user_obj=user, perm='add_submissions', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_removed,
+            {'someuser': ['view_asset', 'add_submissions']},
+        )
+
+        asset.remove_perm(user_obj=anotheruser, perm='view_asset', request=drf_request)
+        self.assertDictEqual(
+            drf_request._request.permissions_removed,
+            {
+                'someuser': ['view_asset', 'add_submissions'],
+                'anotheruser': ['view_asset'],
+            },
+        )
+
+    def test_add_partial_permissions(self):
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.get(pk=1)
+        anotheruser = User.objects.get(username='anotheruser')
+
+        partial_perms = {
+            'view_submissions': [
+                {'_submitted_by': 'someuser'},
+            ],
+        }
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
+            ),
+            data={},
+        )
+        drf_request = Request(request)
+        asset._update_partial_permissions(
+            user=user, perm='view_submissions', partial_perms=partial_perms
+        )
+        self.assertDictEqual(
+            drf_request._request.permissions_removed,
+            {
+                'someuser': {
+                    'code': 'view_submissions',
+                    'filters': [{'_submitted_by': 'someuser'}],
+                }
+            },
+        )
+
+        asset._update_partial_permissions(
+            user=anotheruser, perm='view_submissions', partial_perms=partial_perms
+        )
+        self.assertDictEqual(
+            drf_request._request.permissions_removed,
+            {
+                'someuser': [
+                    {
+                        'code': 'view_submissions',
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    }
+                ],
+                'anotheruser': [
+                    {
+                        'code': 'view_submissions',
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    }
+                ],
+            },
+        )

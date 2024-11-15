@@ -2,8 +2,8 @@ from django.db import models
 
 
 class AuditAction(models.TextChoices):
-    ADD_USER = 'add-user'
     ADD_MEDIA = 'add-media'
+    ALLOW_ANONYMOUS_SUBMISSIONS = 'allow-anonymous-submissions'
     ARCHIVE = 'archive'
     AUTH = 'auth'
     CONNECT_PROJECT = 'connect-project'
@@ -13,6 +13,7 @@ class AuditAction(models.TextChoices):
     DELETE_SERVICE = 'delete-service'
     DEPLOY = 'deploy'
     DISABLE_SHARING = 'disable-sharing'
+    DISALLOW_ANONYMOUS_SUBMISSIONS = 'disallow-anonymous-submissions'
     DISCONNECT_PROJECT = 'disconnect-project'
     ENABLE_SHARING = 'enable-sharing'
     EXPORT = 'export'
@@ -25,9 +26,12 @@ class AuditAction(models.TextChoices):
     REDEPLOY = 'redeploy'
     REGISTER_SERVICE = 'register-service'
     REMOVE = 'remove'
-    REMOVE_USER = 'remove-user'
     REPLACE_FORM = 'replace-form'
+    SHARE_DATA_PUBLICLY = 'share-data-publicly'
+    SHARE_FORM_PUBLICLY = 'share-form-publicly'
     UNARCHIVE = 'unarchive'
+    UNSHARE_DATA_PUBLICLY = 'unshare-data-publicly'
+    UNSHARE_FORM_PUBLICLY = 'unshare-form-publicly'
     UPDATE = 'update'
     UPDATE_CONTENT = 'update-content'
     UPDATE_NAME = 'update-name'

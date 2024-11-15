@@ -1,6 +1,5 @@
 import copy
 import re
-from collections import defaultdict
 from functools import reduce
 from operator import add
 from typing import Optional, Union
@@ -79,7 +78,7 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.object_permission import get_cached_code_names
+from kpi.utils.object_permission import get_cached_code_names, post_assign_partial_perm
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -1402,19 +1401,20 @@ class Asset(
                     self, partial_perms
                 )
             )
-            if request and getattr(request._request, 'permissions_added', None) is None:
-                request._request.permissions_added = defaultdict(list)
 
-            AssetUserPartialPermission.objects.update_or_create(
+            partial_perm_obj, _ = AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,
                 user_id=user.pk,
                 defaults={'permissions': new_partial_perms},
             )
+            post_assign_partial_perm.send(
+                sender=self.__class__,
+                instance=self,
+                user=user,
+                perms=partial_perm_obj,
+                request=request,
+            )
 
-            for perm, filters in new_partial_perms.items():
-                request._request.permissions_added[user.username].append(
-                    {'permission': perm, 'filters': filters}
-                )
 
             # There are no real partial permissions for 'add_submissions' but
             # 'change_submissions' implies it. So if 'add_submissions' is in the
