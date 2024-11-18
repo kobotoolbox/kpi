@@ -88,6 +88,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
     pagination_class = AssetUsagePagination
+    http_method_names = ['get', 'patch']
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
