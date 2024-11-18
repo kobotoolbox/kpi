@@ -137,6 +137,13 @@ class FastAssetPagination(Paginated):
         return super().get_count(queryset)
 
 
+class OrganizationMembersPagination(PageNumberPagination):
+    """
+    Pagination class for Organization Members
+    """
+    page_size_query_param = 'page_size'
+
+
 class TinyPaginated(PageNumberPagination):
     """
     Same as Paginated with a small page size

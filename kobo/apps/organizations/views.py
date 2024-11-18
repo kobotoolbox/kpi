@@ -1,6 +1,14 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import QuerySet
+from django.db.models import (
+    QuerySet,
+    Case,
+    When,
+    Value,
+    CharField,
+    OuterRef,
+)
+from django.db.models.expressions import Exists
 from django.utils.decorators import method_decorator
 from django.utils.http import http_date
 from django.views.decorators.cache import cache_page
@@ -14,19 +22,18 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination
-from kpi.permissions import IsAuthenticated
+from kpi.paginators import AssetUsagePagination, OrganizationMembersPagination
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-
+from .models import Organization, OrganizationOwner, OrganizationUser
+from .permissions import HasOrgRolePermission, IsOrgAdminPermission
+from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from ..accounts.mfa.models import MfaMethod
 from ..stripe.constants import ACTIVE_STRIPE_STATUSES
-from .models import Organization
-from .permissions import IsOrgAdmin, IsOrgAdminOrReadOnly
-from .serializers import OrganizationSerializer
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -79,10 +86,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
-    permission_classes = (IsAuthenticated, IsOrgAdminOrReadOnly)
+    permission_classes = [HasOrgRolePermission]
     pagination_class = AssetUsagePagination
 
-    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdmin])
+    @action(
+        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
+    )
     def assets(self, request: Request, *args, **kwargs):
         """
         ### Retrieve Organization Assets
@@ -263,3 +272,172 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             page, many=True, context=context
         )
         return self.get_paginated_response(serializer.data)
+
+
+class OrganizationMemberViewSet(viewsets.ModelViewSet):
+    """
+    Used `ModelViewSet` instead of `NestedViewSetMixin` to maintain explicit
+    control over the queryset.
+
+    * Manage organization members and their roles within an organization.
+    * Run a partial update on an organization member to promote or demote.
+
+    ## Organization Members API
+
+    This API allows authorized users to view and manage the members of an
+    organization, including their roles. It handles existing members. It also
+    allows updating roles, such as promoting a member to an admin or assigning
+    a new owner.
+
+    ### List Members
+
+    Retrieves all members in the specified organization.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/members/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
+    >                   members/foo_bar/",
+    >                   "user": "http://[kpi]/api/v2/users/foo_bar/",
+    >                   "user__username": "foo_bar",
+    >                   "user__email": "foo_bar@example.com",
+    >                   "user__name": "Foo Bar",
+    >                   "role": "owner",
+    >                   "has_mfa_enabled": true,
+    >                   "date_joined": "2024-08-11T12:36:32Z",
+    >                   "is_active": true
+    >               },
+    >               {
+    >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
+    >                   members/john_doe/",
+    >                   "user": "http://[kpi]/api/v2/users/john_doe/",
+    >                   "user__username": "john_doe",
+    >                   "user__email": "john_doe@example.com",
+    >                   "user__name": "John Doe",
+    >                   "role": "admin",
+    >                   "has_mfa_enabled": false,
+    >                   "date_joined": "2024-10-21T06:38:45Z",
+    >                   "is_active": true
+    >               }
+    >           ]
+    >       }
+
+    The response includes detailed information about each member, such as their
+    username, email, role (owner, admin, member), and account status.
+
+    ### Retrieve Member Details
+
+    Retrieves the details of a specific member within an organization by username.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
+
+    > Response 200
+
+    >       {
+    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
+    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
+    >           "user__username": "foo_bar",
+    >           "user__email": "foo_bar@example.com",
+    >           "user__name": "Foo Bar",
+    >           "role": "owner",
+    >           "has_mfa_enabled": true,
+    >           "date_joined": "2024-08-11T12:36:32Z",
+    >           "is_active": true
+    >       }
+
+    ### Update Member Role
+
+    Updates the role of a member within the organization to `owner`, `admin`, or
+     `member`.
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    #### Payload
+    >       {
+    >           "role": "admin"
+    >       }
+
+    - **admin**: Grants the member admin privileges within the organization
+    - **member**: Revokes admin privileges, setting the member as a regular user
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/ \
+    >       members/demo_user/ -d '{"role": "admin"}'
+
+    ### Remove Member
+
+    Removes a member from the organization.
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
+
+    ## Permissions
+
+    - The user must be authenticated to perform these actions.
+
+    ## Notes
+
+    - **Role Validation**: Only valid roles ('admin', 'member') are accepted
+    in updates.
+    """
+    serializer_class = OrganizationUserSerializer
+    permission_classes = [HasOrgRolePermission]
+    pagination_class = OrganizationMembersPagination
+    http_method_names = ['get', 'patch', 'delete']
+    lookup_field = 'user__username'
+
+    def get_queryset(self):
+        organization_id = self.kwargs['organization_id']
+
+        # Subquery to check if the user has an active MFA method
+        mfa_subquery = MfaMethod.objects.filter(
+            user=OuterRef('user_id'),
+            is_active=True
+        ).values('pk')
+
+        # Subquery to check if the user is the owner
+        owner_subquery = OrganizationOwner.objects.filter(
+            organization_id=organization_id,
+            organization_user=OuterRef('pk')
+        ).values('pk')
+
+        # Annotate with role based on organization ownership and admin status
+        queryset = OrganizationUser.objects.filter(
+            organization_id=organization_id
+        ).annotate(
+            role=Case(
+                When(Exists(owner_subquery), then=Value('owner')),
+                When(is_admin=True, then=Value('admin')),
+                default=Value('member'),
+                output_field=CharField()
+            ),
+            has_mfa_enabled=Exists(mfa_subquery)
+        )
+        return queryset
