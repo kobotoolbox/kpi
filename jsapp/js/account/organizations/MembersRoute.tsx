@@ -5,6 +5,7 @@ import React from 'react';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Avatar from 'js/components/common/avatar';
+import Badge from 'jsapp/js/components/common/badge';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -39,20 +40,11 @@ export default function MembersRoute() {
           {
             key: 'user__username',
             label: t('Name'),
-            cellFormatter: (member: OrganizationMember) => {
-              // TODO
-              return (
-                <>
-                  <Avatar size='s' username={member.user__username} isUsernameVisible/>
-                  &nbsp;
-                  {member.user__name}
-                  &nbsp;
-                  @{member.user__username}
-                  <br/>
-                  {member.user__email}
-                </>
-              );
-            },
+            cellFormatter: (member: OrganizationMember) => (
+              // TODO: when https://github.com/kobotoolbox/kpi/pull/5268 is merged
+              // update this to also display full name and email.
+              <Avatar size='s' username={member.user__username} isUsernameVisible/>
+            ),
           },
           {
             key: 'invite',
@@ -61,6 +53,8 @@ export default function MembersRoute() {
             cellFormatter: (member: OrganizationMember) => {
               if (member.invite?.status) {
                 return member.invite.status;
+              } else {
+                return <Badge color='light-green' size='s' label={t('Active')} />
               }
               return null;
             },
@@ -68,7 +62,7 @@ export default function MembersRoute() {
           {
             key: 'date_joined',
             label: t('Date added'),
-            size: 130,
+            size: 140,
             cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
           },
           {
@@ -82,9 +76,9 @@ export default function MembersRoute() {
             size: 90,
             cellFormatter: (member: OrganizationMember) => {
               if (member.user__has_mfa_enabled) {
-                return 'yes';
+                return <Badge size='s' color='light-blue' icon='check' />;
               }
-              return null;
+              return <Badge size='s' color='light-storm' icon='minus' />;
             },
           },
           {
@@ -93,9 +87,8 @@ export default function MembersRoute() {
             key: 'url',
             label: '',
             size: 64,
-            cellFormatter: () => {
-              return 'TBD';
-            },
+            // TODO: this will be added soon
+            cellFormatter: () => (' '),
           },
         ]}
       />
