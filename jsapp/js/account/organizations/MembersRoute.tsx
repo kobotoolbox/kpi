@@ -54,7 +54,7 @@ export default function MembersRoute() {
               if (member.invite?.status) {
                 return member.invite.status;
               } else {
-                return <Badge color='light-green' size='s' label={t('Active')} />
+                return <Badge color='light-green' size='s' label={t('Active')} />;
               }
               return null;
             },
