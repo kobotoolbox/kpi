@@ -6,6 +6,8 @@ import Icon from 'js/components/common/icon';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
 import envStore from 'jsapp/js/envStore';
+import subscriptionStore from 'jsapp/js/account/subscriptionStore';
+import { shouldUseTeamLabel } from 'jsapp/js/account/organizations/organizations.utils';
 
 interface OverLimitBannerProps {
   warning?: boolean;
@@ -35,13 +37,21 @@ const limitsText: {
 };
 
 const getLimitText = (limit: string, interval: string) => {
-  if (limit === 'storage') {return t('storage');}
-  if (!limitsText[limit]) {return limit;}
+  if (limit === 'storage') {
+    return t('storage');
+  }
+  if (!limitsText[limit]) {
+    return limit;
+  }
 
   return limitsText[limit][interval as 'month' | 'year'];
 };
 
-const getMessage = (isWarning: boolean, isMmo: boolean, shouldUseTeamlabel: boolean) => {
+const getMessage = (
+  isWarning: boolean,
+  isMmo: boolean,
+  shouldUseTeamlabel: boolean
+) => {
   if (isWarning) {
     if (isMmo && shouldUseTeamlabel) {
       return t('Your team is approaching the following limits:');
@@ -63,17 +73,23 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
 
   const orgQuery = useOrganizationQuery();
 
-  if (!orgQuery.data || !envStore.isReady || !props.limits.length) {
+  if (
+    !orgQuery.data ||
+    !envStore.isReady ||
+    !subscriptionStore.isInitialised ||
+    !props.limits.length
+  ) {
     return null;
   }
 
-
   const {limits, interval, warning} = props;
   const {is_mmo} = orgQuery.data;
-  const shouldUseTeamlabel = !!envStore.data?.use_team_label;
+  const subscription = subscriptionStore.activeSubscriptions[0];
 
-  const textMessage = getMessage(!!warning, is_mmo, shouldUseTeamlabel);
-  const textLimits = limits.map((limit) => getLimitText(limit, interval)).join(', ');
+  const textMessage = getMessage(!!warning, is_mmo, shouldUseTeamLabel(envStore.data, subscription));
+  const textLimits = limits
+    .map((limit) => getLimitText(limit, interval))
+    .join(', ');
 
   return (
     <div
@@ -82,12 +98,13 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         [styles.accountPage]: props.accountPage,
       })}
     >
-      <Icon name={'alert'} size='m' color={props.warning ? 'amber' : 'mid-red'} />
+      <Icon
+        name={'alert'}
+        size='m'
+        color={props.warning ? 'amber' : 'mid-red'}
+      />
       <div className={styles.bannerContent}>
-        {textMessage}{' '}
-        <strong>
-        {textLimits}
-        </strong>
+        {textMessage} <strong>{textLimits}</strong>
         {'. '}
         {props.warning && (
           <>
