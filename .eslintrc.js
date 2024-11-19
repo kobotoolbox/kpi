@@ -148,7 +148,8 @@ const tsRules = Object.assign({}, jsRules, {
     {
       selector: 'memberLike',
       format: ['camelCase', 'PascalCase', 'snake_case'],
-      leadingUnderscore: 'allow',
+      leadingUnderscore: 'allowSingleOrDouble',
+      trailingUnderscore: 'allowSingleOrDouble',
       filter: {
         // Allow snake_case with in-between double underscores
         regex: '^([a-zA-Z]+(?:_{1,2}[a-zA-Z]+)*)$',
@@ -158,6 +159,8 @@ const tsRules = Object.assign({}, jsRules, {
     {
       selector: 'property',
       format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+      leadingUnderscore: 'allowSingleOrDouble',
+      trailingUnderscore: 'allowSingleOrDouble',
       filter: {
         // Allow snake_case with in-between double underscores
         regex: '^([a-zA-Z]+(?:_{1,2}[a-zA-Z]+)*)$',
