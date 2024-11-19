@@ -34,6 +34,12 @@ export interface OrganizationMember {
   };
 }
 
+/**
+ * Fetches paginated list of members for given organization. Requires
+ * `options.organizationId` to work.
+ * This is mainly needed for `useOrganizationMembersQuery`, so you most probably
+ * would use it through that hook rather than directly.
+ */
 async function getOrganizationMembers(
   limit: number,
   offset: number,
@@ -57,6 +63,10 @@ async function getOrganizationMembers(
   );
 }
 
+/**
+ * A hook that gives you paginated list of organization members. Requires
+ * `options.organizationId` to work.
+ */
 export default function useOrganizationMembersQuery(
   itemLimit: number,
   pageOffset: number,
