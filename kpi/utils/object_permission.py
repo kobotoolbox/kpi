@@ -303,3 +303,4 @@ def perm_parse(perm, obj=None):
 post_assign_perm = django.dispatch.Signal()
 post_remove_perm = django.dispatch.Signal()
 post_assign_partial_perm = django.dispatch.Signal()
+post_remove_partial_perm = django.dispatch.Signal()

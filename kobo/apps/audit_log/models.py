@@ -357,6 +357,7 @@ class ProjectHistoryLog(AuditLog):
         permissions_removed = getattr(request, 'permissions_removed', {})
         # for deletion, cloning, and bulk assignment, asset information comes in
         # the 'initial_data' dict. For creation, it's in 'updated_data'
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
         audit_log_data_dict = (
             request.initial_data
             if getattr(request, 'initial_data', None) is not None
@@ -384,7 +385,7 @@ class ProjectHistoryLog(AuditLog):
             for action in actions:
                 metadata = {
                     'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                    'asset_uid': audit_log_data_dict['object_uid'],
+                    'asset_uid': asset_uid,
                     'ip_address': get_client_ip(request),
                     'source': get_human_readable_client_user_agent(request),
                 }
@@ -415,7 +416,6 @@ class ProjectHistoryLog(AuditLog):
         actions = []
         if PERM_VIEW_SUBMISSIONS in permissions_added:
             permissions_added.remove(PERM_VIEW_SUBMISSIONS)
-            permissions_added.remove(PERM_VIEW_ASSET)
             actions.append(AuditAction.SHARE_DATA_PUBLICLY)
         if PERM_VIEW_ASSET in permissions_added:
             permissions_added.remove(PERM_VIEW_ASSET)
@@ -427,7 +427,6 @@ class ProjectHistoryLog(AuditLog):
         if PERM_VIEW_SUBMISSIONS in permissions_removed:
             actions.append(AuditAction.UNSHARE_DATA_PUBLICLY)
             permissions_removed.remove(PERM_VIEW_SUBMISSIONS)
-            permissions_removed.remove(PERM_VIEW_ASSET)
         if PERM_VIEW_ASSET in permissions_removed:
             actions.append(AuditAction.UNSHARE_FORM_PUBLICLY)
             permissions_removed.remove(PERM_VIEW_ASSET)
@@ -435,7 +434,8 @@ class ProjectHistoryLog(AuditLog):
             actions.append(AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS)
             permissions_removed.remove(PERM_ADD_SUBMISSIONS)
 
-        # any other permissions, just log them as regular modify_user_permission logs
+        # any other permissions (unlikely),
+        # just log them as regular modify_user_permission logs
         if len(permissions_added) > 0 or len(permissions_removed) > 0:
             actions.append(AuditAction.MODIFY_USER_PERMISSIONS)
         return actions

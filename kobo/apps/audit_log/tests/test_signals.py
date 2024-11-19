@@ -144,79 +144,96 @@ class AuditLogSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+
+class ProjectHistoryLogPermissionsSignalsTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+
+        self.factory = APIRequestFactory()
+        self.drf_request = Request(
+            self.factory.post(
+                reverse(
+                    'api_v2:asset-permission-assignment-bulk-assignments',
+                    kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
+                ),
+                data={},
+            )
+        )
+        self.asset = Asset.objects.get(pk=1)
+
     def test_add_permission(self):
-        user = User.objects.get(username='someuser')
+        user = User.objects.get(username='admin')
         anotheruser = User.objects.get(username='anotheruser')
-        factory = APIRequestFactory()
-        request = factory.post(
-            reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
-                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
-            ),
-            data={},
+
+        self.asset.assign_perm(
+            user_obj=user, perm='view_asset', request=self.drf_request
         )
-        drf_request = Request(request)
-        asset = Asset.objects.get(pk=1)
-        asset.assign_perm(user_obj=user, perm='view_asset', request=drf_request)
+        # first permission added for admin user
         self.assertDictEqual(
-            drf_request._request.permissions_added, {'someuser': ['view_asset']}
+            self.drf_request._request.permissions_added, {'admin': ['view_asset']}
         )
 
-        asset.assign_perm(user_obj=user, perm='add_submissions', request=drf_request)
+        # second permission added for admin user
+        self.asset.assign_perm(
+            user_obj=user, perm='add_submissions', request=self.drf_request
+        )
         self.assertDictEqual(
-            drf_request._request.permissions_added,
-            {'someuser': ['view_asset', 'add_submissions']},
+            self.drf_request._request.permissions_added,
+            {'admin': ['view_asset', 'add_submissions']},
         )
 
-        asset.assign_perm(user_obj=anotheruser, perm='view_asset', request=drf_request)
+        # first permission added for anotheruser
+        self.asset.assign_perm(
+            user_obj=anotheruser, perm='view_asset', request=self.drf_request
+        )
         self.assertDictEqual(
-            drf_request._request.permissions_added,
+            self.drf_request._request.permissions_added,
             {
-                'someuser': ['view_asset', 'add_submissions'],
+                'admin': ['view_asset', 'add_submissions'],
                 'anotheruser': ['view_asset'],
             },
         )
 
     def test_remove_permission(self):
-        user = User.objects.get(username='someuser')
-        asset = Asset.objects.get(pk=1)
+        user = User.objects.get(username='admin')
         anotheruser = User.objects.get(username='anotheruser')
-        asset.assign_perm(user_obj=user, perm='view_asset')
-        asset.assign_perm(user_obj=user, perm='add_submissions')
-        asset.assign_perm(user_obj=anotheruser, perm='view_asset')
+        self.asset.assign_perm(user_obj=user, perm='view_asset')
+        self.asset.assign_perm(user_obj=user, perm='add_submissions')
+        self.asset.assign_perm(user_obj=anotheruser, perm='view_asset')
 
-        factory = APIRequestFactory()
-        request = factory.post(
-            reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
-                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
-            ),
-            data={},
+        # first permission removed for admin user
+        self.asset.remove_perm(
+            user_obj=user, perm='view_asset', request=self.drf_request
         )
-        drf_request = Request(request)
-        asset.remove_perm(user_obj=user, perm='view_asset', request=drf_request)
         self.assertDictEqual(
-            drf_request._request.permissions_removed, {'someuser': ['view_asset']}
+            self.drf_request._request.permissions_removed, {'admin': ['view_asset']}
         )
 
-        asset.remove_perm(user_obj=user, perm='add_submissions', request=drf_request)
+        # second permission removed for admin user
+        self.asset.remove_perm(
+            user_obj=user, perm='add_submissions', request=self.drf_request
+        )
         self.assertDictEqual(
-            drf_request._request.permissions_removed,
-            {'someuser': ['view_asset', 'add_submissions']},
+            self.drf_request._request.permissions_removed,
+            {'admin': ['view_asset', 'add_submissions']},
         )
 
-        asset.remove_perm(user_obj=anotheruser, perm='view_asset', request=drf_request)
+        # first permission removed for anotheruser
+        self.asset.remove_perm(
+            user_obj=anotheruser, perm='view_asset', request=self.drf_request
+        )
         self.assertDictEqual(
-            drf_request._request.permissions_removed,
+            self.drf_request._request.permissions_removed,
             {
-                'someuser': ['view_asset', 'add_submissions'],
+                'admin': ['view_asset', 'add_submissions'],
                 'anotheruser': ['view_asset'],
             },
         )
 
     def test_add_partial_permissions(self):
-        user = User.objects.get(username='someuser')
-        asset = Asset.objects.get(pk=1)
+        user = User.objects.get(username='admin')
         anotheruser = User.objects.get(username='anotheruser')
 
         partial_perms = {
@@ -225,35 +242,36 @@ class AuditLogSignalsTestCase(BaseTestCase):
             ],
         }
 
-        factory = APIRequestFactory()
-        request = factory.post(
-            reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
-                kwargs={'parent_lookup_asset': Asset.objects.get(pk=1)},
-            ),
-            data={},
-        )
-        drf_request = Request(request)
-        asset._update_partial_permissions(
-            user=user, perm='view_submissions', partial_perms=partial_perms
+        # add partial permission for admin user
+        self.asset._update_partial_permissions(
+            user=user,
+            perm='partial_submissions',
+            partial_perms=partial_perms,
+            request=self.drf_request,
         )
         self.assertDictEqual(
-            drf_request._request.permissions_removed,
+            self.drf_request._request.permissions_added,
             {
-                'someuser': {
-                    'code': 'view_submissions',
-                    'filters': [{'_submitted_by': 'someuser'}],
-                }
+                'admin': [
+                    {
+                        'code': 'view_submissions',
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    }
+                ]
             },
         )
 
-        asset._update_partial_permissions(
-            user=anotheruser, perm='view_submissions', partial_perms=partial_perms
+        # add partial permissions for anotheruser
+        self.asset._update_partial_permissions(
+            user=anotheruser,
+            perm='partial_submissions',
+            partial_perms=partial_perms,
+            request=self.drf_request,
         )
         self.assertDictEqual(
-            drf_request._request.permissions_removed,
+            self.drf_request._request.permissions_added,
             {
-                'someuser': [
+                'admin': [
                     {
                         'code': 'view_submissions',
                         'filters': [{'_submitted_by': 'someuser'}],
@@ -266,4 +284,48 @@ class AuditLogSignalsTestCase(BaseTestCase):
                     }
                 ],
             },
+        )
+
+    def test_remove_partial_permissions(self):
+        # the same request may add and remove partial permissions if, for example,
+        # a bulk request contains two different entries granting partial permissions
+        # to a user, the second will override the first
+        user = User.objects.get(username='admin')
+
+        partial_perms = {
+            'view_submissions': [
+                {'_submitted_by': 'someuser'},
+            ],
+        }
+
+        # add partial permission
+        self.asset._update_partial_permissions(
+            user=user,
+            perm='partial_submissions',
+            partial_perms=partial_perms,
+            request=self.drf_request,
+        )
+        self.asset.assign_perm(
+            user_obj=user, perm='change_asset', request=self.drf_request
+        )
+        self.assertDictEqual(
+            self.drf_request._request.permissions_added,
+            {
+                'admin': [
+                    {
+                        'code': 'view_submissions',
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    },
+                    'change_asset',
+                ]
+            },
+        )
+
+        # remove all partial permissions (cannot be done individually)
+        self.asset._update_partial_permissions(
+            user=user, perm='partial_submissions', remove=True, request=self.drf_request
+        )
+        # 'change_asset' remains, but old partial permissions removed
+        self.assertDictEqual(
+            self.drf_request._request.permissions_added, {'admin': ['change_asset']}
         )

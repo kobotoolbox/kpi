@@ -78,7 +78,11 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.object_permission import get_cached_code_names, post_assign_partial_perm
+from kpi.utils.object_permission import (
+    get_cached_code_names,
+    post_assign_partial_perm,
+    post_remove_partial_perm,
+)
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -1380,6 +1384,12 @@ class Asset(
             # one record that matches this query.
             # We don't look for record existence to avoid extra query.
             self.asset_partial_permissions.filter(user_id=user.pk).delete()
+            post_remove_partial_perm.send(
+                sender=self.__class__,
+                instance=self,
+                user=user,
+                request=request,
+            )
 
         if perm == PERM_PARTIAL_SUBMISSIONS:
 

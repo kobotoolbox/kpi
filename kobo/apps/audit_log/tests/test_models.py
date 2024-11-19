@@ -22,6 +22,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.models import Asset, ImportTask
@@ -356,6 +361,15 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
 
+    def setUp(self):
+        super().setUp()
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        self.related_request = request
+
     def _check_common_fields(self, log: ProjectHistoryLog, user, asset):
         self.assertEqual(log.user.id, user.id)
         self.assertEqual(log.app_label, 'kpi')
@@ -364,6 +378,12 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.user_uid, user.extra_details.uid)
         self.assertEqual(log.log_type, AuditType.PROJECT_HISTORY)
 
+    def _check_common_metadata(self, metadata_dict, log_subtype, asset_uid):
+        self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
+        self.assertEqual(metadata_dict['source'], 'source')
+        self.assertEqual(metadata_dict['log_subtype'], log_subtype)
+        self.assertEqual(metadata_dict['asset_uid'], asset_uid)
+
     def test_create_project_history_log_sets_standard_fields(self):
         user = User.objects.get(username='someuser')
         asset = Asset.objects.get(pk=1)
@@ -371,7 +391,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.create(
             user=user,
             metadata={
-                'ip_address': '1.2.3.4',
+                'ip_address': '127.0.0.1',
                 'source': 'source',
                 'asset_uid': asset.uid,
                 'log_subtype': 'project',
@@ -381,15 +401,6 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         self._check_common_fields(log, user, asset)
         self.assertEqual(log.date_created, yesterday)
-        self.assertDictEqual(
-            log.metadata,
-            {
-                'ip_address': '1.2.3.4',
-                'source': 'source',
-                'asset_uid': asset.uid,
-                'log_subtype': 'project',
-            },
-        )
 
     @patch('kobo.apps.audit_log.models.logging.warning')
     def test_create_project_history_log_ignores_attempt_to_override_standard_fields(
@@ -453,19 +464,14 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             )
 
     def test_create_from_related_request_object_created(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # if an object has been created, only `updated_data` will be set
-        request.updated_data = {
+        self.related_request.updated_data = {
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
         }
         ProjectHistoryLog.create_from_related_request(
-            request,
+            self.related_request,
             label='fieldname',
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
@@ -474,6 +480,11 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.CREATE)
         self.assertEqual(log.object_id, 1)
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid='a12345',
+        )
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(
@@ -482,19 +493,14 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_deleted(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
-        # if an object has been created, only `initial_data` will be set
-        request.initial_data = {
+        # if an object has been deleted, only `initial_data` will be set
+        self.related_request.initial_data = {
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
         }
         ProjectHistoryLog.create_from_related_request(
-            request,
+            self.related_request,
             label='label',
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
@@ -503,31 +509,30 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.DELETE)
         self.assertEqual(log.object_id, 1)
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid='a12345',
+        )
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(log.metadata['label'], {'field_1': 'a', 'field_2': 'b'})
-        self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_object_modified(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # if an object has been modified, both `initial_data`
         # and `updated_data` should be filled
-        request.initial_data = {
+        self.related_request.initial_data = {
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
         }
-        request.updated_data = {
+        self.related_request.updated_data = {
             'object_id': 1,
             'field_1': 'new_field1',
             'field_2': 'new_field2',
         }
         ProjectHistoryLog.create_from_related_request(
-            request,
+            self.related_request,
             label='label',
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
@@ -536,21 +541,20 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.UPDATE)
         self.assertEqual(log.object_id, 1)
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid='a12345',
+        )
         # we should use the updated data for the log
         self.assertDictEqual(
             log.metadata['label'], {'field_1': 'new_field1', 'field_2': 'new_field2'}
         )
-        self.assertEqual(log.metadata['asset_uid'], 'a12345')
 
     def test_create_from_related_request_no_log_created_if_no_data(self):
-        factory = RequestFactory()
-        request = factory.post('/')
-        request.user = User.objects.get(username='someuser')
-        request.resolver_match = Mock()
-        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
         ProjectHistoryLog.create_from_related_request(
-            request,
+            self.related_request,
             label='label',
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
@@ -568,7 +572,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 {
                     'asset_uid': asset.uid,
                     'latest_version_uid': 'av12345',
-                    'ip_address': '1.2.3.4',
+                    'ip_address': '127.0.0.1',
                     'source': 'source',
                     'asset_id': asset.id,
                     'old_name': asset.name,
@@ -581,18 +585,14 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.REPLACE_FORM)
         self.assertEqual(log.object_id, asset.id)
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid=asset.uid,
+        )
 
         # data from 'messages' should be copied to the log
-        self.assertDictEqual(
-            log.metadata,
-            {
-                'ip_address': '1.2.3.4',
-                'asset_uid': asset.uid,
-                'source': 'source',
-                'latest_version_uid': 'av12345',
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            },
-        )
+        self.assertEqual(log.metadata['latest_version_uid'], 'av12345')
 
     def test_create_from_import_task_with_name_change(self):
         asset = Asset.objects.get(pk=1)
@@ -605,7 +605,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 {
                     'asset_uid': asset.uid,
                     'latest_version_uid': 'av12345',
-                    'ip_address': '1.2.3.4',
+                    'ip_address': '127.0.0.1',
                     'source': 'source',
                     'asset_id': asset.id,
                     'old_name': old_name,
@@ -617,30 +617,137 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(ProjectHistoryLog.objects.count(), 2)
         log = ProjectHistoryLog.objects.filter(action=AuditAction.REPLACE_FORM).first()
         self.assertEqual(log.object_id, asset.id)
-
-        self.assertDictEqual(
+        self._check_common_metadata(
             log.metadata,
-            {
-                'ip_address': '1.2.3.4',
-                'asset_uid': asset.uid,
-                'source': 'source',
-                'latest_version_uid': 'av12345',
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            },
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid=asset.uid,
         )
+
+        self.assertEqual(log.metadata['latest_version_uid'], 'av12345')
+
         name_log = ProjectHistoryLog.objects.filter(
             action=AuditAction.UPDATE_NAME
         ).first()
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(name_log.object_id, asset.id)
+        self._check_common_metadata(
+            name_log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            asset_uid=asset.uid,
+        )
 
         self.assertDictEqual(
-            name_log.metadata,
+            name_log.metadata['name'],
+            {'old': old_name, 'new': 'new_name'},
+        )
+
+    def test_create_from_permissions_change(self):
+        self.related_request.permissions_added = {
+            'someuser': ['view_asset', 'view_submissions'],
+            'anotheruser': ['view_asset'],
+        }
+        self.related_request.permissions_removed = {'anotheruser': ['view_submissions']}
+        self.related_request.initial_data = {
+            'object_id': 1,
+        }
+        ProjectHistoryLog.create_from_permission_request(self.related_request)
+        # we should get 1 log per user
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+
+        first_ph_log = ProjectHistoryLog.objects.filter(
+            user=self.related_request.user, metadata__permissions__username='someuser'
+        ).first()
+        self._check_common_metadata(
+            first_ph_log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            asset_uid='a12345',
+        )
+        # permissions added and removed should be copied to the metadata
+        self.assertDictEqual(
+            first_ph_log.metadata['permissions'],
             {
-                'ip_address': '1.2.3.4',
-                'asset_uid': asset.uid,
-                'source': 'source',
-                'latest_version_uid': 'av12345',
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'name': {'old': old_name, 'new': 'new_name'},
+                'added': ['view_asset', 'view_submissions'],
+                'removed': [],
+                'username': 'someuser',
             },
         )
+        self.assertEqual(first_ph_log.object_id, 1)
+
+        second_ph_log = ProjectHistoryLog.objects.filter(
+            user=self.related_request.user,
+            metadata__permissions__username='anotheruser',
+        ).first()
+        self._check_common_metadata(
+            second_ph_log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            asset_uid='a12345',
+        )
+        self.assertDictEqual(
+            second_ph_log.metadata['permissions'],
+            {
+                'added': ['view_asset'],
+                'removed': ['view_submissions'],
+                'username': 'anotheruser',
+            },
+        )
+        self.assertEqual(second_ph_log.object_id, 1)
+
+    @data(
+        (PERM_VIEW_ASSET, True, AuditAction.SHARE_FORM_PUBLICLY),
+        (PERM_ADD_SUBMISSIONS, True, AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS),
+        (PERM_VIEW_SUBMISSIONS, True, AuditAction.SHARE_DATA_PUBLICLY),
+        (PERM_VIEW_ASSET, False, AuditAction.UNSHARE_FORM_PUBLICLY),
+        (PERM_ADD_SUBMISSIONS, False, AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS),
+        (PERM_VIEW_SUBMISSIONS, False, AuditAction.UNSHARE_DATA_PUBLICLY),
+    )
+    @unpack
+    def test_create_from_permissions_for_anonymous_user(
+        self, permission, granted, expected_action
+    ):
+        self.related_request.initial_data = {'object_id': 1}
+        if granted:
+            self.related_request.permissions_added = {
+                'AnonymousUser': [permission],
+            }
+        else:
+            self.related_request.permissions_removed = {'AnonymousUser': [permission]}
+        ProjectHistoryLog.create_from_permission_request(self.related_request)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.filter(user=self.related_request.user).first()
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            asset_uid='a12345',
+        )
+        self.assertEqual(log.action, expected_action)
+
+    def test_create_from_nonstandard_permissions_for_anonymous_user(self):
+        self.related_request.initial_data = {'object_id': 1}
+        # this is theoretically not allowed upstream, but
+        # if the anonymous user has been granted abnormal permissions,
+        # we want to know
+        self.related_request.permissions_added = {
+            'AnonymousUser': [PERM_CHANGE_SUBMISSIONS],
+        }
+        ProjectHistoryLog.create_from_permission_request(self.related_request)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.filter(user=self.related_request.user).first()
+        self._check_common_metadata(
+            log.metadata,
+            log_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            asset_uid='a12345',
+        )
+        self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
+        self.assertDictEqual(
+            log.metadata['permissions'],
+            {
+                'username': 'AnonymousUser',
+                'added': [PERM_CHANGE_SUBMISSIONS],
+                'removed': [],
+            },
+        )
+
+    def test_create_from_permissions_uses_updated_data_if_no_initial_data(self):
+        self.related_request.updated_data = {'object_id': 1}
+        self.related_request.permissions_added = {'anotheruser': ['view_submissions']}
+        ProjectHistoryLog.create_from_permission_request(self.related_request)
+        self.assertTrue(ProjectHistoryLog.objects.filter(object_id=1).exists())

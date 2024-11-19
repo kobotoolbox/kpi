@@ -16,8 +16,9 @@ from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
-from kpi.models import Asset, AssetFile, PairedData
+from kpi.models import Asset, AssetFile, PairedData, ObjectPermission
 from kpi.models.asset import AssetSetting
+from kpi.permissions import AssetPermission
 from kpi.utils.strings import to_str
 
 
@@ -862,3 +863,106 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log.object_id, self.asset.id)
+
+    # permissions tests
+    # there are lots of cases for adding permissions,
+    # more thoroughly tested in test_models and test_signals.
+    # these are more for basic plumbing to make sure *some*
+    # kind of log is generated from each view
+    def test_add_permission_create_logs(self):
+        data = {
+                'permission': drf_reverse(
+                    'api_v2:permission-detail',
+                    kwargs={'codename': 'view_asset'},
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            }
+
+        self.client.post(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-list',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data=data,
+            format='json',
+        )
+        self.assertTrue(
+            ProjectHistoryLog.objects.filter(
+                action=AuditAction.MODIFY_USER_PERMISSIONS,
+                metadata__asset_uid=self.asset.uid,
+            ).exists())
+
+    def test_bulk_permission_change_create_logs(self):
+        data = [
+            {
+                'permission': drf_reverse(
+                    'api_v2:permission-detail',
+                    kwargs={'codename': 'view_asset'},
+                ),
+                'user': drf_reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+        ]
+        self.client.post(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data=data,
+            format='json',
+        )
+        self.assertTrue(
+            ProjectHistoryLog.objects.filter(
+                action=AuditAction.MODIFY_USER_PERMISSIONS,
+                metadata__asset_uid=self.asset.uid,
+            ).exists()
+        )
+
+    def test_delete_permission_create_logs(self):
+        user = User.objects.get(username='someuser')
+        self.asset.assign_perm(
+            user_obj=user,
+            perm='view_asset'
+        )
+        perm_object = ObjectPermission.objects.filter(user=user, asset=self.asset, permission__codename='view_asset').first()
+        self.client.delete(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-detail',
+                kwargs={'parent_lookup_asset': self.asset.uid, 'uid':perm_object.uid},
+            ),
+            format='json',
+        )
+        self.assertTrue(
+            ProjectHistoryLog.objects.filter(
+                action=AuditAction.MODIFY_USER_PERMISSIONS,
+                metadata__asset_uid=self.asset.uid,
+            ).exists()
+        )
+
+    def test_clone_permissions_create_logs(self):
+        second_asset = Asset.objects.get(pk=1)
+        user = User.objects.get(username='someuser')
+        second_asset.assign_perm(
+            user_obj=user,
+            perm='view_asset'
+        )
+        data = {
+            'clone_from': second_asset.uid
+        }
+        self.client.patch(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data=data,
+            format='json',
+        )
+        self.assertTrue(
+            ProjectHistoryLog.objects.filter(
+                action=AuditAction.MODIFY_USER_PERMISSIONS,
+                metadata__asset_uid=self.asset.uid,
+            ).exists()
+        )

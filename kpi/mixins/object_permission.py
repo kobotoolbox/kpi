@@ -475,7 +475,6 @@ class ObjectPermissionMixin:
           partial permissions
         :param request: :py:class:`Request` request that initiated the call
         """
-
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
         if codename not in assignable_permissions:
