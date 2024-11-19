@@ -20,6 +20,7 @@ import type {
 } from './account.constants';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import {useSession} from '../stores/useSession';
+import {useOrganizationQuery} from './stripe.api';
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -39,12 +40,16 @@ const AccountSettings = () => {
 
   const {currentLoggedAccount, refreshAccount} = useSession();
 
+  const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([]);
+
+  const orgQuery = useOrganizationQuery();
+
   useEffect(() => {
-    if (!currentLoggedAccount) {
+    if (!currentLoggedAccount || !orgQuery.data) {
       return;
     }
 
-    setFormFields({
+    const fields = {
       name: currentLoggedAccount.extra_details.name,
       organization_type: currentLoggedAccount.extra_details.organization_type,
       organization: currentLoggedAccount.extra_details.organization,
@@ -60,8 +65,29 @@ const AccountSettings = () => {
       instagram: currentLoggedAccount.extra_details.instagram,
       newsletter_subscription:
         currentLoggedAccount.extra_details.newsletter_subscription,
-    });
-  }, [currentLoggedAccount]);
+    };
+
+    setFormFields(fields);
+
+    const fieldKeys = Object.keys(fields) as Array<keyof AccountFieldsValues>;
+
+    const organization = orgQuery.data;
+
+    // We will not display organization fields if it's and MMO organization
+    // in favor of only displaying those fields in organization settings view
+    setDisplayedFields(
+      !organization?.is_mmo
+        ? fieldKeys
+        : fieldKeys.filter((key) =>
+            ![
+              'organization',
+              'organization_website',
+              'organization_type',
+            ].includes(key)
+          )
+    );
+
+  }, [currentLoggedAccount, orgQuery.data]);
 
   usePrompt({
     when: !isPristine,
@@ -159,6 +185,7 @@ const AccountSettings = () => {
               errors={fieldErrors}
               values={formFields}
               onFieldChange={onFieldChange}
+              displayedFields={displayedFields}
             />
           </bem.AccountSettings__item>
         )}
