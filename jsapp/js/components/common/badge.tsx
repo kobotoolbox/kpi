@@ -11,7 +11,8 @@ export type BadgeColor =
   | 'light-amber'
   | 'light-blue'
   | 'light-red'
-  | 'light-teal';
+  | 'light-teal'
+  | 'light-green';
 export type BadgeSize = 'l' | 'm' | 's';
 
 export const BadgeToIconMap: Map<BadgeSize, IconSize> = new Map();
