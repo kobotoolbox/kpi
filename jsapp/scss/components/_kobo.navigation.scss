@@ -222,9 +222,8 @@
 
 // Form title + desc in header, editable
 
-// On smaller screens we hide both of them
-.main-header .main-header__icon,
-.main-header {
+// On smaller screens we hide the icon
+.main-header .main-header__icon {
   display: none;
 }
 
@@ -287,8 +286,7 @@
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
-  .main-header .main-header__icon,
-  .main-header {
+  .main-header .main-header__icon {
     display: initial;
   }
 
