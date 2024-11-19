@@ -2,6 +2,7 @@ from ddt import ddt, data, unpack
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
@@ -107,6 +108,9 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             # Confirm deletion
             response = self.client.get(self.detail_url(self.member_user))
             self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertFalse(
+                User.objects.filter(username=f'{user_role}_user').exists()
+            )
 
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
