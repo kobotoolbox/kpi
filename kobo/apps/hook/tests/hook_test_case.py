@@ -2,6 +2,7 @@ import json
 import uuid
 
 from kpi.tests.kpi_test_case import KpiTestCase
+
 from ..models import Hook
 from ..utils.tests.mixins import HookTestCaseMixin
 

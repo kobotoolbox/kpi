@@ -16,15 +16,15 @@ from rest_framework import serializers
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
-    ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    ASSET_TYPES_WITH_CHILDREN,
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-    remove_applicable_kc_permissions,
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
+    remove_applicable_kc_permissions,
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
@@ -581,9 +581,7 @@ class ObjectPermissionMixin:
                 'codename', flat=True
             )
         )
-        project_views_perms = get_project_view_user_permissions_for_asset(
-            self, user
-        )
+        project_views_perms = get_project_view_user_permissions_for_asset(self, user)
 
         other_perms = []
         if self.owner and self.owner.organization.is_admin_only(user):
@@ -968,9 +966,7 @@ class ObjectPermissionMixin:
         if codename__startswith is not None:
             filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters).values_list(
-            'pk', 'codename'
-        )
+        permissions = Permission.objects.filter(**filters).values_list('pk', 'codename')
 
         return permissions
 

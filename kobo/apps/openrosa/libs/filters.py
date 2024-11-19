@@ -58,8 +58,7 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
 
         # Only check for specific view and action
         if not (
-            view.action
-            in self.ORG_ADMIN_EXEMPT_VIEWS.get(view.__class__.__name__, {})
+            view.action in self.ORG_ADMIN_EXEMPT_VIEWS.get(view.__class__.__name__, {})
         ):
             return
 
