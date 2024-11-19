@@ -51,7 +51,7 @@ class ExportTaskInBackgroundTests(TestCase):
         mock_send_mail.assert_called_once_with(
             subject='Project View Report Complete',
             message=expected_message,
-            from_email='help@kobotoolbox.org',
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=['test@example.com'],
             fail_silently=False,
         )

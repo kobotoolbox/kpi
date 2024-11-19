@@ -38,11 +38,15 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_200_OK),
         ('external', status.HTTP_200_OK),
+        ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
     def test_list_members_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f'{user_role}_user')
-        self.client.force_login(user)
+        if user_role == 'anonymous':
+            self.client.logout()
+        else:
+            user = getattr(self, f'{user_role}_user')
+            self.client.force_login(user)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, expected_status)
 
@@ -51,13 +55,17 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_200_OK),
         ('external', status.HTTP_404_NOT_FOUND),
+        ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
     def test_retrieve_member_details_with_different_roles(
             self, user_role, expected_status
     ):
-        user = getattr(self, f'{user_role}_user')
-        self.client.force_login(user)
+        if user_role == 'anonymous':
+            self.client.logout()
+        else:
+            user = getattr(self, f'{user_role}_user')
+            self.client.force_login(user)
         response = self.client.get(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
 
@@ -66,25 +74,33 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
         ('external', status.HTTP_404_NOT_FOUND),
+        ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
     def test_update_member_role_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f'{user_role}_user')
+        if user_role == 'anonymous':
+            self.client.logout()
+        else:
+            user = getattr(self, f'{user_role}_user')
+            self.client.force_login(user)
         data = {'role': 'admin'}
-        self.client.force_login(user)
         response = self.client.patch(self.detail_url(self.member_user), data)
         self.assertEqual(response.status_code, expected_status)
 
     @data(
         ('owner', status.HTTP_204_NO_CONTENT),
-        ('admin', status.HTTP_403_FORBIDDEN),
+        ('admin', status.HTTP_204_NO_CONTENT),
         ('member', status.HTTP_403_FORBIDDEN),
         ('external', status.HTTP_404_NOT_FOUND),
+        ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
     def test_delete_member_with_different_roles(self, user_role, expected_status):
-        user = getattr(self, f'{user_role}_user')
-        self.client.force_login(user)
+        if user_role == 'anonymous':
+            self.client.logout()
+        else:
+            user = getattr(self, f'{user_role}_user')
+            self.client.force_login(user)
         response = self.client.delete(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
         if expected_status == status.HTTP_204_NO_CONTENT:
@@ -97,16 +113,15 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('admin', status.HTTP_405_METHOD_NOT_ALLOWED),
         ('member', status.HTTP_405_METHOD_NOT_ALLOWED),
         ('external', status.HTTP_405_METHOD_NOT_ALLOWED),
+        ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
     def test_post_request_is_not_allowed(self, user_role, expected_status):
-        user = getattr(self, f'{user_role}_user')
+        if user_role == 'anonymous':
+            self.client.logout()
+        else:
+            user = getattr(self, f'{user_role}_user')
+            self.client.force_login(user)
         data = {'role': 'admin'}
-        self.client.force_login(user)
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, expected_status)
-
-    def test_list_requires_authentication(self):
-        self.client.logout()
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
