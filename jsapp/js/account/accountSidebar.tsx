@@ -167,6 +167,9 @@ function renderMmoSidebar(
 function AccountSidebar() {
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
+  const areOneTimeAddonsEnabled = useFeatureFlag(
+    FeatureFlag.oneTimeAddonsEnabled
+  );
   const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
@@ -176,8 +179,12 @@ function AccountSidebar() {
     setIsStripeEnabled(true);
   }, [subscriptionStore.isInitialised]);
 
+  // Prior to release of one-time addons, addons should only be shown
+  // to users without a subscription plan (i.e. community plan users)
   const showAddOnsLink = useMemo(() => {
-    return !subscriptionStore.planResponse.length;
+    return areOneTimeAddonsEnabled
+      ? true
+      : !subscriptionStore.planResponse.length;
   }, [subscriptionStore.isInitialised]);
 
   const mmoLabel = getSimpleMMOLabel(
