@@ -4,6 +4,7 @@ import React from 'react';
 // Partial components
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Avatar from 'js/components/common/avatar';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -42,8 +43,12 @@ export default function MembersRoute() {
               // TODO
               return (
                 <>
+                  <Avatar size='s' username={member.user__username} isUsernameVisible/>
+                  &nbsp;
                   {member.user__name}
+                  &nbsp;
                   @{member.user__username}
+                  <br/>
                   {member.user__email}
                 </>
               );
@@ -52,6 +57,7 @@ export default function MembersRoute() {
           {
             key: 'invite',
             label: t('Status'),
+            size: 120,
             cellFormatter: (member: OrganizationMember) => {
               if (member.invite?.status) {
                 return member.invite.status;
@@ -62,15 +68,18 @@ export default function MembersRoute() {
           {
             key: 'date_joined',
             label: t('Date added'),
+            size: 130,
             cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
           },
           {
             key: 'role',
             label: t('Role'),
+            size: 120,
           },
           {
             key: 'user__has_mfa_enabled',
             label: t('2FA'),
+            size: 90,
             cellFormatter: (member: OrganizationMember) => {
               if (member.user__has_mfa_enabled) {
                 return 'yes';
@@ -83,6 +92,7 @@ export default function MembersRoute() {
             // element
             key: 'url',
             label: '',
+            size: 64,
             cellFormatter: () => {
               return 'TBD';
             },
