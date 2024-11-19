@@ -29,6 +29,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 )
 from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
+from ..utils.xml import extract_confirmation_message
 
 xml_error_re = re.compile('>(.*)<')
 
@@ -199,6 +200,10 @@ class XFormSubmissionApi(
             return self.error_response(error, is_json_request, request)
 
         context = self.get_serializer_context()
+        if instance.xml and (
+            confirmation_message := extract_confirmation_message(instance.xml)
+        ):
+            context['confirmation_message'] = confirmation_message
         serializer = SubmissionSerializer(instance, context=context)
 
         return Response(serializer.data,
