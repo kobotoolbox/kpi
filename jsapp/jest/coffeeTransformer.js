@@ -1,5 +1,9 @@
 const coffeescript = require('coffeescript');
-const createCacheKeyFunction = require('@jest/create-cache-key-function').default
+const createCacheKeyFunction = require('@jest/create-cache-key-function').default;
+/**
+ * @typedef {import('@jest/transform').SyncTransformer}   SyncTransformer
+ * @typedef {import('@jest/transform').TransformedSource} TransformedSource
+ */
 
 /**
  * Transform CoffeeScript files for Jest
@@ -38,8 +42,3 @@ module.exports = {
     [__filename, require.resolve('coffeescript')],
   ),
 };
-
-/**
- * @typedef {import('@jest/transform').SyncTransformer}   SyncTransformer
- * @typedef {import('@jest/transform').TransformedSource} TransformedSource
- */
