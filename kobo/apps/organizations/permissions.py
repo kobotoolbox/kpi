@@ -1,14 +1,17 @@
 from django.http import Http404
 from rest_framework import permissions
+from rest_framework.permissions import IsAuthenticated
 
 from kobo.apps.organizations.constants import ORG_EXTERNAL_ROLE
+from kobo.apps.organizations.models import Organization
 from kpi.mixins.validation_password_permission import ValidationPasswordPermissionMixin
 from kpi.utils.object_permission import get_database_user
 
 
-class IsOrgAdmin(ValidationPasswordPermissionMixin, permissions.BasePermission):
+class IsOrgAdminPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
     """
-    Object-level permission to only allow admin members of an object to access it.
+    Object-level permission to only allow admin (and owner) members of an object
+    to access it.
     Assumes the model instance has an `is_admin` attribute.
     """
 
@@ -26,50 +29,9 @@ class IsOrgAdmin(ValidationPasswordPermissionMixin, permissions.BasePermission):
         return obj.is_admin(user)
 
 
-class IsOrgAdminOrReadOnly(IsOrgAdmin):
-    """
-    Object-level permission to only allow admin members of an object to edit it.
-    Assumes the model instance has an `is_admin` attribute.
-    """
-
+class HasOrgRolePermission(IsOrgAdminPermission):
     def has_object_permission(self, request, view, obj):
-
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS:
+        obj = obj if isinstance(obj, Organization) else obj.organization
+        if super().has_object_permission(request, view, obj):
             return True
-
-        # Instance must have an attribute named `is_admin`
-        return obj.is_admin(request.user)
-
-
-class IsOrgOwnerOrAdminOrMember(permissions.BasePermission):
-    def has_permission(self, request, view):
-        # Ensure the user is authenticated
-        if not request.user.is_authenticated:
-            return False
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        user_role = obj.organization.get_user_role(request.user)
-
-        # Allow owners to view, update, and delete members
-        if user_role == 'owner':
-            return True
-
-        # Allow admins to view and update, but not delete members
-        if user_role == 'admin':
-            return (
-                request.method in permissions.SAFE_METHODS or
-                request.method == 'PATCH'
-            )
-
-        # Allow members to only view other members
-        if user_role == 'member':
-            return request.method in permissions.SAFE_METHODS
-
-        # Deny access to external users
-        if user_role == 'external':
-            raise Http404()
-
-        return False
+        return request.method in permissions.SAFE_METHODS
