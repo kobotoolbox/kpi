@@ -9,9 +9,8 @@ import {defaults} from 'jest-config';
 //
 
 const config: Config = {
-
   // Naming convention (*.tests.*)
-  testMatch: [ '**/?(*.)+(tests).(js|jsx|ts|tsx|es6|coffee)' ],
+  testMatch: ['**/?(*.)+(tests).(js|jsx|ts|tsx|es6|coffee)'],
 
   // Where to find tests. <rootDir> = 'kpi/jsapp/jest'
   roots: [
@@ -53,8 +52,7 @@ const config: Config = {
 
   // Appearance options (for console output)
   verbose: true,
-  displayName: { name: 'UNIT', color: 'black' },
-
+  displayName: {name: 'UNIT', color: 'black'},
 };
 
 export default config;
