@@ -35,7 +35,6 @@ export default function MembersRoute() {
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
-        queryHookOptions={{organizationId: orgQuery.data.id}}
         columns={[
           {
             key: 'user__username',
