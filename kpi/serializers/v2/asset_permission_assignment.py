@@ -12,7 +12,6 @@ from django.urls import Resolver404
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from rest_framework.fields import empty
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (

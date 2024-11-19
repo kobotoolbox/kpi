@@ -869,7 +869,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     # more thoroughly tested in test_models and test_signals.
     # these are more for basic plumbing to make sure *some*
     # kind of log is generated from each view
-    def test_add_permission_create_logs(self):
+    def test_permission_changes_creates_log(self):
         data = {
                 'permission': drf_reverse(
                     'api_v2:permission-detail',
