@@ -41,10 +41,16 @@ export default function MembersRoute() {
             key: 'user__username',
             label: t('Name'),
             cellFormatter: (member: OrganizationMember) => (
-              // TODO: when https://github.com/kobotoolbox/kpi/pull/5268 is merged
-              // update this to also display full name and email.
-              <Avatar size='s' username={member.user__username} isUsernameVisible/>
+              <Avatar
+                size='m'
+                username={member.user__username}
+                isUsernameVisible
+                email={member.user__email}
+                // We pass `undefined` for the case it's an empty string
+                fullName={member.user__name || undefined}
+              />
             ),
+            size: 360,
           },
           {
             key: 'invite',
