@@ -13,6 +13,7 @@ from kpi.utils.object_permission import (
     post_remove_partial_perm,
     post_remove_perm,
 )
+
 from .models import AccessLog, ProjectHistoryLog
 
 

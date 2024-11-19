@@ -24,9 +24,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
 
-class BaseApiAssetPermissionTestCase(
-    PermissionAssignmentTestCaseMixin, KpiTestCase
-):
+class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE

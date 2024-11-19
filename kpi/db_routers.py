@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 
-from kobo.apps.openrosa.libs.constants import (
-    OPENROSA_APP_LABELS,
-)
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kpi.utils.database import get_thread_local
+
 from .constants import SHADOW_MODEL_APP_LABELS, SHARED_APP_LABELS
 from .exceptions import ReadOnlyModelError
 

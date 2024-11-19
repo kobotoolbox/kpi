@@ -1,7 +1,7 @@
 # coding: utf-8
+from django.conf import settings
 from django.contrib.auth.backends import ModelBackend as DjangoModelBackend
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
-from django.conf import settings
 
 from .utils.database import get_thread_local
 from .utils.object_permission import get_database_user

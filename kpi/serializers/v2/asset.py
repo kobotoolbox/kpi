@@ -64,6 +64,7 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -724,7 +725,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ),
             'sender': transfer.invite.sender.username,
             'recipient': transfer.invite.recipient.username,
-            'status': transfer.status
+            'status': transfer.invite.status
         }
 
     def get_exports(self, obj: Asset) -> str:

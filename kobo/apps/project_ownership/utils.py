@@ -2,17 +2,17 @@ import os
 import time
 from typing import Literal, Optional, Union
 
-from django.db import transaction
 from django.apps import apps
+from django.db import transaction
 from django.utils import timezone
 
-
-from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.models.asset import Asset, AssetFile
-from .exceptions import AsyncTaskException
+
 from .constants import ASYNC_TASK_HEARTBEAT, FILE_MOVE_CHUNK_SIZE
+from .exceptions import AsyncTaskException
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 
 
@@ -28,15 +28,9 @@ def create_invite(
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
 
     with transaction.atomic():
-        invite = InviteModel.objects.create(
-            sender=sender,
-            recipient=recipient
-        )
+        invite = InviteModel.objects.create(sender=sender, recipient=recipient)
         transfers = Transfer.objects.bulk_create(
-            [
-                Transfer(invite=invite, asset=asset)
-                for asset in assets
-            ]
+            [Transfer(invite=invite, asset=asset) for asset in assets]
         )
         statuses = []
         for transfer in transfers:
@@ -244,9 +238,7 @@ def update_invite(
 
     for transfer in invite.transfers.all():
         if invite.status != InviteStatusChoices.IN_PROGRESS:
-            transfer.statuses.update(
-                status=TransferStatusChoices.CANCELLED
-            )
+            transfer.statuses.update(status=TransferStatusChoices.CANCELLED)
         else:
             transfer.transfer_project()
 

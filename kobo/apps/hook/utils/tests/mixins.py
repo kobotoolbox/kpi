@@ -5,11 +5,11 @@ import responses
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
-from kpi.exceptions import BadFormatException
 from kobo.apps.hook.constants import HOOK_LOG_FAILED
 from kobo.apps.hook.exceptions import HookRemoteServerDownError
 from kobo.apps.hook.models import HookLog
+from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
+from kpi.exceptions import BadFormatException
 
 
 class HookTestCaseMixin:
@@ -31,15 +31,13 @@ class HookTestCaseMixin:
         data = {
             'name': kwargs.get('name', 'some external service with token'),
             'endpoint': kwargs.get('endpoint', 'http://external.service.local/'),
-            'settings': kwargs.get('settings', {
-                'custom_headers': {
-                    'X-Token': '1234abcd'
-                }
-            }),
+            'settings': kwargs.get(
+                'settings', {'custom_headers': {'X-Token': '1234abcd'}}
+            ),
             'export_type': format_type,
             'active': kwargs.get('active', True),
             'subset_fields': kwargs.get('subset_fields', []),
-            'payload_template': kwargs.get('payload_template', None)
+            'payload_template': kwargs.get('payload_template', None),
         }
 
         response = self.client.post(url, data, format='json')
@@ -98,10 +96,13 @@ class HookTestCaseMixin:
             service_definition.send()
 
         # Retrieve the corresponding log
-        url = reverse('hook-log-list', kwargs={
-            'parent_lookup_asset': self.hook.asset.uid,
-            'parent_lookup_hook': self.hook.uid
-        })
+        url = reverse(
+            'hook-log-list',
+            kwargs={
+                'parent_lookup_asset': self.hook.asset.uid,
+                'parent_lookup_hook': self.hook.uid,
+            },
+        )
 
         response = self.client.get(url)
         first_hooklog_response = response.data.get('results')[0]

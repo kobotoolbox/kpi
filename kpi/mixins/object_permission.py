@@ -603,9 +603,7 @@ class ObjectPermissionMixin:
                 'codename', flat=True
             )
         )
-        project_views_perms = get_project_view_user_permissions_for_asset(
-            self, user
-        )
+        project_views_perms = get_project_view_user_permissions_for_asset(self, user)
 
         other_perms = []
         if self.owner and self.owner.organization.is_admin_only(user):
@@ -1000,9 +998,7 @@ class ObjectPermissionMixin:
         if codename__startswith is not None:
             filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters).values_list(
-            'pk', 'codename'
-        )
+        permissions = Permission.objects.filter(**filters).values_list('pk', 'codename')
 
         return permissions
 

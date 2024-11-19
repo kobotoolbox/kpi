@@ -284,12 +284,8 @@ class AssetSnapshotPermission(AssetPermission):
                 }
 
     def has_object_permission(self, request, view, obj):
-        if (
-            view.action == 'submission'
-            or (
-                view.action == 'retrieve'
-                and request.accepted_renderer.format == 'xml'
-            )
+        if view.action == 'submission' or (
+            view.action == 'retrieve' and request.accepted_renderer.format == 'xml'
         ):
             return True
 
