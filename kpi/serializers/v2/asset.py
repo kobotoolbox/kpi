@@ -18,7 +18,6 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
-from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
@@ -89,11 +88,6 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         super().__init__(instance=instance, data=data, **kwargs)
 
     def create(self, validated_data):
-        ProjectHistoryLog.create_from_bulk_action(
-            self.context['request'],
-            validated_data['payload'],
-        )
-
         delete_request, put_back_ = self._get_action_type_and_direction(
             validated_data['payload']
         )

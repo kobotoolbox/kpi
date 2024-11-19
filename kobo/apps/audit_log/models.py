@@ -335,6 +335,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-file-list': cls.create_from_file_request,
             'asset-export-list': cls.create_from_export_request,
             'exporttask-list': cls.create_from_v1_export,
+            'asset-bulk': cls.create_from_bulk_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -343,22 +344,31 @@ class ProjectHistoryLog(AuditLog):
         method(request)
 
     @staticmethod
-    def create_from_bulk_action(request, payload):
+    def create_from_bulk_request(request):
+        try:
+            payload = request._data['payload']
+            action = payload['action']
+            asset_uids = payload['asset_uids']
+        except KeyError:
+            return  # Incorrect payload
+
+        if type(asset_uids) is not list or len(asset_uids) == 0:  # Nothing to do
+            return
+
         bulk_action_to_audit_action = {
             'archive': AuditAction.ARCHIVE,
             'unarchive': AuditAction.UNARCHIVE,
             'delete': AuditAction.DELETE,
             'undelete': AuditAction.UNDELETE,
         }
-        audit_action = bulk_action_to_audit_action[payload.get('action')]
+        audit_action = bulk_action_to_audit_action[action]
         if audit_action is None:
-            # Unsupported action
-            return
+            return  # Unsupported action
 
         source = get_human_readable_client_user_agent(request)
         client_ip = get_client_ip(request)
 
-        for asset_uid in payload.get('asset_uids', []):
+        for asset_uid in asset_uids:
             asset = Asset.all_objects.get(uid=asset_uid)
             object_id = asset.pk
             metadata = {

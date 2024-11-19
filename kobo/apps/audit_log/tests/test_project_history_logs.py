@@ -882,7 +882,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
-        # File or url, change asset name?, use v2?
         ('archive', AuditAction.ARCHIVE),
         ('unarchive', AuditAction.UNARCHIVE),
         ('undelete', AuditAction.UNDELETE),
@@ -910,8 +909,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         uids = [asset.uid for asset in assets]
 
+        if bulk_action == 'undelete':
+            self._make_bulk_request(uids, 'delete')
+
         self._make_bulk_request(uids, bulk_action)
-        archived_logs = ProjectHistoryLog.objects.filter(
+        project_hist_logs = ProjectHistoryLog.objects.filter(
             object_id__in=[asset.id for asset in assets], action=audit_action
         )
-        self.assertEqual(archived_logs.count(), 2)
+        self.assertEqual(project_hist_logs.count(), 2)
