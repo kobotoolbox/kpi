@@ -140,30 +140,7 @@
   overflow-y: auto;
 
   .account-box__menu-item--avatar {
-    display: inline-block;
-    margin-right: 15px;
-    vertical-align: top;
-  }
-
-  .account-box__menu-item--mini-profile {
-    color: colors.$kobo-gray-700;
-    display: inline-block;
-    width: calc(100% - 70px);
-    line-height: 20px;
-    margin-top: 5px;
     margin-bottom: 12px;
-
-    span {
-      display: inline-block;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .account-username {
-      font-size: 18px;
-    }
   }
 
   .account-box__menu-item--settings {
