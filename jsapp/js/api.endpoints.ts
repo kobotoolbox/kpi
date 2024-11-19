@@ -7,6 +7,7 @@ export const endpoints = {
   ADD_ONS_URL: '/api/v2/stripe/addons/',
   ORGANIZATION_URL: '/api/v2/organizations/',
   ORGANIZATION_MEMBERS_URL: '/api/v2/organizations/:organization_id/members/',
+  ORGANIZATION_MEMBER_URL: '/api/v2/organizations/:organization_id/members/:username/',
   /** Expected parameters: price_id and organization_id **/
   CHECKOUT_URL: '/api/v2/stripe/checkout-link',
   /** Expected parameter: organization_id  **/

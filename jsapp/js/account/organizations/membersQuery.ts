@@ -1,9 +1,20 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {fetchGet} from 'js/api';
+import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
 import type {PaginatedQueryHookOptions} from 'js/universalTable/paginatedQueryUniversalTable.component';
+
+/**
+ * Note that it's only possible to update the role via API to either `admin` or
+ * `member`.
+ */
+export enum OrganizationMemberRole {
+  admin = 'admin',
+  member = 'member',
+  owner = 'owner',
+  external = 'external',
+}
 
 export interface OrganizationMember {
   /**
@@ -18,7 +29,7 @@ export interface OrganizationMember {
   user__email: string | '';
   /** can be empty an string in some edge cases */
   user__name: string | '';
-  role: 'admin' | 'owner' | 'member' | 'external';
+  role: OrganizationMemberRole;
   user__has_mfa_enabled: boolean;
   user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
@@ -32,6 +43,34 @@ export interface OrganizationMember {
     date_modified: string;
     status: 'sent' | 'accepted' | 'expired' | 'declined';
   };
+}
+
+/**
+ * For updating member within given organization. Accepts partial properties
+ * of `OrganizationMember`.
+ */
+export async function patchOrganizationMember(
+  organizationId: string,
+  username: string,
+  newMemberData: Partial<OrganizationMember>
+) {
+  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', organizationId)
+    .replace(':username', username);
+  return fetchPatch<OrganizationMember>(apiUrl, newMemberData);
+}
+
+/**
+ * For removing member from given organization.
+ */
+export async function removeOrganizationMember(
+  organizationId: string,
+  username: string
+) {
+  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', organizationId)
+    .replace(':username', username);
+  return fetchDelete(apiUrl);
 }
 
 /**
