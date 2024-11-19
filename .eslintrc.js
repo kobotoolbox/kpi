@@ -144,11 +144,16 @@ const tsRules = Object.assign({}, jsRules, {
       selector: 'variableLike',
       format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
     },
-    {selector: 'memberLike', format: ['camelCase', 'PascalCase', 'snake_case']},
     {selector: 'typeLike', format: ['PascalCase']},
     {
-      selector: 'property',
-      format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+      selector: 'memberLike',
+      format: ['camelCase', 'PascalCase', 'snake_case'],
+      leadingUnderscore: 'allow',
+      filter: {
+        // Allow snake_case with in-between double underscores
+        regex: '^([a-zA-Z]+(?:_{1,2}[a-zA-Z]+)*)$',
+        match: false,
+      },
     },
     {selector: 'method', format: ['camelCase']},
     {
