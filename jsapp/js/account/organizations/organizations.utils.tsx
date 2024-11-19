@@ -13,7 +13,7 @@ export function shouldUseTeamLabel(
 ) {
   if (subscription) {
     return (
-      subscription.items[0].price.product.metadata?.plan_type !== 'enterprise'
+      subscription.items[0].price.product.metadata?.use_team_label === 'true'
     );
   }
 
