@@ -3,7 +3,6 @@ import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
 import type {
   Price,
-  Organization,
   Product,
   SubscriptionInfo,
   OneTimeAddOn,
@@ -16,6 +15,7 @@ import Badge from 'jsapp/js/components/common/badge';
 import {formatDate} from 'js/utils';
 import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
 import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
+import type {Organization} from 'js/account/organization/organizationQuery';
 
 /**
  * A table of add-on products along with dropdowns to purchase them.

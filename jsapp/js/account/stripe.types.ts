@@ -139,24 +139,6 @@ export interface TransformQuantity {
   round: 'up' | 'down';
 }
 
-export interface Organization {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created: string;
-  modified: string;
-  slug: string;
-  is_owner: boolean;
-  is_mmo: boolean;
-  request_user_role: OrganizationUserRole;
-}
-
-export enum OrganizationUserRole {
-  member = 'member',
-  admin = 'admin',
-  owner = 'owner',
-}
-
 export enum PlanNames {
   'FREE' = 'Community',
   // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
