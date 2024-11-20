@@ -10,8 +10,10 @@ import subscriptionStore from 'js/account/subscriptionStore';
 import envStore from 'js/envStore';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
-import {useOrganizationQuery} from './stripe.api';
-import {OrganizationUserRole} from './stripe.types';
+import {
+  useOrganizationQuery,
+  OrganizationUserRole,
+} from 'js/account/organization/organizationQuery';
 import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 import {getSimpleMMOLabel} from './organization/organization.utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';

@@ -10,7 +10,7 @@ import KoboDropdown from 'js/components/common/koboDropdown';
 
 // Stores and hooks
 import projectViewsStore from './projectViewsStore';
-import {useOrganizationQuery} from 'js/account/stripe.api';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
 
 // Constants
 import {PROJECTS_ROUTES} from 'js/router/routerConstants';

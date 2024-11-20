@@ -2,26 +2,19 @@ import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
-import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
+import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
-import {fetchGet, fetchGetUrl, fetchPost} from 'jsapp/js/api';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 import type {
   AccountLimit,
   ChangePlan,
   Checkout,
   OneTimeAddOn,
-  Organization,
   PriceMetadata,
   Product,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
-import type {UndefinedInitialDataOptions} from '@tanstack/react-query';
-import {useQuery} from '@tanstack/react-query';
-import {QueryKeys} from 'js/query/queryKeys';
-import {FeatureFlag, useFeatureFlag} from '../featureFlags';
-import sessionStore from 'js/stores/session';
-import {useEffect} from 'react';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -58,65 +51,6 @@ export async function changeSubscription(
     ),
   });
 }
-
-/**
- * Organization object is used globally.
- * For convenience, errors are handled once at the top, see `RequireOrg`.
- * No need to handle errors at every usage.
- */
-export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<Organization, FailResponse, Organization, QueryKeys[]>, 'queryFn' | 'queryKey'>) => {
-  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
-
-  const currentAccount = sessionStore.currentAccount;
-
-  const organizationUrl =
-  'organization' in currentAccount ? currentAccount.organization?.url : null;
-
-  // Using a separated function to fetch the organization data to prevent
-  // feature flag dependencies from being added to the hook
-  const fetchOrganization = async (): Promise<Organization> => {
-    // organizationUrl is a full url with protocol and domain name, so we're using fetchGetUrl
-    // We're asserting the organizationUrl is not null here because the query is disabled if it is
-    const organization = await fetchGetUrl<Organization>(organizationUrl!);
-
-    if (isMmosEnabled) {
-      return organization;
-    }
-
-    // While the project is in development we will force a false return for the is_mmo
-    // to make sure we don't have any implementations appearing for users
-    return {
-      ...organization,
-      is_mmo: false,
-    };
-  };
-
-  // Setting the 'enabled' property so the query won't run until we have the session data
-  // loaded. Account data is needed to fetch the organization data.
-  const isQueryEnabled =
-    !sessionStore.isPending &&
-    sessionStore.isInitialLoadComplete &&
-    !!organizationUrl;
-
-  const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
-    ...options,
-    queryFn: fetchOrganization,
-    queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled && options?.enabled !== false,
-  });
-
-  // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
-  // In such case, refetch organizationUrl to fetch the new `organizationUrl`.
-  // DEBT: don't throw toast within fetchGetUrl.
-  // DEBT: don't retry the failing url 3-4 times before switching to the new url.
-  useEffect(() => {
-    if (query.error?.status === 404) {
-      sessionStore.refreshAccount();
-    }
-  }, [query.error?.status]);
-
-  return query;
-};
 
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
