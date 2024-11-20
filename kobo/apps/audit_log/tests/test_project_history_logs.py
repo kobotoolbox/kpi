@@ -882,13 +882,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
-        ('archive', AuditAction.ARCHIVE),
-        ('unarchive', AuditAction.UNARCHIVE),
-        ('undelete', AuditAction.UNDELETE),
-        ('delete', AuditAction.DELETE),
+        ('archive', AuditAction.ARCHIVE, False),
+        ('unarchive', AuditAction.UNARCHIVE, False),
+        ('undelete', AuditAction.UNDELETE, True),
+        ('delete', AuditAction.DELETE, True),
     )
     @unpack
-    def test_bulk_actions(self, bulk_action, audit_action):
+    def test_bulk_actions(self, bulk_action, audit_action, should_ignore):
         assets = [Asset.objects.create(
             content={
                 'survey': [
@@ -916,4 +916,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         project_hist_logs = ProjectHistoryLog.objects.filter(
             object_id__in=[asset.id for asset in assets], action=audit_action
         )
-        self.assertEqual(project_hist_logs.count(), 2)
+        if not should_ignore:
+            self.assertEqual(project_hist_logs.count(), 2)
+        else:
+            self.assertEqual(project_hist_logs.count(), 0)

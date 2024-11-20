@@ -358,10 +358,8 @@ class ProjectHistoryLog(AuditLog):
         bulk_action_to_audit_action = {
             'archive': AuditAction.ARCHIVE,
             'unarchive': AuditAction.UNARCHIVE,
-            'delete': AuditAction.DELETE,
-            'undelete': AuditAction.UNDELETE,
         }
-        audit_action = bulk_action_to_audit_action[action]
+        audit_action = bulk_action_to_audit_action.get(action)
         if audit_action is None:
             return  # Unsupported action
 
