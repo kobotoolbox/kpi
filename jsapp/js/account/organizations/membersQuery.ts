@@ -74,8 +74,7 @@ export async function removeOrganizationMember(
 }
 
 /**
- * Fetches paginated list of members for given organization. Requires
- * `options.organizationId` to work.
+ * Fetches paginated list of members for given organization.
  * This is mainly needed for `useOrganizationMembersQuery`, so you most probably
  * would use it through that hook rather than directly.
  */
@@ -101,8 +100,8 @@ async function getOrganizationMembers(
 }
 
 /**
- * A hook that gives you paginated list of organization members. Requires
- * `options.organizationId` to work.
+ * A hook that gives you paginated list of organization members. Uses
+ * `useOrganizationQuery` to get the id.
  */
 export default function useOrganizationMembersQuery(
   itemLimit: number,
