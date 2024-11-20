@@ -100,8 +100,8 @@ export const useOrganizationQuery = () => {
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
   // In such case, refetch organizationUrl to fetch the new `organizationUrl`.
-  // TODO: don't throw toash within fetchGetUrl.
-  // TODO: don't retry the failing url 3-4 times before switching to the new url.
+  // DEBT: don't throw toast within fetchGetUrl.
+  // DEBT: don't retry the failing url 3-4 times before switching to the new url.
   useEffect(() => {
     if (query.error?.status === 404) {
       sessionStore.refreshAccount();
