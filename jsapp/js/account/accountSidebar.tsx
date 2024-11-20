@@ -124,7 +124,7 @@ function renderMmoSidebar(
       <div className={styles.navGroup}>
         <div className={styles.subhead}>{mmoLabel.toUpperCase()}</div>
         <AccountNavLink
-          iconName='users'
+          iconName='user'
           name={t('Members')}
           to={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
         />
@@ -176,9 +176,7 @@ function AccountSidebar() {
     setIsStripeEnabled(true);
   }, [subscriptionStore.isInitialised]);
 
-  const showAddOnsLink = useMemo(() => {
-    return !subscriptionStore.planResponse.length;
-  }, [subscriptionStore.isInitialised]);
+  const showAddOnsLink = useMemo(() => !subscriptionStore.planResponse.length, [subscriptionStore.isInitialised]);
 
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
