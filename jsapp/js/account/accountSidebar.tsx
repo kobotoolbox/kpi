@@ -13,7 +13,7 @@ import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useOrganizationQuery} from './stripe.api';
 import {OrganizationUserRole} from './stripe.types';
 import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
-import {getSimpleMMOLabel} from './organizations/organizations.utils';
+import {getSimpleMMOLabel} from './organization/organization.utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 interface AccountNavLinkProps {
