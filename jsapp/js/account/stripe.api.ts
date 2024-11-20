@@ -2,7 +2,7 @@ import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
-import type {PaginatedResponse} from 'js/dataInterface';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
 import {fetchGet, fetchGetUrl, fetchPost} from 'jsapp/js/api';
 import type {
@@ -20,6 +20,7 @@ import {useQuery} from '@tanstack/react-query';
 import {QueryKeys} from 'js/query/queryKeys';
 import {FeatureFlag, useFeatureFlag} from '../featureFlags';
 import sessionStore from 'js/stores/session';
+import {useEffect} from 'react';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
@@ -91,11 +92,23 @@ export const useOrganizationQuery = () => {
     sessionStore.isInitialLoadComplete &&
     !!organizationUrl;
 
-  return useQuery({
+  const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
     enabled: isQueryEnabled,
   });
+
+  // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
+  // In such case, refetch organizationUrl to fetch the new `organizationUrl`.
+  // DEBT: don't throw toast within fetchGetUrl.
+  // DEBT: don't retry the failing url 3-4 times before switching to the new url.
+  useEffect(() => {
+    if (query.error?.status === 404) {
+      sessionStore.refreshAccount();
+    }
+  }, [query.error?.status]);
+
+  return query;
 };
 
 /**
@@ -121,7 +134,7 @@ export async function postCheckout(
  */
 export async function postCustomerPortal(
   organizationId: string,
-  priceId: string = '',
+  priceId = '',
   quantity = 1
 ) {
   return fetchPost<Checkout>(
@@ -247,7 +260,7 @@ const addRemainingOneTimeAddOnLimits = (
   oneTimeAddOns: OneTimeAddOn[]
 ) => {
   // This yields a separate object, so we need to make a copy
-  limits = {...limits}
+  limits = {...limits};
   oneTimeAddOns
     .filter((addon) => addon.is_available)
     .forEach((addon) => {
@@ -345,7 +358,7 @@ export async function getAccountLimits(
   }
 
   // create separate object with one-time addon limits added to the limits calculated so far
-  let remainingLimits = addRemainingOneTimeAddOnLimits(
+  const remainingLimits = addRemainingOneTimeAddOnLimits(
     recurringLimits,
     oneTimeAddOns
   );
