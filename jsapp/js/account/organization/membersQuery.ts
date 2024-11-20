@@ -3,7 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
-import {useOrganizationQuery} from './organizationQuery';
+import {useOrganizationQuery, type OrganizationUserRole} from './organizationQuery';
 
 export interface OrganizationMember {
   /**
@@ -18,7 +18,7 @@ export interface OrganizationMember {
   user__email: string | '';
   /** can be empty an string in some edge cases */
   user__name: string | '';
-  role: 'admin' | 'owner' | 'member' | 'external';
+  role: OrganizationUserRole;
   user__has_mfa_enabled: boolean;
   user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
