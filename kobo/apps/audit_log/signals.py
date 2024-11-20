@@ -37,7 +37,7 @@ def create_ph_log_for_import(sender, result, **kwargs):
 def _create_permissions_dict_on_request(request, added=True):
     attr = 'permissions_added' if added else 'permissions_removed'
     if getattr(request._request, attr, None) is None:
-        setattr(request._request, attr, defaultdict(list))
+        setattr(request._request, attr, defaultdict(set))
 
 
 @receiver(post_assign_perm, sender=Asset)
@@ -46,7 +46,7 @@ def add_perm_to_request(sender, instance, user, codename, request=None, **kwargs
         return
     _create_permissions_dict_on_request(request)
     username = user.username
-    request._request.permissions_added[username].append(codename)
+    request._request.permissions_added[username].add(codename)
 
 
 @receiver(post_remove_perm, sender=Asset)
@@ -57,7 +57,7 @@ def add_removed_perm_to_request(
         return
     _create_permissions_dict_on_request(request, added=False)
     username = user.username
-    request._request.permissions_removed[username].append(codename)
+    request._request.permissions_removed[username].add(codename)
 
 
 @receiver(post_assign_partial_perm, sender=Asset)
@@ -71,7 +71,7 @@ def add_partial_perm_to_request(sender, instance, user, perms, request=None, **k
     perms_as_list_of_dicts = [
         {'code': k, 'filters': v} for k, v in perms.permissions.items()
     ]
-    request._request.permissions_added[username].extend(perms_as_list_of_dicts)
+    request._request.permissions_added[username].update(perms_as_list_of_dicts)
 
 
 @receiver(post_remove_partial_perm, sender=Asset)
@@ -81,5 +81,5 @@ def remove_partial_perms_from_request(sender, instance, user, request, **kwargs)
     if getattr(request._request, 'permissions_added', None) is None:
         return
     perms_added = request._request.permissions_added[user.username]
-    perms_added_no_partials = [perm for perm in perms_added if isinstance(perm, str)]
+    perms_added_no_partials = {perm for perm in perms_added if isinstance(perm, str)}
     request._request.permissions_added[user.username] = perms_added_no_partials

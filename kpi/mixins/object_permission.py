@@ -28,6 +28,7 @@ from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
 )
 from kpi.models.object_permission import ObjectPermission
+from kpi.utils.log import logging
 from kpi.utils.object_permission import (
     get_database_user,
     perm_parse,
@@ -128,10 +129,11 @@ class ObjectPermissionMixin:
                 )
             )
             for user_codename in user_codenames:
-                for code_name in user_codename['all_codenames']:
-                    request._request.permissions_removed[
-                        user_codename['user__username']
-                    ].append(code_name)
+                if request is not None:
+                    for code_name in user_codename['all_codenames']:
+                        request._request.permissions_removed[
+                            user_codename['user__username']
+                        ].append(code_name)
                 remove_applicable_kc_permissions(
                     self, user_codename['user_id'], user_codename['all_codenames']
                 )
@@ -542,6 +544,14 @@ class ObjectPermissionMixin:
             deny=deny,
             inherited=False
         )
+
+        post_assign_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+            request=request,
+        )
         # Assign any applicable KC permissions
         if not deny and not skip_kc:
             assign_applicable_kc_permissions(self, user_obj, codename)
@@ -563,13 +573,6 @@ class ObjectPermissionMixin:
             user_obj,
             perm,
             partial_perms=partial_perms,
-            request=request,
-        )
-        post_assign_perm.send(
-            sender=self.__class__,
-            instance=self,
-            user=user_obj,
-            codename=codename,
             request=request,
         )
 
@@ -751,9 +754,11 @@ class ObjectPermissionMixin:
             codename, reverse=True, for_instance=self
         )
         for implied_perm in implied_perms:
+            logging.info(f'{perm} implies {implied_perm}')
             self.remove_perm(user_obj, implied_perm, defer_recalc=True, request=request)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
+
         if inherited_permissions.exists():
             # Delete inherited permissions
             inherited_permissions.delete()
@@ -762,14 +767,6 @@ class ObjectPermissionMixin:
         # Remove any applicable KC permissions
         if not skip_kc:
             remove_applicable_kc_permissions(self, user_obj, codename)
-
-        # We might have been called by ourself to assign a related
-        # permission. In that case, don't recalculate here.
-        if defer_recalc:
-            return
-
-        self._update_partial_permissions(user_obj, perm, remove=True, request=request)
-
         post_remove_perm.send(
             sender=self.__class__,
             instance=self,
@@ -777,6 +774,13 @@ class ObjectPermissionMixin:
             codename=codename,
             request=request,
         )
+
+        # We might have been called by ourself to assign a related
+        # permission. In that case, don't recalculate here.
+        if defer_recalc:
+            return
+
+        self._update_partial_permissions(user_obj, perm, remove=True, request=request)
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()

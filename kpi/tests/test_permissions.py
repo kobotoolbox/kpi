@@ -1,5 +1,6 @@
 # coding: utf-8
 import unittest
+from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
@@ -256,7 +257,8 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self._test_add_remove_inherited_perm(self.admin_collection, 'change_',
                                              self.someuser, self.admin_asset)
 
-    def test_implied_asset_grant_permissions(self):
+    @patch('kpi.mixins.object_permission.post_assign_perm.send')
+    def test_implied_asset_grant_permissions(self, mock_signal):
         implications = {
             PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
             PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
@@ -278,14 +280,18 @@ class PermissionsTestCase(BasePermissionsTestCase):
             # Verify that only the expected permissions have been granted
             expected = [explicit]
             expected.extend(implied)
+            granted = asset.get_perms(grantee)
             self.assertListEqual(
-                sorted(asset.get_perms(grantee)), sorted(expected))
+                sorted(granted), sorted(expected))
+            self.assertEqual(mock_signal.call_count, len(granted))
             # Wipe the slate
             asset.remove_perm(grantee, explicit)
             for i in implied:
                 asset.remove_perm(grantee, i)
+            mock_signal.reset_mock()
 
-    def test_remove_implied_asset_permissions(self):
+    @patch('kpi.mixins.object_permission.post_remove_perm.send')
+    def test_remove_implied_asset_permissions(self, mock_signal):
         """
             Assign `change_submissions` on an asset to a user, expecting
             `view_asset` and `view_submissions` to be automatically assigned as
@@ -307,10 +313,14 @@ class PermissionsTestCase(BasePermissionsTestCase):
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
+        self.assertEqual(mock_signal.call_count, 3)
+        mock_signal.reset_mock()
         # `add_submissions` does not imply `view_asset` anymore.
         self.assertListEqual(asset.get_perms(grantee), [PERM_ADD_SUBMISSIONS])
         asset.remove_perm(grantee, PERM_ADD_SUBMISSIONS)
         self.assertListEqual(asset.get_perms(grantee), [])
+        self.assertEqual(mock_signal.call_count, 1)
+        mock_signal.reset_mock()
 
         asset.assign_perm(grantee, PERM_VALIDATE_SUBMISSIONS)
         expected_perms = [
@@ -323,6 +333,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
         asset.remove_perm(grantee, PERM_VIEW_ASSET)
         self.assertListEqual(asset.get_perms(grantee), [])
+        self.assertEqual(mock_signal.call_count, 3)
 
     def test_implied_asset_deny_permissions(self):
         """
