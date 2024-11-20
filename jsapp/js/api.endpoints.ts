@@ -3,9 +3,9 @@ export const endpoints = {
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
-  SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/',
+  SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/', // TODO: unused, delete?
   ADD_ONS_URL: '/api/v2/stripe/addons/',
-  ORGANIZATION_URL: '/api/v2/organizations/',
+  ORGANIZATION_URL: '/api/v2/organizations/', // TODO: unused, delete?
   /** Expected parameters: price_id and organization_id **/
   CHECKOUT_URL: '/api/v2/stripe/checkout-link',
   /** Expected parameter: organization_id  **/
