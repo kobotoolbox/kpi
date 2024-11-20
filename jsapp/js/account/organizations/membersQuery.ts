@@ -74,6 +74,7 @@ export default function useOrganizationMembersQuery(
 
   return useQuery({
     queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset, orgId],
+    // `orgId!` because it's ensured to be there in `enabled` property :ok:
     queryFn: () => getOrganizationMembers(itemLimit, pageOffset, orgId!),
     placeholderData: keepPreviousData,
     enabled: !!orgId,
