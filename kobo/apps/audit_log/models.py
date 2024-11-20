@@ -374,6 +374,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': client_ip,
                 'source': source,
+                'latest_version_uid': asset.latest_version.uid,
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
