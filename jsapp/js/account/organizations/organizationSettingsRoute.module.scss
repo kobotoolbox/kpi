@@ -1,0 +1,128 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'js/components/common/textBox.module';
+
+.securityRouteRoot {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+
+  :global {
+    // Harmonize button widths
+    .k-button__label {
+      display: inline-block;
+      min-width: 6em;
+      text-align: center;
+    }
+  }
+}
+
+header.securityHeader {
+  @include mixins.centerRowFlex;
+  margin: 24px 0;
+
+  &:not(:first-child) {
+    margin-top: 44px;
+  }
+}
+
+h2.securityHeaderText {
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  margin: 0;
+}
+
+.securityHeaderActions {
+  @include mixins.centerRowFlex;
+}
+
+// Shared styles for sections
+
+.securitySection {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid colors.$kobo-gray-200;
+
+  &:last-of-type {
+    border-bottom: 1px solid colors.$kobo-gray-200;
+  }
+}
+
+.securitySectionTitle {
+  width: 100%;
+  flex: initial;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.securitySectionTitleText {
+  margin: 0;
+  color: colors.$kobo-gray-600;
+  font-weight: 600;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.securitySectionBody {
+  flex: 3;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .securitySectionTitle {
+    width: initial;
+    flex: 2;
+  }
+
+  .securityRouteRoot {
+    padding: 50px;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 0 20px;
+  width: 100%;
+
+  &:not(:last-child) {
+    margin-bottom: 15px;
+  }
+
+  // This handles the issue of grouping the possibly not displayed items in
+  // a simple and elegant way - as opposed to adding more logic to the TSX file.
+  &:empty {
+    display: none;
+  }
+
+  .checkboxLabel {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    color: colors.$kobo-gray-800;
+  }
+
+  :global {
+    .checkbox__wrapper {
+      margin-top: 6px;
+    }
+  }
+}
+
+.field {
+  max-width: 285px;
+}
