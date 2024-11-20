@@ -9,25 +9,12 @@ import type {UseQueryResult} from '@tanstack/react-query';
 import type {PaginatedResponse} from 'js/dataInterface';
 import type {UniversalTableColumn} from './universalTable.component';
 
-/**
- * A way of passing custom options, e.g. a parameter that needs to be included
- * in the API url.
- */
-export interface PaginatedQueryHookOptions {
-  [optionName: string]: string;
-}
-
 interface PaginatedQueryHook<DataItem> extends Function {
-  (
-    limit: number,
-    offset: number,
-    options?: PaginatedQueryHookOptions
-  ): UseQueryResult<PaginatedResponse<DataItem>>;
+  (limit: number, offset: number): UseQueryResult<PaginatedResponse<DataItem>>;
 }
 
 interface PaginatedQueryUniversalTableProps<DataItem> {
   queryHook: PaginatedQueryHook<DataItem>;
-  queryHookOptions?: PaginatedQueryHookOptions;
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
@@ -52,11 +39,7 @@ export default function PaginatedQueryUniversalTable<DataItem>(
     offset: 0,
   });
 
-  const paginatedQuery = props.queryHook(
-    pagination.limit,
-    pagination.offset,
-    props.queryHookOptions
-  );
+  const paginatedQuery = props.queryHook(pagination.limit, pagination.offset);
 
   const availablePages = useMemo(
     () => Math.ceil((paginatedQuery.data?.count ?? 0) / pagination.limit),

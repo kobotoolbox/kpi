@@ -3,7 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
-import type {PaginatedQueryHookOptions} from 'js/universalTable/paginatedQueryUniversalTable.component';
+import {useOrganizationQuery} from '../stripe.api';
 
 /**
  * Note that it's only possible to update the role via API to either `admin` or
@@ -82,7 +82,7 @@ export async function removeOrganizationMember(
 async function getOrganizationMembers(
   limit: number,
   offset: number,
-  options?: PaginatedQueryHookOptions
+  orgId: string
 ) {
   const params = new URLSearchParams({
     limit: limit.toString(),
@@ -90,9 +90,7 @@ async function getOrganizationMembers(
   });
 
   let apiUrl = endpoints.ORGANIZATION_MEMBERS_URL;
-  if (options?.organizationId) {
-    apiUrl = apiUrl.replace(':organization_id', options.organizationId);
-  }
+  apiUrl = apiUrl.replace(':organization_id', orgId);
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,
@@ -108,18 +106,17 @@ async function getOrganizationMembers(
  */
 export default function useOrganizationMembersQuery(
   itemLimit: number,
-  pageOffset: number,
-  /**
-   * This is optional only to satisfy TS in `PaginatedQueryUniversalTable`. In
-   * reality, data will not be fetched properly without `organizationId` passed
-   * in the `options` object - see `getOrganizationMembers()` for details.
-   */
-  options?: PaginatedQueryHookOptions
+  pageOffset: number
 ) {
+  const orgQuery = useOrganizationQuery();
+  const orgId = orgQuery.data?.id;
+
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset, options],
-    queryFn: () => getOrganizationMembers(itemLimit, pageOffset, options),
+    queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset, orgId],
+    // `orgId!` because it's ensured to be there in `enabled` property :ok:
+    queryFn: () => getOrganizationMembers(itemLimit, pageOffset, orgId!),
     placeholderData: keepPreviousData,
+    enabled: !!orgId,
     // We might want to improve this in future, for now let's not retry
     retry: false,
     // The `refetchOnWindowFocus` option is `true` by default, I'm setting it
