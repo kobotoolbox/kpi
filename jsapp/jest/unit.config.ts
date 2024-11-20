@@ -40,7 +40,7 @@ const config: Config = {
 
   // Exclude these files, even if they contain tests
   testPathIgnorePatterns: [
-    'test/xlform/integration.tests.coffee$', // 📄 skipped in test/index.js
+    'test/xlform/integration.tests.coffee$', // 📄 skipped in `ee98aebe631b`
     ...defaults.testPathIgnorePatterns,      // 📦 exclude '/node_modules/'
   ],
 
