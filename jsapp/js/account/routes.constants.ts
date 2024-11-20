@@ -20,7 +20,7 @@ export const DataStorage = React.lazy(
   () => import(/* webpackPrefetch: true */ './usage/usageTopTabs')
 );
 export const OrganizationSettingsRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './organizations/OrganizationSettingsRoute')
+  () => import(/* webpackPrefetch: true */ './organization/OrganizationSettingsRoute')
 );
 export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',
