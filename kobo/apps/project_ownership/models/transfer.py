@@ -19,6 +19,7 @@ from kpi.deployment_backends.kc_access.utils import (
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -288,8 +289,8 @@ class Transfer(AbstractTimeStampedModel):
         This method must be called within a transaction because of the lock
         acquired the object row (with `select_for_update`)
         """
-        invite = self.get_invite_model().objects.select_for_update().get(
-            pk=self.invite_id
+        invite = (
+            self.get_invite_model().objects.select_for_update().get(pk=self.invite_id)
         )
         previous_status = invite.status
         is_complete = True

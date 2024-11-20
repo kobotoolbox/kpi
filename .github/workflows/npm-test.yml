@@ -33,11 +33,8 @@ jobs:
       - name: Add "Node ${{ steps.resolved-node-version.outputs.NODE_VERSION }}" to summary
         run: echo "${{ matrix.node-version }} → **${{ steps.resolved-node-version.outputs.NODE_VERSION }}**" >> "$GITHUB_STEP_SUMMARY"
 
-      # Set up Chrome, for the unit tests
-      - uses: browser-actions/setup-chrome@latest
-      - run: chrome --version
-
-      # Cache node_modules, keyed on os, node version, package-lock, and patches
+      # Cache: Use cache for node_modules
+      #        Keyed on os, node version, package-lock, and patches
       - uses: actions/cache@v4
         name: Check for cached node_modules
         id: cache-nodemodules
@@ -47,37 +44,37 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
 
-      # Cache hit: node_modules is copied from a previous run. Run copy-fonts
-      - if: steps.cache-nodemodules.outputs.cache-hit == 'true'
-        name: Run copy-fonts (if using cached node_modules)
+      # Cache hit:  If the cache key matches,
+      #             /node_modules/ will have been copied from a previous run.
+      #   (Run the post-install step, `npm run copy-fonts`)
+      - name: Run copy-fonts (if using cached node_modules)
+        if: steps.cache-nodemodules.outputs.cache-hit == 'true'
         run: npm run copy-fonts
 
-      # Cache miss: Run npm install, which does copy-fonts as post-install step
-      - if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        name: Install JavaScript dependencies (npm install)
+      # Cache miss: If node_modules has not been cached,
+      #             `npm install`
+      #   (This includes `npm run copy-fonts` as post-install step)
+      - name: Install JavaScript dependencies (npm install)
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
 
-      # Build the app!
+      # Check that the full build succeeds
       - name: Build Prod
         run: SKIP_TS_CHECK=true npm run build
 
-      # Run TypeScript Checks and ESLint
-      - name: Check TypeScript # Separated for visibility
+      # Check for TypeScript errors
+      - name: Check TypeScript
         run: npm run check-types
+
+      # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
         run: npm run lint -- --quiet
 
-      # Unit Tests
-      - name: Build Tests
-        run: npx webpack --config webpack/test.config.js
+      # Run the Unit test suite (formbuilder and helpers)
+      - name: Run unit tests and xlform tests
+        run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
-      - name: Run Tests, with mocha-chrome
-        run: npx mocha-chrome test/tests.html --chrome-launcher.connectionPollInterval=5000
-        # This step takes less than 1 minute if it succeeds, but will hang for
-        # 6 hours if it fails with 'No inspectable targets'
-        # Timeout early to make it easier to manually re-run jobs.
-        # Tracking issue: https://github.com/kobotoolbox/kpi/issues/4337
-        timeout-minutes: 1
+      # Run the Jest test suite (React components)
+      - name: Run component tests with Jest
+        run: npx jest --config ./jsapp/jest/jest.config.ts --ci
 
-      - name: Run components tests with Jest
-        run: npm run jest

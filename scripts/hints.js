@@ -28,15 +28,6 @@ const hints = {
            ${s.darkblue}Enjoy a quicker-launching dev server!
   `,
 
-  'test-autobuild': `
-    This will rebuild the js tests on change.
-
-    Open ${s.underline}file://${process.cwd()}/test/tests.html${s.nounderline}
-    to see the test results in your browser.
-
-    Reload the page to re-run the tests.
-  `,
-
   SKIP_TS_CHECK: `${s.red}
      Skipping TypeScript check (${s.magenta}SKIP_TS_CHECK${s.red})
   ${s.normal}`,

@@ -1,5 +1,6 @@
 # coding: utf-8
 import unittest
+
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
@@ -21,6 +22,7 @@ from kpi.constants import (
 )
 from kpi.exceptions import BadPermissionsException
 from kpi.utils.object_permission import get_all_objects_for_user
+
 from ..models import ObjectPermission
 from ..models.asset import Asset
 
@@ -862,9 +864,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertFalse(anonymous_user.has_perm(PERM_VIEW_SUBMISSIONS, asset))
         asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
         self.assertTrue(grantee.has_perm(PERM_VIEW_SUBMISSIONS, asset))
-        self.assertTrue(
-            asset.get_perms(grantee), asset.get_perms(anonymous_user)
-        )
+        self.assertTrue(asset.get_perms(grantee), asset.get_perms(anonymous_user))
 
     def test_org_admin_inherited_and_implied_permissions(self):
         """

@@ -1,4 +1,6 @@
+from functools import partial
 from typing import Literal
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -6,8 +8,11 @@ from django.db.models import F
 from django_request_cache import cache_for_request
 
 if settings.STRIPE_ENABLED:
-   from djstripe.models import Customer, Subscription
-from functools import partial
+    from djstripe.models import Customer, Subscription
+
+    from kobo.apps.stripe.constants import (
+        ACTIVE_STRIPE_STATUSES,
+    )
 
 from organizations.abstract import (
     AbstractOrganization,
@@ -17,8 +22,8 @@ from organizations.abstract import (
 )
 from organizations.utils import create_organization as create_organization_base
 
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.fields import KpiUidField
+
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
@@ -26,7 +31,6 @@ from .constants import (
     ORG_OWNER_ROLE,
 )
 from .exceptions import NotMultiMemberOrganizationException
-
 
 OrganizationRole = Literal[
     ORG_ADMIN_ROLE, ORG_EXTERNAL_ROLE, ORG_MEMBER_ROLE, ORG_OWNER_ROLE
@@ -49,25 +53,45 @@ class Organization(AbstractOrganization):
     @cache_for_request
     def active_subscription_billing_details(self):
         """
-        Retrieve the billing dates and interval for the organization's newest active subscription
+        Retrieve the billing dates, interval, and product/price metadata for the
+        organization's newest subscription
         Returns None if Stripe is not enabled
-        The status types that are considered 'active' are determined by ACTIVE_STRIPE_STATUSES
+        The status types that are considered 'active' are determined by
+        ACTIVE_STRIPE_STATUSES
         """
         # Only check for subscriptions if Stripe is enabled
-        if settings.STRIPE_ENABLED:
-            return Organization.objects.prefetch_related('djstripe_customers').filter(
-                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                    djstripe_customers__subscriber=self.id,
-                ).order_by(
-                    '-djstripe_customers__subscriptions__start_date'
-                ).values(
-                    billing_cycle_anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
-                    current_period_start=F('djstripe_customers__subscriptions__current_period_start'),
-                    current_period_end=F('djstripe_customers__subscriptions__current_period_end'),
-                    recurring_interval=F('djstripe_customers__subscriptions__items__price__recurring__interval'),
-                ).first()
+        if not settings.STRIPE_ENABLED:
+            return None
 
-        return None
+        return (
+            Organization.objects.prefetch_related('djstripe_customers')
+            .filter(
+                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriber=self.id,
+            )
+            .order_by('-djstripe_customers__subscriptions__start_date')
+            .values(
+                billing_cycle_anchor=F(
+                    'djstripe_customers__subscriptions__billing_cycle_anchor'
+                ),
+                current_period_start=F(
+                    'djstripe_customers__subscriptions__current_period_start'
+                ),
+                current_period_end=F(
+                    'djstripe_customers__subscriptions__current_period_end'
+                ),
+                recurring_interval=F(
+                    'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
+                ),
+                product_metadata=F(
+                    'djstripe_customers__subscriptions__items__price__product__metadata'
+                ),
+                price_metadata=F(
+                    'djstripe_customers__subscriptions__items__price__metadata'
+                ),
+            )
+            .first()
+        )
 
     @cache_for_request
     def canceled_subscription_billing_cycle_anchor(self):
@@ -76,18 +100,38 @@ class Organization(AbstractOrganization):
         """
         # Only check for subscriptions if Stripe is enabled
         if settings.STRIPE_ENABLED:
-            qs = Organization.objects.prefetch_related('djstripe_customers').filter(
+            qs = (
+                Organization.objects.prefetch_related('djstripe_customers')
+                .filter(
                     djstripe_customers__subscriptions__status='canceled',
                     djstripe_customers__subscriber=self.id,
-                ).order_by(
-                    '-djstripe_customers__subscriptions__ended_at'
-                ).values(
+                )
+                .order_by('-djstripe_customers__subscriptions__ended_at')
+                .values(
                     anchor=F('djstripe_customers__subscriptions__ended_at'),
-                ).first()
+                )
+                .first()
+            )
             if qs:
                 return qs['anchor']
 
         return None
+
+    @classmethod
+    def get_from_user_id(cls, user_id: int):
+        """
+        Get organization that this user is a member of.
+        """
+        # TODO: validate this is the correct way to get a user's organization
+        org = (
+            cls.objects.filter(
+                organization_users__user__id=user_id,
+            )
+            .order_by('-organization_users__created')
+            .first()
+        )
+
+        return org
 
     @property
     def email(self):
@@ -177,7 +221,8 @@ class OrganizationUser(AbstractOrganizationUser):
         try:
             customer = Customer.objects.get(subscriber=self.organization.id)
             subscriptions = Subscription.objects.filter(
-                customer=customer, status="active"
+                customer=customer,
+                status__in=ACTIVE_STRIPE_STATUSES,
             )
 
             unique_plans = set()

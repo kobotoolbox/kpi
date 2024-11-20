@@ -2,9 +2,13 @@ import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
 import {PROJECTS_ROUTES} from 'js/router/routerConstants';
+import {ValidateOrgPermissions} from 'js/router/validateOrgPermissions.component';
 
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')
+);
+const MyOrgProjectsRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './myOrgProjectsRoute')
 );
 const CustomViewRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './customViewRoute')
@@ -22,6 +26,19 @@ export default function routes() {
         element={
           <RequireAuth>
             <MyProjectsRoute />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={PROJECTS_ROUTES.MY_ORG_PROJECTS}
+        element={
+          <RequireAuth>
+            <ValidateOrgPermissions
+              mmoOnly
+              redirectRoute={PROJECTS_ROUTES.MY_PROJECTS}
+            >
+              <MyOrgProjectsRoute />
+            </ValidateOrgPermissions>
           </RequireAuth>
         }
       />

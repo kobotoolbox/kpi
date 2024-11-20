@@ -1,6 +1,6 @@
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.test import override_settings, TestCase
+from django.test import TestCase
 
 from kpi.models.asset import Asset
 from kpi.models.asset_file import AssetFile

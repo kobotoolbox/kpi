@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib import admin, messages
 from django.db.models import Count
 from django.utils.safestring import mark_safe
+from django_request_cache import cache_for_request
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.fields import Field
@@ -10,8 +11,9 @@ from import_export.widgets import ForeignKeyWidget
 from organizations.base_admin import BaseOrganizationUserAdmin
 
 from kobo.apps.kobo_auth.shortcuts import User
+
 from ..forms import OrgUserAdminForm
-from ..models import OrganizationUser
+from ..models import Organization, OrganizationUser
 from ..tasks import transfer_user_ownership_to_org
 from ..utils import revoke_org_asset_perms
 
@@ -111,6 +113,42 @@ class OrgUserResource(resources.ModelResource):
     class Meta:
         model = OrganizationUser
 
+    def after_import(self, dataset, result, **kwargs):
+        super().after_import(dataset, result, **kwargs)
+        dry_run = kwargs.get('dry_run', False)
+
+        if not dry_run:
+            new_organization_user_ids = []
+            for row in result.rows:
+                if row.import_type == 'new':
+                    new_organization_user_ids.append(row.object_id)
+
+            if new_organization_user_ids:
+                user_ids = OrganizationUser.objects.values_list(
+                    'user_id', flat=True
+                ).filter(pk__in=new_organization_user_ids)
+                for user_id in user_ids:
+                    transfer_user_ownership_to_org.delay(user_id)
+
+    def before_import_row(self, row, **kwargs):
+
+        if not (organization := self._get_organization(row.get('organization'))):
+            raise ValueError(f"Organization {row.get('organization')} does not exist")
+        if not organization.is_mmo:
+            raise ValueError(
+                f"Organization {row.get('organization')} is not multi-member"
+            )
+
+        return super().before_import_row(row, **kwargs)
+
+    @staticmethod
+    @cache_for_request
+    def _get_organization(organization_id: str) -> Organization | None:
+        if organization_id:
+            return Organization.objects.filter(pk=organization_id).first()
+
+        return
+
 
 @admin.register(OrganizationUser)
 class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
@@ -128,9 +166,11 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
             and app_label == 'organizations'
             and model_name == 'organizationowner'
         ):
-            queryset = queryset.annotate(
-                user_count=Count('organization__organization_users')
-            ).filter(user_count__lte=1).order_by('user__username')
+            queryset = (
+                queryset.annotate(user_count=Count('organization__organization_users'))
+                .filter(user_count__lte=1)
+                .order_by('user__username')
+            )
 
         return super().get_search_results(request, queryset, search_term)
 

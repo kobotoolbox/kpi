@@ -1,6 +1,5 @@
 import React from 'react';
 import cx from 'classnames';
-import {ButtonToIconMap} from 'js/components/common/button';
 import styles from './badge.module.scss';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import Icon from './icon';
@@ -11,7 +10,8 @@ export type BadgeColor =
   | 'light-amber'
   | 'light-blue'
   | 'light-red'
-  | 'light-teal';
+  | 'light-teal'
+  | 'light-green';
 export type BadgeSize = 'l' | 'm' | 's';
 
 export const BadgeToIconMap: Map<BadgeSize, IconSize> = new Map();
@@ -23,7 +23,8 @@ interface BadgeProps {
   color: BadgeColor;
   size: BadgeSize;
   icon?: IconName;
-  label: React.ReactNode;
+  /** Optional to allow icon-only badges */
+  label?: React.ReactNode;
   /**
    * Use it to ensure that the badge will always be display in whole. Without
    * this (the default behaviour) the badge will take as much space as it gets,
@@ -39,16 +40,21 @@ export default function Badge(props: BadgeProps) {
         styles.root,
         styles[`color-${props.color}`],
         styles[`size-${props.size}`],
-      ], {[styles.disableShortening]: props.disableShortening})}
+      ], {
+        [styles.disableShortening]: props.disableShortening,
+        [styles.hasLabel]: props.label !== undefined,
+      })}
     >
       {props.icon && (
         <Icon
-          size={ButtonToIconMap.get(props.size)}
+          size={BadgeToIconMap.get(props.size)}
           className={styles.icon}
           name={props.icon}
         />
       )}
-      <span className={styles.label}>{props.label}</span>
+      {props.label && (
+        <span className={styles.label}>{props.label}</span>
+      )}
     </div>
   );
 }

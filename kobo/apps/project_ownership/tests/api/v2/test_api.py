@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -357,6 +358,9 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
     @patch(
         'kobo.apps.project_ownership.tasks.move_media_files',
         MagicMock()
+    )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
