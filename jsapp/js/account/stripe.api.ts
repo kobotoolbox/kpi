@@ -16,6 +16,7 @@ import type {
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
+import type {UndefinedInitialDataOptions} from '@tanstack/react-query';
 import {useQuery} from '@tanstack/react-query';
 import {QueryKeys} from 'js/query/queryKeys';
 import {FeatureFlag, useFeatureFlag} from '../featureFlags';
@@ -58,7 +59,12 @@ export async function changeSubscription(
   });
 }
 
-export const useOrganizationQuery = () => {
+/**
+ * Organization object is used globally.
+ * For convenience, errors are handled once at the top, see `RequireOrg`.
+ * No need to handle errors at every usage.
+ */
+export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<Organization, FailResponse, Organization, QueryKeys[]>, 'queryFn' | 'queryKey'>) => {
   const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
 
   const currentAccount = sessionStore.currentAccount;
@@ -93,9 +99,10 @@ export const useOrganizationQuery = () => {
     !!organizationUrl;
 
   const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
+    ...options,
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled,
+    enabled: isQueryEnabled && options?.enabled !== false,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed from organization).
