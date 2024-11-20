@@ -12,6 +12,22 @@ import kpi.models.asset_file
 import kpi.models.import_export_task
 
 
+def populate_common_export_tasks(apps, schema_editor):
+    CommonExportTask = apps.get_model("kpi", "CommonExportTask")
+    ProjectViewExportTask = apps.get_model("kpi", "ProjectViewExportTask")
+    for project_view_task in ProjectViewExportTask.objects.all():
+        common_task = CommonExportTask.objects.create(
+            data=project_view_task.data,
+            messages=project_view_task.messages,
+            status=project_view_task.status,
+            date_created=project_view_task.date_created,
+            result=project_view_task.result,
+            user=project_view_task.user,
+        )
+        project_view_task.commonexporttask_ptr = common_task
+        project_view_task.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -70,6 +86,18 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.RunPython(populate_common_export_tasks),  # Add this line
+        migrations.AddField(
+            model_name='projectviewexporttask',
+            name='commonexporttask_ptr',
+            field=models.OneToOneField(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                parent_link=True,
+                to='kpi.CommonExportTask',
+            ),
+            preserve_default=False,
+        ),
         migrations.RemoveField(
             model_name='projectviewexporttask',
             name='data',
@@ -127,18 +155,16 @@ class Migration(migrations.Migration):
             },
             bases=('kpi.commonexporttask',),
         ),
-        migrations.AddField(
-            model_name='projectviewexporttask',
-            name='commonexporttask_ptr',
-            field=models.OneToOneField(
-                auto_created=True,
-                default=None,
-                on_delete=django.db.models.deletion.CASCADE,
-                parent_link=True,
-                primary_key=True,
-                serialize=False,
-                to='kpi.commonexporttask',
-            ),
-            preserve_default=False,
-        ),
     ]
+
+
+    migrations.AddField(
+    model_name='projectviewexporttask',
+    name='commonexporttask_ptr',
+    field=models.OneToOneField(
+        null=True,
+        on_delete=django.db.models.deletion.CASCADE,
+        parent_link=True,
+        to='kpi.CommonExportTask',
+    ),
+),
