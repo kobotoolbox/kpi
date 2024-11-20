@@ -1,8 +1,11 @@
-import React, {Suspense, useEffect} from 'react';
+import type React from 'react';
+import {Suspense, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {useOrganizationQuery} from 'js/account/stripe.api';
-import {OrganizationUserRole} from '../account/stripe.types';
+import {
+  useOrganizationQuery,
+  OrganizationUserRole,
+} from 'js/account/organization/organizationQuery';
 
 interface Props {
   children: React.ReactNode;
@@ -16,7 +19,7 @@ interface Props {
  * or members of MMOs. Defaults to allowing access for all users, so you must supply
  * any restrictions.
  */
-export const ValidateOrgPermissions = ({
+export const RequireOrgPermissions = ({
   children,
   redirectRoute,
   validRoles = undefined,

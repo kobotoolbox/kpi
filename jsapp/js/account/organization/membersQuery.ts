@@ -3,7 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
-import {useOrganizationQuery} from '../stripe.api';
+import {useOrganizationQuery} from './organizationQuery';
 
 export interface OrganizationMember {
   /**
@@ -49,8 +49,7 @@ async function getOrganizationMembers(
     offset: offset.toString(),
   });
 
-  let apiUrl = endpoints.ORGANIZATION_MEMBERS_URL;
-  apiUrl = apiUrl.replace(':organization_id', orgId);
+  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId);
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,
