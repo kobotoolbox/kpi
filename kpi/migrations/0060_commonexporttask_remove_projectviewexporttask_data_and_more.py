@@ -13,8 +13,8 @@ import kpi.models.import_export_task
 
 
 def populate_common_export_tasks(apps, schema_editor):
-    CommonExportTask = apps.get_model("kpi", "CommonExportTask")
-    ProjectViewExportTask = apps.get_model("kpi", "ProjectViewExportTask")
+    CommonExportTask = apps.get_model('kpi', 'CommonExportTask')
+    ProjectViewExportTask = apps.get_model('kpi', 'ProjectViewExportTask')
     for project_view_task in ProjectViewExportTask.objects.all():
         common_task = CommonExportTask.objects.create(
             data=project_view_task.data,
@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.RunPython(populate_common_export_tasks),  # Add this line
+        migrations.RunPython(populate_common_export_tasks),
         migrations.AddField(
             model_name='projectviewexporttask',
             name='commonexporttask_ptr',
@@ -157,14 +157,13 @@ class Migration(migrations.Migration):
         ),
     ]
 
-
     migrations.AddField(
-    model_name='projectviewexporttask',
-    name='commonexporttask_ptr',
-    field=models.OneToOneField(
-        null=True,
-        on_delete=django.db.models.deletion.CASCADE,
-        parent_link=True,
-        to='kpi.CommonExportTask',
+        model_name='projectviewexporttask',
+        name='commonexporttask_ptr',
+        field=models.OneToOneField(
+            null=True,
+            on_delete=django.db.models.deletion.CASCADE,
+            parent_link=True,
+            to='kpi.CommonExportTask',
+        ),
     ),
-),
