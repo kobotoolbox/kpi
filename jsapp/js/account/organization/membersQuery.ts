@@ -3,18 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
-import {useOrganizationQuery} from '../stripe.api';
-
-/**
- * Note that it's only possible to update the role via API to either `admin` or
- * `member`.
- */
-export enum OrganizationMemberRole {
-  admin = 'admin',
-  member = 'member',
-  owner = 'owner',
-  external = 'external',
-}
+import {useOrganizationQuery, type OrganizationUserRole} from './organizationQuery';
 
 export interface OrganizationMember {
   /**
@@ -29,7 +18,7 @@ export interface OrganizationMember {
   user__email: string | '';
   /** can be empty an string in some edge cases */
   user__name: string | '';
-  role: OrganizationMemberRole;
+  role: OrganizationUserRole;
   user__has_mfa_enabled: boolean;
   user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
@@ -88,8 +77,7 @@ async function getOrganizationMembers(
     offset: offset.toString(),
   });
 
-  let apiUrl = endpoints.ORGANIZATION_MEMBERS_URL;
-  apiUrl = apiUrl.replace(':organization_id', orgId);
+  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId);
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,

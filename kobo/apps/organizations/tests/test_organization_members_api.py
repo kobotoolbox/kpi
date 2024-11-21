@@ -38,7 +38,7 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_200_OK),
-        ('external', status.HTTP_200_OK),
+        ('external', status.HTTP_404_NOT_FOUND),
         ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack
@@ -115,8 +115,8 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
         ('admin', status.HTTP_405_METHOD_NOT_ALLOWED),
-        ('member', status.HTTP_405_METHOD_NOT_ALLOWED),
-        ('external', status.HTTP_405_METHOD_NOT_ALLOWED),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND),
         ('anonymous', status.HTTP_401_UNAUTHORIZED),
     )
     @unpack

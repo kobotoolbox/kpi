@@ -30,6 +30,19 @@ class IsOrgAdminPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
 
 
 class HasOrgRolePermission(IsOrgAdminPermission):
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+
+        organization = Organization.objects.filter(
+            id=view.kwargs.get('organization_id')
+        ).first()
+        if organization and not self.has_object_permission(
+            request, view, organization
+        ):
+            return False
+        return True
+
     def has_object_permission(self, request, view, obj):
         obj = obj if isinstance(obj, Organization) else obj.organization
         if super().has_object_permission(request, view, obj):

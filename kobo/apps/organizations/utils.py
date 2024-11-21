@@ -105,7 +105,7 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     Revokes permissions assigned to removed members on all assets belonging to
     the organization.
     """
-    Asset = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+    Asset = apps.get_model('kpi', 'Asset')  # noqa
     subquery = Asset.objects.values_list('pk', flat=True).filter(
         owner=organization.owner_user_object
     )

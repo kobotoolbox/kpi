@@ -9,7 +9,7 @@ import Badge from 'jsapp/js/components/common/badge';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
-import {useOrganizationQuery} from 'js/account/stripe.api';
+import {useOrganizationQuery} from './organizationQuery';
 import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
