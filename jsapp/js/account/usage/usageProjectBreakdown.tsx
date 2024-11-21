@@ -16,7 +16,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {useOrganizationQuery} from 'js/account/stripe.api';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
 
 type ButtonType = 'back' | 'forward';
 

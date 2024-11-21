@@ -1155,7 +1155,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'md5': metadata['file_hash'],
                 'from_kpi': metadata['from_kpi'],
             }
-
         metadata_filenames = metadata_files.keys()
 
         queryset = self._get_metadata_queryset(file_type=file_type)
@@ -1350,7 +1349,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         if not file_.is_remote_url:
-            metadata['data_file'] = file_.content
+            # Ensure file has not been read before
+            file_.content.seek(0)
+            file_content = file_.content.read()
+            file_.content.seek(0)
+            metadata['data_file'] = ContentFile(file_content, file_.filename)
 
         MetaData.objects.create(**metadata)
 

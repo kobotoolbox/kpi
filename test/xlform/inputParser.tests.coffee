@@ -20,6 +20,7 @@ do ->
     describe '. loadChoiceLists()"', ->
       list = new $choices.ChoiceList()
       $inputParser.loadChoiceLists($surveys.pizza_survey.main().choices, list)
+      return
 
     describe '. parse()"', ->
       describe ' translated surveys', ->
@@ -62,6 +63,7 @@ do ->
             ]
           for i in [0, 1]
             expect(results[i]).toEqual(expected[i])
+          return
 
       it 'parses group hierarchy', ->
         results = $inputParser.parseArr('survey', [

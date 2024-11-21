@@ -22,7 +22,6 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination, OrganizationMembersPagination
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -87,7 +86,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
-    pagination_class = AssetUsagePagination
     http_method_names = ['get', 'patch']
 
     @action(
@@ -277,18 +275,16 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
-    Used `ModelViewSet` instead of `NestedViewSetMixin` to maintain explicit
-    control over the queryset.
-
-    * Manage organization members and their roles within an organization.
-    * Run a partial update on an organization member to promote or demote.
+    The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
+    explicit control over the queryset.
 
     ## Organization Members API
 
-    This API allows authorized users to view and manage the members of an
-    organization, including their roles. It handles existing members. It also
-    allows updating roles, such as promoting a member to an admin or assigning
-    a new owner.
+    This API allows authorized users to view and manage organization members and
+    their roles, including promoting or demoting members (eg. to admin).
+
+    * Manage members and their roles within an organization.
+    * Update member roles (promote/demote).
 
     ### List Members
 
@@ -317,9 +313,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     >                   "user__email": "foo_bar@example.com",
     >                   "user__name": "Foo Bar",
     >                   "role": "owner",
-    >                   "has_mfa_enabled": true,
+    >                   "user__has_mfa_enabled": true,
     >                   "date_joined": "2024-08-11T12:36:32Z",
-    >                   "is_active": true
+    >                   "user__is_active": true
     >               },
     >               {
     >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
@@ -329,15 +325,13 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     >                   "user__email": "john_doe@example.com",
     >                   "user__name": "John Doe",
     >                   "role": "admin",
-    >                   "has_mfa_enabled": false,
+    >                   "user__has_mfa_enabled": false,
     >                   "date_joined": "2024-10-21T06:38:45Z",
-    >                   "is_active": true
+    >                   "user__is_active": true
     >               }
     >           ]
     >       }
 
-    The response includes detailed information about each member, such as their
-    username, email, role (owner, admin, member), and account status.
 
     ### Retrieve Member Details
 
@@ -360,36 +354,51 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     >           "user__email": "foo_bar@example.com",
     >           "user__name": "Foo Bar",
     >           "role": "owner",
-    >           "has_mfa_enabled": true,
+    >           "user__has_mfa_enabled": true,
     >           "date_joined": "2024-08-11T12:36:32Z",
-    >           "is_active": true
+    >           "user__is_active": true
     >       }
 
     ### Update Member Role
 
-    Updates the role of a member within the organization to `owner`, `admin`, or
+    Updates the role of a member within the organization to `admin` or
      `member`.
+
+    - **admin**: Grants the member admin privileges within the organization
+    - **member**: Revokes admin privileges, setting the member as a regular user
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/organizations/{organization_id}/members/{username}/
     </pre>
 
-    #### Payload
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/members/foo_bar/
+
+    > Payload
+
     >       {
     >           "role": "admin"
     >       }
 
-    - **admin**: Grants the member admin privileges within the organization
-    - **member**: Revokes admin privileges, setting the member as a regular user
+    > Response 200
 
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/ \
-    >       members/demo_user/ -d '{"role": "admin"}'
+    >       {
+    >           "url": "http://[kpi]/api/v2/organizations/org_12345/members/foo_bar/",
+    >           "user": "http://[kpi]/api/v2/users/foo_bar/",
+    >           "user__username": "foo_bar",
+    >           "user__email": "foo_bar@example.com",
+    >           "user__name": "Foo Bar",
+    >           "role": "admin",
+    >           "user__has_mfa_enabled": true,
+    >           "date_joined": "2024-08-11T12:36:32Z",
+    >           "user__is_active": true
+    >       }
+
 
     ### Remove Member
 
-    Removes a member from the organization.
+    Delete an organization member and their associated user account.
 
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
@@ -402,6 +411,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     ## Permissions
 
     - The user must be authenticated to perform these actions.
+    - Owners and admins can manage members and roles.
+    - Members can view the list but cannot update roles or delete members.
 
     ## Notes
 
@@ -410,7 +421,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrganizationUserSerializer
     permission_classes = [HasOrgRolePermission]
-    pagination_class = OrganizationMembersPagination
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
