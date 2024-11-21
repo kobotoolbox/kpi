@@ -39,8 +39,6 @@
   font-weight: 600;
 }
 
-.bodyNoEmailChange {
-  flex: 5;
-  // To compensate for the `options` class not displaying when there is no email
-  margin-right: calc(30% + 8px);
+.emailUpdateDisabled {
+  flex: 8;
 }

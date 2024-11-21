@@ -10,6 +10,7 @@ import {
   deleteUnverifiedUserEmails,
 } from './emailSection.api';
 import type {EmailResponse} from './emailSection.api';
+import {useOrganizationQuery} from '../../organization/organizationQuery';
 
 // Partial components
 import Button from 'jsapp/js/components/common/button';
@@ -22,7 +23,6 @@ import {formatTime, notify} from 'js/utils';
 // Styles
 import styles from './emailSection.module.scss';
 import securityStyles from 'js/account/security/securityRoute.module.scss';
-import {useOrganizationQuery} from 'js/account/stripe.api';
 
 interface EmailState {
   emails: EmailResponse[];
@@ -131,11 +131,10 @@ export default function EmailSection() {
       </div>
 
       <div
-        className={
-          userCanChangeEmail
-            ? cx(securityStyles.securitySectionBody, styles.body)
-            : cx(styles.securitySectionBody, styles.bodyNoEmailChange)
-        }
+        className={cx([
+          securityStyles.securitySectionBody,
+          userCanChangeEmail ? styles.body : styles.emailUpdateDisabled,
+        ])}
       >
         {isReady && userCanChangeEmail ? (
           <TextBox
