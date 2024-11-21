@@ -1,6 +1,4 @@
 import type {AccountFieldsValues} from './account.constants';
-import envStore from '../envStore';
-import {USER_FIELD_NAMES} from './account.constants';
 
 export function getInitialAccountFieldsValues(): AccountFieldsValues {
   return {

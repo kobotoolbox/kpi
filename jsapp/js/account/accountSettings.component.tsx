@@ -30,36 +30,41 @@ bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 const AccountSettings = () => {
-
   const [isPristine, setIsPristine] = useState(true);
   const [fieldErrors, setFieldErrors] = useState<AccountFieldsErrors>({});
-  const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues());
-  const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({});
+  const [formFields, setFormFields] = useState<AccountFieldsValues>(
+    getInitialAccountFieldsValues()
+  );
+  const [editedFields, setEditedFields] = useState<
+    Partial<AccountFieldsValues>
+  >({});
 
-  const currentAccount = useLocalObservable(() => sessionStore.currentAccount as AccountResponse);
+  const currentAccount = useLocalObservable(
+    () => sessionStore.currentAccount as AccountResponse
+  );
 
   useEffect(() => {
-    if (!currentAccount) {return;}
+    if (!currentAccount) {
+      return;
+    }
 
     setFormFields({
-        name: currentAccount.extra_details.name,
-        organization_type: currentAccount.extra_details.organization_type,
-        organization: currentAccount.extra_details.organization,
-        organization_website:
-          currentAccount.extra_details.organization_website,
-        sector: currentAccount.extra_details.sector,
-        gender: currentAccount.extra_details.gender,
-        bio: currentAccount.extra_details.bio,
-        city: currentAccount.extra_details.city,
-        country: currentAccount.extra_details.country,
-        require_auth: currentAccount.extra_details.require_auth,
-        twitter: currentAccount.extra_details.twitter,
-        linkedin: currentAccount.extra_details.linkedin,
-        instagram: currentAccount.extra_details.instagram,
-        newsletter_subscription:
-          currentAccount.extra_details.newsletter_subscription,
+      name: currentAccount.extra_details.name,
+      organization_type: currentAccount.extra_details.organization_type,
+      organization: currentAccount.extra_details.organization,
+      organization_website: currentAccount.extra_details.organization_website,
+      sector: currentAccount.extra_details.sector,
+      gender: currentAccount.extra_details.gender,
+      bio: currentAccount.extra_details.bio,
+      city: currentAccount.extra_details.city,
+      country: currentAccount.extra_details.country,
+      require_auth: currentAccount.extra_details.require_auth,
+      twitter: currentAccount.extra_details.twitter,
+      linkedin: currentAccount.extra_details.linkedin,
+      instagram: currentAccount.extra_details.instagram,
+      newsletter_subscription:
+        currentAccount.extra_details.newsletter_subscription,
     });
-
   }, [currentAccount]);
 
   usePrompt({
@@ -119,7 +124,7 @@ const AccountSettings = () => {
 
       <bem.AccountSettings__item m={'column'}>
         <bem.AccountSettings__item m='username'>
-          <Avatar size='m' username={accountName} isUsernameVisible/>
+          <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
         {currentAccount && (
@@ -127,22 +132,29 @@ const AccountSettings = () => {
             <InlineMessage
               type='warning'
               icon='information'
-              message={(
+              message={
                 <>
                   <strong>
-                    {t('You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.')}
+                    {t(
+                      'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
+                    )}
                   </strong>
                   &nbsp;
-                  {t('This privacy feature is now a per-project setting. New projects will require authentication by default.')}
+                  {t(
+                    'This privacy feature is now a per-project setting. New projects will require authentication by default.'
+                  )}
                   &nbsp;
                   <a
-                    href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+                    href={
+                      envStore.data.support_url +
+                      HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                    }
                     target='_blank'
                   >
                     {t('Learn more about these changes here.')}
                   </a>
                 </>
-              )}
+              }
               className='anonymous-submission-notice'
             />
 

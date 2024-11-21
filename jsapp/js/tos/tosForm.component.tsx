@@ -5,7 +5,11 @@ import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import {fetchGet, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
-import type {AccountResponse, FailResponse, PaginatedResponse} from 'js/dataInterface';
+import type {
+  AccountResponse,
+  FailResponse,
+  PaginatedResponse,
+} from 'js/dataInterface';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
@@ -57,7 +61,9 @@ export default function TOSForm() {
     getInitialAccountFieldsValues()
   );
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
-  const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({});
+  const [editedFields, setEditedFields] = useState<
+    Partial<AccountFieldsValues>
+  >({});
 
   const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames();
   if (
@@ -66,7 +72,9 @@ export default function TOSForm() {
     fieldsToShow.push('newsletter_subscription');
   }
 
-  const currentAccount = useLocalObservable(() => sessionStore.currentAccount as AccountResponse);
+  const currentAccount = useLocalObservable(
+    () => sessionStore.currentAccount as AccountResponse
+  );
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -109,26 +117,27 @@ export default function TOSForm() {
   // (including the non-required ones that will be hidden, but passed to the API
   // so that they will not get erased).
   useEffect(() => {
-    if (!currentAccount) {return;}
+    if (!currentAccount) {
+      return;
+    }
 
-      const data = sessionStore.currentAccount as AccountResponse;
-      setFormFields({
-        name: data.extra_details.name,
-        organization: data.extra_details.organization,
-        organization_website: data.extra_details.organization_website,
-        organization_type: data.extra_details.organization_type,
-        sector: data.extra_details.sector,
-        gender: data.extra_details.gender,
-        bio: data.extra_details.bio,
-        city: data.extra_details.city,
-        country: data.extra_details.country,
-        require_auth: data.extra_details.require_auth,
-        twitter: data.extra_details.twitter,
-        linkedin: data.extra_details.linkedin,
-        instagram: data.extra_details.instagram,
-        newsletter_subscription: data.extra_details.newsletter_subscription,
-      });
-
+    const data = sessionStore.currentAccount as AccountResponse;
+    setFormFields({
+      name: data.extra_details.name,
+      organization: data.extra_details.organization,
+      organization_website: data.extra_details.organization_website,
+      organization_type: data.extra_details.organization_type,
+      sector: data.extra_details.sector,
+      gender: data.extra_details.gender,
+      bio: data.extra_details.bio,
+      city: data.extra_details.city,
+      country: data.extra_details.country,
+      require_auth: data.extra_details.require_auth,
+      twitter: data.extra_details.twitter,
+      linkedin: data.extra_details.linkedin,
+      instagram: data.extra_details.instagram,
+      newsletter_subscription: data.extra_details.newsletter_subscription,
+    });
   }, [currentAccount]);
 
   const onFieldChange = (fieldName: string, value: string | boolean) => {
