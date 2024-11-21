@@ -1,5 +1,5 @@
-import organizationSettingsStyles from 'js/account/organization/organizationSettingsRoute.module.scss';
 import TextBox from 'jsapp/js/components/common/textBox';
+import organizationSettingsStyles from 'js/account/organization/organizationSettingsRoute.module.scss';
 
 interface Props {
   label: string;

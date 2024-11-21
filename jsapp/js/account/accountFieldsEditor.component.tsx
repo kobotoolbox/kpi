@@ -13,7 +13,7 @@ import type {
 } from './account.constants';
 
 // See: kobo/apps/accounts/forms.py (KoboSignupMixin)
-const ORGANIZATION_TYPE_SELECT_OPTIONS = [
+export const ORGANIZATION_TYPE_SELECT_OPTIONS = [
   {value: 'non-profit', label: t('Non-profit organization')},
   {value: 'government', label: t('Government institution')},
   {value: 'educational', label: t('Educational organization')},
