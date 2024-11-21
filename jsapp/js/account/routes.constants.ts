@@ -14,7 +14,7 @@ export const AddOnsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './addOns/addOns.component')
 );
 export const AccountSettings = React.lazy(
-  () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
+  () => import(/* webpackPrefetch: true */ './accountSettings.component')
 );
 export const DataStorage = React.lazy(
   () => import(/* webpackPrefetch: true */ './usage/usageTopTabs')

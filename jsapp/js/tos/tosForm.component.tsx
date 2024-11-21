@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import type React from 'react';
+import {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import {fetchGet, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
-import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
+import type {AccountResponse, FailResponse, PaginatedResponse} from 'js/dataInterface';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
@@ -16,6 +17,7 @@ import type {
   AccountFieldsErrors,
 } from 'js/account/account.constants';
 import {currentLang, notify} from 'js/utils';
+import {useLocalObservable} from 'mobx-react';
 
 /** A slug for the `sitewide_messages` endpoint */
 const TOS_SLUG = 'terms_of_service';
@@ -51,10 +53,11 @@ export default function TOSForm() {
   const [announcementMessage, setAnnouncementMessage] = useState<
     string | undefined
   >();
-  const [fields, setFields] = useState<AccountFieldsValues>(
+  const [formFields, setFormFields] = useState<AccountFieldsValues>(
     getInitialAccountFieldsValues()
   );
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
+  const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({});
 
   const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames();
   if (
@@ -62,6 +65,8 @@ export default function TOSForm() {
   ) {
     fieldsToShow.push('newsletter_subscription');
   }
+
+  const currentAccount = useLocalObservable(() => sessionStore.currentAccount as AccountResponse);
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -104,9 +109,10 @@ export default function TOSForm() {
   // (including the non-required ones that will be hidden, but passed to the API
   // so that they will not get erased).
   useEffect(() => {
-    if ('email' in sessionStore.currentAccount) {
-      const data = sessionStore.currentAccount;
-      setFields({
+    if (!currentAccount) {return;}
+
+      const data = sessionStore.currentAccount as AccountResponse;
+      setFormFields({
         name: data.extra_details.name,
         organization: data.extra_details.organization,
         organization_website: data.extra_details.organization_website,
@@ -122,12 +128,19 @@ export default function TOSForm() {
         instagram: data.extra_details.instagram,
         newsletter_subscription: data.extra_details.newsletter_subscription,
       });
-    }
-  }, [sessionStore.isAuthStateKnown]);
 
-  function onAccountFieldsEditorChange(newFields: AccountFieldsValues) {
-    setFields(newFields);
-  }
+  }, [currentAccount]);
+
+  const onFieldChange = (fieldName: string, value: string | boolean) => {
+    setFormFields({
+      ...formFields,
+      [fieldName]: value,
+    });
+    setEditedFields({
+      ...editedFields,
+      [fieldName]: value,
+    });
+  };
 
   /**
    * Submitting does two things (with two consecutive API calls):
@@ -146,7 +159,7 @@ export default function TOSForm() {
     // them.
     if (fieldsToShow.length > 0) {
       // Get data for the user endpoint
-      const profilePatchData = getProfilePatchData(fields);
+      const profilePatchData = getProfilePatchData(editedFields);
 
       try {
         await fetchPatch(ME_ENDPOINT, profilePatchData);
@@ -217,8 +230,8 @@ export default function TOSForm() {
           <AccountFieldsEditor
             displayedFields={fieldsToShow}
             errors={fieldsErrors}
-            values={fields}
-            onChange={onAccountFieldsEditorChange}
+            values={formFields}
+            onFieldChange={onFieldChange}
           />
         </section>
       )}
