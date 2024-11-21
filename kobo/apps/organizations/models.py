@@ -179,7 +179,14 @@ class Organization(AbstractOrganization):
 
         If the override is enabled, it takes precedence over the subscription status
         """
-        return self.mmo_override or bool(self.active_subscription_billing_details())
+        if self.mmo_override:
+            return True
+
+        if billing_details := self.active_subscription_billing_details():
+            if product_metadata := billing_details.get('product_metadata'):
+                return product_metadata.get('mmo_enabled') == 'true'
+
+        return False
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
