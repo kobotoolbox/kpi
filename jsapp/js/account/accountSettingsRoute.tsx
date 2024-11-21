@@ -39,8 +39,11 @@ const AccountSettings = () => {
     Partial<AccountFieldsValues>
   >({});
 
-  const currentAccount = useLocalObservable(
-    () => sessionStore.currentAccount as AccountResponse
+  // We're verifying that the user is logged in so we can consider the current account is from a valid logged user
+  const {currentAccount} = useLocalObservable(
+    () => {
+      return {currentAccount: sessionStore.isLoggedIn && (sessionStore.currentAccount as AccountResponse)};
+    }
   );
 
   useEffect(() => {
