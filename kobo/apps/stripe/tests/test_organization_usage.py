@@ -503,6 +503,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert limit == float('inf')
 
 
+@override_settings(STRIPE_ENABLED=True)
 class OrganizationsModelIntegrationTestCase(BaseTestCase):
     fixtures = ['test_data']
 
