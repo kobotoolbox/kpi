@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import organizationSettingsStyles from 'js/account/organizations/organizationSettingsRoute.module.scss';
+import organizationSettingsStyles from 'js/account/organization/organizationSettingsRoute.module.scss';
 import OrganizationSettingsField from './OrganizationSettingsField';
 
 interface State {
