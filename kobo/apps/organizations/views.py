@@ -22,7 +22,6 @@ from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import AssetUsagePagination, OrganizationMembersPagination
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -87,7 +86,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
-    pagination_class = AssetUsagePagination
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
@@ -422,7 +420,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     serializer_class = OrganizationUserSerializer
     permission_classes = [HasOrgRolePermission]
-    pagination_class = OrganizationMembersPagination
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
@@ -454,13 +451,3 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
-
-    def destroy(self, request, *args, **kwargs):
-        """
-        Delete an organization member and their associated user account
-        """
-        instance = self.get_object()
-        user = instance.user
-        instance.delete()
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
