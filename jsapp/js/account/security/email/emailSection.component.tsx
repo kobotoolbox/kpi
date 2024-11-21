@@ -120,7 +120,6 @@ export default function EmailSection() {
     (userEmail) => !userEmail.verified && !userEmail.primary
   );
   const isReady = session.isInitialLoadComplete && 'email' in currentAccount;
-  // Only users who are members in a MMO cannot change their email
   const userCanChangeEmail = orgQuery.data?.is_mmo
     ? orgQuery.data.request_user_role !== 'member'
     : true;
@@ -131,7 +130,13 @@ export default function EmailSection() {
         <h2 className={securityStyles.securitySectionTitleText}>{t('Email address')}</h2>
       </div>
 
-      <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+      <div
+        className={
+          userCanChangeEmail
+            ? cx(securityStyles.securitySectionBody, styles.body)
+            : cx(styles.securitySectionBody, styles.bodyNoEmailChange)
+        }
+      >
         {isReady && userCanChangeEmail ? (
           <TextBox
             value={email.newEmail}
@@ -190,8 +195,8 @@ export default function EmailSection() {
           </>
         )}
       </div>
-      <div className={styles.options}>
-        {userCanChangeEmail && (
+      {userCanChangeEmail && (
+        <div className={styles.options}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -205,8 +210,8 @@ export default function EmailSection() {
               onClick={handleSubmit}
             />
           </form>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
