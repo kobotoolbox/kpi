@@ -1,5 +1,5 @@
-import {createContext, useCallback} from 'react';
-import type {Organization, RecurringInterval} from 'js/account/stripe.types';
+import {createContext} from 'react';
+import type {RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {convertSecondsToMinutes, formatRelativeTime} from 'js/utils';
 import {getUsage} from 'js/account/usage/usage.api';
