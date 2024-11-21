@@ -86,6 +86,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
     permission_classes = [HasOrgRolePermission]
+    http_method_names = ['get', 'patch']
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
