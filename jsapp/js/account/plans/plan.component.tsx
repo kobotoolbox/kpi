@@ -18,7 +18,7 @@ import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import useWhen from 'js/hooks/useWhen.hook';
-import AddOnList from 'js/account/add-ons/addOnList.component';
+import AddOnList from 'jsapp/js/account/addOns/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
