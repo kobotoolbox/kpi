@@ -1,4 +1,3 @@
-import React from 'react';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel} from 'js/textUtils';
