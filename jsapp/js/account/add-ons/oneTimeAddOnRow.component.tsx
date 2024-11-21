@@ -1,7 +1,6 @@
 import styles from 'js/account/add-ons/addOnList.module.scss';
 import React, {useMemo, useState} from 'react';
 import type {
-  Organization,
   Product,
   SubscriptionInfo,
 } from 'js/account/stripe.types';
@@ -10,6 +9,7 @@ import BillingButton from 'js/account/plans/billingButton.component';
 import {postCheckout, postCustomerPortal} from 'js/account/stripe.api';
 import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
 import {isChangeScheduled} from 'js/account/stripe.utils';
+import type {Organization} from 'js/account/organization/organizationQuery';
 
 interface OneTimeAddOnRowProps {
   products: Product[];

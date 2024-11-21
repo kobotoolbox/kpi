@@ -6,7 +6,7 @@ import UniversalProjectsRoute from './universalProjectsRoute';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 // Stores, hooks and utilities
-import {useOrganizationQuery} from 'js/account/stripe.api';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
 
 // Constants and types
 import {
