@@ -1,3 +1,4 @@
+import React from 'react';
 import Checkbox from '../components/common/checkbox';
 import TextBox from '../components/common/textBox';
 import {addRequiredToLabel} from 'js/textUtils';
@@ -96,11 +97,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       value = 'http://' + value; // add missing protocol
     }
     // normalize '://' and trailing slash if URL is valid
-    try {
-      value = new URL(value).toString();
-    } catch (e) {
-      /**/
-    }
+    try {value = new URL(value).toString();} catch (e) {/**/}
     return value;
   };
 
@@ -203,46 +200,43 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Full name */}
         {/* Comma operator evaluates left-to-right, returns rightmost operand.
             We increment fieldCount and ignore the result. */}
-        {isFieldToBeDisplayed('name') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <TextBox
-                label={getLabel('name')}
-                required={isRequired('name')}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
-                value={props.values.name}
-                errors={props.errors?.name}
-                placeholder={t(
-                  'Use this to display your real name to other users'
-                )}
-                renderFocused
-              />
-            </div>
-          ))}
+        {isFieldToBeDisplayed('name') && (fieldCount++, (
+          <div className={styles.field}>
+            <TextBox
+              label={getLabel('name')}
+              required={isRequired('name')}
+              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
+              value={props.values.name}
+              errors={props.errors?.name}
+              placeholder={t(
+                'Use this to display your real name to other users'
+              )}
+              renderFocused
+            />
+          </div>
+        ))}
 
         {/* Gender */}
-        {isFieldToBeDisplayed('gender') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <KoboAccessibleSelect
-                label={getLabel('gender')}
-                required={isRequired('gender')}
-                name='gender'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('gender')}
-                // selectedOption={props.values.gender}
-                value={props.values.gender}
-                onChange={(value: string | null) =>
-                  onAnyFieldChange('gender', value || '')
-                }
-                options={GENDER_SELECT_OPTIONS}
-                error={props.errors?.gender}
-              />
-            </div>
-          ))}
+        {isFieldToBeDisplayed('gender') && (fieldCount++, (
+          <div className={styles.field}>
+            <KoboAccessibleSelect
+              label={getLabel('gender')}
+              required={isRequired('gender')}
+              name='gender'
+              // type='outline'
+              // size='l'
+              isClearable={!isFieldRequired('gender')}
+              // selectedOption={props.values.gender}
+              value={props.values.gender}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('gender', value || '')
+              }
+              options={GENDER_SELECT_OPTIONS}
+              error={props.errors?.gender}
+            />
+          </div>
+        ))}
+
 
         {/*
           Start a new row for country and city if both are present.
@@ -254,87 +248,79 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           fieldCount++ && <div className={styles.field} />}
 
         {/* Country */}
-        {isFieldToBeDisplayed('country') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <KoboAccessibleSelect
-                label={getLabel('country')}
-                required={isRequired('country')}
-                name='country'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('country')}
-                // isSearchable
-                value={props.values.country}
-                onChange={(value: string | null) =>
-                  onAnyFieldChange('country', value || '')
-                }
-                options={envStore.data.country_choices}
-                error={props.errors?.country}
-              />
-            </div>
-          ))}
+        {isFieldToBeDisplayed('country') && (fieldCount++, (
+          <div className={styles.field}>
+            <KoboAccessibleSelect
+              label={getLabel('country')}
+              required={isRequired('country')}
+              name='country'
+              // type='outline'
+              // size='l'
+              isClearable={!isFieldRequired('country')}
+              // isSearchable
+              value={props.values.country}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('country', value || '')
+              }
+              options={envStore.data.country_choices}
+              error={props.errors?.country}
+            />
+          </div>
+        ))}
 
         {/* City */}
-        {isFieldToBeDisplayed('city') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <TextBox
-                label={getLabel('city')}
-                required={isRequired('city')}
-                value={props.values.city}
-                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
-                errors={props.errors?.city}
-              />
-            </div>
-          ))}
+        {isFieldToBeDisplayed('city') && (fieldCount++, (
+          <div className={styles.field}>
+            <TextBox
+              label={getLabel('city')}
+              required={isRequired('city')}
+              value={props.values.city}
+              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
+              errors={props.errors?.city}
+            />
+          </div>
+        ))}
         {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <KoboAccessibleSelect
-                label={getLabel('sector')}
-                required={isRequired('sector')}
-                name='sector'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('sector')}
-                // isSearchable
-                value={props.values.sector}
-                onChange={(value: string | null) =>
-                  onAnyFieldChange('sector', value || '')
-                }
-                options={envStore.data.sector_choices}
-                error={props.errors?.sector}
-              />
-            </div>
-          ))}
+        {isFieldToBeDisplayed('sector') && (fieldCount++, (
+          <div className={styles.field}>
+            <KoboAccessibleSelect
+              label={getLabel('sector')}
+              required={isRequired('sector')}
+              name='sector'
+              // type='outline'
+              // size='l'
+              isClearable={!isFieldRequired('sector')}
+              // isSearchable
+              value={props.values.sector}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('sector', value || '')
+              }
+              options={envStore.data.sector_choices}
+              error={props.errors?.sector}
+            />
+          </div>
+        ))}
 
         {/* Organization Type */}
-        {isOrganizationTypeFieldToBeDisplayed() &&
-          (fieldCount++,
-          (
-            <div className={cx(styles.field, styles.orgTypeDropdown)}>
-              <KoboAccessibleSelect
-                label={getLabel('organization_type')}
-                required={isRequired('organization_type')}
-                name='organization_type'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('organization_type')}
-                value={props.values.organization_type}
-                onChange={(value: string | null) =>
-                  onAnyFieldChange('organization_type', value || '')
-                }
-                options={ORGANIZATION_TYPE_SELECT_OPTIONS}
-                error={props.errors?.organization_type}
-                noMaxMenuHeight
-              />
-            </div>
-          ))}
+        {isOrganizationTypeFieldToBeDisplayed() && (fieldCount++, (
+          <div className={cx(styles.field, styles.orgTypeDropdown)}>
+            <KoboAccessibleSelect
+              label={getLabel('organization_type')}
+              required={isRequired('organization_type')}
+              name='organization_type'
+              // type='outline'
+              // size='l'
+              isClearable={!isFieldRequired('organization_type')}
+              value={props.values.organization_type}
+              onChange={(value: string | null) =>
+                onAnyFieldChange('organization_type', value || '')
+              }
+              options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+              error={props.errors?.organization_type}
+              noMaxMenuHeight
+            />
+          </div>
+        ))}
 
         {/*
           Start a new row for these two organization fields if both are present.
