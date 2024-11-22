@@ -13,7 +13,7 @@ import cx from 'classnames';
 import subscriptionStore from 'js/account/subscriptionStore';
 import Badge from 'js/components/common/badge';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import OneTimeAddOnUsageModal from './one-time-add-on-usage-modal/oneTimeAddOnUsageModal.component';
+import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component';
 
 interface UsageContainerProps {
   usage: number;
