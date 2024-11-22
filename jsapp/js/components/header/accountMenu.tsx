@@ -97,7 +97,7 @@ export default function AccountMenu() {
               />
             </bem.AccountBox__menuItem>
 
-            <OrganizationBadge style='dropdown'/>
+            <OrganizationBadge color='light-blue'/>
 
             {/*
               There is no UI we can show to a user who sees a router blocker, so

@@ -1,10 +1,9 @@
 import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
-
+import Badge, {BadgeColor} from 'js/components/common/badge';
 import styles from './organizationBadge.module.scss';
-import cx from 'classnames';
 
 interface OrganizationBadgeProps {
-  style: 'header' | 'dropdown';
+  color: BadgeColor;
 }
 
 export default function OrganizationBadge(props: OrganizationBadgeProps) {
@@ -15,8 +14,8 @@ export default function OrganizationBadge(props: OrganizationBadgeProps) {
 
   if (orgQuery.data?.is_mmo) {
     return (
-      <div className={cx(styles.root, styles[props.style])}>
-        {orgQuery.data.name.toUpperCase()}
+      <div className={styles.root}>
+        <Badge color={props.color} size='m' label={orgQuery.data.name.toUpperCase()} />
       </div>
     );
   } else {
