@@ -83,8 +83,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
             field_label = field[0] if isinstance(field, tuple) else field
             value = get_nested_field(instance, field_path)
             audit_log_data[field_label] = value
-        self.request._request.initial_data = audit_log_data
         self.perform_destroy_override(instance)
+        self.request._request.initial_data = audit_log_data
 
     def perform_destroy_override(self, instance):
         super().perform_destroy(instance)

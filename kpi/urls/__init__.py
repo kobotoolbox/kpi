@@ -7,7 +7,6 @@ from django.views.i18n import JavaScriptCatalog
 from hub.models import ConfigurationFile
 from kpi.views import (
     authorized_application_authenticate_user,
-    browser_tests,
     home,
     modern_browsers,
 )
@@ -42,7 +41,6 @@ urlpatterns = [
         authorized_application_authenticate_user,
         name='authenticate_user',
     ),
-    path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.

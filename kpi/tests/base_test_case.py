@@ -10,6 +10,7 @@ from rest_framework.test import APITestCase
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
+
 # `baker_generators` needs to be imported to give baker extra support
 from kpi.tests.utils import baker_generators  # noqa
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -75,9 +76,7 @@ class BaseAssetTestCase(BaseTestCase):
 
     EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
-    def create_asset(
-        self, asset_type='survey', content: dict = None, name: str = None
-    ):
+    def create_asset(self, asset_type='survey', content: dict = None, name: str = None):
         """
         Create a new, empty asset as the currently logged-in user
         """

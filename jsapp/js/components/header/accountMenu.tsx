@@ -89,12 +89,12 @@ export default function AccountMenu() {
         <bem.AccountBox__menu>
           <bem.AccountBox__menuLI key='1'>
             <bem.AccountBox__menuItem m={'avatar'}>
-              <Avatar size='l' username={accountName} />
-            </bem.AccountBox__menuItem>
-
-            <bem.AccountBox__menuItem m={'mini-profile'}>
-              <span className='account-username'>{accountName}</span>
-              <span className='account-email'>{accountEmail}</span>
+              <Avatar
+                size='m'
+                username={accountName}
+                fullName={accountName}
+                email={accountEmail}
+              />
             </bem.AccountBox__menuItem>
 
             <OrganizationBadge style='dropdown'/>

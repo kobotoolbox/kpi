@@ -1,4 +1,5 @@
-import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
+
 import styles from './organizationBadge.module.scss';
 import cx from 'classnames';
 
