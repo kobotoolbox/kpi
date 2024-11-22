@@ -161,7 +161,9 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
         )}
 
         <div className={styles.accountSection}>
-          <OrganizationBadge color='light-storm'/>
+          <div className={styles.badgeWrapper}>
+            <OrganizationBadge color='dark-gray' />
+          </div>
           <AccountMenu />
         </div>
 
