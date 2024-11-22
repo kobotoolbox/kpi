@@ -398,7 +398,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
     ### Remove Member
 
-    Delete an organization member and their associated user account.
+    Delete an organization member.
 
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/organizations/{organization_id}/members/{username}/
