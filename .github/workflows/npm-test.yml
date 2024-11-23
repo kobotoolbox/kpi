@@ -6,10 +6,29 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
 
-    if: ${{ 'false' == 'true' }} # hold it
+  changes:
+    name: Check files changed to decide whether to run npm-test
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with: { filters: .github/filters.yml }
+    outputs:
+      npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
+      new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
+
+  build:
+    needs: changes
+    if: |
+      needs.changes.outputs.npm-test == 'true'
+      || needs.changes.outputs.new-unknown-files == 'true'
+      || github.event_name == 'push'
+
+    runs-on: ubuntu-20.04
 
     strategy:
 
