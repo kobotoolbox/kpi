@@ -1,4 +1,4 @@
-name: npm-test
+name: Frontend
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
 
   changes:
-    name: check files changed
+    name: skip-if-unchanged
     runs-on: ubuntu-22.04
     permissions:
       pull-requests: read
@@ -17,10 +17,14 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with: { filters: .github/filters.yml }
+      - if:  ${{ steps.filter.outputs.should-run-npm-test == 'true' }}
+        run: echo 'frontend files changed'
+      - if:  ${{ steps.filter.outputs.new-files-at-root-level == 'true' }}
+        run: echo 'unlisted files changed'
     outputs:
       npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
       new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
-  build:
+  npm-test:
     if: |
       github.event_name == 'push'
       || needs.changes.outputs.npm-test == 'true'

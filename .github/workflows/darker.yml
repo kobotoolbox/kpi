@@ -3,7 +3,7 @@ name: Python linter (Darker)
 on: [pull_request]
 jobs:
   changes:
-    name: check files changed
+    name: skip-if-unchanged
     runs-on: ubuntu-22.04
     permissions:
       pull-requests: read

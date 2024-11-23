@@ -1,4 +1,4 @@
-# Part of .github/workflows/changes.yml, separated for better syntax highlighting
+# Used by workflows to determine whether to continue
 # > "If a new PR is opened,
 # >  and it only changes 1 file, which test(s) should be re-run?"
 

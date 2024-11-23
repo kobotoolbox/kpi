@@ -1,6 +1,6 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: pytest
+name: Backend
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   changes:
-    name: check files changed
+    name: skip-if-unchanged
     runs-on: ubuntu-22.04
     permissions:
       pull-requests: read
@@ -18,10 +18,14 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with: { filters: .github/filters.yml }
+      - if:  ${{ steps.filter.outputs.should-run-pytest == 'true' }}
+        run: echo 'backend files changed'
+      - if:  ${{ steps.filter.outputs.new-files-at-root-level == 'true' }}
+        run: echo 'unlisted files changed'
     outputs:
       pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
       new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
-  build:
+  build-and-pytest:
     needs: changes
     if: |
       github.event_name == 'push'
