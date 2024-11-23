@@ -10,6 +10,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-20.04
+
+    if: ${{ 'false' == 'true' }} # hold it
+
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
       DJANGO_LANGUAGE_CODES: "ar cs de-DE en es fr hi ku pl pt tr zh-hans"

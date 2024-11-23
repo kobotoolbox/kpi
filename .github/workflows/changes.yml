@@ -13,11 +13,12 @@ jobs:
     permissions:
       pull-requests: read
 
-    outputs:
-      npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
-      pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
-      darker:            ${{ steps.filter.outputs.should-run-darker       }}
-      new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
+    # # this is for job-level control
+    # outputs:
+    #   npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
+    #   pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
+    #   darker:            ${{ steps.filter.outputs.should-run-darker       }}
+    #   new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
 
     steps:
       - name: Checkout source code (merge ref)
@@ -30,11 +31,11 @@ jobs:
           filters: .github/filters.yml
 
       # echoing (for testing purposes)
-      - if:  steps.filter.outputs.npm-test
-        run: echo 'frontend files changed; should run npm-test.yml'\
-      - if:  steps.filter.outputs.pytest
+      - if:  steps.filter.outputs.should-run-npm-test
+        run: echo 'frontend files changed; should run npm-test.yml'
+      - if:  steps.filter.outputs.should-run-pytest
         run: echo 'backend files changed; should run pytest.yml'
-      - if:  steps.filter.outputs.darker
+      - if:  steps.filter.outputs.should-run-darker
         run: echo 'python files changed; should run darker.yml'
-      - if:  steps.filter.outputs.new-unknown-files
+      - if:  steps.filter.outputs.new-files-at-root-level
         run: echo 'unlisted files changed; will likely run pytest and npm-test'
