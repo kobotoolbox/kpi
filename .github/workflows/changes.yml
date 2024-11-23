@@ -14,9 +14,10 @@ jobs:
       pull-requests: read
 
     outputs:
-      npm-test: ${{ steps.filter.outputs.should-run-npm-test }}
-      pytest:   ${{ steps.filter.outputs.should-run-pytest   }}
-      darker:   ${{ steps.filter.outputs.should-run-darker   }}
+      npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
+      pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
+      darker:            ${{ steps.filter.outputs.should-run-darker       }}
+      new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
 
     steps:
       - name: Checkout source code (merge ref)
@@ -35,7 +36,5 @@ jobs:
         run: echo 'backend files changed; should run pytest.yml'
       - if:  steps.filter.outputs.darker
         run: echo 'python files changed; should run darker.yml'
-      - if:  steps.filter.outputs.ci
-        run: echo 'selective ci filtering updated'
-      - if:  steps.filter.outputs.new-unknown-files:
+      - if:  steps.filter.outputs.new-unknown-files
         run: echo 'unlisted files changed; will likely run pytest and npm-test'
