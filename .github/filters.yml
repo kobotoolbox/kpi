@@ -1,0 +1,33 @@
+# Part of .github/workflows/changes.yml, separated for better syntax highlighting
+# > "If a new PR is opened,
+# >  and it only changes 1 file, which test(s) should be re-run?"
+
+should-run-npm-test:
+  - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'   # frontend
+  - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'       # npm + postinstall
+  - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'            # compilers
+  - '{.editorconfig,.prettier*,.stylelint*,.eslint*,coffeelint*}' # linters
+  - '{.gitignore}'                                                # (can affect tools)
+  - '.github/workflows/npm-test.yml'                              # ci
+
+should-run-pytest:
+  - '{kpi,kobo,hub}/**/*.!(md)'    # backend
+  - 'dependencies/**/*.!(md)'      # pip
+  - 'pyproject.toml'               # (can affect build/tests)
+  - '.github/workflows/pytest.yml' # ci
+
+should-run-darker:
+  - '{kpi,kobo,hub}/**/*.py'        # .py
+  - 'pyproject.toml'                # rules
+  - '.github/workflows/darker.yml'  # ci
+
+new-files-at-root-level:
+  # New and unrecognized files can affect CI test results.
+  #  - We usually want to err on the side of running tests
+  #    instead of skipping them.
+  #  - This filter is basically an inverted 'ignore' list of paths
+  #    we know about already.
+  #  - Add new entries into this list once they're accounted for
+  #    in the other lists.
+  #      (alphabetical order, folders-first)
+  - '!(((\.github|\.storybook|\.tx|cypress|dependencies|docker|hub|jsapp|kobo|kpi|patches|scripts|static|test|webpack)/**)|(\.babelrc\.json|\.browserslistrc|\.coveragerc|\.dockerignore|\.editorconfig|\.eslintignore|\.eslintrc\.js|\.git-blame-ignore-revs|\.gitattributes|\.gitignore|\.gitlab-ci\.yml|\.gitmodules|\.node-version|\.nvmrc|\.prettierrc\.js|\.stylelintrc\.js|\.swcrc|CONTRIBUTING\.md|Dockerfile|LICENSE|README\.md|coffeelint\.json|dependabot\.yml|format-python\.sh|kpi\.code-workspace|locale|manage\.py|package-lock\.json|package\.json|pip-compile\.sh|pyproject\.toml|tsconfig\.json))'
