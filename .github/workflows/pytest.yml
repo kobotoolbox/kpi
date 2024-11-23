@@ -8,10 +8,26 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    name: check files changed
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with: { filters: .github/filters.yml }
+    outputs:
+      pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
+      new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
   build:
     runs-on: ubuntu-20.04
-
-    if: ${{ 'false' == 'true' }} # hold it
+    if: |
+      github.event_name == 'push'
+      || needs.changes.outputs.pytest == 'true'
+      || needs.changes.outputs.new-unknown-files == 'true'
+    needs: changes
 
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test

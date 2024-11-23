@@ -8,7 +8,7 @@ on:
 jobs:
 
   changes:
-    name: Check files changed to decide whether to run npm-test
+    name: check files changed
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -20,18 +20,15 @@ jobs:
     outputs:
       npm-test:          ${{ steps.filter.outputs.should-run-npm-test     }}
       new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
-
   build:
-    needs: changes
     if: |
-      needs.changes.outputs.npm-test == 'true'
+      github.event_name == 'push'
+      || needs.changes.outputs.npm-test == 'true'
       || needs.changes.outputs.new-unknown-files == 'true'
-      || github.event_name == 'push'
+    needs: changes
 
     runs-on: ubuntu-20.04
-
     strategy:
-
       matrix:
         node-version:
           - '16.15.0'  # prior pinned Node version supported by kpi
