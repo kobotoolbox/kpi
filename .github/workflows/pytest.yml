@@ -10,7 +10,7 @@ on:
 jobs:
   changes:
     name: check files changed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       pull-requests: read
     steps:
@@ -22,13 +22,13 @@ jobs:
       pytest:            ${{ steps.filter.outputs.should-run-pytest       }}
       new-unknown-files: ${{ steps.filter.outputs.new-files-at-root-level }}
   build:
-    runs-on: ubuntu-20.04
+    needs: changes
     if: |
       github.event_name == 'push'
       || needs.changes.outputs.pytest == 'true'
       || needs.changes.outputs.new-unknown-files == 'true'
-    needs: changes
 
+    runs-on: ubuntu-20.04
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
       DJANGO_LANGUAGE_CODES: "ar cs de-DE en es fr hi ku pl pt tr zh-hans"

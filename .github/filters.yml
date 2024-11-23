@@ -22,7 +22,8 @@ should-run-pytest:
 should-run-darker:
   - '{kpi,kobo,hub}/**/*.py'        # .py
   - 'pyproject.toml'                # rules
-  - '.github/workflows/darker.yml'  # ci
+  # WIP
+  # - '.github/workflows/darker.yml'  # ci
 
 new-files-at-root-level:
   # New and unrecognized files can affect CI test results.
