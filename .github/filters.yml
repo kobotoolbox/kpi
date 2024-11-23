@@ -8,13 +8,16 @@ should-run-npm-test:
   - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'            # compilers
   - '{.editorconfig,.prettier*,.stylelint*,.eslint*,coffeelint*}' # linters
   - '{.gitignore}'                                                # (can affect tools)
-  - '.github/workflows/npm-test.yml'                              # ci
+
+  # WIP
+  # - '.github/workflows/npm-test.yml'                              # ci
 
 should-run-pytest:
   - '{kpi,kobo,hub}/**/*.!(md)'    # backend
   - 'dependencies/**/*.!(md)'      # pip
   - 'pyproject.toml'               # (can affect build/tests)
-  - '.github/workflows/pytest.yml' # ci
+  # WIP
+  # - '.github/workflows/pytest.yml' # ci
 
 should-run-darker:
   - '{kpi,kobo,hub}/**/*.py'        # .py
