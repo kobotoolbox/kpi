@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import QuerySet
-from django.utils.decorators import method_decorator
 from django.utils.http import http_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
