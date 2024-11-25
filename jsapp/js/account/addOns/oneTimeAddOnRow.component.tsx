@@ -1,4 +1,4 @@
-import styles from 'js/account/add-ons/addOnList.module.scss';
+import styles from 'js/account/addOns/addOnList.module.scss';
 import React, {useMemo, useState} from 'react';
 import type {
   Product,

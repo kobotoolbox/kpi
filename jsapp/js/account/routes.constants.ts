@@ -11,7 +11,7 @@ export const PlansRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './plans/plan.component')
 );
 export const AddOnsRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './add-ons/addOns.component')
+  () => import(/* webpackPrefetch: true */ './addOns/addOns.component')
 );
 export const AccountSettings = React.lazy(
   () => import(/* webpackPrefetch: true */ './accountSettingsRoute')

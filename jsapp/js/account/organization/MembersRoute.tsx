@@ -37,7 +37,7 @@ export default function MembersRoute() {
         queryHook={useOrganizationMembersQuery}
         columns={[
           {
-            key: 'user__username',
+            key: 'user__extra_details__name',
             label: t('Name'),
             cellFormatter: (member: OrganizationMember) => (
               <Avatar
@@ -46,7 +46,7 @@ export default function MembersRoute() {
                 isUsernameVisible
                 email={member.user__email}
                 // We pass `undefined` for the case it's an empty string
-                fullName={member.user__name || undefined}
+                fullName={member.user__extra_details__name || undefined}
               />
             ),
             size: 360,

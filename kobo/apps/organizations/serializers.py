@@ -29,7 +29,9 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         source='user.date_joined', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
-    user__name = serializers.ReadOnlyField(source='user.get_full_name')
+    user__extra_details__name = serializers.ReadOnlyField(
+        source='user.extra_details.data.name'
+    )
     user__email = serializers.ReadOnlyField(source='user.email')
     user__is_active = serializers.ReadOnlyField(source='user.is_active')
 
@@ -40,7 +42,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'user',
             'user__username',
             'user__email',
-            'user__name',
+            'user__extra_details__name',
             'role',
             'user__has_mfa_enabled',
             'date_joined',

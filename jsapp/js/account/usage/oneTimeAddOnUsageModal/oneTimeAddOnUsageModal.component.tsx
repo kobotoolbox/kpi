@@ -4,7 +4,7 @@ import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import styles from './oneTimeAddOnUsageModal.module.scss';
 import {OneTimeAddOn, RecurringInterval, USAGE_TYPE} from '../../stripe.types';
 import {useLimitDisplay} from '../../stripe.utils';
-import OneTimeAddOnList from './one-time-add-on-list/oneTimeAddOnList.component';
+import OneTimeAddOnList from './oneTimeAddOnList/oneTimeAddOnList.component';
 
 interface OneTimeAddOnUsageModalProps {
   type: USAGE_TYPE;
