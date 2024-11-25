@@ -11,4 +11,5 @@ export enum QueryKeys {
   activityLogs = 'activityLogs',
   activityLogsFilter = 'activityLogsFilter',
   organization = 'organization',
+  organizationMembers = 'organizationMembers',
 }

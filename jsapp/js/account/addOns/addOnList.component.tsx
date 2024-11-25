@@ -9,7 +9,7 @@ import type {
 } from 'js/account/stripe.types';
 import {isAddonProduct} from 'js/account/stripe.utils';
 import styles from './addOnList.module.scss';
-import {OneTimeAddOnRow} from 'js/account/add-ons/oneTimeAddOnRow.component';
+import {OneTimeAddOnRow} from 'jsapp/js/account/addOns/oneTimeAddOnRow.component';
 import type {BadgeColor} from 'jsapp/js/components/common/badge';
 import Badge from 'jsapp/js/components/common/badge';
 import {formatDate} from 'js/utils';
