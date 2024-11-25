@@ -40,6 +40,9 @@ export default function OrganizationSettingsRoute() {
     setIsStripeEnabled(true);
   }, []);
 
+  // TODO: get this value from somewhere
+  const isUserAdminOrOwner = false;
+
   function handleChangeName(name: string) {
     setState((prevState) => {return {...prevState, name};});
     // TODO: call the API endpoint and mark things as `isPending`
@@ -87,6 +90,7 @@ export default function OrganizationSettingsRoute() {
           onChange={handleChangeName}
           value={state.name}
           validateValue={isNameValueValid}
+          isDisabled={!isUserAdminOrOwner}
         />
 
         {isStripeEnabled && state.website && (
@@ -95,6 +99,7 @@ export default function OrganizationSettingsRoute() {
             onChange={handleChangeWebsite}
             value={state.website}
             validateValue={isWebsiteValueValid}
+            isDisabled={!isUserAdminOrOwner}
           />
         )}
       </section>
@@ -104,6 +109,7 @@ export default function OrganizationSettingsRoute() {
           <OrganizationSettingsField
             label={t('##team or org## type').replace('##team or org##', mmoLabel)}
             value={getTypeLabel(state.type)}
+            isDisabled
           />
         )}
       </section>
