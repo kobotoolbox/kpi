@@ -525,6 +525,13 @@ class ObjectPermissionMixin:
             deny=deny,
             inherited=False
         )
+        post_assign_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+            deny=deny,
+        )
         # Assign any applicable KC permissions
         if not deny and not skip_kc:
             assign_applicable_kc_permissions(self, user_obj, codename)
@@ -543,12 +550,6 @@ class ObjectPermissionMixin:
 
         self._update_partial_permissions(
             user_obj, perm, partial_perms=partial_perms
-        )
-        post_assign_perm.send(
-            sender=self.__class__,
-            instance=self,
-            user=user_obj,
-            codename=codename,
         )
 
         # Recalculate all descendants
@@ -714,6 +715,7 @@ class ObjectPermissionMixin:
         )
         direct_permissions = all_permissions.filter(inherited=False)
         inherited_permissions = all_permissions.filter(inherited=True)
+        removed_perm_count = direct_permissions.count() + inherited_permissions.count()
         # Resolve implied permissions, e.g. revoking view implies revoking
         # change
         implied_perms = self.get_implied_perms(
@@ -724,11 +726,21 @@ class ObjectPermissionMixin:
                 user_obj, implied_perm, defer_recalc=True)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
+
         if inherited_permissions.exists():
             # Delete inherited permissions
             inherited_permissions.delete()
             # Add a deny permission to block future inheritance
             self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+
+        if removed_perm_count > 0:
+            post_remove_perm.send(
+                sender=self.__class__,
+                instance=self,
+                user=user_obj,
+                codename=codename,
+            )
+
         # Remove any applicable KC permissions
         if not skip_kc:
             remove_applicable_kc_permissions(self, user_obj, codename)
@@ -739,13 +751,6 @@ class ObjectPermissionMixin:
             return
 
         self._update_partial_permissions(user_obj, perm, remove=True)
-
-        post_remove_perm.send(
-            sender=self.__class__,
-            instance=self,
-            user=user_obj,
-            codename=codename,
-        )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()

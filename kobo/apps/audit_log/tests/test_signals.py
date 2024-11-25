@@ -2,8 +2,9 @@ import contextlib
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
+from ddt import data, ddt
 from django.contrib.auth.signals import user_logged_in
-from django.test import override_settings
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from trench.utils import get_mfa_model
 
@@ -11,7 +12,19 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.audit_log.signals import create_access_log
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import (
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
+from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.object_permission import (
+    post_assign_partial_perm,
+    post_assign_perm,
+    post_remove_partial_perms,
+    post_remove_perm,
+)
 
 
 @contextlib.contextmanager
@@ -27,13 +40,14 @@ def skip_login_access_log():
     user_logged_in.connect(create_access_log)
 
 
-class AuditLogSignalsTestCase(BaseTestCase):
+class AccessLogsSignalsTestCase(BaseTestCase):
     """
-    Class for testing that logins produce AuditLogs.
+    Class for testing that logins produce AccessLogs.
 
-    Here we just test that AuditLogs are produced, not necessarily what they contain. More tests for what they contain
-    are in test_models.py. Also, AuditLogs for SSO logins are tested as part of the SSO tests
-    to avoid copying lots of complicated setup.
+    Here we just test that AccessLogs are produced, not necessarily what they contain.
+    More tests for what they contain are in test_models.py. Also, AccessLogs for SSO
+    logins are tested as part of the SSO tests to avoid copying lots of
+    complicated setup.
     """
 
     @classmethod
@@ -55,7 +69,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
     def test_simple_login(self):
         count = AuditLog.objects.count()
         self.assertEqual(count, 0)
-        user = AuditLogSignalsTestCase.user
+        user = AccessLogsSignalsTestCase.user
         data = {
             'login': 'user',
             'password': 'pass',
@@ -69,7 +83,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
     def test_login_with_email_verification(self):
-        user = AuditLogSignalsTestCase.user
+        user = AccessLogsSignalsTestCase.user
         data = {
             'login': 'user',
             'password': 'pass',
@@ -88,7 +102,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
 
     def test_mfa_login(self):
         mfa_object = get_mfa_model().objects.create(
-            user=AuditLogSignalsTestCase.user,
+            user=AccessLogsSignalsTestCase.user,
             secret='dummy_mfa_secret',
             name='app',
             is_primary=True,
@@ -97,7 +111,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         )
         mfa_object.save()
         email_address, _ = EmailAddress.objects.get_or_create(
-            user=AuditLogSignalsTestCase.user
+            user=AccessLogsSignalsTestCase.user
         )
         email_address.primary = True
         email_address.verified = True
@@ -112,7 +126,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
 
         with patch(
             'kobo.apps.accounts.mfa.forms.authenticate_second_step_command',
-            return_value=AuditLogSignalsTestCase.user,
+            return_value=AccessLogsSignalsTestCase.user,
         ):
             self.client.post(
                 reverse('mfa_token'),
@@ -121,12 +135,12 @@ class AuditLogSignalsTestCase(BaseTestCase):
             )
         self.assertEqual(AuditLog.objects.count(), 1)
         audit_log = AuditLog.objects.first()
-        self.assertEqual(audit_log.user.id, AuditLogSignalsTestCase.user.id)
+        self.assertEqual(audit_log.user.id, AccessLogsSignalsTestCase.user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
     def test_loginas(self):
-        AuditLogSignalsTestCase.user.is_superuser = True
-        AuditLogSignalsTestCase.user.save()
+        AccessLogsSignalsTestCase.user.is_superuser = True
+        AccessLogsSignalsTestCase.user.save()
         new_user = User.objects.create_user(
             'user2', 'user2@example.com', 'pass2'
         )
@@ -138,3 +152,95 @@ class AuditLogSignalsTestCase(BaseTestCase):
         audit_log = AuditLog.objects.first()
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
+
+
+@ddt
+class ProjectHistoryLogsSignalsTestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        self.wsgi_request = RequestFactory().post('/')
+        self.asset = Asset.objects.get(pk=1)
+        # 'someuser' owns the asset, so use 'anotheruser' for testing perm assignments
+        self.user = User.objects.get(username='anotheruser')
+        request_patcher = patch(
+            'kobo.apps.audit_log.signals.get_current_request',
+            return_value=self.wsgi_request,
+        )
+
+        request_patcher.start()
+        self.addCleanup(request_patcher.stop)
+
+    @data(
+        post_assign_perm,
+        post_remove_perm,
+        post_assign_partial_perm,
+        post_remove_partial_perms,
+    )
+    def test_receivers_add_necessary_fields_to_request(self, signal):
+        # use all possible parameters for each signal
+        # so we can re-use the test
+        signal.send(
+            sender=Asset,
+            instance=self.asset,
+            user=self.user,
+            codename=PERM_VIEW_ASSET,
+            perms={PERM_VIEW_ASSET: [{'_submitted_by': 'someuser'}]},
+            deny=False,
+        )
+        self.assertTrue(hasattr(self.wsgi_request, 'permissions_added'))
+        self.assertTrue(hasattr(self.wsgi_request, 'permissions_removed'))
+        self.assertTrue(hasattr(self.wsgi_request, 'partial_permissions_added'))
+
+    def test_add_permission(self):
+        self.asset.assign_perm(self.user, PERM_VIEW_ASSET)
+        self.assertDictEqual(
+            self.wsgi_request.permissions_added, {'anotheruser': {PERM_VIEW_ASSET}}
+        )
+
+    def test_remove_permission(self):
+        self.asset.assign_perm(self.user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(self.user, PERM_VIEW_ASSET)
+        self.assertDictEqual(
+            self.wsgi_request.permissions_removed, {'anotheruser': {PERM_VIEW_ASSET}}
+        )
+
+    def test_add_partial_permission(self):
+        self.asset.assign_perm(
+            self.user,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]},
+        )
+        self.assertDictEqual(
+            self.wsgi_request.partial_permissions_added,
+            {
+                'anotheruser': [
+                    {
+                        'code': PERM_VIEW_SUBMISSIONS,
+                        'filters': [{'_submitted_by': 'someuser'}],
+                    }
+                ]
+            },
+        )
+
+    def test_remove_partial_permission(self):
+        self.asset.assign_perm(
+            self.user,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]},
+        )
+        self.asset.remove_perm(self.user, PERM_PARTIAL_SUBMISSIONS)
+        self.assertDictEqual(
+            self.wsgi_request.partial_permissions_added, {'anotheruser': []}
+        )
+        self.assertDictEqual(
+            self.wsgi_request.permissions_removed,
+            {'anotheruser': {PERM_PARTIAL_SUBMISSIONS}},
+        )
+
+    def test_deny_permission(self):
+        self.asset.assign_perm(self.user, PERM_VIEW_ASSET, deny=True)
+        # nothing added since the permission was denied
+        self.assertDictEqual(self.wsgi_request.partial_permissions_added, {})
