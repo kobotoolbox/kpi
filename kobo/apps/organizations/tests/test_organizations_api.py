@@ -61,7 +61,12 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_create(self):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
-        self.assertContains(res, data['name'], status_code=201)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        self._insert_data()
+        res = self.client.delete(self.url_detail)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
         self._insert_data()
