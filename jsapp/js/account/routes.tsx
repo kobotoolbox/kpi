@@ -11,6 +11,7 @@ import {
   DataStorage,
   PlansRoute,
   SecurityRoute,
+  MembersRoute,
   OrganizationSettingsRoute,
 } from 'js/account/routes.constants';
 import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
@@ -121,7 +122,7 @@ export default function routes() {
                   mmoOnly
                   redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
                 >
-                  <div>Organization members view to be implemented</div>
+                  <MembersRoute />
                 </RequireOrgPermissions>
               </RequireAuth>
             }
