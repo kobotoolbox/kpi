@@ -34,3 +34,13 @@
   display: flex;
   gap: 10px;
 }
+
+.emailText {
+  font-weight: 600;
+}
+
+.emailUpdateDisabled {
+  flex: 5;
+  // To compensate for the `options` class not displaying when there is no email
+  margin-right: calc(30% + 8px);
+}

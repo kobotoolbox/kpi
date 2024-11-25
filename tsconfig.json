@@ -10,6 +10,7 @@
     },
     "target": "es2017",
     "module": "es2020",
+    "lib": ["ES2021"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
