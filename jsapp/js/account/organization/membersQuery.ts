@@ -14,10 +14,10 @@ export interface OrganizationMember {
   /** `/api/v2/users/<username>/` */
   user: string;
   user__username: string;
-  /** can be empty an string in some edge cases */
+  /** can be an empty string in some edge cases */
   user__email: string | '';
-  /** can be empty an string in some edge cases */
-  user__name: string | '';
+  /** can be an empty string in some edge cases */
+  user__extra_details__name: string | '';
   role: OrganizationUserRole;
   user__has_mfa_enabled: boolean;
   user__is_active: boolean;
