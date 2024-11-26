@@ -52,6 +52,7 @@ export default function OrganizationSettingsRoute() {
 
   function handleSave() {
     // TODO: call the API endpoint
+    // to be done while doing: https://www.notion.so/kobotoolbox/Add-react-query-mutation-hook-for-org-changes-1307e515f6548010b5d3c087b634f01a
     console.log('save');
   }
 
@@ -73,6 +74,7 @@ export default function OrganizationSettingsRoute() {
 
   function getTypeLabel(typeName: string) {
     // TODO: see if this would be an actual source of the organization type label
+    // to be done while doing: https://www.notion.so/kobotoolbox/Add-react-query-mutation-hook-for-org-changes-1307e515f6548010b5d3c087b634f01a
     const foundLabel = ORGANIZATION_TYPE_SELECT_OPTIONS.find((item) => item.value === typeName)?.label;
     return foundLabel || typeName;
   }
