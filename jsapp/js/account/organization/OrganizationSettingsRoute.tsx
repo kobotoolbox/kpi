@@ -26,6 +26,11 @@ interface State {
   type?: string;
 }
 
+/**
+ * Renders few fields with organization related settings, like name or website
+ * (with some logic in regards to their visibility). If user has necessary role,
+ * they can edit available fields.
+ */
 export default function OrganizationSettingsRoute() {
   const orgQuery = useOrganizationQuery();
   const [subscriptions] = useState(() => subscriptionStore);
