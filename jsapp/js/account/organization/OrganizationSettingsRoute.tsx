@@ -5,10 +5,11 @@ import {useState, useEffect} from 'react';
 import OrganizationSettingsField from './OrganizationSettingsField';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import InlineMessage from 'jsapp/js/components/common/inlineMessage';
+import Button from 'jsapp/js/components/common/button';
 
 // Stores, hooks and utilities
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
+import {OrganizationUserRole, useOrganizationQuery} from 'js/account/organization/organizationQuery';
 import subscriptionStore from 'js/account/subscriptionStore';
 import envStore from 'js/envStore';
 import {getSimpleMMOLabel} from './organization.utils';
@@ -40,20 +41,31 @@ export default function OrganizationSettingsRoute() {
     setIsStripeEnabled(true);
   }, []);
 
-  // TODO: get this value from somewhere
-  const isUserAdminOrOwner = false;
+  const isUserAdminOrOwner = (
+    orgQuery.data?.request_user_role &&
+    [OrganizationUserRole.admin, OrganizationUserRole.owner]
+      .includes(orgQuery.data?.request_user_role)
+  );
+
+  const isPendingOrgPatch = orgQuery.data && orgQuery.isPending;
+
+  function handleSave() {
+    // TODO: call the API endpoint
+    console.log('save');
+  }
 
   function handleChangeName(name: string) {
     setState((prevState) => {return {...prevState, name};});
-    // TODO: call the API endpoint and mark things as `isPending`
   }
+
   function handleChangeWebsite(website: string) {
     setState((prevState) => {return {...prevState, website};});
-    // TODO: call the API endpoint and mark things as `isPending`
   }
+
   function isNameValueValid(currentName: string) {
     return !currentName;
   }
+
   function isWebsiteValueValid(currentWebsite: string) {
     return !currentWebsite;
   }
@@ -90,7 +102,7 @@ export default function OrganizationSettingsRoute() {
           onChange={handleChangeName}
           value={state.name}
           validateValue={isNameValueValid}
-          isDisabled={!isUserAdminOrOwner}
+          isDisabled={!isUserAdminOrOwner || isPendingOrgPatch}
         />
 
         {isStripeEnabled && state.website && (
@@ -99,7 +111,7 @@ export default function OrganizationSettingsRoute() {
             onChange={handleChangeWebsite}
             value={state.website}
             validateValue={isWebsiteValueValid}
-            isDisabled={!isUserAdminOrOwner}
+            isDisabled={!isUserAdminOrOwner || isPendingOrgPatch}
           />
         )}
       </section>
@@ -113,6 +125,15 @@ export default function OrganizationSettingsRoute() {
           />
         )}
       </section>
+
+      <Button
+        type='primary'
+        size='m'
+        onClick={handleSave}
+        label={t('Save')}
+        isDisabled={!isUserAdminOrOwner}
+        isPending={isPendingOrgPatch}
+      />
 
       <InlineMessage
         type='default'
