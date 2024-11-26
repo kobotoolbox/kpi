@@ -335,12 +335,55 @@ class ProjectHistoryLog(AuditLog):
             'asset-file-list': cls.create_from_file_request,
             'asset-export-list': cls.create_from_export_request,
             'submissionexporttask-list': cls.create_from_v1_export,
+            'asset-bulk': cls.create_from_bulk_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
         if not method:
             return
         method(request)
+
+    @staticmethod
+    def create_from_bulk_request(request):
+        try:
+            payload = request._data['payload']
+            action = payload['action']
+            asset_uids = payload['asset_uids']
+        except KeyError:
+            return  # Incorrect payload
+
+        if type(asset_uids) is not list or len(asset_uids) == 0:  # Nothing to do
+            return
+
+        bulk_action_to_audit_action = {
+            'archive': AuditAction.ARCHIVE,
+            'unarchive': AuditAction.UNARCHIVE,
+        }
+        audit_action = bulk_action_to_audit_action.get(action)
+        if audit_action is None:
+            return  # Unsupported action
+
+        source = get_human_readable_client_user_agent(request)
+        client_ip = get_client_ip(request)
+
+        assets = Asset.optimize_queryset_for_list(
+            Asset.all_objects.filter(uid__in=asset_uids)
+        )
+        for asset in assets:
+            object_id = asset.id
+            metadata = {
+                'asset_uid': asset.uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': client_ip,
+                'source': source,
+                'latest_version_uid': asset.prefetched_latest_versions[0].uid,
+            }
+            ProjectHistoryLog.objects.create(
+                user=request.user,
+                object_id=object_id,
+                action=audit_action,
+                metadata=metadata,
+            )
 
     @staticmethod
     def create_from_deployment_request(request):

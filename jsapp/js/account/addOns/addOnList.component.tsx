@@ -3,19 +3,19 @@ import useWhen from 'js/hooks/useWhen.hook';
 import subscriptionStore from 'js/account/subscriptionStore';
 import type {
   Price,
-  Organization,
   Product,
   SubscriptionInfo,
   OneTimeAddOn,
 } from 'js/account/stripe.types';
 import {isAddonProduct} from 'js/account/stripe.utils';
 import styles from './addOnList.module.scss';
-import {OneTimeAddOnRow} from 'js/account/add-ons/oneTimeAddOnRow.component';
+import {OneTimeAddOnRow} from 'jsapp/js/account/addOns/oneTimeAddOnRow.component';
 import type {BadgeColor} from 'jsapp/js/components/common/badge';
 import Badge from 'jsapp/js/components/common/badge';
 import {formatDate} from 'js/utils';
 import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
 import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
+import type {Organization} from 'js/account/organization/organizationQuery';
 
 /**
  * A table of add-on products along with dropdowns to purchase them.

@@ -8,6 +8,7 @@ import responses
 from ddt import data, ddt, unpack
 from django.test import override_settings
 from django.urls import reverse
+from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -89,6 +90,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(log.metadata, expected_subtype)
         return log.metadata
+
+    def _make_bulk_request(self, asset_uids, action) -> Response:
+        """
+        Make a bulk action request for a list of asset uid's and an action name
+
+        asset_uids: [list_of_uids]
+        action: [archive, unarchive, delete, undelete]
+        """
+        payload = {
+            'payload': {
+                'asset_uids': asset_uids,
+                'action': action,
+            }
+        }
+        url = reverse(self._get_endpoint('asset-bulk'))
+        response = self.client.post(url, data=payload, format='json')
+        return response
 
     def test_first_time_deployment_creates_log(self):
         post_data = {
@@ -862,3 +880,44 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log.object_id, self.asset.id)
+
+    @data(
+        ('archive', AuditAction.ARCHIVE),
+        ('unarchive', AuditAction.UNARCHIVE),
+        ('undelete', None),
+        ('delete', None),
+    )
+    @unpack
+    def test_bulk_actions(self, bulk_action, audit_action):
+        assets = [Asset.objects.create(
+            content={
+                'survey': [
+                    {
+                        'type': 'text',
+                        'label': 'Question 1',
+                        'name': 'q1',
+                        '$kuid': 'abc',
+                    },
+                ]
+            },
+            owner=self.user,
+            asset_type='survey',
+        ) for i in range(0, 2)]
+
+        for asset in assets:
+            asset.deploy(backend='mock', active=True)
+
+        uids = [asset.uid for asset in assets]
+
+        if bulk_action == 'undelete':
+            self._make_bulk_request(uids, 'delete')
+
+        self._make_bulk_request(uids, bulk_action)
+
+        if audit_action is None:
+            self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+        else:
+            project_hist_logs = ProjectHistoryLog.objects.filter(
+                object_id__in=[asset.id for asset in assets], action=audit_action
+            )
+            self.assertEqual(project_hist_logs.count(), 2)

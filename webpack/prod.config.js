@@ -30,7 +30,6 @@ const prodConfig = WebpackCommon({
   },
   entry: {
     app: './jsapp/js/main.es6',
-    browsertests: path.resolve(__dirname, '../test/index.js'),
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),

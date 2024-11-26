@@ -1,15 +1,10 @@
 # flake8: noqa: F401
+import datetime
 import os
 import zipfile
 from collections import defaultdict
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
-import datetime
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import openpyxl
 from django.conf import settings

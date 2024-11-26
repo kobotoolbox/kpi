@@ -76,7 +76,7 @@ class AuditLogSignalsTestCase(BaseTestCase):
         }
         self.client.post(reverse('kobo_login'), data=data, follow=True)
         # no audit log should be created yet because the email has not been verified
-        self.assertEquals(AuditLog.objects.count(), 0)
+        self.assertEqual(AuditLog.objects.count(), 0)
         # verify the email and try again
         email: EmailAddress = EmailAddress.objects.filter(user=user).first()
         email.verified = True

@@ -1,8 +1,4 @@
-# coding: utf-8
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django_request_cache import cache_for_request
