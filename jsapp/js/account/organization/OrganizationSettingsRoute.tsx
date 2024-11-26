@@ -138,7 +138,6 @@ export default function OrganizationSettingsRoute() {
 
       <InlineMessage
         type='default'
-        // TODO: replace `##plan name##` with proper thing
         message={
           t("To delete this ##team or org##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##team or org##'s projects will be converted to projects owned by your personal account.")
             .replaceAll('##team or org##', mmoLabelLowercase)
