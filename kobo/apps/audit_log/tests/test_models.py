@@ -675,5 +675,5 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(permissions['username'], 'AnonymousUser')
         self.assertListEqual(permissions[REMOVED], [])
         self.assertListEqual(
-            sorted(permissions[ADDED]), ['discovery_asset', 'validate_submissions']
+            sorted(permissions[ADDED]), ['discover_asset', 'validate_submissions']
         )
