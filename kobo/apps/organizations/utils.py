@@ -1,16 +1,16 @@
 from datetime import datetime
 from typing import Union
-from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.utils import timezone
+from zoneinfo import ZoneInfo
 
 from kobo.apps.organizations.models import Organization
-from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 
 
-def get_monthly_billing_dates(organization: Union[Organization, None]):
+def get_monthly_billing_dates(organization: Union['Organization', None]):
     """Returns start and end dates of an organization's monthly billing cycle"""
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
@@ -69,7 +69,7 @@ def get_monthly_billing_dates(organization: Union[Organization, None]):
     return period_start, period_end
 
 
-def get_yearly_billing_dates(organization: Union[Organization, None]):
+def get_yearly_billing_dates(organization: Union['Organization', None]):
     """Returns start and end dates of an organization's annual billing cycle"""
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_year = datetime(now.year, 1, 1, tzinfo=ZoneInfo('UTC'))
@@ -105,9 +105,10 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     Revokes permissions assigned to removed members on all assets belonging to
     the organization.
     """
+    Asset = apps.get_model('kpi', 'Asset')  # noqa
     subquery = Asset.objects.values_list('pk', flat=True).filter(
         owner=organization.owner_user_object
     )
     ObjectPermission.objects.filter(
-         asset_id__in=subquery, user_id__in=user_ids
+        asset_id__in=subquery, user_id__in=user_ids
     ).delete()

@@ -5,9 +5,8 @@ import random
 import string
 import uuid
 from datetime import datetime
-from zoneinfo import ZoneInfo
-
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import lxml
 import pytest

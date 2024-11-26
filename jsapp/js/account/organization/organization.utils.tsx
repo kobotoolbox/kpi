@@ -1,7 +1,7 @@
 import type {SubscriptionInfo} from 'jsapp/js/account/stripe.types';
 import type {EnvStoreData} from 'jsapp/js/envStore';
 
-/** Only use this directly for complex cases/strings (for example, possessive case). 
+/** Only use this directly for complex cases/strings (for example, possessive case).
  * Otherwise, use getSimpleMMOLabel.
  * @param {EnvStoreData} envStoreData
  * @param {SubscriptionInfo} subscription
@@ -11,13 +11,9 @@ export function shouldUseTeamLabel(
   envStoreData: EnvStoreData,
   subscription: SubscriptionInfo | null
 ) {
-  if (subscription) {
-    return (
-      subscription.items[0].price.product.metadata?.plan_type !== 'enterprise'
-    );
-  }
-
-  return envStoreData.use_team_label;
+  return subscription
+    ? subscription.items[0].price.product.metadata?.use_team_label === 'true'
+    : envStoreData.use_team_label;
 }
 
 /**

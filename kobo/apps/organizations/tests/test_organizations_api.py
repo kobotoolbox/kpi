@@ -1,26 +1,25 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 import responses
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
 from django.urls import reverse
-from ddt import ddt, data, unpack
+from django.utils import timezone
+from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
-from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
+from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.utils.mixins import (
     AssetFileTestCaseMixin,
-    SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
+    SubmissionEditTestCaseMixin,
     SubmissionValidationStatusTestCaseMixin,
     SubmissionViewTestCaseMixin,
 )
@@ -62,7 +61,12 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_create(self):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
-        self.assertContains(res, data['name'], status_code=201)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        self._insert_data()
+        res = self.client.delete(self.url_detail)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
         self._insert_data()
@@ -89,6 +93,20 @@ class OrganizationApiTestCase(BaseTestCase):
         self.organization.add_user(user=user)
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
+
+    @patch('kpi.utils.usage_calculator.CachedClass._cache_last_updated')
+    def test_service_usage_date_header(self, mock_cache_last_updated):
+        self._insert_data()
+        url_service_usage = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id},
+        )
+        now = timezone.now()
+        mock_cache_last_updated.return_value = now - timedelta(seconds=3)
+        self.client.get(url_service_usage)
+        response = self.client.get(url_service_usage)
+        last_updated_timestamp = parse_http_date(response.headers['Date'])
+        assert (now.timestamp() - last_updated_timestamp) > 3
 
     def test_api_response_includes_is_mmo_with_mmo_override(self):
         """
@@ -249,7 +267,7 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
                         'label': 'How many pages?',
                     }
                 ],
-            }
+            },
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['owner__username'] == self.bob.username
@@ -336,7 +354,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     def test_list_not_found_as_anonymous(self):
         self.client.logout()
         response = self.client.get(self.org_assets_list_url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_only_organization_assets(self):
         # The organization's assets endpoint only returns assets where the `owner`
@@ -460,9 +478,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         assert_detail_url = reverse(
             self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
         )
-        data = {
-            'name': 'Week-end breakfast'
-        }
+        data = {'name': 'Week-end breakfast'}
 
         self.client.force_login(user)
         response = self.client.patch(assert_detail_url, data)
@@ -496,7 +512,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('asset-detail'),
             # Use JSON format to prevent HtmlRenderer from returning a 200 status
             # instead of 204.
-            kwargs={'uid': asset_uid, 'format': 'json'}
+            kwargs={'uid': asset_uid, 'format': 'json'},
         )
 
         self.client.force_login(user)
@@ -593,7 +609,7 @@ class OrganizationAdminsDataApiTestCase(
     SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
     SubmissionViewTestCaseMixin,
-    BaseOrganizationAdminsDataApiTestCase
+    BaseOrganizationAdminsDataApiTestCase,
 ):
     """
     This test suite shares logic with `SubmissionEditApiTests`,
@@ -712,19 +728,23 @@ class OrganizationAdminsRestServiceApiTestCase(
 
     def test_can_list_rest_services(self):
         hook = self._create_hook()
-        list_url = reverse(self._get_endpoint('hook-list'), kwargs={
-            'parent_lookup_asset': self.asset.uid
-        })
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
 
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert response.data['results'][0]['uid'] == hook.uid
 
-        detail_url = reverse('hook-detail', kwargs={
-            'parent_lookup_asset': self.asset.uid,
-            'uid': hook.uid,
-        })
+        detail_url = reverse(
+            'hook-detail',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': hook.uid,
+            },
+        )
 
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_200_OK

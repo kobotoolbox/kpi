@@ -1,10 +1,15 @@
-# coding: utf-8
 import pytest
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import MetaData
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage,
+)
 from kpi.exceptions import DeploymentDataException
-from kpi.models.asset import Asset
+from kpi.models.asset import Asset, AssetFile
 from kpi.models.asset_version import AssetVersion
 
 
@@ -151,3 +156,44 @@ class MockDeployment(TestCase):
         # altered directly
         with self.assertRaises(DeploymentDataException) as e:
             asset.save()
+
+    def test_sync_media_files(self):
+
+        asset_file = AssetFile(
+            asset=self.asset,
+            user=self.asset.owner,
+            file_type=AssetFile.FORM_MEDIA,
+        )
+        asset_file.content = ContentFile(b'foo', name='foo.txt')
+        asset_file.save()
+        assert (
+            MetaData.objects.filter(xform=self.asset.deployment.xform).count()
+            == 0
+        )
+        meta_data = None
+        try:
+            self.asset.deployment.sync_media_files()
+            assert (
+                MetaData.objects.filter(
+                    xform=self.asset.deployment.xform
+                ).count()
+                == 1
+            )
+            meta_data = MetaData.objects.filter(
+                xform=self.asset.deployment.xform
+            ).first()
+
+            assert default_kobocat_storage.exists(str(meta_data.data_file))
+            assert not default_storage.exists(str(meta_data.data_file))
+
+            with default_kobocat_storage.open(
+                str(meta_data.data_file), 'r'
+            ) as f:
+                assert f.read() == 'foo'
+        finally:
+            # Clean-up
+            if meta_data:
+                data_file_path = str(meta_data.data_file)
+                meta_data.delete()
+                if default_kobocat_storage.exists(data_file_path):
+                    default_kobocat_storage.delete(data_file_path)
