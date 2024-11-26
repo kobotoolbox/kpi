@@ -80,7 +80,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
             date_created=yesterday,
         )
         self._check_common_fields(log, AccessLogModelTestCase.super_user)
-        self.assertEquals(log.date_created, yesterday)
+        self.assertEqual(log.date_created, yesterday)
         self.assertDictEqual(log.metadata, {'foo': 'bar'})
 
     @patch('kobo.apps.audit_log.models.logging.warning')
