@@ -1,11 +1,6 @@
 import timeit
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import pytest
 from dateutil.relativedelta import relativedelta

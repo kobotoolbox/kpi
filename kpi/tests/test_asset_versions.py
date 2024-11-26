@@ -1,12 +1,7 @@
-# coding: utf-8
 import json
 from copy import deepcopy
 from datetime import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from django.test import TestCase
 from django.utils import timezone

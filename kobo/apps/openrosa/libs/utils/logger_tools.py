@@ -10,11 +10,7 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from wsgiref.util import FileWrapper
 from xml.dom import Node
