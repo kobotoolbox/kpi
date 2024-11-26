@@ -373,8 +373,8 @@ class XMLFormWithDisclaimer:
         self._object = obj
         self._unique_id = obj.asset.uid
 
-        # Avoid initializing `_root_tag_name` immediately to prevent extra
-        # database queries. It will be set only when it is actually needed.
+        # Avoid accessing the `xform_root_node_name` property immediately to prevent
+        # extra database queries. It will be set only when it is actually needed.
         self._root_tag_name = None
         self._add_disclaimer()
 
@@ -394,7 +394,7 @@ class XMLFormWithDisclaimer:
         translated, disclaimers_dict, default_language_code = value
 
         self._root_node = minidom.parseString(self._object.xml)
-        self._root_tag_name = self._object.xforms_root_node_name
+        self._root_tag_name = self._object.xform_root_node_name
 
         if translated:
             self._add_translation_nodes(disclaimers_dict, default_language_code)

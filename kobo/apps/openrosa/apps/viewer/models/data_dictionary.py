@@ -70,11 +70,7 @@ class DataDictionary(XForm):
         """
         Add bind to automatically set UUID node in XML.
         """
-        # XForm always contains a non-empty/null JSON
-        # `name` and `id_string` attributes should always be present
-        form_json = json.loads(self.json)
-        root_node = form_json['name']
-        id_string = form_json['id_string']
+        root_node = self.xform_root_node_name
 
         doc = clean_and_parse_xml(self.xml)
         model_nodes = doc.getElementsByTagName("model")
@@ -101,15 +97,10 @@ class DataDictionary(XForm):
             node
             for node in instance_node.childNodes
             if node.nodeType == Node.ELEMENT_NODE
-            and (
-                node.tagName == root_node
-                and node.attributes.get('id').value == id_string
-            )
+            and node.tagName == root_node
         ]
         if len(survey_nodes) != 1:
-            raise Exception(
-                f'Multiple survey nodes `{root_node}` with the id `{id_string}`'
-            )
+            raise Exception(f'Multiple survey nodes `{root_node}`')
 
         survey_node = survey_nodes[0]
         formhub_nodes = [

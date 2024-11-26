@@ -244,7 +244,7 @@ class AssetSnapshot(
         return xml, details
 
     @property
-    def xforms_root_node_name(self):
+    def xform_root_node_name(self):
         """
         Retrieves the name of the XML tag representing the root node of the "survey"
         in the XForm XML structure.
