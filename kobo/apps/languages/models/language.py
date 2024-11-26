@@ -1,7 +1,6 @@
 # coding: utf-8
 import csv
 import codecs
-from distutils import util
 from typing import Dict
 
 from django.contrib import admin
@@ -10,7 +9,7 @@ from django.db import models, transaction
 from django.template.response import TemplateResponse
 from django.urls import path
 
-
+from kpi.utils.strings import strtobool
 from .transcription import (
     TranscriptionService,
     TranscriptionServiceLanguageM2MInline,
@@ -183,7 +182,7 @@ class LanguageAdmin(admin.ModelAdmin):
             name = row[0].strip()
             code = row[1].strip()
             try:
-                featured = util.strtobool(row[2])
+                featured = strtobool(row[2])
             except ValueError:
                 featured = False
             region_names = row[3].strip().split(';')
