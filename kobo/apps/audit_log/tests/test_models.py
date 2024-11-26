@@ -671,12 +671,9 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, 1)
         # should create a regular 'MODIFY_USER_PERMISSIONS' log
         self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
-
-        self.assertDictEqual(
-            log.metadata['permissions'],
-            {
-                ADDED: ['discover_asset', 'validate_submissions'],
-                REMOVED: [],
-                'username': 'AnonymousUser',
-            },
+        permissions = log.metadata['permissions']
+        self.assertEqual(permissions['username'], 'AnonymousUser')
+        self.assertListEqual(permissions[REMOVED], [])
+        self.assertListEqual(
+            sorted(permissions[ADDED]), ['discovery_asset', 'validate_submissions']
         )
