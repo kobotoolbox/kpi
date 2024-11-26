@@ -1287,4 +1287,3 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             format='json',
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
->>>>>>> d0c0d94cb (feat: create ph logs for permissions changes)
