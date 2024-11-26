@@ -21,7 +21,7 @@ import type {
   AccountFieldsErrors,
 } from './account.constants';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
-import {useLocalObservable} from 'mobx-react';
+import {useSession} from '../stores/useSession';
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -40,35 +40,31 @@ const AccountSettings = () => {
   >({});
 
   // We're verifying that the user is logged in so we can consider the current account is from a valid logged user
-  const {currentAccount} = useLocalObservable(
-    () => {
-      return {currentAccount: sessionStore.isLoggedIn && (sessionStore.currentAccount as AccountResponse)};
-    }
-  );
+  const {currentLoggedAccount} = useSession();
 
   useEffect(() => {
-    if (!currentAccount) {
+    if (!currentLoggedAccount) {
       return;
     }
 
     setFormFields({
-      name: currentAccount.extra_details.name,
-      organization_type: currentAccount.extra_details.organization_type,
-      organization: currentAccount.extra_details.organization,
-      organization_website: currentAccount.extra_details.organization_website,
-      sector: currentAccount.extra_details.sector,
-      gender: currentAccount.extra_details.gender,
-      bio: currentAccount.extra_details.bio,
-      city: currentAccount.extra_details.city,
-      country: currentAccount.extra_details.country,
-      require_auth: currentAccount.extra_details.require_auth,
-      twitter: currentAccount.extra_details.twitter,
-      linkedin: currentAccount.extra_details.linkedin,
-      instagram: currentAccount.extra_details.instagram,
+      name: currentLoggedAccount.extra_details.name,
+      organization_type: currentLoggedAccount.extra_details.organization_type,
+      organization: currentLoggedAccount.extra_details.organization,
+      organization_website: currentLoggedAccount.extra_details.organization_website,
+      sector: currentLoggedAccount.extra_details.sector,
+      gender: currentLoggedAccount.extra_details.gender,
+      bio: currentLoggedAccount.extra_details.bio,
+      city: currentLoggedAccount.extra_details.city,
+      country: currentLoggedAccount.extra_details.country,
+      require_auth: currentLoggedAccount.extra_details.require_auth,
+      twitter: currentLoggedAccount.extra_details.twitter,
+      linkedin: currentLoggedAccount.extra_details.linkedin,
+      instagram: currentLoggedAccount.extra_details.instagram,
       newsletter_subscription:
-        currentAccount.extra_details.newsletter_subscription,
+        currentLoggedAccount.extra_details.newsletter_subscription,
     });
-  }, [currentAccount]);
+  }, [currentLoggedAccount]);
 
   usePrompt({
     when: !isPristine,
@@ -130,7 +126,7 @@ const AccountSettings = () => {
           <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {currentAccount && (
+        {currentLoggedAccount && (
           <bem.AccountSettings__item m='fields'>
             <InlineMessage
               type='warning'
