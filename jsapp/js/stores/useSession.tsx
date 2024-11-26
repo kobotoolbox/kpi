@@ -3,7 +3,15 @@ import {useEffect, useState} from 'react';
 import {reaction} from 'mobx';
 import type {AccountResponse} from '../dataInterface';
 
-
+/**
+ * Hook to use the session store in functional components.
+ * This hook provides a way to access teh current logged account, information
+ * regarding the anonymous state of the login and session methods.
+ *
+ * This hook uses mob-x reactions to track the current account and update the
+ * state accordingly.
+ * In the future we should update this hook to use react-query and drop the usage of mob-x
+ */
 export const useSession = () => {
 
   const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>();
@@ -11,24 +19,21 @@ export const useSession = () => {
   const [isPending, setIsPending] = useState<boolean>(false);
 
   useEffect(() => {
-    // using mobx reaction in the hook (the reaction can be used anywhere)
-
-    const reactionDisposer = reaction(
-      // should pass the required store.
-      // Could be done by DI, direct instance injection
-      // or passing into hook from the parent component etc.
-      () => sessionStore,
-      (session) => {
-        setIsPending(session.isPending);
-        if (session.isLoggedIn) {
-          setCurrentLoggedAccount(session.currentAccount as AccountResponse);
+    // We need to setup a reaction for every observable we want to track
+    // Generic reaction to sessionStore won't fire the re-rendering of the hook
+    const currentAccountReactionDisposer = reaction(
+      () => sessionStore.currentAccount,
+      (currentAccount) => {
+        if (sessionStore.isLoggedIn) {
+          setCurrentLoggedAccount(currentAccount as AccountResponse);
           setIsAnonymous(false);
+          setIsPending(sessionStore.isPending);
         }
       }, {fireImmediately: true}
     );
 
     return () => {
-      reactionDisposer();
+      currentAccountReactionDisposer();
     };
   }, []);
 
@@ -36,9 +41,9 @@ export const useSession = () => {
     currentLoggedAccount,
     isAnonymous,
     isPending,
-    logOut: sessionStore.logOut,
-    logOutAll: sessionStore.logOutAll,
-    refreshAccount: sessionStore.refreshAccount,
+    logOut: sessionStore.logOut.bind(sessionStore),
+    logOutAll: sessionStore.logOutAll.bind(sessionStore),
+    refreshAccount: sessionStore.refreshAccount.bind(sessionStore),
   };
 
 };
