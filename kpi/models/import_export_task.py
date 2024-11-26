@@ -24,7 +24,9 @@ from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import CharField, F, Value
+from django.db.models.functions import Concat
+from django.db.models.query import QuerySet
 from django.urls import reverse
 from django.utils.translation import gettext as t
 from formpack.constants import KOBO_LOCK_SHEET
@@ -57,9 +59,18 @@ from kpi.constants import (
 from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
-from kpi.utils.data_exports import create_data_export
+from kpi.utils.data_exports import (
+    ACCESS_LOGS_EXPORT_FIELDS,
+    ASSET_FIELDS,
+    CONFIG,
+    SETTINGS,
+    create_data_export,
+    filter_remaining_metadata,
+    get_q,
+)
 from kpi.utils.log import logging
 from kpi.utils.models import _load_library_content, create_assets, resolve_url_to_asset
+from kpi.utils.project_views import get_region_for_view
 from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
     NoFromSheetError,
@@ -482,15 +493,16 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class CommonExportTask(ImportExportTask):
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+class ExportTaskMixin:
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Report Complete'
 
     def _get_export_details(self) -> tuple:
         return self.data['type'], self.data['view']
 
-    def _build_export_filename(
-        self, export_type: str, username: str, view: str
-    ) -> str:
+    def _build_export_filename(self, export_type: str, username: str, view: str) -> str:
         time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         return f'{export_type}-{username}-view_{view}-{time}.csv'
 
@@ -511,27 +523,91 @@ class CommonExportTask(ImportExportTask):
         super().delete(*args, **kwargs)
 
 
-class AccessLogExportTask(CommonExportTask):
+class AccessLogExportTask(ExportTaskMixin, ImportExportTask):
     uid = KpiUidField(uid_prefix='ale')
     get_all_logs = models.BooleanField(default=False)
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Access Log Report Complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        user_url = Concat(
+            Value(f'{settings.KOBOFORM_URL}/api/v2/users/'),
+            F('user__username'),
+            output_field=CharField(),
+        )
+
+        return filtered_queryset.annotate(
+            user_url=user_url,
+            username=F('user__username'),
+            auth_type=F('metadata__auth_type'),
+            source=F('metadata__source'),
+            ip_address=F('metadata__ip_address'),
+            initial_superusername=F('metadata__initial_user_username'),
+            initial_superuseruid=F('metadata__initial_user_uid'),
+            authorized_application=F('metadata__authorized_app_name'),
+            other_details=F('metadata'),
+        ).values(*ACCESS_LOGS_EXPORT_FIELDS)
 
     def _run_task(self, messages: list) -> None:
         if self.get_all_logs and not self.user.is_superuser:
             raise PermissionError('Only superusers can export all access logs.')
 
         export_type, view = self._get_export_details()
-        buff = create_data_export(
-            export_type, self.user.username, self.uid, self.get_all_logs
-        )
+        config = CONFIG[export_type]
+
+        queryset = config['queryset']()
+        if not self.get_all_logs:
+            queryset = queryset.filter(user__username=self.user.username)
+        data = self.get_data(queryset)
+        accessed_metadata_fields = [
+            'auth_type',
+            'source',
+            'ip_address',
+            'initial_user_username',
+            'initial_user_uid',
+            'auth_app_name',
+        ]
+        for row in data:
+            row['other_details'] = filter_remaining_metadata(
+                row, accessed_metadata_fields
+            )
+        buff = create_data_export(export_type, data)
         self._run_task_base(messages, buff)
 
 
-class ProjectViewExportTask(CommonExportTask):
+class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
     uid = KpiUidField(uid_prefix='pve')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Project View Report Complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        vals = ASSET_FIELDS + (SETTINGS,)
+        return (
+            filtered_queryset.annotate(
+                owner__name=F('owner__extra_details__data__name'),
+                owner__organization=F('owner__extra_details__data__organization'),
+                form_id=F('_deployment_data__backend_response__formid'),
+            )
+            .values(*vals)
+            .order_by('id')
+        )
 
     def _run_task(self, messages: list) -> None:
         export_type, view = self._get_export_details()
-        buff = create_data_export(export_type, self.user.username, view, False)
+        config = CONFIG[export_type]
+
+        region_for_view = get_region_for_view(view)
+        q = get_q(region_for_view, export_type)
+        queryset = config['queryset'].filter(q)
+
+        data = self.get_data(queryset)
+        buff = create_data_export(export_type, data)
         self._run_task_base(messages, buff)
 
 

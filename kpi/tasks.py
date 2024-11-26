@@ -12,7 +12,7 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import SubmissionExportTask, ImportTask
+from kpi.models.import_export_task import ImportTask, SubmissionExportTask
 
 
 @celery_app.task
@@ -44,20 +44,7 @@ def export_task_in_background(
             'Regards,\n'
             'KoboToolbox'
         )
-        subject_map = {
-            'AccessLog': 'Access Log Report Complete',
-            'ProjectView': 'Project View Report Complete',
-        }
-
-        subject = next(
-            (
-                subject
-                for key, subject in subject_map.items()
-                if key in export_task_name
-            ),
-            'Report Complete',
-        )
-
+        subject = export.default_email_subject
         mail.send_mail(
             subject=subject,
             message=msg,
