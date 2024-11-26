@@ -25,7 +25,6 @@ class AuditAction(models.TextChoices):
     REMOVE = 'remove'
     REPLACE_FORM = 'replace-form'
     UNARCHIVE = 'unarchive'
-    UNDELETE = 'undelete'
     UPDATE = 'update'
     UPDATE_CONTENT = 'update-content'
     UPDATE_NAME = 'update-name'
