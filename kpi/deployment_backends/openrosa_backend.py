@@ -5,11 +5,7 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
