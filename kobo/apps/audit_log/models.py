@@ -366,15 +366,17 @@ class ProjectHistoryLog(AuditLog):
         source = get_human_readable_client_user_agent(request)
         client_ip = get_client_ip(request)
 
-        for asset_uid in asset_uids:
-            asset = Asset.all_objects.get(uid=asset_uid)
-            object_id = asset.pk
+        assets = Asset.optimize_queryset_for_list(
+            Asset.all_objects.filter(uid__in=asset_uids)
+        )
+        for asset in assets:
+            object_id = asset.id
             metadata = {
-                'asset_uid': asset_uid,
+                'asset_uid': asset.uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': client_ip,
                 'source': source,
-                'latest_version_uid': asset.latest_version.uid,
+                'latest_version_uid': asset.prefetched_latest_versions[0].uid,
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
