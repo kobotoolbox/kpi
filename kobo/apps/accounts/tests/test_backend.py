@@ -102,5 +102,5 @@ class SSOLoginTest(TestCase):
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         # Ensure there is a record of the login
         audit_log: AuditLog = AuditLog.objects.filter(user=response.wsgi_request.user).first()
-        self.assertEquals(audit_log.action, AuditAction.AUTH)
+        self.assertEqual(audit_log.action, AuditAction.AUTH)
         assert response.wsgi_request.user.backend == settings.AUTHENTICATION_BACKENDS[0]

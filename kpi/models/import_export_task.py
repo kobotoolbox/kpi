@@ -1,4 +1,3 @@
-# coding: utf-8
 import base64
 import datetime
 import os
@@ -9,15 +8,10 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
-
-import dateutil.parser
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import constance
+import dateutil.parser
 import formpack
 import requests
 from django.conf import settings
@@ -26,6 +20,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.db.models import F
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
@@ -489,7 +484,7 @@ class ProjectViewExportTask(ImportExportTask):
     def _build_export_filename(
         self, export_type: str, username: str, view: str
     ) -> str:
-        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        time = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
         return f'{export_type}-{username}-view_{view}-{time}.csv'
 
     def _run_task(self, messages: list) -> None:
