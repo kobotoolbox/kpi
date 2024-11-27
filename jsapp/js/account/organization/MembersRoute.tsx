@@ -6,6 +6,7 @@ import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniver
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
+import MemberActionsDropdown from './MemberActionsDropdown';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -92,8 +93,13 @@ export default function MembersRoute() {
             key: 'url',
             label: '',
             size: 64,
-            // TODO: this will be added soon
-            cellFormatter: () => (' '),
+            cellFormatter: (member: OrganizationMember) => (
+              // TODO: this should be only available to some roles, right?
+              <MemberActionsDropdown
+                username={member.user__username}
+                onRequestRemove={(username) => {console.log(username);}}
+              />
+            ),
           },
         ]}
       />
