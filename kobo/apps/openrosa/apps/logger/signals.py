@@ -54,10 +54,8 @@ def pre_delete_attachment(instance, **kwargs):
 
     if file_size and attachment.deleted_at is None:
         with transaction.atomic():
-            """
-            Update both counters at the same time (in a transaction) to avoid
-            desynchronization as much as possible
-            """
+            # Update both counters simultaneously within a transaction to minimize
+            # the risk of desynchronization.
             UserProfile.objects.filter(
                 user_id=xform.user_id
             ).update(
