@@ -9,7 +9,6 @@ from django.db.models import (
     OuterRef,
 )
 from django.db.models.expressions import Exists
-from django.utils.decorators import method_decorator
 from django.utils.http import http_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
