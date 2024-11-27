@@ -175,7 +175,8 @@ class Organization(AbstractOrganization):
 
         This returns True if:
         - A superuser has enabled the override (`mmo_override`), or
-        - The organization has an active subscription.
+        - The organization has an active subscription to a plan with
+          mmo_enabled set to 'true' in the Stripe product metadata.
 
         If the override is enabled, it takes precedence over the subscription status
         """

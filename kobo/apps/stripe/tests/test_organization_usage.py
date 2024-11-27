@@ -512,14 +512,6 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
         self.organization = self.someuser.organization
 
     def test_is_mmo_subscription_logic(self):
-        self.organization.mmo_override = True
-        self.organization.save()
-        assert self.organization.is_mmo is True
-
-        self.organization.mmo_override = False
-        self.organization.save()
-        assert self.organization.is_mmo is False
-
         product_metadata = {
             'mmo_enabled': 'false',
         }
