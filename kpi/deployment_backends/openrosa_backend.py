@@ -1288,7 +1288,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             attachment_storage_bytes=F('attachment_storage_bytes')
             - self.xform.attachment_storage_bytes
         )
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+        UserProfile.objects.filter(user_id=new_owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
         )
