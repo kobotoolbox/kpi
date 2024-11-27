@@ -87,6 +87,7 @@ export default function MembersRoute() {
               return <Badge size='s' color='light-storm' icon='minus' />;
             },
           },
+          // TODO: hide this column if current user is not owner/admin
           {
             // We use `url` here, but the cell would contain interactive UI
             // element
@@ -94,7 +95,8 @@ export default function MembersRoute() {
             label: '',
             size: 64,
             cellFormatter: (member: OrganizationMember) => (
-              // TODO: this should be only available to some roles, right?
+              // TODO: this should be only available to admin and member role
+              // TODO: this should not be availabler for a row with a owner member
               <MemberActionsDropdown
                 username={member.user__username}
                 onRequestRemove={(username) => {console.log(username);}}
