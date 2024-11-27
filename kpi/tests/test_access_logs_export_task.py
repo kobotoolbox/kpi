@@ -25,7 +25,7 @@ class AccessLogExportTaskTests(TestCase):
         return AccessLogExportTask.objects.create(
             user=user,
             get_all_logs=get_all_logs,
-            data={'view': 'assets', 'type': 'access_logs_export'},
+            data={'type': 'access_logs_export'},
         )
 
     def test_task_initialization(self):
@@ -54,7 +54,7 @@ class AccessLogExportTaskTests(TestCase):
         self.assertIsNotNone(task.result, 'The task.result should not be None.')
         expected_pattern = (
             rf'{self.superuser.username}/exports/access_logs_export-'
-            rf'{self.superuser.username}-view_assets-'
+            rf'{self.superuser.username}-'
             r'\d{4}-\d{2}-\d{2}T\d{6}Z\.csv'
         )
 
