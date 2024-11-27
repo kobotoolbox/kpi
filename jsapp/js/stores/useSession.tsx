@@ -8,13 +8,13 @@ import type {AccountResponse} from '../dataInterface';
  * This hook provides a way to access teh current logged account, information
  * regarding the anonymous state of the login and session methods.
  *
- * This hook uses mob-x reactions to track the current account and update the
+ * This hook uses MobX reactions to track the current account and update the
  * state accordingly.
  * In the future we should update this hook to use react-query and drop the usage of mob-x
  */
 export const useSession = () => {
-
-  const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>();
+  const [currentLoggedAccount, setCurrentLoggedAccount] =
+    useState<AccountResponse>();
   const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isPending, setIsPending] = useState<boolean>(false);
 
@@ -29,7 +29,8 @@ export const useSession = () => {
           setIsAnonymous(false);
           setIsPending(sessionStore.isPending);
         }
-      }, {fireImmediately: true}
+      },
+      {fireImmediately: true}
     );
 
     return () => {
@@ -45,5 +46,4 @@ export const useSession = () => {
     logOutAll: sessionStore.logOutAll.bind(sessionStore),
     refreshAccount: sessionStore.refreshAccount.bind(sessionStore),
   };
-
 };
