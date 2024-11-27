@@ -1325,7 +1325,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             attachment_storage_bytes=F('attachment_storage_bytes')
             - self.xform.attachment_storage_bytes
         )
-        KobocatUserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+        KobocatUserProfile.objects.filter(user_id=new_owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
         )
