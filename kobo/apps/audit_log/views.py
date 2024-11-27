@@ -370,7 +370,6 @@ class AccessLogsExportViewSet(viewsets.ViewSet):
             user=request.user,
             get_all_logs=get_all_logs,
             data={
-                'view': uid,
                 'type': 'access_logs_export',
             },
         )
