@@ -86,7 +86,7 @@ interface UniversalTableProps<DataItem> {
 
 const DEFAULT_COLUMN_SIZE = {
   size: 200, // starting column size
-  minSize: 100, // enforced during column resizing
+  minSize: 60, // enforced during column resizing
   maxSize: 600, // enforced during column resizing
 };
 

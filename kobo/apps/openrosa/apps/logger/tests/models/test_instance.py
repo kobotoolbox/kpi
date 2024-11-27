@@ -1,12 +1,10 @@
-# coding: utf-8
 import os
 import reversion
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 from dateutil import parser
 from django_digest.test import DigestAuth
-from mock import patch
-
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models import XForm, Instance
 from kobo.apps.openrosa.apps.logger.models.instance import (

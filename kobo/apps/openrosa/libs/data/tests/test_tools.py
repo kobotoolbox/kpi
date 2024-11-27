@@ -1,9 +1,9 @@
 # coding: utf-8
 import os
 from datetime import datetime, timedelta, date
+from unittest.mock import patch
 
 from django.conf import settings
-from mock import patch
 
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase

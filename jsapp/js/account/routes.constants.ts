@@ -11,7 +11,7 @@ export const PlansRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './plans/plan.component')
 );
 export const AddOnsRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './add-ons/addOns.component')
+  () => import(/* webpackPrefetch: true */ './addOns/addOns.component')
 );
 export const AccountSettings = React.lazy(
   () => import(/* webpackPrefetch: true */ './accountSettingsRoute')
@@ -19,8 +19,11 @@ export const AccountSettings = React.lazy(
 export const DataStorage = React.lazy(
   () => import(/* webpackPrefetch: true */ './usage/usageTopTabs')
 );
+export const MembersRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './organization/MembersRoute')
+);
 export const OrganizationSettingsRoute = React.lazy(
-  () => import(/* webpackPrefetch: true */ './organizations/OrganizationSettingsRoute')
+  () => import(/* webpackPrefetch: true */ './organization/OrganizationSettingsRoute')
 );
 export const ACCOUNT_ROUTES: {readonly [key: string]: string} = {
   ACCOUNT_SETTINGS: ROUTES.ACCOUNT_ROOT + '/settings',

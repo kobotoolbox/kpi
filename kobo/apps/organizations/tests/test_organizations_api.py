@@ -62,7 +62,12 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_create(self):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
-        self.assertContains(res, data['name'], status_code=201)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        self._insert_data()
+        res = self.client.delete(self.url_detail)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
         self._insert_data()
@@ -350,7 +355,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     def test_list_not_found_as_anonymous(self):
         self.client.logout()
         response = self.client.get(self.org_assets_list_url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_only_organization_assets(self):
         # The organization's assets endpoint only returns assets where the `owner`

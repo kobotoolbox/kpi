@@ -1,9 +1,9 @@
-import datetime
 from unittest.mock import Mock, patch
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.import_export_task import ProjectViewExportTask
@@ -46,7 +46,7 @@ class ExportTaskInBackgroundTests(TestCase):
             root_url,
             self.user.username,
             self.user.username,
-            datetime.datetime.now().strftime('%Y-%m-%dT%H%M%SZ'),
+            timezone.now().strftime('%Y-%m-%dT%H%M%SZ'),
         )
         mock_send_mail.assert_called_once_with(
             subject='Project View Report Complete',

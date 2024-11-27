@@ -1,9 +1,8 @@
 import {makeAutoObservable} from 'mobx';
-import {handleApiFail} from 'js/api';
+import {handleApiFail, fetchGet} from 'js/api';
 import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
-import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {Product, SubscriptionInfo} from 'js/account/stripe.types';
+import type {Product, SubscriptionInfo} from 'js/account/stripe.types';
 
 const PRODUCTS_URL = '/api/v2/stripe/products/';
 
@@ -53,16 +52,16 @@ class SubscriptionStore {
     );
     this.canceledPlans = response.results.filter(
       (sub) =>
-        sub.items[0]?.price.product.metadata?.product_type == 'plan' &&
+        sub.items[0]?.price.product.metadata?.product_type === 'plan' &&
         sub.status === 'canceled'
     );
     // get any active plan subscriptions for the user
     this.planResponse = this.activeSubscriptions.filter(
-      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'plan'
     );
     // get any active recurring add-on subscriptions for the user
     this.addOnsResponse = this.activeSubscriptions.filter(
-      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'addon'
     );
 
     this.isPending = false;
