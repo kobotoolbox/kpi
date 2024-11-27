@@ -93,7 +93,6 @@ def enketo_flush_cached_preview(server_url, form_id):
     response.raise_for_status()
 
 
-
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
 def perform_maintenance():
     """
