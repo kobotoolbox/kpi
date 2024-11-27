@@ -610,7 +610,7 @@ class ProjectHistoryLog(AuditLog):
             action = modify_action
         if action:
             # some actions on related objects do not need to be logged,
-            # eg deleting an SubmissionExportTask
+            # eg deleting a SubmissionExportTask
             ProjectHistoryLog.objects.create(
                 user=request.user, object_id=object_id, action=action, metadata=metadata
             )

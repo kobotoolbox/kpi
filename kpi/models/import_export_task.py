@@ -495,15 +495,17 @@ class ExportTaskMixin:
         return 'Report Complete'
 
     def _get_export_details(self) -> tuple:
-        return self.data['type'], self.data['view']
+        return self.data.get('type'), self.data.get('view', None)
 
     def _build_export_filename(
-        self, export_type: str, username: str, view: str
+        self, export_type: str, username: str, view: str = None
     ) -> str:
         time = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-        return f'{export_type}-{username}-view_{view}-{time}.csv'
+        if view:
+            return f'{export_type}-{username}-view_{view}-{time}.csv'
+        return f'{export_type}-{username}-{time}.csv'
 
-    def _run_task_base(self, messages: list, buff) -> None:
+    def _export_data_to_file(self, messages: list, buff) -> None:
         export_type, view = self._get_export_details()
         filename = self._build_export_filename(export_type, self.user.username, view)
         absolute_filepath = self.get_absolute_filepath(filename)
@@ -565,14 +567,14 @@ class AccessLogExportTask(ExportTaskMixin, ImportExportTask):
             'ip_address',
             'initial_user_username',
             'initial_user_uid',
-            'auth_app_name',
+            'authorized_app_name',
         ]
         for row in data:
             row['other_details'] = filter_remaining_metadata(
                 row, accessed_metadata_fields
             )
         buff = create_data_export(export_type, data)
-        self._run_task_base(messages, buff)
+        self._export_data_to_file(messages, buff)
 
 
 class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
@@ -605,7 +607,7 @@ class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
 
         data = self.get_data(queryset)
         buff = create_data_export(export_type, data)
-        self._run_task_base(messages, buff)
+        self._export_data_to_file(messages, buff)
 
 
 class SubmissionExportTaskBase(ImportExportTask):
