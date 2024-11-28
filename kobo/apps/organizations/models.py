@@ -117,8 +117,20 @@ class Organization(AbstractOrganization):
 
         return None
 
+    @property
+    def email(self):
+        """
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute.
+        """
+        try:
+            return self.owner_user_object.email
+        except AttributeError:
+            return
+
     @classmethod
-    def get_from_user_id(cls, user_id: int):
+    @cache_for_request
+    def get_from_user_id(cls, user_id: int) -> 'Organization':
         """
         Get organization that this user is a member of.
         """
@@ -133,17 +145,6 @@ class Organization(AbstractOrganization):
 
         return org
 
-    @property
-    def email(self):
-        """
-        As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute.
-        """
-        try:
-            return self.owner_user_object.email
-        except AttributeError:
-            return
-
     @cache_for_request
     def get_user_role(self, user: 'User') -> OrganizationRole:
 
@@ -157,6 +158,7 @@ class Organization(AbstractOrganization):
             return ORG_ADMIN_ROLE
 
         return ORG_MEMBER_ROLE
+
 
     @cache_for_request
     def is_admin(self, user: 'User') -> bool:
