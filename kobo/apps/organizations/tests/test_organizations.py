@@ -109,7 +109,9 @@ class OrganizationTestCase(TestCase):
 
         anotheruser_extra_details = self.anotheruser.extra_details
         anotheruser_extra_details.data['organization'] = 'AnotherUser Enterprises'
-        anotheruser_extra_details.data['organization_website'] = 'https://anotheruser.org/'
+        anotheruser_extra_details.data['organization_website'] = (
+            'https://anotheruser.org/'
+        )
         anotheruser_extra_details.data['organization_type'] = 'commercial'
         anotheruser_extra_details.save()
         organization.refresh_from_db()

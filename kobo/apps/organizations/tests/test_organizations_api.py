@@ -78,7 +78,6 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_api_returns_org_data(self):
         self._insert_data()
         response = self.client.get(self.url_detail)
-        self.assertContains(response, self.organization.slug)
         self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
 

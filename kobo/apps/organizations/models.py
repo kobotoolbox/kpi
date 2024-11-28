@@ -174,7 +174,6 @@ class Organization(AbstractOrganization):
 
         return ORG_MEMBER_ROLE
 
-
     @cache_for_request
     def is_admin(self, user: 'User') -> bool:
         """
@@ -261,8 +260,8 @@ class OrganizationUser(AbstractOrganizationUser):
     @property
     def active_subscription_status(self):
         """
-        Return a comma-separated string of active subscriptions for the organization
-        user.
+        Return a comma-separated string of active subscriptions for the
+        organization user.
         """
         return ', '.join(self.active_subscription_statuses)
 
