@@ -2,7 +2,8 @@ import {makeAutoObservable} from 'mobx';
 import {handleApiFail, fetchGet} from 'js/api';
 import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
-import type {Product, SubscriptionInfo} from 'js/account/stripe.types';
+import {PlanNames, type Product, type SubscriptionInfo} from 'js/account/stripe.types';
+import envStore from 'js/envStore';
 
 const PRODUCTS_URL = '/api/v2/stripe/products/';
 
@@ -41,6 +42,22 @@ class SubscriptionStore {
           t('There was an issue fetching your plan information.')
         );
       });
+  }
+
+  /*
+   * The plan name displayed to the user. This will display, in order of precedence:
+   * * The user's active plan subscription
+   * * The FREE_TIER_DISPLAY["name"] setting (if the user registered before FREE_TIER_CUTOFF_DATE
+   * * The free plan
+   */
+  public get planName() {
+    if (
+      this.planResponse.length &&
+      this.planResponse[0].items.length
+    ) {
+      return this.planResponse[0].items[0].price.product.name;
+    }
+    return envStore.data?.free_tier_display?.name || PlanNames.FREE;
   }
 
   private onFetchSubscriptionInfoDone(

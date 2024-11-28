@@ -33,18 +33,7 @@ export const YourPlan = () => {
   const [session] = useState(() => sessionStore);
   const [productsContext] = useContext(ProductsContext);
 
-  /*
-   * The plan name displayed to the user. This will display, in order of precedence:
-   * * The user's active plan subscription
-   * * The FREE_TIER_DISPLAY["name"] setting (if the user registered before FREE_TIER_CUTOFF_DATE
-   * * The free plan
-   */
-  const planName = useMemo(() => {
-    if (subscriptions.planResponse.length) {
-      return subscriptions.planResponse[0].items[0].price.product.name;
-    }
-    return env.data?.free_tier_display?.name || PlanNames.FREE;
-  }, [env.isReady, subscriptions.isInitialised]);
+  const planName = subscriptions.planName;
 
   // The start date of the user's plan. Defaults to the account creation date if the user doesn't have a subscription.
   const startDate = useMemo(() => {
