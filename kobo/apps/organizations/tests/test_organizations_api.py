@@ -539,7 +539,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         ('bob', False, False, status.HTTP_200_OK),
     )
     @unpack
-    def test_can_archive_or_unarchive(
+    def test_can_archive_or_unarchive_project(
         self,
         username: str,
         owned_by_org: bool,
