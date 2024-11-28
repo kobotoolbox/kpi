@@ -100,13 +100,13 @@ export default function OrganizationSettingsRoute() {
     <div className={styles.orgSettingsRoot}>
       <header className={styles.orgSettingsHeader}>
         <h2 className={styles.orgSettingsHeaderText}>
-          {t('##team or org## details').replace('##team or org##', mmoLabel)}
+          {t('##team/org## details').replace('##team/org##', mmoLabel)}
         </h2>
       </header>
 
       <section className={styles.fieldsRow}>
         <OrganizationSettingsField
-          label={t('##team or org## name').replace('##team or org##', mmoLabel)}
+          label={t('##team/org## name').replace('##team/org##', mmoLabel)}
           onChange={handleChangeName}
           value={state.name}
           validateValue={isNameValueValid}
@@ -115,7 +115,7 @@ export default function OrganizationSettingsRoute() {
 
         {isStripeEnabled && state.website && (
           <OrganizationSettingsField
-            label={t('##team or org## website').replace('##team or org##', mmoLabel)}
+            label={t('##team/org## website').replace('##team/org##', mmoLabel)}
             onChange={handleChangeWebsite}
             value={state.website}
             validateValue={isWebsiteValueValid}
@@ -127,7 +127,7 @@ export default function OrganizationSettingsRoute() {
       <section className={styles.fieldsRow}>
         {isStripeEnabled && state.type && (
           <OrganizationSettingsField
-            label={t('##team or org## type').replace('##team or org##', mmoLabel)}
+            label={t('##team/org## type').replace('##team/org##', mmoLabel)}
             value={getTypeLabel(state.type)}
             isDisabled
           />
@@ -146,8 +146,8 @@ export default function OrganizationSettingsRoute() {
       <InlineMessage
         type='default'
         message={
-          t("To delete this ##team or org##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##team or org##'s projects will be converted to projects owned by your personal account.")
-            .replaceAll('##team or org##', mmoLabelLowercase)
+          t("To delete this ##team/org##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##team/org##'s projects will be converted to projects owned by your personal account.")
+            .replaceAll('##team/org##', mmoLabelLowercase)
             .replace('##plan name##', subscriptions.planName)
         }
       />
