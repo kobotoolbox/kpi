@@ -78,7 +78,7 @@ export default function MemberActionsDropdown(
         name={`member-actions-dropdown-${username}`}
         placement='down-right'
         hideOnMenuClick
-        triggerContent={<Button type='text' size='m' startIcon='more-vertical'/>}
+        triggerContent={<Button type='text' size='m' startIcon='more'/>}
         menuContent={
           <div className={styles.menuContenet}>
             <Button
