@@ -98,7 +98,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 pass
             else:
                 user_organization.website = organization_website
-                fields_to_update.append('organization_website')
+                fields_to_update.append('website')
 
             if fields_to_update:
                 user_organization.save(update_fields=fields_to_update)

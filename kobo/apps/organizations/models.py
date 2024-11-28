@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
+from django.utils.translation import gettext_lazy as t
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Customer, Subscription
@@ -37,10 +38,24 @@ OrganizationRole = Literal[
 ]
 
 
+class OrganizationType(models.TextChoices):
+    NON_PROFIT = 'non-profit', t('Non-profit organization')
+    GOVERNMENT = 'government', t('Government institution')
+    EDUCATIONAL = 'educational', t('Educational organization')
+    COMMERCIAL = 'commercial', t('A commercial/for-profit company')
+    NONE = 'none', t('I am not associated with any organization')
+
+
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
     mmo_override = models.BooleanField(
         default=False, verbose_name='Multi-members override'
+    )
+    website = models.CharField(default='', max_length=255)
+    organization_type = models.CharField(
+        default=OrganizationType.NONE,
+        max_length=20,
+        choices=OrganizationType.choices,
     )
 
     def add_user(self, user, is_admin=False):

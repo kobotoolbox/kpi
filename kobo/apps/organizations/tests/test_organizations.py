@@ -104,7 +104,7 @@ class OrganizationTestCase(TestCase):
         organization = self.anotheruser.organization
         assert organization.is_mmo is False
         assert organization.website == ''
-        assert organization.organization_type is None
+        assert organization.organization_type == 'none'
         assert organization.name == 'anotheruser’s organization'
 
         anotheruser_extra_details = self.anotheruser.extra_details
