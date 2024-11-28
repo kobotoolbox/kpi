@@ -37,7 +37,7 @@ const AccountSettings = () => {
     Partial<AccountFieldsValues>
   >({});
 
-  const {currentLoggedAccount} = useSession();
+  const {currentLoggedAccount, refreshAccount} = useSession();
 
   useEffect(() => {
     if (!currentLoggedAccount) {
@@ -86,6 +86,7 @@ const AccountSettings = () => {
       .patchProfile(patchData)
       .done(() => {
         onUpdateComplete();
+        refreshAccount();
       })
       .fail((...args: any) => {
         onUpdateFail(args[0].responseJSON);
