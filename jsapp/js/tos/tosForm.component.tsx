@@ -21,7 +21,7 @@ import type {
   AccountFieldsErrors,
 } from 'js/account/account.constants';
 import {currentLang, notify} from 'js/utils';
-import {useLocalObservable} from 'mobx-react';
+import {useSession} from '../stores/useSession';
 
 /** A slug for the `sitewide_messages` endpoint */
 const TOS_SLUG = 'terms_of_service';
@@ -72,9 +72,7 @@ export default function TOSForm() {
     fieldsToShow.push('newsletter_subscription');
   }
 
-  const currentAccount = useLocalObservable(
-    () => sessionStore.currentAccount as AccountResponse
-  );
+  const {currentLoggedAccount} = useSession();
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -117,7 +115,7 @@ export default function TOSForm() {
   // (including the non-required ones that will be hidden, but passed to the API
   // so that they will not get erased).
   useEffect(() => {
-    if (!currentAccount) {
+    if (!currentLoggedAccount) {
       return;
     }
 
@@ -138,7 +136,7 @@ export default function TOSForm() {
       instagram: data.extra_details.instagram,
       newsletter_subscription: data.extra_details.newsletter_subscription,
     });
-  }, [currentAccount]);
+  }, [currentLoggedAccount]);
 
   const onFieldChange = (fieldName: string, value: string | boolean) => {
     setFormFields({

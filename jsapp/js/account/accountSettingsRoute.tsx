@@ -7,7 +7,6 @@ import bem, {makeBem} from 'js/bem';
 import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import {notify} from 'js/utils';
-import type {AccountResponse} from '../dataInterface';
 import {dataInterface} from '../dataInterface';
 import AccountFieldsEditor from './accountFieldsEditor.component';
 import Avatar from 'js/components/common/avatar';
@@ -39,7 +38,6 @@ const AccountSettings = () => {
     Partial<AccountFieldsValues>
   >({});
 
-  // We're verifying that the user is logged in so we can consider the current account is from a valid logged user
   const {currentLoggedAccount} = useSession();
 
   useEffect(() => {
