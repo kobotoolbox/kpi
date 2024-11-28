@@ -20,7 +20,7 @@ import type {
 } from './account.constants';
 import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 import {useSession} from '../stores/useSession';
-import {useOrganizationQuery} from './stripe.api';
+import {useOrganizationQuery} from './organization/organizationQuery';
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
@@ -45,6 +45,7 @@ const AccountSettings = () => {
   const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
+
     if (!currentLoggedAccount || !orgQuery.data) {
       return;
     }
