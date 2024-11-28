@@ -4,7 +4,6 @@ import Button from 'js/components/common/button';
 import InlineMessage from 'js/components/common/inlineMessage';
 import {unstable_usePrompt as usePrompt} from 'react-router-dom';
 import bem, {makeBem} from 'js/bem';
-import sessionStore from 'js/stores/session';
 import './accountSettings.scss';
 import {notify} from 'js/utils';
 import {dataInterface} from '../dataInterface';
@@ -105,7 +104,7 @@ const AccountSettings = () => {
     setIsPristine(false);
   };
 
-  const accountName = sessionStore.currentAccount.username;
+  const accountName = currentLoggedAccount?.username || '';
 
   return (
     <bem.AccountSettings onSubmit={updateProfile}>

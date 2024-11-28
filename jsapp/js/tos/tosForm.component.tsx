@@ -2,14 +2,9 @@ import type React from 'react';
 import {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
-import sessionStore from 'js/stores/session';
 import {fetchGet, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
-import type {
-  AccountResponse,
-  FailResponse,
-  PaginatedResponse,
-} from 'js/dataInterface';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {
   getInitialAccountFieldsValues,
@@ -72,7 +67,7 @@ export default function TOSForm() {
     fieldsToShow.push('newsletter_subscription');
   }
 
-  const {currentLoggedAccount} = useSession();
+  const {currentLoggedAccount, logOut} = useSession();
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -119,22 +114,23 @@ export default function TOSForm() {
       return;
     }
 
-    const data = sessionStore.currentAccount as AccountResponse;
     setFormFields({
-      name: data.extra_details.name,
-      organization: data.extra_details.organization,
-      organization_website: data.extra_details.organization_website,
-      organization_type: data.extra_details.organization_type,
-      sector: data.extra_details.sector,
-      gender: data.extra_details.gender,
-      bio: data.extra_details.bio,
-      city: data.extra_details.city,
-      country: data.extra_details.country,
-      require_auth: data.extra_details.require_auth,
-      twitter: data.extra_details.twitter,
-      linkedin: data.extra_details.linkedin,
-      instagram: data.extra_details.instagram,
-      newsletter_subscription: data.extra_details.newsletter_subscription,
+      name: currentLoggedAccount.extra_details.name,
+      organization: currentLoggedAccount.extra_details.organization,
+      organization_website:
+        currentLoggedAccount.extra_details.organization_website,
+      organization_type: currentLoggedAccount.extra_details.organization_type,
+      sector: currentLoggedAccount.extra_details.sector,
+      gender: currentLoggedAccount.extra_details.gender,
+      bio: currentLoggedAccount.extra_details.bio,
+      city: currentLoggedAccount.extra_details.city,
+      country: currentLoggedAccount.extra_details.country,
+      require_auth: currentLoggedAccount.extra_details.require_auth,
+      twitter: currentLoggedAccount.extra_details.twitter,
+      linkedin: currentLoggedAccount.extra_details.linkedin,
+      instagram: currentLoggedAccount.extra_details.instagram,
+      newsletter_subscription:
+        currentLoggedAccount.extra_details.newsletter_subscription,
     });
   }, [currentLoggedAccount]);
 
@@ -203,16 +199,12 @@ export default function TOSForm() {
 
   function leaveForm() {
     setIsFormPending(true);
-    sessionStore.logOut();
+    logOut();
   }
 
   // We are waiting for few pieces of data: the message, fields definitions from
   // environment endpoint and fields data from me endpoint
-  if (
-    !announcementMessage ||
-    !envStore.isReady ||
-    !sessionStore.isAuthStateKnown
-  ) {
+  if (!announcementMessage || !envStore.isReady || !currentLoggedAccount) {
     return <LoadingSpinner message={false} />;
   }
 
