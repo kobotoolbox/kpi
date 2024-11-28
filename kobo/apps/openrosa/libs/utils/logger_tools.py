@@ -776,7 +776,6 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
-
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
@@ -786,6 +785,12 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
     )
     soft_deleted_attachments = list(queryset.all())
+
+    # The query below updates only the database records, not the in-memory
+    # `Attachment` objects.
+    # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
+    # in memory after the update.
+    # This behavior is necessary to allow the signal to handle file deletion from storage.
     queryset.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
