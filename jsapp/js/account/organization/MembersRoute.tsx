@@ -10,7 +10,7 @@ import MemberActionsDropdown from './MemberActionsDropdown';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
-import {useOrganizationQuery} from './organizationQuery';
+import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
 import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
@@ -22,10 +22,92 @@ import styles from './membersRoute.module.scss';
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
 
-  if (!orgQuery.data?.id) {
+
+  if (!orgQuery.data) {
     return (
       <LoadingSpinner />
     );
+  }
+
+  const columns = [
+    {
+      key: 'user__extra_details__name',
+      label: t('Name'),
+      cellFormatter: (member: OrganizationMember) => (
+        <Avatar
+          size='m'
+          username={member.user__username}
+          isUsernameVisible
+          email={member.user__email}
+          // We pass `undefined` for the case it's an empty string
+          fullName={member.user__extra_details__name || undefined}
+        />
+      ),
+      size: 360,
+    },
+    {
+      key: 'invite',
+      label: t('Status'),
+      size: 120,
+      cellFormatter: (member: OrganizationMember) => {
+        if (member.invite?.status) {
+          return member.invite.status;
+        } else {
+          return <Badge color='light-green' size='s' label={t('Active')} />;
+        }
+        return null;
+      },
+    },
+    {
+      key: 'date_joined',
+      label: t('Date added'),
+      size: 140,
+      cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
+    },
+    {
+      key: 'role',
+      label: t('Role'),
+      size: 120,
+    },
+    {
+      key: 'user__has_mfa_enabled',
+      label: t('2FA'),
+      size: 90,
+      cellFormatter: (member: OrganizationMember) => {
+        if (member.user__has_mfa_enabled) {
+          return <Badge size='s' color='light-blue' icon='check' />;
+        }
+        return <Badge size='s' color='light-storm' icon='minus' />;
+      },
+    },
+  ];
+
+  // Actions column is only for owner and admins.
+  if (
+    orgQuery.data.request_user_role === OrganizationUserRole.admin ||
+    orgQuery.data.request_user_role === OrganizationUserRole.owner
+  ) {
+    columns.push({
+      // We use `url` here, but the cell would contain interactive UI
+      // element
+      key: 'url',
+      label: '',
+      size: 64,
+      cellFormatter: (member: OrganizationMember) => {
+        // There is no action that can be done on an owner
+        if (member.role === OrganizationUserRole.owner) {
+          return null;
+        }
+
+        return (
+          <MemberActionsDropdown
+            username={member.user__username}
+            currentUserRole={orgQuery.data.request_user_role}
+            onRequestRemove={(username) => {console.log(username);}}
+          />
+        );
+      },
+    });
   }
 
   return (
@@ -36,74 +118,7 @@ export default function MembersRoute() {
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
-        columns={[
-          {
-            key: 'user__extra_details__name',
-            label: t('Name'),
-            cellFormatter: (member: OrganizationMember) => (
-              <Avatar
-                size='m'
-                username={member.user__username}
-                isUsernameVisible
-                email={member.user__email}
-                // We pass `undefined` for the case it's an empty string
-                fullName={member.user__extra_details__name || undefined}
-              />
-            ),
-            size: 360,
-          },
-          {
-            key: 'invite',
-            label: t('Status'),
-            size: 120,
-            cellFormatter: (member: OrganizationMember) => {
-              if (member.invite?.status) {
-                return member.invite.status;
-              } else {
-                return <Badge color='light-green' size='s' label={t('Active')} />;
-              }
-              return null;
-            },
-          },
-          {
-            key: 'date_joined',
-            label: t('Date added'),
-            size: 140,
-            cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
-          },
-          {
-            key: 'role',
-            label: t('Role'),
-            size: 120,
-          },
-          {
-            key: 'user__has_mfa_enabled',
-            label: t('2FA'),
-            size: 90,
-            cellFormatter: (member: OrganizationMember) => {
-              if (member.user__has_mfa_enabled) {
-                return <Badge size='s' color='light-blue' icon='check' />;
-              }
-              return <Badge size='s' color='light-storm' icon='minus' />;
-            },
-          },
-          // TODO: hide this column if current user is not owner/admin
-          {
-            // We use `url` here, but the cell would contain interactive UI
-            // element
-            key: 'url',
-            label: '',
-            size: 64,
-            cellFormatter: (member: OrganizationMember) => (
-              // TODO: this should be only available to admin and member role
-              // TODO: this should not be availabler for a row with a owner member
-              <MemberActionsDropdown
-                username={member.user__username}
-                onRequestRemove={(username) => {console.log(username);}}
-              />
-            ),
-          },
-        ]}
+        columns={columns}
       />
     </div>
   );
