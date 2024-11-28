@@ -9,21 +9,31 @@ import KoboModalFooter from 'jsapp/js/components/modals/koboModalFooter';
 // Stores, hooks and utilities
 import {getSimpleMMOLabel} from './organization.utils';
 import envStore from 'jsapp/js/envStore';
-import subscriptionStore from '../subscriptionStore';
+import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 
 export const REMOVE_SELF_TEXT = {
-  title: t('Leave this ##team or org##'),
-  description: t('Are you sure you want to leave this ##team or org##?'),
-  dangerMessage: t('You will immediately lose access to any projects owned by this ##team or org##. This action cannot be undone.'),
-  confirmButtonLabel: t('Leave ##team or org##'),
+  title: t('Leave this ##team/org##'),
+  description: t('Are you sure you want to leave this ##team/org##?'),
+  dangerMessage: t('You will immediately lose access to any projects owned by this ##team/org##. This action cannot be undone.'),
+  confirmButtonLabel: t('Leave ##team/org##'),
 };
 
 export const REMOVE_MEMBER_TEXT = {
-  title: t('Remove ##username## from this ##team or org##'),
-  description: t('Are you sure you want to remove ##username## from this ##team or org##?'),
-  dangerMessage: t('Removing them from this ##team or org## also means they will immediately lose access to any projects owned by your ##team or org##. This action cannot be undone.'),
+  title: t('Remove ##username## from this ##team/org##'),
+  description: t('Are you sure you want to remove ##username## from this ##team/org##?'),
+  dangerMessage: t('Removing them from this ##team/org## also means they will immediately lose access to any projects owned by your ##team/org##. This action cannot be undone.'),
   confirmButtonLabel: t('Remove member'),
 };
+
+/**
+   * Replaces placeholders with values, assumes all placeholders want to be
+   * lowercase.
+   */
+function replacePlaceholders(text: string, username: string, mmoLabel: string) {
+  return text
+    .replaceAll('##username##', username)
+    .replaceAll('##team/org##', mmoLabel);
+}
 
 interface MemberRemoveModalProps {
   username: string;
@@ -48,7 +58,7 @@ export default function MemberRemoveModal(
     envStore.data,
     subscriptionStore.activeSubscriptions[0],
     false,
-    true
+    false
   );
 
   // Choose proper text
@@ -57,14 +67,11 @@ export default function MemberRemoveModal(
   let dangerMessage = isRemovingSelf ? REMOVE_SELF_TEXT.dangerMessage : REMOVE_MEMBER_TEXT.dangerMessage;
   let confirmButtonLabel = isRemovingSelf ? REMOVE_SELF_TEXT.confirmButtonLabel : REMOVE_MEMBER_TEXT.confirmButtonLabel;
 
-  // Replace placeholders with values
-  function replacePlaceholders(text: string): string {
-    return text.replaceAll('##username##', username).replaceAll('##team or org##', mmoLabel);
-  }
-  title = replacePlaceholders(title);
-  description = replacePlaceholders(description);
-  dangerMessage = replacePlaceholders(dangerMessage);
-  confirmButtonLabel = replacePlaceholders(confirmButtonLabel);
+  // Replace placeholders with proper strings
+  title = replacePlaceholders(title, username, mmoLabel);
+  description = replacePlaceholders(description, username, mmoLabel);
+  dangerMessage = replacePlaceholders(dangerMessage, username, mmoLabel);
+  confirmButtonLabel = replacePlaceholders(confirmButtonLabel, username, mmoLabel);
 
   return (
     <KoboModal
@@ -78,7 +85,7 @@ export default function MemberRemoveModal(
       <KoboModalContent>
         <p>{description}</p>
 
-        <InlineMessage type='info' icon='information' message={dangerMessage}/>
+        <InlineMessage type='error' icon='alert' message={dangerMessage}/>
       </KoboModalContent>
 
       <KoboModalFooter>

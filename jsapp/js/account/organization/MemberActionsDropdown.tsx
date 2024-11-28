@@ -9,6 +9,9 @@ import MemberRemoveModal, {REMOVE_SELF_TEXT} from './MemberRemoveModal';
 
 // Stores, hooks and utilities
 import {useSession} from 'jsapp/js/stores/useSession';
+import {getSimpleMMOLabel} from './organization.utils';
+import envStore from 'jsapp/js/envStore';
+import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 
 // Constants and types
 import {OrganizationUserRole} from './organizationQuery';
@@ -57,7 +60,14 @@ export default function MemberActionsDropdown(
   // Different button label when user is removing themselves
   let removeButtonLabel = t('Remove');
   if (isAdminRemovingSelf) {
-    removeButtonLabel = REMOVE_SELF_TEXT.confirmButtonLabel;
+    const mmoLabel = getSimpleMMOLabel(
+      envStore.data,
+      subscriptionStore.activeSubscriptions[0],
+      false,
+      false
+    );
+    removeButtonLabel = REMOVE_SELF_TEXT.confirmButtonLabel
+      .replace('##team/org##', mmoLabel);
   }
 
   return (
