@@ -5,11 +5,7 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
@@ -1299,7 +1295,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             attachment_storage_bytes=F('attachment_storage_bytes')
             - self.xform.attachment_storage_bytes
         )
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+        UserProfile.objects.filter(user_id=new_owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
         )

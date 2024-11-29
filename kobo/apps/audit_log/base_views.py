@@ -39,6 +39,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
         request._request.log_type = self.log_type
+        request._request._data = request.data.copy()
         return request
 
     def get_object(self):

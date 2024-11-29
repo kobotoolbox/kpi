@@ -3,10 +3,7 @@ import logging
 import re
 import sys
 from datetime import datetime, timedelta
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from celery import shared_task
 from django.conf import settings
