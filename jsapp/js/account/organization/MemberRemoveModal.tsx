@@ -51,7 +51,7 @@ export default function MemberRemoveModal(
     username,
     isRemovingSelf,
     onConfirm,
-    onCancel
+    onCancel,
   }: MemberRemoveModalProps
 ) {
   const mmoLabel = getSimpleMMOLabel(

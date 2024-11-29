@@ -22,7 +22,6 @@ import styles from './membersRoute.module.scss';
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
 
-
   if (!orgQuery.data) {
     return (
       <LoadingSpinner />
