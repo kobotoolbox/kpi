@@ -19,6 +19,10 @@ export interface Organization {
   request_user_role: OrganizationUserRole;
 }
 
+/**
+ * Note that it's only possible to update the role via API to either `admin` or
+ * `member`.
+ */
 export enum OrganizationUserRole {
   member = 'member',
   admin = 'admin',

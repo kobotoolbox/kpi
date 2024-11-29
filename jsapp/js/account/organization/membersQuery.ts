@@ -1,7 +1,7 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {fetchGet} from 'js/api';
+import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
 import {useOrganizationQuery, type OrganizationUserRole} from './organizationQuery';
 
@@ -32,6 +32,34 @@ export interface OrganizationMember {
     date_modified: string;
     status: 'sent' | 'accepted' | 'expired' | 'declined';
   };
+}
+
+/**
+ * For updating member within given organization. Accepts partial properties
+ * of `OrganizationMember`.
+ */
+export async function patchOrganizationMember(
+  organizationId: string,
+  username: string,
+  newMemberData: Partial<OrganizationMember>
+) {
+  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', organizationId)
+    .replace(':username', username);
+  return fetchPatch<OrganizationMember>(apiUrl, newMemberData);
+}
+
+/**
+ * For removing member from given organization.
+ */
+export async function removeOrganizationMember(
+  organizationId: string,
+  username: string
+) {
+  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', organizationId)
+    .replace(':username', username);
+  return fetchDelete(apiUrl);
 }
 
 /**
