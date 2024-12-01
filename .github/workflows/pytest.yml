@@ -2,11 +2,10 @@
 
 name: pytest
 
-on:
-  workflow_call:
+on: [workflow_call]
 
 jobs:
-  pytest:
+  build:
     runs-on: ubuntu-20.04
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test

@@ -1,6 +1,3 @@
-
-# 🗨️🖼️ to keep output tidy and legible, this workflow triggers most of the other ones. hence, the simple, generic name (which will show up as prefix to most others)
-# 🗨️ hat tip to enketo-core - converged towards this solution and found out they did the same thing. looks good
 name: ci
 
 on:
