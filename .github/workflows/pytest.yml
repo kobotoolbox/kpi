@@ -6,6 +6,7 @@ on:
   workflow_call:
 
 jobs:
+  pytest:
     runs-on: ubuntu-20.04
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
