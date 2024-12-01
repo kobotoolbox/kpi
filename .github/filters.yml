@@ -11,7 +11,7 @@ npm-test:
   #   In the future we should re-run test whenever the ci logic is modified.
   #   but during this PR draft, I want to test if the logic would result
   #   in a skip if the rule was already established
-  # - '.github/workflows/npm-test.yml'                              # ci
+  - '.github/workflows/npm-test.yml'                              # ci
 
 pytest:
   - '{kpi,kobo,hub}/**/*.!(md)'    # backend
@@ -19,14 +19,14 @@ pytest:
   - 'pyproject.toml'               # (can affect build/tests)
 
   # WIP
-  # - '.github/workflows/pytest.yml' # ci
+  - '.github/workflows/pytest.yml' # ci
 
 darker:
   - '{kpi,kobo,hub}/**/*.py'        # .py
   - 'pyproject.toml'                # rules
 
   # WIP
-  # - '.github/workflows/darker.yml'  # ci
+  - '.github/workflows/darker.yml'  # ci
 
 unknown:
   # New and unrecognized files can affect CI test results.
