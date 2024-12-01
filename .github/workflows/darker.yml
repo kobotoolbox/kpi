@@ -1,24 +1,10 @@
 name: Python linter (Darker)
 
-on: [pull_request]
+on:
+  workflow_call:
+
 jobs:
-  changes:
-    name: skip-if-unchanged
-    runs-on: ubuntu-22.04
-    permissions:
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with: { filters: .github/filters.yml }
-    outputs:
-      darker: ${{ steps.filter.outputs.should-run-darker }}
-
   darker:
-    needs: changes
-    if: ${{ needs.changes.outputs.darker == 'true' }}
-
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

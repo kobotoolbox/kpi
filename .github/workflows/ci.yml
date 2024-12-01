@@ -1,0 +1,47 @@
+
+# 🗨️🖼️ to keep output tidy and legible, this workflow triggers most of the other ones. hence, the simple, generic name (which will show up as prefix to most others)
+# 🗨️ hat tip to enketo-core - converged towards this solution and found out they did the same thing. looks good
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  changes:
+    runs-on:     ubuntu-latest
+    permissions: { pull-requests: read }
+    steps:
+      - uses: actions/checkout@v4
+      - id:   filter
+        uses: dorny/paths-filter@v3
+        with: { filters: .github/filters.yml }
+    outputs:
+      npm-test: ${{ steps.filter.outputs.npm-test }}
+      pytest:   ${{ steps.filter.outputs.pytest   }}
+      darker:   ${{ steps.filter.outputs.darker   }}
+      unknown:  ${{ steps.filter.outputs.unknown  }}
+
+  npm-test:
+    needs: changes
+    uses: ./.github/workflows/npm-test.yml
+    if: |
+      needs.changes.outputs.npm-test == 'true' ||
+      needs.changes.outputs.unknown  == 'true' ||
+      github.event_name == 'push'
+
+  pytest:
+    needs: changes
+    uses: ./.github/workflows/pytest.yml
+    if: |
+      needs.changes.outputs.pytest  == 'true' ||
+      needs.changes.outputs.unknown == 'true' ||
+      github.event_name == 'push'
+
+  darker:
+    needs: changes
+    uses: ./.github/workflows/darker.yml
+    if: |
+      needs.changes.outputs.darker == 'true' &&
+      github.event_name == 'pull_request'

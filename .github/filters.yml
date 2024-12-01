@@ -1,6 +1,6 @@
 # Used by workflows
 
-should-run-npm-test:
+npm-test:
   - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'   # frontend
   - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'       # npm + postinstall
   - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'            # compilers
@@ -13,7 +13,7 @@ should-run-npm-test:
   #   in a skip if the rule was already established
   # - '.github/workflows/npm-test.yml'                              # ci
 
-should-run-pytest:
+pytest:
   - '{kpi,kobo,hub}/**/*.!(md)'    # backend
   - 'dependencies/**/*.!(md)'      # pip
   - 'pyproject.toml'               # (can affect build/tests)
@@ -21,14 +21,14 @@ should-run-pytest:
   # WIP
   # - '.github/workflows/pytest.yml' # ci
 
-should-run-darker:
+darker:
   - '{kpi,kobo,hub}/**/*.py'        # .py
   - 'pyproject.toml'                # rules
 
   # WIP
   # - '.github/workflows/darker.yml'  # ci
 
-new-files-at-root-level:
+unknown:
   # New and unrecognized files can affect CI test results.
   #  - We usually want to err on the side of running tests
   #    instead of skipping them.
