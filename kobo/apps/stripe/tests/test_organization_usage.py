@@ -18,7 +18,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import (
-    generate_enterprise_subscription,
+    generate_mmo_subscription,
     generate_plan_subscription,
 )
 from kobo.apps.stripe.utils import get_organization_plan_limit
@@ -102,7 +102,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         when viewing /service_usage/{organization_id}/
         """
 
-        generate_enterprise_subscription(self.organization)
+        generate_mmo_subscription(self.organization)
 
         # the user should see usage for everyone in their org
         response = self.client.get(self.detail_url)
@@ -133,7 +133,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         # get the average request time for 10 hits to the endpoint
         single_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
 
-        generate_enterprise_subscription(self.organization)
+        generate_mmo_subscription(self.organization)
 
         # get the average request time for 10 hits to the endpoint
         multi_user_time = timeit.timeit(lambda: self.client.get(self.detail_url), number=10)
@@ -146,7 +146,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         """
         Test that multiple hits to the endpoint from the same origin are properly cached
         """
-        generate_enterprise_subscription(self.organization)
+        generate_mmo_subscription(self.organization)
 
         first_response = self.client.get(self.detail_url)
         assert first_response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
@@ -433,7 +433,7 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_successful_retrieval(self):
-        generate_enterprise_subscription(self.organization)
+        generate_mmo_subscription(self.organization)
         create_mock_assets([self.anotheruser])
         response = self.client.get(self.detail_url)
         assert response.status_code == status.HTTP_200_OK
@@ -441,22 +441,14 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.data['results'][0]['asset__name'] == 'test'
         assert response.data['results'][0]['deployment_status'] == 'deployed'
 
-    def test_aggregates_usage_for_enterprise_org(self):
-        generate_enterprise_subscription(self.organization)
+    def test_aggregates_usage_for_mmo(self):
+        generate_mmo_subscription(self.organization)
         self.organization.add_user(self.newuser)
         # create 2 additional assets, one per user
         create_mock_assets([self.anotheruser, self.newuser])
         response = self.client.get(self.detail_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 2
-
-    def test_users_without_enterprise_see_only_their_usage(self):
-        generate_plan_subscription(self.organization)
-        self.organization.add_user(self.newuser)
-        create_mock_assets([self.anotheruser, self.newuser])
-        response = self.client.get(self.detail_url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
 
 
 @ddt
@@ -473,7 +465,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         self.organization.add_user(self.anotheruser, is_admin=True)
 
     def test_get_plan_community_limit(self):
-        generate_enterprise_subscription(self.organization)
+        generate_mmo_subscription(self.organization)
         limit = get_organization_plan_limit(self.organization, 'seconds')
         assert limit == 2000  # TODO get the limits from the community plan, overrides
         limit = get_organization_plan_limit(self.organization, 'characters')
@@ -504,3 +496,28 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(self.organization, metadata=product_metadata)
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == float('inf')
+
+
+@override_settings(STRIPE_ENABLED=True)
+class OrganizationsModelIntegrationTestCase(BaseTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = self.someuser.organization
+
+    def test_is_mmo_subscription_logic(self):
+        product_metadata = {
+            'mmo_enabled': 'false',
+        }
+        subscription = generate_plan_subscription(
+            self.organization, metadata=product_metadata
+        )
+        assert self.organization.is_mmo is False
+        subscription.status = 'canceled'
+        subscription.ended_at = timezone.now()
+        subscription.save()
+
+        product_metadata['mmo_enabled'] = 'true'
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+        assert self.organization.is_mmo is True

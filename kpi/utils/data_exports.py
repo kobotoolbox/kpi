@@ -93,7 +93,9 @@ CONFIG = {
         'columns': USER_FIELDS + METADATA_FIELDS,
     },
     'access_logs_export': {
-        'queryset': lambda: apps.get_model('audit_log', 'AccessLog').objects.all(),
+        'queryset': lambda: apps.get_model('audit_log', 'AccessLog')
+        .objects.all()
+        .order_by('-date_created'),
         'key': 'metadata',
         'columns': ACCESS_LOGS_EXPORT_FIELDS,
     },

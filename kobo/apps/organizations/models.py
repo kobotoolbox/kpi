@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
+from django.utils.translation import gettext_lazy as t
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Customer, Subscription
@@ -37,10 +38,24 @@ OrganizationRole = Literal[
 ]
 
 
+class OrganizationType(models.TextChoices):
+    NON_PROFIT = 'non-profit', t('Non-profit organization')
+    GOVERNMENT = 'government', t('Government institution')
+    EDUCATIONAL = 'educational', t('Educational organization')
+    COMMERCIAL = 'commercial', t('A commercial/for-profit company')
+    NONE = 'none', t('I am not associated with any organization')
+
+
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
     mmo_override = models.BooleanField(
         default=False, verbose_name='Multi-members override'
+    )
+    website = models.CharField(default='', max_length=255)
+    organization_type = models.CharField(
+        default=OrganizationType.NONE,
+        max_length=20,
+        choices=OrganizationType.choices,
     )
 
     def add_user(self, user, is_admin=False):
@@ -117,8 +132,20 @@ class Organization(AbstractOrganization):
 
         return None
 
+    @property
+    def email(self):
+        """
+        As organization is our customer model for Stripe, Stripe requires that
+        it has an email address attribute.
+        """
+        try:
+            return self.owner_user_object.email
+        except AttributeError:
+            return
+
     @classmethod
-    def get_from_user_id(cls, user_id: int):
+    @cache_for_request
+    def get_from_user_id(cls, user_id: int) -> 'Organization':
         """
         Get organization that this user is a member of.
         """
@@ -132,17 +159,6 @@ class Organization(AbstractOrganization):
         )
 
         return org
-
-    @property
-    def email(self):
-        """
-        As organization is our customer model for Stripe, Stripe requires that
-        it has an email address attribute.
-        """
-        try:
-            return self.owner_user_object.email
-        except AttributeError:
-            return
 
     @cache_for_request
     def get_user_role(self, user: 'User') -> OrganizationRole:
@@ -175,11 +191,19 @@ class Organization(AbstractOrganization):
 
         This returns True if:
         - A superuser has enabled the override (`mmo_override`), or
-        - The organization has an active subscription.
+        - The organization has an active subscription to a plan with
+          mmo_enabled set to 'true' in the Stripe product metadata.
 
         If the override is enabled, it takes precedence over the subscription status
         """
-        return self.mmo_override or bool(self.active_subscription_billing_details())
+        if self.mmo_override:
+            return True
+
+        if billing_details := self.active_subscription_billing_details():
+            if product_metadata := billing_details.get('product_metadata'):
+                return product_metadata.get('mmo_enabled') == 'true'
+
+        return False
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
@@ -236,8 +260,8 @@ class OrganizationUser(AbstractOrganizationUser):
     @property
     def active_subscription_status(self):
         """
-        Return a comma-separated string of active subscriptions for the organization
-        user.
+        Return a comma-separated string of active subscriptions for the
+        organization user.
         """
         return ', '.join(self.active_subscription_statuses)
 

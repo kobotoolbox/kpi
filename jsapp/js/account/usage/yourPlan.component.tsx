@@ -14,6 +14,8 @@ import {
 import {ProductsContext} from '../useProducts.hook';
 import {getSubscriptionChangeDetails} from '../stripe.utils';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {useOrganizationQuery} from '../organization/organizationQuery';
+import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.RENEWAL]: 'light-blue',
@@ -32,19 +34,10 @@ export const YourPlan = () => {
   const [env] = useState(() => envStore);
   const [session] = useState(() => sessionStore);
   const [productsContext] = useContext(ProductsContext);
+  const orgQuery = useOrganizationQuery();
+  const areMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
 
-  /*
-   * The plan name displayed to the user. This will display, in order of precedence:
-   * * The user's active plan subscription
-   * * The FREE_TIER_DISPLAY["name"] setting (if the user registered before FREE_TIER_CUTOFF_DATE
-   * * The free plan
-   */
-  const planName = useMemo(() => {
-    if (subscriptions.planResponse.length) {
-      return subscriptions.planResponse[0].items[0].price.product.name;
-    }
-    return env.data?.free_tier_display?.name || PlanNames.FREE;
-  }, [env.isReady, subscriptions.isInitialised]);
+  const planName = subscriptions.planName;
 
   // The start date of the user's plan. Defaults to the account creation date if the user doesn't have a subscription.
   const startDate = useMemo(() => {
@@ -68,6 +61,10 @@ export const YourPlan = () => {
       return null;
     }
   }, [env.isReady, subscriptions.isInitialised]);
+
+  const showPlanUpdateLink = areMmosEnabled
+    ? orgQuery.data?.request_user_role === 'owner'
+    : true;
 
   const subscriptionUpdate = useMemo(() => {
     return getSubscriptionChangeDetails(currentPlan, productsContext.products);
@@ -127,20 +124,22 @@ export const YourPlan = () => {
             />
           )}
         </div>
-        <nav>
-          <BillingButton
-            label={'See plans'}
-            type='secondary'
-            onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
-          />
-          {/* This is commented out until the add-ons tab on the Plans page is implemented
-        <BillingButton
-          label={'get add-ons'}
-          // TODO: change this to point to the add-ons tab
-          onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
-        />
-         */}
-        </nav>
+        {showPlanUpdateLink && (
+          <nav>
+            <BillingButton
+              label={'See plans'}
+              type='secondary'
+              onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
+            />
+            {/* This is commented out until the add-ons tab on the Plans page is implemented
+              <BillingButton
+                label={'get add-ons'}
+                // TODO: change this to point to the add-ons tab
+                onClick={() => window.location.assign('#' + ACCOUNT_ROUTES.PLAN)}
+              />
+            */}
+          </nav>
+        )}
       </section>
       {subscriptionUpdate?.type === SubscriptionChangeType.CANCELLATION && (
         <div className={styles.subscriptionChangeNotice}>
