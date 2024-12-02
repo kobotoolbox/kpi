@@ -11,7 +11,7 @@ import MemberActionsDropdown from './MemberActionsDropdown';
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
-import useOrganizationMembersQuery from './membersQuery';
+import useOrganizationMembersQuery, {useRemoveOrganizationMember} from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -21,6 +21,7 @@ import styles from './membersRoute.module.scss';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
+  const removeMemberQuery = useRemoveOrganizationMember();
 
   if (!orgQuery.data) {
     return (
@@ -102,7 +103,9 @@ export default function MembersRoute() {
           <MemberActionsDropdown
             username={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
-            onRequestRemove={(username) => {console.log(username);}}
+            onRequestRemove={(username) => {
+              removeMemberQuery.mutateAsync({orgId: orgQuery.data.id, username: username});
+            }}
           />
         );
       },
