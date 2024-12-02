@@ -7,11 +7,12 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
+import MemberRoleSelector from './MemberRoleSelector';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
-import useOrganizationMembersQuery, {useRemoveOrganizationMember} from './membersQuery';
+import useOrganizationMembersQuery, {useRemoveOrganizationMember, usePatchOrganizationMember} from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -22,6 +23,7 @@ import styles from './membersRoute.module.scss';
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
   const removeMember = useRemoveOrganizationMember();
+  const patchMember = usePatchOrganizationMember();
 
   if (!orgQuery.data) {
     return (
@@ -68,6 +70,29 @@ export default function MembersRoute() {
       key: 'role',
       label: t('Role'),
       size: 120,
+      cellFormatter: (member: OrganizationMember) => {
+        if (member.role === OrganizationUserRole.owner) {
+          return t('Owner');
+        }
+        return (
+          <MemberRoleSelector
+            username={member.user__username}
+            role={member.role}
+            onRequestRoleChange={
+              (
+                username: string,
+                newRole: OrganizationUserRole
+              ) => {
+                patchMember.mutateAsync({
+                  orgId: orgQuery.data.id,
+                  username: username,
+                  newMemberData: {role: newRole},
+                });
+              }
+            }
+          />
+        );
+      }
     },
     {
       key: 'user__has_mfa_enabled',
