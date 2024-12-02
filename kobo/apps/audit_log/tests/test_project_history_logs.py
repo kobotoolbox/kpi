@@ -878,7 +878,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # can't use _base_project_history_log_test because
         # the old endpoint doesn't like format=json
         self.client.post(
-            path=reverse('exporttask-list'),
+            path=reverse('submissionexporttask-list'),
             data=request_data,
         )
 
