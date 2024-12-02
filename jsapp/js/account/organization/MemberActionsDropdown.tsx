@@ -12,6 +12,7 @@ import {useSession} from 'jsapp/js/stores/useSession';
 import {getSimpleMMOLabel} from './organization.utils';
 import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
+import {useRemoveOrganizationMember} from './membersQuery';
 
 // Constants and types
 import {OrganizationUserRole} from './organizationQuery';
@@ -20,6 +21,7 @@ import {OrganizationUserRole} from './organizationQuery';
 import styles from './memberActionsDropdown.module.scss';
 
 interface MemberActionsDropdownProps {
+  orgId: string;
   /** Target member username. */
   username: string;
   /**
@@ -27,16 +29,16 @@ interface MemberActionsDropdownProps {
    * wants to do the actions (not the role of the target member).
    */
   currentUserRole: OrganizationUserRole;
-  onRequestRemove: (username: string) => void;
 }
 
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown(
-  {username, currentUserRole, onRequestRemove}: MemberActionsDropdownProps
+  {orgId, username, currentUserRole}: MemberActionsDropdownProps
 ) {
   const session = useSession();
+  const removeMember = useRemoveOrganizationMember(orgId);
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
 
   // Wait for session
@@ -78,7 +80,7 @@ export default function MemberActionsDropdown(
           isRemovingSelf={isAdminRemovingSelf}
           onConfirm={() => {
             setIsRemoveModalVisible(false);
-            onRequestRemove(username);
+            removeMember.mutateAsync(username);
           }}
           onCancel={() => setIsRemoveModalVisible(false)}
         />
