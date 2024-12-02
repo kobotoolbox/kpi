@@ -16,7 +16,6 @@ jobs:
       darker:   ${{ steps.filter.outputs.darker   }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
-      unknown:  ${{ steps.filter.outputs.unknown  }}
 
   darker:
     needs: changes
@@ -26,13 +25,9 @@ jobs:
   pytest:
     needs: changes
     uses: ./.github/workflows/pytest.yml
-    if: |
-      needs.changes.outputs.pytest  == 'true' ||
-      needs.changes.outputs.unknown == 'true'
+    if: needs.changes.outputs.pytest == 'true'
 
   npm-test:
     needs: changes
     uses: ./.github/workflows/npm-test.yml
-    if: |
-      needs.changes.outputs.npm-test == 'true' ||
-      needs.changes.outputs.unknown  == 'true'
+    if: needs.changes.outputs.npm-test == 'true'

@@ -21,6 +21,3 @@ npm-test:
   - '{.editorconfig,.prettier*,.stylelint*,.eslint*,coffeelint*}' # linters
   - '.gitignore'                                                  # (can affect tools)
   - '.github/workflows/npm-test.yml'                              # ci
-
-unknown: # return 'true' if a file was added but not listed here yet
-  - '!(((\.github|\.storybook|\.tx|cypress|dependencies|docker|hub|jsapp|kobo|kpi|patches|scripts|static|test|webpack)/**)|(\.babelrc\.json|\.browserslistrc|\.coveragerc|\.dockerignore|\.editorconfig|\.eslintignore|\.eslintrc\.js|\.git-blame-ignore-revs|\.gitattributes|\.gitignore|\.gitlab-ci\.yml|\.gitmodules|\.node-version|\.nvmrc|\.prettierrc\.js|\.stylelintrc\.js|\.swcrc|CONTRIBUTING\.md|Dockerfile|LICENSE|README\.md|coffeelint\.json|dependabot\.yml|format-python\.sh|kpi\.code-workspace|locale|manage\.py|package-lock\.json|package\.json|pip-compile\.sh|pyproject\.toml|tsconfig\.json))'
