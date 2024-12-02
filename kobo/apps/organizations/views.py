@@ -9,10 +9,7 @@ from django.db.models import (
     OuterRef,
 )
 from django.db.models.expressions import Exists
-from django.utils.decorators import method_decorator
 from django.utils.http import http_date
-from django.views.decorators.cache import cache_page
-from django_dont_vary_on.decorators import only_vary_on
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -69,10 +66,6 @@ class OrganizationAssetViewSet(AssetViewSet):
             raise NotImplementedError
 
 
-@method_decorator(cache_page(settings.ENDPOINT_CACHE_DURATION), name='service_usage')
-# django uses the Vary header in its caching, and each middleware can potentially add more Vary headers
-# we use this decorator to remove any Vary headers except 'origin' (we don't want to cache between different installs)
-@method_decorator(only_vary_on('Origin'), name='service_usage')
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
