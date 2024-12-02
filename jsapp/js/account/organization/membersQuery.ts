@@ -1,9 +1,22 @@
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
+// Libraries
+import {
+  useQuery,
+  useQueryClient,
+  useMutation,
+  keepPreviousData,
+} from '@tanstack/react-query';
+
+// Stores, hooks and utilities
+import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
+import {
+  useOrganizationQuery,
+  type OrganizationUserRole
+} from './organizationQuery';
+
+// Constants and types
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
-import {useOrganizationQuery, type OrganizationUserRole} from './organizationQuery';
 
 export interface OrganizationMember {
   /**
@@ -34,33 +47,78 @@ export interface OrganizationMember {
   };
 }
 
-/**
- * For updating member within given organization. Accepts partial properties
- * of `OrganizationMember`.
- */
-export async function patchOrganizationMember(
-  organizationId: string,
-  username: string,
-  newMemberData: Partial<OrganizationMember>
-) {
-  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', organizationId)
-    .replace(':username', username);
-  return fetchPatch<OrganizationMember>(apiUrl, newMemberData);
+// -----------------------------------------------------------------------------
+// Updating organization member
+// -----------------------------------------------------------------------------
+
+interface PatchOrgMemberVars {
+  orgId: string;
+  username: string;
+  newMemberData: Partial<OrganizationMember>;
 }
 
 /**
- * For removing member from given organization.
+ * Updates organization member.
+ * Accepts partial properties of `OrganizationMember`.
  */
-export async function removeOrganizationMember(
-  organizationId: string,
-  username: string
-) {
+async function patchOrganizationMember(vars: PatchOrgMemberVars) {
   const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', organizationId)
-    .replace(':username', username);
+    .replace(':organization_id', vars.orgId)
+    .replace(':username', vars.username);
+  return fetchPatch<OrganizationMember>(apiUrl, vars.newMemberData);
+}
+
+/**
+ * Mutation hook for updating organization member. It ensures that all related
+ * queries refetch data (are invalidated).
+ */
+export function usePatchOrganizationMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: PatchOrgMemberVars) => patchOrganizationMember(vars),
+    onSettled: () => {
+      // We invalidate query, so it will refetch (instead of refetching it
+      // directly, see: https://github.com/TanStack/query/discussions/2468)
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+    },
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Removing organization member
+// -----------------------------------------------------------------------------
+
+interface RemoveOrgMemberVars {
+  orgId: string;
+  username: string;
+}
+
+async function removeOrganizationMember(vars: RemoveOrgMemberVars) {
+  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', vars.orgId)
+    .replace(':username', vars.username);
   return fetchDelete(apiUrl);
 }
+
+/**
+ * Mutation hook for removing member from organiztion. It ensures that all
+ * related queries refetch data (are invalidated).
+ */
+export function useRemoveOrganizationMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: RemoveOrgMemberVars) => removeOrganizationMember(vars),
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+    },
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Getting a list of organization members
+// -----------------------------------------------------------------------------
 
 /**
  * Fetches paginated list of members for given organization.
@@ -77,7 +135,8 @@ async function getOrganizationMembers(
     offset: offset.toString(),
   });
 
-  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId);
+  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL
+    .replace(':organization_id', orgId);
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,
