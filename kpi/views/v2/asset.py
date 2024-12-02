@@ -722,6 +722,17 @@ class AssetViewSet(
 
             context_['children_count_per_asset'] = children_count_per_asset
 
+            # 5) Get organization per asset
+            assets = (
+                Asset.objects.filter(id__in=asset_ids)
+                .prefetch_related('owner__organizations_organization')
+            )
+            organization_by_asset = defaultdict(dict)
+            for asset in assets:
+                organization = getattr(asset.owner, 'organization', None)
+                organization_by_asset[asset.id] = organization
+            context_['organization_by_asset'] = organization_by_asset
+
         return context_
 
     def list(self, request, *args, **kwargs):

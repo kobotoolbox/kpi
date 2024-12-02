@@ -1,5 +1,6 @@
 import copy
 import json
+import mock
 import os
 
 import dateutil.parser
@@ -8,6 +9,11 @@ from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import (
+    Organization,
+    OrganizationOwner,
+    OrganizationUser
+)
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
@@ -84,6 +90,66 @@ class AssetListApiTests(BaseAssetTestCase):
                 break
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
+
+    def test_asset_owner_label(self):
+        """
+        Test the behavior of the owner_label field in the Asset API.
+
+        - If the user is an organization owner and the organization is a multi-member
+          organization (MMO), then the `owner_label` should be the organization's name.
+        - If the user is not an organization owner and the organization is a multi-member
+          organization (MMO), then the `owner_label` should be the owner's username.
+        - If the user is an organization owner but the organization is not a multi-member
+          organization (MMO), then the `owner_label` should be the owner's username.
+        """
+        detail_response = self.create_asset()
+        asset_owner_username = detail_response.data.get('owner__username')
+        asset_owner = User.objects.get(username=asset_owner_username)
+
+        # Check the user is an owner of an organization
+        self.assertTrue(asset_owner.is_org_owner)
+
+        # Fetch the assets list and verify the initial owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            asset_owner_username
+        )
+
+        # Mock the is_mmo property to simulate a multi-member organization
+        with mock.patch.object(Organization, 'is_mmo', return_value=True):
+            list_response = self.client.get(self.list_url)
+
+            # Verify the owner_label now reflects the organization's name
+            self.assertEqual(
+                list_response.data['results'][0]['owner_label'],
+                asset_owner.organization.name
+            )
+
+        # Assign a new user as the organization owner
+        another_user = User.objects.get(username='anotheruser')
+        another_org_user = OrganizationUser.objects.create(
+            organization=asset_owner.organization,
+            user=another_user,
+            is_admin=True
+        )
+        org_owner = OrganizationOwner.objects.get(
+            organization=asset_owner.organization
+        )
+        org_owner.organization_user = another_org_user
+        org_owner.save()
+
+        # Verify the ownership change
+        org_owner.refresh_from_db()
+        self.assertEqual(org_owner.organization_user.user, another_user)
+
+        # Verify the owner_label reflects the asset owner's username
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            asset_owner_username,
+        )
+
 
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')

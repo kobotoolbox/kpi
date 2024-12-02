@@ -291,6 +291,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    owner_label = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -407,6 +408,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'data_sharing',
                   'paired_data',
                   'project_ownership',
+                  'owner_label',
                   )
         extra_kwargs = {
             'parent': {
@@ -827,6 +829,19 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    def get_owner_label(self, asset):
+        try:
+            organization = self.context['organization_by_asset'].get(asset.id)
+        except KeyError:
+            organization = asset.owner.organization
+        if (
+            organization
+            and organization.is_owner(asset.owner)
+            and organization.is_mmo
+        ):
+            return organization.name
+        return asset.owner.username
+
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
         Validates `data_sharing`. It is really basic.
@@ -1010,7 +1025,8 @@ class AssetListSerializer(AssetSerializer):
                   'status',
                   'access_types',
                   'children',
-                  'data_sharing'
+                  'data_sharing',
+                  'owner_label',
                   )
 
     def get_permissions(self, asset):
