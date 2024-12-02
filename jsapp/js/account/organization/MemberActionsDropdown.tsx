@@ -12,7 +12,6 @@ import {useSession} from 'jsapp/js/stores/useSession';
 import {getSimpleMMOLabel} from './organization.utils';
 import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
-import {useRemoveOrganizationMember} from './membersQuery';
 
 // Constants and types
 import {OrganizationUserRole} from './organizationQuery';
@@ -38,7 +37,6 @@ export default function MemberActionsDropdown(
   {orgId, username, currentUserRole}: MemberActionsDropdownProps
 ) {
   const session = useSession();
-  const removeMember = useRemoveOrganizationMember(orgId);
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
 
   // Wait for session
@@ -76,11 +74,11 @@ export default function MemberActionsDropdown(
     <>
       {isRemoveModalVisible &&
         <MemberRemoveModal
+          orgId={orgId}
           username={username}
           isRemovingSelf={isAdminRemovingSelf}
-          onConfirm={() => {
+          onConfirmDone={() => {
             setIsRemoveModalVisible(false);
-            removeMember.mutateAsync(username);
           }}
           onCancel={() => setIsRemoveModalVisible(false)}
         />
