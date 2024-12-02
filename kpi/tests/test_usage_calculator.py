@@ -12,7 +12,7 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.tests.utils import generate_enterprise_subscription
+from kobo.apps.stripe.tests.utils import generate_mmo_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -201,7 +201,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
-        generate_enterprise_subscription(organization)
+        generate_mmo_subscription(organization)
 
         calculator = ServiceUsageCalculator(self.someuser, organization)
         submission_counters = calculator.get_submission_counters()

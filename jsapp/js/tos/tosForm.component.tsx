@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
+import type React from 'react';
+import {useState, useEffect} from 'react';
 import Button from 'js/components/common/button';
 import envStore from 'js/envStore';
-import sessionStore from 'js/stores/session';
 import {fetchGet, fetchPatch, fetchPost, handleApiFail} from 'js/api';
 import styles from './tosForm.module.scss';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
@@ -16,6 +16,7 @@ import type {
   AccountFieldsErrors,
 } from 'js/account/account.constants';
 import {currentLang, notify} from 'js/utils';
+import {useSession} from '../stores/useSession';
 
 /** A slug for the `sitewide_messages` endpoint */
 const TOS_SLUG = 'terms_of_service';
@@ -51,10 +52,13 @@ export default function TOSForm() {
   const [announcementMessage, setAnnouncementMessage] = useState<
     string | undefined
   >();
-  const [fields, setFields] = useState<AccountFieldsValues>(
+  const [formFields, setFormFields] = useState<AccountFieldsValues>(
     getInitialAccountFieldsValues()
   );
   const [fieldsErrors, setFieldsErrors] = useState<AccountFieldsErrors>({});
+  const [editedFields, setEditedFields] = useState<
+    Partial<AccountFieldsValues>
+  >({});
 
   const fieldsToShow = envStore.data.getUserMetadataRequiredFieldNames();
   if (
@@ -62,6 +66,8 @@ export default function TOSForm() {
   ) {
     fieldsToShow.push('newsletter_subscription');
   }
+
+  const {currentLoggedAccount, logOut} = useSession();
 
   // Get TOS message from endpoint
   useEffect(() => {
@@ -104,30 +110,40 @@ export default function TOSForm() {
   // (including the non-required ones that will be hidden, but passed to the API
   // so that they will not get erased).
   useEffect(() => {
-    if ('email' in sessionStore.currentAccount) {
-      const data = sessionStore.currentAccount;
-      setFields({
-        name: data.extra_details.name,
-        organization: data.extra_details.organization,
-        organization_website: data.extra_details.organization_website,
-        organization_type: data.extra_details.organization_type,
-        sector: data.extra_details.sector,
-        gender: data.extra_details.gender,
-        bio: data.extra_details.bio,
-        city: data.extra_details.city,
-        country: data.extra_details.country,
-        require_auth: data.extra_details.require_auth,
-        twitter: data.extra_details.twitter,
-        linkedin: data.extra_details.linkedin,
-        instagram: data.extra_details.instagram,
-        newsletter_subscription: data.extra_details.newsletter_subscription,
-      });
+    if (!currentLoggedAccount) {
+      return;
     }
-  }, [sessionStore.isAuthStateKnown]);
 
-  function onAccountFieldsEditorChange(newFields: AccountFieldsValues) {
-    setFields(newFields);
-  }
+    setFormFields({
+      name: currentLoggedAccount.extra_details.name,
+      organization: currentLoggedAccount.extra_details.organization,
+      organization_website:
+        currentLoggedAccount.extra_details.organization_website,
+      organization_type: currentLoggedAccount.extra_details.organization_type,
+      sector: currentLoggedAccount.extra_details.sector,
+      gender: currentLoggedAccount.extra_details.gender,
+      bio: currentLoggedAccount.extra_details.bio,
+      city: currentLoggedAccount.extra_details.city,
+      country: currentLoggedAccount.extra_details.country,
+      require_auth: currentLoggedAccount.extra_details.require_auth,
+      twitter: currentLoggedAccount.extra_details.twitter,
+      linkedin: currentLoggedAccount.extra_details.linkedin,
+      instagram: currentLoggedAccount.extra_details.instagram,
+      newsletter_subscription:
+        currentLoggedAccount.extra_details.newsletter_subscription,
+    });
+  }, [currentLoggedAccount]);
+
+  const onFieldChange = (fieldName: string, value: string | boolean) => {
+    setFormFields({
+      ...formFields,
+      [fieldName]: value,
+    });
+    setEditedFields({
+      ...editedFields,
+      [fieldName]: value,
+    });
+  };
 
   /**
    * Submitting does two things (with two consecutive API calls):
@@ -146,7 +162,7 @@ export default function TOSForm() {
     // them.
     if (fieldsToShow.length > 0) {
       // Get data for the user endpoint
-      const profilePatchData = getProfilePatchData(fields);
+      const profilePatchData = getProfilePatchData(editedFields);
 
       try {
         await fetchPatch(ME_ENDPOINT, profilePatchData);
@@ -183,16 +199,12 @@ export default function TOSForm() {
 
   function leaveForm() {
     setIsFormPending(true);
-    sessionStore.logOut();
+    logOut();
   }
 
   // We are waiting for few pieces of data: the message, fields definitions from
   // environment endpoint and fields data from me endpoint
-  if (
-    !announcementMessage ||
-    !envStore.isReady ||
-    !sessionStore.isAuthStateKnown
-  ) {
+  if (!announcementMessage || !envStore.isReady || !currentLoggedAccount) {
     return <LoadingSpinner message={false} />;
   }
 
@@ -217,8 +229,8 @@ export default function TOSForm() {
           <AccountFieldsEditor
             displayedFields={fieldsToShow}
             errors={fieldsErrors}
-            values={fields}
-            onChange={onAccountFieldsEditorChange}
+            values={formFields}
+            onFieldChange={onFieldChange}
           />
         </section>
       )}
