@@ -12,7 +12,7 @@ import MemberRoleSelector from './MemberRoleSelector';
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
-import useOrganizationMembersQuery, {useRemoveOrganizationMember, usePatchOrganizationMember} from './membersQuery';
+import useOrganizationMembersQuery, {usePatchOrganizationMember} from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -22,7 +22,6 @@ import styles from './membersRoute.module.scss';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
-  const removeMember = useRemoveOrganizationMember();
   const patchMember = usePatchOrganizationMember();
 
   if (!orgQuery.data) {
@@ -126,11 +125,9 @@ export default function MembersRoute() {
 
         return (
           <MemberActionsDropdown
+            orgId={orgQuery.data.id}
             username={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
-            onRequestRemove={(username) => {
-              removeMember.mutateAsync({orgId: orgQuery.data.id, username: username});
-            }}
           />
         );
       },

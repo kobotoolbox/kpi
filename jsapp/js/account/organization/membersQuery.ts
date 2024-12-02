@@ -47,36 +47,22 @@ export interface OrganizationMember {
   };
 }
 
-// -----------------------------------------------------------------------------
-// Updating organization member
-// -----------------------------------------------------------------------------
-
-interface PatchOrgMemberVars {
-  orgId: string;
-  username: string;
-  newMemberData: Partial<OrganizationMember>;
-}
-
-/**
- * Updates organization member.
- * Accepts partial properties of `OrganizationMember`.
- */
-async function patchOrganizationMember(vars: PatchOrgMemberVars) {
-  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', vars.orgId)
-    .replace(':username', vars.username);
-  return fetchPatch<OrganizationMember>(apiUrl, vars.newMemberData);
+function getMemberEndpoint(orgId: string, username: string) {
+  return endpoints.ORGANIZATION_MEMBER_URL
+    .replace(':organization_id', orgId)
+    .replace(':username', username);
 }
 
 /**
  * Mutation hook for updating organization member. It ensures that all related
  * queries refetch data (are invalidated).
  */
-export function usePatchOrganizationMember() {
+export function usePatchOrganizationMember(orgId: string, username: string) {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (vars: PatchOrgMemberVars) => patchOrganizationMember(vars),
+    mutationFn: async (data: Partial<OrganizationMember>) => (
+      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId, username), data)
+    ),
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
       // directly, see: https://github.com/TanStack/query/discussions/2468)
@@ -85,31 +71,16 @@ export function usePatchOrganizationMember() {
   });
 }
 
-// -----------------------------------------------------------------------------
-// Removing organization member
-// -----------------------------------------------------------------------------
-
-interface RemoveOrgMemberVars {
-  orgId: string;
-  username: string;
-}
-
-async function removeOrganizationMember(vars: RemoveOrgMemberVars) {
-  const apiUrl = endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', vars.orgId)
-    .replace(':username', vars.username);
-  return fetchDelete(apiUrl);
-}
-
 /**
  * Mutation hook for removing member from organiztion. It ensures that all
  * related queries refetch data (are invalidated).
  */
-export function useRemoveOrganizationMember() {
+export function useRemoveOrganizationMember(orgId: string) {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (vars: RemoveOrgMemberVars) => removeOrganizationMember(vars),
+    mutationFn: async (username: string) => (
+      fetchDelete(getMemberEndpoint(orgId, username))
+    ),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
     },
