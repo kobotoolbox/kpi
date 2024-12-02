@@ -8,7 +8,7 @@ from django.urls import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.constants import PERM_VIEW_SUBMISSIONS
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.utils.strings import to_str
 
 
@@ -68,7 +68,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         Ignores the order of the rows and columns
         """
 
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
