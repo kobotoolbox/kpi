@@ -1,6 +1,6 @@
-# path filters used by the workflow/ci.yml to decide which tests should run
+# Path filters. Used by workflows/ci.yml to decide which jobs to run.
 
-# if any file changed matches any of the filters in a list, the output for that
+# If any file changed matches any of the filters in a list, the output for that
 # list is set to the string 'true'.
 
 npm-test:
