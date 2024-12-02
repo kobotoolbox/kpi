@@ -21,7 +21,7 @@ import styles from './membersRoute.module.scss';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
-  const removeMemberQuery = useRemoveOrganizationMember();
+  const removeMember = useRemoveOrganizationMember();
 
   if (!orgQuery.data) {
     return (
@@ -104,7 +104,7 @@ export default function MembersRoute() {
             username={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
             onRequestRemove={(username) => {
-              removeMemberQuery.mutateAsync({orgId: orgQuery.data.id, username: username});
+              removeMember.mutateAsync({orgId: orgQuery.data.id, username: username});
             }}
           />
         );

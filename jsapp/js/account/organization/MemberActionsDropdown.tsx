@@ -44,14 +44,14 @@ export default function MemberActionsDropdown(
     return null;
   }
 
-  // Should not happen™, but let's make it foolproof :) Members are not allowed
-  // to do anything here.
+  // Should Not Happen™, but let's make it foolproof :) Members are not allowed
+  // to do anything here under any circumstances.
   if (currentUserRole === OrganizationUserRole.member) {
     return null;
   }
 
   // If logged in user is an admin and tries to remove themselves, we need
-  // different UI.
+  // different UI - thus we check it here.
   const isAdminRemovingSelf = Boolean(
     username === session.currentLoggedAccount?.username &&
     currentUserRole === OrganizationUserRole.admin

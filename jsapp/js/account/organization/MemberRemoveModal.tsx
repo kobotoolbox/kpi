@@ -26,9 +26,9 @@ export const REMOVE_MEMBER_TEXT = {
 };
 
 /**
-   * Replaces placeholders with values, assumes all placeholders want to be
-   * lowercase.
-   */
+ * Replaces placeholders with values.
+ * Note: assumes all placeholders want to be lowercase.
+ */
 function replacePlaceholders(text: string, username: string, mmoLabel: string) {
   return text
     .replaceAll('##username##', username)
@@ -45,6 +45,9 @@ interface MemberRemoveModalProps {
 /**
  * A confirmation prompt modal for removing a user from organization. Displays
  * two buttons and warning message.
+ *
+ * Note: it's always open - if you need to hide it, just don't render it at
+ * the parent level.
  */
 export default function MemberRemoveModal(
   {
@@ -74,12 +77,7 @@ export default function MemberRemoveModal(
   confirmButtonLabel = replacePlaceholders(confirmButtonLabel, username, mmoLabel);
 
   return (
-    <KoboModal
-      // It's always open, to hide it just don't render it at parent level
-      isOpen
-      size='medium'
-      onRequestClose={() => onCancel()}
-    >
+    <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
       <KoboModalHeader>{title}</KoboModalHeader>
 
       <KoboModalContent>
