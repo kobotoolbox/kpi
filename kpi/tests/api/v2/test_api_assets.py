@@ -95,12 +95,12 @@ class AssetListApiTests(BaseAssetTestCase):
         """
         Test the behavior of the owner_label field in the Asset API.
 
-        - If the user is an organization owner and the organization is a multi-member
-          organization (MMO), then the `owner_label` should be the organization's name.
-        - If the user is not an organization owner and the organization is a multi-member
-          organization (MMO), then the `owner_label` should be the owner's username.
-        - If the user is an organization owner but the organization is not a multi-member
-          organization (MMO), then the `owner_label` should be the owner's username.
+        - If the user is an organization owner and the organization is MMO,
+          then the `owner_label` should be the organization's name.
+        - If the user is not an organization owner and the organization is MMO,
+          then the `owner_label` should be the owner's username.
+        - If the user is an organization owner but the organization is not MMO,
+          then the `owner_label` should be the owner's username.
         """
         detail_response = self.create_asset()
         asset_owner_username = detail_response.data.get('owner__username')
@@ -149,7 +149,6 @@ class AssetListApiTests(BaseAssetTestCase):
             list_response.data['results'][0]['owner_label'],
             asset_owner_username,
         )
-
 
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')
