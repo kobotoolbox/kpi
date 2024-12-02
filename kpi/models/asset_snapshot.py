@@ -242,3 +242,18 @@ class AssetSnapshot(
                 'warnings': warnings,
             })
         return xml, details
+
+    @property
+    def xform_root_node_name(self):
+        """
+        Retrieves the name of the XML tag representing the root node of the "survey"
+        in the XForm XML structure.
+
+        This method uses the `name` setting from the XLSForm to determine the tag name.
+        If no name is provided, it falls back to using the asset UID.
+        """
+
+        try:
+            return self.asset.content['settings']['name']
+        except KeyError:
+            return self.asset.uid
