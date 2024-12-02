@@ -40,7 +40,8 @@ OrganizationRole = Literal[
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
     mmo_override = models.BooleanField(
-        default=False, verbose_name='Make organization multi-member (necessary for adding users)'
+        default=False,
+        verbose_name='Make organization multi-member (necessary for adding users)'
     )
 
     def add_user(self, user, is_admin=False):
