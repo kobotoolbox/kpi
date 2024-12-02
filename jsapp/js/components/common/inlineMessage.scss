@@ -50,6 +50,11 @@
   .k-icon {color: colors.$kobo-amber;}
 }
 
+.k-inline-message--type-info {
+  background-color: colors.$kobo-bg-blue;
+  .k-icon {color: colors.$kobo-blue;}
+}
+
 // We need a bit stronger specificity here
 .k-inline-message p.k-inline-message__message {
   margin: 0;
