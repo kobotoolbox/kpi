@@ -37,6 +37,9 @@ ADDED = 'added'
 REMOVED = 'removed'
 
 ANONYMOUS_USER_PERMISSION_ACTIONS = {
+    # key: (permission, granting?), value: ph log action
+    # True means the permission is being granted,
+    # False means it's being revoked
     (PERM_VIEW_ASSET, True): AuditAction.SHARE_FORM_PUBLICLY,
     (PERM_VIEW_SUBMISSIONS, True): AuditAction.SHARE_DATA_PUBLICLY,
     (PERM_ADD_SUBMISSIONS, True): AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS,
