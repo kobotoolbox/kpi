@@ -765,7 +765,7 @@ class ProjectHistoryLog(AuditLog):
         # remove each permission as it is logged so we can see if there
         # are any unusual ones left over
         for combination, action in ANONYMOUS_USER_PERMISSION_ACTIONS.items():
-            # ANONYMOUS_USER_PERMIISSION_ACTIONS has tuples as keys
+            # ANONYMOUS_USER_PERMISSION_ACTIONS has tuples as keys
             permission, was_added = combination
             list_to_update = perms_added if was_added else perms_removed
             if permission in list_to_update:
