@@ -36,7 +36,7 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
             self.standardize_json_field('data', 'organization', str)
             self.standardize_json_field('data', 'name', str)
             if not created:
-                self._sync_org_name()
+                self._sync_org_details()
 
         super().save(
             force_insert=force_insert,
@@ -62,22 +62,43 @@ class ExtraUserDetail(StandardizeSearchableFieldMixin, models.Model):
                 self.validated_password,
             )
 
-    def _sync_org_name(self):
+    def _sync_org_details(self):
         """
-        Synchronizes the `name` field of the Organization model with the
-        "organization" attribute found in the `data` field of ExtraUserDetail,
-        but only if the user is the owner.
+        Synchronizes the `name`, `organization_type`, and `organization_website` fields
+        of the Organization model with the corresponding attributes in the `data` field
+        of ExtraUserDetail. This is performed only if the user is the owner, and their
+        organization is **not** a multi-member organization.
 
-        This ensures that any updates in the metadata are accurately reflected
-        in the organization's name.
+        This ensures that metadata updates are accurately reflected before the
+        organization potentially transitions to a multi-member state.
         """
         user_organization = self.user.organization
-        if user_organization.is_owner(self.user):
+        if user_organization.is_owner(self.user) and not user_organization.is_mmo:
+            fields_to_update = []
             try:
                 organization_name = self.data['organization'].strip()
             except (KeyError, AttributeError):
-                organization_name = None
+                pass
+            else:
+                if organization_name:
+                    user_organization.name = organization_name
+                    fields_to_update.append('name')
 
-            if organization_name:
-                user_organization.name = organization_name
-                user_organization.save(update_fields=['name'])
+            try:
+                organization_type = self.data['organization_type'].strip()
+            except (KeyError, AttributeError):
+                pass
+            else:
+                user_organization.organization_type = organization_type
+                fields_to_update.append('organization_type')
+
+            try:
+                organization_website = self.data['organization_website'].strip()
+            except (KeyError, AttributeError):
+                pass
+            else:
+                user_organization.website = organization_website
+                fields_to_update.append('website')
+
+            if fields_to_update:
+                user_organization.save(update_fields=fields_to_update)
