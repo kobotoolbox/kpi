@@ -87,10 +87,6 @@ export function useRemoveOrganizationMember(orgId: string) {
   });
 }
 
-// -----------------------------------------------------------------------------
-// Getting a list of organization members
-// -----------------------------------------------------------------------------
-
 /**
  * Fetches paginated list of members for given organization.
  * This is mainly needed for `useOrganizationMembersQuery`, so you most probably
