@@ -30,7 +30,8 @@ ENV KPI_LOGS_DIR=/srv/logs \
     TMP_DIR=/srv/tmp \
     UWSGI_USER=kobo \
     UWSGI_GROUP=kobo \
-    INIT_PATH=/srv/init
+    INIT_PATH=/srv/init \
+    PYTHONUNBUFFERED=1
 
 ##########################################
 # Create build directories               #
