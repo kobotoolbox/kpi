@@ -13,10 +13,15 @@ jobs:
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
-      pytest:   ${{ steps.filter.outputs.pytest   }}
       darker:   ${{ steps.filter.outputs.darker   }}
-      unknown:  ${{ steps.filter.outputs.unknown  }}
+      pytest:   ${{ steps.filter.outputs.pytest   }}
       npm-test: ${{ steps.filter.outputs.npm-test }}
+      unknown:  ${{ steps.filter.outputs.unknown  }}
+
+  darker:
+    needs: changes
+    uses: ./.github/workflows/darker.yml
+    if: needs.changes.outputs.darker == 'true'
 
   pytest:
     needs: changes
@@ -24,11 +29,6 @@ jobs:
     if: |
       needs.changes.outputs.pytest  == 'true' ||
       needs.changes.outputs.unknown == 'true'
-
-  darker:
-    needs: changes
-    uses: ./.github/workflows/darker.yml
-    if: needs.changes.outputs.darker == 'true'
 
   npm-test:
     needs: changes
