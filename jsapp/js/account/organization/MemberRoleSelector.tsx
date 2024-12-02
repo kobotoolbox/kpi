@@ -1,18 +1,18 @@
-// Partial components
 import KoboSelect from 'jsapp/js/components/common/koboSelect';
-
-// Constants and types
+import {usePatchOrganizationMember} from './membersQuery';
 import {OrganizationUserRole} from './organizationQuery';
 
 interface MemberRoleSelectorProps {
+  orgId: string;
   username: string;
   role: OrganizationUserRole;
-  onRequestRoleChange: (username: string, role: OrganizationUserRole) => void;
 }
 
 export default function MemberRoleSelector(
-  {username, role, onRequestRoleChange}: MemberRoleSelectorProps
+  {orgId, username, role}: MemberRoleSelectorProps
 ) {
+  const patchMember = usePatchOrganizationMember(orgId, username);
+
   return (
     <KoboSelect
       name={`member-role-selector-${username}`}
@@ -31,9 +31,10 @@ export default function MemberRoleSelector(
       selectedOption={role}
       onChange={(newRole: string | null) => {
         if (newRole !== null) {
-          onRequestRoleChange(username, newRole as OrganizationUserRole);
+          patchMember.mutateAsync({role: newRole as OrganizationUserRole});
         }
       }}
+      isPending={patchMember.isPending}
     />
   );
 }
