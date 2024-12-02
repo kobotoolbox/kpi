@@ -186,7 +186,7 @@ class ProjectHistoryLogsSignalsTestCase(BaseTestCase):
             sender=Asset,
             instance=self.asset,
             user=self.user,
-            codename=PERM_VIEW_ASSET,
+            codename=PERM_PARTIAL_SUBMISSIONS,
             perms={PERM_VIEW_ASSET: [{'_submitted_by': 'someuser'}]},
             deny=False,
         )
