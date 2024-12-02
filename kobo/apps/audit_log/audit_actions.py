@@ -38,3 +38,4 @@ class AuditAction(models.TextChoices):
     UPDATE_NAME = 'update-name'
     UPDATE_SETTINGS = 'update-settings'
     UPDATE_QA = 'update-qa'
+    TRANSFER = 'transfer'
