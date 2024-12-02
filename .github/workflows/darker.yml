@@ -1,6 +1,6 @@
 name: Python linter (Darker)
 
-on: [workflow_call]
+on: workflow_call
 jobs:
   darker:
     runs-on: ubuntu-latest

@@ -1,9 +1,6 @@
 name: ci
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
+on: pull_request
 
 jobs:
   changes:
@@ -16,30 +13,26 @@ jobs:
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
-      npm-test: ${{ steps.filter.outputs.npm-test }}
       pytest:   ${{ steps.filter.outputs.pytest   }}
       darker:   ${{ steps.filter.outputs.darker   }}
       unknown:  ${{ steps.filter.outputs.unknown  }}
+      npm-test: ${{ steps.filter.outputs.npm-test }}
 
   pytest:
     needs: changes
     uses: ./.github/workflows/pytest.yml
     if: |
       needs.changes.outputs.pytest  == 'true' ||
-      needs.changes.outputs.unknown == 'true' ||
-      github.event_name == 'push'
+      needs.changes.outputs.unknown == 'true'
 
   darker:
     needs: changes
     uses: ./.github/workflows/darker.yml
-    if: |
-      needs.changes.outputs.darker == 'true' &&
-      github.event_name == 'pull_request'
+    if: needs.changes.outputs.darker == 'true'
 
   npm-test:
     needs: changes
     uses: ./.github/workflows/npm-test.yml
     if: |
       needs.changes.outputs.npm-test == 'true' ||
-      needs.changes.outputs.unknown  == 'true' ||
-      github.event_name == 'push'
+      needs.changes.outputs.unknown  == 'true'

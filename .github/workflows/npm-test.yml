@@ -1,11 +1,16 @@
 name: npm-test
 
-on: [workflow_call]
+on:
+  push:
+    branches: [ main ]
+  workflow_call:
 
 jobs:
   build:
     runs-on: ubuntu-20.04
+
     strategy:
+
       matrix:
         node-version:
           - '16.15.0'  # prior pinned Node version supported by kpi
