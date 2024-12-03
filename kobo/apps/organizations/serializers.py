@@ -92,15 +92,15 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'name',
-            'is_active',
+            'website',
+            'organization_type',
             'created',
             'modified',
-            'slug',
             'is_owner',
             'is_mmo',
             'request_user_role',
         ]
-        read_only_fields = ['id', 'slug']
+        read_only_fields = ['id']
 
     def create(self, validated_data):
         user = self.context['request'].user

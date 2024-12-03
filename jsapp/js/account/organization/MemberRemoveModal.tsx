@@ -10,6 +10,8 @@ import KoboModalFooter from 'jsapp/js/components/modals/koboModalFooter';
 import {getSimpleMMOLabel} from './organization.utils';
 import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
+import {useRemoveOrganizationMember} from './membersQuery';
+import {notify} from 'alertifyjs';
 
 export const REMOVE_SELF_TEXT = {
   title: t('Leave this ##team/org##'),
@@ -36,9 +38,10 @@ function replacePlaceholders(text: string, username: string, mmoLabel: string) {
 }
 
 interface MemberRemoveModalProps {
+  orgId: string;
   username: string;
   isRemovingSelf: boolean;
-  onConfirm: () => void;
+  onConfirmDone: () => void;
   onCancel: () => void;
 }
 
@@ -51,12 +54,14 @@ interface MemberRemoveModalProps {
  */
 export default function MemberRemoveModal(
   {
+    orgId,
     username,
     isRemovingSelf,
-    onConfirm,
+    onConfirmDone,
     onCancel,
   }: MemberRemoveModalProps
 ) {
+  const removeMember = useRemoveOrganizationMember(orgId);
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
     subscriptionStore.activeSubscriptions[0],
@@ -97,8 +102,17 @@ export default function MemberRemoveModal(
         <Button
           type='danger'
           size='m'
-          onClick={onConfirm}
+          onClick={async () => {
+            try {
+              removeMember.mutateAsync(username);
+            } catch (error) {
+              notify('Failed to remove member', 'error');
+            } finally {
+              onConfirmDone();
+            }
+          }}
           label={confirmButtonLabel}
+          isPending={removeMember.isPending}
         />
       </KoboModalFooter>
     </KoboModal>
