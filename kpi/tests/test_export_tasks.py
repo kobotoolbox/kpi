@@ -38,7 +38,7 @@ class ExportTaskInBackgroundTests(TestCase):
             'Hello {},\n\n' 'Your report is complete: {}\n\n' 'Regards,\n' 'KoboToolbox'
         ).format(
             self.user.username,
-            f"{root_url}{expected_file_path}",
+            f'{root_url}{expected_file_path}',
         )
         mock_send_mail.assert_called_once_with(
             subject='Project View Report Complete',
