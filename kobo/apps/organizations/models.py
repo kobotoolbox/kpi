@@ -49,7 +49,8 @@ class OrganizationType(models.TextChoices):
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
     mmo_override = models.BooleanField(
-        default=False, verbose_name='Multi-members override'
+        default=False,
+        verbose_name='Make organization multi-member (necessary for adding users)'
     )
     website = models.CharField(default='', max_length=255)
     organization_type = models.CharField(
@@ -235,7 +236,7 @@ class Organization(AbstractOrganization):
 class OrganizationUser(AbstractOrganizationUser):
 
     def __str__(self):
-        return f'<OrganizationUser #{self.pk}: {self.user.username}>'
+        return f'{self.user.username} (#{self.pk})'
 
     @property
     def active_subscription_statuses(self):

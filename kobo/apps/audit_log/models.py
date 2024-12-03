@@ -1,3 +1,5 @@
+import copy
+
 import jsonschema
 from django.conf import settings
 from django.db import models
@@ -19,6 +21,12 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ASSET_TYPE_SURVEY,
+    CLONE_ARG_NAME,
+    PERM_ADD_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
@@ -29,6 +37,18 @@ NEW = 'new'
 OLD = 'old'
 ADDED = 'added'
 REMOVED = 'removed'
+
+ANONYMOUS_USER_PERMISSION_ACTIONS = {
+    # key: (permission, granting?), value: ph log action
+    # True means the permission is being granted,
+    # False means it's being revoked
+    (PERM_VIEW_ASSET, True): AuditAction.SHARE_FORM_PUBLICLY,
+    (PERM_VIEW_SUBMISSIONS, True): AuditAction.SHARE_DATA_PUBLICLY,
+    (PERM_ADD_SUBMISSIONS, True): AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS,
+    (PERM_VIEW_ASSET, False): AuditAction.UNSHARE_FORM_PUBLICLY,
+    (PERM_VIEW_SUBMISSIONS, False): AuditAction.UNSHARE_DATA_PUBLICLY,
+    (PERM_ADD_SUBMISSIONS, False): AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS,
+}
 
 
 class AuditType(models.TextChoices):
@@ -247,10 +267,7 @@ class AccessLog(AuditLog):
         elif is_loginas:
             # third option: loginas
             auth_type = ACCESS_LOG_LOGINAS_AUTH_TYPE
-        elif (
-            hasattr(logged_in_user, 'backend')
-            and logged_in_user.backend is not None
-        ):
+        elif hasattr(logged_in_user, 'backend') and logged_in_user.backend is not None:
             # fourth option: the backend that authenticated the user
             auth_type = logged_in_user.backend
         else:
@@ -336,6 +353,11 @@ class ProjectHistoryLog(AuditLog):
             'asset-export-list': cls.create_from_export_request,
             'submissionexporttask-list': cls.create_from_v1_export,
             'asset-bulk': cls.create_from_bulk_request,
+            'asset-permission-assignment-bulk-assignments': cls.create_from_permissions_request,  # noqa
+            'asset-permission-assignment-detail': cls.create_from_permissions_request,
+            'asset-permission-assignment-list': cls.create_from_permissions_request,
+            'asset-permission-assignment-clone': cls.handle_cloned_permissions,
+            'project-ownership-invite-list': cls.handle_ownership_transfer,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -456,7 +478,7 @@ class ProjectHistoryLog(AuditLog):
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
-            'latest_version_uid': updated_data['latest_version.uid']
+            'latest_version_uid': updated_data['latest_version.uid'],
         }
 
         changed_field_to_action_map = {
@@ -668,3 +690,168 @@ class ProjectHistoryLog(AuditLog):
                 'source': get_human_readable_client_user_agent(request),
             },
         )
+
+    @classmethod
+    def create_from_permissions_request(cls, request):
+        logs = []
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        source_data = updated_data if updated_data else initial_data
+        if source_data is None:
+            # there was an error on the request, ignore
+            return
+        asset_id = source_data['asset.id']
+        # these will be dicts of username: [permissions] (as set or list)
+        permissions_added = getattr(request, 'permissions_added', {})
+        permissions_removed = getattr(request, 'permissions_removed', {})
+        partial_permissions_added = getattr(request, 'partial_permissions_added', {})
+        # basic metadata for all PH logs
+        base_metadata = {
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+        }
+        # we'll be bulk creating logs instead of using .create, so we have to set
+        # all fields manually
+        log_base = {
+            'user': request.user,
+            'object_id': asset_id,
+            'app_label': Asset._meta.app_label,
+            'model_name': Asset._meta.model_name,
+            'log_type': AuditType.PROJECT_HISTORY,
+            'user_uid': request.user.extra_details.uid,
+        }
+        # get all users whose permissions changed
+        for username in {
+            *permissions_added,
+            *permissions_removed,
+            *partial_permissions_added,
+        }:
+            user_permissions_added = permissions_added.get(username, {})
+            user_permissions_removed = permissions_removed.get(username, {})
+            user_partial_permissions_added = partial_permissions_added.get(username, [])
+            if username == 'AnonymousUser':
+                cls.handle_anonymous_user_permissions(
+                    user_permissions_added,
+                    user_permissions_removed,
+                    user_partial_permissions_added,
+                    base_metadata,
+                    log_base,
+                    logs,
+                )
+                continue
+            metadata = copy.deepcopy(base_metadata)
+            metadata['permissions'] = {
+                'username': username,
+                REMOVED: list(user_permissions_removed),
+                ADDED: list(user_permissions_added) + user_partial_permissions_added,
+            }
+            logs.append(
+                ProjectHistoryLog(
+                    **log_base,
+                    action=AuditAction.MODIFY_USER_PERMISSIONS,
+                    metadata=metadata,
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def handle_anonymous_user_permissions(
+        cls,
+        perms_added,
+        perms_removed,
+        partial_perms_added,
+        base_metadata,
+        log_base,
+        logs,
+    ):
+        # go through all the usual anonymous user permissions and create
+        # logs if they were changed
+        # remove each permission as it is logged so we can see if there
+        # are any unusual ones left over
+        for combination, action in ANONYMOUS_USER_PERMISSION_ACTIONS.items():
+            # ANONYMOUS_USER_PERMISSION_ACTIONS has tuples as keys
+            permission, was_added = combination
+            list_to_update = perms_added if was_added else perms_removed
+            if permission in list_to_update:
+                list_to_update.discard(permission)
+                logs.append(
+                    ProjectHistoryLog(
+                        **log_base,
+                        action=action,
+                        metadata=base_metadata,
+                    )
+                )
+
+        # this shouldn't happen, but if anonymous users are granted other permissions,
+        # we want to know
+        if (
+            len(perms_removed) > 0
+            or len(perms_added) > 0
+            or len(partial_perms_added) > 0
+        ):
+            metadata = copy.deepcopy(base_metadata)
+            metadata['permissions'] = {
+                'username': 'AnonymousUser',
+                ADDED: list(perms_added) + partial_perms_added,
+                REMOVED: list(perms_removed),
+            }
+            logs.append(
+                ProjectHistoryLog(
+                    **log_base,
+                    metadata=metadata,
+                    action=AuditAction.MODIFY_USER_PERMISSIONS,
+                )
+            )
+
+    @classmethod
+    def handle_cloned_permissions(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        if initial_data is None:
+            return
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_id = initial_data['asset.id']
+        ProjectHistoryLog.objects.create(
+            object_id=asset_id,
+            action=AuditAction.CLONE_PERMISSIONS,
+            user=request.user,
+            metadata={
+                'asset_uid': asset_uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'cloned_from': request._data[CLONE_ARG_NAME],
+            },
+        )
+
+    @classmethod
+    def handle_ownership_transfer(cls, request):
+        updated_data = getattr(request, 'updated_data')
+        transfers = updated_data['transfers'].values(
+            'asset__uid', 'asset__asset_type', 'asset__id'
+        )
+        logs = []
+        for transfer in transfers:
+            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
+                continue
+            logs.append(
+                ProjectHistoryLog(
+                    object_id=transfer['asset__id'],
+                    action=AuditAction.TRANSFER,
+                    user=request.user,
+                    app_label=Asset._meta.app_label,
+                    model_name=Asset._meta.model_name,
+                    log_type=AuditType.PROJECT_HISTORY,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': transfer['asset__uid'],
+                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                        'ip_address': get_client_ip(request),
+                        'source': get_human_readable_client_user_agent(request),
+                        'username': updated_data['recipient.username'],
+                    },
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)

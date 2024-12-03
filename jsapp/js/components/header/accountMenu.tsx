@@ -12,6 +12,7 @@ import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
 import Button from 'js/components/common/button';
 import Avatar from 'js/components/common/avatar';
+import OrganizationBadge from './organizationBadge.component';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -95,6 +96,8 @@ export default function AccountMenu() {
                 email={accountEmail}
               />
             </bem.AccountBox__menuItem>
+
+            <OrganizationBadge color='light-blue'/>
 
             {/*
               There is no UI we can show to a user who sees a router blocker, so

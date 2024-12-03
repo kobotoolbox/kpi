@@ -55,6 +55,11 @@ $badge-font-l: 14px;
   background-color: colors.$kobo-light-green;
 }
 
+.color-dark-gray {
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-gray-700;
+}
+
 @mixin badge-size($size, $font) {
   // NOTE: icon size is already handled by badge.tsx file rendering proper <Icon> component
   height: $size;
