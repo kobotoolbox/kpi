@@ -1,0 +1,33 @@
+name: ci
+
+on: pull_request
+
+jobs:
+  changes:
+    runs-on:     ubuntu-latest
+    permissions: { pull-requests: read }
+    steps:
+      - uses: actions/checkout@v4
+      - id:   filter
+        uses: dorny/paths-filter@v3
+        name: Detect changed files
+        with: { filters: .github/filters.yml }
+    outputs:
+      darker:   ${{ steps.filter.outputs.darker   }}
+      pytest:   ${{ steps.filter.outputs.pytest   }}
+      npm-test: ${{ steps.filter.outputs.npm-test }}
+
+  darker:
+    needs: changes
+    uses: ./.github/workflows/darker.yml
+    if: needs.changes.outputs.darker == 'true'
+
+  pytest:
+    needs: changes
+    uses: ./.github/workflows/pytest.yml
+    if: needs.changes.outputs.pytest == 'true'
+
+  npm-test:
+    needs: changes
+    uses: ./.github/workflows/npm-test.yml
+    if: needs.changes.outputs.npm-test == 'true'

@@ -13,6 +13,8 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ADDED,
+    REMOVED,
     AccessLog,
     AuditLog,
     AuditType,
@@ -643,4 +645,35 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'name': {'old': old_name, 'new': 'new_name'},
             },
+        )
+
+    def test_create_from_unexpected_anonymous_permissions(self):
+        # Normal anonymous permissions tested elsewhere
+        # This test is for if somehow other permissions are assigned
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request.updated_data = {
+            'asset.id': 1,
+        }
+        request.permissions_added = {
+            # these permissions are not allowed for anonymous users,
+            # pretend something went wrong/changed and they were assigned anyway
+            'AnonymousUser': {'discover_asset', 'validate_submissions'}
+        }
+        ProjectHistoryLog.create_from_permissions_request(
+            request,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.object_id, 1)
+        # should create a regular 'MODIFY_USER_PERMISSIONS' log
+        self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
+        permissions = log.metadata['permissions']
+        self.assertEqual(permissions['username'], 'AnonymousUser')
+        self.assertListEqual(permissions[REMOVED], [])
+        self.assertListEqual(
+            sorted(permissions[ADDED]), ['discover_asset', 'validate_submissions']
         )
