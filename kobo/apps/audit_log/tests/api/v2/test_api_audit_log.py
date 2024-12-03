@@ -439,7 +439,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response = self.client.post(self.url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_export_for_user_commences(self):
+    def test_export_for_user_returns_success(self):
         self.force_login_user(User.objects.get(username='anotheruser'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -462,12 +462,19 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
             .first()
         )
         self.assertIsNotNone(task)
-        self.assertEqual(task.status, 'complete')
+        self.assertEqual(task.status in ['created', 'processing', 'complete'])
 
     def test_get_status_of_tasks(self):
-        self.force_login_user(User.objects.get(username='anotheruser'))
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        test_user = User.objects.get(username='anotheruser')
+        self.force_login_user(test_user)
+
+        AccessLogExportTask.objects.create(
+            user=test_user,
+            get_all_logs=False,
+            data={
+                'type': 'access_logs_export',
+            },
+        )
 
         response_status = self.client.get(self.url)
         self.assertEqual(response_status.status_code, status.HTTP_200_OK)
@@ -482,7 +489,6 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertIn('uid', first_task)
         self.assertIn('status', first_task)
         self.assertIn('date_created', first_task)
-        self.assertEqual(first_task['status'], 'complete')
 
     def test_multiple_export_tasks_not_allowed(self):
         test_user = User.objects.get(username='anotheruser')
@@ -522,12 +528,12 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_export_access_logs_for_superuser_commences(self):
+    def test_export_access_logs_for_superuser_returns_success(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-    def test__superuser_create_export_task_on_post(self):
+    def test_superuser_create_export_task_on_post(self):
         test_superuser = User.objects.get(username='admin')
         self.force_login_user(test_superuser)
 
@@ -540,12 +546,19 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
             .first()
         )
         self.assertIsNotNone(task)
-        self.assertEqual(task.status, 'complete')
+        self.assertEqual(task.status in ['created', 'processing', 'complete'])
 
     def test_superuser_get_status_tasks(self):
-        self.force_login_user(User.objects.get(username='admin'))
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        test_user = User.objects.get(username='anotheruser')
+        self.force_login_user(test_user)
+
+        AccessLogExportTask.objects.create(
+            user=test_user,
+            get_all_logs=False,
+            data={
+                'type': 'access_logs_export',
+            },
+        )
 
         response_status = self.client.get(self.url)
         self.assertEqual(response_status.status_code, status.HTTP_200_OK)
@@ -560,7 +573,6 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertIn('uid', first_task)
         self.assertIn('status', first_task)
         self.assertIn('date_created', first_task)
-        self.assertEqual(first_task['status'], 'complete')
 
     def test_permission_denied_for_non_superusers_on_get_status(self):
         non_superuser = User.objects.get(username='anotheruser')

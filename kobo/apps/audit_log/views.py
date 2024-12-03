@@ -350,10 +350,11 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
             status=status.HTTP_202_ACCEPTED,
         )
 
-    def list_tasks(self, request):
-        tasks = AccessLogExportTask.objects.filter(user=request.user).order_by(
-            '-date_created'
-        )
+    def list_tasks(self, user=None):
+        tasks = AccessLogExportTask.objects.all()
+        if user is not None:
+            tasks = tasks.filter(user=user)
+        tasks = tasks.order_by('-date_created')
 
         tasks_data = [
             {'uid': task.uid, 'status': task.status, 'date_created': task.date_created}
@@ -427,7 +428,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
         return self.create_task(request, get_all_logs=False)
 
     def list(self, request, *args, **kwargs):
-        return self.list_tasks(request)
+        return self.list_tasks(request.user)
 
 
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -493,4 +494,4 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
         return self.create_task(request, get_all_logs=True)
 
     def list(self, request, *args, **kwargs):
-        return self.list_tasks(request)
+        return self.list_tasks()
