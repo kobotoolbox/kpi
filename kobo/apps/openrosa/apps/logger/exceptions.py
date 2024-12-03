@@ -2,6 +2,10 @@
 from django.utils.translation import gettext as t
 
 
+class AccountInactiveError(Exception):
+    pass
+
+
 class DuplicateUUIDError(Exception):
     pass
 

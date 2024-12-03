@@ -16,6 +16,7 @@ from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import (
+    AccountInactiveError,
     FormInactiveError,
     TemporarilyUnavailableError,
 )
@@ -135,6 +136,8 @@ class Instance(AbstractTimeStampedModel):
             return
         if profile.metadata.get('submissions_suspended', False):
             raise TemporarilyUnavailableError()
+        if not self.xform.user.is_active:
+            raise AccountInactiveError()
 
     def _set_geom(self):
         xform = self.xform
