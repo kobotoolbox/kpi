@@ -1,19 +1,36 @@
-import type {FailResponse} from 'js/dataInterface';
-import {fetchGetUrl} from 'jsapp/js/api';
-import type {UndefinedInitialDataOptions} from '@tanstack/react-query';
-import {useQuery} from '@tanstack/react-query';
-import {QueryKeys} from 'js/query/queryKeys';
+// Libraries
+import {useMutation, useQuery, useQueryClient, type UndefinedInitialDataOptions} from '@tanstack/react-query';
+import {useEffect} from 'react';
+
+// Stores, hooks and utilities
+import {fetchGetUrl, fetchPatch} from 'jsapp/js/api';
 import {FeatureFlag, useFeatureFlag} from 'js/featureFlags';
 import sessionStore from 'js/stores/session';
-import {useEffect} from 'react';
+
+// Constants and types
+import type {FailResponse} from 'js/dataInterface';
+import {QueryKeys} from 'js/query/queryKeys';
+
+// Comes from `kobo/apps/accounts/forms.py`
+type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none';
+
+export const ORGANIZATION_TYPES: {
+  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string}
+} = {
+  'non-profit': {name: 'non-profit', label: t('Non-profit organization')},
+  government: {name: 'government', label: t('Government institution')},
+  educational: {name: 'educational', label: t('Educational organization')},
+  commercial: {name: 'commercial', label: t('A commercial/for-profit company')},
+  none: {name: 'none', label: t('I am not associated with any organization')},
+};
 
 export interface Organization {
   id: string;
   name: string;
-  is_active: boolean;
+  website: string;
+  organization_type: OrganizationTypeName;
   created: string;
   modified: string;
-  slug: string;
   is_owner: boolean;
   is_mmo: boolean;
   request_user_role: OrganizationUserRole;
@@ -23,6 +40,22 @@ export enum OrganizationUserRole {
   member = 'member',
   admin = 'admin',
   owner = 'owner',
+}
+
+/**
+ * Mutation hook for updating organization. It ensures that all related queries
+ * refetch data (are invalidated).
+ */
+export function usePatchOrganization(orgUrl: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: Partial<Organization>) => (
+      fetchPatch<Organization>(orgUrl, data)
+    ),
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organization]});
+    },
+  });
 }
 
 /**
