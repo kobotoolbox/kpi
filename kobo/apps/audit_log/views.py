@@ -1,4 +1,4 @@
-from rest_framework import exceptions, mixins, status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
@@ -326,45 +326,11 @@ class AccessLogViewSet(AuditLogViewSet):
     serializer_class = AccessLogSerializer
 
 
-class AccessLogsExportViewSet(viewsets.ViewSet):
+class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
 
-    def create(self, request, uid=None, type=None, *args, **kwargs):
-        if not request.user.is_superuser and 'access-logs/export' in request.path:
-            raise exceptions.PermissionDenied(
-                'Only superusers can export all access logs.'
-            )
-
-        get_all_logs = 'access-logs/export' in request.path
-
-        # Superuser handling: one job for all logs and another for their own logs
-        if request.user.is_superuser:
-            # Check if the superuser has a task running for all or just their own logs
-            if AccessLogExportTask.objects.filter(
-                user=request.user,
-                status=AccessLogExportTask.PROCESSING,
-                get_all_logs=get_all_logs,
-            ).exists():
-                return Response(
-                    {'error': 'You already have a running export task for this type.'},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            # Non-superusers can only run one task for their own logs at a time
-            if AccessLogExportTask.objects.filter(
-                user=request.user,
-                status=AccessLogExportTask.PROCESSING,
-                get_all_logs=False,
-            ).exists():
-                return Response(
-                    {
-                        'error': (
-                            'You already have a running export task for your own logs.'
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+    def create_task(self, request, get_all_logs):
 
         export_task = AccessLogExportTask.objects.create(
             user=request.user,
@@ -384,24 +350,147 @@ class AccessLogsExportViewSet(viewsets.ViewSet):
             status=status.HTTP_202_ACCEPTED,
         )
 
-    def list(self, request, *args, **kwargs):
-        if not request.user.is_superuser and 'access-logs/export' in request.path:
-            raise exceptions.PermissionDenied(
-                'Only superusers can export all access logs.'
-            )
-
-        task = (
-            AccessLogExportTask.objects.filter(user=request.user)
-            .order_by('-date_created')
-            .first()
+    def list_tasks(self, request):
+        tasks = AccessLogExportTask.objects.filter(user=request.user).order_by(
+            '-date_created'
         )
 
-        if task:
+        tasks_data = [
+            {'uid': task.uid, 'status': task.status, 'date_created': task.date_created}
+            for task in tasks
+        ]
+
+        return Response(tasks_data, status=status.HTTP_200_OK)
+
+
+class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
+    """
+    Access logs export
+
+    Lists all access logs export tasks for the authenticated user
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/me/export
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/me/export
+
+    > Response 200
+    >
+    >       [
+    >           {
+    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T21:27:08.403181Z"
+    >           },
+    >           {
+    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T20:18:55.982974Z"
+    >           }
+    >       ]
+
+    ### Creates an export task
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/access-log/me/export
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/access-logs/me/export
+
+    > Response 202
+    >
+    >       [
+    >           "status: created"
+    >       ]
+    >
+    """
+
+    def create(self, request, *args, **kwargs):
+        if AccessLogExportTask.objects.filter(
+            user=request.user,
+            status=AccessLogExportTask.PROCESSING,
+            get_all_logs=False,
+        ).exists():
             return Response(
-                {'uid': task.uid, 'status': task.status}, status=status.HTTP_200_OK
+                {
+                    'error': (
+                        'You already have a running export task for your own logs.'
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        else:
+        return self.create_task(request, get_all_logs=False)
+
+    def list(self, request, *args, **kwargs):
+        return self.list_tasks(request)
+
+
+class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
+    """
+    Access logs export
+
+    Lists all access logs export tasks for all users. Only available to superusers.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/export
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/export
+
+    > Response 200
+    >
+    >       [
+    >           {
+    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T21:27:08.403181Z"
+    >           },
+    >           {
+    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T20:18:55.982974Z"
+    >           }
+    >       ]
+
+    ### Creates an export task
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/access-log/export
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/access-logs/export
+
+    > Response 202
+    >
+    >       [
+    >           "status: created"
+    >       ]
+    >
+    """
+
+    permission_classes = (SuperUserPermission,)
+
+    def create(self, request, *args, **kwargs):
+        # Check if the superuser has a task running for all or just their own logs
+        if AccessLogExportTask.objects.filter(
+            user=request.user,
+            status=AccessLogExportTask.PROCESSING,
+            get_all_logs=True,
+        ).exists():
             return Response(
-                {'error': 'No export task found for this user.'},
-                status=status.HTTP_404_NOT_FOUND,
+                {'error': 'You already have a running export task for this type.'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
+        return self.create_task(request, get_all_logs=True)
+
+    def list(self, request, *args, **kwargs):
+        return self.list_tasks(request)

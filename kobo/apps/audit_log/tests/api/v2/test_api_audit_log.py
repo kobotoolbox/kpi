@@ -464,16 +464,25 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertIsNotNone(task)
         self.assertEqual(task.status, 'complete')
 
-    def test_get_status_of_most_recent_task(self):
+    def test_get_status_of_tasks(self):
         self.force_login_user(User.objects.get(username='anotheruser'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         response_status = self.client.get(self.url)
         self.assertEqual(response_status.status_code, status.HTTP_200_OK)
-        self.assertIn('uid', response_status.json())
-        self.assertIn('status', response_status.json())
-        self.assertEqual(response_status.json()['status'], 'complete')
+
+        # Assert the response contains a list of tasks
+        tasks = response_status.json()
+        self.assertIsInstance(tasks, list)
+        self.assertGreater(len(tasks), 0)  # Ensure at least one task is present
+
+        # Assert the structure of the first task in the list
+        first_task = tasks[0]
+        self.assertIn('uid', first_task)
+        self.assertIn('status', first_task)
+        self.assertIn('date_created', first_task)
+        self.assertEqual(first_task['status'], 'complete')
 
     def test_multiple_export_tasks_not_allowed(self):
         test_user = User.objects.get(username='anotheruser')
@@ -533,16 +542,25 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertIsNotNone(task)
         self.assertEqual(task.status, 'complete')
 
-    def test_superuser_get_status_of_most_recent_task(self):
+    def test_superuser_get_status_tasks(self):
         self.force_login_user(User.objects.get(username='admin'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         response_status = self.client.get(self.url)
         self.assertEqual(response_status.status_code, status.HTTP_200_OK)
-        self.assertIn('uid', response_status.json())
-        self.assertIn('status', response_status.json())
-        self.assertEqual(response_status.json()['status'], 'complete')
+
+        # Assert the response contains a list of tasks
+        tasks = response_status.json()
+        self.assertIsInstance(tasks, list)
+        self.assertGreater(len(tasks), 0)  # Ensure at least one task is present
+
+        # Assert the structure of the first task in the list
+        first_task = tasks[0]
+        self.assertIn('uid', first_task)
+        self.assertIn('status', first_task)
+        self.assertIn('date_created', first_task)
+        self.assertEqual(first_task['status'], 'complete')
 
     def test_permission_denied_for_non_superusers_on_get_status(self):
         non_superuser = User.objects.get(username='anotheruser')
