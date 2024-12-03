@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.db.models import Count
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
 
@@ -9,7 +10,7 @@ from ..models import Organization, OrganizationUser
 from ..tasks import transfer_user_ownership_to_org
 from ..utils import revoke_org_asset_perms
 from .organization_owner import OwnerInline
-from .organization_user import OrgUserInline
+from .organization_user import OrgUserInline, max_users_for_edit_mode
 
 
 @admin.register(Organization)
@@ -17,7 +18,34 @@ class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline, OrgUserInline]
     view_on_site = False
     readonly_fields = ['id']
-    fields = ['id', 'name', 'slug', 'is_active', 'mmo_override']
+    fields = ['id', 'name', 'mmo_override']
+    search_fields = ['name']
+
+    # parent overrides
+    list_display = ['name']
+    list_filter = ()
+    prepopulated_fields = {}
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        organization = self.get_object(request, object_id)
+        if (
+            organization
+            and organization.organization_users.count() > max_users_for_edit_mode()
+            and request.method == 'GET'
+        ):
+            link = reverse('admin:organizations_organizationuser_changelist')
+            message = (
+                f'Note: Adding/Editing/Removing users is disabled on this page due '
+                f'to the size of the organization. Please use the Import/Export '
+                f'feature available in the <a href="{link}">Organization Users</a> '
+                f'section instead.'
+            )
+            self.message_user(
+                request,
+                mark_safe(message),
+                level=messages.WARNING,
+            )
+        return super().change_view(request, object_id, form_url, extra_context)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

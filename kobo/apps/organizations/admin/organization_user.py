@@ -18,13 +18,13 @@ from ..tasks import transfer_user_ownership_to_org
 from ..utils import revoke_org_asset_perms
 
 
-def _max_users_for_edit_mode():
+def max_users_for_edit_mode():
     """
     This function represents an arbitrary limit
     to prevent the form's POST request from exceeding
     `settings.DATA_UPLOAD_MAX_NUMBER_FIELDS`.
     """
-    return settings.DATA_UPLOAD_MAX_NUMBER_FIELDS // 3
+    return int(settings.DATA_UPLOAD_MAX_NUMBER_FIELDS * 0.4)
 
 
 class OrgUserInlineFormSet(forms.models.BaseInlineFormSet):
@@ -32,7 +32,7 @@ class OrgUserInlineFormSet(forms.models.BaseInlineFormSet):
         if self.is_valid():
             members = 0
             users = []
-            if len(self.forms) >= _max_users_for_edit_mode():
+            if len(self.forms) > max_users_for_edit_mode():
                 return
 
             for form in self.forms:
@@ -63,9 +63,17 @@ class OrgUserInlineFormSet(forms.models.BaseInlineFormSet):
                     )
 
 
+class OrgUserInlineForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['user'].disabled = True
+
+
 class OrgUserInline(admin.StackedInline):
     model = OrganizationUser
     formset = OrgUserInlineFormSet
+    form = OrgUserInlineForm
     raw_id_fields = ('user',)
     view_on_site = False
     extra = 0
@@ -85,8 +93,8 @@ class OrgUserInline(admin.StackedInline):
         if not obj:
             return []
 
-        if obj.organization_users.count() >= _max_users_for_edit_mode():
-            return ['user', 'is_admin']
+        if obj.organization_users.count() > max_users_for_edit_mode():
+            return ['is_admin']
 
         return []
 
@@ -94,13 +102,13 @@ class OrgUserInline(admin.StackedInline):
         if not obj:
             return True
 
-        return obj.organization_users.count() < _max_users_for_edit_mode()
+        return obj.organization_users.count() <= max_users_for_edit_mode()
 
     def has_delete_permission(self, request, obj=None):
         if not obj:
             return True
 
-        return obj.organization_users.count() < _max_users_for_edit_mode()
+        return obj.organization_users.count() <= max_users_for_edit_mode()
 
 
 class OrgUserResource(resources.ModelResource):
@@ -156,6 +164,13 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
     search_fields = ('user__username',)
     autocomplete_fields = ['user', 'organization']
     form = OrgUserAdminForm
+    view_on_site = False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
     def get_search_results(self, request, queryset, search_term):
         auto_complete = request.path == '/admin/autocomplete/'

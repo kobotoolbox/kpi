@@ -17,6 +17,7 @@ from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    CLONE_ARG_NAME,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -1287,3 +1288,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             format='json',
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_clone_permissions_creates_logs(self):
+        second_asset = Asset.objects.get(pk=2)
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            request_data={CLONE_ARG_NAME: second_asset.uid},
+            expected_action=AuditAction.CLONE_PERMISSIONS,
+            expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['cloned_from'], second_asset.uid)
