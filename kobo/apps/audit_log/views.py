@@ -701,7 +701,7 @@ class ProjectHistoryLogViewSet(
 
     4. metadata__*
 
-        b. metadata__source
+        b. metadata__source (browser/OS)
 
         c. metadata__ip_address
 
