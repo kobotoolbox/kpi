@@ -6,6 +6,8 @@ import MainHeaderLogo from 'js/components/header/mainHeaderLogo.component';
 import AccountMenu from 'js/components/header/accountMenu';
 import {Tracking} from './useTracking';
 import ToasterConfig from '../toasterConfig';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../query/queryClient';
 
 interface BasicLayoutProps {
   children: React.ReactNode;
@@ -18,7 +20,7 @@ interface BasicLayoutProps {
 export default function BasicLayout(props: BasicLayoutProps) {
   return (
     <DocumentTitle title='KoboToolbox'>
-      <>
+      <QueryClientProvider client={queryClient}>
         <Tracking />
         <ToasterConfig />
         <div className='header-stretch-bg' />
@@ -33,7 +35,7 @@ export default function BasicLayout(props: BasicLayoutProps) {
             {props.children}
           </bem.PageWrapper__content>
         </bem.PageWrapper>
-      </>
+        </QueryClientProvider>
     </DocumentTitle>
   );
 }
