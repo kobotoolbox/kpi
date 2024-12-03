@@ -2,19 +2,19 @@
 from rest_framework import serializers
 
 from kpi.fields import ReadOnlyJSONField
-from kpi.models import ExportTask
+from kpi.models import SubmissionExportTask
 
 
 class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
-        view_name='exporttask-detail'
+        view_name='submissionexporttask-detail'
     )
     messages = ReadOnlyJSONField(required=False)
     data = ReadOnlyJSONField()
 
     class Meta:
-        model = ExportTask
+        model = SubmissionExportTask
         fields = (
             'url',
             'status',
