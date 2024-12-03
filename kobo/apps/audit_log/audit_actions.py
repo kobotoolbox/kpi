@@ -21,7 +21,7 @@ class AuditAction(models.TextChoices):
     IN_TRASH = 'in-trash'
     MODIFY_IMPORTED_FIELDS = 'modify-imported-fields'
     MODIFY_SERVICE = 'modify-service'
-    MODIFY_SHARING = 'modify_sharing'
+    MODIFY_SHARING = 'modify-sharing'
     MODIFY_USER_PERMISSIONS = 'modify-user-permissions'
     PUT_BACK = 'put-back'
     REDEPLOY = 'redeploy'
