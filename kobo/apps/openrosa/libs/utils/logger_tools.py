@@ -39,6 +39,7 @@ from xml.dom import Node
 from wsgiref.util import FileWrapper
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
+    AccountInactiveError,
     DuplicateUUIDError,
     FormInactiveError,
     TemporarilyUnavailableError,
@@ -546,6 +547,8 @@ def safe_create_instance(username, xml_file, media_files, uuid, request):
         error = OpenRosaResponseNotAllowed(t("Form is not active"))
     except TemporarilyUnavailableError:
         error = OpenRosaTemporarilyUnavailable(t("Temporarily unavailable"))
+    except AccountInactiveError:
+        error = OpenRosaResponseNotAllowed(t('Account is not active'))
     except XForm.DoesNotExist:
         error = OpenRosaResponseNotFound(
             t("Form does not exist on this account")

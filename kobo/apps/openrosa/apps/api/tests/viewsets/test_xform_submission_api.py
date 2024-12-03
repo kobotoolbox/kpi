@@ -18,7 +18,10 @@ from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import OpenRosaTemporarilyUnavailable
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    OpenRosaResponseNotAllowed,
+    OpenRosaTemporarilyUnavailable,
+)
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
@@ -457,6 +460,42 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             self.assertEqual(
                 response['Location'], 'http://testserver/submission'
             )
+
+    def test_submission_account_inactive(self):
+        """
+        Verify that submissions are blocked when the owning user has
+        `is_active = False`
+        """
+        self.xform.user.is_active = False
+        self.xform.user.save()
+
+        # No need auth for this test
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+
+        s = self.surveys[0]
+        username = self.user.username
+        submission_path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            s + '.xml',
+        )
+        with open(submission_path) as sf:
+            request = self.factory.post(
+                f'/{username}/submission', {'xml_submission_file': sf}
+            )
+            request.user = AnonymousUser()
+
+            # Ensure that submissions are not accepted since the owning user is
+            # inactive
+            response = self.view(request, username=username)
+            self.assertEqual(
+                response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+            self.assertTrue(isinstance(response, OpenRosaResponseNotAllowed))
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile metadata to test if
