@@ -21,6 +21,7 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    CLONE_ARG_NAME,
     PERM_ADD_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -354,6 +355,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-bulk-assignments': cls.create_from_permissions_request,  # noqa
             'asset-permission-assignment-detail': cls.create_from_permissions_request,
             'asset-permission-assignment-list': cls.create_from_permissions_request,
+            'asset-permission-assignment-clone': cls.handle_cloned_permissions,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -801,3 +803,23 @@ class ProjectHistoryLog(AuditLog):
                     action=AuditAction.MODIFY_USER_PERMISSIONS,
                 )
             )
+
+    @classmethod
+    def handle_cloned_permissions(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        if initial_data is None:
+            return
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_id = initial_data['asset.id']
+        ProjectHistoryLog.objects.create(
+            object_id=asset_id,
+            action=AuditAction.CLONE_PERMISSIONS,
+            user=request.user,
+            metadata={
+                'asset_uid': asset_uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'cloned_from': request._data[CLONE_ARG_NAME],
+            },
+        )
