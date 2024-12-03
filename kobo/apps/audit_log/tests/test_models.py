@@ -466,7 +466,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='fieldname',
             add_action=AuditAction.CREATE,
@@ -495,7 +495,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -528,7 +528,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'new_field1',
             'field_2': 'new_field2',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -551,7 +551,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -663,7 +663,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             # pretend something went wrong/changed and they were assigned anyway
             'AnonymousUser': {'discover_asset', 'validate_submissions'}
         }
-        ProjectHistoryLog.create_from_permissions_request(
+        ProjectHistoryLog._create_from_permissions_request(
             request,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
