@@ -747,7 +747,11 @@ class AssetViewSet(
                 )
                 organization_by_asset = defaultdict(dict)
                 for asset in assets:
-                    organization_by_asset[asset.id] = asset.owner.organizations[0]
+                    try:
+                        organization_by_asset[asset.id] = asset.owner.organizations[0]
+                    except IndexError:
+                        pass
+
                 context_['organization_by_asset'] = organization_by_asset
 
         return context_
