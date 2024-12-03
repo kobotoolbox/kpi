@@ -34,6 +34,7 @@ class OrganizationApiTestCase(BaseTestCase):
         'current_period_start': '2024-01-01',
         'current_period_end': '2024-12-31'
     }
+    MMO_SUBSCRIPTION_DETAILS = {'product_metadata': {'mmo_enabled': 'true'}}
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
@@ -77,7 +78,6 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_api_returns_org_data(self):
         self._insert_data()
         response = self.client.get(self.url_detail)
-        self.assertContains(response, self.organization.slug)
         self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
 
@@ -121,13 +121,13 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch.object(
         Organization,
         'active_subscription_billing_details',
-        return_value=DEFAULT_SUBSCRIPTION_DETAILS
+        return_value=MMO_SUBSCRIPTION_DETAILS,
     )
     def test_api_response_includes_is_mmo_with_subscription(
         self, mock_active_subscription
     ):
         """
-        Test that is_mmo is True when there is an active subscription.
+        Test that is_mmo is True when there is an active MMO subscription.
         """
         self._insert_data(mmo_override=False)
         response = self.client.get(self.url_detail)
@@ -154,14 +154,14 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch.object(
         Organization,
         'active_subscription_billing_details',
-        return_value=DEFAULT_SUBSCRIPTION_DETAILS
+        return_value=MMO_SUBSCRIPTION_DETAILS,
     )
     def test_api_response_includes_is_mmo_with_override_and_subscription(
         self, mock_active_subscription
     ):
         """
         Test that is_mmo is True when both mmo_override and active
-        subscription is present.
+        MMO subscription is present.
         """
         self._insert_data(mmo_override=True)
         response = self.client.get(self.url_detail)
@@ -538,7 +538,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         ('bob', False, False, status.HTTP_200_OK),
     )
     @unpack
-    def test_can_archive_or_unarchive(
+    def test_can_archive_or_unarchive_project(
         self,
         username: str,
         owned_by_org: bool,

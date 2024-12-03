@@ -42,7 +42,7 @@ interface AccountFieldsEditorProps {
    * `displayedFields` prop)
    */
   values: AccountFieldsValues;
-  onChange: (fields: AccountFieldsValues) => void;
+  onFieldChange: (fieldName: UserFieldName, value: UserFieldValue) => void;
 }
 
 /**
@@ -82,8 +82,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     fieldName: UserFieldName,
     newValue: UserFieldValue
   ) {
-    const newValues = {...props.values, [fieldName]: newValue};
-    props.onChange(newValues);
+    props.onFieldChange(fieldName, newValue);
   }
 
   const cleanedUrl = (value: string) => {
