@@ -4,7 +4,7 @@ from collections import defaultdict
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 
@@ -14,7 +14,7 @@ class AssetExportTaskTest(MockDataExportsBase, BaseTestCase):
         assert self.user.username == 'someuser'
 
         def _create_export_task(asset):
-            export_task = ExportTask()
+            export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = {
                 'source': reverse('asset-detail', args=[asset.uid]),
@@ -37,7 +37,7 @@ class AssetExportTaskTest(MockDataExportsBase, BaseTestCase):
 
         # Retrieve all the exports unfiltered
         self.client.login(username='someuser', password='someuser')
-        list_url = reverse(self._get_endpoint('exporttask-list'))
+        list_url = reverse(self._get_endpoint('submissionexporttask-list'))
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()['count'] == 2
@@ -58,7 +58,7 @@ class AssetExportTaskTest(MockDataExportsBase, BaseTestCase):
         moment!
         """
         self.client.login(username='someuser', password='someuser')
-        list_url = reverse(self._get_endpoint('exporttask-list'))
+        list_url = reverse(self._get_endpoint('submissionexporttask-list'))
         source_url = reverse('asset-detail', args=[self.asset.uid])
         # Give the source URL an invalid asset UID
         source_url = source_url.rstrip('/') + 'bogus/'

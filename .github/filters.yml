@@ -1,0 +1,23 @@
+# Path filters. Used by workflows/ci.yml to decide which jobs to run.
+
+# If any file changed matches any of the filters in a list, the output for that
+# list is set to the string 'true'.
+
+darker:
+  - '{kpi,kobo,hub}/**/*.py'       # .py
+  - 'pyproject.toml'               # rules
+  - '.github/workflows/darker.yml' # ci
+
+pytest:
+  - '{kpi,kobo,hub}/**/*.!(md)'    # backend
+  - 'dependencies/**/*.!(md)'      # pip
+  - 'pyproject.toml'               # (can affect build/tests)
+  - '.github/workflows/pytest.yml' # ci
+
+npm-test:
+  - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'   # frontend
+  - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'       # npm + postinstall
+  - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'            # compilers
+  - '{.editorconfig,.prettier*,.stylelint*,.eslint*,coffeelint*}' # linters
+  - '.gitignore'                                                  # (can affect tools)
+  - '.github/workflows/npm-test.yml'                              # ci

@@ -16,8 +16,17 @@ from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryL
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.constants import PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
-from kpi.models import Asset, AssetFile, PairedData
+from kpi.constants import (
+    CLONE_ARG_NAME,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+)
+from kpi.models import Asset, AssetFile, ObjectPermission, PairedData
 from kpi.models.asset import AssetSetting
 from kpi.utils.strings import to_str
 
@@ -480,8 +489,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
 
         self.assertEqual(
-                log_metadata['qa'][NEW],
-                request_data['advanced_features']['qual']['qual_survey'],
+            log_metadata['qa'][NEW],
+            request_data['advanced_features']['qual']['qual_survey'],
         )
 
     def test_failed_qa_update_does_not_create_log(self):
@@ -869,7 +878,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # can't use _base_project_history_log_test because
         # the old endpoint doesn't like format=json
         self.client.post(
-            path=reverse('exporttask-list'),
+            path=reverse('submissionexporttask-list'),
             data=request_data,
         )
 
@@ -921,3 +930,375 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 object_id__in=[asset.id for asset in assets], action=audit_action
             )
             self.assertEqual(project_hist_logs.count(), 2)
+
+    def test_bulk_permission_assignment_creates_logs_for_each_user(self):
+        def get_user_url(username):
+            return reverse('api_v2:user-kpi-detail', kwargs={'username': username})
+
+        def get_permission_url(codename):
+            return reverse('api_v2:permission-detail', kwargs={'codename': codename})
+
+        request_data = [
+            # assign simple perms to someuser and anotheruser
+            {
+                'permission': get_permission_url(PERM_VIEW_ASSET),
+                'user': get_user_url('someuser'),
+            },
+            {
+                'permission': get_permission_url(PERM_VIEW_ASSET),
+                'user': get_user_url('anotheruser'),
+            },
+        ]
+        self.client.post(
+            path=reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data=request_data,
+            format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        someuser_log = ProjectHistoryLog.objects.filter(
+            metadata__permissions__username='someuser'
+        ).first()
+        anotheruser_log = ProjectHistoryLog.objects.filter(
+            metadata__permissions__username='anotheruser'
+        ).first()
+        self._check_common_metadata(
+            someuser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+        self._check_common_metadata(
+            anotheruser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+        self.assertListEqual(
+            someuser_log.metadata['permissions'][ADDED], [PERM_VIEW_ASSET]
+        )
+        self.assertListEqual(
+            anotheruser_log.metadata['permissions'][ADDED], [PERM_VIEW_ASSET]
+        )
+        self.assertListEqual(someuser_log.metadata['permissions'][REMOVED], [])
+        self.assertListEqual(anotheruser_log.metadata['permissions'][REMOVED], [])
+        self.assertEqual(someuser_log.action, AuditAction.MODIFY_USER_PERMISSIONS)
+        self.assertEqual(anotheruser_log.action, AuditAction.MODIFY_USER_PERMISSIONS)
+
+    @data(
+        # permission, use bulk endpoint, expected action, expected inverse action
+        (
+            PERM_VIEW_ASSET,
+            True,
+            AuditAction.SHARE_FORM_PUBLICLY,
+            AuditAction.UNSHARE_FORM_PUBLICLY,
+        ),
+        (
+            PERM_VIEW_SUBMISSIONS,
+            True,
+            AuditAction.SHARE_DATA_PUBLICLY,
+            AuditAction.UNSHARE_DATA_PUBLICLY,
+        ),
+        (
+            PERM_ADD_SUBMISSIONS,
+            True,
+            AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS,
+            AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS,
+        ),
+        (
+            PERM_VIEW_ASSET,
+            False,
+            AuditAction.SHARE_FORM_PUBLICLY,
+            AuditAction.UNSHARE_FORM_PUBLICLY,
+        ),
+        (
+            PERM_VIEW_SUBMISSIONS,
+            False,
+            AuditAction.SHARE_DATA_PUBLICLY,
+            AuditAction.UNSHARE_DATA_PUBLICLY,
+        ),
+        (
+            PERM_ADD_SUBMISSIONS,
+            False,
+            AuditAction.ALLOW_ANONYMOUS_SUBMISSIONS,
+            AuditAction.DISALLOW_ANONYMOUS_SUBMISSIONS,
+        ),
+    )
+    @unpack
+    def test_create_permission_creates_logs_for_anonymous_user(
+        self, permission, use_bulk, expected_action, expected_inverse_action
+    ):
+        request_data = {
+            'permission': reverse(
+                'api_v2:permission-detail', kwargs={'codename': permission}
+            ),
+            'user': reverse(
+                'api_v2:user-kpi-detail', kwargs={'username': 'AnonymousUser'}
+            ),
+        }
+        # /bulk expects assignments to come in a list
+        if use_bulk:
+            request_data = [request_data]
+        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        self.client.post(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-{endpoint}',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data=request_data,
+            format='json',
+        )
+        log = ProjectHistoryLog.objects.filter(action=expected_action).first()
+        self.assertEqual(log.action, expected_action)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+
+        # get the permission that was created
+        perm = ObjectPermission.objects.filter(
+            user__username='AnonymousUser', permission__codename=permission
+        ).first()
+        # request to delete the permission we just created
+        self.client.delete(
+            path=reverse(
+                'api_v2:asset-permission-assignment-detail',
+                kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm.uid},
+            ),
+        )
+        removal_log = ProjectHistoryLog.objects.filter(
+            action=expected_inverse_action
+        ).first()
+        self._check_common_metadata(
+            removal_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+
+    # use bulk endpoint? (as opposed to -detail)
+    @data(True, False)
+    def test_modify_permissions_log_includes_implied(self, use_bulk):
+        request_data = {
+            # change_submissions implies view_submissions, add_submissions,
+            # and view_asset
+            'permission': reverse(
+                'api_v2:permission-detail', kwargs={'codename': PERM_CHANGE_SUBMISSIONS}
+            ),
+            'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'someuser'}),
+        }
+        if use_bulk:
+            request_data = [request_data]
+        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        self.client.post(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-{endpoint}',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data=request_data,
+            format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.filter(
+            action=AuditAction.MODIFY_USER_PERMISSIONS
+        ).first()
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+        self.assertListEqual(
+            sorted(log.metadata['permissions'][ADDED]),
+            ['add_submissions', 'change_submissions', 'view_asset', 'view_submissions'],
+        )
+        self.assertListEqual(log.metadata['permissions'][REMOVED], [])
+        self.assertEqual(log.metadata['permissions']['username'], 'someuser')
+
+        # removing view_asset should remove view_submissions and change_submissions
+        view_asset_perm = ObjectPermission.objects.filter(
+            user__username='someuser', permission__codename=PERM_VIEW_ASSET
+        ).first()
+        self.client.delete(
+            path=reverse(
+                'api_v2:asset-permission-assignment-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': view_asset_perm.uid,
+                },
+            ),
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        removal_log = (
+            ProjectHistoryLog.objects.filter(action=AuditAction.MODIFY_USER_PERMISSIONS)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertListEqual(removal_log.metadata['permissions'][ADDED], [])
+        self.assertListEqual(
+            sorted(removal_log.metadata['permissions'][REMOVED]),
+            ['change_submissions', 'view_asset', 'view_submissions'],
+        )
+        self.assertEqual(removal_log.metadata['permissions']['username'], 'someuser')
+
+    @data(True, False)
+    def test_create_partial_permission_creates_log(self, use_bulk):
+        request_data = {
+            # partial change_submissions implies partial view_submissions,
+            # add_submissions, and view_asset
+            'permission': reverse(
+                'api_v2:permission-detail',
+                kwargs={'codename': PERM_PARTIAL_SUBMISSIONS},
+            ),
+            'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'someuser'}),
+            'partial_permissions': [
+                {
+                    'url': reverse(
+                        'api_v2:permission-detail',
+                        kwargs={'codename': PERM_CHANGE_SUBMISSIONS},
+                    ),
+                    'filters': [{'_submitted_by': 'someuser'}],
+                }
+            ],
+        }
+        if use_bulk:
+            request_data = [request_data]
+        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        self.client.post(
+            path=reverse(
+                f'api_v2:asset-permission-assignment-{endpoint}',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data=request_data,
+            format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.filter(
+            action=AuditAction.MODIFY_USER_PERMISSIONS
+        ).first()
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+        )
+        # can't sort a list of strings and dicts,
+        # so check length and expected entries individually
+        added = log.metadata['permissions'][ADDED]
+        self.assertEqual(len(added), 6)
+        # adding partial permissions always adds 'add_submissions',
+        # both partial and full
+        self.assertIn(PERM_ADD_SUBMISSIONS, added)
+        self.assertIn(PERM_VIEW_ASSET, added)
+        self.assertIn(PERM_PARTIAL_SUBMISSIONS, added)
+
+        # inherited partial permissions
+        self.assertIn(
+            {
+                'code': PERM_CHANGE_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
+            added,
+        )
+        self.assertIn(
+            {'code': PERM_VIEW_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            added,
+        )
+        self.assertIn(
+            {'code': PERM_ADD_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            added,
+        )
+
+        self.assertListEqual(log.metadata['permissions'][REMOVED], [])
+        self.assertEqual(log.metadata['permissions']['username'], 'someuser')
+
+        # removing view_asset should remove view_submissions and change_submissions
+        partial_submissions_perm = ObjectPermission.objects.filter(
+            user__username='someuser', permission__codename=PERM_PARTIAL_SUBMISSIONS
+        ).first()
+        self.client.delete(
+            path=reverse(
+                'api_v2:asset-permission-assignment-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'uid': partial_submissions_perm.uid,
+                },
+            ),
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        removal_log = (
+            ProjectHistoryLog.objects.filter(action=AuditAction.MODIFY_USER_PERMISSIONS)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertListEqual(removal_log.metadata['permissions'][ADDED], [])
+        # we don't record what exact partial permissions were lost since all of them
+        # are removed at once
+        self.assertListEqual(
+            sorted(removal_log.metadata['permissions'][REMOVED]),
+            ['partial_submissions'],
+        )
+        self.assertEqual(removal_log.metadata['permissions']['username'], 'someuser')
+
+    def test_no_logs_if_no_permissions_change(self):
+        someuser = User.objects.get(username='someuser')
+        # assign a permission someone already has
+        self.asset.assign_perm(user_obj=someuser, perm=PERM_VIEW_ASSET)
+        self.client.post(
+            path=reverse(
+                'api_v2:asset-permission-assignment-list',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data={
+                'permission': reverse(
+                    'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
+                ),
+                'user': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+            format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_no_logs_if_bulk_request_fails(self):
+        someuser = User.objects.get(username='someuser')
+        self.asset.assign_perm(user_obj=someuser, perm=PERM_VIEW_ASSET)
+        data = [
+            {
+                'permission': reverse(
+                    'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
+                ),
+                'user': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+            },
+            # trying to assign a permission to an admin will fail the request
+            {
+                'permission': reverse(
+                    'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
+                ),
+                'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'admin'}),
+            },
+        ]
+        self.client.post(
+            path=reverse(
+                'api_v2:asset-permission-assignment-bulk-assignments',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                },
+            ),
+            data=data,
+            format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_clone_permissions_creates_logs(self):
+        second_asset = Asset.objects.get(pk=2)
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            request_data={CLONE_ARG_NAME: second_asset.uid},
+            expected_action=AuditAction.CLONE_PERMISSIONS,
+            expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['cloned_from'], second_asset.uid)

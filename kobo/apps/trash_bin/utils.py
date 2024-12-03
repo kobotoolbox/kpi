@@ -20,7 +20,7 @@ from django_celery_beat.models import (
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kpi.exceptions import InvalidXFormException, MissingXFormException
-from kpi.models import Asset, ExportTask, ImportTask
+from kpi.models import Asset, SubmissionExportTask, ImportTask
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
 from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
@@ -45,7 +45,7 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
         asset.deployment.delete()
-        project_exports = ExportTask.objects.filter(
+        project_exports = SubmissionExportTask.objects.filter(
             Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
             | Q(data__source=f'{host}/assets/{asset.uid}/')
         )

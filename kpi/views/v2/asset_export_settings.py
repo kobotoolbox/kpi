@@ -12,7 +12,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models import AssetExportSettings, SynchronousExport
+from kpi.models import AssetExportSettings, SubmissionSynchronousExport
 from kpi.permissions import AssetExportSettingsPermission
 from kpi.renderers import SubmissionCSVRenderer, SubmissionXLSXRenderer
 from kpi.serializers.v2.asset_export_settings import (
@@ -235,7 +235,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
         # were originally created for a different format
         settings_obj.export_settings['type'] = format_type
 
-        export = SynchronousExport.generate_or_return_existing(
+        export = SubmissionSynchronousExport.generate_or_return_existing(
            user=user,
            asset_export_settings=settings_obj,
         )
