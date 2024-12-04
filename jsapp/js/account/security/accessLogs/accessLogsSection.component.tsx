@@ -4,14 +4,17 @@ import React from 'react';
 // Partial components
 // import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
+import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component';
 
 // Utilities
-import useAccessLogsQuery, {type AccessLog} from './accessLogs.query';
+import useAccessLogsQuery, {useExportAccessLogs, type AccessLog} from './accessLogs.query';
 import {formatTime} from 'js/utils';
 // import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
+
+const exportData = useExportAccessLogs();
 
 export default function AccessLogsSection() {
   // function logOutAllSessions() {
@@ -36,6 +39,10 @@ export default function AccessLogsSection() {
             startIcon='logout'
           />
         </div>*/}
+        <ExportToEmailButton
+            label={t('Export log data')}
+            exportFunction={exportData}
+        />
       </header>
 
       <PaginatedQueryUniversalTable<AccessLog>
