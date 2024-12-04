@@ -7,7 +7,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kpi.filters import SearchFilter
-from kpi.models import ExportTask
+from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
@@ -142,7 +142,7 @@ class ExportTaskViewSet(
     ### CURRENT ENDPOINT
     """
 
-    model = ExportTask
+    model = SubmissionExportTask
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
     renderer_classes = [
@@ -168,4 +168,3 @@ class ExportTaskViewSet(
             user=user,
             data__source__icontains=self.kwargs['parent_lookup_asset'],
         )
-

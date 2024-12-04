@@ -26,17 +26,32 @@ def update_organization_names(apps, schema_editor):
                 and organization.name.strip() != ''
                 and organization.name.startswith(user.username)
             ):
-                try:
-                    organization_name = user.extra_details.data['organization'].strip()
-                except (KeyError, AttributeError):
-                    continue
-
-                if organization_name:
+                update = False
+                if organization_name := user.extra_details.data.get(
+                    'organization', ''
+                ).strip():
+                    update = True
                     organization.name = organization_name
+
+                if organization_website := user.extra_details.data.get(
+                    'organization_website', ''
+                ).strip():
+                    update = True
+                    organization.website = organization_website
+
+                if organization_type := user.extra_details.data.get(
+                    'organization_type', ''
+                ).strip():
+                    update = True
+                    organization.organization_type = organization_type
+
+                if update:
                     organizations.append(organization)
 
         if organizations:
-            Organization.objects.bulk_update(organizations, ['name'])
+            Organization.objects.bulk_update(
+                organizations, ['name', 'organization_type', 'website']
+            )
 
 
 def noop(apps, schema_editor):
@@ -46,7 +61,7 @@ def noop(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organizations', '0005_add_mmo_override_field_to_organization'),
+        ('organizations', '0006_add_organization_type_and_website'),
     ]
 
     operations = [migrations.RunPython(update_organization_names, noop)]
