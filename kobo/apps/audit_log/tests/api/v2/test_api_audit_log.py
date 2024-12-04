@@ -6,17 +6,14 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import (
-    AccessLog,
-    AuditLog,
-    AuditType,
-)
+from kobo.apps.audit_log.models import AccessLog, AuditLog, AuditType
 from kobo.apps.audit_log.tests.test_signals import skip_login_access_log
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
 )
+from kpi.models.import_export_task import AccessLogExportTask
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -429,4 +426,181 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         self.assertEqual(
             group['metadata']['auth_type'],
             ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+        )
+
+
+class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
+
+    def get_endpoint_basename(self):
+        return 'access-logs-export-list'
+
+    def test_export_as_anonymous_returns_unauthorized(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_export_for_user_returns_success(self):
+        self.force_login_user(User.objects.get(username='anotheruser'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_export_for_superuser_commences(self):
+        self.force_login_user(User.objects.get(username='admin'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_create_export_task_on_post(self):
+        test_user = User.objects.get(username='anotheruser')
+        self.force_login_user(test_user)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            AccessLogExportTask.objects.filter(user=test_user)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertIsNotNone(task)
+        self.assertIn(task.status, ['created', 'processing', 'complete'])
+        self.assertFalse(task.get_all_logs)
+
+    def test_get_status_of_tasks(self):
+        test_user = User.objects.get(username='anotheruser')
+        self.force_login_user(test_user)
+
+        AccessLogExportTask.objects.create(
+            user=test_user,
+            get_all_logs=False,
+            data={
+                'type': 'access_logs_export',
+            },
+        )
+
+        response_status = self.client.get(self.url)
+        self.assertEqual(response_status.status_code, status.HTTP_200_OK)
+
+        # Assert the response contains a list of tasks
+        tasks = response_status.json()
+        self.assertIsInstance(tasks, list)
+        self.assertGreater(len(tasks), 0)  # Ensure at least one task is present
+
+        # Assert the structure of the first task in the list
+        first_task = tasks[0]
+        self.assertIn('uid', first_task)
+        self.assertIn('status', first_task)
+        self.assertIn('date_created', first_task)
+
+    def test_multiple_export_tasks_not_allowed(self):
+        test_user = User.objects.get(username='anotheruser')
+        self.force_login_user(test_user)
+
+        response_first = self.client.post(self.url)
+        self.assertEqual(response_first.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            AccessLogExportTask.objects.filter(user=test_user)
+            .order_by('-date_created')
+            .first()
+        )
+        task.status = 'processing'
+        task.save()
+
+        response_second = self.client.post(self.url)
+        self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'Export task for user access logs already in progress.',
+            response_second.json()['error'],
+        )
+
+
+class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
+
+    def get_endpoint_basename(self):
+        return 'all-access-logs-export-list'
+
+    def test_export_as_anonymous_returns_unauthorized(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_regular_user_cannot_export_access_logs(self):
+        self.force_login_user(User.objects.get(username='anotheruser'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_export_access_logs_for_superuser_returns_success(self):
+        self.force_login_user(User.objects.get(username='admin'))
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+    def test_superuser_create_export_task_on_post(self):
+        test_superuser = User.objects.get(username='admin')
+        self.force_login_user(test_superuser)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            AccessLogExportTask.objects.filter(user=test_superuser)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertIsNotNone(task)
+        self.assertIn(task.status, ['created', 'processing', 'complete'])
+        self.assertTrue(task.get_all_logs)
+
+    def test_superuser_get_status_tasks(self):
+        test_superuser = User.objects.get(username='admin')
+        self.force_login_user(test_superuser)
+
+        AccessLogExportTask.objects.create(
+            user=test_superuser,
+            get_all_logs=False,
+            data={
+                'type': 'access_logs_export',
+            },
+        )
+
+        response_status = self.client.get(self.url)
+        self.assertEqual(response_status.status_code, status.HTTP_200_OK)
+
+        # Assert the response contains a list of tasks
+        tasks = response_status.json()
+        self.assertIsInstance(tasks, list)
+        self.assertGreater(len(tasks), 0)  # Ensure at least one task is present
+
+        # Assert the structure of the first task in the list
+        first_task = tasks[0]
+        self.assertIn('uid', first_task)
+        self.assertIn('status', first_task)
+        self.assertIn('date_created', first_task)
+
+    def test_permission_denied_for_non_superusers_on_get_status(self):
+        non_superuser = User.objects.get(username='anotheruser')
+        self.force_login_user(non_superuser)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_multiple_export_tasks_not_allowed(self):
+        test_superuser = User.objects.get(username='admin')
+        self.force_login_user(test_superuser)
+
+        response_first = self.client.post(self.url)
+        self.assertEqual(response_first.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            AccessLogExportTask.objects.filter(user=test_superuser)
+            .order_by('-date_created')
+            .first()
+        )
+        task.status = 'processing'
+        task.save()
+
+        response_second = self.client.post(self.url)
+        self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'Export task for all access logs already in progress.',
+            response_second.json()['error'],
         )
