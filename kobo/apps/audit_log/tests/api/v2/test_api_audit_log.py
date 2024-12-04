@@ -509,7 +509,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response_second = self.client.post(self.url)
         self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'Export task for user project history logs already in progress.',
+            'Export task for user access logs already in progress.',
             response_second.json()['error'],
         )
 
@@ -601,6 +601,6 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response_second = self.client.post(self.url)
         self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'Export task for all project history logs already in progress.',
+            'Export task for all access logs already in progress.',
             response_second.json()['error'],
         )

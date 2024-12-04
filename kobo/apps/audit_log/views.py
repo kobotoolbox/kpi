@@ -420,7 +420,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
             return Response(
                 {
                     'error': (
-                        'Export task for user project history logs already in progress.'
+                        'Export task for user access logs already in progress.'
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -490,8 +490,7 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
             return Response(
                 {
                     'error': (
-                        'Export task for all project history logs already '
-                        'in progress.'
+                        'Export task for all access logs already in progress.'
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
