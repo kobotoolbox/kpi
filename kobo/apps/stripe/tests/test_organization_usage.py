@@ -90,8 +90,14 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         """
         response = self.client.get(self.detail_url)
         # without a plan, the user should only see their usage
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
+        assert (
+            response.data['total_submission_count']['all_time']
+            == self.expected_submissions_single
+        )
+        assert (
+            response.data['total_submission_count']['current_period']
+            == self.expected_submissions_single
+        )
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
         )
@@ -106,8 +112,14 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
 
         # the user should see usage for everyone in their org
         response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert (
+            response.data['total_submission_count']['current_period']
+            == self.expected_submissions_multi
+        )
+        assert (
+            response.data['total_submission_count']['all_time']
+            == self.expected_submissions_multi
+        )
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
@@ -122,8 +134,14 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
 
         response = self.client.get(self.detail_url)
         # without the proper subscription, the user should only see their usage
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
+        assert (
+            response.data['total_submission_count']['current_period']
+            == self.expected_submissions_single
+        )
+        assert (
+            response.data['total_submission_count']['all_time']
+            == self.expected_submissions_single
+        )
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_single
         )
@@ -149,8 +167,14 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         generate_mmo_subscription(self.organization)
 
         first_response = self.client.get(self.detail_url)
-        assert first_response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert first_response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert (
+            first_response.data['total_submission_count']['current_period']
+            == self.expected_submissions_multi
+        )
+        assert (
+            first_response.data['total_submission_count']['all_time']
+            == self.expected_submissions_multi
+        )
         assert first_response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
@@ -161,8 +185,14 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
 
         # make sure the second request doesn't reflect the additional submissions
         response = self.client.get(self.detail_url)
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_multi
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
+        assert (
+            response.data['total_submission_count']['current_period']
+            == self.expected_submissions_multi
+        )
+        assert (
+            response.data['total_submission_count']['all_time']
+            == self.expected_submissions_multi
+        )
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
         )
@@ -204,12 +234,11 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         first_of_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
         first_of_next_month = first_of_month + relativedelta(months=1)
 
-        assert response.data['total_submission_count']['current_month'] == num_submissions
         assert (
-            response.data['current_month_start']
-            == first_of_month.isoformat()
+            response.data['total_submission_count']['current_period'] == num_submissions
         )
-        assert response.data['current_month_end'] == first_of_next_month.isoformat()
+        assert response.data['current_period_start'] == first_of_month.isoformat()
+        assert response.data['current_period_end'] == first_of_next_month.isoformat()
 
     def test_monthly_plan_period(self):
         """
@@ -225,12 +254,14 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         response = self.client.get(self.detail_url)
 
         assert (
-            response.data['total_submission_count']['current_month']
-            == num_submissions
+            response.data['total_submission_count']['current_period'] == num_submissions
         )
-        assert response.data['current_month_start'] == subscription.current_period_start.isoformat()
         assert (
-            response.data['current_month_end']
+            response.data['current_period_start']
+            == subscription.current_period_start.isoformat()
+        )
+        assert (
+            response.data['current_period_end']
             == subscription.current_period_end.isoformat()
         )
 
@@ -248,12 +279,14 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         response = self.client.get(self.detail_url)
 
         assert (
-            response.data['total_submission_count']['current_year']
-            == num_submissions
+            response.data['total_submission_count']['current_period'] == num_submissions
         )
-        assert response.data['current_year_start'] == subscription.current_period_start.isoformat()
         assert (
-            response.data['current_year_end']
+            response.data['current_period_start']
+            == subscription.current_period_start.isoformat()
+        )
+        assert (
+            response.data['current_period_end']
             == subscription.current_period_end.isoformat()
         )
 
@@ -277,12 +310,12 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         response = self.client.get(self.detail_url)
 
+        assert response.data['total_submission_count']['current_period'] == 0
+        assert response.data['current_period_start'] == canceled_at.isoformat()
         assert (
-            response.data['total_submission_count']['current_month']
-            == 0
+            response.data['current_period_end']
+            == current_billing_period_end.isoformat()
         )
-        assert response.data['current_month_start'] == canceled_at.isoformat()
-        assert response.data['current_month_end'] == current_billing_period_end.isoformat()
 
     def test_plan_canceled_last_month(self):
         subscription = generate_plan_subscription(self.organization, age_days=60)
@@ -302,12 +335,14 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         response = self.client.get(self.detail_url)
 
         assert (
-            response.data['total_submission_count']['current_month']
-            == num_submissions
+            response.data['total_submission_count']['current_period'] == num_submissions
         )
-        assert response.data['current_month_start'] == current_billing_period_start.isoformat()
         assert (
-            response.data['current_month_end']
+            response.data['current_period_start']
+            == current_billing_period_start.isoformat()
+        )
+        assert (
+            response.data['current_period_end']
             == current_billing_period_end.isoformat()
         )
 
@@ -334,15 +369,15 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         with freeze_time(frozen_datetime_now):
             response = self.client.get(self.detail_url)
-        current_month_start = datetime.fromisoformat(
-            response.data['current_month_start']
+        current_period_start = datetime.fromisoformat(
+            response.data['current_period_start']
         )
-        current_month_end = datetime.fromisoformat(response.data['current_month_end'])
+        current_period_end = datetime.fromisoformat(response.data['current_period_end'])
 
-        assert current_month_start.month == cancel_date.month
-        assert current_month_start.day == cancel_date.day
-        assert current_month_end.month == 9
-        assert current_month_end.day == 30
+        assert current_period_start.month == cancel_date.month
+        assert current_period_start.day == cancel_date.day
+        assert current_period_end.month == 9
+        assert current_period_end.day == 30
 
     def test_multiple_canceled_plans(self):
         """
@@ -384,13 +419,15 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
 
         response = self.client.get(self.detail_url)
 
-        assert response.data['total_submission_count']['current_month'] == num_submissions
         assert (
-            response.data['current_month_start']
+            response.data['total_submission_count']['current_period'] == num_submissions
+        )
+        assert (
+            response.data['current_period_start']
             == current_billing_period_start.isoformat()
         )
         assert (
-            response.data['current_month_end']
+            response.data['current_period_end']
             == current_billing_period_end.isoformat()
         )
 

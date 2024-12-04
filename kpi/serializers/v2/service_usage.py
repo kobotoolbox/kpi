@@ -2,10 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.utils import (
-    get_monthly_billing_dates,
-    get_yearly_billing_dates,
-)
+from kobo.apps.organizations.utils import get_billing_dates
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -17,12 +14,10 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         view_name='asset-detail',
     )
     asset__name = serializers.ReadOnlyField(source='name')
-    nlp_usage_current_month = serializers.SerializerMethodField()
-    nlp_usage_current_year = serializers.SerializerMethodField()
+    nlp_usage_current_period = serializers.SerializerMethodField()
     nlp_usage_all_time = serializers.SerializerMethodField()
     storage_bytes = serializers.SerializerMethodField()
-    submission_count_current_month = serializers.SerializerMethodField()
-    submission_count_current_year = serializers.SerializerMethodField()
+    submission_count_current_period = serializers.SerializerMethodField()
     submission_count_all_time = serializers.SerializerMethodField()
 
     class Meta:
@@ -31,39 +26,28 @@ class AssetUsageSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             'asset',
             'asset__name',
-            'nlp_usage_current_month',
-            'nlp_usage_current_year',
+            'nlp_usage_current_period',
             'nlp_usage_all_time',
             'storage_bytes',
-            'submission_count_current_month',
-            'submission_count_current_year',
+            'submission_count_current_period',
             'submission_count_all_time',
         )
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
         organization = self.context.get('organization')
-        self._month_start, _ = get_monthly_billing_dates(organization)
-        self._year_start, _ = get_yearly_billing_dates(organization)
+        self._period_start, _ = get_billing_dates(organization)
 
-    def get_nlp_usage_current_month(self, asset):
-        return self._get_nlp_tracking_data(asset, self._month_start)
-
-    def get_nlp_usage_current_year(self, asset):
-        return self._get_nlp_tracking_data(asset, self._year_start)
+    def get_nlp_usage_current_period(self, asset):
+        return self._get_nlp_tracking_data(asset, self._period_start)
 
     def get_nlp_usage_all_time(self, asset):
         return self._get_nlp_tracking_data(asset)
 
-    def get_submission_count_current_month(self, asset):
+    def get_submission_count_current_period(self, asset):
         if not asset.has_deployment:
             return 0
-        return asset.deployment.submission_count_since_date(self._month_start)
-
-    def get_submission_count_current_year(self, asset):
-        if not asset.has_deployment:
-            return 0
-        return asset.deployment.submission_count_since_date(self._year_start)
+        return asset.deployment.submission_count_since_date(self._period_start)
 
     def get_submission_count_all_time(self, asset):
         if not asset.has_deployment:
@@ -103,10 +87,8 @@ class ServiceUsageSerializer(serializers.Serializer):
     total_nlp_usage = serializers.SerializerMethodField()
     total_storage_bytes = serializers.SerializerMethodField()
     total_submission_count = serializers.SerializerMethodField()
-    current_month_start = serializers.SerializerMethodField()
-    current_month_end = serializers.SerializerMethodField()
-    current_year_start = serializers.SerializerMethodField()
-    current_year_end = serializers.SerializerMethodField()
+    current_period_start = serializers.SerializerMethodField()
+    current_period_end = serializers.SerializerMethodField()
     last_updated = serializers.SerializerMethodField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -120,17 +102,11 @@ class ServiceUsageSerializer(serializers.Serializer):
             ).first()
         self.calculator = ServiceUsageCalculator(instance, organization)
 
-    def get_current_month_end(self, user):
-        return self.calculator.current_month_end.isoformat()
+    def get_current_period_end(self, user):
+        return self.calculator.current_period_end.isoformat()
 
-    def get_current_month_start(self, user):
-        return self.calculator.current_month_start.isoformat()
-
-    def get_current_year_end(self, user):
-        return self.calculator.current_year_end.isoformat()
-
-    def get_current_year_start(self, user):
-        return self.calculator.current_year_start.isoformat()
+    def get_current_period_start(self, user):
+        return self.calculator.current_period_start.isoformat()
 
     def get_last_updated(self, user):
         return self.calculator.get_last_updated().isoformat()

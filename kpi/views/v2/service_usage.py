@@ -28,23 +28,18 @@ class ServiceUsageViewSet(viewsets.GenericViewSet):
     >       curl -X GET https://[kpi]/api/v2/service_usage/
     >       {
     >           "total_nlp_usage": {
-    >               "asr_seconds_current_month": {integer},
-    >               "asr_seconds_current_year": {integer},
+    >               "asr_seconds_current_period": {integer},
     >               "asr_seconds_all_time": {integer},
-    >               "mt_characters_current_month": {integer},
-    >               "mt_characters_current_year": {integer},
+    >               "mt_characters_current_period": {integer},
     >               "mt_characters_all_time": {integer},
     >           },
     >           "total_storage_bytes": {integer},
     >           "total_submission_count": {
-    >               "current_month": {integer},
-    >               "current_year": {integer},
+    >               "current_period": {integer},
     >               "all_time": {integer},
     >           },
-    >           "current_month_start": {string (date), ISO format},
-    >           "current_year_start": {string (date), ISO format},
-    >           "current_month_end": {string (date), ISO format},
-    >           "current_year_end": {string (date), ISO format},
+    >           "current_period_start": {string (date), ISO format},
+    >           "current_period_end": {string (date), ISO format},
     >       }
 
 
