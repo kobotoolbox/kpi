@@ -57,10 +57,14 @@ class OrganizationAssetViewSet(AssetViewSet):
             # validated within `OrganizationViewSet.assets()`.
             raise AttributeError('`permissions_checked` is missing')
 
+        organization = getattr(
+            self.request, 'organization', self.request.user.organization
+        )
+
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.filter(
-                owner=self.request.user.organization.owner_user_object
+                owner=organization.owner_user_object
             )
         else:
             raise NotImplementedError
@@ -97,12 +101,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### Additional Information
         For more details, please refer to `/api/v2/assets/`.
         """
-        self.get_object()  # Call check permissions
+        organization = self.get_object()  # Call check permissions
 
         # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
         django_http_request = request._request
         django_http_request.permissions_checked = True
+        django_http_request.organization = organization
         return asset_view(request=django_http_request)
 
     def get_queryset(self) -> QuerySet:
