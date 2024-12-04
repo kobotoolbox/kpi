@@ -21,6 +21,7 @@ from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
+    ASSET_TYPE_SURVEY,
     CLONE_ARG_NAME,
     PERM_ADD_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -356,6 +357,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-detail': cls.create_from_permissions_request,
             'asset-permission-assignment-list': cls.create_from_permissions_request,
             'asset-permission-assignment-clone': cls.handle_cloned_permissions,
+            'project-ownership-invite-list': cls.handle_ownership_transfer,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -823,3 +825,33 @@ class ProjectHistoryLog(AuditLog):
                 'cloned_from': request._data[CLONE_ARG_NAME],
             },
         )
+
+    @classmethod
+    def handle_ownership_transfer(cls, request):
+        updated_data = getattr(request, 'updated_data')
+        transfers = updated_data['transfers'].values(
+            'asset__uid', 'asset__asset_type', 'asset__id'
+        )
+        logs = []
+        for transfer in transfers:
+            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
+                continue
+            logs.append(
+                ProjectHistoryLog(
+                    object_id=transfer['asset__id'],
+                    action=AuditAction.TRANSFER,
+                    user=request.user,
+                    app_label=Asset._meta.app_label,
+                    model_name=Asset._meta.model_name,
+                    log_type=AuditType.PROJECT_HISTORY,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': transfer['asset__uid'],
+                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                        'ip_address': get_client_ip(request),
+                        'source': get_human_readable_client_user_agent(request),
+                        'username': updated_data['recipient.username'],
+                    },
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
