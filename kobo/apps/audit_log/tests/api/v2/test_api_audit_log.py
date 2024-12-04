@@ -463,6 +463,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         )
         self.assertIsNotNone(task)
         self.assertIn(task.status, ['created', 'processing', 'complete'])
+        self.assertEqual(task.get_all_logs, False)
 
     def test_get_status_of_tasks(self):
         test_user = User.objects.get(username='anotheruser')
@@ -508,7 +509,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response_second = self.client.post(self.url)
         self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'You already have a running export task for your own logs',
+            'Export task for user project history logs already in progress.',
             response_second.json()['error'],
         )
 
@@ -547,6 +548,7 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         )
         self.assertIsNotNone(task)
         self.assertIn(task.status, ['created', 'processing', 'complete'])
+        self.assertEqual(task.get_all_logs, True)
 
     def test_superuser_get_status_tasks(self):
         test_superuser = User.objects.get(username='admin')
@@ -599,6 +601,6 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         response_second = self.client.post(self.url)
         self.assertEqual(response_second.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'You already have a running export task for this type.',
+            'Export task for all project history logs already in progress.',
             response_second.json()['error'],
         )

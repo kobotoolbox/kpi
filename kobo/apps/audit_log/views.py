@@ -488,7 +488,12 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
             get_all_logs=True,
         ).exists():
             return Response(
-                {'error': 'Export task for all project history logs already in progress.'},
+                {
+                    'error': (
+                        'Export task for all project history logs already '
+                        'in progress.'
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return self.create_task(request, get_all_logs=True)
