@@ -50,7 +50,7 @@ export function usePatchOrganization(orgUrl: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: Partial<Organization>) => (
-      fetchPatch<Organization>(orgUrl, data)
+      fetchPatch<Organization>(orgUrl, data, {prependRootUrl: false})
     ),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organization]});
