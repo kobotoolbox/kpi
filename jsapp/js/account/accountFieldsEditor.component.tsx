@@ -11,15 +11,16 @@ import type {
   AccountFieldsValues,
   AccountFieldsErrors,
 } from './account.constants';
+import {ORGANIZATION_TYPES, type OrganizationTypeName} from 'jsapp/js/account/organization/organizationQuery';
 
-// See: kobo/apps/accounts/forms.py (KoboSignupMixin)
-export const ORGANIZATION_TYPE_SELECT_OPTIONS = [
-  {value: 'non-profit', label: t('Non-profit organization')},
-  {value: 'government', label: t('Government institution')},
-  {value: 'educational', label: t('Educational organization')},
-  {value: 'commercial', label: t('A commercial/for-profit company')},
-  {value: 'none', label: t('I am not associated with any organization')},
-];
+const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES)
+  .map((typeName) => {
+    return {
+      value: typeName,
+      label: ORGANIZATION_TYPES[typeName as OrganizationTypeName].label,
+    };
+});
+
 const GENDER_SELECT_OPTIONS = [
   {value: 'male', label: t('Male')},
   {value: 'female', label: t('Female')},

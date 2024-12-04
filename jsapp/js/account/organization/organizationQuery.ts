@@ -12,7 +12,7 @@ import type {FailResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
 
 // Comes from `kobo/apps/accounts/forms.py`
-type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none';
+export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none';
 
 export const ORGANIZATION_TYPES: {
   [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string}

@@ -15,7 +15,7 @@ import envStore from 'js/envStore';
 import {getSimpleMMOLabel} from './organization.utils';
 
 // Constants and types
-import {ORGANIZATION_TYPE_SELECT_OPTIONS} from 'js/account/accountFieldsEditor.component';
+import {ORGANIZATION_TYPES, type OrganizationTypeName} from 'jsapp/js/account/organization/organizationQuery';
 
 // Styles
 import styles from 'js/account/organization/organizationSettingsRoute.module.scss';
@@ -23,7 +23,7 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
 interface State {
   name: string;
   website?: string;
-  type?: string;
+  type?: OrganizationTypeName;
 }
 
 /**
@@ -77,11 +77,8 @@ export default function OrganizationSettingsRoute() {
     return !currentWebsite;
   }
 
-  function getTypeLabel(typeName: string) {
-    // TODO: see if this would be an actual source of the organization type label
-    // to be done while doing: https://www.notion.so/kobotoolbox/Add-react-query-mutation-hook-for-org-changes-1307e515f6548010b5d3c087b634f01a
-    const foundLabel = ORGANIZATION_TYPE_SELECT_OPTIONS.find((item) => item.value === typeName)?.label;
-    return foundLabel || typeName;
+  function getTypeLabel(typeName: OrganizationTypeName) {
+    return ORGANIZATION_TYPES[typeName]?.label || typeName;
   }
 
   const mmoLabel = getSimpleMMOLabel(
