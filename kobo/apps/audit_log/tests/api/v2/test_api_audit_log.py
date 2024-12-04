@@ -462,7 +462,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
             .first()
         )
         self.assertIsNotNone(task)
-        self.assertEqual(task.status in ['created', 'processing', 'complete'])
+        self.assertIn(task.status, ['created', 'processing', 'complete'])
 
     def test_get_status_of_tasks(self):
         test_user = User.objects.get(username='anotheruser')
@@ -546,14 +546,14 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
             .first()
         )
         self.assertIsNotNone(task)
-        self.assertEqual(task.status in ['created', 'processing', 'complete'])
+        self.assertIn(task.status, ['created', 'processing', 'complete'])
 
     def test_superuser_get_status_tasks(self):
-        test_user = User.objects.get(username='anotheruser')
-        self.force_login_user(test_user)
+        test_superuser = User.objects.get(username='admin')
+        self.force_login_user(test_superuser)
 
         AccessLogExportTask.objects.create(
-            user=test_user,
+            user=test_superuser,
             get_all_logs=False,
             data={
                 'type': 'access_logs_export',
