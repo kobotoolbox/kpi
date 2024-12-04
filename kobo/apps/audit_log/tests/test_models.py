@@ -13,8 +13,6 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
-    ADDED,
-    REMOVED,
     AccessLog,
     AuditLog,
     AuditType,
@@ -24,6 +22,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.models import Asset, ImportTask
@@ -673,7 +673,10 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
         permissions = log.metadata['permissions']
         self.assertEqual(permissions['username'], 'AnonymousUser')
-        self.assertListEqual(permissions[REMOVED], [])
         self.assertListEqual(
-            sorted(permissions[ADDED]), ['discover_asset', 'validate_submissions']
+            permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED], []
+        )
+        self.assertListEqual(
+            sorted(permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]),
+            ['discover_asset', 'validate_submissions'],
         )

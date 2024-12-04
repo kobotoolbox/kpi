@@ -1,8 +1,8 @@
 import copy
 
 import jsonschema
-from django.core.handlers.wsgi import WSGIRequest
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
@@ -27,17 +27,16 @@ from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_NEW,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_OLD,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
     PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
-
-NEW = 'new'
-OLD = 'old'
-ADDED = 'added'
-REMOVED = 'removed'
 
 ANONYMOUS_USER_PERMISSION_ACTIONS = {
     # key: (permission, granting?), value: ph log action
@@ -349,8 +348,8 @@ class ProjectHistoryLog(AuditLog):
                 metadata.update(
                     {
                         'name': {
-                            OLD: audit_log_info['old_name'],
-                            NEW: audit_log_info['new_name'],
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: audit_log_info['old_name'],
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: audit_log_info['new_name'],
                         }
                     }
                 )
@@ -648,8 +647,8 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': username,
-                REMOVED: list(user_permissions_removed),
-                ADDED: list(user_permissions_added) + user_partial_permissions_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(user_permissions_removed),
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(user_permissions_added) + user_partial_permissions_added,
             }
             logs.append(
                 ProjectHistoryLog(
@@ -715,8 +714,8 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': 'AnonymousUser',
-                ADDED: list(perms_added) + partial_perms_added,
-                REMOVED: list(perms_removed),
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(perms_added) + partial_perms_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(perms_removed),
             }
             logs.append(
                 ProjectHistoryLog(
@@ -734,7 +733,7 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def _handle_name_change(old_field, new_field):
-        metadata = {'name': {OLD: old_field, NEW: new_field}}
+        metadata = {'name': {PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: old_field, PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}}
         return AuditAction.UPDATE_NAME, metadata
 
     @staticmethod
@@ -749,11 +748,11 @@ class ProjectHistoryLog(AuditLog):
                 if isinstance(old, list) and isinstance(new, list):
                     removed_values = [val for val in old if val not in new]
                     added_values = [val for val in new if val not in old]
-                    metadata_field_subdict[ADDED] = added_values
-                    metadata_field_subdict[REMOVED] = removed_values
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = added_values
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = removed_values
                 else:
-                    metadata_field_subdict[OLD] = old
-                    metadata_field_subdict[NEW] = new
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_OLD] = old
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_NEW] = new
                 settings[setting_name] = metadata_field_subdict
         return AuditAction.UPDATE_SETTINGS, {'settings': settings}
 
@@ -772,7 +771,7 @@ class ProjectHistoryLog(AuditLog):
         elif not old_enabled and new_enabled:
             # sharing went from disabled to enabled
             action = AuditAction.ENABLE_SHARING
-            shared_fields_dict[ADDED] = new_shared_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = new_shared_fields
         else:
             # the specific fields shared changed
             removed_fields = [
@@ -782,15 +781,15 @@ class ProjectHistoryLog(AuditLog):
                 field for field in new_shared_fields if field not in old_shared_fields
             ]
             action = AuditAction.MODIFY_SHARING
-            shared_fields_dict[ADDED] = added_fields
-            shared_fields_dict[REMOVED] = removed_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = added_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = removed_fields
         return action, {'shared_fields': shared_fields_dict}
 
     @staticmethod
     def _handle_qa_change(_, new_field):
         # qa dictionary is complicated to parse and determine
         # what actually changed, so just return the new dict
-        return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
+        return AuditAction.UPDATE_QA, {'qa': {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}}
 
     @staticmethod
     def _related_request_base(
