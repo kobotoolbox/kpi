@@ -821,6 +821,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             organization = self.context['organization_by_asset'].get(asset.id)
         except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
             organization = self.context.get(
                 'organization', asset.owner.organization
             )
@@ -840,6 +842,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             organization = self.context['organization_by_asset'].get(asset.id)
         except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
             organization = self.context.get(
                 'organization', asset.owner.organization
             )
