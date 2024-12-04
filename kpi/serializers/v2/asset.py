@@ -772,7 +772,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'object_permissions_per_asset'
             ].get(asset.pk)
         except KeyError:
-            asset_permission_assignments = obj.permissions.all()
+            asset_permission_assignments = asset.permissions.all()
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
