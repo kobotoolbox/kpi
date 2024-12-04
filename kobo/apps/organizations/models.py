@@ -186,6 +186,7 @@ class Organization(AbstractOrganization):
         return super().is_admin(user)
 
     @property
+    @cache_for_request
     def is_mmo(self):
         """
         Determines if the multi-members feature is active for the organization
