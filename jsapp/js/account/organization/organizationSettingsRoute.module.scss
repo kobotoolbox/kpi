@@ -3,6 +3,8 @@
 @use 'scss/breakpoints';
 @use 'js/components/common/textBox.module';
 
+$s-field-width: 285px;
+
 .orgSettingsRoot {
   padding: 20px;
   overflow-y: auto;
@@ -39,7 +41,14 @@ h2.orgSettingsHeaderText {
 }
 
 .field {
-  max-width: 285px;
+  max-width: $s-field-width;
+  width: 100%;
+}
+
+.fieldLong {
+  // When we display two fields in one row, and long field in other, we want
+  // them to align nicely, thus:
+  max-width: $s-field-width + 16px + $s-field-width;
   width: 100%;
 }
 
