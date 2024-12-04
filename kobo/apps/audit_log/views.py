@@ -420,7 +420,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
             return Response(
                 {
                     'error': (
-                        'You already have a running export task for your own logs.'
+                        'Export task for user project history logs already in progress.'
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
