@@ -3,6 +3,7 @@ import os
 
 from django.conf import settings
 from django.test import TestCase
+from django.core.files.storage import default_storage
 
 from kobo.apps.audit_log.models import AccessLog
 from kobo.apps.kobo_auth.shortcuts import User
@@ -62,8 +63,8 @@ class AccessLogExportTaskTests(TestCase):
             'The task.result file name format is incorrect.',
         )
         self.assertTrue(
-            os.path.exists(task.result.path),
-            f'The file at {task.result.path} should exist.',
+            default_storage.exists(str(task.result)),
+            f'The file at {str(task.result)} should exist.',
         )
 
     def test_csv_content_structure(self):
@@ -82,7 +83,7 @@ class AccessLogExportTaskTests(TestCase):
         task = self.create_export_task(self.superuser)
         task.run()
 
-        with open(task.result.path, mode='r', encoding='utf-8') as csv_file:
+        with default_storage.open(str(task.result), mode='r') as csv_file:
             reader = csv.DictReader(csv_file)
             rows = list(reader)
 
