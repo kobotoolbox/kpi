@@ -481,7 +481,7 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     permission_classes = (SuperUserPermission,)
 
     def create(self, request, *args, **kwargs):
-        # Check if the superuser has a task running for all or just their own logs
+        # Check if the superuser has a task running for all
         if AccessLogExportTask.objects.filter(
             user=request.user,
             status=AccessLogExportTask.PROCESSING,
