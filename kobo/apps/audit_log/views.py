@@ -589,7 +589,7 @@ class ProjectHistoryLogViewSet(
     <pre class="prettyprint">
     <b>GET</b> /api/v2/asset/<code>{asset_uid}</code>/history/
     </pre>
-    
+
     > Example
     >
     >       curl -X GET https://[kpi-url]/api/v2/asset/aSAvYreNzVEkrWg5Gdcvg/history/
