@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
-from rest_framework.test import APITestCase
 
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
@@ -168,6 +167,7 @@ class OrganizationApiTestCase(BaseTestCase):
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
+
 
 @ddt
 class OrganizationDetailAPITestCase(BaseTestCase):

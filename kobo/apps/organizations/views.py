@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import (
     QuerySet,
     Case,
@@ -10,7 +8,7 @@ from django.db.models import (
 )
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -156,7 +154,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >       }
         ### CURRENT ENDPOINT
         """
-        organization = self.get_object()  # Call check permissions
+        self.get_object()  # check permissions
 
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
