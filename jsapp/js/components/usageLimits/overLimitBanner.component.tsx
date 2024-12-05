@@ -21,8 +21,8 @@ interface OverLimitBannerProps {
 }
 
 /*
-* Translated texts to be used for each limit
-*/
+ * Translated texts to be used for each limit
+ */
 const limitsText: {
   [key: string]: {
     month: string;
@@ -44,8 +44,8 @@ const limitsText: {
 };
 
 /*
-* Returns the text for the limit based on the interval
-*/
+ * Returns the text for the limit based on the interval
+ */
 const getLimitText = (limit: string, interval: string) => {
   if (limit === 'storage') {
     return t('storage');
@@ -58,8 +58,8 @@ const getLimitText = (limit: string, interval: string) => {
 };
 
 /*
-* Returns a formatted string with all the limits
-*/
+ * Returns a formatted string with all the limits
+ */
 const getAllLimits = (limits: string[], interval: string) => {
   if (limits.length === 0) {
     return '';
@@ -75,8 +75,8 @@ const getAllLimits = (limits: string[], interval: string) => {
 };
 
 /*
-* Returns the base message to be displayed in the banner
-*/
+ * Returns the base message to be displayed in the banner
+ */
 const getMessage = ({
   isWarning,
   isMmo,
@@ -94,15 +94,16 @@ const getMessage = ({
       message = t('Your team is approaching the ##LIMITS## limit.');
     } else if (isMmo) {
       message = t('Your organization is approaching the ##LIMITS## limit.');
+    } else {
+      message = t('You are approaching the ##LIMITS## limit.');
     }
-    message = t('You are approaching the ##LIMITS## limit.');
-  }
-  if (isMmo && isTeamLabelActive) {
+  } else if (isMmo && isTeamLabelActive) {
     message = t('Your team has reached the ##LIMITS## limit.');
   } else if (isMmo) {
     message = t('Your organization has reached the ##LIMITS## limit.');
+  } else {
+    message = t('You have reached the ##LIMITS## limit.');
   }
-  message = t('You have reached the ##LIMITS## limit.');
 
   return message.replace('##LIMITS##', limits);
 };
@@ -143,18 +144,16 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
 
   // We have different messages for admins and owners of MMOs
   if (isMmo) {
-    if (userRole === OrganizationUserRole.admin) {
-      if (warning) {
-        textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
-      } else {
-        textMessage = `${textMessage} ${t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
-      }
-    } else if (userRole === OrganizationUserRole.owner) {
+    if (userRole === OrganizationUserRole.owner) {
       if (warning) {
         textMessage = `${textMessage} ${t('Purchase additional submissions add-ons to continue collecting and submitting data.')}`;
       } else {
         textMessage = `${textMessage} ${t('Please purchase an add-on to increase your submission limits.')}`;
       }
+    } else if (warning) {
+      textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
+    } else {
+      textMessage = `${textMessage} ${t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
     }
   } else if (warning) {
     textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.")}`;
@@ -163,8 +162,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   }
 
   // Only owners can see the call to action links
-  const shouldDisplayCTA =
-    !isMmo || userRole === OrganizationUserRole.owner;
+  const shouldDisplayCTA = !isMmo || userRole === OrganizationUserRole.owner;
 
   return (
     <div
