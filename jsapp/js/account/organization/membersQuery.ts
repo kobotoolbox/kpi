@@ -57,11 +57,19 @@ function getMemberEndpoint(orgId: string, username: string) {
  * Mutation hook for updating organization member. It ensures that all related
  * queries refetch data (are invalidated).
  */
-export function usePatchOrganizationMember(orgId: string, username: string) {
+export function usePatchOrganizationMember(username: string) {
   const queryClient = useQueryClient();
+
+  const orgQuery = useOrganizationQuery();
+  const orgId = orgQuery.data?.id;
+
   return useMutation({
     mutationFn: async (data: Partial<OrganizationMember>) => (
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId, username), data)
+      // We're asserting the `orgId` is not `undefined` here, because the parent
+      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
+      // Plus all the organization-related UI (that would use this hook) is
+      // accessible only to logged in users.
+      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data)
     ),
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
@@ -75,11 +83,19 @@ export function usePatchOrganizationMember(orgId: string, username: string) {
  * Mutation hook for removing member from organiztion. It ensures that all
  * related queries refetch data (are invalidated).
  */
-export function useRemoveOrganizationMember(orgId: string) {
+export function useRemoveOrganizationMember() {
   const queryClient = useQueryClient();
+
+  const orgQuery = useOrganizationQuery();
+  const orgId = orgQuery.data?.id;
+
   return useMutation({
     mutationFn: async (username: string) => (
-      fetchDelete(getMemberEndpoint(orgId, username))
+      // We're asserting the `orgId` is not `undefined` here, because the parent
+      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
+      // Plus all the organization-related UI (that would use this hook) is
+      // accessible only to logged in users.
+      fetchDelete(getMemberEndpoint(orgId!, username))
     ),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
