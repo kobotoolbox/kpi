@@ -6,9 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 100
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,8 +22,9 @@ jobs:
       # annotations with string, e.g. def my_method(my_model: 'ModelName')
 
       # darker still exit with code 1 even with no errors on changes
-      - name: Run Darker with base commit
+      - name: Run Darker with tip of base branch
         run: |
-          output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r ${{ github.event.pull_request.base.sha }})
+          LATEST_IN_BASE_BRANCH=$(git rev-parse ${{ github.sha }}^@ | grep -Fvx ${{ github.event.pull_request.head.sha}})
+          output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH)
           [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
         shell: /usr/bin/bash {0}
