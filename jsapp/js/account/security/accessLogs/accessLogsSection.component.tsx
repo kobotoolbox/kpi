@@ -7,14 +7,15 @@ import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniver
 import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component';
 
 // Utilities
-import useAccessLogsQuery, {useExportAccessLogs, type AccessLog} from './accessLogs.query';
+import useAccessLogsQuery, {
+  startAccessLogsExport,
+  type AccessLog,
+} from './accessLogs.query';
 import {formatTime} from 'js/utils';
 // import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
-
-const exportData = useExportAccessLogs();
 
 export default function AccessLogsSection() {
   // function logOutAllSessions() {
@@ -40,8 +41,8 @@ export default function AccessLogsSection() {
           />
         </div>*/}
         <ExportToEmailButton
-            label={t('Export log data')}
-            exportFunction={exportData}
+          label={t('Export log data')}
+          exportFunction={startAccessLogsExport}
         />
       </header>
 
