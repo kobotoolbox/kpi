@@ -167,20 +167,20 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
-            2 * nlp_usage_A['asr_seconds_current_month']
-            == nlp_usage_B['asr_seconds_current_month']
+            2 * nlp_usage_A['asr_seconds_current_period']
+            == nlp_usage_B['asr_seconds_current_period']
         )
         assert (
-            2 * nlp_usage_A['mt_characters_current_month']
-            == nlp_usage_B['mt_characters_current_month']
+            2 * nlp_usage_A['mt_characters_current_period']
+            == nlp_usage_B['mt_characters_current_period']
         )
 
     def test_nlp_usage_counters(self):
         calculator = ServiceUsageCalculator(self.anotheruser, None)
         nlp_usage = calculator.get_nlp_usage_counters()
-        assert nlp_usage['asr_seconds_current_month'] == 4586
+        assert nlp_usage['asr_seconds_current_period'] == 4586
         assert nlp_usage['asr_seconds_all_time'] == 4728
-        assert nlp_usage['mt_characters_current_month'] == 5473
+        assert nlp_usage['mt_characters_current_period'] == 5473
         assert nlp_usage['mt_characters_all_time'] == 6726
 
     def test_no_data(self):
@@ -188,12 +188,12 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         nlp_usage = calculator.get_nlp_usage_counters()
         submission_counters = calculator.get_submission_counters()
 
-        assert nlp_usage['asr_seconds_current_month'] == 0
+        assert nlp_usage['asr_seconds_current_period'] == 0
         assert nlp_usage['asr_seconds_all_time'] == 0
-        assert nlp_usage['mt_characters_current_month'] == 0
+        assert nlp_usage['mt_characters_current_period'] == 0
         assert nlp_usage['mt_characters_all_time'] == 0
         assert calculator.get_storage_usage() == 0
-        assert submission_counters['current_month'] == 0
+        assert submission_counters['current_period'] == 0
         assert submission_counters['all_time'] == 0
 
     @override_settings(STRIPE_ENABLED=True)
@@ -205,13 +205,13 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         calculator = ServiceUsageCalculator(self.someuser, organization)
         submission_counters = calculator.get_submission_counters()
-        assert submission_counters['current_month'] == 5
+        assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
 
         nlp_usage = calculator.get_nlp_usage_counters()
-        assert nlp_usage['asr_seconds_current_month'] == 4586
+        assert nlp_usage['asr_seconds_current_period'] == 4586
         assert nlp_usage['asr_seconds_all_time'] == 4728
-        assert nlp_usage['mt_characters_current_month'] == 5473
+        assert nlp_usage['mt_characters_current_period'] == 5473
         assert nlp_usage['mt_characters_all_time'] == 6726
 
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
@@ -226,5 +226,5 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     def test_submission_counters(self):
         calculator = ServiceUsageCalculator(self.anotheruser, None)
         submission_counters = calculator.get_submission_counters()
-        assert submission_counters['current_month'] == 5
+        assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5

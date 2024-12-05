@@ -2,9 +2,9 @@ from rest_framework import renderers, viewsets
 from rest_framework.mixins import ListModelMixin
 
 from kpi.models.asset import Asset
+from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
-from kpi.paginators import AssetUsagePagination
 
 
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
@@ -27,7 +27,7 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     >               {
     >                   "asset": {asset_url},
     >                   "asset_name": {string},
-    >                   "nlp_usage_current_month": {
+    >                   "nlp_usage_current_period": {
     >                       "total_asr_seconds": {integer},
     >                       "total_mt_characters": {integer},
     >                   }
@@ -36,7 +36,7 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     >                       "total_mt_characters": {integer},
     >                   }
     >                   "storage_bytes": {integer},
-    >                   "submission_count_current_month": {integer},
+    >                   "submission_count_current_period": {integer},
     >                   "submission_count_all_time": {integer},
     >               },{...}
     >           ]
