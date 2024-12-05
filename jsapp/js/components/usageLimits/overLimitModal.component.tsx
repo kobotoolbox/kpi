@@ -1,4 +1,5 @@
-import {AnchorHTMLAttributes, ClassAttributes, Component, useEffect, useState} from 'react';
+import type {AnchorHTMLAttributes} from 'react';
+import {useEffect, useState} from 'react';
 import KoboModal from '../modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
 import KoboModalContent from 'js/components/modals/koboModalContent';
@@ -8,9 +9,9 @@ import sessionStore from 'js/stores/session';
 import {useNavigate} from 'react-router-dom';
 import styles from './overLimitModal.module.scss';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
-import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
 import envStore from 'jsapp/js/envStore';
 import Markdown from 'react-markdown';
+import {useOrganizationQuery} from 'jsapp/js/account/organization/organizationQuery';
 
 interface OverLimitModalProps {
   show: boolean;

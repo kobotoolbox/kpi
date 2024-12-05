@@ -4,10 +4,14 @@ import {useNavigate} from 'react-router-dom';
 import styles from './overLimitBanner.module.scss';
 import Icon from 'js/components/common/icon';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
-import {useOrganizationQuery} from 'jsapp/js/account/stripe.api';
 import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
-import { shouldUseTeamLabel } from 'jsapp/js/account/organizations/organizations.utils';
+import {
+  OrganizationUserRole,
+  useOrganizationQuery,
+} from 'jsapp/js/account/organization/organizationQuery';
+import {shouldUseTeamLabel} from 'jsapp/js/account/organization/organization.utils';
+import Markdown from 'react-markdown';
 
 interface OverLimitBannerProps {
   warning?: boolean;
@@ -16,6 +20,9 @@ interface OverLimitBannerProps {
   accountPage: boolean;
 }
 
+/*
+* Translated texts to be used for each limit
+*/
 const limitsText: {
   [key: string]: {
     month: string;
@@ -36,6 +43,9 @@ const limitsText: {
   },
 };
 
+/*
+* Returns the text for the limit based on the interval
+*/
 const getLimitText = (limit: string, interval: string) => {
   if (limit === 'storage') {
     return t('storage');
@@ -47,25 +57,54 @@ const getLimitText = (limit: string, interval: string) => {
   return limitsText[limit][interval as 'month' | 'year'];
 };
 
-const getMessage = (
-  isWarning: boolean,
-  isMmo: boolean,
-  shouldUseTeamlabel: boolean
-) => {
+/*
+* Returns a formatted string with all the limits
+*/
+const getAllLimits = (limits: string[], interval: string) => {
+  if (limits.length === 0) {
+    return '';
+  }
+
+  const items = limits.map((limit) => `**${getLimitText(limit, interval)}**`);
+
+  if (items.length === 1) {
+    return `${items[0]}`;
+  }
+
+  return `${items.slice(0, -1).join(', ')} and ${items.slice(-1)[0]}`;
+};
+
+/*
+* Returns the base message to be displayed in the banner
+*/
+const getMessage = ({
+  isWarning,
+  isMmo,
+  isTeamLabelActive,
+  limits,
+}: {
+  isWarning: boolean;
+  isMmo: boolean;
+  isTeamLabelActive: boolean;
+  limits: string;
+}) => {
+  let message = '';
   if (isWarning) {
-    if (isMmo && shouldUseTeamlabel) {
-      return t('Your team is approaching the following limits:');
+    if (isMmo && isTeamLabelActive) {
+      message = t('Your team is approaching the ##LIMITS## limit.');
     } else if (isMmo) {
-      return t('Your organization is approaching the following limits:');
+      message = t('Your organization is approaching the ##LIMITS## limit.');
     }
-    return t('You are approaching the following limits:');
+    message = t('You are approaching the ##LIMITS## limit.');
   }
-  if (isMmo && shouldUseTeamlabel) {
-    return t('Your team has reached the following limits:');
+  if (isMmo && isTeamLabelActive) {
+    message = t('Your team has reached the ##LIMITS## limit.');
   } else if (isMmo) {
-    return t('Your organization has reached the following limits:');
+    message = t('Your organization has reached the ##LIMITS## limit.');
   }
-  return t('You have reached the following limits:');
+  message = t('You have reached the ##LIMITS## limit.');
+
+  return message.replace('##LIMITS##', limits);
 };
 
 const OverLimitBanner = (props: OverLimitBannerProps) => {
@@ -83,13 +122,49 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   }
 
   const {limits, interval, warning} = props;
-  const {is_mmo} = orgQuery.data;
+  const {is_mmo: isMmo, request_user_role: userRole} = orgQuery.data;
   const subscription = subscriptionStore.activeSubscriptions[0];
 
-  const textMessage = getMessage(!!warning, is_mmo, shouldUseTeamLabel(envStore.data, subscription));
-  const textLimits = limits
-    .map((limit) => getLimitText(limit, interval))
-    .join(', ');
+  // Get all the limits in a formatted string
+  const allLimits = getAllLimits(limits, interval);
+
+  // If the user is a member of an MMO, we don't show a warning:
+  if (isMmo && userRole === OrganizationUserRole.member && !!warning) {
+    return null;
+  }
+
+  // Get the general text message
+  let textMessage = getMessage({
+    isWarning: !!warning,
+    isMmo,
+    isTeamLabelActive: shouldUseTeamLabel(envStore.data, subscription),
+    limits: allLimits,
+  });
+
+  // We have different messages for admins and owners of MMOs
+  if (isMmo) {
+    if (userRole === OrganizationUserRole.admin) {
+      if (warning) {
+        textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
+      } else {
+        textMessage = `${textMessage} ${t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
+      }
+    } else if (userRole === OrganizationUserRole.owner) {
+      if (warning) {
+        textMessage = `${textMessage} ${t('Purchase additional submissions add-ons to continue collecting and submitting data.')}`;
+      } else {
+        textMessage = `${textMessage} ${t('Please purchase an add-on to increase your submission limits.')}`;
+      }
+    }
+  } else if (warning) {
+    textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.")}`;
+  } else {
+    textMessage = `${textMessage} ${t('Please upgrade your plan or purchase an add-on to increase your usage limits.')}`;
+  }
+
+  // Only owners can see the call to action links
+  const shouldDisplayCTA =
+    !isMmo || userRole === OrganizationUserRole.owner;
 
   return (
     <div
@@ -104,9 +179,8 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         color={props.warning ? 'amber' : 'mid-red'}
       />
       <div className={styles.bannerContent}>
-        {textMessage} <strong>{textLimits}</strong>
-        {'. '}
-        {props.warning && (
+        <Markdown>{textMessage}</Markdown>
+        {shouldDisplayCTA && props.warning && (
           <>
             <a
               href={'https://www.kobotoolbox.org/pricing/'}
@@ -117,7 +191,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
             {t('about upgrading your plan.')}
           </>
         )}
-        {!props.warning && (
+        {shouldDisplayCTA && !props.warning && (
           <>
             <span>
               {t(
@@ -127,7 +201,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           </>
         )}
       </div>
-      {props.warning && !props.accountPage && (
+      {shouldDisplayCTA && props.warning && !props.accountPage && (
         <Button
           type='text'
           endIcon='arrow-right'
@@ -138,7 +212,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
           className={styles.bannerBtn}
         />
       )}
-      {(!props.warning || props.accountPage) && (
+      {shouldDisplayCTA && (!props.warning || props.accountPage) && (
         <Button
           type='text'
           endIcon='arrow-right'
