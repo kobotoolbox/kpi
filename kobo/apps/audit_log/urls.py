@@ -3,6 +3,10 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AccessLogViewSet,
     AllAccessLogViewSet,
+    AccessLogsExportViewSet,
+    AccessLogViewSet,
+    AllAccessLogsExportViewSet,
+    AllAccessLogViewSet,
     AllProjectHistoryLogViewSet,
     AuditLogViewSet,
 )
@@ -17,6 +21,11 @@ router.register(
     AllProjectHistoryLogViewSet,
     basename='all-project-history-logs',
 )
-
+router.register(
+    r'access-logs/export', AllAccessLogsExportViewSet, basename='all-access-logs-export'
+)
+router.register(
+    r'access-logs/me/export', AccessLogsExportViewSet, basename='access-logs-export'
+)
 
 urlpatterns = []

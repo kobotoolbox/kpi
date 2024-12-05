@@ -3,7 +3,7 @@ import json
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status
@@ -13,6 +13,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.organizations.models import Organization
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -721,6 +722,37 @@ class AssetViewSet(
             }
 
             context_['children_count_per_asset'] = children_count_per_asset
+
+            # 5) Get organization…
+            if organization := getattr(self.request, 'organization', None):
+                # …from request.
+                # e.g.: /api/v2/organizations/<organization_id>/assets/`
+                context_['organization'] = organization
+            else:
+                # …per asset
+                # e.g.: /api/v2/organizations/assets/`
+                assets = (
+                    Asset.objects.only('owner', 'uid', 'name')
+                    .filter(id__in=asset_ids)
+                    .select_related('owner')
+                    .prefetch_related(
+                        Prefetch(
+                            'owner__organizations_organization',
+                            queryset=Organization.objects.all().order_by(
+                                '-organization_users__created'
+                            ),
+                            to_attr='organizations',
+                        )
+                    )
+                )
+                organization_by_asset = defaultdict(dict)
+                for asset in assets:
+                    try:
+                        organization_by_asset[asset.id] = asset.owner.organizations[0]
+                    except IndexError:
+                        pass
+
+                context_['organization_by_asset'] = organization_by_asset
 
         return context_
 
