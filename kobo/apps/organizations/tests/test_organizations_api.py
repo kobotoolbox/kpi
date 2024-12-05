@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
+from rest_framework.test import APITestCase
 
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
@@ -167,6 +168,69 @@ class OrganizationApiTestCase(BaseTestCase):
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
+
+@ddt
+class OrganizationDetailAPITestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+    URL_NAMESPACE = URL_NAMESPACE
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
+
+        # anotheruser is an admin of someuser's organization
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(self.anotheruser, is_admin=True)
+
+        # alice is a regular member of someuser's organization
+        self.alice = User.objects.create_user(
+            username='alice', password='alice', email='alice@alice.com'
+        )
+        self.organization.add_user(self.alice, is_admin=False)
+
+        # bob is external to someuser's organization
+        self.bob = User.objects.create_user(
+            username='bob', password='bob', email='bob@bob.com'
+        )
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_asset_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_200_OK),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_service_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
 
 
 class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):

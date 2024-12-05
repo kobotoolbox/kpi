@@ -172,7 +172,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
         """
         ## Organization Asset Usage Tracker
