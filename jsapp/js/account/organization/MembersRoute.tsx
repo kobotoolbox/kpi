@@ -74,7 +74,6 @@ export default function MembersRoute() {
         }
         return (
           <MemberRoleSelector
-            orgId={orgQuery.data.id}
             username={member.user__username}
             role={member.role}
           />

@@ -3,15 +3,14 @@ import {usePatchOrganizationMember} from './membersQuery';
 import {OrganizationUserRole} from './organizationQuery';
 
 interface MemberRoleSelectorProps {
-  orgId: string;
   username: string;
   role: OrganizationUserRole;
 }
 
 export default function MemberRoleSelector(
-  {orgId, username, role}: MemberRoleSelectorProps
+  {username, role}: MemberRoleSelectorProps
 ) {
-  const patchMember = usePatchOrganizationMember(orgId, username);
+  const patchMember = usePatchOrganizationMember(username);
 
   return (
     <KoboSelect
