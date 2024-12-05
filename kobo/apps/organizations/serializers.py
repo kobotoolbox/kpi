@@ -26,7 +26,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
-        source='user.date_joined', format='%Y-%m-%dT%H:%M:%SZ'
+        source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
     user__extra_details__name = serializers.ReadOnlyField(
