@@ -3,8 +3,10 @@ import json
 import os
 
 import dateutil.parser
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
+from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -84,6 +86,77 @@ class AssetListApiTests(BaseAssetTestCase):
                 break
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
+
+    def test_asset_owner_label(self):
+        """
+        Test the behavior of the owner_label field in the Asset API.
+
+        - If the user is an organization owner and the organization is MMO,
+          then the `owner_label` should be the organization's name.
+        - If the user is not an organization owner and the organization is MMO,
+          then the `owner_label` should be the owner's username.
+        - If the user is an organization owner but the organization is not MMO,
+          then the `owner_label` should be the owner's username.
+        """
+        detail_response = self.create_asset()
+        someuser_username = detail_response.data.get('owner__username')
+        someuser = User.objects.get(username=someuser_username)
+
+        # Check the user is an owner of an organization
+        self.assertTrue(someuser.is_org_owner)
+
+        # Fetch the assets list and verify the initial owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            someuser_username
+        )
+
+        # Make the organization a MMO and verify the owner_label
+        self.organization = someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
+
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            self.organization.name
+        )
+
+        # Add another user to the organization and share the asset
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(anotheruser)
+        someuser_asset = someuser.assets.last()
+        someuser_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Create an external user's asset and share it with anotheruser
+        external_user = baker.make(settings.AUTH_USER_MODEL)
+        self.client.force_login(external_user)
+        detail_response = self.create_asset()
+        external_user_asset = external_user.assets.last()
+        external_user_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Fetch the external user's asset and verify the owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            external_user.username
+        )
+
+        # Verify owner_label for both assets when logged in as anotheruser
+        self.client.force_login(anotheruser)
+        list_response = self.client.get(self.list_url)
+
+        anotheruser_assets = {
+            item['uid']: item['owner_label']
+            for item in list_response.data['results']
+        }
+        self.assertEqual(
+            anotheruser_assets[external_user_asset.uid], external_user.username
+        )
+        self.assertEqual(
+            anotheruser_assets[someuser_asset.uid], self.organization.name
+        )
 
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')

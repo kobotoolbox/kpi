@@ -43,6 +43,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
+    @unittest.skip(reason='`owner_label` field only exists in v2 endpoint')
+    def test_asset_owner_label(self):
+        pass
+
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
