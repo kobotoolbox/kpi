@@ -1,16 +1,7 @@
-from django.conf import settings
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import (
-    QuerySet,
-    Case,
-    When,
-    Value,
-    CharField,
-    OuterRef,
-)
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -25,6 +16,7 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
+from ..accounts.mfa.models import MfaMethod
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import (
     HasOrgRolePermission,
@@ -32,7 +24,6 @@ from .permissions import (
     OrganizationNestedHasOrgRolePermission,
 )
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
-from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):

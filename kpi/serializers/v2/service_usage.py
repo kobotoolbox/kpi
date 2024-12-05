@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,

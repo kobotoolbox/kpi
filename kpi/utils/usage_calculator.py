@@ -1,5 +1,4 @@
 from json import dumps, loads
-from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -13,7 +12,6 @@ from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
 )
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
