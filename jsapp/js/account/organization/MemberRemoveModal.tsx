@@ -38,7 +38,6 @@ function replacePlaceholders(text: string, username: string, mmoLabel: string) {
 }
 
 interface MemberRemoveModalProps {
-  orgId: string;
   username: string;
   isRemovingSelf: boolean;
   onConfirmDone: () => void;
@@ -54,14 +53,13 @@ interface MemberRemoveModalProps {
  */
 export default function MemberRemoveModal(
   {
-    orgId,
     username,
     isRemovingSelf,
     onConfirmDone,
     onCancel,
   }: MemberRemoveModalProps
 ) {
-  const removeMember = useRemoveOrganizationMember(orgId);
+  const removeMember = useRemoveOrganizationMember();
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
     subscriptionStore.activeSubscriptions[0],
