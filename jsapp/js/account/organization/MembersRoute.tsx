@@ -76,6 +76,7 @@ export default function MembersRoute() {
           <MemberRoleSelector
             username={member.user__username}
             role={member.role}
+            currentUserRole={orgQuery.data.request_user_role}
           />
         );
       }

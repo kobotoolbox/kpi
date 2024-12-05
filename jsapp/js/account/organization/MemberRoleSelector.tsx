@@ -4,13 +4,21 @@ import {OrganizationUserRole} from './organizationQuery';
 
 interface MemberRoleSelectorProps {
   username: string;
+  /** The role of the `username` user - the one we are modifying here. */
   role: OrganizationUserRole;
+  /** The role of the currently logged in user. */
+  currentUserRole: OrganizationUserRole;
 }
 
 export default function MemberRoleSelector(
-  {username, role}: MemberRoleSelectorProps
+  {username, role, currentUserRole}: MemberRoleSelectorProps
 ) {
   const patchMember = usePatchOrganizationMember(username);
+
+  const canModifyRole = (
+    currentUserRole === 'owner' ||
+    currentUserRole === 'admin'
+  );
 
   return (
     <KoboSelect
@@ -34,6 +42,7 @@ export default function MemberRoleSelector(
         }
       }}
       isPending={patchMember.isPending}
+      isDisabled={!canModifyRole}
     />
   );
 }
