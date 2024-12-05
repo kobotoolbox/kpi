@@ -38,10 +38,11 @@ def create_mock_assets(users: list, assets_per_user: int = 1):
         return uids
 
     for idx, user in enumerate(users):
+        real_owner = user.organization.owner_user_object
         assets = assets + baker.make(
             Asset,
             content=content_source_asset,
-            owner=user,
+            owner=real_owner,
             asset_type='survey',
             name='test',
             uid=iter(_get_uid(assets_per_user)),

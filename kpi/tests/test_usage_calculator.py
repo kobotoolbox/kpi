@@ -162,7 +162,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_submissions(count=5)
 
     def test_disable_cache(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None, disable_cache=True)
+        calculator = ServiceUsageCalculator(self.anotheruser, disable_cache=True)
         nlp_usage_A = calculator.get_nlp_usage_counters()
         self.add_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
@@ -176,7 +176,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         )
 
     def test_nlp_usage_counters(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None)
+        calculator = ServiceUsageCalculator(self.anotheruser)
         nlp_usage = calculator.get_nlp_usage_counters()
         assert nlp_usage['asr_seconds_current_month'] == 4586
         assert nlp_usage['asr_seconds_all_time'] == 4728
@@ -184,7 +184,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
     def test_no_data(self):
-        calculator = ServiceUsageCalculator(self.someuser, None)
+        calculator = ServiceUsageCalculator(self.someuser)
         nlp_usage = calculator.get_nlp_usage_counters()
         submission_counters = calculator.get_submission_counters()
 
@@ -203,7 +203,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         organization.add_user(user=self.someuser, is_admin=True)
         generate_mmo_subscription(organization)
 
-        calculator = ServiceUsageCalculator(self.someuser, organization)
+        calculator = ServiceUsageCalculator(self.someuser)
         submission_counters = calculator.get_submission_counters()
         assert submission_counters['current_month'] == 5
         assert submission_counters['all_time'] == 5
@@ -220,11 +220,11 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
 
     def test_storage_usage(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None)
+        calculator = ServiceUsageCalculator(self.anotheruser)
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
 
     def test_submission_counters(self):
-        calculator = ServiceUsageCalculator(self.anotheruser, None)
+        calculator = ServiceUsageCalculator(self.anotheruser)
         submission_counters = calculator.get_submission_counters()
         assert submission_counters['current_month'] == 5
         assert submission_counters['all_time'] == 5

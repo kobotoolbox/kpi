@@ -83,19 +83,6 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
     def tearDown(self):
         cache.clear()
 
-    def test_usage_doesnt_include_org_users_without_subscription(self):
-        """
-        Test that the endpoint *only* returns usage for the logged-in user
-        if they don't have a subscription that includes Organizations.
-        """
-        response = self.client.get(self.detail_url)
-        # without a plan, the user should only see their usage
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
-        assert response.data['total_storage_bytes'] == (
-            self.expected_file_size() * self.expected_submissions_single
-        )
-
     def test_usage_for_plans_with_org_access(self):
         """
         Test that the endpoint aggregates usage for each user in the organization
@@ -110,22 +97,6 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         assert response.data['total_submission_count']['all_time'] == self.expected_submissions_multi
         assert response.data['total_storage_bytes'] == (
             self.expected_file_size() * self.expected_submissions_multi
-        )
-
-    def test_doesnt_include_org_users_with_invalid_plan(self):
-        """
-        Test that the endpoint *doesn't* aggregates usage for the organization
-        when subscribed to a product that doesn't include org access
-        """
-
-        generate_plan_subscription(self.organization)
-
-        response = self.client.get(self.detail_url)
-        # without the proper subscription, the user should only see their usage
-        assert response.data['total_submission_count']['current_month'] == self.expected_submissions_single
-        assert response.data['total_submission_count']['all_time'] == self.expected_submissions_single
-        assert response.data['total_storage_bytes'] == (
-            self.expected_file_size() * self.expected_submissions_single
         )
 
     @pytest.mark.performance
@@ -425,12 +396,12 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         non_org_id = 'lkdjalkfewkl'
         url_with_non_org_id = f'{self.url}{non_org_id}/asset_usage/'
         response = self.client.get(url_with_non_org_id)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_user_not_member_of_organization(self):
         self.client.force_login(self.someuser)
         response = self.client.get(self.detail_url)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_successful_retrieval(self):
         generate_mmo_subscription(self.organization)
