@@ -10,7 +10,10 @@ import {
   OrganizationUserRole,
   useOrganizationQuery,
 } from 'jsapp/js/account/organization/organizationQuery';
-import {shouldUseTeamLabel} from 'jsapp/js/account/organization/organization.utils';
+import {
+  getSimpleMMOLabel,
+  shouldUseTeamLabel,
+} from 'jsapp/js/account/organization/organization.utils';
 import Markdown from 'react-markdown';
 
 interface OverLimitBannerProps {
@@ -147,23 +150,44 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   if (isMmo) {
     if (userRole === OrganizationUserRole.owner) {
       if (warning) {
-        message2 = t('Purchase additional submissions add-ons to continue collecting and submitting data.');
+        message2 = t(
+          'Purchase additional submissions add-ons to continue collecting and submitting data.'
+        );
       } else {
-        message2 = t('Please purchase an add-on to increase your submission limits.');
+        message2 = t(
+          'Please purchase an add-on to increase your submission limits.'
+        );
       }
     } else if (warning) {
-      message2 = t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.");
+      const teamOrOrganization = getSimpleMMOLabel(
+        envStore.data,
+        subscription,
+        false,
+        false
+      );
+      message2 = t(
+        "Once the limit has been reached, you won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions."
+      ).replace('##TEAM_OR_ORGANIZATION##', teamOrOrganization);
     } else {
-      message2 = t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.");
+      message2 = t(
+        "You won't be able to collect or submit any new data until the team owner has purchased additional submissions."
+      );
     }
   } else if (warning) {
-    message2 = t("Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.");
+    message2 = t(
+      "Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on."
+    );
   } else {
-    message2 = t('Please upgrade your plan or purchase an add-on to increase your usage limits.');
+    message2 = t(
+      'Please upgrade your plan or purchase an add-on to increase your usage limits.'
+    );
   }
 
   // Only owners can see the call to action links
   const shouldDisplayCTA = !isMmo || userRole === OrganizationUserRole.owner;
+  const ctaText = shouldDisplayCTA
+    ? `[${t('Learn more')}](https://www.kobotoolbox.org/pricing/)`
+    : '';
 
   return (
     <div
@@ -178,18 +202,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         color={props.warning ? 'amber' : 'mid-red'}
       />
       <div className={styles.bannerContent}>
-        <Markdown>{`${message1} ${message2}`}</Markdown>
-        {shouldDisplayCTA && props.warning && (
-          <>
-            <a
-              href={'https://www.kobotoolbox.org/pricing/'}
-              className={styles.bannerLink}
-            >
-              {t('Learn more')}
-            </a>{' '}
-            {t('about upgrading your plan.')}
-          </>
-        )}
+        <Markdown>{`${message1} ${message2} ${ctaText}`}</Markdown>
       </div>
       {shouldDisplayCTA && props.warning && !props.accountPage && (
         <Button
