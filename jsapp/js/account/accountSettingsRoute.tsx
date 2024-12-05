@@ -74,8 +74,8 @@ const AccountSettings = () => {
 
     const organization = orgQuery.data;
 
-    // We will not display organization fields if it's and MMO organization
-    // in favor of only displaying those fields in organization settings view
+    // We will not display organization fields if user is a member of an MMO,
+    // only displaying these fields in organization settings view
     setDisplayedFields(
       !organization?.is_mmo
         ? fieldKeys
