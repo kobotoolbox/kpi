@@ -5,6 +5,7 @@ import {Cookies} from 'react-cookie';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
+import { OrganizationUserRole, useOrganizationQuery } from 'jsapp/js/account/organization/organizationQuery';
 
 const cookies = new Cookies();
 
@@ -15,7 +16,7 @@ interface LimitNotificationsProps {
 
 const LimitNotifications = ({
   useModal = false,
-  accountPage: accountPage = false,
+  accountPage = false,
 }: LimitNotificationsProps) => {
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(!useModal);
@@ -23,6 +24,8 @@ const LimitNotifications = ({
 
   const [usage] = useContext(UsageContext);
   const limits = useExceedingLimits();
+
+  const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true);
@@ -32,6 +35,7 @@ const LimitNotifications = ({
     }
     const limitsCookie = cookies.get('kpiOverLimitsCookie');
     if (
+      (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
       limitsCookie === undefined &&
       (limits.exceedList.includes('storage') ||
         limits.exceedList.includes('submission'))
