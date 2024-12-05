@@ -22,7 +22,11 @@
 }
 
 .bannerContent {
-  padding: 2%;
+  padding: 16px 2%;
+}
+
+.bannerContent a {
+  color: colors.$kobo-dark-blue;
 }
 
 .bannerLink {
@@ -44,6 +48,6 @@
   }
 
   .bannerContent {
-    padding: 0 2%;
+    padding: 16px 2%;
   }
 }
