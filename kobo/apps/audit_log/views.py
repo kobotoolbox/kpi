@@ -437,7 +437,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        export
     >        modify-imported-fields
     >        modify-service
-    >        modify_sharing
+    >        modify-sharing
     >        modify-user-permissions
     >        redeploy
     >        register-service
@@ -686,7 +686,7 @@ class ProjectHistoryLogViewSet(
     >        export
     >        modify-imported-fields
     >        modify-service
-    >        modify_sharing
+    >        modify-sharing
     >        modify-user-permissions
     >        redeploy
     >        register-service
