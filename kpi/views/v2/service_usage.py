@@ -1,4 +1,3 @@
-# coding: utf-8
 from rest_framework import (
     renderers,
     viewsets,
@@ -12,7 +11,9 @@ from kpi.utils.object_permission import get_database_user
 
 class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
+    <span class='label label-warning'>⚠️ Deprecated</span>
     ## Service Usage Tracker
+
     <p>Tracks the total usage of different services for the logged-in user</p>
     <p>Tracks the submissions and NLP seconds/characters for the current month/year/all time</p>
     <p>Tracks the current total storage used</p>

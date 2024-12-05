@@ -71,7 +71,7 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     Get the used amount for a given organization and usage type
     """
     usage_calc = ServiceUsageCalculator(
-        organization.owner.organization_user.user, organization, disable_cache=True
+        organization.owner.organization_user.user, disable_cache=True
     )
     usage = usage_calc.get_nlp_usage_by_type(USAGE_LIMIT_MAP[usage_type])
 

@@ -30,21 +30,31 @@ class IsOrgAdminPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
 
 
 class HasOrgRolePermission(IsOrgAdminPermission):
-    def has_permission(self, request, view):
-        if not super().has_permission(request, view):
-            return False
-
-        organization = Organization.objects.filter(
-            id=view.kwargs.get('organization_id')
-        ).first()
-        if organization and not self.has_object_permission(
-            request, view, organization
-        ):
-            return False
-        return True
 
     def has_object_permission(self, request, view, obj):
-        obj = obj if isinstance(obj, Organization) else obj.organization
         if super().has_object_permission(request, view, obj):
             return True
         return request.method in permissions.SAFE_METHODS
+
+
+class OrganizationNestedHasOrgRolePermission(HasOrgRolePermission):
+    def has_permission(self, request, view):
+
+        if not super().has_permission(request, view):
+            return False
+
+        try:
+            organization = Organization.objects.get(
+                id=view.kwargs.get('organization_id')
+            )
+        except Organization.DoesNotExist:
+            raise Http404
+
+        return super().has_object_permission(request, view, organization)
+
+    def has_object_permission(self, request, view, obj):
+        """
+        The object check is always performed on the parent (organization) and
+        is validated in `has_permission()`. Therefore, this method always returns True.
+        """
+        return True
