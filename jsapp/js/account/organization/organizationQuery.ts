@@ -58,7 +58,7 @@ export function usePatchOrganization() {
       // the parent query (`useOrganizationQuery`) wouldn't be enabled without
       // it. Plus all the organization-related UI is accessible only to
       // logged in users.
-      fetchPatch<Organization>(organizationUrl!, data)
+      fetchPatch<Organization>(organizationUrl!, data, {prependRootUrl: false})
     ),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organization]});
