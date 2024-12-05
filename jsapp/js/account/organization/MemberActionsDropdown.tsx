@@ -20,7 +20,6 @@ import {OrganizationUserRole} from './organizationQuery';
 import styles from './memberActionsDropdown.module.scss';
 
 interface MemberActionsDropdownProps {
-  orgId: string;
   /** Target member username. */
   username: string;
   /**
@@ -34,7 +33,7 @@ interface MemberActionsDropdownProps {
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown(
-  {orgId, username, currentUserRole}: MemberActionsDropdownProps
+  {username, currentUserRole}: MemberActionsDropdownProps
 ) {
   const session = useSession();
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
@@ -74,7 +73,6 @@ export default function MemberActionsDropdown(
     <>
       {isRemoveModalVisible &&
         <MemberRemoveModal
-          orgId={orgId}
           username={username}
           isRemovingSelf={isAdminRemovingSelf}
           onConfirmDone={() => {

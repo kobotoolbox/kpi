@@ -11,7 +11,7 @@ import MemberActionsDropdown from './MemberActionsDropdown';
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
-import useOrganizationMembersQuery, {useRemoveOrganizationMember} from './membersQuery';
+import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -100,7 +100,6 @@ export default function MembersRoute() {
 
         return (
           <MemberActionsDropdown
-            orgId={orgQuery.data.id}
             username={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
           />
