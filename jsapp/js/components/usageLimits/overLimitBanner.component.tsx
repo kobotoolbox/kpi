@@ -148,6 +148,13 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
   // We have different second part of the message for admins and owners of MMOs
   let message2 = '';
   if (isMmo) {
+    const teamOrOrganization = getSimpleMMOLabel(
+      envStore.data,
+      subscription,
+      false,
+      false
+    );
+
     if (userRole === OrganizationUserRole.owner) {
       if (warning) {
         message2 = t(
@@ -159,19 +166,13 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         );
       }
     } else if (warning) {
-      const teamOrOrganization = getSimpleMMOLabel(
-        envStore.data,
-        subscription,
-        false,
-        false
-      );
       message2 = t(
         "Once the limit has been reached, you won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions."
       ).replace('##TEAM_OR_ORGANIZATION##', teamOrOrganization);
     } else {
       message2 = t(
-        "You won't be able to collect or submit any new data until the team owner has purchased additional submissions."
-      );
+        "You won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions."
+      ).replace('##TEAM_OR_ORGANIZATION##', teamOrOrganization);
     }
   } else if (warning) {
     message2 = t(
