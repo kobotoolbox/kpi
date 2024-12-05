@@ -134,31 +134,32 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
     return null;
   }
 
-  // Get the general text message
-  let textMessage = getMessage({
+  // Get the first part of the message
+  const message1 = getMessage({
     isWarning: !!warning,
     isMmo,
     isTeamLabelActive: shouldUseTeamLabel(envStore.data, subscription),
     limits: allLimits,
   });
 
-  // We have different messages for admins and owners of MMOs
+  // We have different second part of the message for admins and owners of MMOs
+  let message2 = '';
   if (isMmo) {
     if (userRole === OrganizationUserRole.owner) {
       if (warning) {
-        textMessage = `${textMessage} ${t('Purchase additional submissions add-ons to continue collecting and submitting data.')}`;
+        message2 = t('Purchase additional submissions add-ons to continue collecting and submitting data.');
       } else {
-        textMessage = `${textMessage} ${t('Please purchase an add-on to increase your submission limits.')}`;
+        message2 = t('Please purchase an add-on to increase your submission limits.');
       }
     } else if (warning) {
-      textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
+      message2 = t("Once the limit has been reached, you won't be able to collect or submit any new data until the team owner has purchased additional submissions.");
     } else {
-      textMessage = `${textMessage} ${t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.")}`;
+      message2 = t("You won't be able to collect or submit any new data until the team owner has purchased additional submissions.");
     }
   } else if (warning) {
-    textMessage = `${textMessage} ${t("Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.")}`;
+    message2 = t("Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on.");
   } else {
-    textMessage = `${textMessage} ${t('Please upgrade your plan or purchase an add-on to increase your usage limits.')}`;
+    message2 = t('Please upgrade your plan or purchase an add-on to increase your usage limits.');
   }
 
   // Only owners can see the call to action links
@@ -177,7 +178,7 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
         color={props.warning ? 'amber' : 'mid-red'}
       />
       <div className={styles.bannerContent}>
-        <Markdown>{textMessage}</Markdown>
+        <Markdown>{`${message1} ${message2}`}</Markdown>
         {shouldDisplayCTA && props.warning && (
           <>
             <a
@@ -187,15 +188,6 @@ const OverLimitBanner = (props: OverLimitBannerProps) => {
               {t('Learn more')}
             </a>{' '}
             {t('about upgrading your plan.')}
-          </>
-        )}
-        {shouldDisplayCTA && !props.warning && (
-          <>
-            <span>
-              {t(
-                'Please upgrade your plan or purchase an add-on to increase your usage limits.'
-              )}
-            </span>
           </>
         )}
       </div>
