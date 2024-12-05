@@ -77,8 +77,8 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.5",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@jest/create-cache-key-function": "^29.7.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
     "@storybook/addon-a11y": "^7.0.24",
     "@storybook/addon-actions": "^7.0.24",
     "@storybook/addon-essentials": "^7.0.24",
