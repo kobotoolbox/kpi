@@ -1,6 +1,6 @@
 @use 'scss/colors';
 
-.link {
+.content a {
   color: colors.$kobo-dark-blue;
   text-decoration: underline;
 }
