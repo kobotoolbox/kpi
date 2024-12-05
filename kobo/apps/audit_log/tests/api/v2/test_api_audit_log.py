@@ -651,6 +651,8 @@ class ApiAllProjectHistoryLogsTestCase(
         self.assertEqual(
             response.data['results'][1]['metadata']['asset_uid'], asset1.uid
 
+        )
+
 
 class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
 
