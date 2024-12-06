@@ -55,9 +55,8 @@ export default function useAccessLogsQuery(
  * Starts the exporting process of the access logs.
  * @returns {Promise<void>} A promise that starts the export.
  */
-export const startAccessLogsExport = (): Promise<void> =>
+export const startAccessLogsExport = () =>
   fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, {notifyAboutError: false})
-    .then(() => {})
     .catch((error) => {
       const failResponse: FailResponse = {
         status: 500,
