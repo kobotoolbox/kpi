@@ -56,17 +56,13 @@ export default function useAccessLogsQuery(
  * @returns {Promise<void>} A promise that starts the export.
  */
 export const startAccessLogsExport = (): Promise<void> =>
-  new Promise<void>((resolve, reject) => {
-    fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, {})
-      .then(() => {
-        resolve();
-      })
-      .catch((error) => {
-        const failResponse: FailResponse = {
-          status: 500,
-          statusText:
-            error.message || 'An error occurred while exporting the logs.',
-        };
-        reject(failResponse);
-      });
-  });
+  fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, {notifyAboutError: false})
+    .then(() => {})
+    .catch((error) => {
+      const failResponse: FailResponse = {
+        status: 500,
+        statusText:
+          error.message || 'An error occurred while exporting the logs.',
+      };
+      throw failResponse;
+    });
