@@ -5,6 +5,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
   'url': 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt',
   'owner': 'http://kf.kobo.local/api/v2/users/kobo.json',
   'owner__username': 'kobo',
+  'owner_label': 'kobo',
   'parent': null,
   'settings': {
     'sector': {},
@@ -893,6 +894,7 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
   'url': 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC.json',
   'owner': 'http://kf.kobo.local/api/v2/users/kobo.json',
   'owner__username': 'kobo',
+  'owner_label': 'kobo',
   'parent': null,
   'settings': {
     'sector': {},

@@ -137,6 +137,8 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
       <section className={styles.root}>
         <ProjectOwnershipTransferModalWithBanner />
 
+        <LimitNotifications useModal />
+
         <header className={styles.header}>
           <ViewSwitcher selectedViewUid={props.viewUid} />
 
@@ -196,7 +198,6 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
           onRowsSelected={setSelectedRows}
         />
 
-        <LimitNotifications useModal />
       </section>
     </Dropzone>
   );

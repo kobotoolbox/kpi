@@ -291,6 +291,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    owner_label = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -407,6 +408,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'data_sharing',
                   'paired_data',
                   'project_ownership',
+                  'owner_label',
                   )
         extra_kwargs = {
             'parent': {
@@ -743,14 +745,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
-    def get_access_types(self, obj):
+    def get_access_types(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
         `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
         if it is present
         """
         # Avoid extra queries if obj is not a collection
-        if obj.asset_type != ASSET_TYPE_COLLECTION:
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
         # User is the owner
@@ -760,7 +762,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return None
 
         access_types = []
-        if request.user == obj.owner:
+        if request.user == asset.owner:
             access_types.append('owned')
 
         # User can view the collection.
@@ -768,9 +770,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # The list view should provide a cache
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(obj.pk)
+            ].get(asset.pk)
         except KeyError:
-            asset_permission_assignments = obj.permissions.all()
+            asset_permission_assignments = asset.permissions.all()
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
@@ -782,13 +784,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ):
                 access_types.append('public')
 
-                if request.user == obj.owner:
+                if request.user == asset.owner:
                     # Do not go further, `access_type` cannot be `shared`
                     # and `owned`
                     break
 
             if (
-                request.user != obj.owner
+                request.user != asset.owner
                 and not obj_permission.deny
                 and obj_permission.user == request.user
             ):
@@ -803,10 +805,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             # The list view should provide a cache
             subscriptions = self.context['user_subscriptions_per_asset'].get(
-                obj.pk, []
+                asset.pk, []
             )
         except KeyError:
-            subscribed = obj.has_subscribed_user(request.user.pk)
+            subscribed = asset.has_subscribed_user(request.user.pk)
         else:
             subscribed = request.user.pk in subscriptions
         if subscribed:
@@ -816,7 +818,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
-        if obj.owner.organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+        try:
+            organization = self.context['organization_by_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
             access_types.extend(['shared', 'org-admin'])
             access_types = list(set(access_types))
 
@@ -826,6 +837,24 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             )
 
         return access_types
+
+    def get_owner_label(self, asset):
+        try:
+            organization = self.context['organization_by_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if (
+            organization
+            and organization.is_owner(asset.owner)
+            and organization.is_mmo
+        ):
+            return organization.name
+        return asset.owner.username
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
@@ -1010,7 +1039,8 @@ class AssetListSerializer(AssetSerializer):
                   'status',
                   'access_types',
                   'children',
-                  'data_sharing'
+                  'data_sharing',
+                  'owner_label',
                   )
 
     def get_permissions(self, asset):

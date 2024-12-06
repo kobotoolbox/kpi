@@ -588,6 +588,7 @@ export interface AssetResponse extends AssetRequestObject {
   url: string;
   owner: string;
   owner__username: string;
+  owner_label: string;
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
@@ -684,6 +685,7 @@ export interface ProjectViewAsset {
   date_deployed: string | null;
   owner: string;
   owner__username: string;
+  owner_label: string;
   owner__email: string;
   /** Full name */
   owner__name: string;
