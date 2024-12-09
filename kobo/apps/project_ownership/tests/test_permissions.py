@@ -10,6 +10,12 @@ from ..utils import create_invite
 
 @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
 class ProjectOwnershipPermissionTestCase(TestCase):
+    """
+    The purpose of this test suite is solely to verify permission assignment.
+    To achieve this, PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES is set to True, allowing
+    the email invitation system to be bypassed and eliminating the need to process it
+    during testing.
+    """
 
     fixtures = ['test_data']
 
