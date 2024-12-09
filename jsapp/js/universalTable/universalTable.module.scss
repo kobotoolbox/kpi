@@ -17,6 +17,7 @@ $z-index-resizer: 2;
 $z-index-pinned: 3;
 $z-index-pinned-header: 4;
 $z-index-resizer-active: 5;
+$z-index-spinner: 6;
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
@@ -78,6 +79,7 @@ $z-index-resizer-active: 5;
 }
 
 .spinnerOverlay {
+  z-index: $z-index-spinner;
   position: absolute;
   top: 0;
   right: 0;
