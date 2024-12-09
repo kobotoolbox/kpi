@@ -42,6 +42,7 @@ from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
+    AccountInactiveError,
     DuplicateUUIDError,
     FormInactiveError,
     TemporarilyUnavailableError,
@@ -314,6 +315,9 @@ def http_open_rosa_error_handler(func, request):
     except TemporarilyUnavailableError:
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except AccountInactiveError:
+        result.error = t('Account is not active')
+        result.http_error_response = OpenRosaResponseNotAllowed(result.error)
     except XForm.DoesNotExist:
         result.error = t('Form does not exist on this account')
         result.http_error_response = OpenRosaResponseNotFound(result.error)
