@@ -61,7 +61,7 @@ export const startAccessLogsExport = () =>
       const failResponse: FailResponse = {
         status: 500,
         statusText:
-          error.message || 'An error occurred while exporting the logs.',
+          error.message || t('An error occurred while exporting the logs'),
       };
       throw failResponse;
     });
