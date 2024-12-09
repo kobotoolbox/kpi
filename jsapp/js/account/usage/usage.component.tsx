@@ -54,22 +54,6 @@ export default function Usage() {
 
   const location = useLocation();
 
-  const isFullyLoaded = useMemo(
-    () =>
-      !usageStatus.pending &&
-      !usageStatus.error &&
-      (products.isLoaded || !limits.stripeEnabled) &&
-      limits.isLoaded &&
-      oneTimeAddOnsContext.isLoaded,
-    [
-      usageStatus,
-      products.isLoaded,
-      limits.isLoaded,
-      limits.stripeEnabled,
-      oneTimeAddOnsContext.isLoaded,
-    ]
-  );
-
   const dateRange = useMemo(() => {
     let startDate: string;
     const endDate = usage.billingPeriodEnd
@@ -198,7 +182,12 @@ export default function Usage() {
     subscriptionStore.fetchSubscriptionInfo();
   }, [location]);
 
-  if (!isFullyLoaded) {
+  if (
+    usageStatus.pending ||
+    usageStatus.error ||
+    !limits.isLoaded ||
+    (limits.stripeEnabled && (!products.isLoaded || !oneTimeAddOnsContext.isLoaded))
+  ) {
     return <LoadingSpinner />;
   }
 
