@@ -16,7 +16,6 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import (
     HasOrgRolePermission,
@@ -24,6 +23,7 @@ from .permissions import (
     OrganizationNestedHasOrgRolePermission,
 )
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -151,7 +151,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """
 
         self.get_object()  # This call is necessary to check permissions
-
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
             context=self.get_serializer_context(),
@@ -166,7 +165,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
         """
         ## Organization Asset Usage Tracker
