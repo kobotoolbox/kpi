@@ -1,11 +1,4 @@
-from django.db.models import (
-    QuerySet,
-    Case,
-    When,
-    Value,
-    CharField,
-    OuterRef,
-)
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import viewsets
@@ -102,7 +95,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### Additional Information
         For more details, please refer to `/api/v2/assets/`.
         """
-        organization = self.get_object()  # Call check permissions
+
+        # `get_object()` checks permissions
+        organization = self.get_object()
 
         # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
@@ -154,8 +149,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >       }
         ### CURRENT ENDPOINT
         """
-        self.get_object()  # check permissions
 
+        self.get_object()  # This call is necessary to check permissions
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
             context=self.get_serializer_context(),
@@ -210,6 +205,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### CURRENT ENDPOINT
         """
 
+        # `get_object()` checks permissions
         organization = self.get_object()
 
         user_id = get_database_user(request.user).pk
