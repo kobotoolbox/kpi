@@ -95,7 +95,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### Additional Information
         For more details, please refer to `/api/v2/assets/`.
         """
-        organization = self.get_object()  # Call check permissions
+
+        # `get_object()` checks permissions
+        organization = self.get_object()
 
         # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
@@ -147,7 +149,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >       }
         ### CURRENT ENDPOINT
         """
-        organization = self.get_object()  # Call check permissions
+
+        self.get_object()  # This call is necessary to check permissions
 
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
@@ -203,6 +206,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### CURRENT ENDPOINT
         """
 
+        # `get_object()` checks permissions
         organization = self.get_object()
 
         user_id = get_database_user(request.user).pk
