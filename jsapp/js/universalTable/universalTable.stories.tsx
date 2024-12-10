@@ -1,83 +1,138 @@
 import type {Meta, StoryObj} from '@storybook/react';
-import UniversalTable from './universalTable.component';
+import UniversalTable, {type UniversalTableColumn} from './universalTable.component';
+import Avatar from 'js/components/common/avatar';
+import {type ColumnPinningPosition} from '@tanstack/react-table';
+import moment from 'moment';
 
 interface CustomArgs {
-  hasColumnPinnedToLeft: boolean;
-  hasColumnPinnedToRight: boolean;
+  hasColumnPinnedToLeft: 'none' | 'one' | 'multiple';
+  hasColumnPinnedToRight: 'none' | 'one' | 'multiple';
+  howManyColumns: 'few' | 'lots';
 }
 type UniversalTablePropsAndCustomArgs = React.ComponentProps<typeof UniversalTable> & CustomArgs;
+
+const PAGE_SIZES = [10, 30, 50, 100];
+
+interface MockDataItem {
+  date_created: string;
+  ip: string;
+  age: number;
+  your_name: string;
+  pet: string;
+  source: string;
+  activity: string;
+  a: string;
+  b: string;
+  c: string;
+  d: string;
+  e: string;
+  f: string;
+  g: string;
+}
+
+function getMockDataItem(): MockDataItem {
+  const names = ['Phuong', 'Patrick', 'Michael', 'Bob', 'Peter', 'Farayi', 'Tino', 'John', 'David', 'Olivier', 'Leszek', 'Anji', 'Joshua', 'Jacqueline', 'Kalyan', 'Jess', 'Phil', 'Mae-Lin', 'Alexander', 'Julia', 'Tessa', 'Ruth', 'Ayman', 'David', 'Diyaa', 'James', 'Salomé', 'Timothy', 'Michael', 'Paula'];
+  const pets = ['snake', 'cordyceps', 'mouse', 'hamster', 'pterosaur', 'tentacle'];
+  const activities = ['created', 'updated', 'deleted', 'added', 'removed', 'reversed', 'rotated'];
+  const sources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux', 'Firefox', 'Safari', 'Gossip'];
+  const curDate = new Date();
+  curDate.setTime(curDate.getTime() - Math.random() * 1000000000000);
+  return {
+    date_created: moment(curDate).format('YYYY-MM-DD HH:mm:ss'),
+    ip: (Math.floor(Math.random() * 255) + 1) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255)) + '.' + (Math.floor(Math.random() * 255)),
+    age: Math.floor(Math.random() * 90),
+    your_name: names[Math.floor(Math.random() * names.length)],
+    pet: pets[Math.floor(Math.random() * pets.length)],
+    source: sources[Math.floor(Math.random() * sources.length)],
+    activity: activities[Math.floor(Math.random() * activities.length)],
+    a: String(Math.random() * 100 - 100),
+    b: 'Kobo'.repeat(Math.floor(Math.random() * 5)),
+    c: String(Math.random() / 100000),
+    d: '@'.repeat(Math.floor(Math.random() * 10)),
+    e: String(Math.random()),
+    f: 'uid_' + Math.floor(Math.random() * 9999999999999),
+    g: String(Math.round(Math.random() * 100000)),
+  };
+}
 
 const meta: Meta<UniversalTablePropsAndCustomArgs> = {
   title: 'misc/UniversalTable',
   component: UniversalTable,
   argTypes: {
     hasColumnPinnedToLeft: {
-      type: 'boolean',
-      description: '_CUSTOM STORY CONTROL_: Makes one of the columns pinned to left',
+      options: ['none', 'one', 'multiple'],
+      control: {type: 'radio'},
+      description: '_CUSTOM STORY CONTROL_: Makes some of the columns pinned to left',
     },
     hasColumnPinnedToRight: {
-      type: 'boolean',
-      description: '_CUSTOM STORY CONTROL_: Makes one of the columns pinned to right',
+      options: ['none', 'one', 'multiple'],
+      control: {type: 'radio'},
+      description: '_CUSTOM STORY CONTROL_: Makes some of the columns pinned to right',
+    },
+    howManyColumns: {
+      options: ['few', 'lots'],
+      control: {type: 'radio'},
+      description: '_CUSTOM STORY CONTROL_: Controls how many columns does the table have',
+    },
+    pageSize: {
+      options: PAGE_SIZES,
+      control: 'radio',
     },
   },
-  render: ({hasColumnPinnedToLeft, hasColumnPinnedToRight, ...args}) => {
-    const columns = [
-      {key: 'source', label: 'Source'},
-      {key: 'activity', label: 'Last activity'},
-      {key: 'duration', label: 'Session duration', isPinned: hasColumnPinnedToLeft},
-      {key: 'ip', label: 'IP Address'},
-      {key: 'a', label: 'a'},
-      {key: 'b', label: 'b'},
-      {key: 'c', label: 'c', size: 400},
-      {key: 'd', label: 'd'},
-      {key: 'e', label: 'e'},
-      {key: 'your_name', label: 'Your name', isPinned: hasColumnPinnedToRight},
-      {key: 'f', label: 'f'},
-      {key: 'g', label: 'g'},
-    ];
-    const data = [
-      {source: 'Safari', activity: '15 minutes ago', duration: 'Your current session', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Edge', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Edge', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Safari', activity: '15 minutes ago', duration: '1:11:23', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
-      {source: 'Firefox', activity: '1 hour ago', duration: '0:10:30', ip: '123.456.789.255', a: '-', b: '-', c: '-', d: '-', e: '-', your_name: 'Rebbeca', f: '-', g: '-'},
+  args: {
+    hasColumnPinnedToLeft: 'none',
+    hasColumnPinnedToRight: 'none',
+    howManyColumns: 'lots',
+  },
+  render: ({hasColumnPinnedToLeft, hasColumnPinnedToRight, howManyColumns, ...args}) => {
+    const columns: UniversalTableColumn<MockDataItem>[] = [
+      {
+        key: 'date_created',
+        label: 'Date created',
+        // is pinned when "one" or "multiple" selected
+        isPinned: hasColumnPinnedToLeft !== 'none' ? 'left' as ColumnPinningPosition : false,
+      },
+      {
+        key: 'ip',
+        label: 'IP Address',
+        // is pinned when "multiple" selected
+        isPinned: hasColumnPinnedToLeft === 'multiple' ? 'left' as ColumnPinningPosition : false,
+      },
+      {
+        key: 'age',
+        label: 'Age',
+        // is pinned when "one" or "multiple" selected
+        isPinned: hasColumnPinnedToRight !== 'none' ? 'right' as ColumnPinningPosition : false,
+        size: 60,
+      },
+      {
+        key: 'your_name',
+        label: 'Your name',
+        // is pinned when "multiple" selected
+        isPinned: hasColumnPinnedToRight === 'multiple' ? 'right' as ColumnPinningPosition : false,
+        cellFormatter: (dataItem: MockDataItem) => (
+          <Avatar size='s' username={dataItem.your_name} isUsernameVisible />
+        )
+      },
     ];
 
-    const dataLimited = data.slice(0, args.pageSize);
+    if (howManyColumns === 'lots') {
+      columns.push(
+        {key: 'pet', label: 'Pet'},
+        {key: 'source', label: 'Source'},
+        {key: 'activity', label: 'Last activity'},
+        {key: 'a', label: 'a'},
+        {key: 'b', label: 'b'},
+        {key: 'c', label: 'c', size: 400},
+        {key: 'd', label: 'd'},
+        {key: 'e', label: 'e'},
+        {key: 'f', label: 'f'},
+        {key: 'g', label: 'g', size: 50}
+      );
+    }
 
+    const mockData = Array.from({length: 101}, () => getMockDataItem());
+    const dataLimited = mockData.slice(0, args.pageSize);
     return <UniversalTable {...args} columns={columns} data={dataLimited} />;
   },
 };
@@ -91,8 +146,8 @@ export const Primary: Story = {
     isSpinnerVisible: false,
     pageIndex: 3,
     pageCount: 11,
-    pageSize: 10,
-    pageSizeOptions: [10, 30, 50, 100],
+    pageSize: PAGE_SIZES[0],
+    pageSizeOptions: PAGE_SIZES,
     onRequestPaginationChange: (newPageInfo, oldPageInfo) => {
       alert(`
         Pagination change requested:\n
