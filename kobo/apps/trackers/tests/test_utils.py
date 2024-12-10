@@ -126,7 +126,6 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     )
     @data('characters', 'seconds')
     def test_org_usage_utils_without_stripe(self, usage_type):
-        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         total_limit = 2000
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit
