@@ -1,5 +1,6 @@
 from math import ceil, floor, inf
 
+import constance
 from django.conf import settings
 from django.db.models import F
 
@@ -32,44 +33,48 @@ def get_organization_plan_limit(
     """
     Get organization plan limit for a given usage type
     """
-    if not settings.STRIPE_ENABLED:
-        return None
-    stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-    query_product_type = (
-        'djstripe_customers__subscriptions__items__price__'
-        'product__metadata__product_type'
-    )
-    query_status__in = 'djstripe_customers__subscriptions__status__in'
-    organization_filter = Organization.objects.filter(
-        id=organization.id,
-        **{
-            query_status__in: ACTIVE_STRIPE_STATUSES,
-            query_product_type: 'plan',
-        },
-    )
-
-    field_price_limit = (
-        'djstripe_customers__subscriptions__items__' f'price__metadata__{stripe_key}'
-    )
-    field_product_limit = (
-        'djstripe_customers__subscriptions__items__'
-        f'price__product__metadata__{stripe_key}'
-    )
-    current_limit = organization_filter.values(
-        price_limit=F(field_price_limit),
-        product_limit=F(field_product_limit),
-        prod_metadata=F(
-            'djstripe_customers__subscriptions__items__price__product__metadata'
-        ),
-    ).first()
     relevant_limit = None
-    if current_limit is not None:
-        relevant_limit = current_limit.get('price_limit') or current_limit.get(
-            'product_limit'
+    if settings.STRIPE_ENABLED:
+        suffix = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        query_product_type = (
+            'djstripe_customers__subscriptions__items__price__'
+            'product__metadata__product_type'
         )
+        query_status__in = 'djstripe_customers__subscriptions__status__in'
+        organization_filter = Organization.objects.filter(
+            id=organization.id,
+            **{
+                query_status__in: ACTIVE_STRIPE_STATUSES,
+                query_product_type: 'plan',
+            },
+        )
+
+        field_price_limit = (
+            'djstripe_customers__subscriptions__items__' f'price__metadata__{suffix}'
+        )
+        field_product_limit = (
+            'djstripe_customers__subscriptions__items__'
+            f'price__product__metadata__{suffix}'
+        )
+        current_limit = organization_filter.values(
+            price_limit=F(field_price_limit),
+            product_limit=F(field_product_limit),
+            prod_metadata=F(
+                'djstripe_customers__subscriptions__items__price__product__metadata'
+            ),
+        ).first()
+        relevant_limit = None
+        if current_limit is not None:
+            relevant_limit = current_limit.get('price_limit') or current_limit.get(
+                'product_limit'
+            )
+
     if relevant_limit is None:
-        # TODO: get the limits from the community plan, overrides
-        relevant_limit = 2000
+        if usage_type == 'seconds':
+            relevant_limit = constance.config.ASR_MT_DEFAULT_SECONDS_LIMIT
+        if usage_type == 'characters':
+            relevant_limit = constance.config.ASR_MT_DEFAULT_CHARACTERS_LIMIT
+
     # Limits in Stripe metadata are strings. They may be numbers or 'unlimited'
     if relevant_limit == 'unlimited':
         return inf
