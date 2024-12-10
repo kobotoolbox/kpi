@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
+from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -111,7 +112,7 @@ class Transfer(AbstractTimeStampedModel):
             raise TransferAlreadyProcessedException()
 
         self.status = TransferStatusChoices.IN_PROGRESS
-        new_owner = self.invite.recipient
+        new_owner = get_real_owner(self.invite.recipient)
         success = False
         try:
             if not self.asset.has_deployment:
@@ -169,9 +170,9 @@ class Transfer(AbstractTimeStampedModel):
         )
 
     def _reassign_project_permissions(self, update_deployment: bool = False):
-        new_owner = self.invite.recipient
+        new_owner = get_real_owner(self.invite.recipient)
 
-        # Delete existing new owner's permissions on project if any
+        # Delete existing new owner's permissions on the project if any
         self.asset.permissions.filter(user=new_owner).delete()
         old_owner = self.asset.owner
         self.asset.owner = new_owner
@@ -194,11 +195,11 @@ class Transfer(AbstractTimeStampedModel):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
-            # Kobocat adds 3 more permissions that are ignored by KPI:
+            # Kobocat adds 3 more permissions that KPI ignores:
             # - add_xform
             # - transfer_xform
             # - move_xform
-            # There are not transferred since they are not used anymore by Kobocat
+            # There are not transferred since they are not used anymore by KoboCAT,
             # and it does not break anything.
             assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
             reset_kc_permissions(self.asset, old_owner)
@@ -217,6 +218,12 @@ class Transfer(AbstractTimeStampedModel):
         self.asset.assign_perm(
             self.invite.sender, PERM_MANAGE_ASSET
         )
+        # If the new owner differs from the user who accepted the invite,
+        # let's give them 'manage_asset' permission as well.
+        if new_owner != self.invite.recipient:
+            self.asset.assign_perm(
+                self.invite.recipient, PERM_MANAGE_ASSET
+            )
 
     def _sent_in_app_messages(self):
 
