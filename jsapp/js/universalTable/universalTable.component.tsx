@@ -74,6 +74,7 @@ interface UniversalTableProps<DataItem> {
   /**
    * A way for the table to say "user wants to change pagination". It's being
    * triggered for both page navigation and page size changes.
+   *
    * Provides an object with current `pageIndex` and `pageSize` (one or both
    * values are new). The second object shows previous pagination, use it to
    * compare and understand what has happened :)

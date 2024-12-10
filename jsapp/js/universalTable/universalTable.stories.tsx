@@ -5,8 +5,8 @@ import {type ColumnPinningPosition} from '@tanstack/react-table';
 import moment from 'moment';
 
 interface CustomArgs {
-  hasColumnPinnedToLeft: 'none' | 'one' | 'multiple';
-  hasColumnPinnedToRight: 'none' | 'one' | 'multiple';
+  hasColumnsPinnedLeft: 'none' | 'one' | 'multiple';
+  hasColumnsPinnedRight: 'none' | 'one' | 'multiple';
   howManyColumns: 'few' | 'lots';
 }
 type UniversalTablePropsAndCustomArgs = React.ComponentProps<typeof UniversalTable> & CustomArgs;
@@ -59,20 +59,20 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
   title: 'misc/UniversalTable',
   component: UniversalTable,
   argTypes: {
-    hasColumnPinnedToLeft: {
+    hasColumnsPinnedLeft: {
       options: ['none', 'one', 'multiple'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_: Makes some of the columns pinned to left',
+      description: '_CUSTOM STORY CONTROL_\n\nMakes some of the columns pinned to left. \n\n Note that column pinning happens at the level of column definition, and we use conditionally predefined mock columns in this story.',
     },
-    hasColumnPinnedToRight: {
+    hasColumnsPinnedRight: {
       options: ['none', 'one', 'multiple'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_: Makes some of the columns pinned to right',
+      description: '_CUSTOM STORY CONTROL_\n\nMakes some of the columns pinned to right.',
     },
     howManyColumns: {
       options: ['few', 'lots'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_: Controls how many columns does the table have',
+      description: '_CUSTOM STORY CONTROL_\n\nControls how many columns does the table have. Useful for conditionally testing horizontal scroll.',
     },
     pageSize: {
       options: PAGE_SIZES,
@@ -80,36 +80,36 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     },
   },
   args: {
-    hasColumnPinnedToLeft: 'none',
-    hasColumnPinnedToRight: 'none',
+    hasColumnsPinnedLeft: 'none',
+    hasColumnsPinnedRight: 'none',
     howManyColumns: 'lots',
   },
-  render: ({hasColumnPinnedToLeft, hasColumnPinnedToRight, howManyColumns, ...args}) => {
+  render: ({hasColumnsPinnedLeft, hasColumnsPinnedRight, howManyColumns, ...args}) => {
     const columns: UniversalTableColumn<MockDataItem>[] = [
       {
         key: 'date_created',
         label: 'Date created',
         // is pinned when "one" or "multiple" selected
-        isPinned: hasColumnPinnedToLeft !== 'none' ? 'left' as ColumnPinningPosition : false,
+        isPinned: hasColumnsPinnedLeft !== 'none' ? 'left' as ColumnPinningPosition : false,
       },
       {
         key: 'ip',
         label: 'IP Address',
         // is pinned when "multiple" selected
-        isPinned: hasColumnPinnedToLeft === 'multiple' ? 'left' as ColumnPinningPosition : false,
+        isPinned: hasColumnsPinnedLeft === 'multiple' ? 'left' as ColumnPinningPosition : false,
       },
       {
         key: 'age',
         label: 'Age',
         // is pinned when "one" or "multiple" selected
-        isPinned: hasColumnPinnedToRight !== 'none' ? 'right' as ColumnPinningPosition : false,
+        isPinned: hasColumnsPinnedRight !== 'none' ? 'right' as ColumnPinningPosition : false,
         size: 60,
       },
       {
         key: 'your_name',
         label: 'Your name',
         // is pinned when "multiple" selected
-        isPinned: hasColumnPinnedToRight === 'multiple' ? 'right' as ColumnPinningPosition : false,
+        isPinned: hasColumnsPinnedRight === 'multiple' ? 'right' as ColumnPinningPosition : false,
         cellFormatter: (dataItem: MockDataItem) => (
           <Avatar size='s' username={dataItem.your_name} isUsernameVisible />
         )
