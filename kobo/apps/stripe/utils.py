@@ -63,6 +63,7 @@ def get_organization_plan_limit(
             'djstripe_customers__subscriptions__items__price__product__metadata'
         ),
     ).first()
+    relevant_limit = None
     if current_limit is not None:
         relevant_limit = current_limit.get('price_limit') or current_limit.get(
             'product_limit'
