@@ -1,3 +1,5 @@
+from math import inf
+
 from ddt import data, ddt
 from django.test import override_settings
 from django.utils import timezone
@@ -126,19 +128,12 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     )
     @data('characters', 'seconds')
     def test_org_usage_utils_without_stripe(self, usage_type):
-        total_limit = 2000
         remaining = get_organization_remaining_usage(self.organization, usage_type)
-        assert remaining == total_limit
+        assert remaining == inf
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
+            USAGE_LIMIT_MAP[usage_type], 10000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
-        assert remaining == total_limit - 1000
-
-        update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 500, self.someuser.id, self.asset.id
-        )
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
-        assert remaining == total_limit - 1500
+        assert remaining == inf

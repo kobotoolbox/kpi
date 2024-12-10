@@ -340,14 +340,6 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
-    'ASR_MT_DEFAULT_SECONDS_LIMIT': (
-        2000,
-        'Default monthly time limit in seconds, for Google ASR processing',
-    ),
-    'ASR_MT_DEFAULT_CHARACTERS_LIMIT': (
-        2000,
-        'Default monthly characters limit, for Google ASR processing',
-    ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
@@ -689,8 +681,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
-        'ASR_MT_DEFAULT_SECONDS_LIMIT',
-        'ASR_MT_DEFAULT_CHARACTERS_LIMIT',
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',

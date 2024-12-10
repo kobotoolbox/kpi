@@ -1,3 +1,4 @@
+import math
 import timeit
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -467,9 +468,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
     def test_get_plan_community_limit(self):
         generate_mmo_subscription(self.organization)
         limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == 2000  # TODO get the limits from the community plan, overrides
+        assert limit == inf  # TODO get the limits from the community plan, overrides
         limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == 2000  # TODO get the limits from the community plan, overrides
+        assert limit == inf  # TODO get the limits from the community plan, overrides
 
     @data('characters', 'seconds')
     def test_get_suscription_limit(self, usage_type):
