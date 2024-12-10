@@ -127,7 +127,7 @@ $z-index-spinner: 6;
 
     &::after {
       left: calc(100% + 1px);
-      background: linear-gradient(to left, transparent, rgba(0, 0, 0, 6%));
+      background: linear-gradient(to left, transparent, rgba(0 0 0 / 6%));
     }
   }
 
@@ -136,7 +136,7 @@ $z-index-spinner: 6;
 
     &::after {
       right: calc(100% + 1px);
-      background: linear-gradient(to right, transparent, rgba(0, 0, 0, 6%));
+      background: linear-gradient(to right, transparent, rgba(0 0 0 / 6%));
     }
   }
 }

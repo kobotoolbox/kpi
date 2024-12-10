@@ -52,7 +52,7 @@ export interface UniversalTableColumn<DataItem> {
 
 interface UniversalTableProps<DataItem> {
   /** A list of column definitions */
-  columns: UniversalTableColumn<DataItem>[];
+  columns: Array<UniversalTableColumn<DataItem>>;
   data: DataItem[];
   /**
    * When set to `true`, a spinner with overlay will be displayed over the table

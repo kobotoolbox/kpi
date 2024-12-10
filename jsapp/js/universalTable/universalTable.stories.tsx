@@ -85,7 +85,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     howManyColumns: 'lots',
   },
   render: ({hasColumnsPinnedLeft, hasColumnsPinnedRight, howManyColumns, ...args}) => {
-    const columns: UniversalTableColumn<MockDataItem>[] = [
+    const columns: Array<UniversalTableColumn<MockDataItem>> = [
       {
         key: 'date_created',
         label: 'Date created',
@@ -112,7 +112,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
         isPinned: hasColumnsPinnedRight === 'multiple' ? 'right' as ColumnPinningPosition : false,
         cellFormatter: (dataItem: MockDataItem) => (
           <Avatar size='s' username={dataItem.your_name} isUsernameVisible />
-        )
+        ),
       },
     ];
 
