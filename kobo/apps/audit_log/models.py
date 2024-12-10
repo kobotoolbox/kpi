@@ -348,8 +348,12 @@ class ProjectHistoryLog(AuditLog):
                 metadata.update(
                     {
                         'name': {
-                            PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: audit_log_info['old_name'],
-                            PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: audit_log_info['new_name'],
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: audit_log_info[
+                                'old_name'
+                            ],
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: audit_log_info[
+                                'new_name'
+                            ],
                         }
                     }
                 )
@@ -647,8 +651,11 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': username,
-                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(user_permissions_removed),
-                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(user_permissions_added) + user_partial_permissions_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(
+                    user_permissions_removed
+                ),
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(user_permissions_added)
+                + user_partial_permissions_added,
             }
             logs.append(
                 ProjectHistoryLog(
@@ -714,7 +721,8 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': 'AnonymousUser',
-                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(perms_added) + partial_perms_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(perms_added)
+                + partial_perms_added,
                 PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(perms_removed),
             }
             logs.append(
@@ -733,7 +741,12 @@ class ProjectHistoryLog(AuditLog):
 
     @staticmethod
     def _handle_name_change(old_field, new_field):
-        metadata = {'name': {PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: old_field, PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}}
+        metadata = {
+            'name': {
+                PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: old_field,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field,
+            }
+        }
         return AuditAction.UPDATE_NAME, metadata
 
     @staticmethod
@@ -748,8 +761,12 @@ class ProjectHistoryLog(AuditLog):
                 if isinstance(old, list) and isinstance(new, list):
                     removed_values = [val for val in old if val not in new]
                     added_values = [val for val in new if val not in old]
-                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = added_values
-                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = removed_values
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = (
+                        added_values
+                    )
+                    metadata_field_subdict[
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+                    ] = removed_values
                 else:
                     metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_OLD] = old
                     metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_NEW] = new
@@ -771,7 +788,9 @@ class ProjectHistoryLog(AuditLog):
         elif not old_enabled and new_enabled:
             # sharing went from disabled to enabled
             action = AuditAction.ENABLE_SHARING
-            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = new_shared_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = (
+                new_shared_fields
+            )
         else:
             # the specific fields shared changed
             removed_fields = [
@@ -782,19 +801,21 @@ class ProjectHistoryLog(AuditLog):
             ]
             action = AuditAction.MODIFY_SHARING
             shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = added_fields
-            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = removed_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = (
+                removed_fields
+            )
         return action, {'shared_fields': shared_fields_dict}
 
     @staticmethod
     def _handle_qa_change(_, new_field):
         # qa dictionary is complicated to parse and determine
         # what actually changed, so just return the new dict
-        return AuditAction.UPDATE_QA, {'qa': {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}}
+        return AuditAction.UPDATE_QA, {
+            'qa': {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}
+        }
 
     @staticmethod
-    def _related_request_base(
-        request, label, add_action, delete_action, modify_action
-    ):
+    def _related_request_base(request, label, add_action, delete_action, modify_action):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
