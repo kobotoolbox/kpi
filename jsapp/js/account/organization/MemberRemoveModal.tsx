@@ -14,16 +14,16 @@ import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
 
 export const REMOVE_SELF_TEXT = {
-  title: t('Leave this ##team/org##'),
-  description: t('Are you sure you want to leave this ##team/org##?'),
-  dangerMessage: t('You will immediately lose access to any projects owned by this ##team/org##. This action cannot be undone.'),
-  confirmButtonLabel: t('Leave ##team/org##'),
+  title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
+  description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
+  dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
+  confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
 };
 
 export const REMOVE_MEMBER_TEXT = {
-  title: t('Remove ##username## from this ##team/org##'),
-  description: t('Are you sure you want to remove ##username## from this ##team/org##?'),
-  dangerMessage: t('Removing them from this ##team/org## also means they will immediately lose access to any projects owned by your ##team/org##. This action cannot be undone.'),
+  title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
+  description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
+  dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
   confirmButtonLabel: t('Remove member'),
 };
 
@@ -34,7 +34,7 @@ export const REMOVE_MEMBER_TEXT = {
 function replacePlaceholders(text: string, username: string, mmoLabel: string) {
   return text
     .replaceAll('##username##', username)
-    .replaceAll('##team/org##', mmoLabel);
+    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
 }
 
 interface MemberRemoveModalProps {

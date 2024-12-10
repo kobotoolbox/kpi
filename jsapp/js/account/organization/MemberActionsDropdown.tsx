@@ -66,7 +66,7 @@ export default function MemberActionsDropdown(
       false
     );
     removeButtonLabel = REMOVE_SELF_TEXT.confirmButtonLabel
-      .replace('##team/org##', mmoLabel);
+      .replace('##TEAM_OR_ORGANIZATION##', mmoLabel);
   }
 
   return (
