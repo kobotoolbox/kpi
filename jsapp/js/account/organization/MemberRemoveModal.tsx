@@ -23,14 +23,14 @@ interface TextToDisplay {
   confirmButtonLabel: string;
 }
 
-export const REMOVE_SELF_TEXT: TextToDisplay = {
+const REMOVE_SELF_TEXT: TextToDisplay = {
   title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
   description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
   dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
   confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
 };
 
-export const REMOVE_MEMBER_TEXT: TextToDisplay = {
+const REMOVE_MEMBER_TEXT: TextToDisplay = {
   title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
   description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
   dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),

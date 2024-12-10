@@ -5,7 +5,7 @@ import cx from 'classnames';
 // Partial components
 import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
-import MemberRemoveModal, {REMOVE_SELF_TEXT} from './MemberRemoveModal';
+import MemberRemoveModal from './MemberRemoveModal';
 
 // Stores, hooks and utilities
 import {useSession} from 'jsapp/js/stores/useSession';
@@ -64,7 +64,7 @@ export default function MemberActionsDropdown(
       false,
       false
     );
-    removeButtonLabel = REMOVE_SELF_TEXT.confirmButtonLabel
+    removeButtonLabel = t('Leave ##TEAM_OR_ORGANIZATION##')
       .replace('##TEAM_OR_ORGANIZATION##', mmoLabel);
   }
 
