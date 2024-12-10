@@ -136,6 +136,7 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
     log_type = AuditType.PROJECT_HISTORY
+
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:
             return SubmissionExportTask.objects.none()

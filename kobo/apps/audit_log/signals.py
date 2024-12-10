@@ -17,7 +17,8 @@ from kpi.utils.object_permission import (
 )
 from .models import AccessLog, ProjectHistoryLog
 
-## Access Log receivers
+# Access Log receivers
+
 
 @receiver(user_logged_in)
 def create_access_log(sender, user, **kwargs):
@@ -30,7 +31,7 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request)
 
 
-## Project History Log receivers
+# Project History Log receivers
 
 def _initialize_permission_lists_if_necessary(request):
     if getattr(request, 'permissions_added', None) is None:

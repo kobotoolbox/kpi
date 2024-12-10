@@ -381,7 +381,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-bulk-assignments': cls._create_from_permissions_request,  # noqa
             'asset-permission-assignment-detail': cls._create_from_permissions_request,
             'asset-permission-assignment-list': cls._create_from_permissions_request,
-            'asset-permission-assignment-clone': cls._create_from_clone_permission_request,
+            'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
