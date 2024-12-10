@@ -69,9 +69,10 @@ class ServiceUsageCalculator(CachedClass):
 
         billing_details = self.organization.active_subscription_billing_details()
         if not billing_details:
-            return None
+            interval = 'month'  # The default interval is month
+        else:
+            interval = billing_details['recurring_interval']
 
-        interval = billing_details['recurring_interval']
         nlp_usage = self.get_nlp_usage_counters()
 
         cached_usage = {

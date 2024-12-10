@@ -1,4 +1,5 @@
 from ddt import data, ddt
+from django.test import override_settings
 from django.utils import timezone
 from djstripe.models import Charge, PaymentIntent, Price, Product
 from model_bakery import baker
@@ -119,3 +120,26 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit - 2500
+
+    @override_settings(
+        STRIPE_ENABLED=False,
+    )
+    @data('characters', 'seconds')
+    def test_org_usage_utils_without_stripe(self, usage_type):
+        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        total_limit = 2000
+        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        assert remaining == total_limit
+
+        update_nlp_counter(
+            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
+        )
+
+        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        assert remaining == total_limit - 1000
+
+        update_nlp_counter(
+            USAGE_LIMIT_MAP[usage_type], 500, self.someuser.id, self.asset.id
+        )
+        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        assert remaining == total_limit - 1500
