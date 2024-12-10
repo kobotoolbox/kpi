@@ -17,6 +17,7 @@ from kpi.utils.object_permission import (
 )
 from .models import AccessLog, ProjectHistoryLog
 
+## Access Log receivers
 
 @receiver(user_logged_in)
 def create_access_log(sender, user, **kwargs):
@@ -29,13 +30,9 @@ def create_access_log(sender, user, **kwargs):
         AccessLog.create_from_request(request)
 
 
-@receiver(task_success, sender=import_in_background)
-def create_ph_log_for_import(sender, result, **kwargs):
-    task = ImportTask.objects.get(uid=result)
-    ProjectHistoryLog.create_from_import_task(task)
+## Project History Log receivers
 
-
-def initialize_permission_lists_if_necessary(request):
+def _initialize_permission_lists_if_necessary(request):
     if getattr(request, 'permissions_added', None) is None:
         request.permissions_added = defaultdict(set)
     if getattr(request, 'permissions_removed', None) is None:
@@ -44,35 +41,26 @@ def initialize_permission_lists_if_necessary(request):
         request.partial_permissions_added = defaultdict(list)
 
 
-def initialize_request():
+def _initialize_request():
     request = get_current_request()
     if request is None:
         return None
-    initialize_permission_lists_if_necessary(request)
+    _initialize_permission_lists_if_necessary(request)
     return request
 
 
 @receiver(post_assign_perm, sender=Asset)
 def add_assigned_perms(sender, instance, user, codename, deny, **kwargs):
-    request = initialize_request()
+    request = _initialize_request()
     if not request or instance.asset_type != ASSET_TYPE_SURVEY or deny:
         return
     request.permissions_added[user.username].add(codename)
     request.permissions_removed[user.username].discard(codename)
 
 
-@receiver(post_remove_perm, sender=Asset)
-def add_removed_perms(sender, instance, user, codename, **kwargs):
-    request = initialize_request()
-    if not request or instance.asset_type != ASSET_TYPE_SURVEY:
-        return
-    request.permissions_removed[user.username].add(codename)
-    request.permissions_added[user.username].discard(codename)
-
-
 @receiver(post_assign_partial_perm, sender=Asset)
 def add_assigned_partial_perms(sender, instance, user, perms, **kwargs):
-    request = initialize_request()
+    request = _initialize_request()
     if not request or instance.asset_type != ASSET_TYPE_SURVEY:
         return
     perms_as_list_of_dicts = [{'code': k, 'filters': v} for k, v in perms.items()]
@@ -80,9 +68,24 @@ def add_assigned_partial_perms(sender, instance, user, perms, **kwargs):
     request.partial_permissions_added[user.username] = perms_as_list_of_dicts
 
 
+@receiver(post_remove_perm, sender=Asset)
+def add_removed_perms(sender, instance, user, codename, **kwargs):
+    request = _initialize_request()
+    if not request or instance.asset_type != ASSET_TYPE_SURVEY:
+        return
+    request.permissions_removed[user.username].add(codename)
+    request.permissions_added[user.username].discard(codename)
+
+
+@receiver(task_success, sender=import_in_background)
+def create_ph_log_for_import(sender, result, **kwargs):
+    task = ImportTask.objects.get(uid=result)
+    ProjectHistoryLog.create_from_import_task(task)
+
+
 @receiver(post_remove_partial_perms, sender=Asset)
 def remove_partial_perms(sender, instance, user, **kwargs):
-    request = initialize_request()
+    request = _initialize_request()
     if not request or instance.asset_type != ASSET_TYPE_SURVEY:
         return
     request.partial_permissions_added[user.username] = []
