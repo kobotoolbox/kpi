@@ -9,6 +9,8 @@ import {
   type ActivityLogsItem,
 } from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
+import {fetchGet} from 'jsapp/js/api';
+import {endpoints} from 'jsapp/js/api.endpoints';
 
 // =============================================================================
 // MOCK DATA GENERATION
@@ -91,8 +93,13 @@ const mockData: ActivityLogsItem[] = Array.from({length: 150}, (_, index) => {
  * @param limit Pagination parameter: number of items per page
  * @param offset Pagination parameter: offset of the page
  */
-const getActivityLogs = async (limit: number, offset: number) =>
-  new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
+const getActivityLogs = async (projectId: string, limit: number, offset: number) => {
+
+  fetchGet<PaginatedResponse<ActivityLogsItem>>(endpoints.ASSET_HISTORY.replace(':asset_id', projectId), {
+    errorMessageDisplay: t('There was an error getting one-time add-ons.'),
+  });
+
+  return new Promise<PaginatedResponse<ActivityLogsItem>>((resolve) => {
     setTimeout(
       () =>
         resolve({
@@ -104,7 +111,7 @@ const getActivityLogs = async (limit: number, offset: number) =>
       1000
     );
   });
-
+};
 /**
  * Fetches the filter options for the activity logs.
  */
@@ -139,12 +146,14 @@ const startActivityLogsExport = async () =>
  * @param itemLimit Pagination parameter: number of items per page
  * @param pageOffset Pagination parameter: offset of the page
  */
-export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) =>
-  useQuery({
-    queryKey: [QueryKeys.activityLogs, itemLimit, pageOffset],
-    queryFn: () => getActivityLogs(itemLimit, pageOffset),
+export const useActivityLogsQuery = (itemLimit: number, pageOffset: number) => {
+  const projectId = '123';
+  return useQuery({
+    queryKey: [QueryKeys.activityLogs, projectId, itemLimit, pageOffset],
+    queryFn: () => getActivityLogs(projectId, itemLimit, pageOffset),
     placeholderData: keepPreviousData,
   });
+};
 
 /**
  * This is a hook to fetch the filter options for the activity logs.
