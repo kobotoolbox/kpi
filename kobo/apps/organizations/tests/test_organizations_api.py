@@ -179,6 +179,9 @@ class OrganizationDetailAPITestCase(BaseTestCase):
         self.someuser = User.objects.get(username='someuser')
         self.organization = self.someuser.organization
         self.organization.mmo_override = True
+        # Only needed to make `test_update_fields()` pass with an empty string for
+        # `website`.
+        self.organization.website = 'http://example.com'
         self.organization.save(update_fields=['mmo_override'])
 
         # anotheruser is an admin of someuser's organization
@@ -231,6 +234,28 @@ class OrganizationDetailAPITestCase(BaseTestCase):
         )
         response = self.client.get(url)
         assert response.status_code == expected_status_code
+
+    @data(
+        ('name', 'Someuser Company inc.', status.HTTP_200_OK),
+        ('name', '', status.HTTP_400_BAD_REQUEST),
+        ('website', 'https://foo.bar/', status.HTTP_200_OK),
+        ('website', '', status.HTTP_200_OK),
+    )
+    @unpack
+    def test_update_fields(self, field, value, expected_status_code):
+        assert getattr(self.organization, field) != value
+        self.client.force_login(self.someuser)
+        data = {field: value}
+
+        url = reverse(
+            self._get_endpoint('organizations-detail'),
+            kwargs={'id': self.organization.id},
+        )
+        response = self.client.post(url, data)
+
+        if response.status_code == status.HTTP_200_OK:
+            assert response.status_code == expected_status_code
+            assert response.data[field] == value
 
 
 class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
