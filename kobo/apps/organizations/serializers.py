@@ -92,6 +92,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     request_user_role = serializers.SerializerMethodField()
     service_usage = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(lookup_field='id', view_name='organizations-detail')
+    website = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Organization
