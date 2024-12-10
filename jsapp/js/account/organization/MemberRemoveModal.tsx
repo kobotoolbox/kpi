@@ -1,3 +1,6 @@
+// Libraries
+import clonedeep from 'lodash.clonedeep';
+
 // Partial components
 import Button from 'jsapp/js/components/common/button';
 import InlineMessage from 'jsapp/js/components/common/inlineMessage';
@@ -13,14 +16,21 @@ import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
 
-export const REMOVE_SELF_TEXT = {
+interface TextToDisplay {
+  title: string;
+  description: string;
+  dangerMessage: string;
+  confirmButtonLabel: string;
+}
+
+export const REMOVE_SELF_TEXT: TextToDisplay = {
   title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
   description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
   dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
   confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
 };
 
-export const REMOVE_MEMBER_TEXT = {
+export const REMOVE_MEMBER_TEXT: TextToDisplay = {
   title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
   description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
   dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
@@ -28,13 +38,24 @@ export const REMOVE_MEMBER_TEXT = {
 };
 
 /**
- * Replaces placeholders with values.
- * Note: assumes all placeholders want to be lowercase.
+ * @returns one of `TextToDisplay` objects with all placeholders replaced with
+ * proper values.
  */
-function replacePlaceholders(text: string, username: string, mmoLabel: string) {
-  return text
-    .replaceAll('##username##', username)
-    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
+function getTextToDisplay(
+  isRemovingSelf: boolean,
+  username: string,
+  mmoLabel: string
+) {
+  const text = clonedeep(isRemovingSelf ? REMOVE_SELF_TEXT : REMOVE_MEMBER_TEXT);
+
+  for (const key in text) {
+    const keyCast = key as keyof typeof text;
+    text[keyCast] = text[keyCast]
+      .replaceAll('##username##', username)
+      .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
+  }
+
+  return text;
 }
 
 interface MemberRemoveModalProps {
@@ -68,25 +89,16 @@ export default function MemberRemoveModal(
   );
 
   // Choose proper text
-  let title = isRemovingSelf ? REMOVE_SELF_TEXT.title : REMOVE_MEMBER_TEXT.title;
-  let description = isRemovingSelf ? REMOVE_SELF_TEXT.description : REMOVE_MEMBER_TEXT.description;
-  let dangerMessage = isRemovingSelf ? REMOVE_SELF_TEXT.dangerMessage : REMOVE_MEMBER_TEXT.dangerMessage;
-  let confirmButtonLabel = isRemovingSelf ? REMOVE_SELF_TEXT.confirmButtonLabel : REMOVE_MEMBER_TEXT.confirmButtonLabel;
-
-  // Replace placeholders with proper strings
-  title = replacePlaceholders(title, username, mmoLabel);
-  description = replacePlaceholders(description, username, mmoLabel);
-  dangerMessage = replacePlaceholders(dangerMessage, username, mmoLabel);
-  confirmButtonLabel = replacePlaceholders(confirmButtonLabel, username, mmoLabel);
+  const textToDisplay = getTextToDisplay(isRemovingSelf, username, mmoLabel);
 
   return (
     <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
-      <KoboModalHeader>{title}</KoboModalHeader>
+      <KoboModalHeader>{textToDisplay.title}</KoboModalHeader>
 
       <KoboModalContent>
-        <p>{description}</p>
+        <p>{textToDisplay.description}</p>
 
-        <InlineMessage type='error' icon='alert' message={dangerMessage}/>
+        <InlineMessage type='error' icon='alert' message={textToDisplay.dangerMessage}/>
       </KoboModalContent>
 
       <KoboModalFooter>
@@ -109,7 +121,7 @@ export default function MemberRemoveModal(
               onConfirmDone();
             }
           }}
-          label={confirmButtonLabel}
+          label={textToDisplay.confirmButtonLabel}
           isPending={removeMember.isPending}
         />
       </KoboModalFooter>
