@@ -382,6 +382,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-detail': cls._create_from_permissions_request,
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
+            'project-ownership-invite-list': cls._create_from_ownership_transfer,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -586,6 +587,36 @@ class ProjectHistoryLog(AuditLog):
             AuditAction.DELETE_SERVICE,
             AuditAction.MODIFY_SERVICE,
         )
+
+    @classmethod
+    def _create_from_ownership_transfer(cls, request):
+        updated_data = getattr(request, 'updated_data')
+        transfers = updated_data['transfers'].values(
+            'asset__uid', 'asset__asset_type', 'asset__id'
+        )
+        logs = []
+        for transfer in transfers:
+            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
+                continue
+            logs.append(
+                ProjectHistoryLog(
+                    object_id=transfer['asset__id'],
+                    action=AuditAction.TRANSFER,
+                    user=request.user,
+                    app_label=Asset._meta.app_label,
+                    model_name=Asset._meta.model_name,
+                    log_type=AuditType.PROJECT_HISTORY,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': transfer['asset__uid'],
+                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                        'ip_address': get_client_ip(request),
+                        'source': get_human_readable_client_user_agent(request),
+                        'username': updated_data['recipient.username'],
+                    },
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
     def _create_from_paired_data_request(cls, request):
@@ -845,33 +876,3 @@ class ProjectHistoryLog(AuditLog):
             ProjectHistoryLog.objects.create(
                 user=request.user, object_id=object_id, action=action, metadata=metadata
             )
-
-    @classmethod
-    def handle_ownership_transfer(cls, request):
-        updated_data = getattr(request, 'updated_data')
-        transfers = updated_data['transfers'].values(
-            'asset__uid', 'asset__asset_type', 'asset__id'
-        )
-        logs = []
-        for transfer in transfers:
-            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
-                continue
-            logs.append(
-                ProjectHistoryLog(
-                    object_id=transfer['asset__id'],
-                    action=AuditAction.TRANSFER,
-                    user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': transfer['asset__uid'],
-                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                        'ip_address': get_client_ip(request),
-                        'source': get_human_readable_client_user_agent(request),
-                        'username': updated_data['recipient.username'],
-                    },
-                )
-            )
-        ProjectHistoryLog.objects.bulk_create(logs)
