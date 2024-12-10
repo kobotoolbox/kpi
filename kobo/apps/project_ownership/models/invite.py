@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext as t
 
+from kobo.apps.organizations.utils import get_real_owner
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.mailer import EmailMessage, Mailer
@@ -104,6 +105,11 @@ class Invite(AbstractTimeStampedModel):
 
     def send_invite_email(self):
 
+        real_next_owner = get_real_owner(self.recipient)
+        template_suffix = ''
+        if real_next_owner != self.recipient:
+            template_suffix = '_org'
+
         template_variables = {
             'username': self.recipient.username,
             'sender_username': self.sender.username,
@@ -125,9 +131,9 @@ class Invite(AbstractTimeStampedModel):
             subject=t(
                 'Action required: KoboToolbox project ownership transfer request'
             ),
-            plain_text_content_or_template='emails/new_invite.txt',
+            plain_text_content_or_template=f'emails/new_invite{template_suffix}.txt',
             template_variables=template_variables,
-            html_content_or_template='emails/new_invite.html',
+            html_content_or_template=f'emails/new_invite{template_suffix}.html',
             language=self.recipient.extra_details.data.get('last_ui_language'),
         )
 
