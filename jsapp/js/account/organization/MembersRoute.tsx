@@ -100,7 +100,7 @@ export default function MembersRoute() {
 
         return (
           <MemberActionsDropdown
-            username={member.user__username}
+            targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
           />
         );

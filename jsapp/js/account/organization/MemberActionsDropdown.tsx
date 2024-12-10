@@ -20,8 +20,7 @@ import {OrganizationUserRole} from './organizationQuery';
 import styles from './memberActionsDropdown.module.scss';
 
 interface MemberActionsDropdownProps {
-  /** Target member username. */
-  username: string;
+  targetUsername: string;
   /**
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
@@ -33,7 +32,7 @@ interface MemberActionsDropdownProps {
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown(
-  {username, currentUserRole}: MemberActionsDropdownProps
+  {targetUsername, currentUserRole}: MemberActionsDropdownProps
 ) {
   const session = useSession();
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
@@ -52,7 +51,7 @@ export default function MemberActionsDropdown(
   // If logged in user is an admin and tries to remove themselves, we need
   // different UI - thus we check it here.
   const isAdminRemovingSelf = Boolean(
-    username === session.currentLoggedAccount?.username &&
+    targetUsername === session.currentLoggedAccount?.username &&
     currentUserRole === OrganizationUserRole.admin
   );
 
@@ -73,7 +72,7 @@ export default function MemberActionsDropdown(
     <>
       {isRemoveModalVisible &&
         <MemberRemoveModal
-          username={username}
+          username={targetUsername}
           isRemovingSelf={isAdminRemovingSelf}
           onConfirmDone={() => {
             setIsRemoveModalVisible(false);
@@ -83,7 +82,7 @@ export default function MemberActionsDropdown(
       }
 
       <KoboDropdown
-        name={`member-actions-dropdown-${username}`}
+        name={`member-actions-dropdown-${targetUsername}`}
         placement='down-right'
         hideOnMenuClick
         triggerContent={<Button type='text' size='m' startIcon='more'/>}
