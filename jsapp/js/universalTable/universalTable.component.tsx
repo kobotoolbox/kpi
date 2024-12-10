@@ -286,6 +286,11 @@ export default function UniversalTable<DataItem>(
                       there is a way to fix that, see:
                       https://tanstack.com/table/latest/docs/guide/column-sizing#advanced-column-resizing-performance
                     */}
+                    {/*
+                      TODO: one of the resizers will not work for columns that
+                      are `isLastLeftPinnedColumn` or `isFirstRightPinnedColumn`
+                      and we are ok with this for now.
+                    */}
                     <div
                       onDoubleClick={() => header.column.resetSize()}
                       onMouseDown={(event) => {
