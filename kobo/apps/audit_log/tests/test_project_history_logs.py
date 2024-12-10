@@ -17,6 +17,8 @@ from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    ASSET_TYPE_TEMPLATE,
+    CLONE_ARG_NAME,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -1285,5 +1287,76 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ),
             data=data,
             format='json',
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_clone_permissions_creates_logs(self):
+        second_asset = Asset.objects.get(pk=2)
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse(
+                'api_v2:asset-permission-assignment-clone',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            request_data={CLONE_ARG_NAME: second_asset.uid},
+            expected_action=AuditAction.CLONE_PERMISSIONS,
+            expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['cloned_from'], second_asset.uid)
+
+    def test_transfer_creates_log(self):
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                'api_v2:project-ownership-invite-list',
+            ),
+            request_data={
+                'recipient': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+                'assets': [self.asset.uid],
+            },
+            expected_action=AuditAction.TRANSFER,
+            expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['username'], 'someuser')
+
+    def test_transfer_multiple_creates_logs(self):
+        second_asset = Asset.objects.get(pk=2)
+        # make admin the owner of the other asset so we can transfer it
+        second_asset.owner = self.user
+        second_asset.save()
+        self.client.post(
+            path=reverse('api_v2:project-ownership-invite-list'),
+            data={
+                'recipient': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+                'assets': [self.asset.uid, second_asset.uid],
+            },
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        first_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=self.asset.uid, action=AuditAction.TRANSFER
+        )
+        self.assertTrue(first_log.exists())
+        second_log = ProjectHistoryLog.objects.filter(
+            metadata__asset_uid=second_asset.uid, action=AuditAction.TRANSFER
+        )
+        self.assertTrue(second_log.exists())
+
+    def test_no_log_created_for_non_project_transfer(self):
+        new_asset = Asset.objects.create(
+            owner=self.user,
+            asset_type=ASSET_TYPE_TEMPLATE,
+        )
+        self.client.post(
+            path=reverse('api_v2:project-ownership-invite-list'),
+            data={
+                'recipient': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'someuser'}
+                ),
+                'assets': [new_asset.uid],
+            },
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)

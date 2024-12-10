@@ -10,6 +10,10 @@ class BuildDbQueriesNoConfirmationProvidedError(Exception):
     pass
 
 
+class AccountInactiveError(Exception):
+    pass
+
+
 class DuplicateUUIDError(Exception):
     pass
 

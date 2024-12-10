@@ -199,6 +199,7 @@ class AssetPermissionAssignmentViewSet(
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
+        request._request.initial_data = {'asset.id': self.asset.id}
 
         if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
             PERM_VIEW_ASSET, source_asset

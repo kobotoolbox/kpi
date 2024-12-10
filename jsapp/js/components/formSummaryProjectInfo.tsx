@@ -99,7 +99,7 @@ export default function FormSummaryProjectInfo(
             {isSelfOwned(props.asset) && t('me')}
             {!isSelfOwned(props.asset) && (
               <Avatar
-                username={props.asset.owner__username}
+                username={props.asset.owner_label}
                 size='s'
                 isUsernameVisible
               />

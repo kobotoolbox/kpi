@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as t
 from rest_framework import serializers
+from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.organizations.models import (
@@ -26,7 +27,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
-        source='user.date_joined', format='%Y-%m-%dT%H:%M:%SZ'
+        source='created', format='%Y-%m-%dT%H:%M:%SZ'
     )
     user__username = serializers.ReadOnlyField(source='user.username')
     user__extra_details__name = serializers.ReadOnlyField(
@@ -83,14 +84,20 @@ class OrganizationOwnerSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
 
+    assets = serializers.SerializerMethodField()
+    asset_usage = serializers.SerializerMethodField()
     is_mmo = serializers.BooleanField(read_only=True)
     is_owner = serializers.SerializerMethodField()
+    members = serializers.SerializerMethodField()
     request_user_role = serializers.SerializerMethodField()
+    service_usage = serializers.SerializerMethodField()
+    url = HyperlinkedIdentityField(lookup_field='id', view_name='organizations-detail')
 
     class Meta:
         model = Organization
         fields = [
             'id',
+            'url',
             'name',
             'website',
             'organization_type',
@@ -99,12 +106,44 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'is_owner',
             'is_mmo',
             'request_user_role',
+            'members',
+            'assets',
+            'service_usage',
+            'asset_usage',
         ]
         read_only_fields = ['id']
 
     def create(self, validated_data):
         user = self.context['request'].user
         return create_organization(user, validated_data['name'])
+
+    def get_assets(self, organization: Organization) -> str:
+        return reverse(
+            'organizations-assets',
+            kwargs={'id': organization.id},
+            request=self.context['request'],
+        )
+
+    def get_asset_usage(self, organization: Organization) -> str:
+        return reverse(
+            'organizations-asset-usage',
+            kwargs={'id': organization.id},
+            request=self.context['request'],
+        )
+
+    def get_members(self, organization: Organization) -> str:
+        return reverse(
+            'organization-members-list',
+            kwargs={'organization_id': organization.id},
+            request=self.context['request'],
+        )
+
+    def get_service_usage(self, organization: Organization) -> str:
+        return reverse(
+            'organizations-service-usage',
+            kwargs={'id': organization.id},
+            request=self.context['request'],
+        )
 
     def get_is_owner(self, organization):
 
