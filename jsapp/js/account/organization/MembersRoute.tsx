@@ -7,6 +7,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
+import MemberRoleSelector from './MemberRoleSelector';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -67,6 +68,18 @@ export default function MembersRoute() {
       key: 'role',
       label: t('Role'),
       size: 120,
+      cellFormatter: (member: OrganizationMember) => {
+        if (member.role === OrganizationUserRole.owner) {
+          return t('Owner');
+        }
+        return (
+          <MemberRoleSelector
+            username={member.user__username}
+            role={member.role}
+            currentUserRole={orgQuery.data.request_user_role}
+          />
+        );
+      },
     },
     {
       key: 'user__has_mfa_enabled',
