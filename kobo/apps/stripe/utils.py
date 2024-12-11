@@ -33,8 +33,9 @@ def get_organization_plan_limit(
     Get organization plan limit for a given usage type
     """
     if not settings.STRIPE_ENABLED:
-        return None
-    stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        return inf
+
+    suffix = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
     query_product_type = (
         'djstripe_customers__subscriptions__items__price__'
         'product__metadata__product_type'
@@ -49,11 +50,11 @@ def get_organization_plan_limit(
     )
 
     field_price_limit = (
-        'djstripe_customers__subscriptions__items__' f'price__metadata__{stripe_key}'
+        'djstripe_customers__subscriptions__items__' f'price__metadata__{suffix}'
     )
     field_product_limit = (
         'djstripe_customers__subscriptions__items__'
-        f'price__product__metadata__{stripe_key}'
+        f'price__product__metadata__{suffix}'
     )
     current_limit = organization_filter.values(
         price_limit=F(field_price_limit),
@@ -67,11 +68,9 @@ def get_organization_plan_limit(
         relevant_limit = current_limit.get('price_limit') or current_limit.get(
             'product_limit'
         )
-    if relevant_limit is None:
-        # TODO: get the limits from the community plan, overrides
-        relevant_limit = 2000
+
     # Limits in Stripe metadata are strings. They may be numbers or 'unlimited'
-    if relevant_limit == 'unlimited':
+    if relevant_limit == 'unlimited' or relevant_limit is None:
         return inf
 
     return int(relevant_limit)
