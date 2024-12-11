@@ -100,8 +100,6 @@ export default function MembersRoute() {
     orgQuery.data.request_user_role === OrganizationUserRole.owner
   ) {
     columns.push({
-      // We use `url` here, but the cell would contain interactive UI
-      // element
       key: 'url',
       label: '',
       size: 64,
@@ -113,7 +111,7 @@ export default function MembersRoute() {
 
         return (
           <MemberActionsDropdown
-            username={member.user__username}
+            targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
           />
         );

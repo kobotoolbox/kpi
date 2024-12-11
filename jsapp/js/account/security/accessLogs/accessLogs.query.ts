@@ -1,7 +1,7 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import {endpoints} from 'js/api.endpoints';
-import type {PaginatedResponse} from 'js/dataInterface';
-import {fetchGet} from 'js/api';
+import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
+import {fetchGet, fetchPost} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
 
 export interface AccessLog {
@@ -50,3 +50,18 @@ export default function useAccessLogsQuery(
     refetchOnWindowFocus: true,
   });
 }
+
+/**
+ * Starts the exporting process of the access logs.
+ * @returns {Promise<void>} A promise that starts the export.
+ */
+export const startAccessLogsExport = () =>
+  fetchPost(endpoints.ACCESS_LOGS_EXPORT_URL, {notifyAboutError: false})
+    .catch((error) => {
+      const failResponse: FailResponse = {
+        status: 500,
+        statusText:
+          error.message || t('An error occurred while exporting the logs'),
+      };
+      throw failResponse;
+    });

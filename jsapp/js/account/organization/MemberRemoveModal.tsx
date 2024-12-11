@@ -13,30 +13,6 @@ import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
 
-export const REMOVE_SELF_TEXT = {
-  title: t('Leave this ##team/org##'),
-  description: t('Are you sure you want to leave this ##team/org##?'),
-  dangerMessage: t('You will immediately lose access to any projects owned by this ##team/org##. This action cannot be undone.'),
-  confirmButtonLabel: t('Leave ##team/org##'),
-};
-
-export const REMOVE_MEMBER_TEXT = {
-  title: t('Remove ##username## from this ##team/org##'),
-  description: t('Are you sure you want to remove ##username## from this ##team/org##?'),
-  dangerMessage: t('Removing them from this ##team/org## also means they will immediately lose access to any projects owned by your ##team/org##. This action cannot be undone.'),
-  confirmButtonLabel: t('Remove member'),
-};
-
-/**
- * Replaces placeholders with values.
- * Note: assumes all placeholders want to be lowercase.
- */
-function replacePlaceholders(text: string, username: string, mmoLabel: string) {
-  return text
-    .replaceAll('##username##', username)
-    .replaceAll('##team/org##', mmoLabel);
-}
-
 interface MemberRemoveModalProps {
   username: string;
   isRemovingSelf: boolean;
@@ -67,26 +43,37 @@ export default function MemberRemoveModal(
     false
   );
 
-  // Choose proper text
-  let title = isRemovingSelf ? REMOVE_SELF_TEXT.title : REMOVE_MEMBER_TEXT.title;
-  let description = isRemovingSelf ? REMOVE_SELF_TEXT.description : REMOVE_MEMBER_TEXT.description;
-  let dangerMessage = isRemovingSelf ? REMOVE_SELF_TEXT.dangerMessage : REMOVE_MEMBER_TEXT.dangerMessage;
-  let confirmButtonLabel = isRemovingSelf ? REMOVE_SELF_TEXT.confirmButtonLabel : REMOVE_MEMBER_TEXT.confirmButtonLabel;
-
-  // Replace placeholders with proper strings
-  title = replacePlaceholders(title, username, mmoLabel);
-  description = replacePlaceholders(description, username, mmoLabel);
-  dangerMessage = replacePlaceholders(dangerMessage, username, mmoLabel);
-  confirmButtonLabel = replacePlaceholders(confirmButtonLabel, username, mmoLabel);
+  // There are two different sets of strings - one for removing a member, and
+  // one for leaving the organization.
+  const REMOVE_MEMBER_TEXT = {
+    title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
+    description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
+    dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
+    confirmButtonLabel: t('Remove member'),
+  };
+  const REMOVE_SELF_TEXT = {
+    title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
+    description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
+    dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
+    confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
+  };
+  const textToDisplay = isRemovingSelf ? REMOVE_SELF_TEXT : REMOVE_MEMBER_TEXT;
+  // Replace placeholders with proper strings in chosen set:
+  for (const key in textToDisplay) {
+    const keyCast = key as keyof typeof textToDisplay;
+    textToDisplay[keyCast] = textToDisplay[keyCast]
+      .replaceAll('##username##', username)
+      .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
+  }
 
   return (
     <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
-      <KoboModalHeader>{title}</KoboModalHeader>
+      <KoboModalHeader>{textToDisplay.title}</KoboModalHeader>
 
       <KoboModalContent>
-        <p>{description}</p>
+        <p>{textToDisplay.description}</p>
 
-        <InlineMessage type='error' icon='alert' message={dangerMessage}/>
+        <InlineMessage type='error' icon='alert' message={textToDisplay.dangerMessage}/>
       </KoboModalContent>
 
       <KoboModalFooter>
@@ -109,7 +96,7 @@ export default function MemberRemoveModal(
               onConfirmDone();
             }
           }}
-          label={confirmButtonLabel}
+          label={textToDisplay.confirmButtonLabel}
           isPending={removeMember.isPending}
         />
       </KoboModalFooter>

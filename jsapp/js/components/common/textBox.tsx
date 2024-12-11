@@ -37,7 +37,7 @@ interface TextBoxProps {
   endIcon?: IconName;
   value: string;
   /** Not needed if `readOnly` */
-  onChange?: Function;
+  onChange?: (newValue: string) => void;
   onBlur?: Function;
   onKeyPress?: Function;
   /**

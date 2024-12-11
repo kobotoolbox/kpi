@@ -28,6 +28,18 @@
 
 
 
+### 💭 Notes
+<!-- Delete this section if empty. -->
+<!-- Anything else useful that's not said above,worded for
+reviewers, testers, and future git archaeologist collegues. Examples:
+- screenshots, copy-pasted logs, etc.
+- what was tried but didn't work,
+- conscious short-term vs long-term tradeoffs,
+- proactively answer likely questions,
+-->
+
+
+
 ### 👀 Preview steps
 <!-- Delete this section if behavior can't change. -->
 <!-- If behavior changes or merely may change, add a preview of a minimal happy path. -->
@@ -46,14 +58,3 @@ Feature/no-change template:
 4. 🟢 notice that this is there
 5. do that another thing
 6. 🟢 notice that this changed like that
-
-
-### 💭 Notes
-<!-- Delete this section if empty. -->
-<!-- Anything else useful that's not said above,worded for
-reviewers, testers, and future git archaeologist collegues. Examples:
-- screenshots, copy-pasted logs, etc.
-- what was tried but didn't work,
-- conscious short-term vs long-term tradeoffs,
-- proactively answer likely questions,
--->

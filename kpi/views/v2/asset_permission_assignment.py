@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
@@ -163,7 +164,7 @@ class AssetPermissionAssignmentViewSet(
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
-    log_type = 'project-history'
+    log_type = AuditType.PROJECT_HISTORY
     logged_fields = ['asset.id']
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
@@ -199,6 +200,7 @@ class AssetPermissionAssignmentViewSet(
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
+        request._request.initial_data = {'asset.id': self.asset.id}
 
         if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
             PERM_VIEW_ASSET, source_asset
