@@ -33,7 +33,7 @@ export default function FormActivity() {
 
   const {uid} = useParams();
   const queryData = {
-    projectId: uid as string,
+    assetUid: uid as string,
     actionFilter: selectedFilterOption?.value || '',
   };
 

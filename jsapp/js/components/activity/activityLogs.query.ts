@@ -1,6 +1,6 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
-import {type ActivityLogsItem} from './activity.constants';
+import {AuditActions, type ActivityLogsItem} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 import {fetchGet} from 'jsapp/js/api';
 import {endpoints} from 'jsapp/js/api.endpoints';
@@ -12,12 +12,12 @@ import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQu
  * @param offset Pagination parameter: offset of the page
  */
 const getActivityLogs = async ({
-  projectId,
+  assetUid,
   actionFilter,
   limit,
   offset,
 }: {
-  projectId: string;
+  assetUid: string;
   actionFilter: string;
   limit: number;
   offset: number;
@@ -30,7 +30,7 @@ const getActivityLogs = async ({
     params.append('q', `action:${actionFilter}`);
   }
 
-  const endpointUrl = endpoints.ASSET_HISTORY.replace(':asset_id', projectId);
+  const endpointUrl = endpoints.ASSET_HISTORY.replace(':asset_uid', assetUid);
 
   return await fetchGet<PaginatedResponse<ActivityLogsItem>>(
     `${endpointUrl}?${params}`,
@@ -48,38 +48,11 @@ const getActivityLogs = async ({
  *
  */
 const getFilterOptions = async () =>
-  [
-    'add-media',
-    'allow-anonymous-submissions',
-    'archive',
-    'connect-project',
-    'delete-media',
-    'delete-service',
-    'deploy',
-    'disable-sharing',
-    'disallow-anonymous-submissions',
-    'disconnect-project',
-    'enable-sharing',
-    'export',
-    'modify-imported-fields',
-    'modify-service',
-    'modify-sharing',
-    'modify-user-permissions',
-    'redeploy',
-    'register-service',
-    'replace-form',
-    'share-data-publicly',
-    'share-form-publicly',
-    'transfer',
-    'unarchive',
-    'unshare-data-publicly',
-    'unshare-form-publicly',
-    'update_content',
-    'update-name',
-    'update-settings',
-    'update-qa',
-  ].map((value) => {
-    return {value, label: value};
+  (Object.keys(AuditActions) as Array<keyof typeof AuditActions>).sort().map((value) => {
+    return {
+      label: AuditActions[value],
+      value,
+    };
   });
 
 /**
@@ -111,14 +84,14 @@ const startActivityLogsExport = async () =>
 export const useActivityLogsQuery = ({
   limit,
   offset,
-  projectId,
+  assetUid,
   actionFilter,
 }: PaginatedQueryHookParams) =>
   useQuery({
-    queryKey: [QueryKeys.activityLogs, projectId, actionFilter, limit, offset],
+    queryKey: [QueryKeys.activityLogs, assetUid, actionFilter, limit, offset],
     queryFn: () =>
       getActivityLogs({
-        projectId: projectId as string,
+        assetUid: assetUid as string,
         actionFilter: actionFilter as string,
         limit,
         offset,

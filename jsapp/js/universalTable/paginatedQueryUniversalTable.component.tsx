@@ -40,6 +40,22 @@ const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
  * situations when you use `react-query` to fetch data, and the data is
  * paginated. This component handles pagination in a neat, DRY way.
  *
+ * This component receives a `queryHook` prop, which is a function that should
+ * return a `react-query` query object. This function should be a paginated ready
+ * query function, meaning that it should accept an object with the following
+ * properties:
+ * - `limit`: number of items per page
+ * - `offset`: offset of the page
+ * - `...`: any other data that you need to pass to the query (passed via the `queryHookData` prop)
+ *
+ * While the `limit` and `offset` properties are used internally to handle the
+ * pagination, the rest of the properties are passed to the `queryHook` function
+ * when fetching data via the `queryHookData` prop.
+ *
+ * The queryHookData prop is an object containing any other data that you need
+ * to pass to the query, like ids or filters. This data will be passed to the
+ * `queryHook` function along with `limit` and `offset`.
+ *
  * All the rest of the functionalities are the same as `UniversalTable`.
  */
 export default function PaginatedQueryUniversalTable<DataItem>(
