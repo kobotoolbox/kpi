@@ -28,6 +28,9 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
  */
 export default function OrganizationSettingsRoute() {
   const orgQuery = useOrganizationQuery();
+  useEffect(() => {
+    orgQuery.refetch()
+  }, []);
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
