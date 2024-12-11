@@ -16,8 +16,9 @@ $z-index-resizer: 2;
 // weird/funny position when scrolling table horizontally.
 $z-index-pinned: 3;
 $z-index-pinned-header: 4;
-$z-index-resizer-active: 5;
-$z-index-spinner: 6;
+$z-index-pinned-header-hover: 5;
+$z-index-resizer-active: 6;
+$z-index-spinner: 7;
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
@@ -57,6 +58,9 @@ $z-index-spinner: 6;
   // This is needed so that the table takes whole width if there is small amount
   // of columns
   min-width: 100%;
+  // Needed for columns to keep the sizes - without this there is a gap between
+  // pinned columns
+  table-layout: fixed;
 }
 
 .tableCell {
@@ -99,6 +103,11 @@ $z-index-spinner: 6;
 .tableHeaderCell.isPinnedLeft,
 .tableHeaderCell.isPinnedRight, {
   z-index: $z-index-pinned-header;
+}
+
+.tableHeaderCell.isPinnedLeft:hover,
+.tableHeaderCell.isPinnedRight:hover, {
+  z-index: $z-index-pinned-header-hover;
 }
 
 .tableCell.isPinnedLeft,
