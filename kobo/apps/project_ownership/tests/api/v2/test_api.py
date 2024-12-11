@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 import uuid
 from unittest.mock import MagicMock, patch
 
@@ -5,7 +6,6 @@ from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import override_settings
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -262,7 +262,6 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
 
 
 class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
-
     """
     Tests in this class use the mock library a lot because transferring a
     deployed project implies accessing KoboCAT tables. However, KPI does not
@@ -364,7 +363,6 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
-        today = timezone.now()
         expected_data = {
             'total_nlp_usage': {
                 'asr_seconds_current_year': 120,

@@ -587,12 +587,12 @@ class ProjectHistoryLogViewSet(
     those with 'manage_asset' permissions.
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/asset/<code>{asset_uid}</code>/history/
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/api/v2/asset/aSAvYreNzVEkrWg5Gdcvg/history/
+    >       curl -X GET https://[kpi-url]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/
 
 
     > Response 200
