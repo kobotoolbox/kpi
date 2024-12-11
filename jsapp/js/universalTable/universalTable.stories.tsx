@@ -67,7 +67,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     hasColumnsPinnedRight: {
       options: ['none', 'one', 'multiple'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_\n\nMakes some of the columns pinned to right.',
+      description: '_CUSTOM STORY CONTROL_\n\nPins some of the columns to the right.',
     },
     howManyColumns: {
       options: ['few', 'lots'],
