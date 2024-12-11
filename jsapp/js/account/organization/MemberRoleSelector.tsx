@@ -37,7 +37,7 @@ export default function MemberRoleSelector(
       ]}
       selectedOption={role}
       onChange={(newRole: string | null) => {
-        if (newRole !== null) {
+        if (newRole) {
           patchMember.mutateAsync({role: newRole as OrganizationUserRole});
         }
       }}
