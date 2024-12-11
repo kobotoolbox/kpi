@@ -43,8 +43,8 @@ const getActivityLogs = async ({
 /**
  * Fetches the filter options for the activity logs.
  *
- * Filter options, for now, comes from ../api/v2/assets/[ assetId]]/history
- * from the 'Filterable fields" section.
+ * Filter options, for now, comes from AuditActions enum.
+ * In the future we might change this to be fetched from the server.
  *
  */
 const getFilterOptions = async () =>
