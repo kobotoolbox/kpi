@@ -1,48 +1,86 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
-import {
-  type ActivityLogsItem,
-} from './activity.constants';
+import {type ActivityLogsItem} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 import {fetchGet} from 'jsapp/js/api';
 import {endpoints} from 'jsapp/js/api.endpoints';
 import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
-
-// =============================================================================
-// MOCK DATA GENERATION
-const mockOptions: KoboSelectOption[] = [
-  {value: '1', label: 'Option 1'},
-  {value: '2', label: 'Option 2'},
-  {value: '3', label: 'Option 3'},
-];
-
-// END OF MOCK GENERATION
-// =============================================================================
 
 /**
  * Fetches the activity logs from the server.
  * @param limit Pagination parameter: number of items per page
  * @param offset Pagination parameter: offset of the page
  */
-const getActivityLogs = async (projectId: string, limit: number, offset: number) => {
+const getActivityLogs = async ({
+  projectId,
+  actionFilter,
+  limit,
+  offset,
+}: {
+  projectId: string;
+  actionFilter: string;
+  limit: number;
+  offset: number;
+}) => {
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
   });
+  if (actionFilter) {
+    params.append('q', `action:${actionFilter}`);
+  }
+
   const endpointUrl = endpoints.ASSET_HISTORY.replace(':asset_id', projectId);
 
-  return await fetchGet<PaginatedResponse<ActivityLogsItem>>(`${endpointUrl}?${params}`, {
-    errorMessageDisplay: t('There was an error getting one-time add-ons.'),
-  });
+  return await fetchGet<PaginatedResponse<ActivityLogsItem>>(
+    `${endpointUrl}?${params}`,
+    {
+      errorMessageDisplay: t('There was an error getting one-time add-ons.'),
+    }
+  );
 };
 
 /**
  * Fetches the filter options for the activity logs.
+ *
+ * Filter options, for now, comes from ../api/v2/assets/[ assetId]]/history
+ * from the 'Filterable fields" section.
+ *
  */
 const getFilterOptions = async () =>
-  new Promise<KoboSelectOption[]>((resolve) => {
-    setTimeout(() => resolve(mockOptions), 1000);
+  [
+    'add-media',
+    'allow-anonymous-submissions',
+    'archive',
+    'connect-project',
+    'delete-media',
+    'delete-service',
+    'deploy',
+    'disable-sharing',
+    'disallow-anonymous-submissions',
+    'disconnect-project',
+    'enable-sharing',
+    'export',
+    'modify-imported-fields',
+    'modify-service',
+    'modify-sharing',
+    'modify-user-permissions',
+    'redeploy',
+    'register-service',
+    'replace-form',
+    'share-data-publicly',
+    'share-form-publicly',
+    'transfer',
+    'unarchive',
+    'unshare-data-publicly',
+    'unshare-form-publicly',
+    'update_content',
+    'update-name',
+    'update-settings',
+    'update-qa',
+  ].map((value) => {
+    return {value, label: value};
   });
 
 /**
@@ -71,10 +109,21 @@ const startActivityLogsExport = async () =>
  * @param itemLimit Pagination parameter: number of items per page
  * @param pageOffset Pagination parameter: offset of the page
  */
-export const useActivityLogsQuery = ({limit, offset, projectId}: PaginatedQueryHookParams) =>
-   useQuery({
-    queryKey: [QueryKeys.activityLogs, projectId, limit, offset],
-    queryFn: () => getActivityLogs(projectId as string, limit, offset),
+export const useActivityLogsQuery = ({
+  limit,
+  offset,
+  projectId,
+  actionFilter,
+}: PaginatedQueryHookParams) =>
+  useQuery({
+    queryKey: [QueryKeys.activityLogs, projectId, actionFilter, limit, offset],
+    queryFn: () =>
+      getActivityLogs({
+        projectId: projectId as string,
+        actionFilter: actionFilter as string,
+        limit,
+        offset,
+      }),
     placeholderData: keepPreviousData,
   });
 

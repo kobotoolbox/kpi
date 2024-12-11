@@ -34,6 +34,7 @@ export default function FormActivity() {
   const {uid} = useParams();
   const queryData = {
     projectId: uid as string,
+    actionFilter: selectedFilterOption?.value || '',
   };
 
   const handleFilterChange = (value: string | null) => {
