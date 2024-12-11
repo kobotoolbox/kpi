@@ -3,6 +3,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import {fetchGet, fetchPost} from 'js/api';
 import {QueryKeys} from 'js/query/queryKeys';
+import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 
 export interface AccessLog {
   /** User URL */
@@ -35,13 +36,10 @@ async function getAccessLogs(limit: number, offset: number) {
   );
 }
 
-export default function useAccessLogsQuery(
-  itemLimit: number,
-  pageOffset: number
-) {
+export default function useAccessLogsQuery({limit, offset}: PaginatedQueryHookParams) {
   return useQuery({
-    queryKey: [QueryKeys.accessLogs, itemLimit, pageOffset],
-    queryFn: () => getAccessLogs(itemLimit, pageOffset),
+    queryKey: [QueryKeys.accessLogs, limit, offset],
+    queryFn: () => getAccessLogs(limit, offset),
     placeholderData: keepPreviousData,
     // We might want to improve this in future, for now let's not retry
     retry: false,
