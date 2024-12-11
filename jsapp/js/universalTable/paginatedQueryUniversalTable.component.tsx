@@ -8,13 +8,24 @@ import UniversalTable from './universalTable.component';
 import type {UseQueryResult} from '@tanstack/react-query';
 import type {PaginatedResponse} from 'js/dataInterface';
 import type {UniversalTableColumn} from './universalTable.component';
+import type {Record} from 'immutable';
 
-interface PaginatedQueryHook<DataItem> extends Function {
-  (limit: number, offset: number): UseQueryResult<PaginatedResponse<DataItem>>;
+type PaginatedQueryHookData = Record<string, string | number | boolean>;
+
+export type PaginatedQueryHookParams = {
+  limit: number;
+  offset: number;
+} & PaginatedQueryHookData;
+
+interface PaginatedQueryHook<DataItem> {
+  (
+    params: PaginatedQueryHookParams
+  ): UseQueryResult<PaginatedResponse<DataItem>>;
 }
 
 interface PaginatedQueryUniversalTableProps<DataItem> {
   queryHook: PaginatedQueryHook<DataItem>;
+  queryHookData?: PaginatedQueryHookData;
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
@@ -39,7 +50,11 @@ export default function PaginatedQueryUniversalTable<DataItem>(
     offset: 0,
   });
 
-  const paginatedQuery = props.queryHook(pagination.limit, pagination.offset);
+  const paginatedQuery = props.queryHook({
+    ...props.queryHookData,
+    limit: pagination.limit,
+    offset: pagination.offset,
+  });
 
   const availablePages = useMemo(
     () => Math.ceil((paginatedQuery.data?.count ?? 0) / pagination.limit),
