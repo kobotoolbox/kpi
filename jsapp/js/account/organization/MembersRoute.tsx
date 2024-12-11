@@ -79,7 +79,7 @@ export default function MembersRoute() {
             currentUserRole={orgQuery.data.request_user_role}
           />
         );
-      }
+      },
     },
     {
       key: 'user__has_mfa_enabled',
