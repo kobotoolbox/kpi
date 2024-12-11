@@ -1,8 +1,8 @@
 from constance.test import override_config
-from django.contrib.auth import get_user_model
 from django.core import mail
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -16,7 +16,6 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        User = get_user_model()  # noqa
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
 
@@ -36,6 +35,7 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
         invite_uid = Invite.objects.first().uid
         self.assertEqual(mail.outbox[0].to[0], self.anotheruser.email)
         self.assertIn(invite_uid, mail.outbox[0].body)
+        self.assertNotIn('Because you are part of a team', mail.outbox[0].body)
 
     def test_sender_receives_new_owner_acceptance(self):
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
@@ -90,3 +90,27 @@ class ProjectOwnershipMailTestCase(KpiTestCase):
             mail.outbox[0].subject,
             'KoboToolbox Notifications: Project ownership transfer failure',
         )
+
+    def test_recipient_as_org_member_receives_invite(self):
+        alice = User.objects.create_user(
+            username='alice', password='alice', email='alice@example.com'
+        )
+        # Add alice to anotheruser's organization
+        organization = self.anotheruser.organization
+        organization.mmo_override = True
+        organization.save()
+        organization.add_user(alice)
+
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'), args=[alice.username]
+            ),
+            'assets': [self.asset.uid],
+        }
+        self.client.post(self.invite_url, data=payload, format='json')
+
+        invite_uid = Invite.objects.first().uid
+        self.assertEqual(mail.outbox[0].to[0], alice.email)
+        self.assertIn(invite_uid, mail.outbox[0].body)
+        self.assertIn('Because you are part of a team', mail.outbox[0].body)

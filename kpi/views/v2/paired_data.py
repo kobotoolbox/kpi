@@ -10,6 +10,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from shortuuid import ShortUUID
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
@@ -176,7 +177,7 @@ class PairedDataViewset(
     lookup_field = 'paired_data_uid'
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
-    log_type = 'project-history'
+    log_type = AuditType.PROJECT_HISTORY
     logged_fields = [
         ('source_name', 'source.name'),
         ('object_id', 'asset.id'),

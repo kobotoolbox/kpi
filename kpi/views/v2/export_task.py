@@ -6,6 +6,7 @@ from rest_framework import (
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
 from kpi.permissions import ExportTaskPermission
@@ -159,7 +160,7 @@ class ExportTaskViewSet(
     search_default_field_lookups = [
         'uid__icontains',
     ]
-    log_type = 'project-history'
+    log_type = AuditType.PROJECT_HISTORY
     logged_fields = [('object_id', 'asset.id')]
 
     def get_queryset(self):
