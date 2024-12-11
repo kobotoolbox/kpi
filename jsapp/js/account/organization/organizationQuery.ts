@@ -113,6 +113,7 @@ export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<
 
   const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
     ...options,
+    staleTime: 1000 * 60 * 2,
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
     enabled: isQueryEnabled && options?.enabled !== false,
