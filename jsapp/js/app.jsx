@@ -30,13 +30,13 @@ import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils'
 import pageState from 'js/pageState.store';
 
 import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
+import {MantineProvider} from '@mantine/core';
 
 // Query-related
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from './query/queryClient.ts';
-import { RequireOrg } from './router/RequireOrg';
-import { themeKobo } from './theme';
+import {QueryClientProvider} from '@tanstack/react-query';
+import {queryClient} from './query/queryClient.ts';
+import {RequireOrg} from './router/RequireOrg';
+import {themeKobo} from './theme';
 
 class App extends React.Component {
   constructor(props) {
@@ -98,9 +98,8 @@ class App extends React.Component {
     };
 
     if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[
-        `is-modal-${this.state.pageState.modal.type}`
-      ] = true;
+      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] =
+        true;
     }
 
     // TODO: We have multiple routes that shouldn't display `MainHeader`,
@@ -116,9 +115,9 @@ class App extends React.Component {
                 <Tracking />
                 <ToasterConfig />
 
-                {this.shouldDisplayMainLayoutElements() &&
+                {this.shouldDisplayMainLayoutElements() && (
                   <div className='header-stretch-bg' />
-                }
+                )}
 
                 <bem.PageWrapper
                   m={pageWrapperModifiers}
@@ -153,7 +152,6 @@ class App extends React.Component {
             </RootContextProvider>
           </MantineProvider>
 
-
           {/* React Query Devtools - GUI for inspecting and modifying query status
               (https://tanstack.com/query/latest/docs/framework/react/devtools)
               They only show up in dev server (NODE_ENV==='development')
@@ -166,14 +164,11 @@ class App extends React.Component {
             <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
             <ReactQueryDevtools />
           */}
-
-
         </QueryClientProvider>
       </DocumentTitle>
     );
   }
 }
-
 
 reactMixin(App.prototype, Reflux.connect(pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
