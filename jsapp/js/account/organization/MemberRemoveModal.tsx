@@ -1,6 +1,3 @@
-// Libraries
-import clonedeep from 'lodash.clonedeep';
-
 // Partial components
 import Button from 'jsapp/js/components/common/button';
 import InlineMessage from 'jsapp/js/components/common/inlineMessage';
@@ -15,48 +12,6 @@ import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
-
-interface TextToDisplay {
-  title: string;
-  description: string;
-  dangerMessage: string;
-  confirmButtonLabel: string;
-}
-
-const REMOVE_SELF_TEXT: TextToDisplay = {
-  title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
-  description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
-  dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
-  confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
-};
-
-const REMOVE_MEMBER_TEXT: TextToDisplay = {
-  title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
-  description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
-  dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
-  confirmButtonLabel: t('Remove member'),
-};
-
-/**
- * @returns one of `TextToDisplay` objects with all placeholders replaced with
- * proper values.
- */
-function getTextToDisplay(
-  isRemovingSelf: boolean,
-  username: string,
-  mmoLabel: string
-) {
-  const text = clonedeep(isRemovingSelf ? REMOVE_SELF_TEXT : REMOVE_MEMBER_TEXT);
-
-  for (const key in text) {
-    const keyCast = key as keyof typeof text;
-    text[keyCast] = text[keyCast]
-      .replaceAll('##username##', username)
-      .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
-  }
-
-  return text;
-}
 
 interface MemberRemoveModalProps {
   username: string;
@@ -88,8 +43,28 @@ export default function MemberRemoveModal(
     false
   );
 
-  // Choose proper text
-  const textToDisplay = getTextToDisplay(isRemovingSelf, username, mmoLabel);
+  // There are two different sets of strings - one for removing a member, and
+  // one for leaving the organization.
+  const REMOVE_MEMBER_TEXT = {
+    title: t('Remove ##username## from this ##TEAM_OR_ORGANIZATION##'),
+    description: t('Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'),
+    dangerMessage: t('Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
+    confirmButtonLabel: t('Remove member'),
+  };
+  const REMOVE_SELF_TEXT = {
+    title: t('Leave this ##TEAM_OR_ORGANIZATION##'),
+    description: t('Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'),
+    dangerMessage: t('You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'),
+    confirmButtonLabel: t('Leave ##TEAM_OR_ORGANIZATION##'),
+  };
+  const textToDisplay = isRemovingSelf ? REMOVE_SELF_TEXT : REMOVE_MEMBER_TEXT;
+  // Replace placeholders with proper strings in chosen set:
+  for (const key in textToDisplay) {
+    const keyCast = key as keyof typeof textToDisplay;
+    textToDisplay[keyCast] = textToDisplay[keyCast]
+      .replaceAll('##username##', username)
+      .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
+  }
 
   return (
     <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
