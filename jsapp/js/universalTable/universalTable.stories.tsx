@@ -72,7 +72,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     howManyColumns: {
       options: ['few', 'lots'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_\n\nControls how many columns does the table have. Useful for conditionally testing horizontal scroll.',
+      description: '_CUSTOM STORY CONTROL_\n\nControls how many columns the table has. Useful for conditionally testing horizontal scroll.',
     },
     pageSize: {
       options: PAGE_SIZES,
