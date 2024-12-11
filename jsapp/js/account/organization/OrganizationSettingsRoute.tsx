@@ -11,6 +11,8 @@ import KoboSelect from 'jsapp/js/components/common/koboSelect';
 // Stores, hooks and utilities
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationUserRole, useOrganizationQuery, usePatchOrganization} from 'js/account/organization/organizationQuery';
+import { queryClient } from 'jsapp/js/query/queryClient';
+import { QueryKeys } from 'jsapp/js/query/queryKeys';
 import subscriptionStore from 'js/account/subscriptionStore';
 import envStore from 'js/envStore';
 import {getSimpleMMOLabel} from './organization.utils';
@@ -29,8 +31,11 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
 export default function OrganizationSettingsRoute() {
   const orgQuery = useOrganizationQuery();
   useEffect(() => {
-    orgQuery.refetch()
-  }, []);
+    queryClient.invalidateQueries({
+      queryKey: [QueryKeys.organization],
+      refetchType: 'none',
+    });
+  }, []);;
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
