@@ -35,7 +35,7 @@ export default function OrganizationSettingsRoute() {
       queryKey: [QueryKeys.organization],
       refetchType: 'none',
     });
-  }, []);;
+  }, []);
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
