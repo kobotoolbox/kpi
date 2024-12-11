@@ -169,6 +169,95 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(response.data['is_mmo'], True)
 
 
+@ddt
+class OrganizationDetailAPITestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+    URL_NAMESPACE = URL_NAMESPACE
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        # Only needed to make `test_update_fields()` pass with an empty string for
+        # `website`.
+        self.organization.website = 'http://example.com'
+        self.organization.save(update_fields=['mmo_override'])
+
+        # anotheruser is an admin of someuser's organization
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(self.anotheruser, is_admin=True)
+
+        # alice is a regular member of someuser's organization
+        self.alice = User.objects.create_user(
+            username='alice', password='alice', email='alice@alice.com'
+        )
+        self.organization.add_user(self.alice, is_admin=False)
+
+        # bob is external to someuser's organization
+        self.bob = User.objects.create_user(
+            username='bob', password='bob', email='bob@bob.com'
+        )
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_asset_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_200_OK),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_service_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
+
+    @data(
+        ('name', 'Someuser Company inc.', status.HTTP_200_OK),
+        ('name', '', status.HTTP_400_BAD_REQUEST),
+        ('website', 'https://foo.bar/', status.HTTP_200_OK),
+        ('website', '', status.HTTP_200_OK),
+    )
+    @unpack
+    def test_update_fields(self, field, value, expected_status_code):
+        assert getattr(self.organization, field) != value
+        self.client.force_login(self.someuser)
+        data = {field: value}
+
+        url = reverse(
+            self._get_endpoint('organizations-detail'),
+            kwargs={'id': self.organization.id},
+        )
+        response = self.client.post(url, data)
+
+        if response.status_code == status.HTTP_200_OK:
+            assert response.status_code == expected_status_code
+            assert response.data[field] == value
+
+
 class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
     """
     This test suite (e.g. classes which inherit from this one) does not cover

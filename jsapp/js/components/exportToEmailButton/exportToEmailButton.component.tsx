@@ -31,7 +31,7 @@ export default function ExportToEmailButton({
   exportFunction,
   label,
 }: {
-  exportFunction: () => Promise<void>;
+  exportFunction: () => Promise<unknown>;
   label: string;
 }) {
   const [isMessageOpen, setIsMessageOpen] = useState(false);

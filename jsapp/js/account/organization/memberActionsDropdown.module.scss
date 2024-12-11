@@ -1,0 +1,29 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+
+.menuContenet {
+  @include mixins.floatingRoundedBox;
+  padding: 10px;
+  min-width: 120px;
+}
+
+// Override for .k-button
+.menuButton {
+  width: 100%; // not using `isFullWidth` because of text-align
+  white-space: nowrap;
+
+  &:not(:first-child) {
+    margin-top: 6px;
+  }
+}
+
+// Override for .k-button
+.menuButtonRed {
+  :global .k-button__label {
+    color: colors.$kobo-red;
+  }
+
+  &:hover :global .k-button__label {
+    color: colors.$kobo-dark-red;
+  }
+}

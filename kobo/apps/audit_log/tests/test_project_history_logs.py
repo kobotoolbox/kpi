@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import ADDED, NEW, OLD, REMOVED, ProjectHistoryLog
+from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
@@ -24,6 +24,10 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_NEW,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_OLD,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
     PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
@@ -235,8 +239,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             use_v2=use_v2,
         )
 
-        self.assertEqual(log_metadata['name'][NEW], 'new_name')
-        self.assertEqual(log_metadata['name'][OLD], old_name)
+        self.assertEqual(
+            log_metadata['name'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW], 'new_name'
+        )
+        self.assertEqual(
+            log_metadata['name'][PROJECT_HISTORY_LOG_METADATA_FIELD_OLD], old_name
+        )
 
     @data(True, False)
     def test_change_standard_project_settings_creates_log(self, use_v2):
@@ -259,15 +267,21 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         # check non-list settings just store old and new information
         settings_dict = log_metadata['settings']
-        self.assertEqual(settings_dict['description'][OLD], old_settings['description'])
-        self.assertEqual(settings_dict['description'][NEW], 'New description')
+        self.assertEqual(
+            settings_dict['description'][PROJECT_HISTORY_LOG_METADATA_FIELD_OLD],
+            old_settings['description'],
+        )
+        self.assertEqual(
+            settings_dict['description'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
+            'New description',
+        )
         # check list settings store added and removed fields
         self.assertListEqual(
-            settings_dict['country'][ADDED],
+            settings_dict['country'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED],
             [{'label': 'Albania', 'value': 'ALB'}],
         )
         self.assertListEqual(
-            settings_dict['country'][REMOVED],
+            settings_dict['country'][PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED],
             [{'label': 'United States', 'value': 'USA'}],
         )
         # check default settings not recorded if not included in request
@@ -350,14 +364,30 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 removed_values = [val for val in old_value if val not in new_value]
                 added_values = [val for val in new_value if val not in old_value]
                 self.assertListEqual(
-                    log_metadata['settings'][setting][ADDED], added_values
+                    log_metadata['settings'][setting][
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED
+                    ],
+                    added_values,
                 )
                 self.assertListEqual(
-                    log_metadata['settings'][setting][REMOVED], removed_values
+                    log_metadata['settings'][setting][
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+                    ],
+                    removed_values,
                 )
             else:
-                self.assertEqual(log_metadata['settings'][setting][NEW], new_value)
-                self.assertEqual(log_metadata['settings'][setting][OLD], old_value)
+                self.assertEqual(
+                    log_metadata['settings'][setting][
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_NEW
+                    ],
+                    new_value,
+                )
+                self.assertEqual(
+                    log_metadata['settings'][setting][
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_OLD
+                    ],
+                    old_value,
+                )
 
     @data(True, False)
     def test_add_new_settings_creates_log(self, use_v2):
@@ -370,8 +400,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             use_v2=use_v2,
         )
 
-        self.assertEqual(log_metadata['settings']['new_setting'][NEW], 'new_value')
-        self.assertEqual(log_metadata['settings']['new_setting'][OLD], None)
+        self.assertEqual(
+            log_metadata['settings']['new_setting'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_NEW
+            ],
+            'new_value',
+        )
+        self.assertEqual(
+            log_metadata['settings']['new_setting'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_OLD
+            ],
+            None,
+        )
 
     def test_enable_sharing_creates_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -380,7 +420,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={'data_sharing': {'enabled': True, 'fields': []}},
             expected_action=AuditAction.ENABLE_SHARING,
         )
-        self.assertEqual(log_metadata['shared_fields'][ADDED], [])
+        self.assertEqual(
+            log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED], []
+        )
 
     def test_truthy_field_creates_sharing_enabled_log(self):
         log_metadata = self._base_asset_detail_endpoint_test(
@@ -389,7 +431,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={'data_sharing': {'enabled': 'truthy'}},
             expected_action=AuditAction.ENABLE_SHARING,
         )
-        self.assertEqual(log_metadata['shared_fields'][ADDED], [])
+        self.assertEqual(
+            log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED], []
+        )
 
     def test_disable_sharing_creates_log(self):
         self.asset.data_sharing = {
@@ -447,9 +491,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             },
             expected_action=AuditAction.MODIFY_SHARING,
         )
-        self.assertEqual(log_metadata['shared_fields'][ADDED], ['settings_fixture_q2'])
         self.assertEqual(
-            log_metadata['shared_fields'][REMOVED], ['settings_fixture_q1']
+            log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED],
+            ['settings_fixture_q2'],
+        )
+        self.assertEqual(
+            log_metadata['shared_fields'][PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED],
+            ['settings_fixture_q1'],
         )
 
     @data(True, False)
@@ -490,7 +538,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
 
         self.assertEqual(
-            log_metadata['qa'][NEW],
+            log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
             request_data['advanced_features']['qual']['qual_survey'],
         )
 
@@ -831,8 +879,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertDictEqual(
                 change_name_log.metadata['name'],
                 {
-                    OLD: old_name,
-                    NEW: new_asset.name,
+                    PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: old_name,
+                    PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_asset.name,
                 },
             )
 
@@ -974,13 +1022,29 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             anotheruser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
         )
         self.assertListEqual(
-            someuser_log.metadata['permissions'][ADDED], [PERM_VIEW_ASSET]
+            someuser_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED
+            ],
+            [PERM_VIEW_ASSET],
         )
         self.assertListEqual(
-            anotheruser_log.metadata['permissions'][ADDED], [PERM_VIEW_ASSET]
+            anotheruser_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED
+            ],
+            [PERM_VIEW_ASSET],
         )
-        self.assertListEqual(someuser_log.metadata['permissions'][REMOVED], [])
-        self.assertListEqual(anotheruser_log.metadata['permissions'][REMOVED], [])
+        self.assertListEqual(
+            someuser_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+            ],
+            [],
+        )
+        self.assertListEqual(
+            anotheruser_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+            ],
+            [],
+        )
         self.assertEqual(someuser_log.action, AuditAction.MODIFY_USER_PERMISSIONS)
         self.assertEqual(anotheruser_log.action, AuditAction.MODIFY_USER_PERMISSIONS)
 
@@ -1105,10 +1169,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
         )
         self.assertListEqual(
-            sorted(log.metadata['permissions'][ADDED]),
+            sorted(
+                log.metadata['permissions'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]
+            ),
             ['add_submissions', 'change_submissions', 'view_asset', 'view_submissions'],
         )
-        self.assertListEqual(log.metadata['permissions'][REMOVED], [])
+        self.assertListEqual(
+            log.metadata['permissions'][PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED], []
+        )
         self.assertEqual(log.metadata['permissions']['username'], 'someuser')
 
         # removing view_asset should remove view_submissions and change_submissions
@@ -1130,9 +1198,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             .order_by('-date_created')
             .first()
         )
-        self.assertListEqual(removal_log.metadata['permissions'][ADDED], [])
         self.assertListEqual(
-            sorted(removal_log.metadata['permissions'][REMOVED]),
+            removal_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED
+            ],
+            [],
+        )
+        self.assertListEqual(
+            sorted(
+                removal_log.metadata['permissions'][
+                    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+                ]
+            ),
             ['change_submissions', 'view_asset', 'view_submissions'],
         )
         self.assertEqual(removal_log.metadata['permissions']['username'], 'someuser')
@@ -1179,7 +1256,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         # can't sort a list of strings and dicts,
         # so check length and expected entries individually
-        added = log.metadata['permissions'][ADDED]
+        added = log.metadata['permissions'][PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]
         self.assertEqual(len(added), 6)
         # adding partial permissions always adds 'add_submissions',
         # both partial and full
@@ -1204,7 +1281,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             added,
         )
 
-        self.assertListEqual(log.metadata['permissions'][REMOVED], [])
+        self.assertListEqual(
+            log.metadata['permissions'][PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED], []
+        )
         self.assertEqual(log.metadata['permissions']['username'], 'someuser')
 
         # removing view_asset should remove view_submissions and change_submissions
@@ -1226,11 +1305,20 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             .order_by('-date_created')
             .first()
         )
-        self.assertListEqual(removal_log.metadata['permissions'][ADDED], [])
+        self.assertListEqual(
+            removal_log.metadata['permissions'][
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED
+            ],
+            [],
+        )
         # we don't record what exact partial permissions were lost since all of them
         # are removed at once
         self.assertListEqual(
-            sorted(removal_log.metadata['permissions'][REMOVED]),
+            sorted(
+                removal_log.metadata['permissions'][
+                    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+                ]
+            ),
             ['partial_submissions'],
         )
         self.assertEqual(removal_log.metadata['permissions']['username'], 'someuser')
