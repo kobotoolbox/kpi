@@ -174,7 +174,7 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
   // See: /kpi/kobo/apps/audit_log/views.py
   'update-form': {
     name: AuditActions['update-form'],
-    message: t('##username## edited the form in the formbuilder'),
+    message: t('##username## edited the form in the form builder'),
   },
   'add-user': {
     name: AuditActions['add-user'],
