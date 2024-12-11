@@ -52,12 +52,12 @@ const FormSidebar = observer(
       // in dev environment. Unfortunately `router.subscribe` doesn't return
       // a cancel function, so we can't make it stop.
       // TODO: when refactoring this file, make sure not to use the legacy code.
-      this.unlisteners.push(
-        router.subscribe(this.onRouteChange.bind(this))
-      );
+      this.unlisteners.push(router.subscribe(this.onRouteChange.bind(this)));
     }
     componentWillUnmount() {
-      this.unlisteners.forEach((clb) => {clb();});
+      this.unlisteners.forEach((clb) => {
+        clb();
+      });
     }
     newFormModal(evt) {
       evt.preventDefault();
@@ -73,7 +73,9 @@ const FormSidebar = observer(
             fullWidth
             disabled={!sessionStore.isLoggedIn}
             onClick={this.newFormModal.bind(this)}
-          >{t('new').toUpperCase()}</Button>
+          >
+            {t('new').toUpperCase()}
+          </Button>
 
           <SidebarFormsList />
         </>
