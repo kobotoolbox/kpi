@@ -1,5 +1,4 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import {type ActivityLogsItem} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
