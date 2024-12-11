@@ -62,7 +62,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     hasColumnsPinnedLeft: {
       options: ['none', 'one', 'multiple'],
       control: {type: 'radio'},
-      description: '_CUSTOM STORY CONTROL_\n\nMakes some of the columns pinned to left. \n\n Note that column pinning happens at the level of column definition, and we use conditionally predefined mock columns in this story.',
+      description: '_CUSTOM STORY CONTROL_\n\nPins some of the columns to the left. \n\n Note that column pinning happens at the level of column definition, and we use conditionally predefined mock columns in this story.',
     },
     hasColumnsPinnedRight: {
       options: ['none', 'one', 'multiple'],
