@@ -28,7 +28,6 @@ class ServiceUsageCalculator(CachedClass):
             self._user_id = self.organization.owner_user_object.pk
 
         now = timezone.now()
-        print(self.organization.__dict__)
         self.current_period_start, self.current_period_end = get_billing_dates(
             self.organization
         )
