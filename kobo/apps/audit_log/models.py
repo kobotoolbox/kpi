@@ -2,6 +2,7 @@ import copy
 
 import jsonschema
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
@@ -26,17 +27,16 @@ from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_NEW,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_OLD,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
     PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
-
-NEW = 'new'
-OLD = 'old'
-ADDED = 'added'
-REMOVED = 'removed'
 
 ANONYMOUS_USER_PERMISSION_ACTIONS = {
     # key: (permission, granting?), value: ph log action
@@ -323,6 +323,73 @@ class ProjectHistoryLog(AuditLog):
     class Meta:
         proxy = True
 
+    @classmethod
+    def create_from_import_task(cls, task: ImportTask):
+        # this will probably only ever be a list of size 1 or 0,
+        # sent as a list because of how ImportTask is implemented
+        # if somehow a task updates multiple assets, this should handle it
+        audit_log_blocks = task.messages.get('audit_logs', [])
+        for audit_log_info in audit_log_blocks:
+            metadata = {
+                'asset_uid': audit_log_info['asset_uid'],
+                'latest_version_uid': audit_log_info['latest_version_uid'],
+                'ip_address': audit_log_info['ip_address'],
+                'source': audit_log_info['source'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            }
+            ProjectHistoryLog.objects.create(
+                user=task.user,
+                object_id=audit_log_info['asset_id'],
+                action=AuditAction.REPLACE_FORM,
+                metadata=metadata,
+            )
+            # imports may change the name of an asset, log that too
+            if audit_log_info['old_name'] != audit_log_info['new_name']:
+                metadata.update(
+                    {
+                        'name': {
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: audit_log_info[
+                                'old_name'
+                            ],
+                            PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: audit_log_info[
+                                'new_name'
+                            ],
+                        }
+                    }
+                )
+                ProjectHistoryLog.objects.create(
+                    user=task.user,
+                    object_id=audit_log_info['asset_id'],
+                    action=AuditAction.UPDATE_NAME,
+                    metadata=metadata,
+                )
+
+    @classmethod
+    def create_from_request(cls, request: WSGIRequest):
+        url_name_to_action = {
+            'asset-deployment': cls._create_from_deployment_request,
+            'asset-detail': cls._create_from_detail_request,
+            'hook-detail': cls._create_from_hook_request,
+            'hook-list': cls._create_from_hook_request,
+            'paired-data-detail': cls._create_from_paired_data_request,
+            'paired-data-list': cls._create_from_paired_data_request,
+            'asset-file-detail': cls._create_from_file_request,
+            'asset-file-list': cls._create_from_file_request,
+            'asset-export-list': cls._create_from_export_request,
+            'submissionexporttask-list': cls._create_from_v1_export,
+            'asset-bulk': cls._create_from_bulk_request,
+            'asset-permission-assignment-bulk-assignments': cls._create_from_permissions_request,  # noqa
+            'asset-permission-assignment-detail': cls._create_from_permissions_request,
+            'asset-permission-assignment-list': cls._create_from_permissions_request,
+            'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
+            'project-ownership-invite-list': cls._create_from_ownership_transfer,
+        }
+        url_name = request.resolver_match.url_name
+        method = url_name_to_action.get(url_name, None)
+        if not method:
+            return
+        method(request)
+
     def save(
         self,
         force_insert=False,
@@ -339,34 +406,8 @@ class ProjectHistoryLog(AuditLog):
             update_fields=update_fields,
         )
 
-    @classmethod
-    def create_from_request(cls, request):
-        url_name_to_action = {
-            'asset-deployment': cls.create_from_deployment_request,
-            'asset-detail': cls.create_from_detail_request,
-            'hook-detail': cls.create_from_hook_request,
-            'hook-list': cls.create_from_hook_request,
-            'paired-data-detail': cls.create_from_paired_data_request,
-            'paired-data-list': cls.create_from_paired_data_request,
-            'asset-file-detail': cls.create_from_file_request,
-            'asset-file-list': cls.create_from_file_request,
-            'asset-export-list': cls.create_from_export_request,
-            'submissionexporttask-list': cls.create_from_v1_export,
-            'asset-bulk': cls.create_from_bulk_request,
-            'asset-permission-assignment-bulk-assignments': cls.create_from_permissions_request,  # noqa
-            'asset-permission-assignment-detail': cls.create_from_permissions_request,
-            'asset-permission-assignment-list': cls.create_from_permissions_request,
-            'asset-permission-assignment-clone': cls.handle_cloned_permissions,
-            'project-ownership-invite-list': cls.handle_ownership_transfer,
-        }
-        url_name = request.resolver_match.url_name
-        method = url_name_to_action.get(url_name, None)
-        if not method:
-            return
-        method(request)
-
     @staticmethod
-    def create_from_bulk_request(request):
+    def _create_from_bulk_request(request):
         try:
             payload = request._data['payload']
             action = payload['action']
@@ -407,8 +448,28 @@ class ProjectHistoryLog(AuditLog):
                 metadata=metadata,
             )
 
+    @classmethod
+    def _create_from_clone_permission_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        if initial_data is None:
+            return
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_id = initial_data['asset.id']
+        ProjectHistoryLog.objects.create(
+            object_id=asset_id,
+            action=AuditAction.CLONE_PERMISSIONS,
+            user=request.user,
+            metadata={
+                'asset_uid': asset_uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'cloned_from': request._data[CLONE_ARG_NAME],
+            },
+        )
+
     @staticmethod
-    def create_from_deployment_request(request):
+    def _create_from_deployment_request(request):
         audit_log_info = getattr(request, 'additional_audit_log_info', None)
         if audit_log_info is None:
             # if we didn't set this information, the request failed
@@ -462,7 +523,7 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def create_from_detail_request(cls, request):
+    def _create_from_detail_request(cls, request):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
 
@@ -482,12 +543,16 @@ class ProjectHistoryLog(AuditLog):
         }
 
         changed_field_to_action_map = {
-            'name': cls.name_change,
-            'settings': cls.settings_change,
-            'data_sharing': cls.sharing_change,
-            'content': cls.content_change,
-            'advanced_features.qual.qual_survey': cls.qa_change,
+            'name': cls._handle_name_change,
+            'settings': cls._handle_settings_change,
+            'data_sharing': cls._handle_sharing_change,
+            'content': cls._handle_content_change,
+            'advanced_features.qual.qual_survey': cls._handle_qa_change,
         }
+
+        # additional metadata should generally follow the pattern
+        # 'field': {'old': old_value, 'new': new_value } or
+        # 'field': {'added': [], 'removed'}
 
         for field, method in changed_field_to_action_map.items():
             old_field = initial_data[field]
@@ -502,38 +567,20 @@ class ProjectHistoryLog(AuditLog):
                     metadata=full_metadata,
                 )
 
-    # additional metadata should generally follow the pattern
-    # 'field': {'old': old_value, 'new': new_value } or
-    # 'field': {'added': [], 'removed'}
-
-    @staticmethod
-    def name_change(old_field, new_field):
-        metadata = {'name': {OLD: old_field, NEW: new_field}}
-        return AuditAction.UPDATE_NAME, metadata
-
-    @staticmethod
-    def settings_change(old_field, new_field):
-        settings = {}
-        all_settings = {**old_field, **new_field}.keys()
-        for setting_name in all_settings:
-            old = old_field.get(setting_name, None)
-            new = new_field.get(setting_name, None)
-            if old != new:
-                metadata_field_subdict = {}
-                if isinstance(old, list) and isinstance(new, list):
-                    removed_values = [val for val in old if val not in new]
-                    added_values = [val for val in new if val not in old]
-                    metadata_field_subdict[ADDED] = added_values
-                    metadata_field_subdict[REMOVED] = removed_values
-                else:
-                    metadata_field_subdict[OLD] = old
-                    metadata_field_subdict[NEW] = new
-                settings[setting_name] = metadata_field_subdict
-        return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+    @classmethod
+    def _create_from_export_request(cls, request):
+        cls._related_request_base(request, None, AuditAction.EXPORT, None, None)
 
     @classmethod
-    def create_from_hook_request(cls, request):
-        cls.create_from_related_request(
+    def _create_from_file_request(cls, request):
+        # we don't have a concept of 'modifying' a media file
+        cls._related_request_base(
+            request, 'asset-file', AuditAction.ADD_MEDIA, AuditAction.DELETE_MEDIA, None
+        )
+
+    @classmethod
+    def _create_from_hook_request(cls, request):
+        cls._related_request_base(
             request,
             'hook',
             AuditAction.REGISTER_SERVICE,
@@ -542,15 +589,38 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def create_from_file_request(cls, request):
-        # we don't have a concept of 'modifying' a media file
-        cls.create_from_related_request(
-            request, 'asset-file', AuditAction.ADD_MEDIA, AuditAction.DELETE_MEDIA, None
+    def _create_from_ownership_transfer(cls, request):
+        updated_data = getattr(request, 'updated_data')
+        transfers = updated_data['transfers'].values(
+            'asset__uid', 'asset__asset_type', 'asset__id'
         )
+        logs = []
+        for transfer in transfers:
+            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
+                continue
+            logs.append(
+                ProjectHistoryLog(
+                    object_id=transfer['asset__id'],
+                    action=AuditAction.TRANSFER,
+                    user=request.user,
+                    app_label=Asset._meta.app_label,
+                    model_name=Asset._meta.model_name,
+                    log_type=AuditType.PROJECT_HISTORY,
+                    user_uid=request.user.extra_details.uid,
+                    metadata={
+                        'asset_uid': transfer['asset__uid'],
+                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+                        'ip_address': get_client_ip(request),
+                        'source': get_human_readable_client_user_agent(request),
+                        'username': updated_data['recipient.username'],
+                    },
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def create_from_paired_data_request(cls, request):
-        cls.create_from_related_request(
+    def _create_from_paired_data_request(cls, request):
+        cls._related_request_base(
             request,
             'paired-data',
             AuditAction.CONNECT_PROJECT,
@@ -559,140 +629,7 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def create_from_export_request(cls, request):
-        cls.create_from_related_request(request, None, AuditAction.EXPORT, None, None)
-
-    @staticmethod
-    def sharing_change(old_fields, new_fields):
-        old_enabled = old_fields.get('enabled', False)
-        old_shared_fields = old_fields.get('fields', [])
-        new_enabled = new_fields.get('enabled', False)
-        new_shared_fields = new_fields.get('fields', [])
-        shared_fields_dict = {}
-        # anything falsy means it was disabled, anything truthy means enabled
-        if old_enabled and not new_enabled:
-            # sharing went from enabled to disabled
-            action = AuditAction.DISABLE_SHARING
-            return action, {}
-        elif not old_enabled and new_enabled:
-            # sharing went from disabled to enabled
-            action = AuditAction.ENABLE_SHARING
-            shared_fields_dict[ADDED] = new_shared_fields
-        else:
-            # the specific fields shared changed
-            removed_fields = [
-                field for field in old_shared_fields if field not in new_shared_fields
-            ]
-            added_fields = [
-                field for field in new_shared_fields if field not in old_shared_fields
-            ]
-            action = AuditAction.MODIFY_SHARING
-            shared_fields_dict[ADDED] = added_fields
-            shared_fields_dict[REMOVED] = removed_fields
-        return action, {'shared_fields': shared_fields_dict}
-
-    @staticmethod
-    def content_change(*_):
-        # content is too long/complicated for meaningful comparison,
-        # so don't store values
-        return AuditAction.UPDATE_CONTENT, {}
-
-    @staticmethod
-    def qa_change(_, new_field):
-        # qa dictionary is complicated to parse and determine
-        # what actually changed, so just return the new dict
-        return AuditAction.UPDATE_QA, {'qa': {NEW: new_field}}
-
-    @staticmethod
-    def create_from_related_request(
-        request, label, add_action, delete_action, modify_action
-    ):
-        initial_data = getattr(request, 'initial_data', None)
-        updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
-        source_data = updated_data if updated_data else initial_data
-        if not source_data:
-            # request failed, don't try to log
-            return
-        object_id = source_data.pop('object_id')
-
-        metadata = {
-            'asset_uid': asset_uid,
-            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
-        }
-        if label:
-            metadata.update({label: source_data})
-        if updated_data is None:
-            action = delete_action
-        elif initial_data is None:
-            action = add_action
-        else:
-            action = modify_action
-        if action:
-            # some actions on related objects do not need to be logged,
-            # eg deleting a SubmissionExportTask
-            ProjectHistoryLog.objects.create(
-                user=request.user, object_id=object_id, action=action, metadata=metadata
-            )
-
-    @classmethod
-    def create_from_import_task(cls, task: ImportTask):
-        # this will probably only ever be a list of size 1 or 0,
-        # sent as a list because of how ImportTask is implemented
-        # if somehow a task updates multiple assets, this should handle it
-        audit_log_blocks = task.messages.get('audit_logs', [])
-        for audit_log_info in audit_log_blocks:
-            metadata = {
-                'asset_uid': audit_log_info['asset_uid'],
-                'latest_version_uid': audit_log_info['latest_version_uid'],
-                'ip_address': audit_log_info['ip_address'],
-                'source': audit_log_info['source'],
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            }
-            ProjectHistoryLog.objects.create(
-                user=task.user,
-                object_id=audit_log_info['asset_id'],
-                action=AuditAction.REPLACE_FORM,
-                metadata=metadata,
-            )
-            # imports may change the name of an asset, log that too
-            if audit_log_info['old_name'] != audit_log_info['new_name']:
-                metadata.update(
-                    {
-                        'name': {
-                            OLD: audit_log_info['old_name'],
-                            NEW: audit_log_info['new_name'],
-                        }
-                    }
-                )
-                ProjectHistoryLog.objects.create(
-                    user=task.user,
-                    object_id=audit_log_info['asset_id'],
-                    action=AuditAction.UPDATE_NAME,
-                    metadata=metadata,
-                )
-
-    @classmethod
-    def create_from_v1_export(cls, request):
-        updated_data = getattr(request, 'updated_data', None)
-        if not updated_data:
-            return
-        ProjectHistoryLog.objects.create(
-            user=request.user,
-            object_id=updated_data['asset_id'],
-            action=AuditAction.EXPORT,
-            metadata={
-                'asset_uid': updated_data['asset_uid'],
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
-            },
-        )
-
-    @classmethod
-    def create_from_permissions_request(cls, request):
+    def _create_from_permissions_request(cls, request):
         logs = []
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
@@ -733,7 +670,7 @@ class ProjectHistoryLog(AuditLog):
             user_permissions_removed = permissions_removed.get(username, {})
             user_partial_permissions_added = partial_permissions_added.get(username, [])
             if username == 'AnonymousUser':
-                cls.handle_anonymous_user_permissions(
+                cls._handle_anonymous_user_permissions(
                     user_permissions_added,
                     user_permissions_removed,
                     user_partial_permissions_added,
@@ -745,8 +682,11 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': username,
-                REMOVED: list(user_permissions_removed),
-                ADDED: list(user_permissions_added) + user_partial_permissions_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(
+                    user_permissions_removed
+                ),
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(user_permissions_added)
+                + user_partial_permissions_added,
             }
             logs.append(
                 ProjectHistoryLog(
@@ -758,7 +698,24 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def handle_anonymous_user_permissions(
+    def _create_from_v1_export(cls, request):
+        updated_data = getattr(request, 'updated_data', None)
+        if not updated_data:
+            return
+        ProjectHistoryLog.objects.create(
+            user=request.user,
+            object_id=updated_data['asset_id'],
+            action=AuditAction.EXPORT,
+            metadata={
+                'asset_uid': updated_data['asset_uid'],
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+            },
+        )
+
+    @classmethod
+    def _handle_anonymous_user_permissions(
         cls,
         perms_added,
         perms_removed,
@@ -795,8 +752,9 @@ class ProjectHistoryLog(AuditLog):
             metadata = copy.deepcopy(base_metadata)
             metadata['permissions'] = {
                 'username': 'AnonymousUser',
-                ADDED: list(perms_added) + partial_perms_added,
-                REMOVED: list(perms_removed),
+                PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED: list(perms_added)
+                + partial_perms_added,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED: list(perms_removed),
             }
             logs.append(
                 ProjectHistoryLog(
@@ -806,52 +764,115 @@ class ProjectHistoryLog(AuditLog):
                 )
             )
 
-    @classmethod
-    def handle_cloned_permissions(cls, request):
-        initial_data = getattr(request, 'initial_data', None)
-        if initial_data is None:
-            return
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
-        asset_id = initial_data['asset.id']
-        ProjectHistoryLog.objects.create(
-            object_id=asset_id,
-            action=AuditAction.CLONE_PERMISSIONS,
-            user=request.user,
-            metadata={
-                'asset_uid': asset_uid,
-                'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                'ip_address': get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
-                'cloned_from': request._data[CLONE_ARG_NAME],
-            },
-        )
+    @staticmethod
+    def _handle_content_change(*_):
+        # content is too long/complicated for meaningful comparison,
+        # so don't store values
+        return AuditAction.UPDATE_CONTENT, {}
 
-    @classmethod
-    def handle_ownership_transfer(cls, request):
-        updated_data = getattr(request, 'updated_data')
-        transfers = updated_data['transfers'].values(
-            'asset__uid', 'asset__asset_type', 'asset__id'
-        )
-        logs = []
-        for transfer in transfers:
-            if transfer['asset__asset_type'] != ASSET_TYPE_SURVEY:
-                continue
-            logs.append(
-                ProjectHistoryLog(
-                    object_id=transfer['asset__id'],
-                    action=AuditAction.TRANSFER,
-                    user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': transfer['asset__uid'],
-                        'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                        'ip_address': get_client_ip(request),
-                        'source': get_human_readable_client_user_agent(request),
-                        'username': updated_data['recipient.username'],
-                    },
-                )
+    @staticmethod
+    def _handle_name_change(old_field, new_field):
+        metadata = {
+            'name': {
+                PROJECT_HISTORY_LOG_METADATA_FIELD_OLD: old_field,
+                PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field,
+            }
+        }
+        return AuditAction.UPDATE_NAME, metadata
+
+    @staticmethod
+    def _handle_settings_change(old_field, new_field):
+        settings = {}
+        all_settings = {**old_field, **new_field}.keys()
+        for setting_name in all_settings:
+            old = old_field.get(setting_name, None)
+            new = new_field.get(setting_name, None)
+            if old != new:
+                metadata_field_subdict = {}
+                if isinstance(old, list) and isinstance(new, list):
+                    removed_values = [val for val in old if val not in new]
+                    added_values = [val for val in new if val not in old]
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = (
+                        added_values
+                    )
+                    metadata_field_subdict[
+                        PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED
+                    ] = removed_values
+                else:
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_OLD] = old
+                    metadata_field_subdict[PROJECT_HISTORY_LOG_METADATA_FIELD_NEW] = new
+                settings[setting_name] = metadata_field_subdict
+        return AuditAction.UPDATE_SETTINGS, {'settings': settings}
+
+    @staticmethod
+    def _handle_sharing_change(old_fields, new_fields):
+        old_enabled = old_fields.get('enabled', False)
+        old_shared_fields = old_fields.get('fields', [])
+        new_enabled = new_fields.get('enabled', False)
+        new_shared_fields = new_fields.get('fields', [])
+        shared_fields_dict = {}
+        # anything falsy means it was disabled, anything truthy means enabled
+        if old_enabled and not new_enabled:
+            # sharing went from enabled to disabled
+            action = AuditAction.DISABLE_SHARING
+            return action, {}
+        elif not old_enabled and new_enabled:
+            # sharing went from disabled to enabled
+            action = AuditAction.ENABLE_SHARING
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = (
+                new_shared_fields
             )
-        ProjectHistoryLog.objects.bulk_create(logs)
+        else:
+            # the specific fields shared changed
+            removed_fields = [
+                field for field in old_shared_fields if field not in new_shared_fields
+            ]
+            added_fields = [
+                field for field in new_shared_fields if field not in old_shared_fields
+            ]
+            action = AuditAction.MODIFY_SHARING
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED] = added_fields
+            shared_fields_dict[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED] = (
+                removed_fields
+            )
+        return action, {'shared_fields': shared_fields_dict}
+
+    @staticmethod
+    def _handle_qa_change(_, new_field):
+        # qa dictionary is complicated to parse and determine
+        # what actually changed, so just return the new dict
+        return AuditAction.UPDATE_QA, {
+            'qa': {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: new_field}
+        }
+
+    @staticmethod
+    def _related_request_base(request, label, add_action, delete_action, modify_action):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        source_data = updated_data if updated_data else initial_data
+        if not source_data:
+            # request failed, don't try to log
+            return
+        object_id = source_data.pop('object_id')
+
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+        }
+        if label:
+            metadata.update({label: source_data})
+        if updated_data is None:
+            action = delete_action
+        elif initial_data is None:
+            action = add_action
+        else:
+            action = modify_action
+        if action:
+            # some actions on related objects do not need to be logged,
+            # eg deleting a SubmissionExportTask
+            ProjectHistoryLog.objects.create(
+                user=request.user, object_id=object_id, action=action, metadata=metadata
+            )

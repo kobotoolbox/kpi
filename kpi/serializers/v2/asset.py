@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import json
@@ -19,6 +18,7 @@ from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
+from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
@@ -423,7 +423,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def create(self, validated_data):
         current_owner = validated_data['owner']
-        real_owner = self._get_real_owner(current_owner)
+        real_owner = get_real_owner(current_owner)
         if real_owner != current_owner:
             with transaction.atomic():
                 validated_data['owner'] = real_owner
@@ -945,16 +945,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def _content(self, obj):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
-
-    def _get_real_owner(self, current_owner: 'User') -> 'User':
-
-        if current_owner.is_org_owner:
-            return current_owner
-
-        # If `owner` is not the owner of the organization they belong to,
-        # they must belong to a multi-member organization. Thus, the asset
-        # must be owned by the organization('s owner).
-        return current_owner.organization.owner_user_object
 
     def _get_status(self, perm_assignments):
         """
