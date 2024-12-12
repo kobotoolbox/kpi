@@ -25,6 +25,9 @@ export default function MemberRoleSelector(
       name={`member-role-selector-${username}`}
       type='outline'
       size='m'
+      // We assume that the row with the owner (who doesn't have
+      // `MemberRoleSelector`) will be first in the table. This means that all
+      // the other rows can open the selector up.
       placement='up-center'
       options={[
         {
