@@ -11,8 +11,6 @@ import KoboSelect from 'jsapp/js/components/common/koboSelect';
 // Stores, hooks and utilities
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {OrganizationUserRole, useOrganizationQuery, usePatchOrganization} from 'js/account/organization/organizationQuery';
-import { queryClient } from 'jsapp/js/query/queryClient';
-import { QueryKeys } from 'jsapp/js/query/queryKeys';
 import subscriptionStore from 'js/account/subscriptionStore';
 import envStore from 'js/envStore';
 import {getSimpleMMOLabel} from './organization.utils';
@@ -29,13 +27,8 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
  * they can edit available fields.
  */
 export default function OrganizationSettingsRoute() {
-  const orgQuery = useOrganizationQuery();
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: [QueryKeys.organization],
-      refetchType: 'none',
-    });
-  }, []);
+  const orgQuery = useOrganizationQuery({shouldForceInvalidation: true});
+
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
@@ -84,7 +77,7 @@ export default function OrganizationSettingsRoute() {
   );
   const mmoLabelLowercase = mmoLabel.toLowerCase();
 
-  if (orgQuery.isLoading) {
+  if (orgQuery.isFetching) {
     return <LoadingSpinner />;
   }
 
