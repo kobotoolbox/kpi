@@ -105,15 +105,12 @@ export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
   // data.
-  const isQueryEnabled =
-    !session.isPending &&
-    !!organizationUrl;
 
   const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
     ...options,
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled && options?.enabled !== false,
+    enabled: !!organizationUrl && options?.enabled !== false,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
