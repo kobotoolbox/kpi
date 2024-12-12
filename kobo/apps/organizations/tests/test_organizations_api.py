@@ -84,7 +84,7 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_update(self):
         self._insert_data(mmo_override=True)
         data = {'name': 'edit'}
-        with self.assertNumQueries(FuzzyInt(10, 16)):
+        with self.assertNumQueries(FuzzyInt(10, 18)):
             res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 

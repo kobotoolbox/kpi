@@ -75,6 +75,12 @@ class Transfer(AbstractTimeStampedModel):
 
     def save(self, *args, **kwargs):
 
+        self.asset.search_field = {
+            'owner_name': self.invite.recipient.username,
+            'organization_name': self.invite.recipient.organization.name,
+        }
+        self.asset.save()
+
         is_new = self.pk is None
         self.invite_type = self.invite.invite_type
         super().save(*args, **kwargs)
