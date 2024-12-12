@@ -68,6 +68,7 @@ const FormSidebar = observer(
     render() {
       return (
         <>
+          {/* TODO: undo before merge! */}
           <Button
             size='lg'
             fullWidth
