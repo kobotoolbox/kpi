@@ -220,12 +220,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return self.get_response_for_head_request()
 
         asset_snapshot = self.get_object()
-
         xml_submission_file = request.data['xml_submission_file']
 
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
-
         try:
             with http_open_rosa_error_handler(
                 lambda: asset_snapshot.asset.deployment.edit_submission(
