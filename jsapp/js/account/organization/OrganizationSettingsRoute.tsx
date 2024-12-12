@@ -38,13 +38,15 @@ export default function OrganizationSettingsRoute() {
   const [website, setWebsite] = useState<string>('');
   const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null);
 
+  // We are invalidating the org query data when this component loads,
+  // so we want to wait for a fetch fresh before setting the form data
   useEffect(() => {
-    if (orgQuery.data) {
+    if (orgQuery.data && orgQuery.isFetchedAfterMount) {
       setName(orgQuery.data.name);
       setWebsite(orgQuery.data.website);
       setOrgType(orgQuery.data.organization_type);
     }
-  }, [orgQuery.data]);
+  }, [orgQuery.data, orgQuery.isFetchedAfterMount]);
 
   useWhenStripeIsEnabled(() => {
     setIsStripeEnabled(true);
@@ -77,7 +79,7 @@ export default function OrganizationSettingsRoute() {
   );
   const mmoLabelLowercase = mmoLabel.toLowerCase();
 
-  if (orgQuery.isFetching) {
+  if (orgQuery.isLoading || !orgQuery.isFetchedAfterMount) {
     return <LoadingSpinner />;
   }
 

@@ -76,7 +76,8 @@ interface OrganizationQueryParams {
 /**
  * Organization object is used globally.
  * For convenience, errors are handled once at the top, see `RequireOrg`.
- * No need to handle errors at every usage.
+ * No need to handle errors at every usage. Has custom staleTime, so use params
+ * to invalidate data and refetch when absolute latest data is needed.
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
