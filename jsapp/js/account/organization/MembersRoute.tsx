@@ -16,6 +16,7 @@ import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
+import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 
 // Styles
 import styles from './membersRoute.module.scss';
@@ -29,7 +30,7 @@ export default function MembersRoute() {
     );
   }
 
-  const columns = [
+  const columns: Array<UniversalTableColumn<OrganizationMember>> = [
     {
       key: 'user__extra_details__name',
       label: t('Name'),
@@ -103,6 +104,7 @@ export default function MembersRoute() {
       key: 'url',
       label: '',
       size: 64,
+      isPinned: 'right',
       cellFormatter: (member: OrganizationMember) => {
         // There is no action that can be done on an owner
         if (member.role === OrganizationUserRole.owner) {

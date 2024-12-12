@@ -17,6 +17,7 @@ import KoboModal from '../modals/koboModal';
 import KoboModalHeader from '../modals/koboModalHeader';
 import {ActivityMessage} from './activityMessage.component';
 import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
+import {useParams} from 'react-router-dom';
 import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 /**
@@ -34,6 +35,12 @@ export default function FormActivity() {
     useState<KoboSelectOption | null>(null);
 
   const exportData = useExportActivityLogs();
+
+  const {uid} = useParams();
+  const queryData = {
+    assetUid: uid as string,
+    actionFilter: selectedFilterOption?.value || '',
+  };
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(
@@ -95,13 +102,15 @@ export default function FormActivity() {
         </div>
       </div>
       <div className={styles.tableContainer}>
-        {detailsModalData &&
+        {detailsModalData && (
           <KoboModal
             isOpen
             size='medium'
             onRequestClose={() => setDetailsModalData(null)}
           >
-            <KoboModalHeader onRequestCloseByX={() => setDetailsModalData(null)}>
+            <KoboModalHeader
+              onRequestCloseByX={() => setDetailsModalData(null)}
+            >
               <ActivityMessage data={detailsModalData} />
             </KoboModalHeader>
 
@@ -109,11 +118,12 @@ export default function FormActivity() {
               <pre>{JSON.stringify(detailsModalData, null, '  ')}</pre>
             </section>
           </KoboModal>
-        }
+        )}
 
         <PaginatedQueryUniversalTable<ActivityLogsItem>
           columns={columns}
           queryHook={useActivityLogsQuery}
+          queryHookData={queryData}
         />
       </div>
     </div>
