@@ -69,7 +69,6 @@ const FormSidebar = observer(
       return (
         <>
           <Button
-            variant='primary'
             size='lg'
             fullWidth
             disabled={!sessionStore.isLoggedIn}
