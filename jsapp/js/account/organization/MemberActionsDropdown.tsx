@@ -83,7 +83,7 @@ export default function MemberActionsDropdown(
 
       <KoboDropdown
         name={`member-actions-dropdown-${targetUsername}`}
-        placement='down-right'
+        placement='middle-left'
         hideOnMenuClick
         triggerContent={<Button type='text' size='m' startIcon='more'/>}
         menuContent={

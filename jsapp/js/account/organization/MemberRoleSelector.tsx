@@ -25,6 +25,7 @@ export default function MemberRoleSelector(
       name={`member-role-selector-${username}`}
       type='outline'
       size='m'
+      placement='up-center'
       options={[
         {
           value: OrganizationUserRole.admin,
