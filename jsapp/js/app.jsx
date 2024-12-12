@@ -36,7 +36,7 @@ import { MantineProvider } from '@mantine/core';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './query/queryClient.ts';
 import { RequireOrg } from './router/RequireOrg';
-import { themeDefault } from './theme/themeDefault';
+import { themeKobo } from './theme';
 
 class App extends React.Component {
   constructor(props) {
@@ -110,7 +110,7 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
-          <MantineProvider theme={themeDefault}>
+          <MantineProvider theme={themeKobo}>
             <RootContextProvider>
               <RequireOrg>
                 <Tracking />
