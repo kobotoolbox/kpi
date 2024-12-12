@@ -57,7 +57,7 @@ def get_billing_dates(organization: Union['Organization', None]):
             tzinfo=ZoneInfo('UTC')
         )
         return period_start, period_end
-    
+
     if billing_details.get('recurring_interval') == 'year':
         period_start = billing_details.get('current_period_start').replace(
             tzinfo=ZoneInfo('UTC')
