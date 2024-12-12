@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.models import Asset, SubmissionExportTask
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
@@ -134,7 +135,7 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
     queryset = SubmissionExportTask.objects.all()
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
-    log_type = 'project-history'
+    log_type = AuditType.PROJECT_HISTORY
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:

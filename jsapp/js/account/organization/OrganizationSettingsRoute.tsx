@@ -27,7 +27,8 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
  * they can edit available fields.
  */
 export default function OrganizationSettingsRoute() {
-  const orgQuery = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery({shouldForceInvalidation: true});
+
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
@@ -37,13 +38,15 @@ export default function OrganizationSettingsRoute() {
   const [website, setWebsite] = useState<string>('');
   const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null);
 
+  // We are invalidating the org query data when this component loads,
+  // so we want to wait for a fetch fresh before setting the form data
   useEffect(() => {
-    if (orgQuery.data) {
+    if (orgQuery.data && orgQuery.isFetchedAfterMount) {
       setName(orgQuery.data.name);
       setWebsite(orgQuery.data.website);
       setOrgType(orgQuery.data.organization_type);
     }
-  }, [orgQuery.data]);
+  }, [orgQuery.data, orgQuery.isFetchedAfterMount]);
 
   useWhenStripeIsEnabled(() => {
     setIsStripeEnabled(true);
@@ -76,15 +79,15 @@ export default function OrganizationSettingsRoute() {
   );
   const mmoLabelLowercase = mmoLabel.toLowerCase();
 
-  if (orgQuery.isLoading) {
+  if (orgQuery.isLoading || !orgQuery.isFetchedAfterMount) {
     return <LoadingSpinner />;
   }
 
-  let deletionMessage = t('To delete this ##team/org##, please contact the server administrator.')
-    .replaceAll('##team/org##', mmoLabelLowercase);
+  let deletionMessage = t('To delete this ##TEAM_OR_ORGANIZATION##, please contact the server administrator.')
+    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase);
   if (isStripeEnabled) {
-    deletionMessage = t("To delete this ##team/org##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##team/org##'s projects will be converted to projects owned by your personal account.")
-    .replaceAll('##team/org##', mmoLabelLowercase)
+    deletionMessage = t("To delete this ##TEAM_OR_ORGANIZATION##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##TEAM_OR_ORGANIZATION##'s projects will be converted to projects owned by your personal account.")
+    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase)
     .replace('##plan name##', subscriptions.planName);
   }
 
@@ -94,7 +97,7 @@ export default function OrganizationSettingsRoute() {
     <form className={styles.orgSettingsRoot} onSubmit={handleSave}>
       <header className={styles.orgSettingsHeader}>
         <h2 className={styles.orgSettingsHeaderText}>
-          {t('##team/org## details').replace('##team/org##', mmoLabel)}
+          {t('##TEAM_OR_ORGANIZATION## details').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
         </h2>
       </header>
 
@@ -105,7 +108,7 @@ export default function OrganizationSettingsRoute() {
         */}
         <TextBox
           className={styles.field}
-          label={t('##team/org## name').replace('##team/org##', mmoLabel)}
+          label={t('##TEAM_OR_ORGANIZATION## name').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
           value={name}
           required
           onChange={handleChangeName}
@@ -122,7 +125,7 @@ export default function OrganizationSettingsRoute() {
           <TextBox
             className={styles.field}
             type='url'
-            label={t('##team/org## website').replace('##team/org##', mmoLabel)}
+            label={t('##TEAM_OR_ORGANIZATION## website').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
             value={website}
             required
             onChange={handleChangeWebsite}
@@ -145,7 +148,7 @@ export default function OrganizationSettingsRoute() {
             type='outline'
             size='l'
             isDisabled // always disabled
-            label={t('##team/org## type').replace('##team/org##', mmoLabel)}
+            label={t('##TEAM_OR_ORGANIZATION## type').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
             options={[{
               value: 'orgType',
               label: currentTypeLabel,
