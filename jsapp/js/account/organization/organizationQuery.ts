@@ -5,7 +5,6 @@ import {useEffect} from 'react';
 // Stores, hooks and utilities
 import {fetchGetUrl, fetchPatch} from 'jsapp/js/api';
 import {FeatureFlag, useFeatureFlag} from 'js/featureFlags';
-import sessionStore from 'js/stores/session';
 import {useSession} from 'jsapp/js/stores/useSession';
 
 // Constants and types
@@ -106,16 +105,12 @@ export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
   // data.
-  const isQueryEnabled =
-    !sessionStore.isPending &&
-    sessionStore.isInitialLoadComplete &&
-    !!organizationUrl;
 
   const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
     ...options,
     queryFn: fetchOrganization,
     queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled && options?.enabled !== false,
+    enabled: !!organizationUrl && options?.enabled !== false,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
@@ -125,7 +120,7 @@ export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<
   // DEBT: don't retry the failing url 3-4 times before switching to the new url.
   useEffect(() => {
     if (query.error?.status === 404) {
-      sessionStore.refreshAccount();
+      session.refreshAccount();
     }
   }, [query.error?.status]);
 
