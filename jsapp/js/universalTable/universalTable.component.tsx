@@ -47,7 +47,7 @@ export interface UniversalTableColumn<DataItem> {
    * the cell value. Without it a literal text value will be rendered. For more
    * flexibility, function receives whole original data object.
    */
-  cellFormatter?: (value: DataItem) => React.ReactNode;
+  cellFormatter?: (value: DataItem, rowIndex: number) => React.ReactNode;
 }
 
 interface UniversalTableProps<DataItem> {
@@ -158,7 +158,10 @@ export default function UniversalTable<DataItem>(
       header: () => columnDef.label,
       cell: (cellProps: CellContext<DataItem, string>) => {
         if (columnDef.cellFormatter) {
-          return columnDef.cellFormatter(cellProps.row.original);
+          return columnDef.cellFormatter(
+            cellProps.row.original,
+            cellProps.row.index
+          );
         } else {
           return cellProps.renderValue();
         }

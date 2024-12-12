@@ -1,6 +1,7 @@
 import KoboSelect from 'jsapp/js/components/common/koboSelect';
 import {usePatchOrganizationMember} from './membersQuery';
 import {OrganizationUserRole} from './organizationQuery';
+import {type KoboDropdownPlacement} from 'jsapp/js/components/common/koboDropdown';
 
 interface MemberRoleSelectorProps {
   username: string;
@@ -8,10 +9,11 @@ interface MemberRoleSelectorProps {
   role: OrganizationUserRole;
   /** The role of the currently logged in user. */
   currentUserRole: OrganizationUserRole;
+  placement: KoboDropdownPlacement;
 }
 
 export default function MemberRoleSelector(
-  {username, role, currentUserRole}: MemberRoleSelectorProps
+  {username, role, currentUserRole, placement}: MemberRoleSelectorProps
 ) {
   const patchMember = usePatchOrganizationMember(username);
 
@@ -25,10 +27,7 @@ export default function MemberRoleSelector(
       name={`member-role-selector-${username}`}
       type='outline'
       size='m'
-      // We assume that the row with the owner (who doesn't have
-      // `MemberRoleSelector`) will be first in the table. This means that all
-      // the other rows can open the selector up.
-      placement='up-center'
+      placement={placement}
       options={[
         {
           value: OrganizationUserRole.admin,

@@ -69,7 +69,7 @@ export default function MembersRoute() {
       key: 'role',
       label: t('Role'),
       size: 120,
-      cellFormatter: (member: OrganizationMember) => {
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
         if (member.role === OrganizationUserRole.owner) {
           return t('Owner');
         }
@@ -78,6 +78,12 @@ export default function MembersRoute() {
             username={member.user__username}
             role={member.role}
             currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first row down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
+            placement={rowIndex === 0 ? 'down-center' : 'up-center'}
           />
         );
       },
