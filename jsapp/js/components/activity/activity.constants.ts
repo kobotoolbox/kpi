@@ -239,7 +239,7 @@ export interface ActivityLogsItem {
     latest_deployed_version_id?: string;
     latest_version_id?: string;
     version_uid?: string;
-    second_user?: string;
+    username?: string;
     // a lot of more optional metadata props…
   };
 }
