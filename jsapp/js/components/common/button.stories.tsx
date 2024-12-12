@@ -3,11 +3,12 @@ import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import type {TooltipAlignment} from './tooltip';
 import {IconNames} from 'jsapp/fonts/k-icons';
 import type {IconName} from 'jsapp/fonts/k-icons';
-import type {ButtonProps, MantineSize, PolymorphicComponentProps} from '@mantine/core';
-import {Button, MantineProvider} from '@mantine/core';
+import type {MantineSize, PolymorphicComponentProps, TooltipProps} from '@mantine/core';
+import {MantineProvider} from '@mantine/core';
 import Icon from './icon';
 import '@mantine/core/styles.css';
 import {themeKobo} from 'jsapp/js/theme';
+import Button, {type ButtonProps} from './ButtonNew';
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
@@ -33,7 +34,7 @@ const buttonSizes: MantineSize[] = [
   // 'xl',
 ];
 
-const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center'];
+const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = ['top', 'right', 'bottom', 'left', 'top-end', 'top-start', 'right-end', 'right-start', 'bottom-end', 'bottom-start', 'left-end', 'left-start'] as const;
 
 export default {
   title: 'common/Button',
@@ -91,15 +92,16 @@ export default {
       control: {type: 'select'},
       if: {arg: 'size', eq: 'lg'},
     },
-    // tooltip: {
-    //   description: 'Tooltip text',
-    //   control: 'text',
-    // },
-    // tooltipPosition: {
-    //   description: 'Position of the tooltip (optional)',
-    //   options: tooltipPositions,
-    //   control: 'radio',
-    // },
+    tooltip: {
+      description: 'Tooltip text',
+      control: 'text',
+    },
+    tooltipProps: {
+      description: 'Position of the tooltip (optional)',
+      options: tooltipPositions,
+      mapping: tooltipPositions.map((position) => [position, {position}] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
+      control: 'radio',
+    },
     disabled: {control: 'boolean'},
     loading: {control: 'boolean'},
     fullWidth: {
@@ -189,6 +191,7 @@ export const AllButtons = () => (
               size: size,
               leftSection: leftSectionName ? <Icon name={leftSectionName} size={size[0] as any} /> : undefined,
               onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
+              tooltip: label,
             };
             return (
               <>

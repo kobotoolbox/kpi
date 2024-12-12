@@ -1,5 +1,6 @@
 import {createTheme, rem} from '@mantine/core';
 import {ButtonThemeKobo} from './Button';
+import {TooltipThemeKobo} from './Tooltip';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -85,5 +86,6 @@ export const themeKobo = createTheme({
 
   components: {
     Button: ButtonThemeKobo,
+    Tooltip: TooltipThemeKobo,
   },
 });
