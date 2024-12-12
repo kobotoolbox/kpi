@@ -7,7 +7,17 @@ export default {
   component: KoboDropdown,
   argTypes: {
     placement: {
-      options: ['down-center', 'down-left', 'down-right', 'up-center', 'up-left', 'up-right'],
+      options: [
+        'down-center',
+        'down-left',
+        'down-right',
+        'middle-center',
+        'middle-left',
+        'middle-right',
+        'up-center',
+        'up-left',
+        'up-right',
+      ],
       control: {type: 'select'},
     },
     isDisabled: {
