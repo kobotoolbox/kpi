@@ -13,8 +13,6 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_UNKNOWN_AUTH_TYPE,
-    ADDED,
-    REMOVED,
     AccessLog,
     AuditLog,
     AuditType,
@@ -24,6 +22,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.models import Asset, ImportTask
@@ -466,7 +466,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='fieldname',
             add_action=AuditAction.CREATE,
@@ -495,7 +495,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -528,7 +528,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'new_field1',
             'field_2': 'new_field2',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -551,7 +551,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -663,7 +663,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             # pretend something went wrong/changed and they were assigned anyway
             'AnonymousUser': {'discover_asset', 'validate_submissions'}
         }
-        ProjectHistoryLog.create_from_permissions_request(
+        ProjectHistoryLog._create_from_permissions_request(
             request,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
@@ -673,7 +673,10 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
         permissions = log.metadata['permissions']
         self.assertEqual(permissions['username'], 'AnonymousUser')
-        self.assertListEqual(permissions[REMOVED], [])
         self.assertListEqual(
-            sorted(permissions[ADDED]), ['discover_asset', 'validate_submissions']
+            permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED], []
+        )
+        self.assertListEqual(
+            sorted(permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]),
+            ['discover_asset', 'validate_submissions'],
         )

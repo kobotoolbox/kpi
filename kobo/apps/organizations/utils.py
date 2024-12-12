@@ -6,6 +6,7 @@ from django.apps import apps
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.models.object_permission import ObjectPermission
 
@@ -56,7 +57,7 @@ def get_billing_dates(organization: Union['Organization', None]):
             tzinfo=ZoneInfo('UTC')
         )
         return period_start, period_end
-
+    
     if billing_details.get('recurring_interval') == 'year':
         period_start = billing_details.get('current_period_start').replace(
             tzinfo=ZoneInfo('UTC')
@@ -67,6 +68,13 @@ def get_billing_dates(organization: Union['Organization', None]):
         return period_start, period_end
 
     return first_of_this_month, first_of_next_month
+
+
+def get_real_owner(user: User) -> User:
+    organization = user.organization
+    if organization.is_mmo:
+        return organization.owner_user_object
+    return user
 
 
 def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):

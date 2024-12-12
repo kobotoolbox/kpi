@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
@@ -129,7 +130,7 @@ class AssetFileViewSet(
     filter_backends = (RelatedAssetPermissionsFilter,)
     serializer_class = AssetFileSerializer
     permission_classes = (AssetEditorPermission,)
-    log_type = 'project-history'
+    log_type = AuditType.PROJECT_HISTORY
     logged_fields = [
         'uid',
         'filename',

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
 from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models.asset import Asset
@@ -93,14 +92,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
-        organization = None
-        organization_id = self.context.get('organization_id', None)
-        if organization_id:
-            organization = Organization.objects.filter(
-                organization_users__user_id=instance.id,
-                id=organization_id,
-            ).first()
-        self.calculator = ServiceUsageCalculator(instance, organization)
+        self.calculator = ServiceUsageCalculator(user=instance)
 
     def get_current_period_end(self, user):
         return self.calculator.current_period_end.isoformat()

@@ -103,7 +103,11 @@ export const useExceedingLimits = () => {
     if (usageStatus.error || usageStatus.pending || !areLimitsLoaded) {
       return;
     }
+
+    // Reset lists or else there will be duplicates
     setExceedList(() => []);
+    setWarningList(() => []);
+
     isOverLimit(subscribedStorageLimit, usage.storage, UsageLimitTypes.STORAGE);
     isOverLimit(
       subscribedSubmissionLimit,
