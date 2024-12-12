@@ -32,6 +32,14 @@ ButtonToCloseIconMap.set('s', 'xxs');
 ButtonToCloseIconMap.set('m', 'xs');
 ButtonToCloseIconMap.set('l', 's');
 
+export type KoboSelectPlacement =
+  | 'down-center'
+  | 'down-left'
+  | 'down-right'
+  | 'up-center'
+  | 'up-left'
+  | 'up-right';
+
 /**
  * KoboSelect types are:
  * 1. blue
@@ -58,7 +66,7 @@ interface KoboSelectProps {
    * Sizes are generally the same as in button component so we use same type.
    */
   size: ButtonSize;
-  placement?: KoboDropdownPlacement;
+  placement?: KoboSelectPlacement;
   /** Without this option select always need the `selectedOption`. */
   isClearable?: boolean;
   /** This option displays a text box filtering options when opened. */
