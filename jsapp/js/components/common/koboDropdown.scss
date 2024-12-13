@@ -67,21 +67,3 @@
   top: 100%;
   right: 0;
 }
-
-.kobo-dropdown.kobo-dropdown--middle-left .kobo-dropdown__menu {
-  top: 50%;
-  right: 100%;
-  transform: translateY(-50%);
-}
-
-.kobo-dropdown.kobo-dropdown--middle-center .kobo-dropdown__menu {
-  top: 50%;
-  left: 50%;
-  transform: translate2d(-50%, -50%);
-}
-
-.kobo-dropdown.kobo-dropdown--middle-right .kobo-dropdown__menu {
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-}
