@@ -16,9 +16,16 @@ export function ActivityMessage(props: {data: ActivityLogsItem}) {
   message = message
     .replace('##username##', `<strong>${props.data.username}</strong>`)
     .replace('##action##', props.data.action);
-  // We only replace it if metadata is provided.
-  if (props.data.metadata.second_user) {
-    message = message.replace('##username2##', `<strong>${props.data.metadata.second_user}</strong>`);
+
+  // For some actions we need to replace extra placeholders
+  // We will only replace the placeholders if the data is present in the metadata
+  // If metadata is missing we leave the ##username2## placeholder on purpose
+  // so that it is clear that the data is missing
+  if (props.data.metadata.username) {
+    message = message.replace('##username2##', `<strong>${props.data.metadata.username}</strong>`);
+  }
+  if (props.data.metadata.permissions?.username) {
+    message = message.replace('##username2##', `<strong>${props.data.metadata.permissions.username}</strong>`);
   }
 
   return (
