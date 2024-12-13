@@ -1,0 +1,2 @@
+def task():
+    raise Exception
