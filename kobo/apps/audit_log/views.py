@@ -16,15 +16,13 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     Lists actions performed by users.
     Only available for superusers.
 
-    <span class='label label-warning'>For now, only `DELETE`s are logged</span>
-
     <pre class="prettyprint">
     <b>GET</b> /api/v2/audit-logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/audit-logs/
+    >       curl -X GET https://[kpi-url]/api/v2/audit-logs/
 
     > Response 200
 
@@ -73,24 +71,24 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         a. Available actions:
 
-            i. create
-            ii. delete
-            iii. in-trash
-            iv. put-back
-            v. remove
-            vi. update
-            vii. auth
+        * create
+        * delete
+        * in-trash
+        * put-back
+        * remove
+        * update
+        * auth
 
     4. log_type
 
         a. Available log types:
 
-            i. access
-            ii. project-history
-            iii. data-editing
-            iv. submission-management
-            v. user-management
-            vi. asset-management
+        * access
+        * project-history
+        * data-editing
+        * submission-management
+        * user-management
+        * asset-management
 
     5. date_created
 
@@ -130,7 +128,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
     6. All authentications from superusers<br>
-        `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True
+        `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
     (e.g. date and time "2022-11-15 20:34")*
