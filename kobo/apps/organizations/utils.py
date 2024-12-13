@@ -6,6 +6,7 @@ from django.apps import apps
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kpi.models.object_permission import ObjectPermission
 
@@ -67,6 +68,13 @@ def get_monthly_billing_dates(organization: Union['Organization', None]):
         period_start -= relativedelta(months=1)
     period_end = period_start + relativedelta(months=1)
     return period_start, period_end
+
+
+def get_real_owner(user: User) -> User:
+    organization = user.organization
+    if organization.is_mmo:
+        return organization.owner_user_object
+    return user
 
 
 def get_yearly_billing_dates(organization: Union['Organization', None]):

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import (
     get_monthly_billing_dates,
     get_yearly_billing_dates,
@@ -111,14 +110,7 @@ class ServiceUsageSerializer(serializers.Serializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
-        organization = None
-        organization_id = self.context.get('organization_id', None)
-        if organization_id:
-            organization = Organization.objects.filter(
-                organization_users__user_id=instance.id,
-                id=organization_id,
-            ).first()
-        self.calculator = ServiceUsageCalculator(instance, organization)
+        self.calculator = ServiceUsageCalculator(user=instance)
 
     def get_current_month_end(self, user):
         return self.calculator.current_month_end.isoformat()

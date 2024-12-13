@@ -1,12 +1,14 @@
 # coding: utf-8
+
 from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
 from kobo.apps.audit_log.urls import router as audit_log_router
+from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.languages.urls import router as language_router
-from kobo.apps.organizations.views import OrganizationViewSet, OrganizationMemberViewSet
+from kobo.apps.organizations.views import OrganizationMemberViewSet, OrganizationViewSet
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
@@ -103,11 +105,19 @@ asset_routes.register(r'exports',
                       parents_query_lookups=['asset'],
                       )
 
-asset_routes.register(r'paired-data',
-                      PairedDataViewset,
-                      basename='paired-data',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'paired-data',
+    PairedDataViewset,
+    basename='paired-data',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'history',
+    ProjectHistoryLogViewSet,
+    basename='history',
+    parents_query_lookups=['asset'],
+)
 
 data_routes = asset_routes.register(r'data',
                                     DataViewSet,

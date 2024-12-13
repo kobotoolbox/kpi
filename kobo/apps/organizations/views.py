@@ -1,16 +1,7 @@
-from django.conf import settings
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import (
-    QuerySet,
-    Case,
-    When,
-    Value,
-    CharField,
-    OuterRef,
-)
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -26,10 +17,13 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
-from .permissions import HasOrgRolePermission, IsOrgAdminPermission
+from .permissions import (
+    HasOrgRolePermission,
+    IsOrgAdminPermission,
+    OrganizationNestedHasOrgRolePermission,
+)
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from ..accounts.mfa.models import MfaMethod
-from ..stripe.constants import ACTIVE_STRIPE_STATUSES
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -57,10 +51,14 @@ class OrganizationAssetViewSet(AssetViewSet):
             # validated within `OrganizationViewSet.assets()`.
             raise AttributeError('`permissions_checked` is missing')
 
+        organization = getattr(
+            self.request, 'organization', self.request.user.organization
+        )
+
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.filter(
-                owner=self.request.user.organization.owner_user_object
+                owner=organization.owner_user_object
             )
         else:
             raise NotImplementedError
@@ -70,7 +68,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
 
-    - Organization admins can manage the organization and it's membership
+    - Organization admins can manage the organization and its membership
     - Connect to authentication mechanisms and enforce policy
     - Create teams and projects under the organization
     """
@@ -97,12 +95,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### Additional Information
         For more details, please refer to `/api/v2/assets/`.
         """
-        self.get_object()  # Call check permissions
+
+        # `get_object()` checks permissions
+        organization = self.get_object()
 
         # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
         django_http_request = request._request
         django_http_request.permissions_checked = True
+        django_http_request.organization = organization
         return asset_view(request=django_http_request)
 
     def get_queryset(self) -> QuerySet:
@@ -149,15 +150,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### CURRENT ENDPOINT
         """
 
-        context = {
-            'organization_id': kwargs.get('id', None),
-            **self.get_serializer_context(),
-        }
-
+        self.get_object()  # This call is necessary to check permissions
         serializer = ServiceUsageSerializer(
             get_database_user(request.user),
-            context=context,
+            context=self.get_serializer_context(),
         )
+
         response = Response(
             data=serializer.data,
             headers={
@@ -167,7 +165,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         return response
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes=[IsOrgAdminPermission])
     def asset_usage(self, request, pk=None, *args, **kwargs):
         """
         ## Organization Asset Usage Tracker
@@ -207,31 +205,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ### CURRENT ENDPOINT
         """
 
-        org_id = kwargs.get('id', None)
-        # Check if the organization exists and if the user is the owner
-        try:
-            organization = Organization.objects.prefetch_related('organization_users__user').filter(
-                id=org_id, owner__organization_user__user_id=request.user.id,
-            ).annotate(
-                user_ids=ArrayAgg('organization_users__user_id')
-            )[0]
-        except IndexError:
-            return Response(
-                {'error': 'There was a problem finding the organization.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # `get_object()` checks permissions
+        organization = self.get_object()
 
-        # default to showing all users for this org
-        asset_users = organization.user_ids
-        # if Stripe is enabled, check that the org is on a plan that supports Organization features
-        if settings.STRIPE_ENABLED and not Organization.objects.filter(
-            id=org_id,
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',
-            djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',
-        ).exists():
-            # No active subscription that supports multiple users, just get this user's data
-            asset_users = [request.user.id]
+        user_id = get_database_user(request.user).pk
+        if organization.is_mmo:
+            user_id = organization.owner_user_object.pk
 
         assets = (
             Asset.objects.only(
@@ -242,7 +221,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             )
             .select_related('owner')
             .filter(
-                owner__in=asset_users,
+                owner_id=user_id,
                 asset_type=ASSET_TYPE_SURVEY,
             )
         )
@@ -413,7 +392,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     in updates.
     """
     serializer_class = OrganizationUserSerializer
-    permission_classes = [HasOrgRolePermission]
+    permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
@@ -432,7 +411,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             organization_user=OuterRef('pk')
         ).values('pk')
 
-        # Annotate with role based on organization ownership and admin status
+        # Annotate with the role based on organization ownership and admin status
         queryset = OrganizationUser.objects.filter(
             organization_id=organization_id
         ).select_related('user__extra_details').annotate(
