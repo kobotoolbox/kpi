@@ -79,7 +79,7 @@ export default function MembersRoute() {
             role={member.role}
             currentUserRole={orgQuery.data.request_user_role}
             // To avoid opening selector outside the container (causing
-            // unnecessary scrollbar), we open first row down, and the other
+            // unnecessary scrollbar), we open first 2 rows down, and the other
             // rows up.
             // TODO: this should be fixed by using a component with Portal
             // functionality (looking at Mantine or MUI).
@@ -121,6 +121,11 @@ export default function MembersRoute() {
           <MemberActionsDropdown
             targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first 2 rows down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
             placement={rowIndex <= 1 ? 'down-right' : 'up-right'}
           />
         );
