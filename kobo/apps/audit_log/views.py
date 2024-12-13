@@ -426,6 +426,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        add-media
     >        allow-anonymous-submissions
     >        archive
+    >        clone-permissions
     >        connect-project
     >        delete-media
     >        delete-service
@@ -448,7 +449,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        unarchive
     >        unshare-data-publicly
     >        unshare-form-publicly
-    >        update_content
+    >        update-content
     >        update-name
     >        update-settings
     >        update-qa
@@ -675,6 +676,7 @@ class ProjectHistoryLogViewSet(
     >        add-media
     >        allow-anonymous-submissions
     >        archive
+    >        clone-permissions
     >        connect-project
     >        delete-media
     >        delete-service
@@ -697,7 +699,7 @@ class ProjectHistoryLogViewSet(
     >        unarchive
     >        unshare-data-publicly
     >        unshare-form-publicly
-    >        update_content
+    >        update-content
     >        update-name
     >        update-settings
     >        update-qa
