@@ -11,7 +11,7 @@ from kobo.celery import celery_app
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
-def transfer_user_ownership_to_org(user_id: int):
+def transfer_member_data_ownership_to_org(user_id: int):
     sender = User.objects.get(pk=user_id)
     recipient = sender.organization.owner_user_object
     user_assets = sender.assets.only('pk', 'uid').iterator()
