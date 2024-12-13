@@ -83,7 +83,7 @@ export default function MembersRoute() {
             // rows up.
             // TODO: this should be fixed by using a component with Portal
             // functionality (looking at Mantine or MUI).
-            placement={rowIndex === 0 ? 'down-center' : 'up-center'}
+            placement={rowIndex <= 1 ? 'down-center' : 'up-center'}
           />
         );
       },
@@ -111,7 +111,7 @@ export default function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      cellFormatter: (member: OrganizationMember) => {
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
         // There is no action that can be done on an owner
         if (member.role === OrganizationUserRole.owner) {
           return null;
@@ -121,6 +121,7 @@ export default function MembersRoute() {
           <MemberActionsDropdown
             targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
+            placement={rowIndex <= 1 ? 'down-right' : 'up-right'}
           />
         );
       },
