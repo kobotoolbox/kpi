@@ -17,8 +17,11 @@ export function ActivityMessage(props: {data: ActivityLogsItem}) {
     .replace('##username##', `<strong>${props.data.username}</strong>`)
     .replace('##action##', props.data.action);
   // We only replace it if metadata is provided.
-  if (props.data.metadata.second_user) {
-    message = message.replace('##username2##', `<strong>${props.data.metadata.second_user}</strong>`);
+  if (props.data.metadata.username) {
+    message = message.replace('##username2##', `<strong>${props.data.metadata.username}</strong>`);
+  }
+  if (props.data.metadata.permissions?.username) {
+    message = message.replace('##username2##', `<strong>${props.data.metadata.permissions.username}</strong>`);
   }
 
   return (
