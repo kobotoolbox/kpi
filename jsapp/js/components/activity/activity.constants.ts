@@ -29,7 +29,7 @@ export enum AuditActions {
   'unarchive' = 'unarchive',
   'unshare-data-publicly' = 'unshare-data-publicly',
   'unshare-form-publicly' = 'unshare-form-publicly',
-  'update-form' = 'update-form',
+  'update-content' = 'update-content',
   'update-name' = 'update-name',
   'update-settings' = 'update-settings',
   'update-qa' = 'update-qa',
@@ -174,10 +174,10 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('disable making project public'),
     message: t('##username## disabled making project publicly accessible'),
   },
-  'update-form': {
-    name: AuditActions['update-form'],
+  'update-content': {
+    name: AuditActions['update-content'],
     label: t('edit form'),
-    message: t('##username## edited the form in the formbuilder'),
+    message: t('##username## edited the form in the form builder'),
   },
   'update-name': {
     name: AuditActions['update-name'],
@@ -238,7 +238,6 @@ export interface ActivityLogsItem {
     latest_version_id?: string;
     version_uid?: string;
     username?: string;
-    // a lot of more optional metadata props…
     permissions?: {
       username: string;
     };
