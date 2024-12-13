@@ -23,6 +23,8 @@ def transfer_member_data_ownership_to_org(user_id: int):
     for asset_batch in chunked(
         user_assets, settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
     ):
+        # TODO: Prevent creating invites if there are existing pending transfers
+        #  for the same project and sender/recipient.
         create_invite(
             sender=sender,
             recipient=recipient,
