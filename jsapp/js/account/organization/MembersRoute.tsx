@@ -69,7 +69,7 @@ export default function MembersRoute() {
       key: 'role',
       label: t('Role'),
       size: 120,
-      cellFormatter: (member: OrganizationMember) => {
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
         if (member.role === OrganizationUserRole.owner) {
           return t('Owner');
         }
@@ -78,6 +78,12 @@ export default function MembersRoute() {
             username={member.user__username}
             role={member.role}
             currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first 2 rows down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
+            placement={rowIndex <= 1 ? 'down-center' : 'up-center'}
           />
         );
       },
@@ -105,7 +111,7 @@ export default function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      cellFormatter: (member: OrganizationMember) => {
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
         // There is no action that can be done on an owner
         if (member.role === OrganizationUserRole.owner) {
           return null;
@@ -115,6 +121,12 @@ export default function MembersRoute() {
           <MemberActionsDropdown
             targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first 2 rows down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
+            placement={rowIndex <= 1 ? 'down-right' : 'up-right'}
           />
         );
       },
