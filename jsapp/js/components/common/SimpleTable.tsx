@@ -14,5 +14,5 @@ interface SimpleTableProps {
 }
 
 export default function SimpleTable(props: SimpleTableProps) {
-  return <Table data={props.data} />;
+  return (<Table data={props.data} />);
 }
