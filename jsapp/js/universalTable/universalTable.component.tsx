@@ -1,5 +1,6 @@
 // Libraries
-import React, {useState, useRef, useCallback} from 'react';
+import type React from 'react';
+import {useState, useRef, useCallback, type CSSProperties, useEffect} from 'react';
 import cx from 'classnames';
 import {
   flexRender,
@@ -9,7 +10,9 @@ import {
   type Column,
   type PaginationState,
   type TableOptions,
+  type ColumnPinningPosition,
 } from '@tanstack/react-table';
+import {useViewportSize} from 'jsapp/js/hooks/useViewportSize';
 
 // Partial components
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -33,7 +36,7 @@ export interface UniversalTableColumn<DataItem> {
    * anything really.
    */
   label: React.ReactNode;
-  isPinned?: boolean;
+  isPinned?: ColumnPinningPosition;
   /**
    * This is override for the default width of a column. Use it if you need more
    * space for your data, or if you display something very short.
@@ -44,12 +47,12 @@ export interface UniversalTableColumn<DataItem> {
    * the cell value. Without it a literal text value will be rendered. For more
    * flexibility, function receives whole original data object.
    */
-  cellFormatter?: (value: DataItem) => React.ReactNode;
+  cellFormatter?: (value: DataItem, rowIndex: number) => React.ReactNode;
 }
 
 interface UniversalTableProps<DataItem> {
   /** A list of column definitions */
-  columns: UniversalTableColumn<DataItem>[];
+  columns: Array<UniversalTableColumn<DataItem>>;
   data: DataItem[];
   /**
    * When set to `true`, a spinner with overlay will be displayed over the table
@@ -63,21 +66,20 @@ interface UniversalTableProps<DataItem> {
   /** Total number of pages of data. */
   pageCount?: number;
   /**
-   * One of `pageSizeOptions`. It is de facto the `limit` from the `offset` + `limit`
-   * pair used for paginatin the endpoint.
+   * One of `pageSizeOptions`. It is de facto the `limit` from the `offset` and
+   * `limit` pair used for paginating the endpoint.
    */
   pageSize?: number;
   pageSizeOptions?: number[];
   /**
    * A way for the table to say "user wants to change pagination". It's being
-   * triggered for both page size and page changes.
+   * triggered for both page navigation and page size changes.
+   *
+   * Provides an object with current `pageIndex` and `pageSize` (one or both
+   * values are new). The second object shows previous pagination, use it to
+   * compare and understand what has happened :)
    */
   onRequestPaginationChange?: (
-    /**
-     * Provides an object with current `pageIndex` and `pageSize` (one or both
-     * values are new). The second object shows previous pagination, use it to
-     * compare what has happened :)
-     */
     newPageInfo: PaginationState,
     oldPageInfo: PaginationState
   ) => void;
@@ -110,7 +112,10 @@ export default function UniversalTable<DataItem>(
 ) {
   // We need table height for the resizers
   const [tableHeight, setTableHeight] = useState(0);
+  const [hasHorizontalScrollbar, setHasHorizontalScrollbar] = useState(false);
   const tableRef = useRef<HTMLTableElement>(null);
+  const tableContainerRef = useRef<HTMLTableElement>(null);
+  const {width, height} = useViewportSize();
 
   const moveCallback = useCallback(() => {
     if (tableRef.current) {
@@ -129,9 +134,22 @@ export default function UniversalTable<DataItem>(
   }
 
   function getCommonClassNames(column: Column<DataItem>) {
+    const isPinned = column.getIsPinned();
     return cx({
-      [styles.isPinned]: Boolean(column.getIsPinned()),
+      [styles.isPinnedLeft]: isPinned === 'left',
+      [styles.isPinnedRight]: isPinned === 'right',
+      [styles.isLastLeftPinnedColumn]: isPinned === 'left' && column.getIsLastColumn('left'),
+      [styles.isFirstRightPinnedColumn]: isPinned === 'right' && column.getIsFirstColumn('right'),
     });
+  }
+
+  function getCommonColumnStyles(column: Column<DataItem>): CSSProperties {
+    const isPinned = column.getIsPinned();
+    return {
+      left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
+      right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
+      width: `${column.getSize()}px`,
+    };
   }
 
   const columns = props.columns.map((columnDef) => {
@@ -140,7 +158,10 @@ export default function UniversalTable<DataItem>(
       header: () => columnDef.label,
       cell: (cellProps: CellContext<DataItem, string>) => {
         if (columnDef.cellFormatter) {
-          return columnDef.cellFormatter(cellProps.row.original);
+          return columnDef.cellFormatter(
+            cellProps.row.original,
+            cellProps.row.index
+          );
         } else {
           return cellProps.renderValue();
         }
@@ -160,14 +181,14 @@ export default function UniversalTable<DataItem>(
     defaultColumn: DEFAULT_COLUMN_SIZE,
   };
 
+  // Set separately because we set both `.columnPinning` and (sometimes)
+  // `.pagination` and we need to be careful not to overwrite `.state` object.
   options.state = {};
 
-  // Set separately to not get overriden by pagination options. This is a list
-  // of columns that are pinned to the left side.
-  const pinnedColumns = props.columns
-    .filter((col) => col.isPinned)
-    .map((col) => col.key);
-  options.state.columnPinning = {left: pinnedColumns || []};
+  options.state.columnPinning = {
+    left: props.columns.filter((col) => col.isPinned === 'left').map((col) => col.key),
+    right: props.columns.filter((col) => col.isPinned === 'right').map((col) => col.key),
+  };
 
   const hasPagination = Boolean(
     props.pageIndex !== undefined &&
@@ -216,9 +237,23 @@ export default function UniversalTable<DataItem>(
   const currentPageString = String(table.getState().pagination.pageIndex + 1);
   const totalPagesString = String(table.getPageCount());
 
+  // Calculate the total width of all columns and the width of container, to
+  // guess if there is a horizontal scrollbar
+  useEffect(() => {
+    const columnsWidth = table.getTotalSize();
+    let containerWidth = Infinity;
+    if (tableContainerRef.current) {
+      containerWidth = tableContainerRef.current.offsetWidth;
+    }
+
+    setHasHorizontalScrollbar(columnsWidth > containerWidth);
+  }, [props, table, width, height]);
+
   return (
-    <div className={styles.universalTableRoot}>
-      <div className={styles.tableContainer}>
+    <div className={cx(styles.universalTableRoot, {
+      [styles.hasHorizontalScrollbar]: hasHorizontalScrollbar,
+    })}>
+      <div className={styles.tableContainer} ref={tableContainerRef}>
         {props.isSpinnerVisible &&
           <div className={styles.spinnerOverlay}>
             <LoadingSpinner message={false} />
@@ -240,7 +275,7 @@ export default function UniversalTable<DataItem>(
                       styles.tableHeaderCell,
                       getCommonClassNames(header.column)
                     )}
-                    style={{width: `${header.getSize()}px`}}
+                    style={{...getCommonColumnStyles(header.column)}}
                   >
                     {!header.isPlaceholder &&
                       flexRender(
@@ -253,6 +288,11 @@ export default function UniversalTable<DataItem>(
                       TODO: if we ever see performance issues while resizing,
                       there is a way to fix that, see:
                       https://tanstack.com/table/latest/docs/guide/column-sizing#advanced-column-resizing-performance
+                    */}
+                    {/*
+                      TODO: one of the resizers will not work for columns that
+                      are `isLastLeftPinnedColumn` or `isFirstRightPinnedColumn`
+                      and we are ok with this for now.
                     */}
                     <div
                       onDoubleClick={() => header.column.resetSize()}
@@ -292,7 +332,7 @@ export default function UniversalTable<DataItem>(
                       styles.tableCell,
                       getCommonClassNames(cell.column)
                     )}
-                    style={{width: `${cell.column.getSize()}px`}}
+                    style={{...getCommonColumnStyles(cell.column)}}
                   >
                     {flexRender(
                       cell.column.columnDef.cell,

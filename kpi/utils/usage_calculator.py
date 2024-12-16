@@ -1,5 +1,4 @@
 from json import dumps, loads
-from typing import Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -9,11 +8,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
-from kobo.apps.organizations.utils import (
-    get_monthly_billing_dates,
-    get_yearly_billing_dates,
-)
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+from kobo.apps.organizations.utils import get_billing_dates
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -23,41 +18,20 @@ class ServiceUsageCalculator(CachedClass):
     def __init__(
         self,
         user: User,
-        organization: Optional['Organization'],
         disable_cache: bool = False,
     ):
         self.user = user
-        self.organization = organization
         self._cache_available = not disable_cache
-        self._user_ids = [user.pk]
-        self._user_id_query = self._filter_by_user([user.pk])
-        if organization and settings.STRIPE_ENABLED:
-            # If the user is in an organization and has an enterprise plan, get all org
-            # users we evaluate this queryset instead of using it as a subquery. It's
-            # referencing fields from the auth_user tables on kpi *and* kobocat,
-            # making getting results in a single query not feasible until those tables
-            # are combined.
-            user_ids = list(
-                User.objects.filter(
-                    organizations_organization__id=organization.id,
-                    organizations_organization__djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,  # noqa: E501
-                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__has_key='plan_type',  # noqa: E501
-                    organizations_organization__djstripe_customers__subscriptions__items__price__product__metadata__plan_type='enterprise',  # noqa: E501
-                ).values_list('pk', flat=True)[: settings.ORGANIZATION_USER_LIMIT]
-            )
-            if user_ids:
-                self._user_ids = user_ids
-                self._user_id_query = self._filter_by_user(user_ids)
+        self._user_id = user.pk
+        self.organization = user.organization
+        if self.organization.is_mmo:
+            self._user_id = self.organization.owner_user_object.pk
 
         now = timezone.now()
-        self.current_month_start, self.current_month_end = get_monthly_billing_dates(
-            organization
+        self.current_period_start, self.current_period_end = get_billing_dates(
+            self.organization
         )
-        self.current_year_start, self.current_year_end = get_yearly_billing_dates(
-            organization
-        )
-        self.current_month_filter = Q(date__range=[self.current_month_start, now])
-        self.current_year_filter = Q(date__range=[self.current_year_start, now])
+        self.current_period_filter = Q(date__range=[self.current_period_start, now])
         self._setup_cache()
 
     def get_nlp_usage_by_type(self, usage_key: str) -> int:
@@ -76,8 +50,8 @@ class ServiceUsageCalculator(CachedClass):
         nlp_usage = self.get_nlp_usage_counters()
 
         cached_usage = {
-            'asr_seconds': nlp_usage[f'asr_seconds_current_{interval}'],
-            'mt_characters': nlp_usage[f'mt_characters_current_{interval}'],
+            'asr_seconds': nlp_usage['asr_seconds_current_period'],
+            'mt_characters': nlp_usage['mt_characters_current_period'],
         }
 
         return cached_usage[usage_key]
@@ -95,21 +69,14 @@ class ServiceUsageCalculator(CachedClass):
             NLPUsageCounter.objects.only(
                 'date', 'total_asr_seconds', 'total_mt_characters'
             )
-            .filter(self._user_id_query)
+            .filter(user_id=self._user_id)
             .aggregate(
-                asr_seconds_current_year=Coalesce(
-                    Sum('total_asr_seconds', filter=self.current_year_filter), 0
-                ),
-                mt_characters_current_year=Coalesce(
-                    Sum('total_mt_characters', filter=self.current_year_filter),
+                asr_seconds_current_period=Coalesce(
+                    Sum('total_asr_seconds', filter=self.current_period_filter),
                     0,
                 ),
-                asr_seconds_current_month=Coalesce(
-                    Sum('total_asr_seconds', filter=self.current_month_filter),
-                    0,
-                ),
-                mt_characters_current_month=Coalesce(
-                    Sum('total_mt_characters', filter=self.current_month_filter),
+                mt_characters_current_period=Coalesce(
+                    Sum('total_mt_characters', filter=self.current_period_filter),
                     0,
                 ),
                 asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
@@ -133,7 +100,7 @@ class ServiceUsageCalculator(CachedClass):
         xforms = (
             XForm.objects.only('attachment_storage_bytes', 'id')
             .exclude(pending_delete=True)
-            .filter(self._user_id_query)
+            .filter(user_id=self._user_id)
         )
 
         total_storage_bytes = xforms.aggregate(
@@ -153,14 +120,11 @@ class ServiceUsageCalculator(CachedClass):
         """
         submission_count = (
             DailyXFormSubmissionCounter.objects.only('counter', 'user_id')
-            .filter(self._user_id_query)
+            .filter(user_id=self._user_id)
             .aggregate(
                 all_time=Coalesce(Sum('counter'), 0),
-                current_year=Coalesce(
-                    Sum('counter', filter=self.current_year_filter), 0
-                ),
-                current_month=Coalesce(
-                    Sum('counter', filter=self.current_month_filter), 0
+                current_period=Coalesce(
+                    Sum('counter', filter=self.current_period_filter), 0
                 ),
             )
         )
@@ -176,9 +140,3 @@ class ServiceUsageCalculator(CachedClass):
             return f'user-{self.user.id}'
         else:
             return f'organization-{self.organization.id}'
-
-    def _filter_by_user(self, user_ids: list) -> Q:
-        """
-        Turns a list of user ids into a query object to filter by
-        """
-        return Q(user_id__in=user_ids)

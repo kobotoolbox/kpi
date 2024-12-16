@@ -2,9 +2,9 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
-from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -291,7 +291,6 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         errors = {}
         for field_name in ['organization', 'organization_website', 'organization_type']:
-            print('field_name', field_name, flush=True)
             if extra_details.get(field_name, False) is not False:
                 errors[field_name] = t('This action is not allowed.')
 

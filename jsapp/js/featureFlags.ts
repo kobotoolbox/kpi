@@ -5,7 +5,8 @@
 export enum FeatureFlag {
   activityLogsEnabled = 'activityLogsEnabled',
   mmosEnabled = 'mmosEnabled',
-  oneTimeAddonsEnabled = 'oneTimeAddonsEnabled'
+  oneTimeAddonsEnabled = 'oneTimeAddonsEnabled',
+  exportActivityLogsEnabled = 'exportActivityLogsEnabled',
 }
 
 /**
