@@ -27,7 +27,8 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
  * they can edit available fields.
  */
 export default function OrganizationSettingsRoute() {
-  const orgQuery = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery({shouldForceInvalidation: true});
+
   const [subscriptions] = useState(() => subscriptionStore);
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
   const patchOrganization = usePatchOrganization();
@@ -37,13 +38,15 @@ export default function OrganizationSettingsRoute() {
   const [website, setWebsite] = useState<string>('');
   const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null);
 
+  // We are invalidating the org query data when this component loads,
+  // so we want to wait for a fetch fresh before setting the form data
   useEffect(() => {
-    if (orgQuery.data) {
+    if (orgQuery.data && orgQuery.isFetchedAfterMount) {
       setName(orgQuery.data.name);
       setWebsite(orgQuery.data.website);
       setOrgType(orgQuery.data.organization_type);
     }
-  }, [orgQuery.data]);
+  }, [orgQuery.data, orgQuery.isFetchedAfterMount]);
 
   useWhenStripeIsEnabled(() => {
     setIsStripeEnabled(true);
@@ -76,7 +79,7 @@ export default function OrganizationSettingsRoute() {
   );
   const mmoLabelLowercase = mmoLabel.toLowerCase();
 
-  if (orgQuery.isLoading) {
+  if (orgQuery.isLoading || !orgQuery.isFetchedAfterMount) {
     return <LoadingSpinner />;
   }
 

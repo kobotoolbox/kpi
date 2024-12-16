@@ -7,6 +7,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
+import MemberRoleSelector from './MemberRoleSelector';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -15,6 +16,7 @@ import useOrganizationMembersQuery from './membersQuery';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
+import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 
 // Styles
 import styles from './membersRoute.module.scss';
@@ -28,7 +30,7 @@ export default function MembersRoute() {
     );
   }
 
-  const columns = [
+  const columns: Array<UniversalTableColumn<OrganizationMember>> = [
     {
       key: 'user__extra_details__name',
       label: t('Name'),
@@ -67,6 +69,24 @@ export default function MembersRoute() {
       key: 'role',
       label: t('Role'),
       size: 120,
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
+        if (member.role === OrganizationUserRole.owner) {
+          return t('Owner');
+        }
+        return (
+          <MemberRoleSelector
+            username={member.user__username}
+            role={member.role}
+            currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first 2 rows down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
+            placement={rowIndex <= 1 ? 'down-center' : 'up-center'}
+          />
+        );
+      },
     },
     {
       key: 'user__has_mfa_enabled',
@@ -90,7 +110,8 @@ export default function MembersRoute() {
       key: 'url',
       label: '',
       size: 64,
-      cellFormatter: (member: OrganizationMember) => {
+      isPinned: 'right',
+      cellFormatter: (member: OrganizationMember, rowIndex: number) => {
         // There is no action that can be done on an owner
         if (member.role === OrganizationUserRole.owner) {
           return null;
@@ -100,6 +121,12 @@ export default function MembersRoute() {
           <MemberActionsDropdown
             targetUsername={member.user__username}
             currentUserRole={orgQuery.data.request_user_role}
+            // To avoid opening selector outside the container (causing
+            // unnecessary scrollbar), we open first 2 rows down, and the other
+            // rows up.
+            // TODO: this should be fixed by using a component with Portal
+            // functionality (looking at Mantine or MUI).
+            placement={rowIndex <= 1 ? 'down-right' : 'up-right'}
           />
         );
       },
