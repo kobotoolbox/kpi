@@ -16,6 +16,7 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
+from ..accounts.mfa.models import MfaMethod
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import (
     HasOrgRolePermission,
@@ -23,7 +24,6 @@ from .permissions import (
     OrganizationNestedHasOrgRolePermission,
 )
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
-from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -129,22 +129,18 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >       curl -X GET https://[kpi]/api/v2/organizations/{organization_id}/service_usage/
         >       {
         >           "total_nlp_usage": {
-        >               "asr_seconds_current_month": {integer},
-        >               "asr_seconds_current_year": {integer},
+        >               "asr_seconds_current_period": {integer},
         >               "asr_seconds_all_time": {integer},
-        >               "mt_characters_current_month": {integer},
-        >               "mt_characters_current_year": {integer},
+        >               "mt_characters_current_period": {integer},
         >               "mt_characters_all_time": {integer},
         >           },
         >           "total_storage_bytes": {integer},
         >           "total_submission_count": {
-        >               "current_month": {integer},
-        >               "current_year": {integer},
+        >               "current_period": {integer},
         >               "all_time": {integer},
         >           },
-        >           "current_month_start": {string (date), ISO format},
-        >           "current_year_start": {string (date), ISO format},
-        >           "billing_period_end": {string (date), ISO format}|{None},
+        >           "current_period_start": {string (date), ISO format},
+        >           "current_period_end": {string (date), ISO format}|{None},
         >           "last_updated": {string (date), ISO format},
         >       }
         ### CURRENT ENDPOINT
@@ -187,7 +183,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >                   "asset_type": {string},
         >                   "asset": {asset_url},
         >                   "asset_name": {string},
-        >                   "nlp_usage_current_month": {
+        >                   "nlp_usage_current_period": {
         >                       "total_asr_seconds": {integer},
         >                       "total_mt_characters": {integer},
         >                   }
@@ -196,7 +192,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         >                       "total_mt_characters": {integer},
         >                   }
         >                   "storage_bytes": {integer},
-        >                   "submission_count_current_month": {integer},
+        >                   "submission_count_current_period": {integer},
         >                   "submission_count_all_time": {integer},
         >                   "deployment_status": {string},
         >               },{...}
