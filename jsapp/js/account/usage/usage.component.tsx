@@ -14,7 +14,6 @@ import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {ProductsContext} from '../useProducts.hook';
 import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {OneTimeAddOnsContext} from '../useOneTimeAddonList.hook';
-import moment from 'moment';
 import {YourPlan} from 'js/account/usage/yourPlan.component';
 import cx from 'classnames';
 import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
@@ -55,27 +54,14 @@ export default function Usage() {
   const location = useLocation();
 
   const dateRange = useMemo(() => {
-    let startDate: string;
-    const endDate = usage.billingPeriodEnd
-      ? formatDate(usage.billingPeriodEnd)
-      : formatDate(
-          moment(usage.currentMonthStart).add(1, 'month').toISOString()
-        );
-    switch (usage.trackingPeriod) {
-      case 'year':
-        startDate = formatDate(usage.currentYearStart);
-        break;
-      default:
-        startDate = formatDate(usage.currentMonthStart);
-        break;
-    }
+    const startDate = formatDate(usage.currentPeriodStart);
+    const endDate = formatDate(usage.currentPeriodEnd);
     return t('##start_date## to ##end_date##')
       .replace('##start_date##', startDate)
       .replace('##end_date##', endDate);
   }, [
-    usage.currentYearStart,
-    usage.currentMonthStart,
-    usage.billingPeriodEnd,
+    usage.currentPeriodStart,
+    usage.currentPeriodEnd,
     usage.trackingPeriod,
   ]);
 

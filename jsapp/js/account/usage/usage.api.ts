@@ -14,11 +14,7 @@ export interface AssetWithUsage {
   asset: string;
   uid: string;
   asset__name: string;
-  nlp_usage_current_month: {
-    total_nlp_asr_seconds: number;
-    total_nlp_mt_characters: number;
-  };
-  nlp_usage_current_year: {
+  nlp_usage_current_period: {
     total_nlp_asr_seconds: number;
     total_nlp_mt_characters: number;
   };
@@ -27,28 +23,22 @@ export interface AssetWithUsage {
     total_nlp_mt_characters: number;
   };
   storage_bytes: number;
-  submission_count_current_month: number;
-  submission_count_current_year: number;
+  submission_count_current_period: number;
   submission_count_all_time: number;
   deployment_status: string;
 }
 
 export interface UsageResponse {
-  current_month_start: string;
-  current_month_end: string;
-  current_year_start: string;
-  current_year_end: string;
+  current_period_start: string;
+  current_period_end: string;
   total_submission_count: {
-    current_month: number;
-    current_year: number;
+    current_period: number;
     all_time: number;
   };
   total_storage_bytes: number;
   total_nlp_usage: {
-    asr_seconds_current_month: number;
-    mt_characters_current_month: number;
-    asr_seconds_current_year: number;
-    mt_characters_current_year: number;
+    asr_seconds_current_period: number;
+    mt_characters_current_period: number;
     asr_seconds_all_time: number;
     mt_characters_all_time: number;
   };
