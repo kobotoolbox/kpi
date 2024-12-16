@@ -11,17 +11,21 @@ def update_asset_on_organization_name_change(sender, instance, **kwargs):
     Bulk update `search_field` for all assets owned by users of the
     organization when the organization is saved (e.g., on name change).
     """
-    organization_users = instance.users.all()
-    user_ids = [user.id for user in organization_users]
+    organization = instance
+    org_owner = organization.owner_user_object
+    if org_owner is None:
+        return
 
-    assets = Asset.objects.filter(owner_id__in=user_ids)
+    assets = Asset.objects.only('pk', 'uid', 'search_field').filter(
+        owner_id=org_owner.id
+    )
 
     assets_to_update = []
     for asset in assets:
-        asset.search_field = {
-            'owner_name': asset.owner.username,
-            'organization_name': instance.name,
-        }
+        asset.update_search_field(
+            owner_username=org_owner.username,
+            organization_name=organization.name,
+        )
         assets_to_update.append(asset)
 
     Asset.objects.bulk_update(assets_to_update, fields=['search_field'])

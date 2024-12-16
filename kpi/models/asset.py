@@ -87,10 +87,10 @@ from kpi.utils.sluggify import sluggify_label
 SEARCH_FIELD_SCHEMA = {
     'type': 'object',
     'properties': {
-        'owner_name': {'type': 'string'},
+        'owner_username': {'type': 'string'},
         'organization_name': {'type': 'string'},
     },
-    'required': ['owner_name', 'organization_name'],
+    'required': ['owner_username', 'organization_name'],
 }
 
 
@@ -1130,6 +1130,13 @@ class Asset(
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_search_field(self, **kwargs):
+        if self.search_field is None:
+            self.search_field = {}
+        for key, value in kwargs.items():
+            self.search_field[key] = value
+        jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
+
     def update_submission_extra(self, content, user=None):
         submission_uuid = content.get('submission')
         # the view had better have handled this
@@ -1285,10 +1292,10 @@ class Asset(
 
     def _populate_search_field(self):
         if self.owner:
-            self.search_field = {
-                'owner_name': self.owner.username,
-                'organization_name': self.owner.organization.name,
-            }
+            self.update_search_field(
+                owner_username=self.owner.username,
+                organization_name=self.owner.organization.name,
+            )
 
     def _populate_summary(self):
         if self.content is None:

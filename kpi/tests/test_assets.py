@@ -869,7 +869,7 @@ class AssetSearchFieldTests(TestCase):
     def test_search_fields_populated_on_asset_creation(self):
         asset = Asset.objects.create(owner=self.someuser)
 
-        self.assertEqual(asset.search_field['owner_name'], self.someuser.username)
+        self.assertEqual(asset.search_field['owner_username'], self.someuser.username)
         self.assertEqual(
             asset.search_field['organization_name'], self.someuser.organization.name
         )
@@ -892,10 +892,12 @@ class AssetSearchFieldTests(TestCase):
 
         invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
         transfer = Transfer.objects.create(invite=invite, asset=asset)
-        transfer.save()
+        transfer.transfer_project()
 
         asset.refresh_from_db()
-        self.assertEqual(asset.search_field['owner_name'], self.anotheruser.username)
+        self.assertEqual(
+            asset.search_field['owner_username'], self.anotheruser.username
+        )
         self.assertEqual(
             asset.search_field['organization_name'], self.anotheruser.organization.name
         )

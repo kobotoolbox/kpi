@@ -76,12 +76,6 @@ class Transfer(AbstractTimeStampedModel):
 
     def save(self, *args, **kwargs):
 
-        self.asset.search_field = {
-            'owner_name': self.invite.recipient.username,
-            'organization_name': self.invite.recipient.organization.name,
-        }
-        self.asset.save()
-
         is_new = self.pk is None
         self.invite_type = self.invite.invite_type
         super().save(*args, **kwargs)
@@ -216,8 +210,13 @@ class Transfer(AbstractTimeStampedModel):
                {'backend_response': backend_response}
             )
 
+        self.asset.update_search_field(
+            owner_username=new_owner.username,
+            organization_name=new_owner.organization.name,
+        )
+
         self.asset.save(
-            update_fields=['owner', '_deployment_data'],
+            update_fields=['owner', '_deployment_data', 'search_field'],
             create_version=False,
             adjust_content=False,
         )
