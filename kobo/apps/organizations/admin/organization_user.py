@@ -14,7 +14,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 
 from ..forms import OrgUserAdminForm
 from ..models import Organization, OrganizationUser
-from ..tasks import transfer_user_ownership_to_org
+from ..tasks import transfer_member_data_ownership_to_org
 from ..utils import revoke_org_asset_perms
 
 
@@ -136,7 +136,7 @@ class OrgUserResource(resources.ModelResource):
                     'user_id', flat=True
                 ).filter(pk__in=new_organization_user_ids)
                 for user_id in user_ids:
-                    transfer_user_ownership_to_org.delay(user_id)
+                    transfer_member_data_ownership_to_org.delay(user_id)
 
     def before_import_row(self, row, **kwargs):
 
@@ -193,7 +193,7 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
         previous_organization = form.cleaned_data.get('previous_organization')
         super().save_model(request, obj, form, change)
         if previous_organization:
-            transfer_user_ownership_to_org.delay(obj.user.pk)
+            transfer_member_data_ownership_to_org.delay(obj.user.pk)
             message = (
                 f'User <b>{obj.user.username}</b> has been added to '
                 f'<b>{obj.organization.name}</b>, and their project transfers have '
