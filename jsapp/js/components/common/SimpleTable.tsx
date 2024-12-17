@@ -1,5 +1,6 @@
 // Libraries
-import {Table, TableData} from '@mantine/core';
+import type React from 'react';
+import {Table, type TableData} from '@mantine/core';
 
 // Partial components
 
@@ -7,12 +8,29 @@ import {Table, TableData} from '@mantine/core';
 // Constants and types
 // Styles
 
-import React from 'react';
-
 interface SimpleTableProps {
-  data: TableData;
+  head: TableData['head'];
+  body: TableData['body'];
+  /** Passing min width enables contextual horizontal scrollbar. */
+  minWidth?: number;
 }
 
 export default function SimpleTable(props: SimpleTableProps) {
-  return (<Table data={props.data} />);
+  const table = (
+    <Table
+      data={{head: props.head, body: props.body}}
+      horizontalSpacing='sm'
+      verticalSpacing='sm'
+    />
+  );
+
+  if (props.minWidth) {
+    return (
+      <Table.ScrollContainer minWidth={props.minWidth} type='native'>
+        {table}
+      </Table.ScrollContainer>
+    );
+  }
+
+  return table;
 }
