@@ -871,11 +871,11 @@ class SubmissionExportTaskBase(ImportExportTask):
 
         with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             if export_type == 'csv':
-                for line in export.to_csv(submission_stream):
+                for line in export.to_csv(submission_stream, version_uid=self.asset.latest_deployed_version_uid):
                     output_file.write((line + '\r\n').encode('utf-8'))
             elif export_type == 'geojson':
                 for line in export.to_geojson(
-                    submission_stream, flatten=flatten
+                    submission_stream, version_uid=self.asset.latest_deployed_version_uid, flatten=flatten
                 ):
                     output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
@@ -884,7 +884,7 @@ class SubmissionExportTaskBase(ImportExportTask):
                 with tempfile.NamedTemporaryFile(
                         prefix='export_xlsx', mode='rb'
                 ) as xlsx_output_file:
-                    export.to_xlsx(xlsx_output_file.name, submission_stream)
+                    export.to_xlsx(xlsx_output_file.name, submission_stream, version_uid=self.asset.latest_deployed_version_uid)
                     # TODO: chunk again once
                     # https://github.com/jschneier/django-storages/issues/449
                     # is fixed
