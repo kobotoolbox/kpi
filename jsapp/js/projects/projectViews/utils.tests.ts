@@ -71,12 +71,10 @@ describe('projectViewsUtils', () => {
           out: 'settings__description__istartswith:"foo"',
         },
         {
-          in: {
-            fieldName: 'ownerUsername',
-            condition: 'doesNotContain',
-            value: 'foo',
-          },
-          out: 'NOT owner__username__icontains:"foo"',
+          in: {fieldName: 'ownerUsername', condition: 'contains', value: 'foo'},
+          out:
+            '(search_field__owner_name__icontains:"foo" ' +
+            'OR search_field__organization_name__icontains:"foo")',
         },
         {
           in: {fieldName: 'ownerFullName', condition: 'endsWith', value: 'foo'},
