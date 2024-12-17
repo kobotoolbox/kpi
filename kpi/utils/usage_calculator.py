@@ -38,15 +38,6 @@ class ServiceUsageCalculator(CachedClass):
         """Returns the usage for a given organization and usage key. The usage key
         should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
         """
-        if self.organization is None:
-            return None
-
-        billing_details = self.organization.active_subscription_billing_details()
-        if not billing_details:
-            interval = 'month'  # The default interval is month
-        else:
-            interval = billing_details['recurring_interval']
-
         nlp_usage = self.get_nlp_usage_counters()
 
         cached_usage = {
