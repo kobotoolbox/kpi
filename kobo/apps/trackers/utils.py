@@ -89,7 +89,7 @@ def get_organization_remaining_usage(
     addon_remaining = 0
     if settings.STRIPE_ENABLED:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
-        addon_limit, addon_remaining = PlanAddOn.get_organization_totals(
+        _, addon_remaining = PlanAddOn.get_organization_totals(
             organization,
             usage_type,
         )
