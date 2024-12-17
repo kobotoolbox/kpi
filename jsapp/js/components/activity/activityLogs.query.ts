@@ -50,7 +50,7 @@ const getActivityLogs = async ({
  * Filter options, for now, comes from AuditActions enum.
  * In the future we might change this to be fetched from the server.
  *
- * Items are filtered by specific order defined in the AUDIT_ACTION_TYPES.
+ * Items are sorted by an specific order defined in the AUDIT_ACTION_TYPES.
  *
  */
 const getFilterOptions = async () =>
