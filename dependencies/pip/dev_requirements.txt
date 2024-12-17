@@ -29,6 +29,7 @@ amqp==5.2.0
 asgiref==3.8.1
     # via
     #   django
+    #   django-allauth
     #   django-cors-headers
 asttokens==2.4.1
     # via stack-data
@@ -109,7 +110,6 @@ cryptography==42.0.5
     #   azure-storage-blob
     #   jwcrypto
     #   paramiko
-    #   pyjwt
     #   pyopenssl
 cssselect==1.2.0
     # via pyquery
@@ -131,7 +131,6 @@ defusedxml==0.7.1
     # via
     #   -r dependencies/pip/requirements.in
     #   djangorestframework-xml
-    #   python3-openid
     #   pyxform
 deprecated==1.2.14
     # via fabric
@@ -171,7 +170,7 @@ django==4.2.15
     #   djangorestframework
     #   jsonfield
     #   model-bakery
-django-allauth==0.61.1
+django-allauth==65.1.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -488,10 +487,8 @@ pygments==2.17.2
     # via
     #   -r dependencies/pip/requirements.in
     #   ipython
-pyjwt[crypto]==2.8.0
-    # via
-    #   django-allauth
-    #   twilio
+pyjwt==2.8.0
+    # via twilio
 pymongo==4.6.3
     # via -r dependencies/pip/requirements.in
 pynacl==1.5.0
@@ -531,8 +528,6 @@ python-dateutil==2.9.0.post0
     #   freezegun
     #   pandas
     #   python-crontab
-python3-openid==3.2.0
-    # via django-allauth
 pytz==2024.1
     # via
     #   flower
@@ -559,19 +554,15 @@ requests==2.31.0
     #   -r dependencies/pip/requirements.in
     #   azure-core
     #   coveralls
-    #   django-allauth
     #   django-oauth-toolkit
     #   google-api-core
     #   google-cloud-storage
     #   httmock
-    #   requests-oauthlib
     #   responses
     #   smsapi-client
     #   stripe
     #   twilio
     #   yubico-client
-requests-oauthlib==2.0.0
-    # via django-allauth
 responses==0.25.0
     # via -r dependencies/pip/requirements.in
 rpds-py==0.18.0
