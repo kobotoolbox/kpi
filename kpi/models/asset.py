@@ -254,7 +254,7 @@ class Asset(
     )
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
-    search_field = LazyDefaultJSONBField(default=dict)
+    search_field = models.JSONField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -1131,8 +1131,6 @@ class Asset(
         return flatten_content(self.content, in_place=False)
 
     def update_search_field(self, **kwargs):
-        if self.search_field is None:
-            self.search_field = {}
         for key, value in kwargs.items():
             self.search_field[key] = value
         jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
