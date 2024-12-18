@@ -251,7 +251,7 @@ def task_rescheduler():
         delegate to celery internal mechanism to restart tasks itself.
         Unfortunately, it does not seem to work as a parameter of @celery_app.task
         decorator (it is ignored), but as a global setting - which would have
-        affect all celery tasks across the app.
+        affected all celery tasks across the app.
     """
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
