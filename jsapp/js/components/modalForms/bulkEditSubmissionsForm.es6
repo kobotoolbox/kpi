@@ -16,9 +16,8 @@ import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
 import SimpleTable from 'js/components/common/SimpleTable';
-import {Text} from '@mantine/core';
+import {Text, Box} from '@mantine/core';
 import envStore from 'js/envStore';
-import './bulkEditSubmissionsForm.scss';
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');
@@ -310,7 +309,7 @@ class BulkEditSubmissionsForm extends React.Component {
             this.renderRowDataValues(question.name, question.selectedData)
           }
         </>,
-        <Text key='edit-button' ta='right'>
+        <Text key='action-button' ta='right'>
           <Button
             type='secondary'
             size='m'
@@ -363,7 +362,7 @@ class BulkEditSubmissionsForm extends React.Component {
             t('Type'),
             t('Question'),
             t('Response'),
-            <Text key='edit-button' ta='right'>{t('Action')}</Text>,
+            <Text key='action-button' ta='right'>{t('Action')}</Text>,
           ]}
           body={[this.getFiltersRow(), ...this.getRows(finalData)]}
           minWidth={600}
@@ -475,7 +474,10 @@ class BulkEditRowForm extends React.Component {
   }
 
   /**
-   * @returns {object[]} an ordered list of unique responses with frequency data
+   * @returns {[][]} an ordered list of unique responses with frequency data.
+   * Each data item (an array) has:
+   * [0] {string|null} - the unique response value
+   * [1] {number} - the total count for this unique response
    */
   getUniqueResponses() {
     let uniqueResponses = new Map();
@@ -491,38 +493,34 @@ class BulkEditRowForm extends React.Component {
     return uniqueResponses;
   }
 
-  /**
-   * @param {string|null} data[0] - the unique response value
-   * @param {number} data[1] - the total count for this unique response
-   */
-  renderResponseRow(data) {
-    const count = data[1];
-    const response = data[0];
+  getRows() {
+    return Array.from(this.getUniqueResponses()).map((data) => {
+      const count = data[1];
+      const response = data[0];
 
-    let responseLabel = response;
-    let responseValue = response;
-    if (response === undefined) {
-      responseLabel = EMPTY_VALUE_LABEL;
-      responseValue = EMPTY_VALUE;
-    }
+      let responseLabel = response;
+      let responseValue = response;
+      if (response === undefined) {
+        responseLabel = EMPTY_VALUE_LABEL;
+        responseValue = EMPTY_VALUE;
+      }
 
-    const percentage = (count / this.props.originalData.length * 100).toFixed(2);
+      const percentage = (count / this.props.originalData.length * 100).toFixed(2);
 
-    return (
-      <bem.SimpleTable__row key={responseLabel}>
-        <bem.SimpleTable__cell>{responseLabel}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>{count}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>{percentage}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>
+      return [
+        responseLabel,
+        count,
+        percentage,
+        <Text key='action-button' ta='right'>
           <Button
             type='secondary'
             size='m'
             onClick={this.onChange.bind(this, responseValue)}
             label={t('Select')}
           />
-        </bem.SimpleTable__cell>
-      </bem.SimpleTable__row>
-    );
+        </Text>,
+      ];
+    });
   }
 
   render() {
@@ -552,23 +550,18 @@ class BulkEditRowForm extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__cell>
 
-        <bem.SimpleTable m='bulk-edit-responses'>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>{t('Response value')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Frequency')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Percentage')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Action')}</bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
-
-          <bem.SimpleTable__body>
-            {Array.from(this.getUniqueResponses()).map(this.renderResponseRow)}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
+        <Box mt='lg'>
+          <SimpleTable
+            head={[
+              t('Response value'),
+              t('Frequency'),
+              t('Percentage'),
+              <Text key='action-button' ta='right'>{t('Action')}</Text>,
+            ]}
+            body={this.getRows()}
+            minWidth={600}
+          />
+        </Box>
       </React.Fragment>
     );
   }
