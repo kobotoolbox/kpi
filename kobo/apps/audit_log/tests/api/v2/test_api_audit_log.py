@@ -32,6 +32,7 @@ class BaseAuditLogTestCase(BaseTestCase):
 
     def setUp(self):
         super(BaseAuditLogTestCase, self).setUp()
+        # this is not a problem
         self.url = reverse(self._get_endpoint(self.get_endpoint_basename()))
 
     def login_user(self, username, password):
