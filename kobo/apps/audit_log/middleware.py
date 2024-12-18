@@ -4,6 +4,7 @@ from kobo.apps.audit_log.models import AuditType, ProjectHistoryLog
 
 
 def create_project_history_log_middleware(get_response):
+    # this should not cause a problem
     def create_audit_logs(request):
         response = get_response(request)
         if request.method in ['GET', 'HEAD']:
