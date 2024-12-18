@@ -53,6 +53,7 @@ from kpi.utils.xml import (
     xml_tostring,
 )
 
+# this should trigger a linting error because it is tooooooooooooooooooooooooooooooooooooooooooooooooooo long
 
 class DataViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
