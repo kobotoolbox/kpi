@@ -395,8 +395,14 @@ class DataViewSet(
         # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         original_submission = deployment.get_submission(
-            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
+            submission_id=submission_id,
+            user=request.user,
+            fields=['_id', '_uuid', '_submitted_by'],
         )
+        request._request.updated_data = {
+            'asset_id': self.asset.id,
+            'submitted_by': original_submission['_submitted_by']
+        }
 
         with http_open_rosa_error_handler(
             lambda: deployment.duplicate_submission(
