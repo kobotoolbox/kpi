@@ -8,6 +8,26 @@ from model_bakery import baker
 from kobo.apps.organizations.models import Organization
 
 
+def generate_free_plan():
+    product_metadata = {
+        'product_type': 'plan',
+        'submission_limit': '5000',
+        'asr_seconds_limit': '600',
+        'mt_characters_limit': '6000',
+        'storage_bytes_limit': '1000000000',
+    }
+
+    product = baker.make(Product, active=True, metadata=product_metadata)
+
+    baker.make(
+        Price,
+        active=True,
+        recurring={'interval': 'month'},
+        unit_amount=0,
+        product=product,
+    )
+
+
 def generate_plan_subscription(
     organization: Organization,
     metadata: dict = None,
