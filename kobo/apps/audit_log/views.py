@@ -164,6 +164,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     Lists all access logs for all users. Only available to superusers.
 
     Submissions will be grouped together by user by hour
+    This is ok
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/access-logs/
