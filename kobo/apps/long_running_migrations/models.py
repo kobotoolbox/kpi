@@ -21,7 +21,8 @@ class LongRunningMigration(AbstractTimeStampedModel):
     LONG_RUNNING_MIGRATIONS_DIR = os.path.join(
         'kobo',
         'apps',
-        'long_running_migrations'
+        'long_running_migrations',
+        'jobs'
     )
 
     name = models.CharField(max_length=255, unique=True)
