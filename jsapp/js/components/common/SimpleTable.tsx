@@ -1,20 +1,20 @@
-// Libraries
-import type React from 'react';
 import {Table, type TableData} from '@mantine/core';
-
-// Partial components
-
-// Stores, hooks and utilities
-// Constants and types
-// Styles
 
 interface SimpleTableProps {
   head: TableData['head'];
   body: TableData['body'];
-  /** Passing min width enables contextual horizontal scrollbar. */
+  /**
+   * Passing minimum width enables contextual horizontal scrollbar (i.e. without
+   * it the table will never display scrollbar - regardless of how small
+   * the screen is).
+   */
   minWidth?: number;
 }
 
+/**
+ * A wrapper component for `Table` from `@mantine/core`. It requires column
+ * headings, column data, and has optional minimum width.
+ */
 export default function SimpleTable(props: SimpleTableProps) {
   const table = (
     <Table
