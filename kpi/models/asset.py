@@ -137,6 +137,7 @@ class AssetWithoutPendingDeletedManager(models.Manager):
         self._for_write = True
         created.save(force_insert=True, using=self.db,
                      update_parent_languages=update_parent_languages)
+        # fake comment
 
         if tag_string:
             created.tag_string = tag_string
