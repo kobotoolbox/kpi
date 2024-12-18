@@ -19,6 +19,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import (
+    generate_free_plan,
     generate_mmo_subscription,
     generate_plan_subscription,
 )
@@ -462,11 +463,11 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         self.organization.add_user(self.anotheruser, is_admin=True)
 
     def test_get_plan_community_limit(self):
-        generate_mmo_subscription(self.organization)
+        generate_free_plan()
         limit = get_organization_plan_limit(self.organization, 'seconds')
-        assert limit == inf  # TODO get the limits from the community plan, overrides
+        assert limit == 600
         limit = get_organization_plan_limit(self.organization, 'characters')
-        assert limit == inf  # TODO get the limits from the community plan, overrides
+        assert limit == 6000
 
     @data('characters', 'seconds')
     def test_get_suscription_limit(self, usage_type):

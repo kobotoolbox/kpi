@@ -14,6 +14,9 @@ from rest_framework import serializers
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
+from kobo.apps.organizations.models import Organization
+from kobo.apps.project_ownership.models.invite import Invite
+from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
@@ -855,3 +858,46 @@ class TestAssetNameSettingHandling(AssetsTestCase):
 
         # Assert that the root node name is the asset.uid
         assert root_element.nodeName == asset.uid
+
+
+class AssetSearchFieldTests(TestCase):
+
+    def setUp(self):
+        self.someuser = User.objects.create(username='someuser')
+        self.anotheruser = User.objects.create(username='anotheruser')
+
+    def test_search_fields_populated_on_asset_creation(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        self.assertEqual(asset.search_field['owner_username'], self.someuser.username)
+        self.assertEqual(
+            asset.search_field['organization_name'], self.someuser.organization.name
+        )
+
+    def test_search_fields_updated_on_organization_save(self):
+        asset = Asset.objects.create(owner=self.someuser)
+        org_name = asset.search_field['organization_name']
+        organization = Organization.objects.get(name=org_name)
+
+        organization.name = 'Updated Organization'
+        organization.save()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['organization_name'], 'Updated Organization'
+        )
+
+    def test_search_fields_updated_on_project_ownership_transfer(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
+        transfer = Transfer.objects.create(invite=invite, asset=asset)
+        transfer.transfer_project()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['owner_username'], self.anotheruser.username
+        )
+        self.assertEqual(
+            asset.search_field['organization_name'], self.anotheruser.organization.name
+        )
