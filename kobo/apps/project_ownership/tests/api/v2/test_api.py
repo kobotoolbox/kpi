@@ -365,35 +365,29 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
     def test_account_usage_transferred_to_new_user(self):
         expected_data = {
             'total_nlp_usage': {
-                'asr_seconds_current_year': 120,
-                'mt_characters_current_year': 1000,
-                'asr_seconds_current_month': 120,
-                'mt_characters_current_month': 1000,
+                'asr_seconds_current_period': 120,
+                'mt_characters_current_period': 1000,
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
             },
             'total_storage_bytes': 191642,
             'total_submission_count': {
                 'all_time': 1,
-                'current_year': 1,
-                'current_month': 1,
+                'current_period': 1,
             },
         }
 
         expected_empty_data = {
             'total_nlp_usage': {
-                'asr_seconds_current_year': 0,
-                'mt_characters_current_year': 0,
-                'asr_seconds_current_month': 0,
-                'mt_characters_current_month': 0,
+                'asr_seconds_current_period': 0,
+                'mt_characters_current_period': 0,
                 'asr_seconds_all_time': 0,
                 'mt_characters_all_time': 0,
             },
             'total_storage_bytes': 0,
             'total_submission_count': {
                 'all_time': 0,
-                'current_year': 0,
-                'current_month': 0,
+                'current_period': 0,
             },
         }
 
