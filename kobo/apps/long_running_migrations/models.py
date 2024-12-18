@@ -1,6 +1,8 @@
 import importlib
 import os
 
+from django.conf import settings
+from django.core.exceptions import SuspiciousOperation
 from django.db import models
 
 from kpi.models.abstract_models import AbstractTimeStampedModel
@@ -16,9 +18,13 @@ class LongRunningMigrationStatus(models.TextChoices):
 
 class LongRunningMigration(AbstractTimeStampedModel):
 
-    APP_DIR = os.path.basename(os.path.dirname(__file__))
+    LONG_RUNNING_MIGRATIONS_DIR = os.path.join(
+        'kobo',
+        'apps',
+        'long_running_migrations'
+    )
 
-    task_name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True)
     status = models.CharField(
         default=LongRunningMigrationStatus.CREATED,
         choices=LongRunningMigrationStatus.choices,
@@ -26,29 +32,47 @@ class LongRunningMigration(AbstractTimeStampedModel):
     )
     attempts = models.PositiveSmallIntegerField(default=0)
 
+    def clean(self):
+        super().clean()
+        if '..' in self.name or '/' in self.name or '\\' in self.name:
+            raise SuspiciousOperation(
+                f"Invalid migration name '{self.name}'. "
+                f"Migration names cannot contain directory traversal characters "
+                f"such as '..', '/', or '\\'."
+            )
+
     def execute(self):
+        # Skip execution if the migration is already completed
         if self.status == LongRunningMigrationStatus.COMPLETED:
             return
 
-        module = importlib.import_module(
-            os.path.join(self.APP_DIR, 'tasks', self.task_name)
-        )
+        base_import = self.LONG_RUNNING_MIGRATIONS_DIR.replace('/', '.')
+        module = importlib.import_module('.'.join([base_import, self.name]))
+
         self.status = LongRunningMigrationStatus.IN_PROGRESS
         self.attempts += self.attempts
         self.save(update_fields=['status', 'attempts'])
+
         try:
             module.task()
         except Exception as e:
+            # Log the error and update the status to 'failed'
             logging.error(f'LongRunningMigration.execute(): {str(e)}')
             self.status = LongRunningMigrationStatus.FAILED
             self.save(update_fields=['status'])
             return
+
         self.status = LongRunningMigrationStatus.COMPLETED
         self.save(update_fields=['status'])
 
     def save(self, **kwargs):
+
+        self.clean()
+
         if self._state.adding:
-            file_path = os.path.join(self.APP_DIR, 'tasks', f'{self.task_name}.py')
+            file_path = os.path.join(
+                settings.BASE_DIR, self.LONG_RUNNING_MIGRATIONS_DIR, f'{self.name}.py'
+            )
             if not os.path.exists(file_path):
                 raise ValueError('Task does not exist in tasks directory')
         super().save(**kwargs)

@@ -23,9 +23,9 @@ def execute_long_running_migrations():
             # Adding an offset to account for potential delays in task execution and
             # clock drift between the Celery workers and the database, ensuring tasks
             # are not prematurely skipped.
-            offset = 5 * 60 * 1000
+            offset = 5 * 60
             task_expiry_time = timezone.now() - relativedelta(
-                minutes=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + offset
+                seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + offset
             )
             # Run tasks that were just created or are in progress but have exceeded
             # the maximum runtime allowed for a Celery task, causing Celery to terminate

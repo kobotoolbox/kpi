@@ -1,13 +1,9 @@
 import requests
 from django.conf import settings
 from django.core.mail import send_mail
-from django.core.cache import cache
 from django.core.management import call_command
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.long_running_migrations.maintenance_tasks import (
-    execute_long_running_migrations,
-)
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
 from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
@@ -102,13 +98,7 @@ def perform_maintenance():
     """
     Run daily maintenance tasks. Ensure it cannot run multiple times.
     """
-    # Simplistic redis lock with timeout and self removal to prevent duplicate runs
-    lock_key = 'perform_maintenance_lock'
-    if cache.add(lock_key, 'true', timeout=LIMIT_HOURS_23):
-        try:
-            remove_unused_markdown_files()
-            remove_old_import_tasks()
-            remove_old_asset_snapshots()
-            execute_long_running_migrations()
-        finally:
-            cache.delete(lock_key)
+
+    remove_unused_markdown_files()
+    remove_old_import_tasks()
+    remove_old_asset_snapshots()
