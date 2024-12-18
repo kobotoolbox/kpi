@@ -43,6 +43,7 @@ class LongRunningMigrationTestCase(TestCase):
         self.assertEqual(migration.status, LongRunningMigrationStatus.FAILED)
 
     def test_not_updated_worker(self):
+        # simulate not updated worker with a wrong name
         migrations = LongRunningMigration.objects.bulk_create(
             [LongRunningMigration(name='foo')]
         )
@@ -67,6 +68,10 @@ class LongRunningMigrationPeriodicTaskTestCase(TestCase):
         )
         self.patcher.start()
         self.migration = LongRunningMigration.objects.create(name='sample_task')
+
+        # Remove real existing long-running migrations
+        LongRunningMigration.objects.exclude(pk=self.migration.pk).delete()
+        assert LongRunningMigration.objects.count() == 1
 
     def tearDown(self):
         self.patcher.stop()
