@@ -210,8 +210,13 @@ class Transfer(AbstractTimeStampedModel):
                {'backend_response': backend_response}
             )
 
+        self.asset.update_search_field(
+            owner_username=new_owner.username,
+            organization_name=new_owner.organization.name,
+        )
+
         self.asset.save(
-            update_fields=['owner', '_deployment_data'],
+            update_fields=['owner', '_deployment_data', 'search_field'],
             create_version=False,
             adjust_content=False,
         )

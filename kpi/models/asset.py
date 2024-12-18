@@ -84,6 +84,15 @@ from kpi.utils.object_permission import (
 )
 from kpi.utils.sluggify import sluggify_label
 
+SEARCH_FIELD_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'owner_username': {'type': 'string'},
+        'organization_name': {'type': 'string'},
+    },
+    'required': ['owner_username', 'organization_name'],
+}
+
 
 class AssetDeploymentStatus(models.TextChoices):
 
@@ -245,6 +254,7 @@ class Asset(
     )
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    search_field = models.JSONField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -903,6 +913,9 @@ class Asset(
     ):
         is_new = self.pk is None
 
+        if is_new:
+            self._populate_search_field()
+
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this
@@ -1117,6 +1130,11 @@ class Asset(
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_search_field(self, **kwargs):
+        for key, value in kwargs.items():
+            self.search_field[key] = value
+        jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
+
     def update_submission_extra(self, content, user=None):
         submission_uuid = content.get('submission')
         # the view had better have handled this
@@ -1269,6 +1287,13 @@ class Asset(
             SPECIFIC_REPORTS_KEY: specifieds,
             'kuid_names': kuids_to_variable_names,
         }
+
+    def _populate_search_field(self):
+        if self.owner:
+            self.update_search_field(
+                owner_username=self.owner.username,
+                organization_name=self.owner.organization.name,
+            )
 
     def _populate_summary(self):
         if self.content is None:
