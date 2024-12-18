@@ -19,6 +19,22 @@ const meta: Meta<React.ComponentProps<typeof SimpleTable>> = {
             [7, 14.007, 'N', 'Nitrogen'],
             [39, 88.906, 'Y', 'Yttrium'],
             [56, 137.33, 'Ba', 'Barium'],
+            [
+              'n/a',
+              'n/a',
+              '??',
+              (
+                <div key='test'>
+                  This is just a DIV. It has a button and an input:
+                  <br/><br/>
+                  <button>button</button>
+                  <br/><br/>
+                  <input type='email'/>
+                  <br/><br/>
+                  It shows you can have any <code>React.ReactNode</code> here.
+                </div>
+              ),
+            ],
             [58, 140.12, 'Ce', 'Cerium'],
           ]
         }
