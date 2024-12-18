@@ -35,7 +35,7 @@ def execute_long_running_migrations():
                 Q(status=LongRunningMigrationStatus.CREATED)
                 | Q(status=LongRunningMigrationStatus.IN_PROGRESS)
                 & Q(date_modified__lte=task_expiry_time)
-            ):
+            ).order_by('date_created'):
                 migration.execute()
         finally:
             cache.delete(lock_key)
