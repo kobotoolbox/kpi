@@ -26,7 +26,7 @@ jobs:
           # Run darker only on file changes introduced in this PR.
           # Allows incremental adoption of linter rules on a per-file basis.
 
-          # For this scenario:
+          # Prevents this scenario:
           #  - PR A is opened, modifying file A; CI passes.
           #  - PR B is opened & merged, with linter errors in file B.
           #  - PR A is updated again, modifying file A. CI fails from file B.
@@ -45,6 +45,6 @@ jobs:
           output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH)
 
           # darker still exits with code 1 even with no errors on changes
-          # So, make this 'fail' CI only if there is output from darker.
+          # So, make this fail CI only if there is output from darker.
           [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
         shell: /usr/bin/bash {0}
