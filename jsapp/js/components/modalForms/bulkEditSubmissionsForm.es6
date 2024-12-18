@@ -15,6 +15,8 @@ import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
+import SimpleTable from 'js/components/common/SimpleTable';
+import {Text} from '@mantine/core';
 import envStore from 'js/envStore';
 import './bulkEditSubmissionsForm.scss';
 
@@ -226,62 +228,6 @@ class BulkEditSubmissionsForm extends React.Component {
     return EXCLUDED_TYPES.includes(questionType);
   }
 
-  renderRow(questionData, itemIndex) {
-    let question = questionData;
-    if (typeof questionData.refIndex !== 'undefined') {
-      question = questionData.item;
-    }
-
-    let modifiers = [];
-    // we don't support bulk editing questions from repeat groups yet
-    // we display them but disabled
-    if (question.hasRepeatParent) {
-      modifiers.push('bulk-edit-row-disabled');
-    }
-
-    return (
-      <bem.SimpleTable__row key={itemIndex} m={modifiers}>
-        <bem.SimpleTable__cell>
-          {renderQuestionTypeIcon(question.type)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell dir='auto'>
-          {question.parents.length > 0 &&
-            <small>{question.parents.join(' / ') + ' /'}</small>
-          }
-
-          <div>
-            {question.isRequired && <strong title={t('Required')}>*&nbsp;</strong>}
-            {question.label}
-          </div>
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          {question.hasRepeatParent &&
-            <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
-          }
-          {!question.hasRepeatParent &&
-            this.renderRowDataValues(question.name, question.selectedData)
-          }
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          <Button
-            type='secondary'
-            size='m'
-            onClick={() => {
-              if (!this.isEditDisabled(question.type)) {
-                this.selectQuestion(question);
-              }
-            }}
-            isDisabled={this.isEditDisabled(question.type)}
-            label={t('Edit')}
-          />
-        </bem.SimpleTable__cell>
-      </bem.SimpleTable__row>
-    );
-  }
-
   /**
    * A wrapper function that handles all quirks for displaying the question data
    * to users
@@ -318,6 +264,74 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
+  getFiltersRow() {
+    return [
+      '',
+      <TextBox
+        key='filter-by-name'
+        value={this.state.filterByName}
+        onChange={this.onFilterByNameChange}
+        placeholder={t('Type to filter')}
+      />,
+      <TextBox
+        key='filter-by-value'
+        value={this.state.filterByValue}
+        onChange={this.onFilterByValueChange}
+        placeholder={t('Type to filter')}
+      />,
+      '',
+    ];
+  }
+
+  getRows(data) {
+    return data.map((questionData) => {
+      let question = questionData;
+      if (typeof questionData.refIndex !== 'undefined') {
+        question = questionData.item;
+      }
+
+      return [
+        renderQuestionTypeIcon(question.type),
+        <>
+          {question.parents.length > 0 &&
+            <small>{question.parents.join(' / ') + ' /'}</small>
+          }
+
+          <div>
+            {question.isRequired && <strong title={t('Required')}>*&nbsp;</strong>}
+            {question.label}
+          </div>
+        </>,
+        <>
+          {question.hasRepeatParent &&
+            <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
+          }
+          {!question.hasRepeatParent &&
+            this.renderRowDataValues(question.name, question.selectedData)
+          }
+        </>,
+        <Text key='edit-button' ta='right'>
+          <Button
+            type='secondary'
+            size='m'
+            onClick={() => {
+              if (!this.isEditDisabled(question.type)) {
+                this.selectQuestion(question);
+              }
+            }}
+            isDisabled={
+              this.isEditDisabled(question.type) ||
+              // we don't support bulk editing questions from repeat groups yet
+              // we display them but disabled
+              question.hasRepeatParent
+            }
+            label={t('Edit')}
+          />
+        </Text>,
+      ];
+    });
+  }
+
   renderList() {
     const displayData = this.getDisplayData();
 
@@ -344,53 +358,16 @@ class BulkEditSubmissionsForm extends React.Component {
           {t('Updated responses')}
         </bem.FormModal__item>
 
-        <bem.SimpleTable m='bulk-edit-list'>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
-                {t('Type')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Question')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Response')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Action')}
-              </bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell/>
-
-              <bem.SimpleTable__cell>
-                <TextBox
-                  value={this.state.filterByName}
-                  onChange={this.onFilterByNameChange}
-                  placeholder={t('Type to filter')}
-                />
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                <TextBox
-                  value={this.state.filterByValue}
-                  onChange={this.onFilterByValueChange}
-                  placeholder={t('Type to filter')}
-                />
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell/>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
-
-          <bem.SimpleTable__body>
-            {finalData.map(this.renderRow)}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
+        <SimpleTable
+          head={[
+            t('Type'),
+            t('Question'),
+            t('Response'),
+            <Text key='edit-button' ta='right'>{t('Action')}</Text>,
+          ]}
+          body={[this.getFiltersRow(), ...this.getRows(finalData)]}
+          minWidth={600}
+        />
 
         <bem.Modal__footer>
           <Button
