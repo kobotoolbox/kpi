@@ -1160,11 +1160,11 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     'perform-maintenance': {
-        'task': 'kobo.tasks.perform_maintenance',
+        'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
@@ -1181,19 +1181,19 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
-        'schedule': crontab(minute=10),
+        'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-stuck-tasks-as-failed': {
         'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
