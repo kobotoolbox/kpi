@@ -72,6 +72,7 @@ class AuditLog(models.Model):
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
+    # this is tooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo long
     metadata = models.JSONField(default=dict)
     action = models.CharField(
         max_length=30,
