@@ -171,6 +171,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         # make sure a user can't get someone else's access logs
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
+        # this is another ok comment
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user2)
         self.force_login_user(user1)
