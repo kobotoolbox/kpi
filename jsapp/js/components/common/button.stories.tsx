@@ -1,13 +1,10 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import type {TooltipAlignment} from './tooltip';
 import {IconNames} from 'jsapp/fonts/k-icons';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import type {MantineSize, PolymorphicComponentProps, TooltipProps} from '@mantine/core';
-import {MantineProvider} from '@mantine/core';
 import Icon from './icon';
 import '@mantine/core/styles.css';
-import {themeKobo} from 'jsapp/js/theme';
 import Button, {type ButtonProps} from './ButtonNew';
 
 const buttonVariants: Array<ButtonProps['variant']> = [
@@ -112,7 +109,7 @@ export default {
 } as ComponentMeta<typeof Button>;
 
 const Template: ComponentStory<typeof Button> = ({leftSectionS, leftSectionM, leftSectionL, rightSectionS, rightSectionM, rightSectionL, ...args}: any) =>
-  <MantineProvider theme={themeKobo}><Button {...{...args, leftSection: leftSectionS ?? leftSectionM ?? leftSectionL, rightSection: rightSectionS ?? rightSectionM ?? rightSectionL}} /></MantineProvider>;
+  <Button {...{...args, leftSection: leftSectionS ?? leftSectionM ?? leftSectionL, rightSection: rightSectionS ?? rightSectionM ?? rightSectionL}} />;
 
 export const Primary = Template.bind({});
 Primary.args = {
@@ -174,35 +171,33 @@ const demoButtons: Array<{label?: string; leftSectionName?: IconName}> = [
  * - and in idle, pending, and disabled states.
  */
 export const AllButtons = () => (
-  <MantineProvider theme={themeKobo}>
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(6, auto)',
-      gridAutoFlow: 'row',
-      gridGap: '30px 15px',
-      justifyItems: 'start',
-      padding: '10px',
-    }}>
-      {buttonVariants.map((variant) => (
-        buttonSizes.map((size) => (
-          demoButtons.map(({label, leftSectionName}) => {
-            const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
-              variant,
-              size: size,
-              leftSection: leftSectionName ? <Icon name={leftSectionName} size={size[0] as any} /> : undefined,
-              onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
-              tooltip: label,
-            };
-            return (
-              <>
-                <Button {...buttonProps}>{label}</Button>
-                <Button {...buttonProps} loading>{label}</Button>
-                <Button {...buttonProps} disabled>{label}</Button>
-              </>
-            );
-          })
-        ))
-      ))}
-    </div>
-  </MantineProvider>
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, auto)',
+    gridAutoFlow: 'row',
+    gridGap: '30px 15px',
+    justifyItems: 'start',
+    padding: '10px',
+  }}>
+    {buttonVariants.map((variant) => (
+      buttonSizes.map((size) => (
+        demoButtons.map(({label, leftSectionName}) => {
+          const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
+            variant,
+            size: size,
+            leftSection: leftSectionName ? <Icon name={leftSectionName} size={size[0] as any} /> : undefined,
+            onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
+            tooltip: label,
+          };
+          return (
+            <>
+              <Button {...buttonProps}>{label}</Button>
+              <Button {...buttonProps} loading>{label}</Button>
+              <Button {...buttonProps} disabled>{label}</Button>
+            </>
+          );
+        })
+      ))
+    ))}
+  </div>
 );
