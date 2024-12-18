@@ -1,35 +1,35 @@
 # Long Running Migrations
 
-This feature allows you to execute long-running tasks using Celery. Each task will attempt to complete within a 23-hour window, after which it will give up and retry until it either raises an exception or successfully completes.
+This feature allows you to execute long-running migrations using Celery. Each migration will attempt to complete within the maximum time allowed by Celery (see settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT`). If it does not complete within this time, the periodic task will retry and resume the migration from where it left off, continuing until the long-running migration either successfully completes or raises an exception.
 
 ## How to Use
 
-1. **Create your migration**
+1. **Create your migration**  
    Define your migrations in the `jobs` folder. Each migration should have a unique name, following Django's migration naming convention (e.g., `0001_description`). The migration file must contain a function called `run()`.
 
-2. **Register the migration**
-   Create a `LongRunningMigration` entry by running:
-
+2. **Register the migration**  
+   Create a `LongRunningMigration` entry by running:  
+   
    ```python
-   LongRunningMigration.objects.create(task_name='0001_description')
+   LongRunningMigration.objects.create(name='0001_fix_transfer')
    ```
-
-   You can automate this step by adding it to a Django migration with `RunPython`
-
-
+   
+   You can automate this step by adding it to a Django migration with `RunPython` 
+   
+   
 3. **Execute the migration**
     Wait for the periodic task `execute_long_running_migrations` to run automatically or trigger it manually (beware of the lock, it can only run one at a time).
+    
 
+## Writing a good long-running migration
 
-## Writing a good task
-
-When writing slow tasks, ensure they are both **atomic** and **tolerant** to interruptions at any point in their execution.
+When writing long-running migrations, ensure they are both **atomic** and **tolerant** to interruptions at any point in their execution.
 
 ```python
 # 2024-10-13
 from django.db import transaction
 
-def task():
+def run():
     for foo in Foo.objects.filter(is_barred=False):  # Checks actually needs to run still
         with transaction.atomic():  # Atomic!
             foo.make_it_bar()  # Perhaps this does multiple things that could succeed or fail
