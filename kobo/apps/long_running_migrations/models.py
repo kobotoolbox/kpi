@@ -47,14 +47,21 @@ class LongRunningMigration(AbstractTimeStampedModel):
             return
 
         base_import = self.LONG_RUNNING_MIGRATIONS_DIR.replace('/', '.')
-        module = importlib.import_module('.'.join([base_import, self.name]))
+        try:
+            module = importlib.import_module('.'.join([base_import, self.name]))
+        except ModuleNotFoundError as e:
+            logging.error(
+                f'LongRunningMigration.execute(), '
+                f'failed to import task module: {str(e)}'
+            )
+            return
 
         self.status = LongRunningMigrationStatus.IN_PROGRESS
         self.attempts += self.attempts
         self.save(update_fields=['status', 'attempts'])
 
         try:
-            module.task()
+            module.run()
         except Exception as e:
             # Log the error and update the status to 'failed'
             logging.error(f'LongRunningMigration.execute(): {str(e)}')

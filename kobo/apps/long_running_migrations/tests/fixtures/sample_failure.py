@@ -1,2 +1,2 @@
-def task():
+def run():
     raise Exception

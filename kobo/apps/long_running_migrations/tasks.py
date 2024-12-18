@@ -16,6 +16,7 @@ from .models import LongRunningMigration, LongRunningMigrationStatus
 )
 def execute_long_running_migrations():
     lock_key = 'execute_long_running_migrations'
+
     if cache.add(
         lock_key, 'true', timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
     ):

@@ -1,2 +1,2 @@
-def task():
+def run():
     print('hello from long running migration')

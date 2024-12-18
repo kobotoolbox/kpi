@@ -1,14 +1,29 @@
 # Long Running Migrations
 
-This will execute a task in celery. The task will try for 23 hours and then give up. It will retry until it yields an exception or completes.
+This feature allows you to execute long-running tasks using Celery. Each task will attempt to complete within a 23-hour window, after which it will give up and retry until it either raises an exception or successfully completes.
 
-1. Create your tasks in tasks and give it a unique name. Django migration style 0001_description is a good idea. It must contain a function called "task".
-2. Run `LongRunningMigration.objects.create(task_name="0001_description")`. Consider running this from a real Django migration.
-3. Wait for daily maintenance task or manually dispatch the celery "perform_maintenance".
+## How to Use
 
-## Writing a good task.
+1. **Create your migration**
+   Define your migrations in the `jobs` folder. Each migration should have a unique name, following Django's migration naming convention (e.g., `0001_description`). The migration file must contain a function called `run()`.
 
-Very slow tasks should be written atomically and tolerant to disruption at any time.
+2. **Register the migration**
+   Create a `LongRunningMigration` entry by running:
+
+   ```python
+   LongRunningMigration.objects.create(task_name='0001_description')
+   ```
+
+   You can automate this step by adding it to a Django migration with `RunPython`
+
+
+3. **Execute the migration**
+    Wait for the periodic task `execute_long_running_migrations` to run automatically or trigger it manually (beware of the lock, it can only run one at a time).
+
+
+## Writing a good task
+
+When writing slow tasks, ensure they are both **atomic** and **tolerant** to interruptions at any point in their execution.
 
 ```python
 # 2024-10-13
@@ -17,11 +32,11 @@ from django.db import transaction
 def task():
     for foo in Foo.objects.filter(is_barred=False):  # Checks actually needs to run still
         with transaction.atomic():  # Atomic!
-            foo.make_it_bar()  # Perhap this does multiple things that could succeed or fail
+            foo.make_it_bar()  # Perhaps this does multiple things that could succeed or fail
 ```
 
-Notice that if the task is interrupted, it will simply continue in the next run.
+* Notice that if the task is interrupted, it will simply continue in the next run.
 
-Because tasks are slow, your code should run regardless of when the data migration takes place.
+* Because tasks are slow, your code should run regardless of when the data migration takes place.
 
-Timestamp the task to help a future developer know when it can be safely deleted.
+* Add a timestamp to your migration definition to help future developers identify when it can be safely removed (if needed).
