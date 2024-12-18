@@ -144,6 +144,7 @@ INSTALLED_APPS = (
     'guardian',
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
+    'kobo.apps.long_running_migrations',
 )
 
 MIDDLEWARE = [
@@ -1199,6 +1200,12 @@ CELERY_BEAT_SCHEDULE = {
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every hour, every day
+    'long-running-migrations': {
+        'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
+        'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
