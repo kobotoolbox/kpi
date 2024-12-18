@@ -5,6 +5,7 @@ from kobo.apps.audit_log.models import AuditType, ProjectHistoryLog
 
 def create_project_history_log_middleware(get_response):
     def create_audit_logs(request):
+        # hello!
         response = get_response(request)
         if request.method in ['GET', 'HEAD']:
             return response
