@@ -51,7 +51,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
             return
 
         self.status = LongRunningMigrationStatus.IN_PROGRESS
-        self.attempts += self.attempts
+        self.attempts += 1
         self.save(update_fields=['status', 'attempts'])
 
         try:
