@@ -190,11 +190,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'metadata__icontains',
     ]
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=(IsAuthenticated,)
-    )
+    @action(detail=False, methods=['GET'], permission_classes=(IsAuthenticated,))
     def actions(self, request):
         return Response(AuditAction.choices)
 
