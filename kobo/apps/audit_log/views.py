@@ -1,5 +1,6 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.response import Response
 
@@ -8,6 +9,7 @@ from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.tasks import export_task_in_background
+from .audit_actions import AuditAction
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -162,6 +164,15 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        permission_classes=(IsAuthenticated,)
+    )
+    def actions(self, request):
+        data = AuditAction.choices
+        return Response(data)
 
 
 class AllAccessLogViewSet(AuditLogViewSet):
