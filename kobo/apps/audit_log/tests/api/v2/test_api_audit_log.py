@@ -115,6 +115,7 @@ class ProjectHistoryLogTestCaseMixin:
             },
             date_created=now,
         )
+        # this is okey-dokey
         response = self.client.get(self.url)
         self.assertEqual(response.data['count'], 2)
         self.assertEqual(
