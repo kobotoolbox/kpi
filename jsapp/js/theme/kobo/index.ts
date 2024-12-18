@@ -7,16 +7,16 @@ export const themeKobo = createTheme({
   primaryColor: 'blue',
   colors: {
     gray: [
-      'hsl(225deg 17% 14%)', // #1e212a, (accessible) our black, very very rare, only use if necessary for contrast
-      'hsl(225deg 16% 24%)', // #333847, (accessible) active text, important text, text on background, top navigation background
-      'hsl(226deg 16% 42%)', // #5a627d, (accessible) default text, inactive text, options text, buttons text, tabs text, notifications background, hover for popups and dropdowns
-      'hsl(225deg 16% 58%)', // #828ba5, (readable) clickable icons on hover
-      'hsl(226deg 16% 70%)', // #a6acbf, icons default (clickable), arrows and indicators default
-      'hsl(228deg 16% 82%)', // #cacdd9, inactive icons, some decorative icons
-      'hsl(227deg 18% 90%)', // #e1e3ea, scroll bars, table lines, dividers, background of clickable icons on hover when also in a highlighted table row
-      'hsl(228deg 16% 94%)', // #edeef2, default light background, icons on hover, sidebar menu, table headings, …
-      'hsl(240deg 20% 98%)', // #f9f9fb, table row highlight on hover
-      'hsl(0deg 0% 100%)', // #ffffff, white background
+      'hsl(225deg 17% 14%)', // [0] #1e212a, $kobo-gray-900, (accessible) our black, very very rare, only use if necessary for contrast
+      'hsl(225deg 16% 24%)', // [1] #333847, $kobo-gray-800, (accessible) active text, important text, text on background, top navigation background
+      'hsl(226deg 16% 42%)', // [2] #5a627d, $kobo-gray-700, (accessible) default text, inactive text, options text, buttons text, tabs text, notifications background, hover for popups and dropdowns
+      'hsl(225deg 16% 58%)', // [3] #828ba5, $kobo-gray-600, (readable) clickable icons on hover
+      'hsl(226deg 16% 70%)', // [4] #a6acbf, $kobo-gray-500, icons default (clickable), arrows and indicators default
+      'hsl(228deg 16% 82%)', // [5] #cacdd9, $kobo-gray-400, inactive icons, some decorative icons
+      'hsl(227deg 18% 90%)', // [6] #e1e3ea, $kobo-gray-300, scroll bars, table lines, dividers, background of clickable icons on hover when also in a highlighted table row
+      'hsl(228deg 16% 94%)', // [7] #edeef2, $kobo-gray-200, default light background, icons on hover, sidebar menu, table headings, …
+      'hsl(240deg 20% 98%)', // [8] #f9f9fb, $kobo-gray-100, table row highlight on hover
+      'hsl(0deg 0% 100%)', // [9] #ffffff, white background
     ],
     blue: [
       '#000',

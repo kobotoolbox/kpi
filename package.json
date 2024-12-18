@@ -165,6 +165,7 @@
     "source-map-loader": "^3.0.2",
     "speed-measure-webpack-plugin": "^1.5.0",
     "storybook": "^7.6.20",
+    "storybook-dark-mode": "^4.0.2",
     "style-loader": "^3.3.4",
     "stylelint": "^15.11.0",
     "stylelint-config-standard-scss": "^11.1.0",
