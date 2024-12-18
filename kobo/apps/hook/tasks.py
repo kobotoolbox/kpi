@@ -1,7 +1,6 @@
 # coding: utf-8
 import time
 
-import constance
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
