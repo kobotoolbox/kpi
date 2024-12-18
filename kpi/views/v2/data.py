@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import renderers, serializers, status, viewsets
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
