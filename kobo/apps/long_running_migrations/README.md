@@ -4,22 +4,51 @@ This feature allows you to execute long-running migrations using Celery. Each mi
 
 ## How to Use
 
-1. **Create your migration**  
+1. **Create your migration**
    Define your migrations in the `jobs` folder. Each migration should have a unique name, following Django's migration naming convention (e.g., `0001_description`). The migration file must contain a function called `run()`.
 
-2. **Register the migration**  
-   Create a `LongRunningMigration` entry by running:  
+2. **Register the migration**
+   Create a `LongRunningMigration` entry by running:
+
+   ```python
+   LongRunningMigration.objects.create(name='0001_sample')
+   ```
+
+   You can automate this step by adding it to a Django migration with `RunPython`.
    
    ```python
-   LongRunningMigration.objects.create(name='0001_fix_transfer')
-   ```
-   
-   You can automate this step by adding it to a Django migration with `RunPython` 
-   
-   
+    from django.db import migrations
+    
+    
+    def add_long_running_migration(apps, schema_editor):
+        LongRunningMigration = apps.get_model('long_running_migrations', 'LongRunningMigration')  # noqa
+        LongRunningMigration.objects.create(
+            name='0001_sample'
+        )
+    
+    
+    def noop(*args, **kwargs):
+        pass
+    
+    
+    class Migration(migrations.Migration):
+    
+        dependencies = [
+            ('long_running_migrations', '0001_initial'),
+        ]
+    
+        operations = [
+            migrations.RunPython(add_long_running_migration, noop),
+        ]
+    
+    
+    ```
+
+
+
 3. **Execute the migration**
     Wait for the periodic task `execute_long_running_migrations` to run automatically or trigger it manually (beware of the lock, it can only run one at a time).
-    
+
 
 ## Writing a good long-running migration
 
