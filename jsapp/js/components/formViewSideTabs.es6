@@ -83,8 +83,6 @@ class FormViewSideTabs extends Reflux.Component {
   renderFormSideTabs() {
     var sideTabs = [];
 
-    const isActivityLogsEnabled = checkFeatureFlag(FeatureFlag.activityLogsEnabled);
-
     if (
       this.state.asset &&
       this.state.asset.has_deployment &&
@@ -167,7 +165,6 @@ class FormViewSideTabs extends Reflux.Component {
       }
 
       if (
-        isActivityLogsEnabled &&
         userCan(
           PERMISSIONS_CODENAMES.manage_asset,
           this.state.asset
