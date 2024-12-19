@@ -338,7 +338,6 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateDeployed',
   'name',
   'status',
-  'ownerUsername',
 ];
 
 export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = [];
