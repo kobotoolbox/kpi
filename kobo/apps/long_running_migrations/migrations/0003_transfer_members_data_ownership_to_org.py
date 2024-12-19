@@ -17,7 +17,10 @@ def noop(*args, **kwargs):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('long_running_migrations', '0002_fix_failed_project_ownership_transfer_with_media_files'),
+        (
+            'long_running_migrations',
+            '0002_fix_failed_project_ownership_transfer_with_media_files',
+        ),
     ]
 
     operations = [
