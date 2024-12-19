@@ -1,5 +1,6 @@
 import timeit
 from datetime import datetime
+from math import inf
 from zoneinfo import ZoneInfo
 
 import pytest
