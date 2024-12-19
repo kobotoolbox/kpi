@@ -7,6 +7,7 @@ from unittest.mock import patch
 import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.response import Response
@@ -22,6 +23,7 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -59,6 +61,26 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.asset = asset
         self.detail_url = 'asset-detail'
         self.deployment_url = 'asset-deployment'
+        uuid_ = uuid.uuid4()
+        # add a submission by 'admin'
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': 'admin',
+        }
+        self.asset.deploy(backend='mock')
+
+        self.asset.deployment.mock_submissions([submission_data])
+        submissions = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        self.submission = submissions[0]
+
+    def tearDown(self):
+        # clean up mongo
+        settings.MONGO_DB.instances.delete_many({})
 
     def _check_common_metadata(self, metadata_dict, expected_subtype):
         self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
@@ -1450,28 +1472,21 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    def test_log_created_for_duplicate_submission(self):
-        uuid_ = uuid.uuid4()
-        submission_data = {
-            'q1': 'answer',
-            'q2': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            '_uuid': str(uuid_),
-            '_submitted_by': 'admin',
-        }
-        self.asset.deploy(backend='mock')
-
-        self.asset.deployment.mock_submissions([submission_data])
-        submissions = self.asset.deployment.get_submissions(
-            self.asset.owner, fields=['_id']
-        )
+    @data('admin', 'someuser')
+    def test_log_created_for_duplicate_submission(self, duplicating_user):
         submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': submissions[0]['_id'],
+                'pk': self.submission['_id'],
             },
         )
+        # whoever performs the duplication request will be considered the submitter
+        # of the new submission, even if the original was submitted by someone else
+        user = User.objects.get(username=duplicating_user)
+        self.asset.assign_perm(user_obj=user, perm=PERM_MANAGE_ASSET)
+        self.client.force_login(user)
+
         metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=submission_url,
@@ -1479,4 +1494,4 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.ADD_SUBMISSION,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
-        self.assertEqual(metadata['submission']['submitted_by'], 'admin')
+        self.assertEqual(metadata['submission']['submitted_by'], duplicating_user)
