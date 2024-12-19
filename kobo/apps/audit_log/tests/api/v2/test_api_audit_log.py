@@ -263,16 +263,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.data['count'] == 1
         assert response.data['results'] == expected
 
-    def test_all_actions_requires_authentication(self):
-        self.client.logout()
-        response = self.client.get(f'{self.url}actions/')
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_all_actions(self):
-        self.login_user(username='someuser', password='someuser')
-        response = self.client.get(f'{self.url}actions/')
-        assert response.data == AuditAction.choices
-
 
 class ApiAccessLogTestCase(BaseAuditLogTestCase):
 

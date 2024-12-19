@@ -143,32 +143,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
     (e.g. date and time "2022-11-15 20:34")*
 
-    ### Actions
-
-    Retrieves all possible audit log actions.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/audit-logs/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/audit-log/actions/
-
-    > Response 200
-
-    >       [
-    >           [
-    >               "add-media",
-    >               "Add Media"
-    >           ],
-    >           [
-    >               "allow-anonymous-submisisons",
-    >               "Allow Anonymous Submissions"
-    >           ],
-    >           ...
-    >       ]
-
-
     ### CURRENT ENDPOINT
     """
 
@@ -189,10 +163,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-
-    @action(detail=False, methods=['GET'], permission_classes=(IsAuthenticated,))
-    def actions(self, request):
-        return Response(AuditAction.choices)
 
 
 class AllAccessLogViewSet(AuditLogViewSet):
