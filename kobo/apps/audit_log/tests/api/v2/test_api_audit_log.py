@@ -635,7 +635,7 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
         response = self.client.get(f'{self.url}actions/')
         self.assertListEqual(
             # order returned doesn't matter
-            sorted(response.data),
+            sorted(response.data['actions']),
             [AuditAction.DELETE_MEDIA, AuditAction.DELETE_SERVICE, AuditAction.DEPLOY],
         )
 
