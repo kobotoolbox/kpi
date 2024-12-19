@@ -54,11 +54,11 @@ def update_nlp_counter(
     kwargs = {}
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
-        if deduct and asset_id is not None and organization is not None:
+        if deduct and asset_id is not None:
             handle_usage_deduction(organization, 'seconds', amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
-        if deduct and asset_id is not None and organization is not None:
+        if deduct and asset_id is not None:
             handle_usage_deduction(organization, 'characters', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
