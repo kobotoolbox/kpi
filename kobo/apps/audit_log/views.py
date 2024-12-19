@@ -834,12 +834,14 @@ class ProjectHistoryLogViewSet(
 
     > Response 200
 
-    >       [
+    >   {
+    >       "actions": [
     >           "update-name",
     >           "update-content",
     >           "deploy",
     >           ...
     >       ]
+    >   }
 
     """
 
