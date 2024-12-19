@@ -1,24 +1,45 @@
 import React from 'react';
 import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import Button from './button';
-import type {ButtonType, ButtonSize, ButtonProps} from './button';
-import type {TooltipAlignment} from './tooltip';
 import {IconNames} from 'jsapp/fonts/k-icons';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import type {MantineSize, PolymorphicComponentProps, TooltipProps} from '@mantine/core';
+import Icon from './icon';
+import '@mantine/core/styles.css';
+import Button, {type ButtonProps} from './ButtonNew';
 
-const buttonTypes: ButtonType[] = ['primary', 'secondary', 'danger', 'secondary-danger', 'text'];
+const buttonVariants: Array<ButtonProps['variant']> = [
+  'filled',
+  'light',
+  // 'outline',
+  // 'white',
+  // 'subtle',
+  // 'default',
+  // 'gradient',
 
-const buttonSizes: ButtonSize[] = ['s', 'm', 'l'];
+  //// Custom:
+  'danger',
+  'danger-secondary',
 
-const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center'];
+  'transparent',
+];
+
+const buttonSizes: MantineSize[] = [
+  // 'xs',
+  'sm',
+  'md',
+  'lg',
+  // 'xl',
+];
+
+const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = ['top', 'right', 'bottom', 'left', 'top-end', 'top-start', 'right-end', 'right-start', 'bottom-end', 'bottom-start', 'left-end', 'left-start'] as const;
 
 export default {
   title: 'common/Button',
   component: Button,
   argTypes: {
-    type: {
-      description: 'Type of button',
-      options: buttonTypes,
+    variant: {
+      description: 'Variant of button',
+      options: buttonVariants,
       control: 'select',
     },
     size: {
@@ -26,88 +47,120 @@ export default {
       options: buttonSizes,
       control: 'radio',
     },
-    startIcon: {
-      description: 'Icon on the beginning (please use only one of the icons)',
+    leftSectionS: {
+      description: 'Icon on the beginning',
       options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'s'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
       control: {type: 'select'},
+      if: {arg: 'size', eq: 'sm'},
     },
-    endIcon: {
-      description: 'Icon on the end (please use only one of the icons)',
+    leftSectionM: {
+      description: 'Icon on the beginning',
       options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'m'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
       control: {type: 'select'},
+      if: {arg: 'size', eq: 'md'},
     },
-    label: {
-      control: 'text',
+    leftSectionL: {
+      description: 'Icon on the beginning',
+      options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'l'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
+      control: {type: 'select'},
+      if: {arg: 'size', eq: 'lg'},
+    },
+    rightSectionS: {
+      description: 'Icon on the end',
+      options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'s'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
+      control: {type: 'select'},
+      if: {arg: 'size', eq: 'sm'},
+    },
+    rightSectionM: {
+      description: 'Icon on the end',
+      options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'m'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
+      control: {type: 'select'},
+      if: {arg: 'size', eq: 'md'},
+    },
+    rightSectionL: {
+      description: 'Icon on the end',
+      options: Object.keys(IconNames),
+      mapping: Object.keys(IconNames).map((key) => [key, <Icon name={key as IconNames} size={'l'} />] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
+      control: {type: 'select'},
+      if: {arg: 'size', eq: 'lg'},
     },
     tooltip: {
       description: 'Tooltip text',
       control: 'text',
     },
-    tooltipPosition: {
+    tooltipProps: {
       description: 'Position of the tooltip (optional)',
       options: tooltipPositions,
+      mapping: tooltipPositions.map((position) => [position, {position}] as const).reduce((o, [k, v]) => {return {...o, [k]: v};}, {}),
       control: 'radio',
     },
-    isDisabled: {control: 'boolean'},
-    isPending: {control: 'boolean'},
-    isFullWidth: {
+    disabled: {control: 'boolean'},
+    loading: {control: 'boolean'},
+    fullWidth: {
       description: 'Makes the button take 100% width of the container',
       control: 'boolean',
     },
   },
 } as ComponentMeta<typeof Button>;
 
-const Template: ComponentStory<typeof Button> = (args) => <Button {...args} />;
+const Template: ComponentStory<typeof Button> = ({leftSectionS, leftSectionM, leftSectionL, rightSectionS, rightSectionM, rightSectionL, ...args}: any) =>
+  <Button {...{...args, leftSection: leftSectionS ?? leftSectionM ?? leftSectionL, rightSection: rightSectionS ?? rightSectionM ?? rightSectionL}} />;
 
 export const Primary = Template.bind({});
 Primary.args = {
-  type: 'primary',
-  size: 'l',
-  label: 'Click me',
+  variant: 'filled',
+  size: 'lg',
+  children: 'Click me',
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
-  type: 'secondary',
-  size: 'l',
-  label: 'Click me',
+  variant: 'light',
+  size: 'lg',
+  children: 'Click me',
 };
 
 
 export const Danger = Template.bind({});
 Danger.args = {
-  type: 'danger',
-  size: 'l',
-  label: 'Click me',
+  variant: 'danger',
+  size: 'lg',
+  children: 'Click me',
 };
 
 export const SecondaryDanger = Template.bind({});
 SecondaryDanger.args = {
-  type: 'secondary-danger',
-  size: 'l',
-  label: 'Click me',
+  variant: 'danger-secondary',
+  size: 'lg',
+  children: 'Click me',
 };
 
 export const Text = Template.bind({});
 Text.args = {
-  type: 'text',
-  size: 'l',
-  label: 'Click me',
+  variant: 'transparent',
+  size: 'lg',
+  children: 'Click me',
 };
 
-const demoButtons: Array<{label?: string, startIcon?: IconName}> = [
+const demoButtons: Array<{label?: string; leftSectionName?: IconName}> = [
   {
     label: 'Click me',
-    startIcon: undefined,
+    leftSectionName: undefined,
   },
   {
     label: 'Click me',
-    startIcon: 'document',
+    leftSectionName: 'document',
   },
-  {
-    label: undefined,
-    startIcon: 'document',
-  }
+  //// For button without text use ActionIcon instead!
+  // {
+  //   label: undefined,
+  //   leftSectionName: 'document',
+  // },
 ];
 
 /**
@@ -120,31 +173,27 @@ const demoButtons: Array<{label?: string, startIcon?: IconName}> = [
 export const AllButtons = () => (
   <div style={{
     display: 'grid',
-    gridTemplateColumns: 'repeat(9, auto)',
+    gridTemplateColumns: 'repeat(6, auto)',
     gridAutoFlow: 'row',
     gridGap: '30px 15px',
     justifyItems: 'start',
     padding: '10px',
   }}>
-    {buttonTypes.map((buttonType) => (
-      buttonSizes.map((buttonSize) => (
-        demoButtons.map((demoButton) => {
-          const buttonProps: ButtonProps = {
-            type: buttonType,
-            size: buttonSize,
-            onClick: () => console.info('Clicked!', buttonType, buttonSize, demoButton.label, demoButton.startIcon),
+    {buttonVariants.map((variant) => (
+      buttonSizes.map((size) => (
+        demoButtons.map(({label, leftSectionName}) => {
+          const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
+            variant,
+            size: size,
+            leftSection: leftSectionName ? <Icon name={leftSectionName} size={size[0] as any} /> : undefined,
+            onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
+            tooltip: label,
           };
-          if (demoButton.label) {
-            buttonProps.label = demoButton.label;
-          }
-          if (demoButton.startIcon) {
-            buttonProps.startIcon = demoButton.startIcon;
-          }
           return (
             <>
-              <Button {...buttonProps}/>
-              <Button {...buttonProps} isPending/>
-              <Button {...buttonProps} isDisabled/>
+              <Button {...buttonProps}>{label}</Button>
+              <Button {...buttonProps} loading>{label}</Button>
+              <Button {...buttonProps} disabled>{label}</Button>
             </>
           );
         })
