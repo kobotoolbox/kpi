@@ -33,6 +33,7 @@ import type {
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
 import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
+import SimpleTable from 'js/components/common/SimpleTable';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -235,50 +236,19 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   renderPointsData(data: string) {
     const pointsArray: string[][] = data.split(';').map((pointString) => pointString.split(' '));
 
-    return(
-      <bem.SimpleTable>
-        <bem.SimpleTable__header>
-          <bem.SimpleTable__row>
-            <bem.SimpleTable__cell>
-              {t('Point')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('latitude (x.y °):')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('longitude (x.y °):')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('altitude (m):')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('accuracy (m):')}
-            </bem.SimpleTable__cell>
-          </bem.SimpleTable__row>
-        </bem.SimpleTable__header>
-
-        <bem.SimpleTable__body>
-          {pointsArray.map((pointArray, pointIndex) => (
-            <bem.SimpleTable__row key={pointIndex}>
-              <bem.SimpleTable__cell>
-                P<sub>{pointIndex + 1}</sub>
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {pointArray[0]}
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {pointArray[1]}
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {pointArray[2]}
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {pointArray[3]}
-              </bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-          ))}
-        </bem.SimpleTable__body>
-      </bem.SimpleTable>
+    return (
+      <SimpleTable
+        head={[
+          t('Point'),
+          t('latitude (x.y °):'),
+          t('longitude (x.y °):'),
+          t('altitude (m):'),
+          t('accuracy (m):'),
+        ]}
+        body={pointsArray.map((pointArray, pointIndex) => (
+          [<>P<sub>{pointIndex + 1}</sub></>, ...pointArray]
+        ))}
+      />
     );
   }
 
