@@ -1,6 +1,7 @@
 import base64
 import copy
 import json
+import uuid
 from unittest.mock import patch
 
 import jsonschema.exceptions
@@ -1448,3 +1449,20 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             },
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_log_created_for_duplicate_submission(self):
+        uuid_ = uuid.uuid4()
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': 'admin',
+        }
+        self.asset.deployment.mock_submissions([submission_data])
+        submission = self.asset.deployment.get_submissions(self.asset.owner, fields=['_id'])
+        self.client.post(
+            path=reverse('api_v2:')
+        )
+
+        submission = ''

@@ -576,7 +576,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'asset_uid': asset_uid,
-            'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'submission': {
                 'submitted_by': updated_data['submitted_by']
             }
