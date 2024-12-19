@@ -862,7 +862,7 @@ class ProjectHistoryLogViewSet(
             .distinct()
         )
         flattened = [action[0] for action in actions]
-        return Response(flattened)
+        return Response({'actions': flattened})
 
 
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
