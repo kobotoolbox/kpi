@@ -422,6 +422,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
     >        clone-permissions
@@ -672,6 +673,7 @@ class ProjectHistoryLogViewSet(
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
     >        clone-permissions
