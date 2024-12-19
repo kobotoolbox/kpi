@@ -334,7 +334,6 @@ oauthlib==3.2.2
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
-    #   requests-oauthlib
 openpyxl==3.0.9
     # via
     #   -r dependencies/pip/requirements.in
