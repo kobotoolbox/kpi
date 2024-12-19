@@ -1,4 +1,3 @@
-# coding: utf-8
 from typing import Union
 
 from django.conf import settings
@@ -14,6 +13,7 @@ from kpi.filters import (
     AssetOrderingFilter,
     SearchFilter,
 )
+from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
 from kpi.paginators import FastAssetPagination
@@ -31,7 +31,7 @@ from .serializers import ProjectViewSerializer
 
 
 class ProjectViewViewSet(
-    ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
+    AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
 ):
 
     serializer_class = ProjectViewSerializer
@@ -134,9 +134,17 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self):
+    def get_serializer_context(self, data: list = None):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
+        if not data:
+            return context_
+
+        asset_ids = [asset.pk for asset in data]
+        context_['organizations_per_asset'] = (
+            self.get_organizations_per_asset(asset_ids)
+        )
+
         return context_
 
     def _get_regional_response(self, queryset, serializer_class):
@@ -161,7 +169,7 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_context()
+        context_ = self.get_serializer_context(queryset)
 
         return serializer_class(
             queryset,
