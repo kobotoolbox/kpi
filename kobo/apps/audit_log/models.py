@@ -383,6 +383,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
             'project-ownership-invite-list': cls._create_from_ownership_transfer,
+            'submission-duplicate': cls._create_from_duplicate_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -566,6 +567,26 @@ class ProjectHistoryLog(AuditLog):
                     action=action,
                     metadata=full_metadata,
                 )
+
+    @classmethod
+    def _create_from_duplicate_request(cls, request):
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        updated_data = request.updated_data
+        metadata = {
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'submission': {
+                'submitted_by': updated_data['submitted_by']
+            }
+        }
+        ProjectHistoryLog.objects.create(
+            object_id=updated_data['asset_id'],
+            action=AuditAction.ADD_SUBMISSION,
+            user=request.user,
+            metadata=metadata
+        )
 
     @classmethod
     def _create_from_export_request(cls, request):

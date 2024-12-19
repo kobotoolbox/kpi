@@ -3,6 +3,7 @@ from django.db import models
 
 class AuditAction(models.TextChoices):
     ADD_MEDIA = 'add-media'
+    ADD_SUBMISSION = 'add-submission'
     ALLOW_ANONYMOUS_SUBMISSIONS = 'allow-anonymous-submissions'
     ARCHIVE = 'archive'
     AUTH = 'auth'
