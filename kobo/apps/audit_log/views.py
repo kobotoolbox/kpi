@@ -1,13 +1,15 @@
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
-from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.tasks import export_task_in_background
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from .audit_actions import AuditAction
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -142,6 +144,32 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
     (e.g. date and time "2022-11-15 20:34")*
 
+    ### Actions
+
+    Retrieves all possible audit log actions.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/audit-logs/actions
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/audit-log/actions/
+
+    > Response 200
+
+    >       [
+    >           [
+    >               "add-media",
+    >               "Add Media"
+    >           ],
+    >           [
+    >               "allow-anonymous-submisisons",
+    >               "Allow Anonymous Submissions"
+    >           ],
+    >           ...
+    >       ]
+
+
     ### CURRENT ENDPOINT
     """
 
@@ -162,6 +190,10 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
+
+    @action(detail=False, methods=['GET'], permission_classes=(IsAuthenticated,))
+    def actions(self, request):
+        return Response(AuditAction.choices)
 
 
 class AllAccessLogViewSet(AuditLogViewSet):
