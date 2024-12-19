@@ -10,8 +10,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.models.asset import Asset, AssetFile
-
-from .constants import ASYNC_TASK_HEARTBEAT, FILE_MOVE_CHUNK_SIZE
+from .constants import ASYNC_TASK_HEARTBEAT
 from .exceptions import AsyncTaskException
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
 
@@ -97,40 +96,25 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
         media_file__startswith=f'{transfer.asset.owner.username}/'
     )
 
-    attachments_to_update = []
-    try:
-        heartbeat = int(time.time())
-        # Moving files is pretty slow, thus it should run in a celery task.
-        for attachment in attachments.iterator():
-            if not (
-                target_folder := get_target_folder(
-                    transfer.invite.sender.username,
-                    transfer.invite.recipient.username,
-                    attachment.media_file.name,
-                )
-            ):
-                continue
-            else:
-                # We want to be sure the path of the file is saved no matter what.
-                # Thanks to try/finally block, if updates are still pending, they
-                # should be saved in case of errors.
-                # It lets us resume when it stopped in case of failure.
-                attachment.media_file.move(target_folder)
-                attachments_to_update.append(attachment)
-
-                if len(attachments_to_update) > FILE_MOVE_CHUNK_SIZE:
-                    Attachment.objects.bulk_update(
-                        attachments_to_update, fields=['media_file']
-                    )
-                    attachments_to_update = []
-
-                heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
-
-    finally:
-        if attachments_to_update:
-            Attachment.objects.bulk_update(
-                attachments_to_update, fields=['media_file']
+    heartbeat = int(time.time())
+    # Moving files is pretty slow, thus it should run in a celery task.
+    for attachment in attachments.iterator():
+        if not (
+            target_folder := get_target_folder(
+                transfer.invite.sender.username,
+                transfer.invite.recipient.username,
+                attachment.media_file.name,
             )
+        ):
+            continue
+        else:
+            # There is no way to ensure atomicity when moving the file and saving the
+            # object to the database. Fingers crossed that the process doesn't get
+            # interrupted between these two operations.
+            attachment.media_file.move(target_folder)
+            attachment.save(updated_fields=['media_file'])
+
+            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
 
     _mark_task_as_successful(transfer, async_task_type)
 
@@ -152,53 +136,38 @@ def move_media_files(transfer: 'project_ownership.Transfer'):
             )
         }
 
-    media_files_to_update = []
-    metadata_to_update = []
-    try:
-        heartbeat = int(time.time())
-        # Moving files is pretty slow, thus it should run in a celery task.
-        for media_file in media_files:
-            if not (
-                target_folder := get_target_folder(
+    heartbeat = int(time.time())
+    # Moving files is pretty slow, thus it should run in a celery task.
+    for media_file in media_files:
+        if not (
+            target_folder := get_target_folder(
+                transfer.invite.sender.username,
+                transfer.invite.recipient.username,
+                media_file.content.name,
+            )
+        ):
+            continue
+        else:
+            # There is no way to ensure atomicity when moving the file and saving the
+            # object to the database. Fingers crossed that the process doesn't get
+            # interrupted between these two operations.
+            media_file.content.move(target_folder)
+            old_md5 = media_file.metadata.pop('hash', None)
+            media_file.set_md5_hash()
+            media_file.save(update_fields=['content', 'metadata'])
+
+            if old_md5 in kc_files.keys():
+                kc_obj = kc_files[old_md5]
+                if kc_target_folder := get_target_folder(
                     transfer.invite.sender.username,
                     transfer.invite.recipient.username,
-                    media_file.content.name,
-                )
-            ):
-                continue
-            else:
-                # We want to be sure the path of the file is saved no matter what.
-                # Thanks to try/finally block, if updates are still pending, they
-                # should be saved in case of errors.
-                # It lets us resume when it stopped in case of failure.
-                media_file.content.move(target_folder)
-                old_md5 = media_file.metadata.pop('hash', None)
-                media_file.set_md5_hash()
-                if old_md5 in kc_files.keys():
-                    kc_obj = kc_files[old_md5]
-                    if kc_target_folder := get_target_folder(
-                        transfer.invite.sender.username,
-                        transfer.invite.recipient.username,
-                        kc_obj.data_file.name,
-                    ):
-                        kc_obj.data_file.move(kc_target_folder)
-                        kc_obj.file_hash = media_file.md5_hash
-                        metadata_to_update.append(kc_obj)
+                    kc_obj.data_file.name,
+                ):
+                    kc_obj.data_file.move(kc_target_folder)
+                    kc_obj.file_hash = media_file.md5_hash
+                    kc_obj.save(update_fields=['file_hash', 'data_file'])
 
-                media_files_to_update.append(media_file)
-                heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
-
-    finally:
-        # No need to use chunk size for media files like we do for attachments,
-        # because the odds are pretty low that more than 100 media files are
-        # linked to the project.
-        if metadata_to_update:
-            media_files_to_update.append(media_file)
-
-        if media_files_to_update:
-            AssetFile.objects.bulk_update(
-                media_files_to_update, fields=['content', 'metadata']
-            )
+            heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
 
     _mark_task_as_successful(transfer, async_task_type)
 
