@@ -142,8 +142,8 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
-    'kobo.apps.long_running_migrations',
+    'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
+    'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
 )
 
 MIDDLEWARE = [
