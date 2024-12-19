@@ -51,7 +51,10 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class AssetViewSet(
-    AssetViewSetListMixin, ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
+    AssetViewSetListMixin,
+    ObjectPermissionViewSetMixin,
+    NestedViewSetMixin,
+    AuditLoggedModelViewSet,
 ):
     """
     * Assign an asset to a collection
