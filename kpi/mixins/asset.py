@@ -7,7 +7,7 @@ from kpi.models.asset import Asset
 
 class AssetViewSetListMixin:
 
-    def get_organizations_per_asset(self, asset_ids: list) -> dict:
+    def get_organizations_per_asset_ids(self, asset_ids: list) -> dict:
 
         assets = (
             Asset.objects.only('owner', 'uid', 'name')

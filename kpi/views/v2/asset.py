@@ -735,7 +735,7 @@ class AssetViewSet(
                 # …per asset
                 # e.g.: /api/v2/organizations/assets/`
                 context_['organizations_per_asset'] = (
-                    self.get_organizations_per_asset(asset_ids)
+                    self.get_organizations_per_asset_ids(asset_ids)
                 )
 
         return context_

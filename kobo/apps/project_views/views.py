@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 
 from django.conf import settings
 from django.db.models.query import QuerySet
@@ -134,7 +134,7 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self, data: list = None):
+    def get_serializer_context(self, data: Optional[list] = None):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
         if not data:
@@ -142,7 +142,7 @@ class ProjectViewViewSet(
 
         asset_ids = [asset.pk for asset in data]
         context_['organizations_per_asset'] = (
-            self.get_organizations_per_asset(asset_ids)
+            self.get_organizations_per_asset_ids(asset_ids)
         )
 
         return context_
