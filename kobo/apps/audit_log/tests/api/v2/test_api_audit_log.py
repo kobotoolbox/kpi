@@ -263,16 +263,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.data['count'] == 1
         assert response.data['results'] == expected
 
-    def test_all_actions_requires_authentication(self):
-        self.client.logout()
-        response = self.client.get(f'{self.url}actions/')
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_all_actions(self):
-        self.login_user(username='someuser', password='someuser')
-        response = self.client.get(f'{self.url}actions/')
-        assert response.data == AuditAction.choices
-
 
 class ApiAccessLogTestCase(BaseAuditLogTestCase):
 
@@ -573,6 +563,11 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
         )
         self.user = User.objects.get(username='someuser')
         self.asset.assign_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET)
+        self.default_metadata = {
+            'ip_address': '1.2.3.4',
+            'source': 'source',
+            'log_subtype': 'project',
+        }
         self.client.force_login(self.user)
 
     def test_list_without_permissions_returns_forbidden(self):
@@ -584,34 +579,64 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_list_actions_without_permissions_returns_forbidden(self):
+        user2 = User.objects.get(username='anotheruser')
+        self.client.force_login(user2)
+        response = self.client.get(f'{self.url}actions/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.asset.assign_perm(user_obj=user2, perm=PERM_MANAGE_ASSET)
+        response = self.client.get(f'{self.url}actions/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_show_project_history_logs_filters_to_project(self):
         asset2 = Asset.objects.get(pk=2)
         ProjectHistoryLog.objects.create(
             user=self.user,
             object_id=self.asset.id,
             action=AuditAction.DELETE,
-            metadata={
-                'asset_uid': self.asset.uid,
-                'ip_address': '1.2.3.4',
-                'source': 'source',
-                'log_subtype': 'project',
-            },
+            metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
         )
         ProjectHistoryLog.objects.create(
             user=self.user,
             object_id=asset2.id,
             action=AuditAction.DELETE,
-            metadata={
-                'asset_uid': asset2.uid,
-                'ip_address': '1.2.3.4',
-                'source': 'source',
-                'log_subtype': 'project',
-            },
+            metadata={**self.default_metadata, 'asset_uid': asset2.uid},
         )
         response = self.client.get(self.url)
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(
             response.data['results'][0]['metadata']['asset_uid'], self.asset.uid
+        )
+
+    def test_get_all_actions_for_asset(self):
+        asset2 = Asset.objects.get(pk=2)
+        expected_actions = [
+            AuditAction.DELETE_MEDIA,
+            AuditAction.DELETE_SERVICE,
+            AuditAction.DEPLOY,
+        ]
+        for action in expected_actions:
+            # create 2 logs for each action so we can make sure we get distinct values
+            for i in range(2):
+                ProjectHistoryLog.objects.create(
+                    user=self.user,
+                    object_id=self.asset.id,
+                    action=action,
+                    metadata={**self.default_metadata, 'asset_uid': self.asset.uid},
+                )
+        # create 1 log for a different project so we know we're still filtering
+        # correctly
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=asset2.id,
+            action=AuditAction.ARCHIVE,
+            metadata={**self.default_metadata, 'asset_uid': asset2.uid},
+        )
+        response = self.client.get(f'{self.url}actions/')
+        self.assertListEqual(
+            # order returned doesn't matter
+            sorted(response.data),
+            [AuditAction.DELETE_MEDIA, AuditAction.DELETE_SERVICE, AuditAction.DEPLOY],
         )
 
 

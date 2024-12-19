@@ -9,7 +9,6 @@ from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from .audit_actions import AuditAction
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -144,32 +143,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
     (e.g. date and time "2022-11-15 20:34")*
 
-    ### Actions
-
-    Retrieves all possible audit log actions.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/audit-logs/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/audit-log/actions/
-
-    > Response 200
-
-    >       [
-    >           [
-    >               "add-media",
-    >               "Add Media"
-    >           ],
-    >           [
-    >               "allow-anonymous-submisisons",
-    >               "Allow Anonymous Submissions"
-    >           ],
-    >           ...
-    >       ]
-
-
     ### CURRENT ENDPOINT
     """
 
@@ -190,10 +163,6 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-
-    @action(detail=False, methods=['GET'], permission_classes=(IsAuthenticated,))
-    def actions(self, request):
-        return Response(AuditAction.choices)
 
 
 class AllAccessLogViewSet(AuditLogViewSet):
@@ -851,6 +820,27 @@ class ProjectHistoryLogViewSet(
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
     >      curl -X GET https://[kpi-url]/assets/ap732ywWxc/history/?offset=100&limit=50
+
+    ### Actions
+
+    Retrieves distinct actions performed on the asset.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
+
+    > Response 200
+
+    >       [
+    >           "update-name",
+    >           "update-content",
+    >           "deploy",
+    >           ...
+    >       ]
+
     """
 
     serializer_class = ProjectHistoryLogSerializer
@@ -863,6 +853,16 @@ class ProjectHistoryLogViewSet(
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(
             '-date_created'
         )
+
+    @action(detail=False, methods=['GET'])
+    def actions(self, request, *args, **kwargs):
+        actions = (
+            self.model.objects.filter(metadata__asset_uid=self.asset_uid)
+            .values_list('action')
+            .distinct()
+        )
+        flattened = [action[0] for action in actions]
+        return Response(flattened)
 
 
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
