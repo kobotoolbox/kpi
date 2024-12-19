@@ -12,6 +12,8 @@ import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
+import {ROUTES} from 'jsapp/js/router/routerConstants';
+import router from 'jsapp/js/router/router';
 
 interface MemberRemoveModalProps {
   username: string;
@@ -35,7 +37,7 @@ export default function MemberRemoveModal(
     onCancel,
   }: MemberRemoveModalProps
 ) {
-  const removeMember = useRemoveOrganizationMember();
+  const removeMember = useRemoveOrganizationMember({isRemovingSelf});
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
     subscriptionStore.activeSubscriptions[0],
@@ -66,6 +68,16 @@ export default function MemberRemoveModal(
       .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
   }
 
+  const handleRemoveMember = async () => {
+    try {
+      await removeMember.mutateAsync(username);
+    } catch (error) {
+      notify('Failed to remove member', 'error');
+    } finally {
+      onConfirmDone();
+    }
+  };
+
   return (
     <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
       <KoboModalHeader>{textToDisplay.title}</KoboModalHeader>
@@ -87,15 +99,7 @@ export default function MemberRemoveModal(
         <Button
           type='danger'
           size='m'
-          onClick={async () => {
-            try {
-              removeMember.mutateAsync(username);
-            } catch (error) {
-              notify('Failed to remove member', 'error');
-            } finally {
-              onConfirmDone();
-            }
-          }}
+          onClick={handleRemoveMember}
           label={textToDisplay.confirmButtonLabel}
           isPending={removeMember.isPending}
         />
