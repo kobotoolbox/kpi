@@ -10,7 +10,10 @@ import KoboDropdown from 'js/components/common/koboDropdown';
 
 // Stores and hooks
 import projectViewsStore from './projectViewsStore';
-import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
+import {
+  useOrganizationQuery,
+  OrganizationUserRole,
+} from 'js/account/organization/organizationQuery';
 
 // Constants
 import {PROJECTS_ROUTES} from 'js/router/routerConstants';
@@ -49,10 +52,15 @@ function ViewSwitcher(props: ViewSwitcherProps) {
     }
   };
 
-  const hasMultipleOptions = (
-    projectViews.views.length !== 0 ||
-    orgQuery.data?.is_mmo
-  );
+  const displayMyOrgOption =
+    orgQuery.data?.is_mmo &&
+    [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(
+      orgQuery.data?.request_user_role
+    );
+
+  const hasMultipleOptions =
+    projectViews.views.length !== 0 || displayMyOrgOption;
+
   const organizationName = orgQuery.data?.name || t('Organization');
 
   let triggerLabel = HOME_VIEW.name;
@@ -109,9 +117,9 @@ function ViewSwitcher(props: ViewSwitcherProps) {
               {HOME_VIEW.name}
             </button>
 
-            {/* This is the organization view option - depends if user is in MMO
-            organization */}
-            {orgQuery.data?.is_mmo &&
+            {/* This is the organization view option - restricted to
+            MMO admins and owners */}
+            {displayMyOrgOption &&
               <button
                 key={ORG_VIEW.uid}
                 className={styles.menuOption}
