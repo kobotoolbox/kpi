@@ -180,14 +180,11 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner'),
-    apiFilteringName: 'owner__username',
-    apiOrderingName: 'owner__username',
+    apiFilteringName: 'search_field',
+    apiOrderingName: 'search_field',
     availableConditions: [
       'contains',
-      'doesNotContain',
       'endsWith',
-      'is',
-      'isNot',
       'startsWith',
     ],
   },

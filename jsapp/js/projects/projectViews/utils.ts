@@ -69,6 +69,17 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     const fieldDefinition = PROJECT_FIELDS[filter.fieldName];
     const conditionDefinition = FILTER_CONDITIONS[filter.condition];
 
+    // Filtering by `ownerUsername` should filter on both the owner and organization name
+    if (filter.fieldName === 'ownerUsername') {
+      const ownerNameQuery = conditionDefinition.filterQuery
+        .replace('<field>', 'search_field__owner_name')
+        .replace('<term>', `"${filter.value}"`);
+      const orgNameQuery = conditionDefinition.filterQuery
+        .replace('<field>', 'search_field__organization_name')
+        .replace('<term>', `"${filter.value}"`);
+      return `(${ownerNameQuery} OR ${orgNameQuery})`;
+    }
+
     if (conditionDefinition.requiresValue && filter.value) {
       return (
         conditionDefinition.filterQuery
