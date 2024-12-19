@@ -98,7 +98,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
                 submitted_by = sub_copy['_submitted_by']
             except KeyError:
                 request.user = self.asset.owner
-                submitted_by = self.asset.owner.username
+                submitted_by = self.asset.owner.usernametest_depl
             else:
                 if not submitted_by:
                     request.user = AnonymousUser()

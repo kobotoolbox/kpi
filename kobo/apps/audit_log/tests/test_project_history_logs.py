@@ -1459,10 +1459,24 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             '_uuid': str(uuid_),
             '_submitted_by': 'admin',
         }
-        self.asset.deployment.mock_submissions([submission_data])
-        submission = self.asset.deployment.get_submissions(self.asset.owner, fields=['_id'])
-        self.client.post(
-            path=reverse('api_v2:')
-        )
+        self.asset.deploy(backend='mock')
 
-        submission = ''
+        self.asset.deployment.mock_submissions([submission_data])
+        submissions = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        submission_url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submissions[0]['_id'],
+            },
+        )
+        metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=submission_url,
+            request_data={},
+            expected_action=AuditAction.ADD_SUBMISSION,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(metadata['submission']['submitted_by'], 'admin')
