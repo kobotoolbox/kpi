@@ -58,7 +58,12 @@ class XForm(AbstractTimeStampedModel):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = ExtendedFileField(storage=default_storage, upload_to=upload_to, null=True)
+    xls = ExtendedFileField(
+        storage=default_storage,
+        upload_to=upload_to,
+        null=True,
+        max_length=380,
+    )
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()
