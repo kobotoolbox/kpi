@@ -165,6 +165,13 @@ export default class SharingForm extends React.Component<
     }
   }
 
+  getOwnerOrOrgLabel(name: string, isOwner: boolean) {
+    if (isOwner) {
+      return this.state.asset ? this.state.asset.owner_label : name;
+    }
+    return name;
+  }
+
   /** Check if the recipient of the transfer is the specified user */
   isPendingOwner(username: string) {
     return this.state.asset?.project_ownership?.status ===
@@ -261,7 +268,7 @@ export default class SharingForm extends React.Component<
                 permissions={perm.permissions}
                 isUserOwner={perm.user.isOwner}
                 isPendingOwner={this.isPendingOwner(perm.user.name)}
-                username={perm.user.name}
+                username={this.getOwnerOrOrgLabel(perm.user.name, perm.user.isOwner)}
               />
             );
           })}
