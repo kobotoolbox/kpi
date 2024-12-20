@@ -184,7 +184,10 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiOrderingName: 'search_field',
     availableConditions: [
       'contains',
+      'doesNotContain',
       'endsWith',
+      'is',
+      'isNot',
       'startsWith',
     ],
   },
