@@ -415,6 +415,10 @@ class DataViewSet(
                 deployment.copy_submission_extras(
                     original_submission['_uuid'], duplicate_submission['_uuid']
                 )
+                request._request.updated_data = {
+                    'asset_id': self.asset.id,
+                    'submitted_by': duplicate_submission['_submitted_by'],
+                }
                 response = {
                     'data': duplicate_submission,
                     'content_type': 'application/json',
