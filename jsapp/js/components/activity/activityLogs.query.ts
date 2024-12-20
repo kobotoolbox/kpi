@@ -1,9 +1,10 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
 import {
-  AUDIT_ACTION_TYPES,
+  AUDIT_ACTION_TYPES} from './activity.constants';
+import type {
   AuditActions,
-  type ActivityLogsItem,
+  ActivityLogsItem,
 } from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 import {fetchGet} from 'jsapp/js/api';
@@ -39,10 +40,15 @@ const getActivityLogs = async ({
   return await fetchGet<PaginatedResponse<ActivityLogsItem>>(
     `${endpointUrl}?${params}`,
     {
-      errorMessageDisplay: t('There was an error getting one-time add-ons.'),
+      errorMessageDisplay: t('There was an error getting the activity logs.'),
     }
   );
 };
+
+interface FilterOption {
+  label: string;
+  value: string;
+}
 
 /**
  * Fetches the filter options for the activity logs.
@@ -53,8 +59,21 @@ const getActivityLogs = async ({
  * Items are sorted by an specific order defined in the AUDIT_ACTION_TYPES.
  *
  */
-const getFilterOptions = async () =>
-  (Object.keys(AuditActions) as Array<keyof typeof AuditActions>)
+const getFilterOptions = async (
+  assetUid: string
+): Promise<FilterOption[]> => {
+  const endpointUrl = endpoints.ASSET_HISTORY_ACTIONS.replace(
+    ':asset_uid',
+    assetUid
+  );
+
+  const filterOptions = await fetchGet<{
+    actions: Array<keyof typeof AuditActions>;
+  }>(endpointUrl, {
+    errorMessageDisplay: t('There was an error getting the filter options.'),
+  });
+
+  return filterOptions.actions
     .map((key) => AUDIT_ACTION_TYPES[key])
     .sort((a, b) => a.order - b.order)
     .map((auditAction) => {
@@ -63,6 +82,7 @@ const getFilterOptions = async () =>
         value: auditAction.name,
       };
     });
+};
 
 /**
  * Starts the exporting process of the activity logs.
@@ -111,10 +131,10 @@ export const useActivityLogsQuery = ({
 /**
  * This is a hook to fetch the filter options for the activity logs.
  */
-export const useActivityLogsFilterOptionsQuery = () =>
+export const useActivityLogsFilterOptionsQuery = (assetUid: string) =>
   useQuery({
-    queryKey: [QueryKeys.activityLogsFilter],
-    queryFn: () => getFilterOptions(),
+    queryKey: [QueryKeys.activityLogsFilter, assetUid],
+    queryFn: () => getFilterOptions(assetUid),
   });
 
 /**
