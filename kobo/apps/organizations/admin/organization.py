@@ -7,7 +7,7 @@ from organizations.base_admin import BaseOrganizationAdmin
 from kobo.apps.kobo_auth.shortcuts import User
 
 from ..models import Organization, OrganizationUser
-from ..tasks import transfer_user_ownership_to_org
+from ..tasks import transfer_member_data_ownership_to_org
 from ..utils import revoke_org_asset_perms
 from .organization_owner import OwnerInline
 from .organization_user import OrgUserInline, max_users_for_edit_mode
@@ -104,7 +104,7 @@ class OrgAdmin(BaseOrganizationAdmin):
             html_username_list = []
             for user in new_members:
                 html_username_list.append(f"<b>{user['username']}</b>")
-                transfer_user_ownership_to_org.delay(user['pk'])
+                transfer_member_data_ownership_to_org.delay(user['pk'])
 
             message = (
                 'The following new members have been added, and their project '

@@ -1,2 +1,1 @@
 ASYNC_TASK_HEARTBEAT = 60 * 5  # every 5 minutes
-FILE_MOVE_CHUNK_SIZE = 1000

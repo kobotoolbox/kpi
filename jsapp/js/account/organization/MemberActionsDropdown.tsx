@@ -3,7 +3,7 @@ import {useState} from 'react';
 import cx from 'classnames';
 
 // Partial components
-import KoboDropdown from 'jsapp/js/components/common/koboDropdown';
+import KoboDropdown, {type KoboDropdownPlacement} from 'jsapp/js/components/common/koboDropdown';
 import Button from 'jsapp/js/components/common/button';
 import MemberRemoveModal from './MemberRemoveModal';
 
@@ -26,13 +26,14 @@ interface MemberActionsDropdownProps {
    * wants to do the actions (not the role of the target member).
    */
   currentUserRole: OrganizationUserRole;
+  placement: KoboDropdownPlacement;
 }
 
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown(
-  {targetUsername, currentUserRole}: MemberActionsDropdownProps
+  {targetUsername, currentUserRole, placement}: MemberActionsDropdownProps
 ) {
   const session = useSession();
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
@@ -83,7 +84,7 @@ export default function MemberActionsDropdown(
 
       <KoboDropdown
         name={`member-actions-dropdown-${targetUsername}`}
-        placement='down-right'
+        placement={placement}
         hideOnMenuClick
         triggerContent={<Button type='text' size='m' startIcon='more'/>}
         menuContent={

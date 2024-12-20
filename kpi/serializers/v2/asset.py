@@ -819,7 +819,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             access_types.append('superuser')
 
         try:
-            organization = self.context['organization_by_asset'].get(asset.id)
+            organization = self.context['organizations_per_asset'].get(asset.id)
         except KeyError:
             # Fallback on context if it exists (i.e.: asset lists of an organization).
             # Otherwise, retrieve from the asset owner.
@@ -840,7 +840,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_owner_label(self, asset):
         try:
-            organization = self.context['organization_by_asset'].get(asset.id)
+            organization = self.context['organizations_per_asset'].get(asset.id)
         except KeyError:
             # Fallback on context if it exists (i.e.: asset lists of an organization).
             # Otherwise, retrieve from the asset owner.
@@ -1135,6 +1135,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'deployment_status',
             'asset_type',
             'downloads',
+            'owner_label',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:

@@ -129,18 +129,14 @@ const ProjectBreakdown = () => {
 
   const renderProjectRow = (project: AssetWithUsage) => {
     const periodSubmissions =
-      project[
-        `submission_count_current_${usage.trackingPeriod}`
-      ].toLocaleString();
+      project.submission_count_current_period.toLocaleString();
 
     const periodASRSeconds = convertSecondsToMinutes(
-      project[`nlp_usage_current_${usage.trackingPeriod}`].total_nlp_asr_seconds
+      project.nlp_usage_current_period.total_nlp_asr_seconds
     ).toLocaleString();
 
     const periodMTCharacters =
-      project[
-        `nlp_usage_current_${usage.trackingPeriod}`
-      ].total_nlp_mt_characters.toLocaleString();
+      project.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString();
 
     return (
       <tr key={project.asset}>

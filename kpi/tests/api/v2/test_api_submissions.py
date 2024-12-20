@@ -12,6 +12,7 @@ import lxml
 import pytest
 import responses
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
@@ -51,7 +52,11 @@ from kpi.tests.utils.mock import (
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
-from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 
 
 def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
@@ -1686,6 +1691,71 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         client = DigestClient()
         req = client.post(url)
         self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_with_partial_perms(self):
+        # Use Digest authentication; testing SessionAuth is not required.
+        # The purpose of this test is to validate partial permissions.
+        submission = self.submissions_submitted_by_anotheruser[0]
+        instance_xml = self.asset.deployment.get_submission(
+            submission['_id'], self.asset.owner, format_type='xml'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(instance_xml)
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission['meta/instanceID']
+        )
+        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edited_submission = xml_tostring(xml_parsed)
+
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot().uid,),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)  # Retrieve www-challenge
+
+        client.set_authorization('anotheruser', 'anotheruser', 'Digest')
+        self.anotheruser.set_password('anotheruser')
+        self.anotheruser.save()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+            },
+        )
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions someuser's data.
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'someuser'}]
+            },
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = client.post(url, data)
+        # Receive a 403 because we are trying to edit anotheruser's data
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Give anotheruser permissions to edit submissions their data.
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+            },
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = client.post(url, data)
+        assert response.status_code == status.HTTP_201_CREATED
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):

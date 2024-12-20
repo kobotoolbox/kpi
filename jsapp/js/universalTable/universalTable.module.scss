@@ -15,10 +15,11 @@ $z-index-resizer: 2;
 // For sure pinned needs to be over .resizer, so it doesn't appear in
 // weird/funny position when scrolling table horizontally.
 $z-index-pinned: 3;
-$z-index-pinned-header: 4;
-$z-index-pinned-header-hover: 5;
-$z-index-resizer-active: 6;
-$z-index-spinner: 7;
+$z-index-pinned-focused-cell: 4;
+$z-index-pinned-header: 5;
+$z-index-pinned-header-hover: 6;
+$z-index-resizer-active: 7;
+$z-index-spinner: 8;
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
@@ -98,6 +99,14 @@ $z-index-spinner: 7;
 .tableCell.isPinnedLeft,
 .tableCell.isPinnedRight {
   z-index: $z-index-pinned;
+}
+
+// Needed so any elements inside of the cell (e.g. dropdown) don't open covered
+// by background of cell below. This is IMPERFECT FIX, as when cell loses focus
+// by clicking somewhere else - the background coverding blinks for split second.
+.tableCell.isPinnedLeft:focus-within,
+.tableCell.isPinnedRight:focus-within {
+  z-index: $z-index-pinned-focused-cell;
 }
 
 .tableHeaderCell.isPinnedLeft,

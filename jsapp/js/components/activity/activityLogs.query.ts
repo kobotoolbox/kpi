@@ -1,6 +1,10 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
 import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
-import {AuditActions, type ActivityLogsItem} from './activity.constants';
+import {
+  AUDIT_ACTION_TYPES,
+  AuditActions,
+  type ActivityLogsItem,
+} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 import {fetchGet} from 'jsapp/js/api';
 import {endpoints} from 'jsapp/js/api.endpoints';
@@ -46,14 +50,19 @@ const getActivityLogs = async ({
  * Filter options, for now, comes from AuditActions enum.
  * In the future we might change this to be fetched from the server.
  *
+ * Items are sorted by an specific order defined in the AUDIT_ACTION_TYPES.
+ *
  */
 const getFilterOptions = async () =>
-  (Object.keys(AuditActions) as Array<keyof typeof AuditActions>).sort().map((value) => {
-    return {
-      label: AuditActions[value],
-      value,
-    };
-  });
+  (Object.keys(AuditActions) as Array<keyof typeof AuditActions>)
+    .map((key) => AUDIT_ACTION_TYPES[key])
+    .sort((a, b) => a.order - b.order)
+    .map((auditAction) => {
+      return {
+        label: auditAction.label,
+        value: auditAction.name,
+      };
+    });
 
 /**
  * Starts the exporting process of the activity logs.
