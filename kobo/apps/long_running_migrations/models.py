@@ -33,6 +33,12 @@ class LongRunningMigration(AbstractTimeStampedModel):
     )
     attempts = models.PositiveSmallIntegerField(default=0)
 
+    class Meta:
+        verbose_name = 'Long-running migration'
+
+    def __str__(self):
+        return self.name
+
     def clean(self):
         super().clean()
         if '..' in self.name or '/' in self.name or '\\' in self.name:
