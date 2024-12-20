@@ -85,7 +85,7 @@ describe('projectViewsUtils', () => {
         {
           in: {fieldName: 'ownerUsername', condition: 'doesNotContain', value: 'foo'},
           out:
-            '( NOT search_field__owner_username__icontains:"foo" ' +
+            '(NOT search_field__owner_username__icontains:"foo" ' +
             'OR NOT search_field__organization_name__icontains:"foo")',
         },
         {
