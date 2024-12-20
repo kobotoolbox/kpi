@@ -105,7 +105,7 @@ def enketo_flush_cached_preview(server_url, form_id):
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
 def perform_maintenance():
     """
-    Run daily maintenance tasks. Ensure it cannot run multiple times.
+    Run daily maintenance tasks.
     """
 
     remove_unused_markdown_files()
