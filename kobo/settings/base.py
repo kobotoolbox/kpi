@@ -395,6 +395,11 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
+    'ORGANIZATION_INVITE_EXPIRY': (
+        14,
+        'Number of days before organization invites expire.',
+        'positive_int',
+    ),
     'ASSET_SNAPSHOT_DAYS_RETENTION': (
         30,
         'Number of days to keep asset snapshots',
@@ -668,7 +673,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
         'ACCESS_LOG_LIFESPAN',
-        'PROJECT_HISTORY_LOG_LIFESPAN'
+        'PROJECT_HISTORY_LOG_LIFESPAN',
+        'ORGANIZATION_INVITE_EXPIRY'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1212,6 +1218,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.delete_daily_counters',
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kobocat_queue'}
+    },
+    # Schedule every 30 minutes
+    'organization-invite-mark-as-expired': {
+        'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
