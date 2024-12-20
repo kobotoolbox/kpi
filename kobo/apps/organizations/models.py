@@ -24,6 +24,7 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
+from kpi.utils.mailer import EmailMessage, Mailer
 
 from .constants import (
     ORG_ADMIN_ROLE,
@@ -44,6 +45,19 @@ class OrganizationType(models.TextChoices):
     EDUCATIONAL = 'educational', t('Educational organization')
     COMMERCIAL = 'commercial', t('A commercial/for-profit company')
     NONE = 'none', t('I am not associated with any organization')
+
+
+class OrganizationInviteStatusChoices(models.TextChoices):
+
+    ACCEPTED = 'accepted'
+    CANCELLED = 'cancelled'
+    COMPLETE = 'complete'
+    DECLINED = 'declined'
+    EXPIRED = 'expired'
+    FAILED = 'failed'
+    IN_PROGRESS = 'in_progress'
+    PENDING = 'pending'
+    RESENT = 'resent'
 
 
 class Organization(AbstractOrganization):
@@ -273,7 +287,43 @@ class OrganizationOwner(AbstractOrganizationOwner):
 
 
 class OrganizationInvitation(AbstractOrganizationInvitation):
-    pass
+    status = models.CharField(
+        max_length=11,
+        choices=OrganizationInviteStatusChoices.choices,
+        default=OrganizationInviteStatusChoices.PENDING,
+    )
+
+    def send_acceptance_email(self):
+        pass
+
+    def send_invite_email(self):
+        """
+        Sends an email to invite a user to join a team as an admin.
+
+        ToDo: Implement this method properly
+        """
+        template_variables = {
+            'sender_username': self.invited_by.username,
+            'sender_email': self.invited_by.email,
+            'invitee_username': self.invitee.username if self.invitee else self.invitee_identifier,
+            'organization_name': self.invited_by.organization.name,
+            'base_url': settings.KOBOFORM_URL,
+            'invite_uid': self.guid,
+        }
+
+        email_message = EmailMessage(
+            to=self.invitee.email if self.invitee else self.invitee_identifier,
+            subject="Invitation to Join the Organization",
+            plain_text_content_or_template='emails/new_invite.txt',
+            template_variables=template_variables,
+            html_content_or_template='emails/new_invite.html',
+            language=self.invitee.extra_details.data.get('last_ui_language') if self.invitee else 'en',
+        )
+
+        Mailer.send(email_message)
+
+    def send_refusal_email(self):
+        pass
 
 
 create_organization = partial(create_organization_base, model=Organization)

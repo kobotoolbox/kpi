@@ -8,7 +8,7 @@ from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.languages.urls import router as language_router
-from kobo.apps.organizations.views import OrganizationMemberViewSet, OrganizationViewSet
+from kobo.apps.organizations.views import OrganizationMemberViewSet, OrganizationViewSet, OrgMembershipInviteViewSet
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
@@ -154,6 +154,11 @@ router_api_v2.register(
     r'organizations/(?P<organization_id>[^/.]+)/members',
     OrganizationMemberViewSet,
     basename='organization-members',
+)
+router_api_v2.register(
+    r'organizations/(?P<organization_id>[^/.]+)/invites',
+    OrgMembershipInviteViewSet,
+    basename='organization-invite',
 )
 
 router_api_v2.register(r'permissions', PermissionViewSet)

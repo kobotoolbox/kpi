@@ -1,0 +1,15 @@
+{% load i18n %}
+{% trans "Hello," %}
+
+{% blocktrans %}{{ sender_username }} ({{ sender_email }}, username {{ sender_username }}) has invited you (username {{ invitee_username }}) to join {{ organization_name }}’s organization.{% endblocktrans %}
+
+{% trans "What joining the organization means for you:" %}
+* {% trans "You will benefit from higher usage limits and additional features, as well as priority user support." %}
+* {% trans "Any projects owned by your account will be transferred to the organization and all admins in that organization will have access to your projects and data." %}
+* {% trans "You will continue to have full management permission of all projects previously owned by you." %}
+
+{% trans "If you want to transfer any projects to another account or remove a project, please do so before accepting the invitation. This action cannot be undone." %}
+
+{% blocktrans %}To respond to this invitation, please use the following link: {{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}
+
+- KoboToolbox
