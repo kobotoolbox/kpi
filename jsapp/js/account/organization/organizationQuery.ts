@@ -91,7 +91,7 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   }, [params?.shouldForceInvalidation]);
 
   const session = useSession();
-  const organizationUrl = session.currentLoggedAccount?.organization?.url;
+  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined;
 
   // Using a separated function to fetch the organization data to prevent
   // feature flag dependencies from being added to the hook
@@ -119,11 +119,11 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   // the session data loaded. Account data is needed to fetch the organization
   // data.
 
-  const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
+  const query = useQuery<Organization, FailResponse, Organization, string[]>({
     staleTime: 1000 * 60 * 2,
     queryFn: fetchOrganization,
-    queryKey: [QueryKeys.organization],
-    enabled: !!organizationUrl
+    queryKey: [QueryKeys.organization, organizationUrl || ''],
+    enabled: !!organizationUrl,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
