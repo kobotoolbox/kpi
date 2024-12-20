@@ -61,22 +61,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.asset = asset
         self.detail_url = 'asset-detail'
         self.deployment_url = 'asset-deployment'
-        uuid_ = uuid.uuid4()
-        # add a submission by 'admin'
-        submission_data = {
-            'q1': 'answer',
-            'q2': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            '_uuid': str(uuid_),
-            '_submitted_by': 'admin',
-        }
-        self.asset.deploy(backend='mock')
-
-        self.asset.deployment.mock_submissions([submission_data])
-        submissions = self.asset.deployment.get_submissions(
-            self.asset.owner, fields=['_id']
-        )
-        self.submission = submissions[0]
 
     def tearDown(self):
         # clean up mongo
@@ -1474,11 +1458,27 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     @data('admin', 'someuser')
     def test_log_created_for_duplicate_submission(self, duplicating_user):
+        uuid_ = uuid.uuid4()
+        # add a submission by 'admin'
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': 'admin',
+        }
+        self.asset.deploy(backend='mock')
+
+        self.asset.deployment.mock_submissions([submission_data])
+        submissions = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        submission = submissions[0]
         submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'pk': submission['_id'],
             },
         )
         # whoever performs the duplication request will be considered the submitter
