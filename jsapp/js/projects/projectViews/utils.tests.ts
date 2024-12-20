@@ -73,7 +73,7 @@ describe('projectViewsUtils', () => {
         {
           in: {fieldName: 'ownerUsername', condition: 'contains', value: 'foo'},
           out:
-            '(search_field__owner_name__icontains:"foo" ' +
+            '(search_field__owner_username__icontains:"foo" ' +
             'OR search_field__organization_name__icontains:"foo")',
         },
         {

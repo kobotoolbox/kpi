@@ -72,7 +72,7 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     // Filtering by `ownerUsername` should filter on both the owner and organization name
     if (filter.fieldName === 'ownerUsername') {
       const ownerNameQuery = conditionDefinition.filterQuery
-        .replace('<field>', 'search_field__owner_name')
+        .replace('<field>', 'search_field__owner_username')
         .replace('<term>', `"${filter.value}"`);
       const orgNameQuery = conditionDefinition.filterQuery
         .replace('<field>', 'search_field__organization_name')
