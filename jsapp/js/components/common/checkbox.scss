@@ -94,6 +94,7 @@
       height: 4px;
       background-color: transparent;
       border-radius: 1px;
+      box-sizing: content-box;
     }
 
     &:checked {
