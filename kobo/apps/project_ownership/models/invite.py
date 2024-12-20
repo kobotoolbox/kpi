@@ -64,7 +64,7 @@ class Invite(AbstractTimeStampedModel):
     all_objects = InviteAllManager()
 
     class Meta:
-        verbose_name = 'project ownership transfer invite'
+        verbose_name = 'invitation'
 
     def __str__(self):
         return (

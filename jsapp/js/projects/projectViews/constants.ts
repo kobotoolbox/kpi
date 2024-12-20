@@ -321,7 +321,6 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'ownerEmail',
   'ownerFullName',
   'ownerOrganization',
-  'ownerUsername',
   'sector',
   'status',
 ];
@@ -335,7 +334,6 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateDeployed',
   'name',
   'status',
-  'ownerUsername',
 ];
 
 export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = [];
