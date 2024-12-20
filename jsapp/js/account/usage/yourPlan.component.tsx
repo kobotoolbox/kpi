@@ -15,7 +15,6 @@ import {ProductsContext} from '../useProducts.hook';
 import {getSubscriptionChangeDetails} from '../stripe.utils';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useOrganizationQuery} from '../organization/organizationQuery';
-import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 const BADGE_COLOR_KEYS: {[key in SubscriptionChangeType]: BadgeColor} = {
   [SubscriptionChangeType.RENEWAL]: 'light-blue',
@@ -35,7 +34,6 @@ export const YourPlan = () => {
   const [session] = useState(() => sessionStore);
   const [productsContext] = useContext(ProductsContext);
   const orgQuery = useOrganizationQuery();
-  const areMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
 
   const planName = subscriptions.planName;
 
@@ -62,9 +60,7 @@ export const YourPlan = () => {
     }
   }, [env.isReady, subscriptions.isInitialised]);
 
-  const showPlanUpdateLink = areMmosEnabled
-    ? orgQuery.data?.request_user_role === 'owner'
-    : true;
+  const showPlanUpdateLink = orgQuery.data?.request_user_role === 'owner';
 
   const subscriptionUpdate = useMemo(() => {
     return getSubscriptionChangeDetails(currentPlan, productsContext.products);
