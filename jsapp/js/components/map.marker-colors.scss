@@ -20,6 +20,30 @@
     border: none;
     border-radius: 0;
   }
+
+  &.validation_status_not_approved {
+    color: colors.$kobo-dark-red!important;
+    background-color: colors.$kobo-light-red!important;
+    border: 1px solid colors.$kobo-dark-red;
+  }
+
+  &.validation_status_approved {
+    color: colors.$kobo-dark-teal!important;
+    background-color: colors.$kobo-light-teal!important;
+    border: 1px solid colors.$kobo-dark-teal;
+  }
+
+  &.validation_status_on_hold {
+    color: colors.$kobo-dark-amber!important;
+    background-color: colors.$kobo-light-amber!important;
+    border: 1px solid colors.$kobo-dark-amber;
+  }
+
+  &.validation_status_no_status {
+    color: colors.$kobo-gray-40!important;
+    background-color: colors.$kobo-gray-98!important;
+    border: 1px solid colors.$kobo-gray-40;
+  }
 }
 
 /******************************************************/
