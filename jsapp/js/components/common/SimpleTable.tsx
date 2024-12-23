@@ -1,6 +1,7 @@
-import {Table, type TableData} from '@mantine/core';
+import {Table, type MantineStyleProps, type TableData} from '@mantine/core';
+import styles from './SimpleTable.module.scss';
 
-interface SimpleTableProps {
+interface SimpleTableProps extends MantineStyleProps {
   head: TableData['head'];
   body: TableData['body'];
   /**
@@ -13,20 +14,30 @@ interface SimpleTableProps {
 
 /**
  * A wrapper component for `Table` from `@mantine/core`. It requires column
- * headings, column data, and has optional minimum width.
+ * headings, column data, and has optional minimum width. You can pass all
+ * standard Mantine style props down to the inner `Table`.
  */
-export default function SimpleTable(props: SimpleTableProps) {
+export default function SimpleTable(
+  {head, body, minWidth, ...styleProps}: SimpleTableProps
+) {
   const table = (
     <Table
-      data={{head: props.head, body: props.body}}
+      {...styleProps}
+      classNames={{
+        table: styles.SimpleTableRoot,
+        thead: styles.SimpleTableThead,
+        th: styles.SimpleTableTh,
+        td: styles.SimpleTableTd,
+      }}
+      data={{head: head, body: body}}
       horizontalSpacing='sm'
       verticalSpacing='sm'
     />
   );
 
-  if (props.minWidth) {
+  if (minWidth) {
     return (
-      <Table.ScrollContainer minWidth={props.minWidth} type='native'>
+      <Table.ScrollContainer minWidth={minWidth} type='native'>
         {table}
       </Table.ScrollContainer>
     );

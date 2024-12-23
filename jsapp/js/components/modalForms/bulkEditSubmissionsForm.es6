@@ -16,7 +16,7 @@ import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import Button from 'js/components/common/button';
 import SimpleTable from 'js/components/common/SimpleTable';
-import {Text, Box} from '@mantine/core';
+import {Text} from '@mantine/core';
 import envStore from 'js/envStore';
 
 // we need a text to display when we need to say "this question has no answer"
@@ -550,18 +550,17 @@ class BulkEditRowForm extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__cell>
 
-        <Box mt='lg'>
-          <SimpleTable
-            head={[
-              t('Response value'),
-              t('Frequency'),
-              t('Percentage'),
-              <Text key='action-button' ta='right'>{t('Action')}</Text>,
-            ]}
-            body={this.getRows()}
-            minWidth={600}
-          />
-        </Box>
+        <SimpleTable
+          mt='lg'
+          head={[
+            t('Response value'),
+            t('Frequency'),
+            t('Percentage'),
+            <Text key='action-button' ta='right'>{t('Action')}</Text>,
+          ]}
+          body={this.getRows()}
+          minWidth={600}
+        />
       </React.Fragment>
     );
   }
