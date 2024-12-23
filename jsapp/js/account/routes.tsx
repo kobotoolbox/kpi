@@ -14,10 +14,8 @@ import {
   MembersRoute,
   OrganizationSettingsRoute,
 } from 'js/account/routes.constants';
-import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export default function routes() {
-  const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
 
   return (
     <>
@@ -112,40 +110,36 @@ export default function routes() {
           </RequireAuth>
         }
       />
-      {enableMMORoutes && (
-        <>
-          <Route
-            path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
-            element={
-              <RequireAuth>
-                <RequireOrgPermissions
-                  mmoOnly
-                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-                >
-                  <MembersRoute />
-                </RequireOrgPermissions>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
-            element={
-              <RequireAuth>
-                <RequireOrgPermissions
-                  validRoles={[
-                    OrganizationUserRole.owner,
-                    OrganizationUserRole.admin,
-                  ]}
-                  mmoOnly
-                  redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-                >
-                  <OrganizationSettingsRoute />
-                </RequireOrgPermissions>
-              </RequireAuth>
-            }
-          />
-        </>
-      )}
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              mmoOnly
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <MembersRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[
+                OrganizationUserRole.owner,
+                OrganizationUserRole.admin,
+              ]}
+              mmoOnly
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <OrganizationSettingsRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
     </>
   );
 }
