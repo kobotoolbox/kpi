@@ -18,6 +18,7 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
 import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import {useSession} from 'jsapp/js/stores/useSession';
 
 export interface OrganizationMember {
   /**
@@ -84,22 +85,36 @@ export function usePatchOrganizationMember(username: string) {
  * Mutation hook for removing member from organiztion. It ensures that all
  * related queries refetch data (are invalidated).
  */
-export function useRemoveOrganizationMember() {
+interface RemoveOrganizationMemberParams {
+  isRemovingSelf?: boolean;
+}
+export function useRemoveOrganizationMember(params?: RemoveOrganizationMemberParams) {
   const queryClient = useQueryClient();
+
+  const session = useSession();
 
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
 
   return useMutation({
-    mutationFn: async (username: string) => (
+    mutationFn: async (username: string) => {
+      if (username === session.currentLoggedAccount?.username) {
+        // If user is removing themselves, we need to clear the session
+        session.refreshAccount();
+      }
+
       // We're asserting the `orgId` is not `undefined` here, because the parent
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchDelete(getMemberEndpoint(orgId!, username))
-    ),
+      return fetchDelete(getMemberEndpoint(orgId!, username));
+    },
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      if (params?.isRemovingSelf) {
+        session.refreshAccount();
+      } else {
+        queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      }
     },
   });
 }
