@@ -16,6 +16,8 @@ import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
 import {userCan} from 'js/components/permissions/utils';
 import Button from 'js/components/common/button';
+import SimpleTable from 'js/components/common/SimpleTable';
+import {Text, Flex} from '@mantine/core';
 
 /**
  * Component that displays all available downloads (for logged in user only).
@@ -186,30 +188,26 @@ export default class ProjectExportsList extends React.Component {
     return languageDisplay;
   }
 
-  renderRow(exportData) {
-    return (
-      <bem.SimpleTable__row key={exportData.uid}>
-        <bem.SimpleTable__cell>
-          {EXPORT_TYPES[exportData.data.type]?.label}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          {formatTime(exportData.date_created)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          {this.renderLanguage(exportData.data.lang)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell m='text-center'>
+  getRows() {
+    return this.state.rows.map((exportData) => (
+      [
+        EXPORT_TYPES[exportData.data.type]?.label,
+        formatTime(exportData.date_created),
+        this.renderLanguage(exportData.data.lang),
+        <Text key='include-groups' ta='center'>
           {this.renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell m='text-center'>
+        </Text>,
+        <Text key='multiple-versions' ta='center'>
           {this.renderBooleanAnswer(exportData.data.fields_from_all_versions)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell className='export-list-buttons'>
+        </Text>,
+        <Flex
+          gap='xs'
+          justify='flex-end'
+          align='center'
+          direction='row'
+          wrap='nowrap'
+          key='buttons'
+        >
           {exportData.status === EXPORT_STATUSES.complete &&
             <Button
               type='secondary'
@@ -243,9 +241,9 @@ export default class ProjectExportsList extends React.Component {
               onClick={this.deleteExport.bind(this, exportData.uid)}
             />
           }
-        </bem.SimpleTable__cell>
-      </bem.SimpleTable__row>
-    );
+        </Flex>
+      ]
+    ));
   }
 
   render() {
@@ -271,44 +269,18 @@ export default class ProjectExportsList extends React.Component {
             {t('Exports')}
           </bem.FormView__cell>
 
-          <bem.SimpleTable m='project-exports'>
-            <bem.SimpleTable__header>
-              <bem.SimpleTable__row>
-                <bem.SimpleTable__cell>
-                  {t('Type')}
-                </bem.SimpleTable__cell>
-
-                <bem.SimpleTable__cell>
-                  {t('Created')}
-                </bem.SimpleTable__cell>
-
-                <bem.SimpleTable__cell>
-                  {t('Language')}
-                </bem.SimpleTable__cell>
-
-                <bem.SimpleTable__cell m='text-center'>
-                  {t('Include Groups')}
-                </bem.SimpleTable__cell>
-
-                <bem.SimpleTable__cell m='text-center'>
-                  {t('Multiple Versions')}
-                </bem.SimpleTable__cell>
-
-                <bem.SimpleTable__cell/>
-              </bem.SimpleTable__row>
-            </bem.SimpleTable__header>
-
-            <bem.SimpleTable__body>
-              {this.state.rows.map(this.renderRow)}
-              {this.state.rows.length === 0 &&
-                <bem.SimpleTable__messageRow>
-                  <bem.SimpleTable__cell colSpan='6'>
-                    {t('There is nothing to download yet.')}
-                  </bem.SimpleTable__cell>
-                </bem.SimpleTable__messageRow>
-              }
-            </bem.SimpleTable__body>
-          </bem.SimpleTable>
+          <SimpleTable
+            head={[
+              t('Type'),
+              t('Created'),
+              t('Language'),
+              <Text key='include-groups' ta='center'>{t('Include Groups')}</Text>,
+              <Text key='multiple-versions' ta='center'>{t('Multiple Versions')}</Text>,
+              '',
+            ]}
+            body={this.getRows()}
+            minWidth={600}
+          />
         </React.Fragment>
       );
     }

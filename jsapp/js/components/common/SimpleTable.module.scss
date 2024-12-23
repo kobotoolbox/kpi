@@ -1,0 +1,25 @@
+// We need bigger specificity in each selector to ensure we do overwrite default
+// styles
+
+table.SimpleTableRoot {
+  background-color: var(--mantine-color-gray-9);
+  border-collapse: separate;
+  border-radius: var(--mantine-radius-md);
+}
+
+thead.SimpleTableThead {
+  background-color: var(--mantine-color-gray-8);
+}
+
+th.SimpleTableTh {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-gray-2);
+  font-weight: 400;
+}
+
+td.SimpleTableTd {
+  font-size: var(--mantine-font-size-md);
+  border-top-width: 1px;
+  border-top-color: var(--mantine-color-gray-7);
+  border-top-style: solid;
+}
