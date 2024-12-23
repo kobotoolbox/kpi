@@ -1,7 +1,7 @@
 from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -17,13 +17,22 @@ from kpi.serializers.v2.service_usage import (
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethod
-from .models import Organization, OrganizationOwner, OrganizationUser
+from .models import (
+    Organization,
+    OrganizationOwner,
+    OrganizationUser,
+    OrganizationInvitation
+)
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
 )
-from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from .serializers import (
+    OrganizationSerializer,
+    OrganizationUserSerializer,
+    OrgMembershipInviteSerializer
+)
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -420,3 +429,108 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
+
+
+class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
+    """
+    ### List Organization Invitation
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/invites/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/invites/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "url": "http://kf.kobo.local/api/v2/organizations/org3ua6H3F94CQpQEYs4RRz4/invites/f361ebf6-d1c1-4ced-8343-04b11863d784/",
+    >                   "invited_by": "http://kf.kobo.local/api/v2/users/demo7/",
+    >                   "status": "pending",
+    >                   "created": "2024-12-11T16:00:00Z",
+    >                   "modified": "2024-12-11T16:00:00Z",
+    >                   "invitee": "raj_patel"
+    >               },
+    >               {
+    >                   "url": "http://kf.kobo.local/api/v2/organizations/orgLRM8xmvWji4itYWWhLVgC/invites/1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
+    >                   "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >                   "status": "pending",
+    >                   "created": "2024-12-11T18:19:56Z",
+    >                   "modified": "2024-12-11T18:19:56Z",
+    >                   "invitee": "demo7"
+    >               },
+    >           ]
+    >       }
+
+    ### Create Organization Invitation
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/invites/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/invites/
+
+    > Payload
+
+    >       {
+    >           "invitees": ["demo14", "demo13@demo13.com", "demo20@demo20.com"]
+    >       }
+
+    > Response 200
+
+    >       [
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/orgLRM8xmvWji4itYWWhLVgC/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo14"
+    >           },
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/orgLRM8xmvWji4itYWWhLVgC/invites/5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo13"
+    >           },
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/orgLRM8xmvWji4itYWWhLVgC/invites/3efb7217-171f-47a5-9a42-b23055e499d4/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo20@demo20.com"
+    >           }
+    >       ]
+    """
+    serializer_class = OrgMembershipInviteSerializer
+    permission_classes = []
+    http_method_names = ['get', 'post', 'patch']
+    lookup_field = 'guid'
+
+    def get_queryset(self):
+        return OrganizationInvitation.objects.select_related(
+            'invitee', 'invited_by', 'organization'
+        )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invitations = serializer.save()
+
+        # Return the serialized data for all created invitations
+        serializer = OrgMembershipInviteSerializer(
+            invitations, many=True, context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
