@@ -39,7 +39,7 @@ const getActivityLogs = async ({
   return await fetchGet<PaginatedResponse<ActivityLogsItem>>(
     `${endpointUrl}?${params}`,
     {
-      errorMessageDisplay: t('There was an error getting one-time add-ons.'),
+      errorMessageDisplay: t('There was an error getting activity logs.'),
     }
   );
 };
