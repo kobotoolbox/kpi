@@ -25,7 +25,6 @@ If you accept the transfer:
 {% blocktrans %}
 If you accept the transfer:
 - All submissions, data storage, and transcription/translation usage for these projects will count toward the team’s plan limits
-- If you leave the team in the future, your account will still retain manage project permissions for these projects
 {% endblocktrans %}
 
 {% endif %}
