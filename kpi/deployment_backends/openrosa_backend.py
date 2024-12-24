@@ -143,11 +143,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
-        with kc_transaction_atomic():
-            self._xform = publish_xls_form(xlsx_file, self.asset.owner)
-            self._xform.downloadable = active
-            self._xform.kpi_asset_uid = self.asset.uid
-            self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform = publish_xls_form(xlsx_file, self.asset.owner)
+        self._xform.downloadable = active
+        self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
 
         self.store_data(
             {
