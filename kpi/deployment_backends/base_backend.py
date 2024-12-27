@@ -149,8 +149,10 @@ class BaseDeploymentBackend(abc.ABC):
                 and k.split('/')[0] in self.PROTECTED_XML_FIELDS
             )
         }
+        request = kwargs.get('request')
 
         backend_results = []
+        request._request.submissions = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 
@@ -177,8 +179,10 @@ class BaseDeploymentBackend(abc.ABC):
             # to the XML tree through the API.
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
+            breakpoint()
+            request._request.submissions.append({
 
-            request = kwargs.get('request')
+            })
             with http_open_rosa_error_handler(
                 lambda: self.store_submission(
                     user,

@@ -392,6 +392,7 @@ class ProjectHistoryLog(AuditLog):
             'project-ownership-invite-list': cls._create_from_ownership_transfer,
             'submission-duplicate': cls._create_from_duplicate_request,
             'submission-bulk': cls._create_from_instance_request,
+            'submission-validation-statuses': cls._create_from_instance_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -744,21 +745,21 @@ class ProjectHistoryLog(AuditLog):
         instances = getattr(request, 'instances', [])
         logs = []
         for instance in instances:
-            logs.append(ProjectHistoryLog(**{
-                'user': request.user,
-                'object_id': request.asset.id,
-                'action':AuditAction.MODIFY_SUBMISSION,
-                'user_uid': request.user.extra_details.uid,
-                'metadata': {
+            logs.append(ProjectHistoryLog(
+                user=request.user,
+                object_id = request.asset.id,
+                action=AuditAction.MODIFY_SUBMISSION,
+                user_uid= request.user.extra_details.uid,
+                metadata= {
                     'asset_uid': request.resolver_match.kwargs['parent_lookup_asset'],
                     'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                     'ip_address': get_client_ip(request),
                     'source': get_human_readable_client_user_agent(request),
                     'submission': {
-                        'submitted_by': instance['submitted_by']
+                        'submitted_by': instance['submitted_by'].username,
+                        'status': instance['status'],
                     }
                 },
-            }
             ))
         ProjectHistoryLog.objects.bulk_create(logs)
 
