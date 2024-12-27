@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {ASSET_TYPES} from 'js/constants';
 import {
@@ -7,26 +6,36 @@ import {
   isAssetAllLocked,
   getFormFeatures,
 } from 'js/components/locking/lockingUtils';
+import type {AssetResponse} from 'jsapp/js/dataInterface';
 
-/**
- * @prop {object} asset
- */
-class FormLockedMessage extends React.Component {
-  constructor(props){
+interface FormLockedMessageProps {
+  asset: AssetResponse;
+}
+interface FormLockedMessageState {
+  isOpen: boolean;
+}
+
+class FormLockedMessage extends React.Component<
+  FormLockedMessageProps,
+  FormLockedMessageState
+> {
+  constructor(props: FormLockedMessageProps){
     super(props);
     this.state = {
       isOpen: false,
     };
-    autoBind(this);
   }
 
-  toggleMoreInfo(evt) {
+  toggleMoreInfo(evt: React.TouchEvent) {
     evt.preventDefault();
     this.setState({isOpen: !this.state.isOpen});
   }
 
   getMessageText() {
-    const isAllLocked = isAssetAllLocked(this.props.asset.content);
+    const isAllLocked = (
+      this.props.asset.content !== undefined &&
+      isAssetAllLocked(this.props.asset.content)
+    );
     if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
       if (isAllLocked) {
         // fully locked template
@@ -45,11 +54,14 @@ class FormLockedMessage extends React.Component {
   }
 
   renderSeeMore() {
-    const features = getFormFeatures(this.props.asset.content);
+    const features = this.props.asset.content ? getFormFeatures(this.props.asset.content) : null;
+    if (features === null) {
+      return null;
+    }
 
     return (
       <React.Fragment>
-        <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
+        <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo.bind(this)}>
           {t('see more')}
           {this.state.isOpen && <i className='k-icon k-icon-angle-up'/>}
           {!this.state.isOpen && <i className='k-icon k-icon-angle-down'/>}
@@ -63,14 +75,12 @@ class FormLockedMessage extends React.Component {
                   <label>
                     {t('Locked functionalities')}
                   </label>
-                  {features.cants.map((cant) => {
-                    return (
-                      <li key={cant.name}>
-                        <i className='k-icon k-icon-close'/>
-                        {cant.label}
-                      </li>
-                    );
-                  })}
+                  {features.cants.map((cant) => (
+                    <li key={cant.name}>
+                      <i className='k-icon k-icon-close'/>
+                      {cant.label}
+                    </li>
+                  ))}
                 </ul>
               }
 
@@ -79,14 +89,12 @@ class FormLockedMessage extends React.Component {
                   <label>
                     {t('Unlocked functionalities')}
                   </label>
-                  {features.cans.map((can) => {
-                    return (
-                      <li key={can.name}>
-                        <i className='k-icon k-icon-check'/>
-                        {can.label}
-                      </li>
-                    );
-                  })}
+                  {features.cans.map((can) => (
+                    <li key={can.name}>
+                      <i className='k-icon k-icon-check'/>
+                      {can.label}
+                    </li>
+                  ))}
                 </ul>
               }
             </div>
@@ -97,6 +105,10 @@ class FormLockedMessage extends React.Component {
   }
 
   render() {
+    if (!this.props.asset.content) {
+      return null;
+    }
+
     if (!isAssetLocked(this.props.asset.content)) {
       return null;
     }
