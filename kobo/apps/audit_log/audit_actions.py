@@ -23,6 +23,7 @@ class AuditAction(models.TextChoices):
     MODIFY_IMPORTED_FIELDS = 'modify-imported-fields'
     MODIFY_SERVICE = 'modify-service'
     MODIFY_SHARING = 'modify-sharing'
+    MODIFY_SUBMISSION = 'modify-submission'
     MODIFY_USER_PERMISSIONS = 'modify-user-permissions'
     PUT_BACK = 'put-back'
     REDEPLOY = 'redeploy'

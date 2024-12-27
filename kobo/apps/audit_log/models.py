@@ -293,6 +293,7 @@ class AccessLog(AuditLog):
 
 
 class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
+
     def get_queryset(self):
         return super().get_queryset().filter(log_type=AuditType.PROJECT_HISTORY)
 
@@ -322,6 +323,12 @@ class ProjectHistoryLog(AuditLog):
 
     class Meta:
         proxy = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.app_label = Asset._meta.app_label,
+        self.model_name = Asset._meta.model_name,
+        self.log_type = AuditType.PROJECT_HISTORY
 
     @classmethod
     def create_from_import_task(cls, task: ImportTask):
@@ -384,6 +391,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
             'project-ownership-invite-list': cls._create_from_ownership_transfer,
             'submission-duplicate': cls._create_from_duplicate_request,
+            'submission-bulk': cls._create_from_instance_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -624,9 +632,6 @@ class ProjectHistoryLog(AuditLog):
                     object_id=transfer['asset__id'],
                     action=AuditAction.TRANSFER,
                     user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
                     user_uid=request.user.extra_details.uid,
                     metadata={
                         'asset_uid': transfer['asset__uid'],
@@ -676,9 +681,6 @@ class ProjectHistoryLog(AuditLog):
         log_base = {
             'user': request.user,
             'object_id': asset_id,
-            'app_label': Asset._meta.app_label,
-            'model_name': Asset._meta.model_name,
-            'log_type': AuditType.PROJECT_HISTORY,
             'user_uid': request.user.extra_details.uid,
         }
         # get all users whose permissions changed
@@ -734,6 +736,31 @@ class ProjectHistoryLog(AuditLog):
                 'source': get_human_readable_client_user_agent(request),
             },
         )
+
+    @classmethod
+    def _create_from_instance_request(cls, request):
+        if request.method != 'PATCH':
+            return
+        instances = getattr(request, 'instances', [])
+        logs = []
+        for instance in instances:
+            logs.append(ProjectHistoryLog(**{
+                'user': request.user,
+                'object_id': request.asset.id,
+                'action':AuditAction.MODIFY_SUBMISSION,
+                'user_uid': request.user.extra_details.uid,
+                'metadata': {
+                    'asset_uid': request.resolver_match.kwargs['parent_lookup_asset'],
+                    'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                    'ip_address': get_client_ip(request),
+                    'source': get_human_readable_client_user_agent(request),
+                    'submission': {
+                        'submitted_by': instance['submitted_by']
+                    }
+                },
+            }
+            ))
+        ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
     def _handle_anonymous_user_permissions(
