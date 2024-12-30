@@ -179,10 +179,7 @@ class BaseDeploymentBackend(abc.ABC):
             # to the XML tree through the API.
             for path, value in update_data.items():
                 edit_submission_xml(xml_parsed, path, value)
-            breakpoint()
-            request._request.submissions.append({
 
-            })
             with http_open_rosa_error_handler(
                 lambda: self.store_submission(
                     user,

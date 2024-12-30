@@ -3,6 +3,7 @@ import time
 
 from django.conf import settings
 from django.db.models.signals import post_delete, pre_delete
+from django_userforeignkey.request import get_current_request
 
 from kobo.apps.openrosa.apps.logger.signals import (
     nullify_exports_time_of_last_submission,
@@ -126,6 +127,9 @@ def set_instance_validation_statuses(
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
     # Update Postgres & Mongo
+    records_queryset = Instance.objects.filter(**postgres_query)
+    get_current_request().instances = records_queryset.values('user__username', 'uuid')
+    get_current_request().validation_status = new_validation_status['label']
     updated_records_count = Instance.objects.filter(**postgres_query).update(
         validation_status=new_validation_status
     )
