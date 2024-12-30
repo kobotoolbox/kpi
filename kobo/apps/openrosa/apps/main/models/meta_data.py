@@ -142,6 +142,7 @@ class MetaData(AbstractTimeStampedModel):
         upload_to=upload_to,
         blank=True,
         null=True,
+        max_length=380,
     )
     data_file_type = models.CharField(max_length=255, blank=True, null=True)
     file_hash = models.CharField(max_length=50, blank=True, null=True)

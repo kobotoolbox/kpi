@@ -4,7 +4,6 @@ import {useEffect} from 'react';
 
 // Stores, hooks and utilities
 import {fetchGetUrl, fetchPatch} from 'jsapp/js/api';
-import {FeatureFlag, useFeatureFlag} from 'js/featureFlags';
 import {useSession} from 'jsapp/js/stores/useSession';
 
 // Constants and types
@@ -13,10 +12,15 @@ import {QueryKeys} from 'js/query/queryKeys';
 import {queryClient} from 'jsapp/js/query/queryClient';
 
 // Comes from `kobo/apps/accounts/forms.py`
-export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none';
+export type OrganizationTypeName =
+  | 'non-profit'
+  | 'government'
+  | 'educational'
+  | 'commercial'
+  | 'none';
 
 export const ORGANIZATION_TYPES: {
-  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string}
+  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string};
 } = {
   'non-profit': {name: 'non-profit', label: t('Non-profit organization')},
   government: {name: 'government', label: t('Government institution')},
@@ -79,8 +83,6 @@ interface OrganizationQueryParams {
  * to invalidate data and refetch when absolute latest data is needed.
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
-  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
-
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
       queryClient.invalidateQueries({
@@ -93,37 +95,17 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   const session = useSession();
   const organizationUrl = session.currentLoggedAccount?.organization?.url;
 
-  // Using a separated function to fetch the organization data to prevent
-  // feature flag dependencies from being added to the hook
-  const fetchOrganization = async (): Promise<Organization> => {
-    // `organizationUrl` is a full url with protocol and domain name, so we're
-    // using fetchGetUrl.
-    // We're asserting the `organizationUrl` is not `undefined` here because
-    // the query is disabled without it.
-    const organization = await fetchGetUrl<Organization>(organizationUrl!);
-
-    if (isMmosEnabled) {
-      return organization;
-    }
-
-    // While the project is in development we will force a `false` return for
-    // the `is_mmo` to make sure we don't have any implementations appearing
-    // for users.
-    return {
-      ...organization,
-      is_mmo: false,
-    };
-  };
-
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
   // data.
 
-  const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
+  const query = useQuery<Organization, FailResponse>({
     staleTime: 1000 * 60 * 2,
-    queryFn: fetchOrganization,
-    queryKey: [QueryKeys.organization],
-    enabled: !!organizationUrl
+    // We're asserting the `organizationUrl` is not `undefined` here because
+    // the query is disabled without it.
+    queryFn: () => fetchGetUrl<Organization>(organizationUrl!),
+    queryKey: [QueryKeys.organization, organizationUrl],
+    enabled: !!organizationUrl,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed

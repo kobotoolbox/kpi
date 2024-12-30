@@ -34,6 +34,9 @@ export const decorators = [
 ];
 
 export const parameters = {
+  options: {
+    storySort: (a, b) => a.title === b.title ? 0 : a.title.localeCompare(b.title, undefined, {numeric: true}),
+  },
   actions: {argTypesRegex: '^on[A-Z].*'},
   controls: {
     matchers: {

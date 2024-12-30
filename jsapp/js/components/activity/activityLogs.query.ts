@@ -39,7 +39,7 @@ const getActivityLogs = async ({
   return await fetchGet<PaginatedResponse<ActivityLogsItem>>(
     `${endpointUrl}?${params}`,
     {
-      errorMessageDisplay: t('There was an error getting one-time add-ons.'),
+      errorMessageDisplay: t('There was an error getting activity logs.'),
     }
   );
 };
@@ -50,14 +50,17 @@ const getActivityLogs = async ({
  * Filter options, for now, comes from AuditActions enum.
  * In the future we might change this to be fetched from the server.
  *
+ * Items are sorted by an specific order defined in the AUDIT_ACTION_TYPES.
+ *
  */
 const getFilterOptions = async () =>
   (Object.keys(AuditActions) as Array<keyof typeof AuditActions>)
-    .sort()
-    .map((value) => {
+    .map((key) => AUDIT_ACTION_TYPES[key])
+    .sort((a, b) => a.order - b.order)
+    .map((auditAction) => {
       return {
-        label: AUDIT_ACTION_TYPES[value].label,
-        value,
+        label: auditAction.label,
+        value: auditAction.name,
       };
     });
 

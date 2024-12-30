@@ -171,10 +171,26 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['results']) == 1
         assert response.data['results'][0]['asset__name'] == ''
-        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_asr_seconds'] == 4586
-        assert response.data['results'][0]['nlp_usage_current_month']['total_nlp_mt_characters'] == 5473
-        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds'] == 4728
-        assert response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters'] == 6726
+        assert (
+            response.data['results'][0]['nlp_usage_current_period'][
+                'total_nlp_asr_seconds'
+            ]
+            == 4586
+        )
+        assert (
+            response.data['results'][0]['nlp_usage_current_period'][
+                'total_nlp_mt_characters'
+            ]
+            == 5473
+        )
+        assert (
+            response.data['results'][0]['nlp_usage_all_time']['total_nlp_asr_seconds']
+            == 4728
+        )
+        assert (
+            response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters']
+            == 6726
+        )
         assert (
             response.data['results'][0]['storage_bytes']
             == (
@@ -183,7 +199,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             )
             * 2  # __add_submissions() adds 2 submissions
         )
-        assert response.data['results'][0]['submission_count_current_month'] == 2
+        assert response.data['results'][0]['submission_count_current_period'] == 2
         assert response.data['results'][0]['submission_count_all_time'] == 2
 
     def test_no_data(self):
