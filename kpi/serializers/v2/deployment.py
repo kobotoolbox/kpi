@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.conf import settings
-from rest_framework import serializers
 from pyxform.errors import PyXFormError
+from rest_framework import serializers
 
 from .asset import AssetSerializer
 
@@ -36,13 +36,7 @@ class DeploymentSerializer(serializers.Serializer):
         try:
             asset.deploy(backend=backend_id, active=validated_data.get('active', False))
         except PyXFormError as e:
-            raise serializers.ValidationError(
-                {
-                    'error': (
-                        f'ODK Validation Error: {e}'
-                    )
-                }
-            )
+            raise serializers.ValidationError({'error': (f'ODK Validation Error: {e}')})
         return asset.deployment
 
     def update(self, instance, validated_data):

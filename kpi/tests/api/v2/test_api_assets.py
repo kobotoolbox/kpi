@@ -1735,39 +1735,50 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
                     'type': 'start',
                     '$kuid': 'O23MoETkI',
                     '$xpath': 'start',
-                    '$autoname': 'start'},
-                    {'name': 'end',
+                    '$autoname': 'start',
+                },
+                {
+                    'name': 'end',
                     'type': 'end',
                     '$kuid': '9rvIvjnrP',
                     '$xpath': 'end',
-                    '$autoname': 'end'},
-                    {'name': 'Enter_a_float_number',
+                    '$autoname': 'end',
+                },
+                {
+                    'name': 'Enter_a_float_number',
                     'type': 'decimal',
                     '$kuid': 'e2v7ZTcDw',
                     'label': ['Enter a float number'],
                     '$xpath': 'Enter_a_float_number',
                     'required': False,
-                    '$autoname': 'Enter_a_float_number'},
-                    {'name': 'What_s_your_name',
+                    '$autoname': 'Enter_a_float_number',
+                },
+                {
+                    'name': 'What_s_your_name',
                     'type': 'text',
                     '$kuid': 'w8nnstZ1r',
                     'label': ["What's your name?"],
                     '$xpath': 'What_s_your_name',
                     'required': False,
-                    '$autoname': 'What_s_your_name'},
-                    {'name': 'Enter_an_int_number',
+                    '$autoname': 'What_s_your_name',
+                },
+                {
+                    'name': 'Enter_an_int_number',
                     'type': 'integer',
                     '$kuid': 'hpw7EKED0',
                     '$xpath': 'Enter_an_int_number',
                     'required': False,
-                    '$autoname': 'Enter_an_int_number'},
-                    {'name': 'Enter_a_time',
+                    '$autoname': 'Enter_an_int_number',
+                },
+                {
+                    'name': 'Enter_a_time',
                     'type': 'time',
                     '$kuid': 'rwf9XqdlC',
                     'label': ['Enter a time'],
                     '$xpath': 'Enter_a_time',
                     'required': False,
-                    '$autoname': 'Enter_a_time'},
+                    '$autoname': 'Enter_a_time',
+                },
             ],
             'choices': [],
             'settings': {},
@@ -1780,8 +1791,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         )
         asset = Asset.objects.get(uid=asset_response.data.get('uid'))
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': asset.uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+        )
 
         deploy_response = self.client.post(
             deployment_url,
@@ -1792,9 +1804,13 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         )
 
         self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(deploy_response.data['error'], ('ODK Validation Error: '
-        'The survey element named \'Enter_an_int_number\' has no label or hint.'))
-
+        self.assertEqual(
+            deploy_response.data['error'],
+            (
+                'ODK Validation Error: '
+                "The survey element named 'Enter_an_int_number' has no label or hint."
+            ),
+        )
 
     def test_asset_redeployment(self):
         self.test_asset_deployment()
