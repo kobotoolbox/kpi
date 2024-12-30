@@ -1,11 +1,11 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import type {FailResponse, PaginatedResponse} from 'js/dataInterface';
-import {
-  AUDIT_ACTION_TYPES} from './activity.constants';
 import type {
-  AuditActions,
-  ActivityLogsItem,
-} from './activity.constants';
+  FailResponse,
+  LabelValuePair,
+  PaginatedResponse,
+} from 'js/dataInterface';
+import {AUDIT_ACTION_TYPES} from './activity.constants';
+import type {AuditActions, ActivityLogsItem} from './activity.constants';
 import {QueryKeys} from 'js/query/queryKeys';
 import {fetchGet} from 'jsapp/js/api';
 import {endpoints} from 'jsapp/js/api.endpoints';
@@ -45,11 +45,6 @@ const getActivityLogs = async ({
   );
 };
 
-interface FilterOption {
-  label: string;
-  value: string;
-}
-
 /**
  * Fetches the filter options for the activity logs.
  *
@@ -61,7 +56,7 @@ interface FilterOption {
  */
 const getFilterOptions = async (
   assetUid: string
-): Promise<FilterOption[]> => {
+): Promise<LabelValuePair[]> => {
   const endpointUrl = endpoints.ASSET_HISTORY_ACTIONS.replace(
     ':asset_uid',
     assetUid
