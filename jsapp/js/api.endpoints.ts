@@ -2,6 +2,8 @@ export const endpoints = {
   ASSET_HISTORY: '/api/v2/assets/:asset_uid/history/',
   ASSET_URL: '/api/v2/assets/:uid/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
+  ORG_INVITES_URL: '/api/v2/organizations/:organization_id/invites/',
+  ORG_INVITE_URL: '/api/v2/organizations/:organization_id/invites/:invite_id/',
   ME_URL: '/me/',
   PRODUCTS_URL: '/api/v2/stripe/products/',
   SUBSCRIPTION_URL: '/api/v2/stripe/subscriptions/',
