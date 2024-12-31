@@ -93,12 +93,11 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   }, [params?.shouldForceInvalidation]);
 
   const session = useSession();
-  const organizationUrl = session.currentLoggedAccount?.organization?.url;
+  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined;
 
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
   // data.
-
   const query = useQuery<Organization, FailResponse>({
     staleTime: 1000 * 60 * 2,
     // We're asserting the `organizationUrl` is not `undefined` here because
