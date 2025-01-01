@@ -1530,7 +1530,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'name.txt', edited_submission.encode()
             )
         }
-        response = self.client.post(
+        self.client.post(
             path=url,
             data=data,
             format='multipart',

@@ -72,6 +72,25 @@ def add_assigned_partial_perms(sender, instance, user, perms, **kwargs):
     request.partial_permissions_added[user.username] = perms_as_list_of_dicts
 
 
+@receiver(post_save, sender=Instance)
+def add_instance_to_request(instance, created, **kwargs):
+    request = get_current_request()
+    if request is None:
+        return
+    if getattr(request, 'instances', None) is None:
+        request.instances = {}
+    request.instances.update(
+        {
+            instance.id: SubmissionUpdate(
+                username=instance.user.username,
+                status=instance.get_validation_status().get('label', 'None'),
+                action='add' if created else 'modify',
+                id=instance.id,
+            )
+        }
+    )
+
+
 @receiver(post_remove_perm, sender=Asset)
 def add_removed_perms(sender, instance, user, codename, **kwargs):
     request = _initialize_request()
@@ -98,22 +117,3 @@ def remove_partial_perms(sender, instance, user, **kwargs):
     # we can't have one without the other
     request.permissions_added[user.username].discard(PERM_PARTIAL_SUBMISSIONS)
     request.permissions_removed[user.username].add(PERM_PARTIAL_SUBMISSIONS)
-
-@receiver(post_save, sender=Instance)
-def add_instance_to_request(instance, created, **kwargs):
-    # breakpoint()
-    request = get_current_request()
-    if request is None:
-        return
-    if getattr(request, 'instances', None) is None:
-        request.instances = {}
-    request.instances.update(
-        {
-            instance.id: SubmissionUpdate(
-                username=instance.user.username,
-                status=instance.get_validation_status().get('label', 'None'),
-                action='add' if created else 'modify',
-                id=instance.id,
-            )
-        }
-    )

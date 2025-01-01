@@ -622,6 +622,42 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
+    def _create_from_instance_request(cls, request):
+        if request.method in ['GET', 'HEAD']:
+            return
+        instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
+        logs = []
+        url_name = request.resolver_match.url_name
+
+        for instance in instances.values():
+            if instance.action == 'add':
+                action = AuditAction.ADD_SUBMISSION
+            else:
+                action = AuditAction.MODIFY_SUBMISSION
+            metadata = {
+                'asset_uid': request.asset.uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'submission': {
+                    'submitted_by': instance.username,
+                },
+            }
+            if 'validation-status' in url_name:
+                metadata['submission']['status'] = instance.status
+
+            logs.append(
+                ProjectHistoryLog(
+                    user=request.user,
+                    object_id=request.asset.id,
+                    action=action,
+                    user_uid=request.user.extra_details.uid,
+                    metadata=metadata,
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
     def _create_from_ownership_transfer(cls, request):
         updated_data = getattr(request, 'updated_data')
         transfers = updated_data['transfers'].values(
@@ -740,43 +776,6 @@ class ProjectHistoryLog(AuditLog):
                 'source': get_human_readable_client_user_agent(request),
             },
         )
-
-    @classmethod
-    def _create_from_instance_request(cls, request):
-        if request.method in ['GET', 'HEAD']:
-            return
-        instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
-        logs = []
-        url_name = request.resolver_match.url_name
-
-        for instance in instances.values():
-            if instance.action == 'add':
-                action = AuditAction.ADD_SUBMISSION
-            else:
-                action = AuditAction.MODIFY_SUBMISSION
-            metadata = {
-                'asset_uid': request.asset.uid,
-                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
-                'submission': {
-                    'submitted_by': instance.username,
-                },
-            }
-            if 'validation-status' in url_name:
-                metadata['submission']['status'] = instance.status
-
-            logs.append(
-                ProjectHistoryLog(
-                    user=request.user,
-                    object_id=request.asset.id,
-                    action=action,
-                    user_uid=request.user.extra_details.uid,
-                    metadata=metadata,
-                )
-            )
-        ProjectHistoryLog.objects.bulk_create(logs)
-
 
     @classmethod
     def _handle_anonymous_user_permissions(
