@@ -3,7 +3,7 @@ from collections import defaultdict
 from celery.signals import task_success
 from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
-from django.dispatch import Signal, receiver
+from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
 
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
@@ -16,9 +16,9 @@ from kpi.utils.object_permission import (
     post_remove_partial_perms,
     post_remove_perm,
 )
-from .models import AccessLog, ProjectHistoryLog
 from ..openrosa.apps.logger.models import Instance
-
+from .models import AccessLog, ProjectHistoryLog
+from .utils import SubmissionUpdate
 
 # Access Log receivers
 
@@ -101,14 +101,19 @@ def remove_partial_perms(sender, instance, user, **kwargs):
 
 @receiver(post_save, sender=Instance)
 def add_instance_to_request(instance, created, **kwargs):
+    # breakpoint()
     request = get_current_request()
     if request is None:
         return
     if getattr(request, 'instances', None) is None:
-        request.instances = []
-    request.instances.append({
-        'asset_id': instance.asset.id,
-        'submitted_by': instance.user,
-        'status': instance.get_validation_status(),
-        'created': created,
-    })
+        request.instances = {}
+    request.instances.update(
+        {
+            instance.id: SubmissionUpdate(
+                username=instance.user.username,
+                status=instance.get_validation_status().get('label', 'None'),
+                action='add' if created else 'modify',
+                id=instance.id,
+            )
+        }
+    )

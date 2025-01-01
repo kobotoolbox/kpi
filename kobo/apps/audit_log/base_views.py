@@ -1,7 +1,5 @@
 from rest_framework import mixins, viewsets
 
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-
 
 def get_nested_field(obj, field: str):
     """
@@ -42,7 +40,7 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         request = super().initialize_request(request, *args, **kwargs)
         request._request.log_type = self.log_type
         request._request._data = request.data.copy()
-        if isinstance(self, AssetNestedObjectViewsetMixin):
+        if hasattr(self, 'asset'):
             request._request.asset = self.asset
         return request
 

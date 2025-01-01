@@ -13,6 +13,7 @@ class AuditAction(models.TextChoices):
     DELETE = 'delete'
     DELETE_MEDIA = 'delete-media'
     DELETE_SERVICE = 'delete-service'
+    DELETE_SUBMISSION = 'delete-submission'
     DEPLOY = 'deploy'
     DISABLE_SHARING = 'disable-sharing'
     DISALLOW_ANONYMOUS_SUBMISSIONS = 'disallow-anonymous-submissions'

@@ -12,6 +12,7 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
+from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
@@ -390,9 +391,11 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
             'project-ownership-invite-list': cls._create_from_ownership_transfer,
-            'submission-duplicate': cls._create_from_duplicate_request,
+            'submission-duplicate': cls._create_from_instance_request,
             'submission-bulk': cls._create_from_instance_request,
-            'submission-validation-statuses': cls._create_from_validation_statuses,
+            'submission-validation-statuses': cls._create_from_instance_request,
+            'submission-validation-status': cls._create_from_instance_request,
+            'assetsnapshot-submission-alias': cls._create_from_instance_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -740,53 +743,40 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def _create_from_instance_request(cls, request):
-        if request.method != 'PATCH':
+        if request.method in ['GET', 'HEAD']:
             return
-        instances = getattr(request, 'instances', [])
+        instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
         logs = []
-        for instance in instances:
-            logs.append(ProjectHistoryLog(
-                user=request.user,
-                object_id = request.asset.id,
-                action=AuditAction.MODIFY_SUBMISSION,
-                user_uid= request.user.extra_details.uid,
-                metadata= {
-                    'asset_uid': request.resolver_match.kwargs['parent_lookup_asset'],
-                    'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                    'ip_address': get_client_ip(request),
-                    'source': get_human_readable_client_user_agent(request),
-                    'submission': {
-                        'submitted_by': instance['submitted_by'].username,
-                        'status': instance['status'],
-                    }
+        url_name = request.resolver_match.url_name
+
+        for instance in instances.values():
+            if instance.action == 'add':
+                action = AuditAction.ADD_SUBMISSION
+            else:
+                action = AuditAction.MODIFY_SUBMISSION
+            metadata = {
+                'asset_uid': request.asset.uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'submission': {
+                    'submitted_by': instance.username,
                 },
-            ))
+            }
+            if 'validation-status' in url_name:
+                metadata['submission']['status'] = instance.status
+
+            logs.append(
+                ProjectHistoryLog(
+                    user=request.user,
+                    object_id=request.asset.id,
+                    action=action,
+                    user_uid=request.user.extra_details.uid,
+                    metadata=metadata,
+                )
+            )
         ProjectHistoryLog.objects.bulk_create(logs)
 
-    @classmethod
-    def _create_from_validation_statuses(cls, request):
-        if request.method != 'PATCH':
-            return
-        instances = getattr(request, 'instances', [])
-        logs = []
-        for instance in instances:
-            logs.append(ProjectHistoryLog(
-                user=request.user,
-                object_id=request.asset.id,
-                action=AuditAction.MODIFY_SUBMISSION,
-                user_uid=request.user.extra_details.uid,
-                metadata={
-                    'asset_uid': request.resolver_match.kwargs['parent_lookup_asset'],
-                    'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                    'ip_address': get_client_ip(request),
-                    'source': get_human_readable_client_user_agent(request),
-                    'submission': {
-                        'submitted_by': instance['user__username'],
-                        'status': request.validation_status,
-                    }
-                },
-            ))
-        ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
     def _handle_anonymous_user_permissions(

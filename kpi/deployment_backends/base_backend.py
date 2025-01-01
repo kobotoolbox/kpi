@@ -152,7 +152,6 @@ class BaseDeploymentBackend(abc.ABC):
         request = kwargs.get('request')
 
         backend_results = []
-        request._request.submissions = []
         for submission in submissions:
             xml_parsed = fromstring_preserve_root_xmlns(submission)
 

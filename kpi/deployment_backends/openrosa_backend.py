@@ -68,7 +68,6 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
-
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -323,6 +322,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         user = request.user
         submission_xml = xml_submission_file.read()
+        logging.info(f'{submission_xml=}')
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
         except DET.ParseError:
