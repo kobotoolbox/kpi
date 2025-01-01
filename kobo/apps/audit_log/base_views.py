@@ -40,6 +40,8 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
         request = super().initialize_request(request, *args, **kwargs)
         request._request.log_type = self.log_type
         request._request._data = request.data.copy()
+        if hasattr(self, 'asset'):
+            request._request.asset = self.asset
         return request
 
     def get_object(self):
