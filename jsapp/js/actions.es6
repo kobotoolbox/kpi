@@ -219,7 +219,6 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
 });
 
 actions.resources.setDeploymentActive.listen(function(details, onComplete) {
-  console.log("What's up?");
   dataInterface.setDeploymentActive(details)
     .done((data) => {
       actions.resources.setDeploymentActive.completed(data.asset);
