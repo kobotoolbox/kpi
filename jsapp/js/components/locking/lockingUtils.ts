@@ -190,10 +190,9 @@ export function isAssetAllLocked(assetContent: AssetContent) {
 /**
  * Useful to check if given asset can be locked. I.e. if it should have some UI
  * elements locked (e.g. disabled or hidden) when it's being locked.
- * Note: currently only `survey`s are lockeable.
  */
 export function isAssetLockable(assetType: AssetTypeName) {
-  return assetType === AssetTypeName.survey;
+  return assetType === AssetTypeName.survey || assetType === AssetTypeName.template;
 }
 
 /**
