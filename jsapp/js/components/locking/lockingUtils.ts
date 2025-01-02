@@ -267,7 +267,7 @@ interface LockingCansCants {
  */
 function _getFeatures(
   sourceList: LockingRestrictionDefinition[],
-  profile: AssetLockingProfileDefinition | undefined,
+  profile: AssetLockingProfileDefinition | null,
   isAllLocked: boolean
 ): LockingCansCants {
   const outcome: LockingCansCants = {
