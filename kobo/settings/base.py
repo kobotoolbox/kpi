@@ -1093,8 +1093,20 @@ if STRIPE_ENABLED:
     STRIPE_LIVE_SECRET_KEY = env.str('STRIPE_LIVE_SECRET_KEY', None)
     STRIPE_TEST_SECRET_KEY = env.str('STRIPE_TEST_SECRET_KEY', None)
     DJSTRIPE_WEBHOOK_SECRET = env.str('DJSTRIPE_WEBHOOK_SECRET', None)
+    DJSTRIPE_WEBHOOK_URL = env.str('DJSTRIPE_WEBHOOK_URL', None)
+    DJSTRIPE_UUID = env.str('DJSTRIPE_UUID', None)
+    DJSTRIPE_WEBHOOK_ID = env.str('DJSTRIPE_WEBHOOK_ID', None)
     DJSTRIPE_WEBHOOK_VALIDATION = env.str('DJSTRIPE_WEBHOOK_VALIDATION', 'verify_signature')
+    DOMAIN_NAME = env.str('DOMAIN_NAME', '')
+
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
+
+"""SSO Configuration"""
+
+GOOGLE_AUTH_ENABLED = env.bool('GOOGLE_AUTH_ENABLED', False)
+if GOOGLE_AUTH_ENABLED:
+    GOOGLE_CLIENT_ID = env.str('GOOGLE_CLIENT_ID', None)
+    GOOGLE_CLIENT_SECRET = env.str('GOOGLE_CLIENT_SECRET', None)
 
 """Organizations settings"""
 # necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
