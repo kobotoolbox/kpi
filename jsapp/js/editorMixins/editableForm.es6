@@ -708,9 +708,6 @@ export default Object.assign({
               tooltipPosition='left'
               startIcon={this.state.asideLibrarySearchVisible ? 'close' : 'library'}
               label={t('Add from Library')}
-              className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
-              })}
             />
           </bem.FormBuilderHeader__cell>
 
@@ -725,9 +722,6 @@ export default Object.assign({
               tooltipPosition='left'
               startIcon={this.state.asideLayoutSettingsVisible ? 'close' : 'settings'}
               label={this.hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
-              className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
-              })}
             />
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
