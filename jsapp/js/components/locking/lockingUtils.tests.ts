@@ -115,28 +115,28 @@ describe('hasRowRestriction', () => {
 describe('hasAssetRestriction', () => {
   it('should say no restrictions for un-locked template', () => {
     Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
-      const test = simpleTemplate.content !== undefined && hasAssetRestriction(simpleTemplate.content, restrictionName);
+      const test = simpleTemplate.content !== undefined && hasAssetRestriction(simpleTemplate.content, restrictionName as LockingRestrictionName);
       expect(test).toEqual(false);
     });
   });
 
   it('should be true for all restrictions for lock_all template', () => {
     Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
-      const test = simpleTemplateWithAll.content !== undefined && hasAssetRestriction(simpleTemplateWithAll.content, restrictionName);
+      const test = simpleTemplateWithAll.content !== undefined && hasAssetRestriction(simpleTemplateWithAll.content, restrictionName as LockingRestrictionName);
       expect(test).toEqual(true);
     });
   });
 
   it('should be true for all restrictions for lock_all template regardless of locking profiles', () => {
     Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
-      const test = simpleTemplateLockedWithAll.content !== undefined && hasAssetRestriction(simpleTemplateLockedWithAll.content, restrictionName);
+      const test = simpleTemplateLockedWithAll.content !== undefined && hasAssetRestriction(simpleTemplateLockedWithAll.content, restrictionName as LockingRestrictionName);
       expect(test).toEqual(true);
     });
   });
 
   it('should check asset restrictions in locked template', () => {
     Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
-      const test = simpleTemplateLocked.content !== undefined && hasAssetRestriction(simpleTemplateLocked.content, restrictionName);
+      const test = simpleTemplateLocked.content !== undefined && hasAssetRestriction(simpleTemplateLocked.content, restrictionName as LockingRestrictionName);
       expect(test).toEqual([
         'choice_add',
         'choice_delete',
