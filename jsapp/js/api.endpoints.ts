@@ -1,5 +1,6 @@
 export const endpoints = {
   ASSET_HISTORY: '/api/v2/assets/:asset_uid/history/',
+  ASSET_HISTORY_ACTIONS: '/api/v2/assets/:asset_uid/history/actions',
   ASSET_URL: '/api/v2/assets/:uid/',
   ORG_ASSETS_URL: '/api/v2/organizations/:organization_id/assets/',
   ME_URL: '/me/',
