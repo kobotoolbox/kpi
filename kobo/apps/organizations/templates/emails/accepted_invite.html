@@ -1,0 +1,12 @@
+{% load i18n %}
+<p>{% trans "Dear" %} {{ sender_username }},</p>
+
+<p>{% blocktrans %}{{ recipient_username }} ({{ recipient_email }}) has accepted your request to join {{ organization_name }}’s organization.{% endblocktrans %}</p>
+
+<p>{% trans "All projects, submissions, data storage, transcription and translation usage for their projects will be transferred to you." %}</p>
+
+<p>{% trans "Note: You will continue to have permissions to manage these projects until the user permissions are changed." %}</p>
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>
