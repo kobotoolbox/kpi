@@ -555,8 +555,6 @@ export default Object.assign({
   },
 
   isChangingAppearanceRestricted() {
-    // TODO: for some reason this is not working and all sidebar functionalities
-    // are not getting disabled.
     return (
       this.state.asset &&
       isAssetLockable(this.state.asset.asset_type) &&
