@@ -23,6 +23,7 @@ import {formatTime, notify} from 'js/utils';
 // Styles
 import styles from './emailSection.module.scss';
 import securityStyles from 'js/account/security/securityRoute.module.scss';
+import {SimpleTextInput} from 'jsapp/js/components/common/simpleTextInput.component';
 
 interface EmailState {
   emails: EmailResponse[];
@@ -137,12 +138,15 @@ export default function EmailSection() {
         ])}
       >
         {isReady && userCanChangeEmail ? (
-          <TextBox
-            value={email.newEmail}
-            placeholder={t('Type new email address')}
-            onChange={onTextFieldChange.bind(onTextFieldChange)}
-            type='email'
-          />
+          <SimpleTextInput/>
+          /*
+            <TextBox
+              value={email.newEmail}
+              placeholder={t('Type new email address')}
+              onChange={onTextFieldChange.bind(onTextFieldChange)}
+              type='email'
+              />
+            */
         ) : (
           <div className={styles.emailText}>{email.newEmail}</div>
         )}
