@@ -189,9 +189,10 @@ actions.resources.deployAsset.failed.listen(function(data, redeployment){
     // failed to retrieve a valid response from the server
     // setContent() removes the input box, but the value is retained
     var msg;
-    if (data.status == 500 && data.responseJSON && data.responseJSON.error) {
+    const has_error_code = data.status == 500 || data.status == 400;
+    if (has_error_code && data.responseJSON && data.responseJSON.error) {
       msg = `<pre>${data.responseJSON.error}</pre>`;
-    } else if (data.status == 500 && data.responseText) {
+    } else if (has_error_code && data.responseText) {
       msg = `<pre>${data.responseText}</pre>`;
     } else {
       msg = t('please check your connection and try again.');
