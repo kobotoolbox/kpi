@@ -46,27 +46,29 @@ def run(*args):
         return
 
     try:
-        # Set up Stripe API key based on mode
         stripe_key = settings.STRIPE_LIVE_SECRET_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_SECRET_KEY
-        if not stripe_key:
-            logger.error("Stripe secret key not configured")
+        stripe_public_key = settings.STRIPE_LIVE_PUBLIC_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_PUBLIC_KEY
+
+        if not all([stripe_key, stripe_public_key]):
+            logger.error("Stripe API keys not configured")
             return
 
         stripe.api_key = stripe_key
-        
-        # Run migrations
         call_command('migrate', 'djstripe')
 
         # Configure API Keys
-        secret_key, _ = APIKey.objects.update_or_create(
-            secret=stripe_key,
-            defaults={
-                'name': 'Live Secret Key' if settings.STRIPE_LIVE_MODE else 'Test Secret Key',
-                'type': 'secret',
-                'livemode': settings.STRIPE_LIVE_MODE
-            }
-        )
-
+        for key_data in [
+            {'secret': stripe_key, 'name': 'Secret Key', 'type': 'secret'},
+            {'secret': stripe_public_key, 'name': 'Public Key', 'type': 'publishable'}
+        ]:
+            APIKey.objects.update_or_create(
+                secret=key_data['secret'],
+                defaults={
+                    'name': f"Live {key_data['name']}" if settings.STRIPE_LIVE_MODE else f"Test {key_data['name']}",
+                    'type': key_data['type'],
+                    'livemode': settings.STRIPE_LIVE_MODE
+                }
+            )
         # Handle webhook configuration
         if has_webhook_config():
             # Use existing webhook configuration
