@@ -357,7 +357,7 @@ describe('isAssetLockable', () => {
   it('should be true only for survey', () => {
     expect(isAssetLockable(ASSET_TYPES.question.id)).toEqual(false);
     expect(isAssetLockable(ASSET_TYPES.block.id)).toEqual(false);
-    expect(isAssetLockable(ASSET_TYPES.template.id)).toEqual(false);
+    expect(isAssetLockable(ASSET_TYPES.template.id)).toEqual(true);
     expect(isAssetLockable(ASSET_TYPES.survey.id)).toEqual(true);
     expect(isAssetLockable(ASSET_TYPES.collection.id)).toEqual(false);
   });
