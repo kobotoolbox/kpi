@@ -25,8 +25,6 @@ import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
  * of actions that users did on the project.
  */
 export default function FormActivity() {
-  const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
-
   const exportActivityLogsEnabled = useFeatureFlag(
     FeatureFlag.exportActivityLogsEnabled
   );
@@ -41,6 +39,10 @@ export default function FormActivity() {
     assetUid: uid as string,
     actionFilter: selectedFilterOption?.value || '',
   };
+
+  const {data: filterOptions} = useActivityLogsFilterOptionsQuery(
+    uid as string
+  );
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(

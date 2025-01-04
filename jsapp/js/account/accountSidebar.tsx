@@ -14,7 +14,6 @@ import {
   useOrganizationQuery,
   OrganizationUserRole,
 } from 'js/account/organization/organizationQuery';
-import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 import {getSimpleMMOLabel} from './organization/organization.utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 
@@ -168,7 +167,6 @@ function renderMmoSidebar(
 
 function AccountSidebar() {
   const [isStripeEnabled, setIsStripeEnabled] = useState(false);
-  const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
   const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
@@ -191,7 +189,7 @@ function AccountSidebar() {
     return <LoadingSpinner />;
   }
 
-  if (orgQuery.data.is_mmo && enableMMORoutes) {
+  if (orgQuery.data.is_mmo) {
     return renderMmoSidebar(
       orgQuery.data?.request_user_role,
       isStripeEnabled,

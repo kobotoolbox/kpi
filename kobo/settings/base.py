@@ -142,7 +142,8 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
+    'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
+    'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
 )
 
 MIDDLEWARE = [
@@ -1195,11 +1196,11 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     'perform-maintenance': {
-        'task': 'kobo.tasks.perform_maintenance',
+        'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
@@ -1216,19 +1217,19 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
-        'schedule': crontab(minute=10),
+        'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-stuck-tasks-as-failed': {
         'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
@@ -1237,9 +1238,22 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every day at midnight UTC
     'delete-expired-logs': {
         'task': 'kobo.apps.audit_log.tasks.spawn_logs_cleaning_tasks',
         'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every day at midnight UTC
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every hour, every day
+    'long-running-migrations': {
+        'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
+        'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
@@ -1806,4 +1820,4 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 # checks as if they were.
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
 
-USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 20
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000

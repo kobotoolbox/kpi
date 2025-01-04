@@ -1,6 +1,7 @@
 from typing import Optional, Union
 
 from django.apps import apps
+from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
 from django_request_cache import cache_for_request
@@ -49,14 +50,15 @@ def update_nlp_counter(
         counter_id = counter.pk
 
     # Update the total counters by the usage amount to keep them current
+    deduct = settings.STRIPE_ENABLED
     kwargs = {}
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
-        if asset_id is not None and organization is not None:
+        if deduct and asset_id is not None:
             handle_usage_deduction(organization, 'seconds', amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
-        if asset_id is not None and organization is not None:
+        if deduct and asset_id is not None:
             handle_usage_deduction(organization, 'characters', amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
@@ -84,16 +86,18 @@ def get_organization_remaining_usage(
     """
     Get the organization remaining usage count for a given limit type
     """
-    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+    addon_remaining = 0
+    if settings.STRIPE_ENABLED:
+        PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+        _, addon_remaining = PlanAddOn.get_organization_totals(
+            organization,
+            usage_type,
+        )
 
     plan_limit = get_organization_plan_limit(organization, usage_type)
     if plan_limit is None:
         plan_limit = 0
     usage = get_organization_usage(organization, usage_type)
-    addon_limit, addon_remaining = PlanAddOn.get_organization_totals(
-        organization,
-        usage_type,
-    )
     plan_remaining = max(0, plan_limit - usage)  # if negative, they have 0 remaining
     total_remaining = addon_remaining + plan_remaining
 

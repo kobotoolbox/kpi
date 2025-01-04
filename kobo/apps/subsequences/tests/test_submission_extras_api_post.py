@@ -425,10 +425,8 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         )
 
     @override_settings(
-        CACHES={
-            'default':
-                {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
-        }
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
@@ -460,7 +458,10 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     def test_google_transcript_permissions(self):
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
@@ -488,7 +489,10 @@ class GoogleNLPSubmissionTest(BaseTestCase):
         res = self.client.get(url + '?submission=' + submission_id, format='json')
         self.assertEqual(res.status_code, 404)
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
     @patch('kobo.apps.subsequences.integrations.google.base.storage')

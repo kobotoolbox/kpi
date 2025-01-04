@@ -1,13 +1,14 @@
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
-from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.tasks import export_task_in_background
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -422,6 +423,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
     >        clone-permissions
@@ -672,6 +674,7 @@ class ProjectHistoryLogViewSet(
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
     >        clone-permissions
@@ -819,6 +822,29 @@ class ProjectHistoryLogViewSet(
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
     >      curl -X GET https://[kpi-url]/assets/ap732ywWxc/history/?offset=100&limit=50
+
+    ### Actions
+
+    Retrieves distinct actions performed on the asset.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
+
+    > Response 200
+
+    >   {
+    >       "actions": [
+    >           "update-name",
+    >           "update-content",
+    >           "deploy",
+    >           ...
+    >       ]
+    >   }
+
     """
 
     serializer_class = ProjectHistoryLogSerializer
@@ -831,6 +857,16 @@ class ProjectHistoryLogViewSet(
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(
             '-date_created'
         )
+
+    @action(detail=False, methods=['GET'])
+    def actions(self, request, *args, **kwargs):
+        actions = (
+            self.model.objects.filter(metadata__asset_uid=self.asset_uid)
+            .values_list('action')
+            .distinct()
+        )
+        flattened = [action[0] for action in actions]
+        return Response({'actions': flattened})
 
 
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
