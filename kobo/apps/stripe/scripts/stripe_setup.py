@@ -122,18 +122,22 @@ def run(*args):
             logger.info(f"DJSTRIPE_WEBHOOK_URL={webhook_url}")
             logger.info(f"DJSTRIPE_UUID={generated_uuid}")
             logger.info(f"DJSTRIPE_WEBHOOK_ID={webhook_data.id}")
-            # Sync and cleanup webhooks
+
+            # Final sync
+            call_command('djstripe_sync_models')
+            logger.info("Stripe model sync complete.")
+
+            # Final webhook sync and cleanup
             endpoints = stripe.WebhookEndpoint.list()
             for endpoint in endpoints.data:
                 if endpoint.url == webhook_url:
                     WebhookEndpoint.sync_from_stripe_data(endpoint)
                     logger.info(f"Synced webhook endpoint: {endpoint.url}")
-            
-            WebhookEndpoint.objects.exclude(url=webhook_url).delete()
 
-        # Final sync
-        call_command('djstripe_sync_models')
-        logger.info("Stripe configuration completed.")
+            WebhookEndpoint.objects.exclude(url=webhook_url).delete()
+            logger.info(f"Successfully synced webhook endpoint for URL: {webhook_url}")
+
+            logger.info("Stripe configuration completed.")
 
     except Exception as e:
         logger.error(f"Stripe configuration failed: {e}")
