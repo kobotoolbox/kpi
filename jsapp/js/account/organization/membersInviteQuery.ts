@@ -1,39 +1,68 @@
-// Libraries
 import {
   useQuery,
   useQueryClient,
   useMutation,
-  keepPreviousData,
 } from '@tanstack/react-query';
-
-// Stores, hooks and utilities
-import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
-import {
-  useOrganizationQuery,
-  type OrganizationUserRole,
-} from './organizationQuery';
-
-// Constants and types
-import {endpoints} from 'js/api.endpoints';
-import type {PaginatedResponse} from 'js/dataInterface';
+import {fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl} from 'js/api';
+import {type OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
 import {QueryKeys} from 'js/query/queryKeys';
-import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import {endpoints} from 'jsapp/js/api.endpoints';
+import type {FailResponse} from 'jsapp/js/dataInterface';
 import {type OrganizationMember} from './membersQuery';
+import {type Json} from 'jsapp/js/components/common/common.interfaces';
 
 /*
- * Note about invites - `membersQuery` holds a list of members, each containing
+ * NOTE: `invites` - `membersQuery` holds a list of members, each containing
  * an optional `invite` property (i.e. invited users that are not members yet
- * will also appear on that list).
+ * will also appear on that list). That's why we have mutation hooks here for
+ * managing the invites. And each mutation will invalidate `membersQuery` to
+ * make it refetch.
  */
 
+/*
+ * NOTE: `orgId` - we're asserting it is not `undefined` in code below,
+ * because the parent query (`useOrganizationMembersQuery`) wouldn't be enabled
+ * without it. Plus all the organization-related UI (that would use this hook)
+ * is accessible only to logged in users.
+ */
+
+/**
+ * This is the same list as `OrganizationInviteStatusChoices` from
+ * `kobo/apps/organizations/models.py`.
+ */
+enum MemberInviteStatus {
+  accepted = 'accepted',
+  cancelled = 'cancelled',
+  complete = 'complete',
+  declined = 'declined',
+  expired = 'expired',
+  failed = 'failed',
+  in_progress = 'in_progress',
+  pending = 'pending',
+  resent = 'resent',
+}
+
 export interface MemberInvite {
-  /** '/api/v2/organizations/<organization_uid>/invites/<invite_uid>/' */
+  /** This is `endpoints.ORG_INVITE_URL`. */
   url: string;
-  /** yyyy-mm-dd HH:MM:SS */
+  /** Url of a user that have sent the invite. */
+  invited_by: string;
+  status: MemberInviteStatus;
+  /** Username of user being invited. */
+  invitee: string;
+  /** Target role of user being invited. */
+  invitee_role: OrganizationUserRole;
+  /** Date format `yyyy-mm-dd HH:MM:SS`. */
   date_created: string;
-  /** yyyy-mm-dd HH:MM:SS */
+  /** Date format: `yyyy-mm-dd HH:MM:SS`. */
   date_modified: string;
-  status: 'sent' | 'accepted' | 'expired' | 'declined';
+}
+
+interface SendMemberInviteParams {
+  /** List of usernames. */
+  invitees: string[];
+  /** Target role for the invitied users. */
+  role: OrganizationUserRole;
 }
 
 /**
@@ -45,85 +74,12 @@ export function useSendMemberInvite() {
   const queryClient = useQueryClient();
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
-
   return useMutation({
-    mutationFn: async (usernameOrEmail: string) => {
-      console.log('mocking API response!', usernameOrEmail);
-
-      return new Promise<MemberInvite>((resolve) => {
-        setTimeout(
-          () =>
-            // TODO: this resolves with some mock data and it's fine. What is
-            // NOT FINE is the fact that `membersQuery` will not contain this
-            // mock :_-(
-            resolve({
-              url: `https://test.me/api/v2/organizations/${orgId}/invites/abc123`,
-              date_created: '2024-11-22 11:22:33',
-              date_modified: '2024-11-22 11:22:33',
-              status: 'sent',
-            }),
-          2000
-        );
-      });
-
-      // We're asserting the `orgId` is not `undefined` here, because the parent
-      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
-      // Plus all the organization-related UI (that would use this hook) is
-      // accessible only to logged in users.
-      // TODO: uncomment lines below when API ready
-      // const apiUrl = endpoints.ORG_INVITES_URL.replace(':organization_id', orgId!);
-      // fetchPost<OrganizationMember>(apiUrl, usernameOrEmail);
+    mutationFn: async (payload: SendMemberInviteParams & Json) => {
+      const apiPath = endpoints.ORG_INVITES_URL.replace(':organization_id', orgId!);
+      fetchPost<OrganizationMember>(apiPath, payload);
     },
     onSettled: () => {
-      // We invalidate query, so it will refetch (instead of refetching it
-      // directly, see: https://github.com/TanStack/query/discussions/2468)
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
-    },
-  });
-}
-
-/**
- * Mutation hook that allows resending existing invite. It ensures that
- * `membersQuery` will refetch data (by invalidation).
- */
-export function useResendMemberInvite() {
-  const queryClient = useQueryClient();
-  const orgQuery = useOrganizationQuery();
-  const orgId = orgQuery.data?.id;
-
-  return useMutation({
-    mutationFn: async (inviteId: string) => {
-      console.log('mocking resend invite API response!', inviteId);
-
-      return new Promise<MemberInvite>((resolve) => {
-        setTimeout(
-          () =>
-            // TODO: this resolves with some mock data and it's fine. What is
-            // NOT FINE is the fact that `membersQuery` will not contain this
-            // mock :_-(
-            resolve({
-              url: `https://test.me/api/v2/organizations/${orgId}/invites/abc123`,
-              date_created: '2024-11-22 11:22:33',
-              date_modified: '2024-11-22 11:22:33',
-              status: 'sent',
-            }),
-          2000
-        );
-      });
-
-      // We're asserting the `orgId` is not `undefined` here, because the parent
-      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
-      // Plus all the organization-related UI (that would use this hook) is
-      // accessible only to logged in users.
-      // TODO: uncomment lines below when API ready
-      // const apiUrl = endpoints.ORG_INVITE_URL
-      //   .replace(':organization_id', orgId!)
-      //   .replace(':invite_id', inviteId);
-      // fetchPatch<OrganizationMember>(apiUrl, /* WHAT here? */);
-    },
-    onSettled: () => {
-      // We invalidate query, so it will refetch (instead of refetching it
-      // directly, see: https://github.com/TanStack/query/discussions/2468)
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
     },
   });
@@ -135,37 +91,46 @@ export function useResendMemberInvite() {
  */
 export function useRemoveMemberInvite() {
   const queryClient = useQueryClient();
-  const orgQuery = useOrganizationQuery();
-  const orgId = orgQuery.data?.id;
-
   return useMutation({
-    mutationFn: async (inviteId: string) => {
-      console.log('mocking remove invite API response!', inviteId);
-
-      return new Promise<void>((resolve) => {
-        setTimeout(
-          () =>
-            // TODO: this resolves and it's fine. What is NOT FINE is the fact
-            // that `membersQuery` will still contain invite that was removed :_-(
-            resolve(),
-          2000
-        );
-      });
-
-      // We're asserting the `orgId` is not `undefined` here, because the parent
-      // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
-      // Plus all the organization-related UI (that would use this hook) is
-      // accessible only to logged in users.
-      // TODO: uncomment lines below when API ready
-      // const apiUrl = endpoints.ORG_INVITE_URL
-      //   .replace(':organization_id', orgId!)
-      //   .replace(':invite_id', inviteId);
-      // fetchDelete<OrganizationMember>(apiUrl);
+    mutationFn: async (inviteUrl: string) => {
+      fetchDeleteUrl<OrganizationMember>(inviteUrl);
     },
     onSettled: () => {
-      // We invalidate query, so it will refetch (instead of refetching it
-      // directly, see: https://github.com/TanStack/query/discussions/2468)
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+    },
+  });
+}
+
+/**
+ * A hook that gives you a single organization member invite.
+ */
+export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
+  const apiPath = endpoints.ORG_INVITE_URL
+    .replace(':organization_id', orgId!)
+    .replace(':invite_id', inviteId);
+  return useQuery<MemberInvite, FailResponse>({
+    queryFn: () => fetchGet<MemberInvite>(apiPath),
+    queryKey: [QueryKeys.organizationMemberInvite, apiPath],
+  });
+};
+
+/**
+ * Mutation hook that allows patching existing invite. Use it to change
+ * the status of the invite (e.g. decline invite). It ensures that both
+ * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
+ * invalidation).
+ */
+export function usePatchMemberInvite(inviteUrl: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newInviteData: Partial<MemberInvite>) => {
+      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: [
+        QueryKeys.organizationMemberInvite,
+        QueryKeys.organizationMembers,
+      ]});
     },
   });
 }
