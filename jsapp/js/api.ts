@@ -252,6 +252,16 @@ export const fetchPatch = async <T>(
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'PATCH', data, options);
 
+/** PATCH (update) data to Kobo API at url */
+export const fetchPatchUrl = async <T>(
+  path: string,
+  data: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'PATCH', data, options);
+};
+
 /** PUT (replace) data to Kobo API at path */
 export const fetchPut = async <T>(
   path: string,
@@ -259,9 +269,29 @@ export const fetchPut = async <T>(
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'PUT', data, options);
 
-/** DELETE data to Kobo API at path, data is optional */
+/** PUT (replace) data to Kobo API at url */
+export const fetchPutUrl = async <T>(
+  path: string,
+  data: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'PUT', data, options);
+};
+
+/** DELETE something from Kobo API at path, data is optional */
 export const fetchDelete = async <T>(
   path: string,
   data?: Json,
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'DELETE', data, options);
+
+/** DELETE something from Kobo API at url, data is optional */
+export const fetchDeleteUrl = async <T>(
+  path: string,
+  data?: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'DELETE', data, options);
+};
