@@ -3,14 +3,16 @@
 Django runscript for Stripe configuration.
 
 Usage:
-    python manage.py runscript setup_stripe
+    python manage.py runscript stripe_setup
 
 Required Environment Variables:
     STRIPE_ENABLED=True
     STRIPE_LIVE_MODE=False  # or True for production
     STRIPE_TEST_SECRET_KEY=sk_test_...  # for test mode
     STRIPE_LIVE_SECRET_KEY=sk_live_...  # for live mode
-    DOMAIN_NAME=yourdomain.com
+
+Required only for new webhook creation:
+    DOMAIN_NAME=yourdomain.com 
 
 Optional Webhook Environment Variables (all required if any are set):
     DJSTRIPE_WEBHOOK_SECRET=whsec_...
@@ -88,6 +90,8 @@ def run(*args):
                     'djstripe_owner': 'Kobo, Inc'
                 }
             )
+            webhook_url = settings.DJSTRIPE_WEBHOOK_URL
+
             logger.info(f"Webhook endpoint {'created' if created else 'updated'} successfully.")
 
             # Sync webhook endpoint
@@ -100,6 +104,9 @@ def run(*args):
             WebhookEndpoint.objects.exclude(url=settings.DJSTRIPE_WEBHOOK_URL).delete()
             
         else:
+            if not getattr(settings, 'DOMAIN_NAME', None):
+                logger.error("DOMAIN_NAME is required for creating new webhook")
+                return    
             # Create new webhook
             generated_uuid = str(uuid.uuid4())
             webhook_url = f"https://{settings.DOMAIN_NAME}/api/v2/stripe/webhook/{generated_uuid}/"
