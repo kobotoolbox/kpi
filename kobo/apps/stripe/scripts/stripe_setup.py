@@ -127,17 +127,17 @@ def run(*args):
                 return
 
             generated_uuid = str(uuid.uuid4())
-            webhook_url = f"https://{settings.DOMAIN_NAME}/api/v2/stripe/webhook/{generated_uuid}/"
+            webhook_url = f'https://{settings.DOMAIN_NAME}/api/v2/stripe/webhook/{generated_uuid}/'
             webhook_data = stripe.WebhookEndpoint.create(
                 url=webhook_url,
-                enabled_events=["*"],
+                enabled_events=['*'],
                 metadata={'djstripe_uuid': generated_uuid}
             )
 
             WebhookEndpoint.sync_from_stripe_data(webhook_data)
             WebhookEndpoint.objects.filter(url=webhook_url).update(
                 djstripe_uuid=generated_uuid,
-                url=f"https://{settings.DOMAIN_NAME}",
+                url=f'https://{settings.DOMAIN_NAME}',
                 metadata={'djstripe_uuid': generated_uuid},
                 livemode=settings.STRIPE_LIVE_MODE
             )

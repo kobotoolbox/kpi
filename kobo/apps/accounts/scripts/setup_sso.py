@@ -56,7 +56,7 @@ def run(*args):
         logger.info(
             f"Social application '{settings.SOCIAL_APP_NAME}' {status} successfully"
         )
-        logger.info(f"Provider ID: {settings.SOCIAL_APP_PROVIDER_ID}")
+        logger.info(f'Provider ID: {settings.SOCIAL_APP_PROVIDER_ID}')
         logger.info('SSO configuration completed successfully.')
 
     except Exception as e:
