@@ -1107,10 +1107,9 @@ GOOGLE_AUTH_ENABLED = env.bool('GOOGLE_AUTH_ENABLED', False)
 if GOOGLE_AUTH_ENABLED:
     GOOGLE_CLIENT_ID = env.str('GOOGLE_CLIENT_ID', None)
     GOOGLE_CLIENT_SECRET = env.str('GOOGLE_CLIENT_SECRET', None)
-    SOCIAL_APP_NAME: env.str('SOCIAL_APP_NAME', None)
-    SOCIAL_APP_PROVIDER_ID: env.str('SOCIAL_APP_PROVIDER_ID', None)
+    SOCIAL_APP_NAME= env.str('SOCIAL_APP_NAME', None)
+    SOCIAL_APP_PROVIDER_ID= env.str('SOCIAL_APP_PROVIDER_ID', None)
 
-    
 """Organizations settings"""
 # necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
 # queries that may need to aggregate data for all organization users) from slowing down db
