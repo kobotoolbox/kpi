@@ -20,6 +20,10 @@ import logging
 from django.conf import settings
 from allauth.socialaccount.models import SocialApp
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 def run(*args):
@@ -44,7 +48,9 @@ def run(*args):
                 }
             }
         )
-        logger.info("SSO configuration completed.")
+        logger.info(f"Social application '{settings.SOCIAL_APP_NAME}' {'created' if created else 'updated'} successfully")
+        logger.info(f"Provider ID: {settings.SOCIAL_APP_PROVIDER_ID}")
+        logger.info("SSO configuration completed successfully.")
 
     except Exception as e:
         logger.error(f"SSO configuration failed: {e}")
