@@ -70,23 +70,18 @@ export function getLockingProfile(
   assetContent: AssetContent,
   profileName: string
 ): null | IndexedAssetLockingProfileDefinition {
-  let found: null | IndexedAssetLockingProfileDefinition = null;
-  if (
-    assetContent &&
-    Array.isArray(assetContent[LOCKING_PROFILES_PROP_NAME])
-  ) {
-    assetContent[LOCKING_PROFILES_PROP_NAME].forEach((profile, index) => {
-      if (profile.name === profileName) {
-        // we make a copy of profile definition to add index to it
-        found = {
-          index: index,
-          name: profile.name,
-          restrictions: profile.restrictions,
-        };
-      }
-    });
-  }
-  return found;
+  const lockingProfiles = assetContent?.[LOCKING_PROFILES_PROP_NAME];
+  if (!lockingProfiles || !Array.isArray(lockingProfiles)) {return null;}
+  const lockingProfileIndex = lockingProfiles.findIndex((profile) => profile.name === profileName);
+  if (lockingProfileIndex === -1) {return null;}
+  const lockingProfile = lockingProfiles[lockingProfileIndex];
+
+  // we make a copy of profile definition to add index to it
+  return {
+    index: lockingProfileIndex,
+    name: lockingProfile.name,
+    restrictions: lockingProfile.restrictions,
+  };
 }
 
 /**
