@@ -76,7 +76,7 @@ export function useSendMemberInvite() {
   const orgId = orgQuery.data?.id;
   return useMutation({
     mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      const apiPath = endpoints.ORG_INVITES_URL.replace(':organization_id', orgId!);
+      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!);
       fetchPost<OrganizationMember>(apiPath, payload);
     },
     onSettled: () => {
@@ -105,7 +105,7 @@ export function useRemoveMemberInvite() {
  * A hook that gives you a single organization member invite.
  */
 export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
-  const apiPath = endpoints.ORG_INVITE_URL
+  const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL
     .replace(':organization_id', orgId!)
     .replace(':invite_id', inviteId);
   return useQuery<MemberInvite, FailResponse>({
