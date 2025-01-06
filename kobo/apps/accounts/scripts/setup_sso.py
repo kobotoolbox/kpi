@@ -4,10 +4,12 @@ Django runscript for Google SSO/OAuth configuration.
 Usage:
     python manage.py runscript setup_sso
 
-Required Environment Variables:
-    GOOGLE_AUTH_ENABLED=True
-    GOOGLE_CLIENT_ID=your-client-id
-    GOOGLE_CLIENT_SECRET=your-client-secret
+if GOOGLE_AUTH_ENABLED=True
+  Required environment variables
+    SOCIAL_APP_NAME=social-app-name
+    SOCIAL_APP_PROVIDER_ID=provider-id
+    GOOGLE_CLIENT_ID=client-id
+    GOOGLE_CLIENT_SECRET=client-secret
 
 Note:
     - Creates or updates the Google OpenID Connect configuration in Django allauth
@@ -33,8 +35,8 @@ def run(*args):
         social_app, created = SocialApp.objects.update_or_create(
             provider='openid_connect',
             defaults={
-                'name': 'Kobo Google Apps',
-                'provider_id': 'kobo-inc',
+                'name': settings.SOCIAL_APP_NAME,
+                'provider_id': settings.SOCIAL_APP_PROVIDER_ID,
                 'client_id': settings.GOOGLE_CLIENT_ID,
                 'secret': settings.GOOGLE_CLIENT_SECRET,
                 'settings': {
