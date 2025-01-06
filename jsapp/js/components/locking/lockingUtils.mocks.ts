@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash.clonedeep';
+import merge from 'lodash.merge';
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -18,7 +19,7 @@ import {
  * to date and extend in other test objects (rather than having those huge
  * lengthy JSONs).
  */
-const minimalAssetResponse: AssetResponse = {
+const minimalAssetResponse = {
   'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/',
   'owner': 'http://kf.kobo.local/api/v2/users/zefir/',
   'owner__username': 'zefir',
@@ -146,7 +147,7 @@ const minimalAssetResponse: AssetResponse = {
         '$xpath': 'Your_name',
         'required': false,
         '$autoname': 'Your_name',
-      }
+      },
     ],
     'settings': {},
     'translated': ['label'],
@@ -192,50 +193,50 @@ const minimalAssetResponse: AssetResponse = {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/pVQvikEvyQYmQazbNxobN6/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/add_submissions/',
-      'label': 'Add submissions'
+      'label': 'Add submissions',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/pFuSpuH2DYWCpqXL6vQ94x/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/change_asset/',
-      'label': 'Edit form'
+      'label': 'Edit form',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/p48wUoqUifRyj8bJssDKJi/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/change_submissions/',
-      'label': 'Edit submissions'
+      'label': 'Edit submissions',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/ptUCvQdK5ghnoHT5WHF8AA/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/delete_submissions/',
-      'label': 'Delete submissions'
+      'label': 'Delete submissions',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/pUKmhnLN2UXpxsipebgieS/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/manage_asset/',
-      'label': 'Manage project'
+      'label': 'Manage project',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/poeQAKvMyjWsQYxejuPKpM/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
-      'label': 'Validate submissions'
+      'label': 'Validate submissions',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/pBBjGJRLfMAqdtFvZeNj52/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/view_asset/',
-      'label': 'View form'
+      'label': 'View form',
     },
     {
       'url': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/permission-assignments/p4koRMKP65jdVQuacNPuke/',
       'user': 'http://kf.kobo.local/api/v2/users/zefir/',
       'permission': 'http://kf.kobo.local/api/v2/permissions/view_submissions/',
-      'label': 'View submissions'
-    }
+      'label': 'View submissions',
+    },
   ],
   'effective_permissions': [
     {'codename': 'change_asset'},
@@ -246,7 +247,7 @@ const minimalAssetResponse: AssetResponse = {
     {'codename': 'delete_asset'},
     {'codename': 'view_asset'},
     {'codename': 'delete_submissions'},
-    {'codename': 'add_submissions'}
+    {'codename': 'add_submissions'},
   ],
   'exports': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/exports/',
   'export_settings': [],
@@ -259,14 +260,14 @@ const minimalAssetResponse: AssetResponse = {
   'paired_data': 'http://kf.kobo.local/api/v2/assets/aBcDe12345/paired-data/',
   'project_ownership': null,
   'owner_label': 'Test Korp Inc',
-};
+} satisfies AssetResponse;
 
 // need an asset with locking profiles included and used for rows
 
 /**
  * A template with few questions, a group and additional Polish labels.
  */
-export const simpleTemplate: AssetResponse = {...cloneDeep(minimalAssetResponse), ...{
+export const simpleTemplate = {...cloneDeep(minimalAssetResponse), ...{
   'asset_type': AssetTypeName.template,
   'name': 'Test template',
   'summary': {
@@ -367,14 +368,14 @@ export const simpleTemplate: AssetResponse = {...cloneDeep(minimalAssetResponse)
     'translated': ['label'],
     'translations': ['English (en)', 'Polski (pl)'],
   },
-}};
+}} satisfies AssetResponse;
 
 /**
  * A template with few questions, a group and additional Polish labels. Some of
  * survey parts have locking profile applied. Whole form also has locking
  * profile applied.
  */
-export const simpleTemplateLocked: AssetResponse = {...cloneDeep(simpleTemplate), ...{
+export const simpleTemplateLocked = {...cloneDeep(simpleTemplate), ...{
   'name': 'Test locked template',
   'content': {
     'schema': '1',
@@ -487,45 +488,37 @@ export const simpleTemplateLocked: AssetResponse = {...cloneDeep(simpleTemplate)
     'translated': ['label'],
     'translations': ['English (en)', 'Polski (pl)'],
   },
-}};
+}} satisfies AssetResponse;
 
 /** A template with some locking profiles on rows, and a lock all property. */
-export const simpleTemplateLockedWithAll = cloneDeep(simpleTemplateLocked);
-if (
-  simpleTemplateLockedWithAll.content?.settings &&
-  !Array.isArray(simpleTemplateLockedWithAll.content?.settings)
-) {
-  simpleTemplateLockedWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
-}
+export const simpleTemplateLockedWithAll = merge(
+  cloneDeep(simpleTemplateLocked),
+  {content: {settings: {[LOCK_ALL_PROP_NAME]: true}}},
+);
 
 /** A template with no locking profiles on rows, and a lock all property. */
-export const simpleTemplateWithAll = cloneDeep(simpleTemplate);
-if (
-  simpleTemplateWithAll.content?.settings &&
-  !Array.isArray(simpleTemplateWithAll.content?.settings)
-) {
-  simpleTemplateWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
-}
+export const simpleTemplateWithAll = merge(
+  cloneDeep(simpleTemplate),
+  {content: {settings: {[LOCK_ALL_PROP_NAME]: true}}},
+);
 
 /** A template where asset has locking profile but no definition for it. */
-export const simpleTemplateLockedFormUndef = cloneDeep(simpleTemplateLocked);
-if (
-  simpleTemplateLockedFormUndef.content?.settings &&
-  !Array.isArray(simpleTemplateLockedFormUndef.content?.settings)
-) {
-  simpleTemplateLockedFormUndef.content.settings[LOCKING_PROFILE_PROP_NAME] = 'nonexistent_lock_1';
-}
+export const simpleTemplateLockedFormUndef = merge(
+  cloneDeep(simpleTemplateLocked),
+  {content: {settings: {[LOCKING_PROFILE_PROP_NAME]: 'nonexistent_lock_1'}}},
+);
 
 /**
  * A template with no locking profile definitions, but with asset and row having
  * locking profile assigned.
  */
-export const simpleTemplateLockedRowUndef = cloneDeep(simpleTemplate);
-if (
-  simpleTemplateLockedRowUndef.content?.settings &&
-  !Array.isArray(simpleTemplateLockedRowUndef.content?.settings) &&
-  simpleTemplateLockedRowUndef.content?.survey
-) {
-  simpleTemplateLockedRowUndef.content.settings[LOCKING_PROFILE_PROP_NAME] = 'nonexistent_lock_1';
-  simpleTemplateLockedRowUndef.content.survey[2][LOCKING_PROFILE_PROP_NAME] = 'nonexistent_lock_2';
-}
+export const simpleTemplateLockedRowUndef = merge(
+  cloneDeep(simpleTemplate),
+  {content: {
+    settings: {[LOCKING_PROFILE_PROP_NAME]: 'nonexistent_lock_1'},
+    survey: [
+      {},
+      {},
+      {[LOCKING_PROFILE_PROP_NAME]: 'nonexistent_lock_2'}],
+  }},
+);
