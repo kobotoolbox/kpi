@@ -86,8 +86,8 @@ def run(*args):
                     'djstripe_uuid': settings.DJSTRIPE_UUID,
                     'metadata': {
                         'djstripe_uuid': settings.DJSTRIPE_UUID
-                    },
-                    'djstripe_owner_account': 'Kobo, Inc'
+                    }
+                    #'djstripe_owner_account': 'Kobo, Inc'
                 }
             )
             webhook_url = settings.DJSTRIPE_WEBHOOK_URL
