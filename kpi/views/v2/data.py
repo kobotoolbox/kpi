@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import renderers, serializers, status, viewsets
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -16,7 +16,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -53,7 +55,7 @@ from kpi.utils.xml import (
 
 
 class DataViewSet(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
 ):
     """
     ## List of submissions for a specific asset
@@ -329,6 +331,8 @@ class DataViewSet(
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = []
 
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
@@ -411,6 +415,10 @@ class DataViewSet(
                 deployment.copy_submission_extras(
                     original_submission['_uuid'], duplicate_submission['_uuid']
                 )
+                request._request.updated_data = {
+                    'asset_id': self.asset.id,
+                    'submitted_by': duplicate_submission['_submitted_by'],
+                }
                 response = {
                     'data': duplicate_submission,
                     'content_type': 'application/json',

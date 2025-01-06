@@ -1,12 +1,12 @@
-from rest_framework import viewsets
 
 from kpi.permissions import IsAuthenticated
+from ...audit_log.base_views import AuditLoggedModelViewSet
 from ..filters import InviteFilter
 from ..models import Invite
 from ..serializers import InviteSerializer
 
 
-class InviteViewSet(viewsets.ModelViewSet):
+class InviteViewSet(AuditLoggedModelViewSet):
     """
     ## List of invites
 
@@ -225,6 +225,8 @@ class InviteViewSet(viewsets.ModelViewSet):
     serializer_class = InviteSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (InviteFilter, )
+    log_type = 'project-history'
+    logged_fields = ['recipient.username', 'status', 'transfers']
 
     def get_queryset(self):
 

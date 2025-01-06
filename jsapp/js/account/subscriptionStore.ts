@@ -1,9 +1,9 @@
 import {makeAutoObservable} from 'mobx';
-import {handleApiFail} from 'js/api';
+import {handleApiFail, fetchGet} from 'js/api';
 import {ACTIVE_STRIPE_STATUSES, ROOT_URL} from 'js/constants';
-import {fetchGet} from 'jsapp/js/api';
 import type {PaginatedResponse} from 'js/dataInterface';
-import {Product, SubscriptionInfo} from 'js/account/stripe.types';
+import {PlanNames, type Product, type SubscriptionInfo} from 'js/account/stripe.types';
+import envStore from 'js/envStore';
 
 const PRODUCTS_URL = '/api/v2/stripe/products/';
 
@@ -44,6 +44,22 @@ class SubscriptionStore {
       });
   }
 
+  /*
+   * The plan name displayed to the user. This will display, in order of precedence:
+   * * The user's active plan subscription
+   * * The FREE_TIER_DISPLAY["name"] setting (if the user registered before FREE_TIER_CUTOFF_DATE
+   * * The free plan
+   */
+  public get planName() {
+    if (
+      this.planResponse.length &&
+      this.planResponse[0].items.length
+    ) {
+      return this.planResponse[0].items[0].price.product.name;
+    }
+    return envStore.data?.free_tier_display?.name || PlanNames.FREE;
+  }
+
   private onFetchSubscriptionInfoDone(
     response: PaginatedResponse<SubscriptionInfo>
   ) {
@@ -53,16 +69,16 @@ class SubscriptionStore {
     );
     this.canceledPlans = response.results.filter(
       (sub) =>
-        sub.items[0]?.price.product.metadata?.product_type == 'plan' &&
+        sub.items[0]?.price.product.metadata?.product_type === 'plan' &&
         sub.status === 'canceled'
     );
     // get any active plan subscriptions for the user
     this.planResponse = this.activeSubscriptions.filter(
-      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'plan'
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'plan'
     );
     // get any active recurring add-on subscriptions for the user
     this.addOnsResponse = this.activeSubscriptions.filter(
-      (sub) => sub.items[0]?.price.product.metadata?.product_type == 'addon'
+      (sub) => sub.items[0]?.price.product.metadata?.product_type === 'addon'
     );
 
     this.isPending = false;

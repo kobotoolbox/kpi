@@ -352,13 +352,15 @@ interface ExportSettingSettings {
 /**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
+ * Interesting fact: a `SurveyRow` with the least amount of properties is group
+ * end - it only has `$kuid` and `type`.
  */
 export interface SurveyRow {
-  /** This is a unique identifier that includes both name and path (names of parents). */
-  $xpath: string;
-  $autoname: string;
   $kuid: string;
   type: AnyRowTypeName;
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $xpath?: string;
+  $autoname?: string;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -373,7 +375,7 @@ export interface SurveyRow {
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
   /** HXL tags. */
-  tags: string[];
+  tags?: string[];
   select_from_list_name?: string;
 }
 
@@ -459,7 +461,7 @@ interface AdvancedSubmissionSchema {
   properties?: AdvancedSubmissionSchemaDefinition;
   additionalProperties?: boolean;
   required?: string[];
-  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition};
+  definitions?: AdvancedSubmissionSchemaDefinition;
 }
 
 export interface AssetAdvancedFeatures {
@@ -482,11 +484,13 @@ export interface AssetAdvancedFeatures {
 
 interface AdvancedSubmissionSchemaDefinition {
   [name: string]: {
-    type: 'string' | 'object';
-    description: string;
+    type?: 'string' | 'object';
+    description?: string;
     properties?: {[name: string]: {}};
     additionalProperties?: boolean;
     required?: string[];
+    anyOf?: Array<{$ref: string}>;
+    allOf?: Array<{$ref: string}>;
   };
 }
 
@@ -518,13 +522,14 @@ export interface AssetTableSettings extends AssetTableSettingsObject {
 }
 
 export interface AssetSettings {
-  sector?: LabelValuePair | null;
+  sector?: LabelValuePair | null | {};
   country?: LabelValuePair | LabelValuePair[] | null;
   description?: string;
   'data-table'?: AssetTableSettings;
   organization?: string;
   collects_pii?: LabelValuePair | null;
   operational_purpose?: LabelValuePair | null;
+  country_codes?: string[];
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -565,8 +570,12 @@ export interface AnalysisFormJsonField {
   settings: {
     mode: string;
     engine: string;
-  };
+  } | '??';
   path: string[];
+  choices?: Array<{
+    uuid: string;
+    labels: {[key: string]: string};
+  }>
 }
 
 /**
@@ -579,9 +588,11 @@ export interface AssetResponse extends AssetRequestObject {
   url: string;
   owner: string;
   owner__username: string;
+  owner_label: string;
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
+  date_deployed?: string;
   version_id: string | null;
   version__content_hash?: string | null;
   version_count?: number;
@@ -651,6 +662,7 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number;
   status: string;
   access_types: string[] | null;
+  files?: any[];
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -661,7 +673,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
-  project_ownership: ProjectTransferAssetDetail;
+  project_ownership: ProjectTransferAssetDetail | null;
 }
 
 /** This is the asset object returned by project-views endpoint. */
@@ -673,6 +685,7 @@ export interface ProjectViewAsset {
   date_deployed: string | null;
   owner: string;
   owner__username: string;
+  owner_label: string;
   owner__email: string;
   /** Full name */
   owner__name: string;
@@ -786,6 +799,12 @@ export interface AccountResponse {
     tag: string | boolean;
   };
   social_accounts: SocialAccount[];
+  // Organization details
+  organization?: {
+    url: string;
+    name: string;
+    uid: string;
+  };
 }
 
 export interface AccountRequest {

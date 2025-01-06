@@ -10,6 +10,7 @@ import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
 import {userCan} from 'js/components/permissions/utils';
+import {checkFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export function getFormDataTabs(assetUid) {
   return [
@@ -160,6 +161,19 @@ class FormViewSideTabs extends Reflux.Component {
           label: t('REST Services'),
           icon: 'k-icon k-icon-data-sync',
           path: ROUTES.FORM_REST.replace(':uid', this.state.asset.uid),
+        });
+      }
+
+      if (
+        userCan(
+          PERMISSIONS_CODENAMES.manage_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t('Activity'),
+          icon: 'k-icon k-icon-document',
+          path: ROUTES.FORM_ACTIVITY.replace(':uid', this.state.asset.uid),
         });
       }
     }

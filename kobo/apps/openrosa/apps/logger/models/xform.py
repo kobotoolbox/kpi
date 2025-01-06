@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import os
 import re
@@ -8,6 +7,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.urls import reverse
@@ -29,7 +29,9 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.database import use_db
 from kpi.utils.hash import calculate_hash
+from kpi.utils.object_permission import perm_parse
 from kpi.utils.xml import XMLFormWithDisclaimer
 
 XFORM_TITLE_LENGTH = 255
@@ -56,12 +58,19 @@ class XForm(AbstractTimeStampedModel):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = ExtendedFileField(storage=default_storage, upload_to=upload_to, null=True)
+    xls = ExtendedFileField(
+        storage=default_storage,
+        upload_to=upload_to,
+        null=True,
+        max_length=380,
+    )
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()
 
-    user = models.ForeignKey(User, related_name='xforms', null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='xforms', null=True, on_delete=models.CASCADE
+    )
     require_auth = models.BooleanField(
         default=True,
         verbose_name=t('Require authentication to see form and submit data'),
@@ -78,6 +87,9 @@ class XForm(AbstractTimeStampedModel):
     last_submission_time = models.DateTimeField(blank=True, null=True)
     has_start_time = models.BooleanField(default=False)
     uuid = models.CharField(max_length=32, default='', db_index=True)
+    mongo_uuid = models.CharField(
+        max_length=100, null=True, unique=True, db_index=True
+    )
 
     uuid_regex = re.compile(r'(<instance>.*?id="[^"]+">)(.*</instance>)(.*)',
                             re.DOTALL)
@@ -110,6 +122,9 @@ class XForm(AbstractTimeStampedModel):
     objects = XFormWithoutPendingDeletedManager()
     all_objects = XFormAllManager()
 
+    def __str__(self):
+        return getattr(self, 'id_string', '')
+
     @property
     def asset(self):
         """
@@ -119,44 +134,39 @@ class XForm(AbstractTimeStampedModel):
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not hasattr(self, '_cache_asset'):
+        if not hasattr(self, '_cached_asset'):
             # We only need to load the PK because XMLFormWithDisclaimer
             # uses an Asset object only to narrow down a query with a filter,
             # thus uses only asset PK
             try:
-                asset = Asset.objects.only('pk').get(uid=self.kpi_asset_uid)
+                asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
+                    uid=self.kpi_asset_uid
+                )
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only('pk').get(
+                    asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
                         _deployment_data__formid=self.pk
                     )
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(uid=self.id_string)
+                    asset = Asset(
+                        uid=self.id_string,
+                        name=self.title,
+                        owner_id=self.user.id,
+                    )
 
-            setattr(self, '_cache_asset', asset)
+            setattr(self, '_cached_asset', asset)
 
-        return getattr(self, '_cache_asset')
-
-    def file_name(self):
-        return self.id_string + '.xml'
+        return getattr(self, '_cached_asset')
 
     @property
-    def prefixed_hash(self):
-        """
-        Matches what's returned by the KC API
-        """
-        return f'md5:{self.md5_hash}'
-
-    def url(self):
-        return reverse(
-            'download_xform',
-            kwargs={
-                'username': self.user.username,
-                'pk': self.pk
-            }
-        )
+    def can_be_replaced(self):
+        if hasattr(self.submission_count, '__call__'):
+            num_submissions = self.submission_count()
+        else:
+            num_submissions = self.submission_count
+        return num_submissions == 0
 
     def data_dictionary(self, use_cache: bool = False):
         from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
@@ -166,48 +176,63 @@ class XForm(AbstractTimeStampedModel):
 
         xform_dict = deepcopy(self.__dict__)
         xform_dict.pop('_state', None)
+        xform_dict.pop('_cached_asset', None)
         return DataDictionary(**xform_dict)
+
+    def file_name(self):
+        return self.id_string + '.xml'
+
+    def geocoded_submission_count(self):
+        """Number of geocoded submissions."""
+        return self.instances.filter(geom__isnull=False).count()
 
     @property
     def has_instances_with_geopoints(self):
         return self.instances_with_geopoints
 
-    def _set_id_string(self):
-        matches = self.instance_id_regex.findall(self.xml)
-        if len(matches) != 1:
-            raise XLSFormError(t('There should be a single id string.'))
-        self.id_string = matches[0]
+    def has_mapped_perm(self, user_obj: User, perm: str) -> bool:
+        """
+        Checks if a role-based user (e.g., an organization admin) has access to an
+        object  by validating against equivalent permissions defined in KPI.
 
-    def _set_title(self):
-        self.xml = smart_str(self.xml)
-        text = re.sub(r'\s+', ' ', self.xml)
-        matches = title_pattern.findall(text)
-        title_xml = matches[0][:XFORM_TITLE_LENGTH]
+        In the context of OpenRosa, roles such as organization admins do not have
+        permissions explicitly recorded in the database. Since django-guardian cannot
+        determine access for such roles directly, this method maps the role to
+        its equivalent permissions in KPI, allowing for accurate permission validation.
+        """
+        _, codename = perm_parse(perm)
 
-        if len(matches) != 1:
-            raise XLSFormError(t('There should be a single title.'), matches)
+        with use_db(DEFAULT_DB_ALIAS):
+            kc_permission_map = self.asset.KC_PERMISSIONS_MAP
+            try:
+                kpi_perm = list(kc_permission_map.keys())[
+                    list(kc_permission_map.values()).index(codename)
+                ]
+            except ValueError:
+                return False
 
-        if self.title and title_xml != self.title:
-            title_xml = self.title[:XFORM_TITLE_LENGTH]
-            title_xml = xml_escape(title_xml)
-            self.xml = title_pattern.sub('<h:title>%s</h:title>' % title_xml, self.xml)
+            has_perm = self.asset.has_perm(user_obj, kpi_perm)
 
-        self.title = title_xml
+        return has_perm
 
-    def _set_description(self):
-        self.description = self.description \
-            if self.description and self.description != '' else self.title
+    @property
+    def md5_hash(self):
+        return calculate_hash(self.xml)
 
-    def _set_encrypted_field(self):
-        if self.json and self.json != '':
-            json_dict = json.loads(self.json)
-            if 'submission_url' in json_dict and 'public_key' in json_dict:
-                self.encrypted = True
-            else:
-                self.encrypted = False
+    @property
+    def md5_hash_with_disclaimer(self):
+        return calculate_hash(self.xml_with_disclaimer)
 
-    def update(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    @property
+    def prefixed_hash(self):
+        """
+        Matches what's returned by the KC API
+        """
+        return f'md5:{self.md5_hash}'
+
+    @classmethod
+    def public_forms(cls):
+        return cls.objects.filter(shared=True)
 
     def save(self, *args, **kwargs):
         self._set_title()
@@ -235,9 +260,6 @@ class XForm(AbstractTimeStampedModel):
 
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return getattr(self, 'id_string', '')
-
     def submission_count(self, force_update=False):
         if self.num_of_submissions == 0 or force_update:
             count = self.instances.count()
@@ -246,10 +268,6 @@ class XForm(AbstractTimeStampedModel):
         return self.num_of_submissions
 
     submission_count.short_description = t('Submission Count')
-
-    def geocoded_submission_count(self):
-        """Number of geocoded submissions."""
-        return self.instances.filter(geom__isnull=False).count()
 
     def time_of_last_submission(self):
         if self.last_submission_time is None and self.num_of_submissions > 0:
@@ -270,25 +288,66 @@ class XForm(AbstractTimeStampedModel):
         except ObjectDoesNotExist:
             pass
 
-    @property
-    def md5_hash(self):
-        return calculate_hash(self.xml)
+    def update(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+    def url(self):
+        return reverse(
+            'download_xform', kwargs={'username': self.user.username, 'pk': self.pk}
+        )
 
     @property
-    def md5_hash_with_disclaimer(self):
-        return calculate_hash(self.xml_with_disclaimer)
+    def xform_root_node_name(self):
+        """
+        Retrieves the name of the XML tag representing the root node of the "survey"
+        in the XForm XML structure.
+
+        It should always be present in `self.json`.
+        """
+
+        form_json = json.loads(self.json)
+        return form_json['name']
 
     @property
-    def can_be_replaced(self):
-        if hasattr(self.submission_count, '__call__'):
-            num_submissions = self.submission_count()
-        else:
-            num_submissions = self.submission_count
-        return num_submissions == 0
+    def xml_with_disclaimer(self):
+        return XMLFormWithDisclaimer(self).get_object().xml
 
-    @classmethod
-    def public_forms(cls):
-        return cls.objects.filter(shared=True)
+    def _set_id_string(self):
+        matches = self.instance_id_regex.findall(self.xml)
+        if len(matches) != 1:
+            raise XLSFormError(t('There should be a single id string.'))
+        self.id_string = matches[0]
+
+    def _set_description(self):
+        self.description = (
+            self.description
+            if self.description and self.description != ''
+            else self.title
+        )
+
+    def _set_encrypted_field(self):
+        if self.json and self.json != '':
+            json_dict = json.loads(self.json)
+            if 'submission_url' in json_dict and 'public_key' in json_dict:
+                self.encrypted = True
+            else:
+                self.encrypted = False
+
+    def _set_title(self):
+        self.xml = smart_str(self.xml)
+        text = re.sub(r'\s+', ' ', self.xml)
+        matches = title_pattern.findall(text)
+        title_xml = matches[0][:XFORM_TITLE_LENGTH]
+
+        if len(matches) != 1:
+            raise XLSFormError(t('There should be a single title.'), matches)
+
+        if self.title and title_xml != self.title:
+            title_xml = self.title[:XFORM_TITLE_LENGTH]
+            title_xml = xml_escape(title_xml)
+            self.xml = title_pattern.sub('<h:title>%s</h:title>' % title_xml, self.xml)
+
+        self.title = title_xml
 
     def _xls_file_io(self):
         """
@@ -304,7 +363,3 @@ class XForm(AbstractTimeStampedModel):
                     return convert_csv_to_xls(ff.read())
                 else:
                     return BytesIO(ff.read())
-
-    @property
-    def xml_with_disclaimer(self):
-        return XMLFormWithDisclaimer(self).get_object().xml

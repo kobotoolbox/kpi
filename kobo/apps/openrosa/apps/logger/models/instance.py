@@ -1,11 +1,6 @@
 # coding: utf-8
 from hashlib import sha256
 
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 import reversion
 from django.apps import apps
 from django.contrib.gis.db import models
@@ -18,6 +13,7 @@ from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import (
+    AccountInactiveError,
     FormInactiveError,
     TemporarilyUnavailableError,
 )
@@ -143,9 +139,11 @@ class Instance(AbstractTimeStampedModel):
             'main', 'UserProfile'
         )  # noqa - Avoid circular imports
         profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
-        if not created and profile.metadata.get('submissions_suspended', False):
+        if not created and profile.submissions_suspended:
             raise TemporarilyUnavailableError()
-        return
+
+        if not self.xform.user.is_active:
+            raise AccountInactiveError()
 
     def _set_geom(self):
         xform = self.xform

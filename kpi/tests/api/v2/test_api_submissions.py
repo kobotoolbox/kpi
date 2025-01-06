@@ -5,17 +5,14 @@ import random
 import string
 import uuid
 from datetime import datetime
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 from unittest import mock
+from zoneinfo import ZoneInfo
 
 import lxml
 import pytest
 import responses
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
@@ -41,6 +38,12 @@ from kpi.constants import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.mixins import (
+    SubmissionDeleteTestCaseMixin,
+    SubmissionEditTestCaseMixin,
+    SubmissionValidationStatusTestCaseMixin,
+    SubmissionViewTestCaseMixin,
+)
 from kpi.tests.utils.mock import (
     enketo_edit_instance_response,
     enketo_edit_instance_response_with_root_name_validation,
@@ -50,7 +53,11 @@ from kpi.tests.utils.mock import (
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
-from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 
 
 def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
@@ -128,7 +135,9 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.submissions = submissions
 
 
-class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
+class BulkDeleteSubmissionsApiTests(
+    SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase
+):
 
     # TODO, Add tests with ids and query
 
@@ -152,14 +161,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         someuser is the project owner
         someuser can delete their own data
         """
-        data = {'payload': {'confirm': True}}
-        response = self.client.delete(
-            self.submission_bulk_url, data=data, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response = self.client.get(self.submission_list_url, {'format': 'json'})
-
-        self.assertEqual(response.data['count'], 0)
+        self._delete_submissions()
 
     def test_audit_log_on_bulk_delete(self):
         """
@@ -178,7 +180,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         # No submissions have been deleted yet
         assert audit_log_count == 0
         # Delete all submissions
-        self.test_delete_submissions_as_owner()
+        self._delete_submissions()
 
         # All submissions have been deleted and should be logged
         deleted_submission_ids = AuditLog.objects.values_list('pk', flat=True).filter(
@@ -387,7 +389,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class SubmissionApiTests(BaseSubmissionTestCase):
+class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -787,19 +789,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         someuser can delete their own data.
         """
         submission = self.submissions_submitted_by_someuser[0]
-        url = reverse(
-            self._get_endpoint('submission-detail'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
-            },
-        )
-
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.get(self.submission_list_url, {'format': 'json'})
-
-        self.assertEqual(response.data['count'], len(self.submissions) - 1)
+        self._delete_submission(submission)
 
     def test_audit_log_on_delete(self):
         """
@@ -1152,7 +1142,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
 
-class SubmissionEditApiTests(BaseSubmissionTestCase):
+class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editin submissions.
 
@@ -1211,23 +1201,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can retrieve enketo edit link
         """
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
-        )
-        # Mock Enketo response
-        responses.add_callback(
-            responses.POST, ee_url,
-            callback=enketo_edit_instance_response,
-            content_type='application/json',
-        )
-
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
-        expected_response = {
-            'url': f"{settings.ENKETO_URL}/edit/{self.submission['_uuid']}",
-            'version_uid': self.asset.latest_deployed_version.uid,
-        }
-        self.assertEqual(response.data, expected_response)
+        self._get_edit_link()
 
     @responses.activate
     def test_get_edit_submission_redirect_as_owner(self):
@@ -1732,8 +1706,73 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         req = client.post(url)
         self.assertEqual(req.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_edit_submission_with_partial_perms(self):
+        # Use Digest authentication; testing SessionAuth is not required.
+        # The purpose of this test is to validate partial permissions.
+        submission = self.submissions_submitted_by_anotheruser[0]
+        instance_xml = self.asset.deployment.get_submission(
+            submission['_id'], self.asset.owner, format_type='xml'
+        )
+        xml_parsed = fromstring_preserve_root_xmlns(instance_xml)
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission['meta/instanceID']
+        )
+        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edited_submission = xml_tostring(xml_parsed)
 
-class SubmissionViewApiTests(BaseSubmissionTestCase):
+        url = reverse(
+            self._get_endpoint('assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot().uid,),
+        )
+        self.client.logout()
+        client = DigestClient()
+        req = client.post(url)  # Retrieve www-challenge
+
+        client.set_authorization('anotheruser', 'anotheruser', 'Digest')
+        self.anotheruser.set_password('anotheruser')
+        self.anotheruser.save()
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+            },
+        )
+        req = client.post(url)
+        self.assertEqual(req.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Give anotheruser permissions to edit submissions someuser's data.
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'someuser'}]
+            },
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = client.post(url, data)
+        # Receive a 403 because we are trying to edit anotheruser's data
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Give anotheruser permissions to edit submissions their data.
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms={
+                PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+            },
+        )
+
+        data = {'xml_submission_file': ContentFile(edited_submission)}
+        response = client.post(url, data)
+        assert response.status_code == status.HTTP_201_CREATED
+
+
+class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
@@ -1759,25 +1798,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can get enketo view link
         """
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
-        )
-
-        # Mock Enketo response
-        responses.add_callback(
-            responses.POST, ee_url,
-            callback=enketo_view_instance_response,
-            content_type='application/json',
-        )
-
-        response = self.client.get(self.submission_view_link_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
-
-        expected_response = {
-            'url': f"{settings.ENKETO_URL}/view/{self.submission['_uuid']}",
-            'version_uid': self.asset.latest_deployed_version.uid,
-        }
-        assert response.data == expected_response
+        self._get_view_link()
 
     @responses.activate
     def test_get_view_submission_redirect_as_owner(self):
@@ -1986,7 +2007,6 @@ class SubmissionDuplicateApiTests(SubmissionDuplicateBaseApiTests):
         someuser is the owner of the project.
         someuser is allowed to duplicate their own data
         """
-        print('URL :', self.submission_url, flush=True)
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
@@ -2325,7 +2345,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self._check_bulk_update(response)
 
 
-class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
+class SubmissionValidationStatusApiTests(
+    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
+):
 
     def setUp(self):
         super().setUp()
@@ -2388,13 +2410,8 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can delete the validation status of submissions
         """
-        response = self.client.delete(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # Ensure delete worked.
-        response = self.client.get(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {})
+        self._update_status('someuser')
+        self._delete_status()
 
     def test_cannot_delete_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2441,17 +2458,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project.
         someuser can update validation status.
         """
-        data = {
-            'validation_status.uid': 'validation_status_not_approved'
-        }
-        response = self.client.patch(self.validation_status_url, data=data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Ensure update worked.
-        response = self.client.get(self.validation_status_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['by_whom'], 'someuser')
-        self.assertEqual(response.data['uid'], data['validation_status.uid'])
+        self._update_status('someuser')
 
     def test_cannot_edit_status_of_not_shared_submission_as_anotheruser(self):
         """
@@ -2549,7 +2556,9 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data['uid'], data['validation_status.uid'])
 
 
-class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
+class SubmissionValidationStatusesApiTests(
+    SubmissionValidationStatusTestCaseMixin, BaseSubmissionTestCase
+):
 
     def setUp(self):
         super().setUp()
@@ -2563,64 +2572,23 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
             kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
         )
 
-        # Ensure all submissions have no validation status
-        response = self.client.get(self.submission_list_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        emptied = [not s['_validation_status'] for s in response.data['results']]
-        self.assertTrue(all(emptied))
-
-        # Make the owner change validation status of all submissions
-        data = {
-            'payload': {
-                'validation_status.uid': 'validation_status_not_approved',
-                'confirm': True,
-            }
-        }
-        response = self.client.patch(
-            self.validation_statuses_url, data=data, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self._validate_statuses(empty=True)
+        self._update_statuses(status_uid='validation_status_not_approved')
 
     def test_all_validation_statuses_applied(self):
-        # ensure all submissions are not approved
-        response = self.client.get(self.submission_list_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        applied = [
-            s['_validation_status']['uid'] == 'validation_status_not_approved'
-            for s in response.data['results']
-        ]
-        self.assertTrue(all(applied))
+        self._validate_statuses(
+            uid='validation_status_not_approved', username='someuser'
+        )
 
-    def test_delete_all_status_as_owner(self):
+    def test_delete_all_statuses_as_owner(self):
         """
         someuser is the owner of the project.
         someuser can bulk delete the status of all their submissions.
         """
-        data = {
-            'payload': {
-                'validation_status.uid': None,
-            }
-        }
-        response = self.client.delete(self.validation_statuses_url,
-                                      data=data,
-                                      format='json')
-        # `confirm` must be sent within the payload (when all submissions are
-        # modified). Otherwise, a ValidationError is raised
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        data['payload']['confirm'] = True
-        response = self.client.delete(self.validation_statuses_url,
-                                      data=data,
-                                      format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self._delete_statuses()
         count = self._deployment.calculated_submission_count(self.someuser)
         expected_response = {'detail': f'{count} submissions have been updated'}
-        self.assertEqual(response.data, expected_response)
-
-        # Ensure update worked.
-        response = self.client.get(self.submission_list_url)
-        for submission in response.data['results']:
-            self.assertEqual(submission['_validation_status'], {})
+        assert response.data == expected_response
 
     def test_delete_some_statuses_as_owner(self):
         """

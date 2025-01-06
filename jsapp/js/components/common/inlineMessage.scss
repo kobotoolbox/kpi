@@ -1,5 +1,4 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 @use 'scss/mixins';
 
 .k-inline-message {
@@ -7,27 +6,27 @@
   align-items: flex-start;
   gap: 12px;
   margin: 0;
-  padding: sizes.$x12 sizes.$x24;
+  padding: 12px 24px;
   width: 100%;
-  border-radius: sizes.$x6;
+  border-radius: 6px;
   color: colors.$kobo-gray-800;
-  line-height: sizes.$x22;
+  line-height: 22px;
 
   a {
-    text-decoration: underline;
-    color: inherit;
+    text-decoration: none;
+    color: colors.$kobo-dark-blue;
 
     &:hover {
-      text-decoration: none;
+      text-decoration: underline;
     }
   }
 
   &:not(:last-child) {
-    margin-bottom: sizes.$x24;
+    margin-bottom: 24px;
   }
 
   &:not(:first-child) {
-    margin-top: sizes.$x24;
+    margin-top: 24px;
   }
 }
 
@@ -51,10 +50,15 @@
   .k-icon {color: colors.$kobo-amber;}
 }
 
+.k-inline-message--type-info {
+  background-color: colors.$kobo-bg-blue;
+  .k-icon {color: colors.$kobo-blue;}
+}
+
 // We need a bit stronger specificity here
 .k-inline-message p.k-inline-message__message {
   margin: 0;
   text-align: initial;
-  font-size: sizes.$x14;
+  font-size: 14px;
   line-height: inherit;
 }

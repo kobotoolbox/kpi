@@ -5,7 +5,7 @@ import Icon from 'js/components/common/icon';
 import './inlineMessage.scss';
 
 /** Influences the background color and the icon color */
-export type InlineMessageType = 'default' | 'error' | 'success' | 'warning';
+export type InlineMessageType = 'default' | 'error' | 'success' | 'warning' | 'info';
 
 interface InlineMessageProps {
   type: InlineMessageType;

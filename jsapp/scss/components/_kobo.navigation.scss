@@ -140,34 +140,12 @@
   overflow-y: auto;
 
   .account-box__menu-item--avatar {
-    display: inline-block;
-    margin-right: 15px;
-    vertical-align: top;
-  }
-
-  .account-box__menu-item--mini-profile {
-    color: colors.$kobo-gray-700;
-    display: inline-block;
-    width: calc(100% - 70px);
-    line-height: 20px;
-    margin-top: 5px;
     margin-bottom: 12px;
-
-    span {
-      display: inline-block;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .account-username {
-      font-size: 18px;
-    }
   }
 
   .account-box__menu-item--settings {
     text-align: right;
+    margin-top: 16px;
   }
 
   .account-box__menu-li {
@@ -245,9 +223,8 @@
 
 // Form title + desc in header, editable
 
-// On smaller screens we hide both of them
-.main-header .main-header__icon,
-.main-header .main-header__counter {
+// On smaller screens we hide the icon
+.main-header .main-header__icon {
   display: none;
 }
 
@@ -303,12 +280,6 @@
       }
     }
   }
-
-  .main-header__counter {
-    font-size: variables.$base-font-size;
-    margin-right: 20px;
-    color: colors.$kobo-gray-500;
-  }
 }
 
 .git-rev {
@@ -316,8 +287,7 @@
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
-  .main-header .main-header__icon,
-  .main-header .main-header__counter {
+  .main-header .main-header__icon {
     display: initial;
   }
 

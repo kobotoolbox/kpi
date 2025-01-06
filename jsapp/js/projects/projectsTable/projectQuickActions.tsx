@@ -1,21 +1,30 @@
+// Libraries
 import React from 'react';
+
+// Partial components
+import Button from 'js/components/common/button';
+
+// Stores, hooks and utilities
+import {getAssetDisplayName} from 'jsapp/js/assetUtils';
+import {userCan} from 'js/components/permissions/utils';
+import customViewStore from 'js/projects/customViewStore';
+
+// Constants and types
 import type {
   AssetResponse,
   ProjectViewAsset,
   DeploymentResponse,
 } from 'js/dataInterface';
 import {ASSET_TYPES} from 'js/constants';
-import Button from 'js/components/common/button';
-import styles from './projectActions.module.scss';
-import {getAssetDisplayName} from 'jsapp/js/assetUtils';
 import {
   archiveAsset,
   unarchiveAsset,
   deleteAsset,
   manageAssetSharing,
 } from 'jsapp/js/assetQuickActions';
-import {userCan} from 'js/components/permissions/utils';
-import customViewStore from 'js/projects/customViewStore';
+
+// Styles
+import styles from './projectActions.module.scss';
 
 interface ProjectQuickActionsProps {
   asset: AssetResponse | ProjectViewAsset;
@@ -24,6 +33,9 @@ interface ProjectQuickActionsProps {
 /**
  * Quick Actions (Archive, Share, Delete) buttons. Use these when a single
  * project is selected in the Project Table.
+ *
+ * Note that for zero projects selected we display `ProjectQuickActionsEmpty`
+ * instead.
  */
 const ProjectQuickActions = ({asset}: ProjectQuickActionsProps) => {
   // The `userCan` method requires `permissions` property to be present in the

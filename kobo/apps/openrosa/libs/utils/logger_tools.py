@@ -12,10 +12,7 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from xml.etree import ElementTree as ET
 from xml.parsers.expat import ExpatError
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from wsgiref.util import FileWrapper
 from xml.dom import Node
@@ -43,6 +40,7 @@ from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
+    AccountInactiveError,
     DuplicateUUIDError,
     FormInactiveError,
     InstanceIdMissingError,
@@ -84,8 +82,8 @@ from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uui
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.utils.object_permission import get_database_user
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.object_permission import get_database_user
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -140,6 +138,10 @@ def check_edit_submission_permissions(
         ))
 
 
+<<<<<<< HEAD
+=======
+@transaction.atomic
+>>>>>>> @{-1}
 def create_instance(
     username: str,
     xml_file: File,
@@ -328,6 +330,9 @@ def http_open_rosa_error_handler(func, request):
     except TemporarilyUnavailableError:
         result.error = t('Temporarily unavailable')
         result.http_error_response = OpenRosaTemporarilyUnavailable(result.error)
+    except AccountInactiveError:
+        result.error = t('Account is not active')
+        result.http_error_response = OpenRosaResponseNotAllowed(result.error)
     except XForm.DoesNotExist:
         result.error = t('Form does not exist on this account')
         result.http_error_response = OpenRosaResponseNotFound(result.error)
@@ -547,26 +552,16 @@ def publish_xls_form(xls_file, user, id_string=None):
         return dd
 
 
-def publish_xml_form(xml_file, user, id_string=None):
+def publish_xml_form(xml_file, user):
     xml = smart_str(xml_file.read())
     survey = create_survey_element_from_xml(xml)
     form_json = survey.to_json()
-    if id_string:
-        dd = DataDictionary.objects.get(user=user, id_string=id_string)
-        dd.xml = xml
-        dd.json = form_json
-        dd._mark_start_time_boolean()
-        set_uuid(dd)
-        dd.set_uuid_in_xml()
-        dd.save()
-        return dd
-    else:
-        dd = DataDictionary(user=user, xml=xml, json=form_json)
-        dd._mark_start_time_boolean()
-        set_uuid(dd)
-        dd.set_uuid_in_xml(file_name=xml_file.name)
-        dd.save()
-        return dd
+    dd = DataDictionary(user=user, xml=xml, json=form_json)
+    dd.mark_start_time_boolean()
+    set_uuid(dd)
+    dd.set_uuid_in_xml()
+    dd.save()
+    return dd
 
 
 def report_exception(subject, info, exc_info=None):
@@ -808,10 +803,13 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
+<<<<<<< HEAD
 
     # If the new attachment has the same basename as an existing one but
     # different content, update the existing one.
 
+=======
+>>>>>>> @{-1}
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
@@ -824,8 +822,19 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     remaining_attachments = queryset.exclude(
         id__in=latest_attachments.values_list('id', flat=True)
     )
+<<<<<<< HEAD
     soft_deleted_attachments = list(remaining_attachments.all())
     remaining_attachments.update(deleted_at=dj_timezone.now())
+=======
+    soft_deleted_attachments = list(queryset.all())
+
+    # The query below updates only the database records, not the in-memory
+    # `Attachment` objects.
+    # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
+    # in memory after the update.
+    # This behavior is necessary to allow the signal to handle file deletion from storage.
+    queryset.update(deleted_at=dj_timezone.now())
+>>>>>>> @{-1}
 
     return soft_deleted_attachments
 

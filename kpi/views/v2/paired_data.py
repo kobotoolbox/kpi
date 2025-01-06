@@ -3,18 +3,17 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
-from rest_framework import renderers, viewsets
+from rest_framework import renderers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from shortuuid import ShortUUID
 
+from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
-from kpi.permissions import (
-    AssetEditorPermission,
-    XMLExternalDataPermission,
-)
+from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.utils.hash import calculate_hash
@@ -23,7 +22,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 class PairedDataViewset(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.ModelViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
 ):
     """
     ## List of paired project endpoints
@@ -178,6 +177,13 @@ class PairedDataViewset(
     lookup_field = 'paired_data_uid'
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = [
+        ('source_name', 'source.name'),
+        ('object_id', 'asset.id'),
+        'fields',
+        ('source_uid', 'source.uid'),
+    ]
 
     @action(
         detail=True,
@@ -304,7 +310,7 @@ class PairedDataViewset(
 
         return Response(xml_)
 
-    def get_object(self):
+    def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
             self.kwargs[self.lookup_field]
         )

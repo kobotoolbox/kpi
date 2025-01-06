@@ -29,6 +29,7 @@ amqp==5.2.0
 asgiref==3.8.1
     # via
     #   django
+    #   django-allauth
     #   django-cors-headers
 asttokens==2.4.1
     # via stack-data
@@ -47,8 +48,6 @@ azure-core==1.30.1
     #   django-storages
 azure-storage-blob==12.19.1
     # via django-storages
-backcall==0.2.0
-    # via ipython
 bcrypt==4.1.2
     # via paramiko
 begins==0.9
@@ -111,7 +110,6 @@ cryptography==42.0.5
     #   azure-storage-blob
     #   jwcrypto
     #   paramiko
-    #   pyjwt
     #   pyopenssl
 cssselect==1.2.0
     # via pyquery
@@ -133,7 +131,6 @@ defusedxml==0.7.1
     # via
     #   -r dependencies/pip/requirements.in
     #   djangorestframework-xml
-    #   python3-openid
     #   pyxform
 deprecated==1.2.14
     # via fabric
@@ -173,7 +170,7 @@ django==4.2.15
     #   djangorestframework
     #   jsonfield
     #   model-bakery
-django-allauth==0.61.1
+django-allauth==65.1.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -257,7 +254,9 @@ drf-extensions==0.7.1
 et-xmlfile==1.1.0
     # via openpyxl
 exceptiongroup==1.2.0
-    # via pytest
+    # via
+    #   ipython
+    #   pytest
 execnet==2.1.1
     # via pytest-xdist
 executing==2.0.1
@@ -348,7 +347,7 @@ iniconfig==2.0.0
     # via pytest
 invoke==2.2.0
     # via fabric
-ipython==8.12.3
+ipython==8.28.0
     # via -r dependencies/pip/dev_requirements.in
 isodate==0.6.1
     # via azure-storage-blob
@@ -397,6 +396,8 @@ modilabs-python-utils==0.1.5
     # via -r dependencies/pip/requirements.in
 mongomock==4.1.2
     # via -r dependencies/pip/dev_requirements.in
+more-itertools==10.4.0
+    # via -r dependencies/pip/requirements.in
 multidict==6.0.5
     # via
     #   aiohttp
@@ -411,8 +412,7 @@ oauthlib==3.2.2
     # via
     #   -r dependencies/pip/requirements.in
     #   django-oauth-toolkit
-    #   requests-oauthlib
-openpyxl==3.0.9
+openpyxl==3.1.3
     # via
     #   -r dependencies/pip/requirements.in
     #   pyxform
@@ -434,8 +434,6 @@ path-py==12.5.0
 pathspec==0.12.1
     # via black
 pexpect==4.9.0
-    # via ipython
-pickleshare==0.7.5
     # via ipython
 pillow==10.3.0
     # via django-markdownx
@@ -488,10 +486,8 @@ pygments==2.17.2
     # via
     #   -r dependencies/pip/requirements.in
     #   ipython
-pyjwt[crypto]==2.8.0
-    # via
-    #   django-allauth
-    #   twilio
+pyjwt==2.8.0
+    # via twilio
 pymongo==4.6.3
     # via -r dependencies/pip/requirements.in
 pynacl==1.5.0
@@ -531,13 +527,11 @@ python-dateutil==2.9.0.post0
     #   freezegun
     #   pandas
     #   python-crontab
-python3-openid==3.2.0
-    # via django-allauth
 pytz==2024.1
     # via
     #   flower
     #   pandas
-pyxform==1.9.0
+pyxform==2.2.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
@@ -559,19 +553,15 @@ requests==2.31.0
     #   -r dependencies/pip/requirements.in
     #   azure-core
     #   coveralls
-    #   django-allauth
     #   django-oauth-toolkit
     #   google-api-core
     #   google-cloud-storage
     #   httmock
-    #   requests-oauthlib
     #   responses
     #   smsapi-client
     #   stripe
     #   twilio
     #   yubico-client
-requests-oauthlib==2.0.0
-    # via django-allauth
 responses==0.25.0
     # via -r dependencies/pip/requirements.in
 rpds-py==0.18.0
@@ -643,6 +633,7 @@ typing-extensions==4.10.0
     #   azure-core
     #   azure-storage-blob
     #   black
+    #   ipython
     #   jwcrypto
     #   psycopg
 tzdata==2024.1

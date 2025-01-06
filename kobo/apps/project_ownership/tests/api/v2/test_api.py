@@ -1,10 +1,11 @@
+# flake8: noqa: E501
 import uuid
 from unittest.mock import MagicMock, patch
 
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import timezone
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -261,7 +262,6 @@ class ProjectOwnershipInviteAPITestCase(KpiTestCase):
 
 
 class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
-
     """
     Tests in this class use the mock library a lot because transferring a
     deployed project implies accessing KoboCAT tables. However, KPI does not
@@ -358,40 +358,36 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         'kobo.apps.project_ownership.tasks.move_media_files',
         MagicMock()
     )
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
+    )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):
-        today = timezone.now()
         expected_data = {
             'total_nlp_usage': {
-                'asr_seconds_current_year': 120,
-                'mt_characters_current_year': 1000,
-                'asr_seconds_current_month': 120,
-                'mt_characters_current_month': 1000,
+                'asr_seconds_current_period': 120,
+                'mt_characters_current_period': 1000,
                 'asr_seconds_all_time': 120,
                 'mt_characters_all_time': 1000,
             },
             'total_storage_bytes': 191642,
             'total_submission_count': {
                 'all_time': 1,
-                'current_year': 1,
-                'current_month': 1,
+                'current_period': 1,
             },
         }
 
         expected_empty_data = {
             'total_nlp_usage': {
-                'asr_seconds_current_year': 0,
-                'mt_characters_current_year': 0,
-                'asr_seconds_current_month': 0,
-                'mt_characters_current_month': 0,
+                'asr_seconds_current_period': 0,
+                'mt_characters_current_period': 0,
                 'asr_seconds_all_time': 0,
                 'mt_characters_all_time': 0,
             },
             'total_storage_bytes': 0,
             'total_submission_count': {
                 'all_time': 0,
-                'current_year': 0,
-                'current_month': 0,
+                'current_period': 0,
             },
         }
 
@@ -500,6 +496,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         for attachment in response.data['results'][0]['_attachments']:
             assert attachment['filename'].startswith('anotheruser/')
 
+        # Get the mongo_uuid for the transferred asset (XForm)
+        self.asset.deployment.xform.refresh_from_db()
+        mongo_uuid = self.asset.deployment.xform.mongo_uuid
+
         assert (
             settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': f'someuser_{self.asset.uid}'}
@@ -507,8 +507,66 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         )
         assert (
             settings.MONGO_DB.instances.count_documents(
-                {'_userform_id': f'anotheruser_{self.asset.uid}'}
+                {'_userform_id': mongo_uuid}
             ) == 1
+        )
+
+    @patch(
+        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_attachments',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_media_files',
+        MagicMock()
+    )
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_mongo_uuid_after_transfer(self):
+        """
+        Test that after an ownership transfer, the XForm's MongoDB document
+        updates to use the `mongo_uuid` as the `_userform_id` instead of the
+        original owner's identifier
+        """
+        self.client.login(username='someuser', password='someuser')
+        original_userform_id = f'someuser_{self.asset.uid}'
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': original_userform_id}
+            ) == 1
+        )
+
+        # Transfer the project from someuser to anotheruser
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(self.invite_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Get the mongo_uuid for the transferred asset (XForm)
+        self.asset.deployment.xform.refresh_from_db()
+        mongo_uuid = self.asset.deployment.xform.mongo_uuid
+
+        # Verify MongoDB now uses mongo_uuid as the identifier
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': mongo_uuid}
+            ) == 1
+        )
+
+        # Confirm the original `_userform_id` is no longer used
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': original_userform_id}
+            ) == 0
         )
 
 

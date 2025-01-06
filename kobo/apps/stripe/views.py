@@ -10,7 +10,6 @@ from djstripe.models import (
     Customer,
     Price,
     Product,
-    Session,
     Subscription,
     SubscriptionItem,
     SubscriptionSchedule,
@@ -23,6 +22,7 @@ from rest_framework.views import APIView
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
+from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.serializers import (
     ChangePlanSerializer,
     CheckoutLinkSerializer,
@@ -31,26 +31,23 @@ from kobo.apps.stripe.serializers import (
     ProductSerializer,
     SubscriptionSerializer,
 )
-from kobo.apps.stripe.utils import (
-    generate_return_url,
-    get_total_price_for_quantity,
-)
+from kobo.apps.stripe.utils import generate_return_url, get_total_price_for_quantity
 from kpi.permissions import IsAuthenticated
 
 
-# Lists the one-time purchases made by the organization that the logged-in user owns
 class OneTimeAddOnViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Lists the one-time add-ons for the authenticated user's organization.
+    """
     permission_classes = (IsAuthenticated,)
     serializer_class = OneTimeAddOnSerializer
-    queryset = Session.objects.all()
+    queryset = PlanAddOn.objects.all()
 
     def get_queryset(self):
         return self.queryset.filter(
-            livemode=settings.STRIPE_LIVE_MODE,
-            customer__subscriber__owner__organization_user__user=self.request.user,
-            mode='payment',
-            payment_intent__status__in=['succeeded', 'processing'],
-        ).prefetch_related('payment_intent')
+            charge__livemode=settings.STRIPE_LIVE_MODE,
+            organization__organization_users__user=self.request.user,
+        )
 
 
 class ChangePlanView(APIView):
@@ -90,7 +87,10 @@ class ChangePlanView(APIView):
         stripe.api_key = djstripe_settings.STRIPE_SECRET_KEY
         subscription_item = subscription.items.get()
         # Exit immediately if the price/quantity we're changing to is the price/quantity they're currently subscribed to
-        if quantity == subscription_item.quantity and price.id == subscription_item.price.id:
+        if (
+            quantity == subscription_item.quantity
+            and price.id == subscription_item.price.id
+        ):
             return Response(
                 {'status': 'already subscribed'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -200,7 +200,7 @@ class CheckoutLinkView(APIView):
     serializer_class = CheckoutLinkSerializer
 
     @staticmethod
-    def generate_payment_link(price, user, organization_id, quantity):
+    def generate_payment_link(price, user, organization_id, quantity=1):
         if organization_id:
             # Get the organization for the logged-in user and provided organization ID
             organization = Organization.objects.get(
@@ -246,12 +246,24 @@ class CheckoutLinkView(APIView):
         return session['url']
 
     @staticmethod
-    def start_checkout_session(customer_id, price, organization_id, user, quantity):
-        checkout_mode = (
-            'payment' if price.type == 'one_time' else 'subscription'
-        )
+    def start_checkout_session(customer_id, price, organization_id, user, quantity=1):
         kwargs = {}
-        if checkout_mode == 'subscription':
+        if price.type == 'one_time':
+            checkout_mode = 'payment'
+            kwargs['payment_intent_data'] = {
+                'metadata': {
+                    'organization_id': organization_id,
+                    'price_id': price.id,
+                    'quantity': quantity,
+                    # product metadata contains the usage limit values
+                    # for one-time add-ons
+                    **(price.product.metadata or {}),
+                },
+            }
+        else:
+            checkout_mode = 'subscription'
+            # subscriptions in Stripe can only be purchased one at a time
+            quantity = 1
             kwargs['subscription_data'] = {
                 'metadata': {
                     'kpi_owner_username': user.username,
@@ -260,6 +272,7 @@ class CheckoutLinkView(APIView):
                     'organization_id': organization_id,
                 },
             }
+
         return stripe.checkout.Session.create(
             api_key=djstripe_settings.STRIPE_SECRET_KEY,
             allow_promotion_codes=True,
@@ -282,7 +295,8 @@ class CheckoutLinkView(APIView):
                 'kpi_owner_username': user.username,
             },
             mode=checkout_mode,
-            success_url=generate_return_url(price.product.metadata) + f'?checkout={price.id}',
+            success_url=generate_return_url(price.product.metadata)
+            + f'?checkout={price.id}',
             **kwargs,
         )
 
@@ -323,8 +337,9 @@ class CustomerPortalView(APIView):
         )
 
         if not customer:
+            error_str = f"Couldn't find customer with organization id {organization_id}"
             return Response(
-                {'error': f"Couldn't find customer with organization id {organization_id}"},
+                {'error': error_str},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -361,7 +376,10 @@ class CustomerPortalView(APIView):
             )
 
             if not len(all_configs):
-                return Response({'error': "Missing Stripe billing configuration."}, status=status.HTTP_502_BAD_GATEWAY)
+                return Response(
+                    {'error': 'Missing Stripe billing configuration.'},
+                    status=status.HTTP_502_BAD_GATEWAY,
+                )
 
             """
             Recurring add-ons and the Enterprise plan aren't included in the default billing configuration.

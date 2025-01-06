@@ -1,6 +1,7 @@
+@use 'scss/z-indexes';
 @use 'scss/mixins';
-@use 'scss/sizes';
 @use 'scss/colors';
+@use 'sass:color';
 
 .root {
   display: flex;
@@ -10,8 +11,8 @@
 
 .header {
   @include mixins.centerRowFlex;
-  padding: sizes.$x30 sizes.$x30 sizes.$x40;
-  gap: sizes.$x10 sizes.$x30;
+  padding: 30px 30px 40px;
+  gap: 10px 30px;
   flex-wrap: wrap;
 }
 
@@ -21,20 +22,37 @@
   justify-content: flex-end;
 }
 
-.banner {
-  display: flex;
-  justify-content: space-between;
-  margin: sizes.$x24 sizes.$x24 0 sizes.$x24;
-  padding: sizes.$x12;
-  background-color: colors.$kobo-light-blue;
-  border-radius: sizes.$x5;
-  align-items: center;
+.dropzone {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
-.bannerIcon {
-  padding-right: sizes.$x18;
+.dropzoneOverlay {
+  display: none;
 }
 
-.bannerButton {
-  margin-left: auto;
+.dropzoneActive .dropzoneOverlay {
+  @include mixins.centerRowFlex;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+  background-color: color.change(colors.$kobo-white, $alpha: 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: z-indexes.$z-dropzone;
+  color: colors.$kobo-blue;
+  border: 6px dashed currentcolor;
+
+  :global {
+    h1 {
+      width: 100%;
+      margin: 6px 0 0;
+      font-size: 18px;
+      font-weight: normal;
+    }
+  }
 }

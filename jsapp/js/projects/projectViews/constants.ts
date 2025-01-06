@@ -5,6 +5,11 @@ export const HOME_VIEW = {
   name: t('My Projects'),
 };
 
+export const ORG_VIEW = {
+  uid: 'kobo_my_organization_projects',
+  name: t('##organization name## Projects'),
+};
+
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName;
   condition?: FilterConditionName;
@@ -175,8 +180,8 @@ export const PROJECT_FIELDS: ProjectFields = {
   ownerUsername: {
     name: 'ownerUsername',
     label: t('Owner'),
-    apiFilteringName: 'owner__username',
-    apiOrderingName: 'owner__username',
+    apiFilteringName: 'search_field',
+    apiOrderingName: 'search_field',
     availableConditions: [
       'contains',
       'doesNotContain',
@@ -319,7 +324,6 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'ownerEmail',
   'ownerFullName',
   'ownerOrganization',
-  'ownerUsername',
   'sector',
   'status',
 ];
@@ -333,8 +337,9 @@ export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
   'dateDeployed',
   'name',
   'status',
-  'ownerUsername',
 ];
+
+export const DEFAULT_EXCLUDED_FIELDS: ProjectFieldName[] = [];
 
 /**
  * The inital fields that are going to be displayed. We also use them with

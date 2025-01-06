@@ -10,7 +10,7 @@ from rest_framework.authtoken.models import Token
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.models.import_export_task import export_upload_to
 from kpi.serializers.v1.asset import AssetListSerializer
 
@@ -43,6 +43,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
+    @unittest.skip(reason='`owner_label` field only exists in v2 endpoint')
+    def test_asset_owner_label(self):
+        pass
+
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
@@ -54,6 +58,12 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     @unittest.skip(reason='`assignable_permissions` property only exists in '
                           'v2 endpoint')
     def test_assignable_permissions(self):
+        pass
+
+    @unittest.skip(
+        reason='`project_ownership` property only exists in v2 endpoint'
+    )
+    def test_ownership_transfer_status(self):
         pass
 
 
@@ -280,7 +290,7 @@ class AssetExportTaskTest(BaseTestCase):
         )
 
     def test_owner_can_create_export(self):
-        post_url = reverse('exporttask-list')
+        post_url = reverse('submissionexporttask-list')
         asset_url = reverse('asset-detail', args=[self.asset.uid])
         task_data = {
             'source': asset_url,
@@ -349,12 +359,12 @@ class AssetExportTaskTest(BaseTestCase):
         )
         file_path = export_upload_to(self, file_name)
 
-        detail_url = reverse('exporttask-detail', kwargs={
+        detail_url = reverse('submissionexporttask-detail', kwargs={
             'uid': detail_response.data['uid']
             })
 
         # checking if file exists before attempting to delete
-        file_exists_before_delete = ExportTask.result.field.storage.exists(
+        file_exists_before_delete = SubmissionExportTask.result.field.storage.exists(
             name=file_path
         )
         assert file_exists_before_delete
@@ -364,7 +374,7 @@ class AssetExportTaskTest(BaseTestCase):
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 
         # checking if file still exists after attempting to delete it
-        file_exists_after_delete = ExportTask.result.field.storage.exists(
+        file_exists_after_delete = SubmissionExportTask.result.field.storage.exists(
             name=file_path
         )
         assert not file_exists_after_delete

@@ -1,10 +1,13 @@
 @use 'scss/colors';
-@use 'scss/sizes';
 
+.root {
+  // Avoids taking space
+  position: fixed;
+}
 
 .modalBody {
-  line-height: sizes.$x24;
-  padding: 0 sizes.$x30;
+  line-height: 24px;
+  padding: 0 30px;
 
   p:first-of-type {
     margin-top: 0;
@@ -13,12 +16,12 @@
 
 .note {
   display: flex;
-  padding: sizes.$x12;
-  margin: sizes.$x24 0 0 0;
+  padding: 12px;
+  margin: 24px 0 0 0;
   background-color: colors.$kobo-bg-blue;
-  border-radius: sizes.$x5;
+  border-radius: 5px;
 }
 
 .noteIcon {
-  margin-right: sizes.$x8;
+  margin-right: 8px;
 }

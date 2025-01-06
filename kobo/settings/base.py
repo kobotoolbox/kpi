@@ -17,7 +17,9 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
+from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
+
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -140,7 +142,8 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
+    'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
+    'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
 )
 
 MIDDLEWARE = [
@@ -155,6 +158,7 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'allauth.usersessions.middleware.UserSessionsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'kobo.apps.audit_log.middleware.create_project_history_log_middleware',
     # Still needed really?
     'kobo.apps.openrosa.libs.utils.middleware.LocaleMiddlewareWithTweaks',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -586,6 +590,20 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
+    'PROJECT_HISTORY_LOG_LIFESPAN': (
+        60,
+        'Length of time days to keep project history logs.',
+        'positive_int',
+    ),
+    'ACCESS_LOG_LIFESPAN': (
+        60,
+        'Length of time in days to keep access logs.',
+        'positive_int',
+    ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -649,6 +667,9 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
+        'ACCESS_LOG_LIFESPAN',
+        'PROJECT_HISTORY_LOG_LIFESPAN'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -894,8 +915,6 @@ if KPI_PREFIX and KPI_PREFIX != '/':
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
-    ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
-    ('chai', os.path.join(BASE_DIR, 'node_modules', 'chai'),),
 )
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
@@ -921,7 +940,7 @@ REST_FRAMEWORK = {
        'rest_framework.renderers.BrowsableAPIRenderer',
        'kpi.renderers.XMLRenderer',
     ],
-    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
@@ -1177,11 +1196,11 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     'perform-maintenance': {
-        'task': 'kobo.tasks.perform_maintenance',
+        'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
@@ -1198,25 +1217,43 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
-        'schedule': crontab(minute=10),
+        'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-stuck-tasks-as-failed': {
         'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
     'project-ownership-garbage-collector': {
         'task': 'kobo.apps.project_ownership.tasks.garbage_collector',
         'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every day at midnight UTC
+    'delete-expired-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_logs_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every day at midnight UTC
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every hour, every day
+    'long-running-migrations': {
+        'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
+        'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 }
@@ -1565,6 +1602,7 @@ MONGO_DB = mongo_client[mongo_db_name]
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
 
+
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
 redis_session_url = env.cache_url(
@@ -1769,8 +1807,17 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
+LOG_DELETION_BATCH_SIZE = 1000
+
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+# Admins will not be explicitly granted these permissions, (i.e., not referenced
+# in the ObjectPermission table), but the code will still conduct the permission
+# checks as if they were.
+ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
+
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000

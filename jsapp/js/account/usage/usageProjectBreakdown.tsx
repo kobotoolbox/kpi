@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useContext} from 'react';
+import type React from 'react';
+import {useState, useEffect, useContext} from 'react';
 import styles from './usageProjectBreakdown.module.scss';
 import {Link} from 'react-router-dom';
 import {ROUTES} from 'jsapp/js/router/routerConstants';
@@ -15,7 +16,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {OrganizationContext} from 'js/account/organizations/useOrganization.hook';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
 
 type ButtonType = 'back' | 'forward';
 
@@ -31,14 +32,14 @@ const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true);
   const [loading, setLoading] = useState(true);
   const [usage] = useContext(UsageContext);
-  const [organization] = useContext(OrganizationContext);
+  const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
     async function fetchData() {
       const data = await getAssetUsageForOrganization(
         currentPage,
         order,
-        organization?.id
+        orgQuery.data?.id
       );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
@@ -128,18 +129,14 @@ const ProjectBreakdown = () => {
 
   const renderProjectRow = (project: AssetWithUsage) => {
     const periodSubmissions =
-      project[
-        `submission_count_current_${usage.trackingPeriod}`
-      ].toLocaleString();
+      project.submission_count_current_period.toLocaleString();
 
     const periodASRSeconds = convertSecondsToMinutes(
-      project[`nlp_usage_current_${usage.trackingPeriod}`].total_nlp_asr_seconds
+      project.nlp_usage_current_period.total_nlp_asr_seconds
     ).toLocaleString();
 
     const periodMTCharacters =
-      project[
-        `nlp_usage_current_${usage.trackingPeriod}`
-      ].total_nlp_mt_characters.toLocaleString();
+      project.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString();
 
     return (
       <tr key={project.asset}>

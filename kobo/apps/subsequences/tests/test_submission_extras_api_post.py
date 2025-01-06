@@ -26,7 +26,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
+
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -389,11 +391,11 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         # validate(package, schema)
 
 
-class GoogleNLPSubmissionTest(APITestCase):
+class GoogleNLPSubmissionTest(BaseTestCase):
+    fixtures = ['test_data']
+
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='someuser', email='user@example.com'
-        )
+        self.user = User.objects.get(username='someuser')
         self.asset = Asset(
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
         )
@@ -406,12 +408,11 @@ class GoogleNLPSubmissionTest(APITestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
         self.client.force_login(self.user)
-        transcription_service = TranscriptionService.objects.create(code='goog')
-        translation_service = TranslationService.objects.create(code='goog')
+        transcription_service = TranscriptionService.objects.get(code='goog')
+        translation_service = TranslationService.objects.get(code='goog')
 
         language = Language.objects.create(name='', code='')
         language_region = LanguageRegion.objects.create(language=language, name='', code='')
-
         TranscriptionServiceLanguageM2M.objects.create(
             language=language,
             region=language_region,
@@ -424,10 +425,8 @@ class GoogleNLPSubmissionTest(APITestCase):
         )
 
     @override_settings(
-        CACHES={
-            'default':
-                {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
-        }
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
@@ -459,7 +458,10 @@ class GoogleNLPSubmissionTest(APITestCase):
         with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     def test_google_transcript_permissions(self):
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
@@ -487,7 +489,10 @@ class GoogleNLPSubmissionTest(APITestCase):
         res = self.client.get(url + '?submission=' + submission_id, format='json')
         self.assertEqual(res.status_code, 404)
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
     @patch('kobo.apps.subsequences.integrations.google.base.storage')

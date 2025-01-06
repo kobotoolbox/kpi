@@ -7,7 +7,7 @@ interface SubscriptionPhase {
       quantity: number;
       tax_rates: [number];
       billing_thresholds: Record<string, string>;
-    }
+    },
   ];
   coupon: null;
   currency: string;
@@ -139,16 +139,6 @@ export interface TransformQuantity {
   round: 'up' | 'down';
 }
 
-export interface Organization {
-  id: string;
-  name: string;
-  is_active: boolean;
-  created: string;
-  modified: string;
-  slug: string;
-  is_owner: boolean;
-}
-
 export enum PlanNames {
   'FREE' = 'Community',
   // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
@@ -172,9 +162,14 @@ export type LimitAmount = number | 'unlimited';
 
 export interface AccountLimit {
   submission_limit: LimitAmount;
-  nlp_seconds_limit: LimitAmount;
-  nlp_character_limit: LimitAmount;
+  asr_seconds_limit: LimitAmount;
+  mt_characters_limit: LimitAmount;
   storage_bytes_limit: LimitAmount;
+}
+
+export interface AccountLimitDetail {
+  recurringLimits: AccountLimit;
+  remainingLimits: AccountLimit;
 }
 
 export interface Checkout {
@@ -209,3 +204,28 @@ export type ChangePlan =
   | {
       status: ChangePlanStatus.error;
     };
+
+export interface OneTimeAddOn {
+  id: string;
+  created: string;
+  is_available: boolean;
+  usage_limits: Partial<OneTimeUsageLimits>;
+  total_usage_limits: Partial<OneTimeUsageLimits>;
+  limits_remaining: Partial<OneTimeUsageLimits>;
+  organization: string;
+  product: string;
+  quantity: number;
+}
+
+export interface OneTimeUsageLimits {
+  submission_limit: number;
+  asr_seconds_limit: number;
+  mt_characters_limit: number;
+}
+
+export enum USAGE_TYPE {
+  'SUBMISSIONS',
+  'TRANSCRIPTION',
+  'TRANSLATION',
+  'STORAGE',
+}

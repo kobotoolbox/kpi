@@ -8,7 +8,6 @@ from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.celery import celery_app
 from kobo.apps.openrosa.apps.logger.models import Instance, Note
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
@@ -24,6 +23,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 
@@ -259,12 +259,17 @@ class ParsedInstance(models.Model):
 
     def to_dict_for_mongo(self):
         d = self.to_dict()
+
+        userform_id = (
+            self.instance.xform.mongo_uuid
+            if self.instance.xform.mongo_uuid
+            else f'{self.instance.xform.user.username}_{self.instance.xform.id_string}'
+        )
+
         data = {
             UUID: self.instance.uuid,
             ID: self.instance.id,
-            self.USERFORM_ID: '%s_%s' % (
-                self.instance.xform.user.username,
-                self.instance.xform.id_string),
+            self.USERFORM_ID: userform_id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],

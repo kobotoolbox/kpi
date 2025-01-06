@@ -1,18 +1,16 @@
-# coding: utf-8
-import base64
 import copy
 import json
 import os
-from io import StringIO
 
 import dateutil.parser
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
+from model_bakery import baker
 from rest_framework import status
-from unittest.mock import patch
-
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -31,6 +29,7 @@ from kpi.tests.base_test_case import (
     BaseTestCase,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
@@ -87,6 +86,77 @@ class AssetListApiTests(BaseAssetTestCase):
                 break
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
+
+    def test_asset_owner_label(self):
+        """
+        Test the behavior of the owner_label field in the Asset API.
+
+        - If the user is an organization owner and the organization is MMO,
+          then the `owner_label` should be the organization's name.
+        - If the user is not an organization owner and the organization is MMO,
+          then the `owner_label` should be the owner's username.
+        - If the user is an organization owner but the organization is not MMO,
+          then the `owner_label` should be the owner's username.
+        """
+        detail_response = self.create_asset()
+        someuser_username = detail_response.data.get('owner__username')
+        someuser = User.objects.get(username=someuser_username)
+
+        # Check the user is an owner of an organization
+        self.assertTrue(someuser.is_org_owner)
+
+        # Fetch the assets list and verify the initial owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            someuser_username
+        )
+
+        # Make the organization a MMO and verify the owner_label
+        self.organization = someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
+
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            self.organization.name
+        )
+
+        # Add another user to the organization and share the asset
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(anotheruser)
+        someuser_asset = someuser.assets.last()
+        someuser_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Create an external user's asset and share it with anotheruser
+        external_user = baker.make(settings.AUTH_USER_MODEL)
+        self.client.force_login(external_user)
+        detail_response = self.create_asset()
+        external_user_asset = external_user.assets.last()
+        external_user_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Fetch the external user's asset and verify the owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            external_user.username
+        )
+
+        # Verify owner_label for both assets when logged in as anotheruser
+        self.client.force_login(anotheruser)
+        list_response = self.client.get(self.list_url)
+
+        anotheruser_assets = {
+            item['uid']: item['owner_label']
+            for item in list_response.data['results']
+        }
+        self.assertEqual(
+            anotheruser_assets[external_user_asset.uid], external_user.username
+        )
+        self.assertEqual(
+            anotheruser_assets[someuser_asset.uid], self.organization.name
+        )
 
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')
@@ -1266,6 +1336,31 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         # exist after `PATCH`
         self.assertTrue('fields' in data_sharing)
 
+    def test_ownership_transfer_status(self):
+        # No transfer yet, no status
+        response = self.client.get(self.asset_url)
+        assert response.data['project_ownership'] is None
+
+        anotheruser = User.objects.get(username='anotheruser')
+        invite = Invite.objects.create(sender=self.asset.owner, recipient=anotheruser)
+        Transfer.objects.create(invite=invite, asset=self.asset)
+
+        # Invite has been created, but not accepted/declined yet
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.PENDING
+        )
+
+        # Simulate expiration
+        invite.status = InviteStatusChoices.EXPIRED
+        invite.save()
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.EXPIRED
+        )
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
@@ -1309,7 +1404,7 @@ class AssetExportTaskTest(BaseTestCase):
     pass
 
 
-class AssetFileTest(BaseTestCase):
+class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -1333,133 +1428,16 @@ class AssetFileTest(BaseTestCase):
             ),
         )
 
-    def get_asset_file_content(self, url):
-        response = self.client.get(url)
-        return b''.join(response.streaming_content)
-
-    @property
-    def asset_file_payload(self):
-        geojson_ = StringIO(
-            json.dumps(
-                {
-                    'type': 'Feature',
-                    'geometry': {'type': 'Point', 'coordinates': [125.6, 10.1]},
-                    'properties': {'name': 'Dinagat Islands'},
-                }
-            )
-        )
-        geojson_.name = 'dingagat_island.geojson'
-        return {
-            'file_type': AssetFile.MAP_LAYER,
-            'description': 'Dinagat Islands',
-            'content': geojson_,
-            'metadata': json.dumps({'source': 'http://geojson.org/'}),
-        }
-
     def switch_user(self, *args, **kwargs):
         self.client.logout()
         self.client.login(*args, **kwargs)
         self.current_username = kwargs['username']
 
-    def create_asset_file(self,
-                          payload=None,
-                          status_code=status.HTTP_201_CREATED):
-        payload = self.asset_file_payload if payload is None else payload
-
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json.loads(response.content)['count'], 0)
-        response = self.client.post(self.list_url, payload)
-        self.assertEqual(response.status_code, status_code)
-        return response
-
-    def verify_asset_file(self, response, payload=None, form_media=False):
-        posted_payload = self.asset_file_payload if payload is None else payload
-        response_dict = json.loads(response.content)
-        self.assertEqual(
-            response_dict['asset'],
-            self.absolute_reverse(
-                self._get_endpoint('asset-detail'), args=[self.asset.uid]
-            ),
-        )
-        self.assertEqual(
-            response_dict['user'],
-            self.absolute_reverse(
-                self._get_endpoint('user-kpi-detail'),
-                args=[self.current_username],
-            ),
-        )
-        self.assertEqual(
-            response_dict['user__username'],
-            self.current_username,
-        )
-
-        # Some metadata properties are added when file is created.
-        # Let's compare without them
-        response_metadata = dict(response_dict['metadata'])
-
-        if not form_media:
-            # `filename` is only mandatory with form media files
-            response_metadata.pop('filename', None)
-
-        response_metadata.pop('mimetype', None)
-        response_metadata.pop('hash', None)
-
-        self.assertEqual(
-            json.dumps(response_metadata),
-            posted_payload['metadata']
-        )
-        for field in 'file_type', 'description':
-            self.assertEqual(response_dict[field], posted_payload[field])
-
-        # Content uploaded as binary
-        try:
-            posted_payload['content'].seek(0)
-        except KeyError:
-            pass
-        else:
-            expected_content = posted_payload['content'].read().encode()
-            self.assertEqual(
-                self.get_asset_file_content(response_dict['content']),
-                expected_content
-            )
-            return response_dict['uid']
-
-        # Content uploaded as base64
-        try:
-            base64_encoded = posted_payload['base64Encoded']
-        except KeyError:
-            pass
-        else:
-            media_content = base64_encoded[base64_encoded.index('base64') + 7:]
-            expected_content = base64.decodebytes(media_content.encode())
-            self.assertEqual(
-                self.get_asset_file_content(response_dict['content']),
-                expected_content
-            )
-            return response_dict['uid']
-
-        # Content uploaded as a URL
-        metadata = json.loads(posted_payload['metadata'])
-        payload_url = metadata['redirect_url']
-        # if none of the other upload methods have been chosen,
-        # `redirect_url` should be present in the response because user
-        # must have provided a redirect url. Otherwise, a validation error
-        # should have been raised about invalid payload.
-        response_url = response_dict['metadata']['redirect_url']
-        assert response_url == payload_url and response_url != ''
-        return response_dict['uid']
-
     def test_owner_can_create_file(self):
         self.verify_asset_file(self.create_asset_file())
 
     def test_owner_can_delete_file(self):
-        af_uid = self.verify_asset_file(self.create_asset_file())
-        detail_url = reverse(self._get_endpoint('asset-file-detail'),
-                             args=(self.asset.uid, af_uid))
-        response = self.client.delete(detail_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        # TODO: test that the file itself is removed
+        self.delete_asset_file()
 
     def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
@@ -1727,8 +1705,7 @@ class AssetFileTest(BaseTestCase):
 
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_asset_deployment(self, patched_create_log):
+    def test_asset_deployment(self):
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
                                  kwargs={'uid': self.asset_uid})
 
@@ -1739,11 +1716,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
         self.assertEqual(response1.data['asset']['deployment__active'], True)
         self.assertEqual(response1.data['asset']['has_deployment'], True)
-        request = response1.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, first_deployment=True
-        )
-        patched_create_log.reset_mock()
 
         response2 = self.client.get(self.asset_url, format='json')
 
@@ -1753,11 +1725,94 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
         )
-        # nothing should be logged for a GET request
-        patched_create_log.assert_not_called()
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_asset_redeployment(self, patched_create_log):
+    def test_asset_deployment_validation_error(self):
+        bad_content = {
+            'schema': '1',
+            'survey': [
+                {
+                    'name': 'start',
+                    'type': 'start',
+                    '$kuid': 'O23MoETkI',
+                    '$xpath': 'start',
+                    '$autoname': 'start',
+                },
+                {
+                    'name': 'end',
+                    'type': 'end',
+                    '$kuid': '9rvIvjnrP',
+                    '$xpath': 'end',
+                    '$autoname': 'end',
+                },
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    '$kuid': 'e2v7ZTcDw',
+                    'label': ['Enter a float number'],
+                    '$xpath': 'Enter_a_float_number',
+                    'required': False,
+                    '$autoname': 'Enter_a_float_number',
+                },
+                {
+                    'name': 'What_s_your_name',
+                    'type': 'text',
+                    '$kuid': 'w8nnstZ1r',
+                    'label': ["What's your name?"],
+                    '$xpath': 'What_s_your_name',
+                    'required': False,
+                    '$autoname': 'What_s_your_name',
+                },
+                {
+                    'name': 'Enter_an_int_number',
+                    'type': 'integer',
+                    '$kuid': 'hpw7EKED0',
+                    '$xpath': 'Enter_an_int_number',
+                    'required': False,
+                    '$autoname': 'Enter_an_int_number',
+                },
+                {
+                    'name': 'Enter_a_time',
+                    'type': 'time',
+                    '$kuid': 'rwf9XqdlC',
+                    'label': ['Enter a time'],
+                    '$xpath': 'Enter_a_time',
+                    'required': False,
+                    '$autoname': 'Enter_a_time',
+                },
+            ],
+            'choices': [],
+            'settings': {},
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': bad_content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset = Asset.objects.get(uid=asset_response.data.get('uid'))
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            deploy_response.data['error'],
+            (
+                'ODK Validation Error: '
+                "The survey element named 'Enter_an_int_number' has no label or hint."
+            ),
+        )
+
+    def test_asset_redeployment(self):
         self.test_asset_deployment()
 
         # Update asset to redeploy it
@@ -1783,8 +1838,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_405_METHOD_NOT_ALLOWED)
-        # no log should be created for failed request
-        patched_create_log.assert_not_called()
 
         # ... but we can with `PATCH`
         redeploy_response = self.client.patch(deployment_url, {
@@ -1794,12 +1847,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         })
         self.assertEqual(redeploy_response.status_code,
                          status.HTTP_200_OK)
-
-        # check project history log
-        request = redeploy_response.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=False
-        )
 
         # Validate version id
         self.asset.refresh_from_db()
@@ -1886,8 +1933,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             ' modification date of that version'
         )
 
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_archive_asset(self, patched_create_log):
+    def test_archive_asset(self):
         self.test_asset_deployment()
 
         deployment_url = reverse(self._get_endpoint('asset-deployment'),
@@ -1902,10 +1948,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert (
             response1.data['asset']['deployment_status']
             == AssetDeploymentStatus.ARCHIVED.value
-        )
-        request = response1.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=True
         )
 
         response2 = self.client.get(self.asset_url, format='json')
@@ -1941,30 +1983,6 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert response.status_code == status.HTTP_200_OK
         self.asset.refresh_from_db()
         assert self.asset.date_deployed == original_date_deployed
-
-    @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
-    def test_unarchive_asset_creates_log(self, patched_create_log):
-        # manually deploy as archived
-        self.asset.deploy(backend='mock', active=False)
-
-        # unarchive
-        deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': self.asset_uid}
-        )
-
-        response = self.client.patch(
-            deployment_url,
-            {
-                'backend': 'mock',
-                'active': True,
-            },
-        )
-        assert response.status_code == status.HTTP_200_OK
-        self.asset.refresh_from_db()
-        request = response.renderer_context['request']
-        patched_create_log.assert_called_once_with(
-            request, self.asset, only_active_changed=True
-        )
 
 
 class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):

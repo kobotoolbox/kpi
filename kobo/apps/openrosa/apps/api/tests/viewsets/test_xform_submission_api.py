@@ -28,7 +28,10 @@ from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kobo.apps.openrosa.libs.utils.logger_tools import OpenRosaTemporarilyUnavailable
+from kobo.apps.openrosa.libs.utils.logger_tools import (
+    OpenRosaResponseNotAllowed,
+    OpenRosaTemporarilyUnavailable,
+)
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
@@ -392,10 +395,46 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         response = self.view(request)
         self.assertContains(response, 'No submission key provided.', status_code=400)
 
+    def test_submission_account_inactive(self):
+        """
+        Verify that submissions are blocked when the owning user has
+        `is_active = False`
+        """
+        self.xform.user.is_active = False
+        self.xform.user.save()
+
+        # No need auth for this test
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+
+        s = self.surveys[0]
+        username = self.user.username
+        submission_path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            s + '.xml',
+        )
+        with open(submission_path) as sf:
+            request = self.factory.post(
+                f'/{username}/submission', {'xml_submission_file': sf}
+            )
+            request.user = AnonymousUser()
+
+            # Ensure that submissions are not accepted since the owning user is
+            # inactive
+            response = self.view(request, username=username)
+            self.assertEqual(
+                response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+            )
+            self.assertTrue(isinstance(response, OpenRosaResponseNotAllowed))
+
     def test_submission_blocking_flag(self):
-        # Set 'submissions_suspended' True in the profile metadata to test if
-        # submission do fail with the flag set
-        self.xform.user.profile.metadata['submissions_suspended'] = True
+        # Set 'submissions_suspended' True in the profile to test if
+        # submission does fail with the flag set
+        self.xform.user.profile.submissions_suspended = True
         self.xform.user.profile.save()
 
         # No need auth for this test
@@ -436,7 +475,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 f.seek(0)
 
                 # check that users can submit data again when flag is removed
-                self.xform.user.profile.metadata['submissions_suspended'] = False
+                self.xform.user.profile.submissions_suspended = False
                 self.xform.user.profile.save()
 
                 request = self.factory.post(
@@ -548,3 +587,72 @@ def submit_data(identifier, survey_, username_, live_server_url, token_):
                 headers=headers
             )
             return response.status_code
+=======
+    def test_submission_customizable_confirmation_message(self):
+        s = 'transport_with_custom_attribute'
+        media_file = '1335783522563.jpg'
+        xml_files = [
+            'transport_with_custom_attribute_01',
+            'transport_with_custom_attribute_02',
+            'transport_with_no_custom_attribute'
+        ]
+
+        path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            media_file,
+        )
+        with open(path, 'rb') as f:
+            f = InMemoryUploadedFile(
+                f,
+                'media_file',
+                media_file,
+                'image/jpg',
+                os.path.getsize(path),
+                None,
+            )
+            for xml_file in xml_files:
+                submission_path = os.path.join(
+                    self.main_directory,
+                    'fixtures',
+                    'transportation',
+                    'instances',
+                    s,
+                    xml_file + '.xml',
+                )
+                with open(submission_path) as sf:
+                    data = {'xml_submission_file': sf, 'media_file': f}
+                    request = self.factory.post('/submission', data)
+                    response = self.view(request)
+                    self.assertEqual(response.status_code, 401)
+
+                    # rewind the file and redo the request since they were
+                    # consumed
+                    sf.seek(0)
+                    f.seek(0)
+                    request = self.factory.post('/submission', data)
+                    auth = DigestAuth('bob', 'bobbob')
+                    request.META.update(auth(request.META, response))
+                    response = self.view(request, username=self.user.username)
+                    if xml_file == 'transport_with_custom_attribute_01':
+                        self.assertContains(
+                            response, 'Custom submit message', status_code=201
+                        )
+                    elif xml_file == 'transport_with_custom_attribute_02':
+                        self.assertContains(
+                            response, 'Successful submission.', status_code=201
+                        )
+                    elif xml_file == (
+                        'transport_with_custom_attribute_and_different_root'
+                    ):
+                        self.assertContains(
+                            response, 'Custom submit message', status_code=201
+                        )
+                    else:
+                        self.assertContains(
+                            response, 'Successful submission.', status_code=201
+                        )
+>>>>>>> @{-1}

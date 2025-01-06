@@ -2,10 +2,30 @@ from typing import Literal
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from djstripe.models import Customer, Product, SubscriptionItem, Subscription, Price
+from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
 from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization
+
+
+def generate_free_plan():
+    product_metadata = {
+        'product_type': 'plan',
+        'submission_limit': '5000',
+        'asr_seconds_limit': '600',
+        'mt_characters_limit': '6000',
+        'storage_bytes_limit': '1000000000',
+    }
+
+    product = baker.make(Product, active=True, metadata=product_metadata)
+
+    baker.make(
+        Price,
+        active=True,
+        recurring={'interval': 'month'},
+        unit_amount=0,
+        product=product,
+    )
 
 
 def generate_plan_subscription(
@@ -17,7 +37,6 @@ def generate_plan_subscription(
 ) -> Subscription:
     """Create a subscription for a product with custom metadata"""
     created_date = timezone.now() - relativedelta(days=age_days)
-    price_id = 'price_sfmOFe33rfsfd36685657'
 
     if not customer:
         customer = baker.make(Customer, subscriber=organization, livemode=False)
@@ -30,14 +49,12 @@ def generate_plan_subscription(
         product_metadata = {**product_metadata, **metadata}
     product = baker.make(Product, active=True, metadata=product_metadata)
 
-    if not (price := Price.objects.filter(id=price_id).first()):
-        price = baker.make(
-            Price,
-            active=True,
-            id=price_id,
-            recurring={'interval': interval},
-            product=product,
-        )
+    price = baker.make(
+        Price,
+        active=True,
+        recurring={'interval': interval},
+        product=product,
+    )
 
     period_offset = relativedelta(weeks=2)
 
@@ -59,5 +76,6 @@ def generate_plan_subscription(
     )
 
 
-def generate_enterprise_subscription(organization: Organization, customer: Customer = None):
-    return generate_plan_subscription(organization, {'plan_type': 'enterprise'}, customer)
+def generate_mmo_subscription(organization: Organization, customer: Customer = None):
+    product_metadata = {'mmo_enabled': 'true', 'plan_type': 'enterprise'}
+    return generate_plan_subscription(organization, product_metadata, customer)

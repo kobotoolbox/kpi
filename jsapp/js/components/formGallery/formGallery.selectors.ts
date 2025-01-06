@@ -74,9 +74,9 @@ export const selectFilterQuery = (
     const repeatingGroupNames: string[] = [];
     const groupNames: string[] = [];
     flatQuestion?.parentRows.map((row) => {
-      if (row.type === 'begin_group') {
+      if (row.type === 'begin_group' && row.$autoname !== undefined) {
         groupNames.push(row.$autoname);
-      } else if (row.type === 'begin_repeat') {
+      } else if (row.type === 'begin_repeat' && row.$autoname !== undefined) {
         groupNames.push(row.$autoname);
         repeatingGroupNames.push(groupNames.join('/'));
       }

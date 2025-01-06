@@ -1,3 +1,7 @@
+class AccountInactiveError(Exception):
+    pass
+
+
 class BuildDbQueriesAttributeError(Exception):
     pass
 

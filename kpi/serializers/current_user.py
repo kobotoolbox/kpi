@@ -1,20 +1,16 @@
-# coding: utf-8
 import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import constance
+from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
-from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
 from kobo.apps.accounts.serializers import SocialAccountSerializer
@@ -22,9 +18,11 @@ from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import WritableJSONField
 from kpi.utils.gravatar_url import gravatar_url
+from kpi.utils.object_permission import get_database_user
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
+
     server_time = serializers.SerializerMethodField()
     date_joined = serializers.SerializerMethodField()
     projects_url = serializers.SerializerMethodField()
@@ -38,6 +36,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     )
     validated_password = serializers.SerializerMethodField()
     accepted_tos = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -60,47 +59,12 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'social_accounts',
             'validated_password',
             'accepted_tos',
+            'organization',
         )
         read_only_fields = (
             'email',
             'accepted_tos',
         )
-
-    def get_server_time(self, obj):
-        # Currently unused on the front end
-        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
-
-    def get_date_joined(self, obj):
-        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
-            '%Y-%m-%dT%H:%M:%SZ')
-
-    def get_projects_url(self, obj):
-        return '/'.join((settings.KOBOCAT_URL, obj.username))
-
-    def get_gravatar(self, obj):
-        return gravatar_url(obj.email)
-
-    def get_git_rev(self, obj):
-        request = self.context.get('request', False)
-        if constance.config.EXPOSE_GIT_REV or (
-            request and request.user.is_superuser
-        ):
-            return settings.GIT_REV
-        else:
-            return False
-
-    def get_validated_password(self, obj):
-        try:
-            extra_details = obj.extra_details
-        except obj.extra_details.RelatedObjectDoesNotExist:
-            # validated_password defaults to True and only becomes False if set
-            # by an administrator. If extra_details does not exist, then
-            # there's no way the administrator ever intended validated_password
-            # to be False for this user
-            return True
-
-        return extra_details.validated_password
 
     def get_accepted_tos(self, obj: User) -> bool:
         """
@@ -115,6 +79,60 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'last_tos_accept_time' in user_extra_details.private_data.keys()
         )
         return accepted_tos
+
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(ZoneInfo('UTC')).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+    def get_git_rev(self, obj):
+        request = self.context.get('request', False)
+        if constance.config.EXPOSE_GIT_REV or (
+            request and request.user.is_superuser
+        ):
+            return settings.GIT_REV
+        else:
+            return False
+
+    def get_gravatar(self, obj):
+        return gravatar_url(obj.email)
+
+    def get_organization(self, obj):
+        user = get_database_user(obj)
+        request = self.context.get('request')
+
+        if not user.organization:
+            return {}
+        return {
+            'url': reverse(
+                'organizations-detail',
+                kwargs={'id': user.organization.id},
+                request=request,
+            ),
+            'name': user.organization.name,
+            'uid': user.organization.id,
+        }
+
+    def get_projects_url(self, obj):
+        return '/'.join((settings.KOBOCAT_URL, obj.username))
+
+    def get_server_time(self, obj):
+        # Currently unused on the front end
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime(
+            '%Y-%m-%dT%H:%M:%SZ'
+        )
+
+    def get_validated_password(self, obj):
+        try:
+            extra_details = obj.extra_details
+        except obj.extra_details.RelatedObjectDoesNotExist:
+            # validated_password defaults to True and only becomes False if set
+            # by an administrator. If extra_details does not exist, then
+            # there's no way the administrator ever intended validated_password
+            # to be False for this user
+            return True
+
+        return extra_details.validated_password
 
     def to_representation(self, obj):
         if obj.is_anonymous:
@@ -205,20 +223,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                     continue
                 metadata_field['required'] = False
 
-        errors = {}
-        for field in desired_metadata_fields:
-            if not field['required']:
-                continue
-            try:
-                field_value = value[field['name']]
-            except KeyError:
-                # If the field is absent from the request, the old value will
-                # be retained, and no validation needs to take place
-                continue
-            if not field_value:
-                # Use verbatim message from DRF to avoid giving translators
-                # more busy work
-                errors[field['name']] = t('This field may not be blank.')
+        if not (errors := self._validate_organization(value)):
+            for field in desired_metadata_fields:
+                if not field['required']:
+                    continue
+                try:
+                    field_value = value[field['name']]
+                except KeyError:
+                    # If the field is absent from the request, the old value will
+                    # be retained, and no validation needs to take place
+                    continue
+                if not field_value:
+                    # Use verbatim message from DRF to avoid giving translators
+                    # more busy work
+                    errors[field['name']] = t('This field may not be blank.')
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -265,3 +283,15 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 extra_details_obj.save()
 
             return super().update(instance, validated_data)
+
+    def _validate_organization(self, extra_details: dict):
+        user = self.instance
+        if not user.organization.is_mmo:
+            return {}
+
+        errors = {}
+        for field_name in ['organization', 'organization_website', 'organization_type']:
+            if extra_details.get(field_name, False) is not False:
+                errors[field_name] = t('This action is not allowed.')
+
+        return errors

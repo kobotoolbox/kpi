@@ -68,13 +68,14 @@ jsonfield
 jsonschema
 kombu
 lxml
+more-itertools
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
 psycopg
 pymongo
 python-dateutil
-pyxform==1.9.0
+pyxform==2.2.0
 requests
 regex
 responses

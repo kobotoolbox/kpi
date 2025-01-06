@@ -1,0 +1,114 @@
+## This is a comment.
+## Each line is a file pattern followed by one or more owners.
+## Last matching line wins.
+
+
+
+
+## Default owner for all missed files by more specific matches below.
+*                                   @magicznyleszek @noliveleger
+
+
+
+################
+#### Global section.
+/.editorconfig                      @magicznyleszek
+/.git-blame-ignore-revs             @magicznyleszek
+/.gitattributes                     @magicznyleszek @noliveleger
+/.gitignore                         @magicznyleszek @noliveleger
+/dependabot.yml                     @magicznyleszek
+/kpi.code-workspace                 @p2edwards
+/LICENSE                            @jnm @tinok
+
+## Translations
+/.gitmodules                        @JacquelineMorrissette @jnm
+/.tx/                               @JacquelineMorrissette @jnm
+
+
+
+
+################
+#### Frontend section.
+
+# Default owner
+/.storybook/                        @magicznyleszek
+/cypress/                           @magicznyleszek
+/jsapp/                             @magicznyleszek
+/patches/                           @p2edwards
+/static/                            @magicznyleszek
+/static/js/                         @magicznyleszek @p2edwards
+/test/                              @magicznyleszek @p2edwards
+/webpack/                           @magicznyleszek @p2edwards
+/.babelrc.json                      @magicznyleszek @p2edwards
+/.browserslistrc                    @magicznyleszek @p2edwards
+/.eslintignore                      @magicznyleszek @p2edwards
+/.eslintrc.js                       @magicznyleszek @p2edwards
+/.node-version                      @magicznyleszek @p2edwards
+/.nvmrc                             @magicznyleszek @p2edwards
+/.prettierrc.js                     @magicznyleszek @p2edwards
+/.stylelintrc.js                    @magicznyleszek @p2edwards
+/.swcrc                             @magicznyleszek @p2edwards
+/.coffeelint.json                   @magicznyleszek @p2edwards
+/package-lock.json                  @magicznyleszek @p2edwards
+/package.json                       @magicznyleszek @p2edwards
+/tsconfig.json                      @magicznyleszek @p2edwards
+
+# Billing
+/jsapp/js/account/                  @jamesrkiger
+/jsapp/js/components/usageLimits    @jamesrkiger
+
+
+
+
+################
+#### Backend section
+
+# Default owner
+/dependencies/                      @jnm @noliveleger
+/hub/                               @jnm @noliveleger
+/hub/tests/                         @jnm @noliveleger
+/kobo/                              @jnm @noliveleger
+/kobo/apps/audit_log/               @rgraber
+/kobo/apps/subsequences/            @Guitlle
+/kpi/                               @jnm @noliveleger
+/kpi/tests/                         @jnm @noliveleger
+/.coveragerc                        @jnm
+/.dockerignore                      @jnm @noliveleger
+/format-python.sh                   @noliveleger
+/manage.py                          @jnm @noliveleger
+/pip-compile.sh                     @jnm @noliveleger
+/pyproject.toml                     @jnm @noliveleger
+
+# Django Static Templates, HTML, JS, CSS
+/kobo/apps/accounts/templates/      @magicznyleszek @p2edwards @jnm @noliveleger
+/kpi/templates/                     @magicznyleszek @p2edwards @jnm @noliveleger
+/kpi/static/css/                    @magicznyleszek @p2edwards
+_registration.scss                  @magicznyleszek @p2edwards
+
+
+
+
+################
+#### Infrastructure section
+
+/docker/                            @bufke @jnm @noliveleger
+/scripts/                           @bufke @jnm @noliveleger
+/scripts/*.js                       @magicznyleszek @p2edwards
+/.github/                           @bufke @jnm @noliveleger @magicznyleszek
+/.github/workflows/npm-test.yml     @bufke @jnm @noliveleger @magicznyleszek @p2edwards
+/.gitlab-ci.yml                     @bufke
+/Dockerfile                         @bufke @jnm @noliveleger
+
+
+
+
+################
+#### Documentation section
+/CONTRIBUTING.md                    @Akuukis @magicznyleszek @noliveleger
+/README.md                          @Akuukis @jnm @magicznyleszek @noliveleger
+/.github/CODEOWNERS                 @Akuukis @jnm @noliveleger @magicznyleszek
+/.github/FUNDING.yml                @Akuukis @jnm @noliveleger @magicznyleszek
+/.github/ISSUE_TEMPLATE.md          @Akuukis @jnm @noliveleger @magicznyleszek
+/.github/PULL_REQUEST_TEMPLATE.md   @Akuukis @jnm @noliveleger @magicznyleszek
+
+

@@ -12,6 +12,11 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
+from kobo.apps.organizations.models import Organization
+from kobo.apps.project_ownership.models.invite import Invite
+from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_COLLECTION,
@@ -779,3 +784,120 @@ class ShareAssetsTest(AssetsTestCase):
         for user_obj in AnonymousUser(), self.anotheruser:
             self.assertTrue(user_obj.has_perm(
                 PERM_VIEW_ASSET, self.asset))
+
+
+class TestAssetNameSettingHandling(AssetsTestCase):
+    """
+    Tests for the 'name' setting in the asset content
+    """
+    def test_asset_name_matches_instance_root(self):
+        """
+        Test if 'name' setting is provided, it should match with the root node.
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
+                },
+            ],
+            'settings': {'name': 'custom_root_node_name'}
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the name setting matches the root node name
+        assert root_element.nodeName == 'custom_root_node_name'
+
+    def test_asset_without_name_setting(self):
+        """
+        Test if 'name' setting is not provided, the root node should fall back
+        to asset UID
+        """
+        content = {
+            'survey': [
+                {
+                    'type': 'text',
+                    'name': 'some_text',
+                    'label': 'Enter some text',
+                },
+            ],
+            # No 'name' setting provided in this case
+        }
+
+        # Create and deploy the asset
+        asset = Asset.objects.create(
+            owner=User.objects.get(username=self.user),
+            content=content,
+            asset_type=ASSET_TYPE_SURVEY
+        )
+        asset.deploy(backend='mock', active=True)
+
+        # Get the deployed XForm and parse it
+        xform = XForm.objects.get(id_string=asset.uid)
+        parser = XFormInstanceParser(xform.xml, xform.data_dictionary())
+
+        # Access the first child element of the <instance> node
+        instance_node = parser.get_root_node().getElementsByTagName('instance')[0]
+        root_element = instance_node.firstChild
+
+        # Assert that the root node name is the asset.uid
+        assert root_element.nodeName == asset.uid
+
+
+class AssetSearchFieldTests(TestCase):
+
+    def setUp(self):
+        self.someuser = User.objects.create(username='someuser')
+        self.anotheruser = User.objects.create(username='anotheruser')
+
+    def test_search_fields_populated_on_asset_creation(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        self.assertEqual(asset.search_field['owner_username'], self.someuser.username)
+        self.assertEqual(
+            asset.search_field['organization_name'], self.someuser.organization.name
+        )
+
+    def test_search_fields_updated_on_organization_save(self):
+        asset = Asset.objects.create(owner=self.someuser)
+        org_name = asset.search_field['organization_name']
+        organization = Organization.objects.get(name=org_name)
+
+        organization.name = 'Updated Organization'
+        organization.save()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['organization_name'], 'Updated Organization'
+        )
+
+    def test_search_fields_updated_on_project_ownership_transfer(self):
+        asset = Asset.objects.create(owner=self.someuser)
+
+        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
+        transfer = Transfer.objects.create(invite=invite, asset=asset)
+        transfer.transfer_project()
+
+        asset.refresh_from_db()
+        self.assertEqual(
+            asset.search_field['owner_username'], self.anotheruser.username
+        )
+        self.assertEqual(
+            asset.search_field['organization_name'], self.anotheruser.organization.name
+        )

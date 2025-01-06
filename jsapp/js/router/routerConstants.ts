@@ -9,6 +9,7 @@ export const PATHS = Object.freeze({
 export const ROUTES = Object.freeze({
   ROOT: '',
   ACCOUNT_ROOT: '/account',
+  ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',
   PUBLIC_COLLECTIONS: '/library/public-collections',
@@ -37,6 +38,7 @@ export const ROUTES = Object.freeze({
   /** Has: :uid, :xpath, :submissionEditId */
   FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',
+  FORM_ACTIVITY: '/forms/:uid/settings/activity',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
   FORM_RECORDS: '/forms/:uid/settings/records',
@@ -47,6 +49,11 @@ export const ROUTES = Object.freeze({
 
 export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
   MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  /**
+   * We break from the default way to set routes here, as we want to be
+   * consistent with other organization related routes.
+   */
+  MY_ORG_PROJECTS: '/organization/projects',
   CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
 };
 
