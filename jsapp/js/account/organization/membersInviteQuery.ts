@@ -110,7 +110,7 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
     .replace(':invite_id', inviteId);
   return useQuery<MemberInvite, FailResponse>({
     queryFn: () => fetchGet<MemberInvite>(apiPath),
-    queryKey: [QueryKeys.organizationMemberInvite, apiPath],
+    queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath],
   });
 };
 
@@ -128,7 +128,7 @@ export function usePatchMemberInvite(inviteUrl: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [
-        QueryKeys.organizationMemberInvite,
+        QueryKeys.organizationMemberInviteDetail,
         QueryKeys.organizationMembers,
       ]});
     },
