@@ -32,7 +32,7 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
 import {router} from 'js/router/legacy';
@@ -207,7 +207,7 @@ class ProjectSettings extends React.Component {
     return (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
       this.state.formAsset.content &&
-      hasAssetRestriction(this.state.formAsset.content, LOCKING_RESTRICTIONS.form_replace.name)
+      hasAssetRestriction(this.state.formAsset.content, LockingRestrictionName.form_replace)
     );
   }
 

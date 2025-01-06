@@ -8,7 +8,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {getLangString, notify} from 'utils';
-import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
@@ -273,14 +273,14 @@ export class TranslationTable extends React.Component {
       return hasRowRestriction(
         this.props.asset.content,
         rowName,
-        LOCKING_RESTRICTIONS.group_label_edit.name
+        LockingRestrictionName.group_label_edit
       );
     } else {
       if (Object.keys(QUESTION_TYPES).includes(rowType)) {
         return hasRowRestriction(
           this.props.asset.content,
           rowName,
-          LOCKING_RESTRICTIONS.question_label_edit.name
+          LockingRestrictionName.question_label_edit
         );
       } else {
         return false;
@@ -292,7 +292,7 @@ export class TranslationTable extends React.Component {
     return hasRowRestriction(
       this.props.asset.content,
       rowName,
-      LOCKING_RESTRICTIONS.choice_label_edit.name
+      LockingRestrictionName.choice_label_edit
     );
   }
 
@@ -301,7 +301,7 @@ export class TranslationTable extends React.Component {
       this.props.asset?.content &&
       !hasAssetRestriction(
         this.props.asset.content,
-        LOCKING_RESTRICTIONS.language_edit.name
+        LockingRestrictionName.language_edit
       )
     );
   }
