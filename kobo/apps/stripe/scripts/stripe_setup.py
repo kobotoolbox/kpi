@@ -64,7 +64,7 @@ def sync_webhooks(url):
 
 def configure_api_keys(stripe_key, stripe_public_key):
     """Configure and update Stripe API keys."""
-    mode = "Live" if settings.STRIPE_LIVE_MODE else "Test"
+    mode = 'Live' if settings.STRIPE_LIVE_MODE else 'Test'
     for key_data in [
         {'secret': stripe_key, 'name': 'Secret Key', 'type': 'secret'},
         {'secret': stripe_public_key, 'name': 'Public Key', 'type': 'publishable'}
