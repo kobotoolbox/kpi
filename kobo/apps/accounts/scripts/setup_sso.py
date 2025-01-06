@@ -20,11 +20,13 @@ import logging
 from django.conf import settings
 from allauth.socialaccount.models import SocialApp
 
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
 
 def run(*args):
     if not settings.GOOGLE_AUTH_ENABLED:
@@ -44,11 +46,16 @@ def run(*args):
                 'client_id': settings.GOOGLE_CLIENT_ID,
                 'secret': settings.GOOGLE_CLIENT_SECRET,
                 'settings': {
-                    'server_url': 'https://accounts.google.com/.well-known/openid-configuration'
+                    'server_url': (
+                        'https://accounts.google.com/.well-known/openid-configuration'
+                    )
                 }
             }
         )
-        logger.info(f"Social application '{settings.SOCIAL_APP_NAME}' {'created' if created else 'updated'} successfully")
+        status = 'created' if created else 'updated'
+        logger.info(
+            f"Social application '{settings.SOCIAL_APP_NAME}' {status} successfully"
+        )
         logger.info(f"Provider ID: {settings.SOCIAL_APP_PROVIDER_ID}")
         logger.info("SSO configuration completed successfully.")
 

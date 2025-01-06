@@ -11,7 +11,7 @@ Required Environment Variables:
     STRIPE_LIVE_SECRET_KEY=sk_live_...  # for live mode
 
 Required only for new webhook creation:
-    DOMAIN_NAME=yourdomain.com 
+    DOMAIN_NAME=yourdomain.com
 
 Optional Webhook Environment Variables (all required if any are set):
     DJSTRIPE_WEBHOOK_SECRET=whsec_...
@@ -30,11 +30,13 @@ from django.core.management import call_command
 from djstripe.models import APIKey, WebhookEndpoint
 import stripe
 
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
 
 def has_webhook_config():
     """Check if all webhook configuration is present"""
@@ -47,6 +49,7 @@ def has_webhook_config():
     logger.info(f"Webhook config present: {config_present}")
     return config_present
 
+
 def sync_webhooks(url):
     """Sync webhooks from Stripe API to local database."""
     endpoints = stripe.WebhookEndpoint.list()
@@ -57,6 +60,7 @@ def sync_webhooks(url):
 
     WebhookEndpoint.objects.exclude(url=url).delete()
     logger.info(f"Deleted any webhook not matching URL: {url}")
+
 
 def configure_api_keys(stripe_key, stripe_public_key):
     """Configure and update Stripe API keys."""
@@ -73,6 +77,7 @@ def configure_api_keys(stripe_key, stripe_public_key):
             }
         )
         logger.info(f"{key_data['name']} {'created' if created else 'updated'}")
+
 
 def run(*args):
     logger.info("Starting Stripe setup script")
