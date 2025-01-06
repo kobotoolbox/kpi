@@ -35,7 +35,7 @@ import {
   isAssetLockable,
 } from 'js/components/locking/lockingUtils';
 import {
-  LOCKING_RESTRICTIONS,
+  LockingRestrictionName,
   LOCKING_UI_CLASSNAMES,
 } from 'js/components/locking/lockingConstants';
 import {
@@ -542,7 +542,7 @@ export default Object.assign({
     return (
       this.state.asset &&
       isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
+      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.question_add)
     );
   },
 
@@ -550,7 +550,7 @@ export default Object.assign({
     return (
       this.state.asset &&
       isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.group_add.name)
+      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.group_add)
     );
   },
 
@@ -558,7 +558,7 @@ export default Object.assign({
     return (
       this.state.asset &&
       isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_appearance.name)
+      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_appearance)
     );
   },
 
@@ -566,7 +566,7 @@ export default Object.assign({
     return (
       this.state.asset &&
       isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_meta_edit.name)
+      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_meta_edit)
     );
   },
 
