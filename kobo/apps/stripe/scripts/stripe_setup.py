@@ -1,4 +1,3 @@
-
 """
 Django runscript for Stripe configuration.
 
@@ -31,18 +30,53 @@ from django.core.management import call_command
 from djstripe.models import APIKey, WebhookEndpoint
 import stripe
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 def has_webhook_config():
     """Check if all webhook configuration is present"""
-    return all([
+    config_present = all([
         settings.DJSTRIPE_WEBHOOK_SECRET,
         settings.DJSTRIPE_WEBHOOK_URL,
         settings.DJSTRIPE_UUID,
         settings.DJSTRIPE_WEBHOOK_ID
     ])
+    logger.info(f"Webhook config present: {config_present}")
+    return config_present
+
+def sync_webhooks(url):
+    """Sync webhooks from Stripe API to local database."""
+    endpoints = stripe.WebhookEndpoint.list()
+    for endpoint in endpoints.data:
+        if endpoint.url == url:
+            WebhookEndpoint.sync_from_stripe_data(endpoint)
+            logger.info(f"Synced webhook endpoint: {endpoint.url}")
+
+    WebhookEndpoint.objects.exclude(url=url).delete()
+    logger.info(f"Deleted any webhook not matching URL: {url}")
+
+def configure_api_keys(stripe_key, stripe_public_key):
+    """Configure and update Stripe API keys."""
+    for key_data in [
+        {'secret': stripe_key, 'name': 'Secret Key', 'type': 'secret'},
+        {'secret': stripe_public_key, 'name': 'Public Key', 'type': 'publishable'}
+    ]:
+        key, created = APIKey.objects.update_or_create(
+            secret=key_data['secret'],
+            defaults={
+                'name': f"Live {key_data['name']}" if settings.STRIPE_LIVE_MODE else f"Test {key_data['name']}",
+                'type': key_data['type'],
+                'livemode': settings.STRIPE_LIVE_MODE
+            }
+        )
+        logger.info(f"{key_data['name']} {'created' if created else 'updated'}")
 
 def run(*args):
+    logger.info("Starting Stripe setup script")
+
     if not settings.STRIPE_ENABLED:
         logger.info("Stripe is not enabled. Skipping configuration.")
         return
@@ -56,96 +90,67 @@ def run(*args):
             return
 
         stripe.api_key = stripe_key
+        logger.info("Running migrations...")
         call_command('migrate', 'djstripe')
 
-        # Configure API Keys
-        for key_data in [
-            {'secret': stripe_key, 'name': 'Secret Key', 'type': 'secret'},
-            {'secret': stripe_public_key, 'name': 'Public Key', 'type': 'publishable'}
-        ]:
-            APIKey.objects.update_or_create(
-                secret=key_data['secret'],
-                defaults={
-                    'name': f"Live {key_data['name']}" if settings.STRIPE_LIVE_MODE else f"Test {key_data['name']}",
-                    'type': key_data['type'],
-                    'livemode': settings.STRIPE_LIVE_MODE
-                }
-            )
+        # Configure API keys
+        configure_api_keys(stripe_key, stripe_public_key)
+
         # Handle webhook configuration
         if has_webhook_config():
-            # Use existing webhook configuration
-            webhook, created = WebhookEndpoint.objects.update_or_create(
+            webhook_url = settings.DJSTRIPE_WEBHOOK_URL
+            WebhookEndpoint.objects.update_or_create(
                 id=settings.DJSTRIPE_WEBHOOK_ID,
                 defaults={
-                    'url': settings.DJSTRIPE_WEBHOOK_URL,
+                    'url': webhook_url,
                     'secret': settings.DJSTRIPE_WEBHOOK_SECRET,
                     'livemode': settings.STRIPE_LIVE_MODE,
                     'api_version': '2023-08-16',
                     'status': 'enabled',
                     'enabled_events': ['*'],
                     'djstripe_uuid': settings.DJSTRIPE_UUID,
-                    'metadata': {
-                        'djstripe_uuid': settings.DJSTRIPE_UUID
-                    }
-                    #'djstripe_owner_account': 'Kobo, Inc'
+                    'metadata': {'djstripe_uuid': settings.DJSTRIPE_UUID}
                 }
             )
-            webhook_url = settings.DJSTRIPE_WEBHOOK_URL
+            logger.info("Webhook endpoint updated successfully.")
+            sync_webhooks(webhook_url)
 
-            logger.info(f"Webhook endpoint {'created' if created else 'updated'} successfully.")
-
-            # Sync webhook endpoint
-            endpoints = stripe.WebhookEndpoint.list()
-            for endpoint in endpoints.data:
-                if endpoint.url == settings.DJSTRIPE_WEBHOOK_URL:
-                    WebhookEndpoint.sync_from_stripe_data(endpoint)
-                    logger.info(f"Synced webhook endpoint: {endpoint.url}")
-            
-            WebhookEndpoint.objects.exclude(url=settings.DJSTRIPE_WEBHOOK_URL).delete()
-            
         else:
+            logger.info("Creating new webhook...")
             if not getattr(settings, 'DOMAIN_NAME', None):
-                logger.error("DOMAIN_NAME is required for creating new webhook")
-                return    
-            # Create new webhook
+                logger.error("DOMAIN_NAME is required for creating a new webhook")
+                return
+
             generated_uuid = str(uuid.uuid4())
             webhook_url = f"https://{settings.DOMAIN_NAME}/api/v2/stripe/webhook/{generated_uuid}/"
-            
             webhook_data = stripe.WebhookEndpoint.create(
                 url=webhook_url,
                 enabled_events=["*"],
                 metadata={'djstripe_uuid': generated_uuid}
             )
-            
-            webhook_endpoint = WebhookEndpoint.sync_from_stripe_data(webhook_data)
-            webhook_endpoint.djstripe_uuid = generated_uuid
-            webhook_endpoint.base_url = f"https://{settings.DOMAIN_NAME}"
-            webhook_endpoint.metadata = {'djstripe_uuid': generated_uuid}
-            webhook_endpoint.livemode = settings.STRIPE_LIVE_MODE
-            webhook_endpoint.save()
+
+            WebhookEndpoint.sync_from_stripe_data(webhook_data)
+            WebhookEndpoint.objects.filter(url=webhook_url).update(
+                djstripe_uuid=generated_uuid,
+                url=f"https://{settings.DOMAIN_NAME}",
+                metadata={'djstripe_uuid': generated_uuid},
+                livemode=settings.STRIPE_LIVE_MODE
+            )
 
             logger.info("New webhook created. Configure these values if you want to reuse this webhook:")
-            logger.info(f"DJSTRIPE_WEBHOOK_SECRET={webhook_data.secret}")
+            logger.info(f"DJSTRIPE_WEBHOOK_SECRET=*****")
             logger.info(f"DJSTRIPE_WEBHOOK_URL={webhook_url}")
             logger.info(f"DJSTRIPE_UUID={generated_uuid}")
             logger.info(f"DJSTRIPE_WEBHOOK_ID={webhook_data.id}")
 
-            # Final sync
             call_command('djstripe_sync_models')
-            logger.info("Stripe model sync complete.")
+            sync_webhooks(webhook_url)
 
-            # Final webhook sync and cleanup
-            endpoints = stripe.WebhookEndpoint.list()
-            for endpoint in endpoints.data:
-                if endpoint.url == webhook_url:
-                    WebhookEndpoint.sync_from_stripe_data(endpoint)
-                    logger.info(f"Synced webhook endpoint: {endpoint.url}")
+        logger.info("Stripe configuration completed successfully.")
 
-            WebhookEndpoint.objects.exclude(url=webhook_url).delete()
-            logger.info(f"Successfully synced webhook endpoint for URL: {webhook_url}")
-
-            logger.info("Stripe configuration completed.")
-
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe API error: {e}")
+        raise
     except Exception as e:
-        logger.error(f"Stripe configuration failed: {e}")
+        logger.error(f"General error: {e}")
         raise
