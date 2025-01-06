@@ -30,11 +30,11 @@ logger = logging.getLogger(__name__)
 
 def run(*args):
     if not settings.GOOGLE_AUTH_ENABLED:
-        logger.info("Google Auth is not enabled. Skipping configuration.")
+        logger.info('Google Auth is not enabled. Skipping configuration.')
         return
 
     if not all([settings.GOOGLE_CLIENT_ID, settings.GOOGLE_CLIENT_SECRET]):
-        logger.error("Google OAuth credentials not configured")
+        logger.error('Google OAuth credentials not configured')
         return
 
     try:
@@ -57,8 +57,8 @@ def run(*args):
             f"Social application '{settings.SOCIAL_APP_NAME}' {status} successfully"
         )
         logger.info(f"Provider ID: {settings.SOCIAL_APP_PROVIDER_ID}")
-        logger.info("SSO configuration completed successfully.")
+        logger.info('SSO configuration completed successfully.')
 
     except Exception as e:
-        logger.error(f"SSO configuration failed: {e}")
+        logger.error(f'SSO configuration failed: {e}')
         raise

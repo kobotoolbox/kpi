@@ -46,7 +46,7 @@ def has_webhook_config():
         settings.DJSTRIPE_UUID,
         settings.DJSTRIPE_WEBHOOK_ID
     ])
-    logger.info(f"Webhook config present: {config_present}")
+    logger.info(f'Webhook config present: {config_present}')
     return config_present
 
 
@@ -56,10 +56,10 @@ def sync_webhooks(url):
     for endpoint in endpoints.data:
         if endpoint.url == url:
             WebhookEndpoint.sync_from_stripe_data(endpoint)
-            logger.info(f"Synced webhook endpoint: {endpoint.url}")
+            logger.info(f'Synced webhook endpoint: {endpoint.url}')
 
     WebhookEndpoint.objects.exclude(url=url).delete()
-    logger.info(f"Deleted any webhook not matching URL: {url}")
+    logger.info(f'Deleted any webhook not matching URL: {url}')
 
 
 def configure_api_keys(stripe_key, stripe_public_key):
@@ -80,10 +80,10 @@ def configure_api_keys(stripe_key, stripe_public_key):
 
 
 def run(*args):
-    logger.info("Starting Stripe setup script")
+    logger.info('Starting Stripe setup script')
 
     if not settings.STRIPE_ENABLED:
-        logger.info("Stripe is not enabled. Skipping configuration.")
+        logger.info('Stripe is not enabled. Skipping configuration.')
         return
 
     try:
@@ -91,11 +91,11 @@ def run(*args):
         stripe_public_key = settings.STRIPE_LIVE_PUBLIC_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_PUBLIC_KEY
 
         if not all([stripe_key, stripe_public_key]):
-            logger.error("Stripe API keys not configured")
+            logger.error('Stripe API keys not configured')
             return
 
         stripe.api_key = stripe_key
-        logger.info("Running migrations...")
+        logger.info('Running migrations...')
         call_command('migrate', 'djstripe')
 
         # Configure API keys
@@ -117,13 +117,13 @@ def run(*args):
                     'metadata': {'djstripe_uuid': settings.DJSTRIPE_UUID}
                 }
             )
-            logger.info("Webhook endpoint updated successfully.")
+            logger.info('Webhook endpoint updated successfully.')
             sync_webhooks(webhook_url)
 
         else:
-            logger.info("Creating new webhook...")
+            logger.info('Creating new webhook...')
             if not getattr(settings, 'DOMAIN_NAME', None):
-                logger.error("DOMAIN_NAME is required for creating a new webhook")
+                logger.error('DOMAIN_NAME is required for creating a new webhook')
                 return
 
             generated_uuid = str(uuid.uuid4())
@@ -142,20 +142,20 @@ def run(*args):
                 livemode=settings.STRIPE_LIVE_MODE
             )
 
-            logger.info("New webhook created. Configure these values if you want to reuse this webhook:")
-            logger.info(f"DJSTRIPE_WEBHOOK_SECRET=*****")
-            logger.info(f"DJSTRIPE_WEBHOOK_URL={webhook_url}")
-            logger.info(f"DJSTRIPE_UUID={generated_uuid}")
-            logger.info(f"DJSTRIPE_WEBHOOK_ID={webhook_data.id}")
+            logger.info('New webhook created. Configure these values if you want to reuse this webhook:')
+            logger.info(f'DJSTRIPE_WEBHOOK_SECRET=*****')
+            logger.info(f'DJSTRIPE_WEBHOOK_URL={webhook_url}')
+            logger.info(f'DJSTRIPE_UUID={generated_uuid}')
+            logger.info(f'DJSTRIPE_WEBHOOK_ID={webhook_data.id}')
 
             call_command('djstripe_sync_models')
             sync_webhooks(webhook_url)
 
-        logger.info("Stripe configuration completed successfully.")
+        logger.info('Stripe configuration completed successfully.')
 
     except stripe.error.StripeError as e:
-        logger.error(f"Stripe API error: {e}")
+        logger.error(f'Stripe API error: {e}')
         raise
     except Exception as e:
-        logger.error(f"General error: {e}")
+        logger.error(f'General error: {e}')
         raise
