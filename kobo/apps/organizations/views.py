@@ -453,8 +453,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >           "results": [
     >               {
     >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        org3ua6H3F94CQpQEYs4RRz4/invites/
-                        f361ebf6-d1c1-4ced-8343-04b11863d784/",
+                        org_12345/invites/f361ebf6-d1c1-4ced-8343-04b11863d784/",
     >                   "invited_by": "http://kf.kobo.local/api/v2/users/demo7/",
     >                   "status": "pending",
     >                   "invitee_role": "member",
@@ -464,8 +463,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >               },
     >               {
     >                   "url": "http://kf.kobo.local/api/v2/organizations/
-                        orgLRM8xmvWji4itYWWhLVgC/invites/
-                        1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
+                        org_12345/invites/1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
     >                   "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >                   "status": "pending",
     >                   "invitee_role": "member",
@@ -502,8 +500,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >       [
     >           {
     >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    orgLRM8xmvWji4itYWWhLVgC/invites/
-                    f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+                    org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
     >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >               "status": "pending",
     >               "invitee_role": "member",
@@ -513,8 +510,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >           },
     >           {
     >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    orgLRM8xmvWji4itYWWhLVgC/invites/
-                    5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
+                    org_12345/invites/5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
     >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >               "status": "pending",
     >               "invitee_role": "member",
@@ -524,8 +520,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >           },
     >           {
     >               "url": "http://kf.kobo.local/api/v2/organizations/
-                    orgLRM8xmvWji4itYWWhLVgC/invites/
-                    3efb7217-171f-47a5-9a42-b23055e499d4/",
+                    org_12345/invites/3efb7217-171f-47a5-9a42-b23055e499d4/",
     >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >               "status": "pending",
     >               "invitee_role": "member",
@@ -534,6 +529,46 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >               "invitee": "demo20@demo20.com"
     >           }
     >       ]
+
+    ### Update Organization Invite
+
+    * Update an organization invite to accept, decline, cancel, expire, or resend.
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+
+    > Response 200
+
+    >       {
+    >           "url": "http://kf.kobo.local/api/v2/organizations/
+                org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >           "status": "accepted",
+    >           "invitee_role": "member",
+    >           "created": "2024-12-20T13:35:13Z",
+    >           "modified": "2024-12-20T13:35:13Z",
+    >           "invitee": "demo14"
+    >       }
+
+    ### Delete Organization Invite
+
+    * Organization owner or admin can delete an organization invite.
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+
+    > Response 204
+
     """
     serializer_class = OrgMembershipInviteSerializer
     permission_classes = [OrgMembershipInvitePermission]
@@ -541,9 +576,10 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     lookup_field = 'guid'
 
     def get_queryset(self):
+        organization_id = self.kwargs['organization_id']
         return OrganizationInvitation.objects.select_related(
             'invitee', 'invited_by', 'organization'
-        )
+        ).filter(organization_id=organization_id)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

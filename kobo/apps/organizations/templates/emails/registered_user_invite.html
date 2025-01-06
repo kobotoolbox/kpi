@@ -1,14 +1,19 @@
 {% load i18n %}
 <p>{% trans "Hello," %}</p>
 
-<p>{% blocktrans %}{{ sender_name }} ({{ sender_email }}, username: {{ sender_username }}) has invited you (username: {{ recipient_username }}) to join {{ organization_name }} organization.{% endblocktrans %}</p>
+<p>{% blocktrans %}{{ sender_name }} ({{ sender_email }}, username: {{ sender_username }}) has invited you (username: {{ recipient_username }}) to join {{ organization_name }} organization as {{recipient_role}}.{% endblocktrans %}</p>
+{% if has_multiple_accounts %}
+<p>If you already have an account (or have several accounts), please sign in with the correct account.</p>
+{% endif %}
 
-<p>{% trans "What joining the team means for you:" %}</p>
+<p>{% trans "What joining the organization means for you:" %}</p>
 <ul>
   <li>{% trans "You will benefit from higher usage limits and additional features, as well as priority user support." %}</li>
   <li>{% blocktrans %}Any projects owned by your account will be transferred to {{ organization_name }} and all admins in that organization will have access to your projects and data. {% endblocktrans %}</li>
   <li>{% trans "You will continue to have full management permissions for all projects previously owned by you." %}</li>
 </ul>
+
+<p>{% trans "If you want to transfer any projects to another account or remove a project, please do so before accepting the invitation. This action cannot be undone." %}</p>
 
 <p>{% blocktrans %}To respond to this invitation, please use the following link: {{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}</p>
 

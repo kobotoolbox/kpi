@@ -1,6 +1,7 @@
 from functools import partial
 from typing import Literal
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
@@ -321,10 +322,16 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         Mailer.send(email_message)
 
     def send_invite_email(self):
-        """
-        Sends an email to invite a user to join a team as an admin.
-        """
         is_registered_user = bool(self.invitee)
+        to_email = (
+            self.invitee.email
+            if is_registered_user
+            else self.invitee_identifier
+        )
+        # To avoid circular import
+        User = apps.get_model('kobo_auth', 'User')
+        has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
+        organization_name = self.invited_by.organization.name
         template_variables = {
             'sender_name': self.invited_by.extra_details.data['name'],
             'sender_username': self.invited_by.username,
@@ -334,10 +341,12 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
                 if is_registered_user
                 else self.invitee_identifier
             ),
-            'organization_name': self.invited_by.organization.name,
+            'recipient_role': self.invitee_role,
+            'organization_name': organization_name,
             'base_url': settings.KOBOFORM_URL,
             'invite_uid': self.guid,
             'is_registered_user': is_registered_user,
+            'has_multiple_accounts': has_multiple_accounts,
         }
 
         if is_registered_user:
@@ -348,12 +357,10 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             text_template = 'emails/unregistered_user_invite.txt'
 
         email_message = EmailMessage(
-            to=(
-                self.invitee.email
-                if is_registered_user
-                else self.invitee_identifier
+            to=to_email,
+            subject=t(
+                f"You're invited to join {organization_name}'s organization"
             ),
-            subject='Invitation to Join the Organization',
             plain_text_content_or_template=text_template,
             template_variables=template_variables,
             html_content_or_template=html_template,

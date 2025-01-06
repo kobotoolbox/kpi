@@ -2,6 +2,6 @@
 {% load strings %}
 
 {% trans "Dear" %} {{ username }},
-{% blocktrans %}The request you have sent to <b>{{ recipient }}</b> to join the {{ organization }}’s organization has expired.{% endblocktrans %}
+{% blocktrans %}The request you have sent to <b>{{ recipient }}</b> to join the {{ organization }} organization has expired.{% endblocktrans %}
 
 - KoboToolbox
