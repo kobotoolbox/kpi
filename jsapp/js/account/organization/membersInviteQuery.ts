@@ -20,7 +20,7 @@ import {type Json} from 'jsapp/js/components/common/common.interfaces';
  */
 
 /*
- * NOTE: `orgId` - we're asserting it is not `undefined` in code below,
+ * NOTE: `orgId` - we're assuming it is not `undefined` in code below,
  * because the parent query (`useOrganizationMembersQuery`) wouldn't be enabled
  * without it. Plus all the organization-related UI (that would use this hook)
  * is accessible only to logged in users.
