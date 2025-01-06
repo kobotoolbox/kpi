@@ -64,6 +64,7 @@ def sync_webhooks(url):
 
 def configure_api_keys(stripe_key, stripe_public_key):
     """Configure and update Stripe API keys."""
+    mode = "Live" if settings.STRIPE_LIVE_MODE else "Test"
     for key_data in [
         {'secret': stripe_key, 'name': 'Secret Key', 'type': 'secret'},
         {'secret': stripe_public_key, 'name': 'Public Key', 'type': 'publishable'}
@@ -71,7 +72,7 @@ def configure_api_keys(stripe_key, stripe_public_key):
         key, created = APIKey.objects.update_or_create(
             secret=key_data['secret'],
             defaults={
-                'name': f"Live {key_data['name']}" if settings.STRIPE_LIVE_MODE else f"Test {key_data['name']}",
+                'name': f"{mode} {key_data['name']}",
                 'type': key_data['type'],
                 'livemode': settings.STRIPE_LIVE_MODE
             }
@@ -87,8 +88,12 @@ def run(*args):
         return
 
     try:
-        stripe_key = settings.STRIPE_LIVE_SECRET_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_SECRET_KEY
-        stripe_public_key = settings.STRIPE_LIVE_PUBLIC_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_PUBLIC_KEY
+        if settings.STRIPE_LIVE_MODE:
+            stripe_key = settings.STRIPE_LIVE_SECRET_KEY
+            stripe_public_key = settings.STRIPE_LIVE_PUBLIC_KEY
+        else:
+            stripe_key = settings.STRIPE_TEST_SECRET_KEY
+            stripe_public_key = settings.STRIPE_TEST_PUBLIC_KEY
 
         if not all([stripe_key, stripe_public_key]):
             logger.error('Stripe API keys not configured')
@@ -127,7 +132,9 @@ def run(*args):
                 return
 
             generated_uuid = str(uuid.uuid4())
-            webhook_url = f'https://{settings.DOMAIN_NAME}/api/v2/stripe/webhook/{generated_uuid}/'
+            domain = settings.DOMAIN_NAME
+            webhook_path = f'/api/v2/stripe/webhook/{generated_uuid}/'
+            webhook_url = f'https://{domain}{webhook_path}'
             webhook_data = stripe.WebhookEndpoint.create(
                 url=webhook_url,
                 enabled_events=['*'],
@@ -142,8 +149,7 @@ def run(*args):
                 livemode=settings.STRIPE_LIVE_MODE
             )
 
-            logger.info('New webhook created. Configure these values if you want to reuse this webhook:')
-            logger.info(f'DJSTRIPE_WEBHOOK_SECRET=*****')
+            logger.info('New webhook created')
             logger.info(f'DJSTRIPE_WEBHOOK_URL={webhook_url}')
             logger.info(f'DJSTRIPE_UUID={generated_uuid}')
             logger.info(f'DJSTRIPE_WEBHOOK_ID={webhook_data.id}')
