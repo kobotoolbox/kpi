@@ -138,10 +138,6 @@ def check_edit_submission_permissions(
         ))
 
 
-<<<<<<< HEAD
-=======
-@transaction.atomic
->>>>>>> @{-1}
 def create_instance(
     username: str,
     xml_file: File,
@@ -803,13 +799,10 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
-<<<<<<< HEAD
 
     # If the new attachment has the same basename as an existing one but
     # different content, update the existing one.
 
-=======
->>>>>>> @{-1}
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
@@ -822,22 +815,17 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     remaining_attachments = queryset.exclude(
         id__in=latest_attachments.values_list('id', flat=True)
     )
-<<<<<<< HEAD
-    soft_deleted_attachments = list(remaining_attachments.all())
-    remaining_attachments.update(deleted_at=dj_timezone.now())
-=======
-    soft_deleted_attachments = list(queryset.all())
 
+    soft_deleted_attachments = list(remaining_attachments.all())
     # The query below updates only the database records, not the in-memory
     # `Attachment` objects.
     # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
     # in memory after the update.
-    # This behavior is necessary to allow the signal to handle file deletion from storage.
-    queryset.update(deleted_at=dj_timezone.now())
->>>>>>> @{-1}
+    # This behavior is necessary to allow the signal to handle file deletion from
+    # storage.
+    remaining_attachments.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
-
 
 def _get_instance(
     request: 'rest_framework.request.Request',
