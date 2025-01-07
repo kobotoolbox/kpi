@@ -18,6 +18,7 @@
       "rvest.vs-code-prettier-eslint",  // Prettier
       "stylelint.vscode-stylelint",     // Stylelint
       "freewil.vscode-coffeelint2",     // Coffeelint
+      "biomejs.biome",                  // Biome
 
       // Status Bar Toggle for Format on Save
       "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
