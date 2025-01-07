@@ -18,6 +18,8 @@ import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
 import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import type {MemberInvite} from './membersInviteQuery';
+import type {Json} from 'jsapp/js/components/common/common.interfaces';
 
 export interface OrganizationMember {
   /**
@@ -37,15 +39,7 @@ export interface OrganizationMember {
   user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
   date_joined: string;
-  invite?: {
-    /** '/api/v2/organizations/<organization_uid>/invites/<invite_uid>/' */
-    url: string;
-    /** yyyy-mm-dd HH:MM:SS */
-    date_created: string;
-    /** yyyy-mm-dd HH:MM:SS */
-    date_modified: string;
-    status: 'sent' | 'accepted' | 'expired' | 'declined';
-  };
+  invite?: MemberInvite;
 }
 
 function getMemberEndpoint(orgId: string, username: string) {
@@ -70,7 +64,7 @@ export function usePatchOrganizationMember(username: string) {
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data)
+      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json)
     ),
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
