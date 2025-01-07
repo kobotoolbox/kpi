@@ -8,6 +8,10 @@
     "recommendations": [
       "editorconfig.editorconfig",      // EditorConfig
 
+      // Markdown preview that supports what Github supports (checkbo):
+      // checkboxes, footnotes, newlines without empty lines, etc.
+      "shd101wyy.markdown-preview-enhanced",
+
       // Linters and Formatters
       "ms-python.black-formatter",      // Black (also installs MS Pylance)*
       "dbaeumer.vscode-eslint",         // ESLint
@@ -81,6 +85,9 @@
 
     // Use locally-installed TypeScript instance (supports plugins in tsconfig)
     "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+
+
+    "markdown-preview-enhanced.previewColorScheme": "editorColorScheme",
   },
 }
