@@ -31,6 +31,7 @@ from .tasks import transfer_member_data_ownership_to_org
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
+    invite = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
         queryset=get_user_model().objects.all(),
         lookup_field='username',
@@ -62,7 +63,8 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'role',
             'user__has_mfa_enabled',
             'date_joined',
-            'user__is_active'
+            'user__is_active',
+            'invite'
         ]
 
     def get_url(self, obj):
@@ -75,6 +77,40 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             },
             request=request
         )
+
+    def get_invite(self, obj):
+        """
+        Get the latest invite for the user if it exists
+        """
+        invite = OrganizationInvitation.objects.filter(
+            invitee=obj.user
+        ).order_by('-created').first()
+
+        if invite:
+            return OrgMembershipInviteSerializer(
+                invite, context=self.context
+            ).data
+        return {}
+
+    def to_representation(self, instance):
+        """
+        Handle representation of invite objects.
+
+        For users who have been invited to an organization but have not yet
+        registered, we include the invite object and show user object data as null.
+        """
+        if isinstance(instance, OrganizationInvitation):
+            invite_serializer = OrgMembershipInviteSerializer(
+                instance, context=self.context
+            )
+            response = {field: None for field in self.Meta.fields}
+            response.update({
+                'invite': invite_serializer.data,
+            })
+            return response
+        else:
+            representation = super().to_representation(instance)
+            return representation
 
     def update(self, instance, validated_data):
         if role := validated_data.get('role', None):
