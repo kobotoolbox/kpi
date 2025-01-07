@@ -8,18 +8,17 @@ declare module '@mantine/core' {
 }
 
 export const MenuThemeKobo = Menu.extend({
-  defaultProps: {},
   classNames: classes,
   vars: (theme) => {
     return {
       dropdown: {
         padding: 0,
         '--popover-shadow': `0 0 6px ${theme.colors.gray[4]}`,
-        border: 'none'
+        border: 'none',
       },
       divider: {
-        borderColor: theme.colors.gray[6]
-      }
+        borderColor: theme.colors.gray[6],
+      },
     };
   },
 });
