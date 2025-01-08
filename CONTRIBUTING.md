@@ -51,7 +51,6 @@ People *love* thorough bug reports. I'm not even kidding.
 Automatic lint rules are written using a linter configuration, see:
 - [`.editorconfig`](./.editorconfig) (global)
 - [`.eslintrc.js`](./.eslintrc.js) (frontend)
-- [`.prettierrc.js`](./.prettierrc.js) (frontend)
 - [`.stylelintrc.js`](./.stylelintrc.js) (frontend)
 - [`coffeelint.json`](./coffeelint.json) (frontend)
 

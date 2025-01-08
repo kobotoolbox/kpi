@@ -58,7 +58,7 @@ const jsRules = {
   // - Rules: https://eslint.style/packages/default#rules
   //
   // It'll be useful to keep a variant of these rules around as an alternative
-  // "auto-fixer" (versus Prettier), since Prettier modifies line wrappings in
+  // "auto-fixer" (versus Biome), since Biome modifies line wrappings in
   // a way that can harm code readability at times.
   //
   // Idea:
@@ -67,7 +67,7 @@ const jsRules = {
   //    (normalize quotes, commas, semicolons, etc. without touching linebreaks)
   //  * Remove 'stylistic' rules from the main config, to reduce diagnostic
   //    clutter in code or in the 'Problems' pane
-  //  * Keep an optional well-configured 'Prettier' tooling, able to run on
+  //  * Keep an optional well-configured 'Biome' tooling, able to run on
   //    modified lines or current/selected paragraph, around for convenience
   'arrow-parens': [1, 'always'],
   'arrow-spacing': 1,
@@ -267,7 +267,6 @@ module.exports = {
     'plugin:react/jsx-runtime', // Use the new JSX transform
     'plugin:react-hooks/recommended', // Rules of Hooks (https://github.com/facebook/react/tree/main/packages/eslint-plugin-react-hooks)
     'plugin:@tanstack/eslint-plugin-query/recommended', // For Tanstack Query (aka react-query)
-    'prettier',
     'plugin:storybook/recommended'],
   rules: jsRules,
   settings: {

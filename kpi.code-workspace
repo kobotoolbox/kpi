@@ -15,7 +15,6 @@
       // Linters and Formatters
       "ms-python.black-formatter",      // Black (also installs MS Pylance)*
       "dbaeumer.vscode-eslint",         // ESLint
-      "rvest.vs-code-prettier-eslint",  // Prettier
       "stylelint.vscode-stylelint",     // Stylelint
       "freewil.vscode-coffeelint2",     // Coffeelint
       "biomejs.biome",                  // Biome
@@ -34,11 +33,6 @@
     // Black
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-
-    // Prettier
-    "[typescript][typescriptreact][javascript][javascriptreact]": {
-      "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
     },
 
     // Stylelint
@@ -78,10 +72,6 @@
       //         "source.fixAll.eslint":    "explicit",  // "never"
       //         "source.fixAll.stylelint": "explicit",  // "never"
       //       },
-      //
-      //   Also useful: Run Prettier only on your "modified" lines
-      //
-      //       "editor.formatOnSaveMode": "modifications" // or "file"
     ],
 
     // Use locally-installed TypeScript instance (supports plugins in tsconfig)

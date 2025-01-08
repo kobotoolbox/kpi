@@ -18,6 +18,6 @@ npm-test:
   - '{jsapp,test,webpack,static,scripts}/**/*.!(md|py|sh|bash)'               # frontend
   - '{package*.json,patches/*.patch,scripts/copy_fonts.py}'                   # npm + postinstall
   - '{tsconfig.json,.swcrc,.babelrc*,.browserslistrc}'                        # compilers
-  - '{.editorconfig,.prettier*,.stylelint*,.eslint*,coffeelint*,biome.jsonc}' # linters
+  - '{.editorconfig,.stylelint*,.eslint*,coffeelint*,biome.jsonc}'            # linters
   - '.gitignore'                                                              # (can affect tools)
   - '.github/workflows/npm-test.yml'                                          # ci
