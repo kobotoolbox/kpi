@@ -5,5 +5,8 @@ from dataclasses import dataclass
 class SubmissionUpdate:
     status: str
     action: str
-    username: str
     id: int
+    username: str = 'AnonymousUser'
+
+    def __post_init__(self):
+        self.username = 'AnonymousUser' if self.username is None else self.username

@@ -79,7 +79,7 @@ def add_instance_to_request(instance, created, **kwargs):
         return
     if getattr(request, 'instances', None) is None:
         request.instances = {}
-    username = instance.user.username if instance.user else 'AnonymousUser'
+    username = instance.user.username if instance.user else None
     request.instances.update(
         {
             instance.id: SubmissionUpdate(
