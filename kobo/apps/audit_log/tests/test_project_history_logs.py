@@ -3,11 +3,13 @@ import copy
 import json
 import uuid
 from unittest.mock import patch
+from xml.etree import ElementTree as ET
 
 import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -19,6 +21,7 @@ from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -1660,3 +1663,60 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
+
+    @data(
+        # submit as anonymous?, use v1 endpoint?
+        (True, False),
+        (False, True),
+        (False, False),
+    )
+    @unpack
+    def test_add_submission(self, anonymous, v1):
+        # prepare submission data
+        uuid_ = uuid.uuid4()
+        self.asset.deploy(backend='mock')
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            'formhub/uuid': self.asset.deployment.xform.uuid,
+            '_uuid': str(uuid_),
+        }
+        xml = ET.fromstring(
+            dict2xform(submission_data, self.asset.deployment.xform.id_string)
+        )
+        xml.tag = self.asset.uid
+        xml.attrib = {
+            'id': self.asset.uid,
+            'version': self.asset.latest_version.uid,
+        }
+        endpoint = 'submissions-list' if v1 else 'submissions'
+        kwargs = {'username': self.user.username} if not v1 else {}
+        url = reverse(
+            self._get_endpoint(endpoint),
+            kwargs=kwargs,
+        )
+        data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        # ensure anonymous users are allowed to submit
+        self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
+
+        if not anonymous:
+            # the submission endpoints don't allow session authentication, so
+            # just force the request to attach the correct user
+            self.client.force_authenticate(user=self.user)
+
+        # can't use _base_project_history_log_test here because our format is xml,
+        # not json
+        self.client.post(
+            url,
+            data=data,
+        )
+        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
+        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        username = 'AnonymousUser' if anonymous else self.user.username
+        self.assertEqual(log.metadata['submission']['submitted_by'], username)

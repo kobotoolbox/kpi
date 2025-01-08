@@ -77,8 +77,13 @@ def add_instance_to_request(instance, created, **kwargs):
     request = get_current_request()
     if request is None:
         return
+    if getattr(instance.asset.asset, 'id', None) is None:
+        # if an XForm doesn't have a real associated Asset, ignore it
+        return
     if getattr(request, 'instances', None) is None:
         request.instances = {}
+    if getattr(request, 'asset', None) is None:
+        request.asset = instance.asset.asset
     username = instance.user.username if instance.user else None
     request.instances.update(
         {
