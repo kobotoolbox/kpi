@@ -484,6 +484,74 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 response = self.view(request, username=username)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_submission_customizable_confirmation_message(self):
+        s = 'transport_with_custom_attribute'
+        media_file = '1335783522563.jpg'
+        xml_files = [
+            'transport_with_custom_attribute_01',
+            'transport_with_custom_attribute_02',
+            'transport_with_no_custom_attribute'
+        ]
+
+        path = os.path.join(
+            self.main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            s,
+            media_file,
+        )
+        with open(path, 'rb') as f:
+            f = InMemoryUploadedFile(
+                f,
+                'media_file',
+                media_file,
+                'image/jpg',
+                os.path.getsize(path),
+                None,
+            )
+            for xml_file in xml_files:
+                submission_path = os.path.join(
+                    self.main_directory,
+                    'fixtures',
+                    'transportation',
+                    'instances',
+                    s,
+                    xml_file + '.xml',
+                )
+                with open(submission_path) as sf:
+                    data = {'xml_submission_file': sf, 'media_file': f}
+                    request = self.factory.post('/submission', data)
+                    response = self.view(request)
+                    self.assertEqual(response.status_code, 401)
+
+                    # rewind the file and redo the request since they were
+                    # consumed
+                    sf.seek(0)
+                    f.seek(0)
+                    request = self.factory.post('/submission', data)
+                    auth = DigestAuth('bob', 'bobbob')
+                    request.META.update(auth(request.META, response))
+                    response = self.view(request, username=self.user.username)
+                    if xml_file == 'transport_with_custom_attribute_01':
+                        self.assertContains(
+                            response, 'Custom submit message', status_code=201
+                        )
+                    elif xml_file == 'transport_with_custom_attribute_02':
+                        self.assertContains(
+                            response, 'Successful submission.', status_code=201
+                        )
+                    elif xml_file == (
+                        'transport_with_custom_attribute_and_different_root'
+                    ):
+                        self.assertContains(
+                            response, 'Custom submit message', status_code=201
+                        )
+                    else:
+                        self.assertContains(
+                            response, 'Successful submission.', status_code=201
+                        )
+
 
 class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
     """
@@ -492,10 +560,11 @@ class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
     Otherwise, DB is populated only on the first request but still empty on
     subsequent ones.
     """
-    fixtures = ['kobo/apps/openrosa/apps/api/tests/fixtures/users']
 
     def setUp(self):
-        self.user = User.objects.get(username='bob')
+        self.user = User.objects.create_user(
+            username='bob', password='bob', email='bob@columbia.edu'
+        )
         self.token, _ = Token.objects.get_or_create(user=self.user)
         UserProfile.objects.get_or_create(user=self.user)
 
@@ -587,72 +656,3 @@ def submit_data(identifier, survey_, username_, live_server_url, token_):
                 headers=headers
             )
             return response.status_code
-=======
-    def test_submission_customizable_confirmation_message(self):
-        s = 'transport_with_custom_attribute'
-        media_file = '1335783522563.jpg'
-        xml_files = [
-            'transport_with_custom_attribute_01',
-            'transport_with_custom_attribute_02',
-            'transport_with_no_custom_attribute'
-        ]
-
-        path = os.path.join(
-            self.main_directory,
-            'fixtures',
-            'transportation',
-            'instances',
-            s,
-            media_file,
-        )
-        with open(path, 'rb') as f:
-            f = InMemoryUploadedFile(
-                f,
-                'media_file',
-                media_file,
-                'image/jpg',
-                os.path.getsize(path),
-                None,
-            )
-            for xml_file in xml_files:
-                submission_path = os.path.join(
-                    self.main_directory,
-                    'fixtures',
-                    'transportation',
-                    'instances',
-                    s,
-                    xml_file + '.xml',
-                )
-                with open(submission_path) as sf:
-                    data = {'xml_submission_file': sf, 'media_file': f}
-                    request = self.factory.post('/submission', data)
-                    response = self.view(request)
-                    self.assertEqual(response.status_code, 401)
-
-                    # rewind the file and redo the request since they were
-                    # consumed
-                    sf.seek(0)
-                    f.seek(0)
-                    request = self.factory.post('/submission', data)
-                    auth = DigestAuth('bob', 'bobbob')
-                    request.META.update(auth(request.META, response))
-                    response = self.view(request, username=self.user.username)
-                    if xml_file == 'transport_with_custom_attribute_01':
-                        self.assertContains(
-                            response, 'Custom submit message', status_code=201
-                        )
-                    elif xml_file == 'transport_with_custom_attribute_02':
-                        self.assertContains(
-                            response, 'Successful submission.', status_code=201
-                        )
-                    elif xml_file == (
-                        'transport_with_custom_attribute_and_different_root'
-                    ):
-                        self.assertContains(
-                            response, 'Custom submit message', status_code=201
-                        )
-                    else:
-                        self.assertContains(
-                            response, 'Successful submission.', status_code=201
-                        )
->>>>>>> @{-1}

@@ -827,6 +827,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     return soft_deleted_attachments
 
+
 def _get_instance(
     request: 'rest_framework.request.Request',
     xml: str,
