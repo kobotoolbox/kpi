@@ -12,8 +12,6 @@ import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {useRemoveOrganizationMember} from './membersQuery';
 import {notify} from 'alertifyjs';
-import {ROUTES} from 'jsapp/js/router/routerConstants';
-import router from 'jsapp/js/router/router';
 
 interface MemberRemoveModalProps {
   username: string;
@@ -37,7 +35,7 @@ export default function MemberRemoveModal(
     onCancel,
   }: MemberRemoveModalProps
 ) {
-  const removeMember = useRemoveOrganizationMember({isRemovingSelf});
+  const removeMember = useRemoveOrganizationMember();
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
     subscriptionStore.activeSubscriptions[0],

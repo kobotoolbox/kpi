@@ -18,9 +18,6 @@ import {OrganizationUserRole} from './organizationQuery';
 
 // Styles
 import styles from './memberActionsDropdown.module.scss';
-import {queryClient} from 'jsapp/js/query/queryClient';
-import {QueryKeys} from 'jsapp/js/query/queryKeys';
-import { useNavigation } from 'react-router-dom';
 import router from 'jsapp/js/router/router';
 import { ROUTES } from 'jsapp/js/router/routerConstants';
 

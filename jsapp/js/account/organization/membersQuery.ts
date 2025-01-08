@@ -50,9 +50,10 @@ export interface OrganizationMember {
 }
 
 function getMemberEndpoint(orgId: string, username: string) {
-  return endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', orgId)
-    .replace(':username', username);
+  return endpoints.ORGANIZATION_MEMBER_URL.replace(
+    ':organization_id',
+    orgId
+  ).replace(':username', username);
 }
 
 /**
@@ -66,29 +67,27 @@ export function usePatchOrganizationMember(username: string) {
   const orgId = orgQuery.data?.id;
 
   return useMutation({
-    mutationFn: async (data: Partial<OrganizationMember>) => (
+    mutationFn: async (data: Partial<OrganizationMember>) =>
       // We're asserting the `orgId` is not `undefined` here, because the parent
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data)
-    ),
+      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data),
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
       // directly, see: https://github.com/TanStack/query/discussions/2468)
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMembers],
+      });
     },
   });
 }
 
 /**
- * Mutation hook for removing member from organiztion. It ensures that all
+ * Mutation hook for removing member from organization. It ensures that all
  * related queries refetch data (are invalidated).
  */
-interface RemoveOrganizationMemberParams {
-  isRemovingSelf?: boolean;
-}
-export function useRemoveOrganizationMember(params?: RemoveOrganizationMemberParams) {
+export function useRemoveOrganizationMember() {
   const queryClient = useQueryClient();
 
   const session = useSession();
@@ -97,23 +96,21 @@ export function useRemoveOrganizationMember(params?: RemoveOrganizationMemberPar
   const orgId = orgQuery.data?.id;
 
   return useMutation({
-    mutationFn: async (username: string) => {
-      if (username === session.currentLoggedAccount?.username) {
-        // If user is removing themselves, we need to clear the session
-        session.refreshAccount();
-      }
-
+    mutationFn: async (username: string) =>
       // We're asserting the `orgId` is not `undefined` here, because the parent
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      return fetchDelete(getMemberEndpoint(orgId!, username));
-    },
-    onSettled: () => {
-      if (params?.isRemovingSelf) {
+       fetchDelete(getMemberEndpoint(orgId!, username))
+    ,
+    onSuccess: (_data, username) => {
+      if (username === session.currentLoggedAccount?.username) {
+        // If user is removing themselves, we need to clear the session
         session.refreshAccount();
       } else {
-        queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+        queryClient.invalidateQueries({
+          queryKey: [QueryKeys.organizationMembers],
+        });
       }
     },
   });
@@ -134,8 +131,10 @@ async function getOrganizationMembers(
     offset: offset.toString(),
   });
 
-  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL
-    .replace(':organization_id', orgId);
+  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(
+    ':organization_id',
+    orgId
+  );
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,
@@ -149,7 +148,10 @@ async function getOrganizationMembers(
  * A hook that gives you paginated list of organization members. Uses
  * `useOrganizationQuery` to get the id.
  */
-export default function useOrganizationMembersQuery({limit, offset}: PaginatedQueryHookParams) {
+export default function useOrganizationMembersQuery({
+  limit,
+  offset,
+}: PaginatedQueryHookParams) {
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
 
