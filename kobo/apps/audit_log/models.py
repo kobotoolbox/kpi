@@ -38,6 +38,7 @@ from kpi.constants import (
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
+from kpi.utils.object_permission import get_database_user
 
 ANONYMOUS_USER_PERMISSION_ACTIONS = {
     # key: (permission, granting?), value: ph log action
@@ -396,6 +397,8 @@ class ProjectHistoryLog(AuditLog):
             'submission-validation-statuses': cls._create_from_submission_request,
             'submission-validation-status': cls._create_from_submission_request,
             'assetsnapshot-submission-alias': cls._create_from_submission_request,
+            'submissions': cls._create_from_submission_request,
+            'submissions-list': cls._create_from_submission_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -608,7 +611,7 @@ class ProjectHistoryLog(AuditLog):
         instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
         logs = []
         url_name = request.resolver_match.url_name
-
+        user = get_database_user(request.user)
         for instance in instances.values():
             if instance.action == 'add':
                 action = AuditAction.ADD_SUBMISSION
@@ -628,10 +631,10 @@ class ProjectHistoryLog(AuditLog):
 
             logs.append(
                 ProjectHistoryLog(
-                    user=request.user,
+                    user=user,
                     object_id=request.asset.id,
                     action=action,
-                    user_uid=request.user.extra_details.uid,
+                    user_uid=user.extra_details.uid,
                     metadata=metadata,
                 )
             )
