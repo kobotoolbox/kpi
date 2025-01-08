@@ -2,7 +2,7 @@ import {createTheme, rem} from '@mantine/core';
 import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
 import {TooltipThemeKobo} from './Tooltip';
-import { MenuThemeKobo } from './menu';
+import {MenuThemeKobo} from './menu';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
