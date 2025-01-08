@@ -130,7 +130,7 @@ def set_instance_validation_statuses(
     # Update Postgres & Mongo
     records_queryset = Instance.objects.filter(**postgres_query)
     validation_status = new_validation_status.get('label', 'None')
-    if getattr(get_current_request(), 'instances', None) is not None:
+    if get_current_request() is not None:
         get_current_request().instances = {
             record['id']: SubmissionUpdate(
                 username=record['user__username'],
