@@ -140,7 +140,7 @@ def set_instance_validation_statuses(
             )
             for record in records_queryset.values('user__username', 'id')
         }
-    updated_records_count = Instance.objects.filter(**postgres_query).update(
+    updated_records_count = records_queryset.update(
         validation_status=new_validation_status
     )
     ParsedInstance.bulk_update_validation_statuses(mongo_query, new_validation_status)
