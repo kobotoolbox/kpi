@@ -1643,24 +1643,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ).first()
         self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
-        self.assertEqual(
-            log1.metadata['submission']['status'], 'On Hold'
-        )
+        self.assertEqual(log1.metadata['submission']['status'], 'On Hold')
 
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
-        self.assertEqual(
-            log2.metadata['submission']['status'], 'On Hold'
-        )
+        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
 
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
-        self.assertEqual(
-            log2.metadata['submission']['status'], 'On Hold'
-        )
+        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
