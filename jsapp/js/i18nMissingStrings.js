@@ -4,6 +4,7 @@
  *
  * NOTE: It is not loaded or invoked by the app.
  */
+/* eslint-disable no-undef */
 
 // misc strings
 test = t('Add another condition');
