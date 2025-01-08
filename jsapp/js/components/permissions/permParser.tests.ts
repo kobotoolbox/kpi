@@ -523,6 +523,69 @@ describe('permParser', () => {
         },
       ]);
     });
+
+    it('should not lose permissions with multiple partial perms targeting same user', () => {
+      const parsed = parseFormData({
+        username: 'leszek',
+        formView: true,
+        formEdit: false,
+        formManage: false,
+        submissionsAdd: true,
+        submissionsView: false,
+        submissionsViewPartialByUsers: true,
+        submissionsViewPartialByUsersList: ['josh'],
+        submissionsViewPartialByResponses: false,
+        submissionsViewPartialByResponsesQuestion: '',
+        submissionsViewPartialByResponsesValue: '',
+        submissionsEdit: false,
+        submissionsEditPartialByUsers: true,
+        submissionsEditPartialByUsersList: ['josh'],
+        submissionsEditPartialByResponses: false,
+        submissionsEditPartialByResponsesQuestion: '',
+        submissionsEditPartialByResponsesValue: '',
+        submissionsValidate: false,
+        submissionsValidatePartialByUsers: true,
+        submissionsValidatePartialByUsersList: ['josh'],
+        submissionsValidatePartialByResponses: false,
+        submissionsValidatePartialByResponsesQuestion: '',
+        submissionsValidatePartialByResponsesValue: '',
+        submissionsDelete: false,
+        submissionsDeletePartialByUsers: true,
+        submissionsDeletePartialByUsersList: ['josh'],
+        submissionsDeletePartialByResponses: false,
+        submissionsDeletePartialByResponsesQuestion: '',
+        submissionsDeletePartialByResponsesValue: '',
+      });
+
+      chai.expect(parsed).to.deep.equal([
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/partial_submissions/',
+          partial_permissions: [
+            // {
+            //   url: '/api/v2/permissions/view_submissions/',
+            //   filters: [{_submitted_by: 'josh'}],
+            // },
+            {
+              url: '/api/v2/permissions/change_submissions/',
+              filters: [{_submitted_by: 'josh'}],
+            },
+            {
+              url: '/api/v2/permissions/validate_submissions/',
+              filters: [{_submitted_by: 'josh'}],
+            },
+            {
+              url: '/api/v2/permissions/delete_submissions/',
+              filters: [{_submitted_by: 'josh'}],
+            },
+          ],
+        },
+        {
+          user: '/api/v2/users/leszek/',
+          permission: '/api/v2/permissions/add_submissions/',
+        },
+      ]);
+    });
   });
 
   describe('parseUserWithPermsList', () => {
