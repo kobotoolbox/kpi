@@ -33,8 +33,17 @@ export const useSession = () => {
       {fireImmediately: true}
     );
 
+    const isPendingReactionDisposer = reaction(
+      () => sessionStore.isPending,
+      () => {
+          setIsPending(sessionStore.isPending);
+      },
+      {fireImmediately: true}
+    );
+
     return () => {
       currentAccountReactionDisposer();
+      isPendingReactionDisposer();
     };
   }, []);
 

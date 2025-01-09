@@ -439,6 +439,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        modify-imported-fields
     >        modify-service
     >        modify-sharing
+    >        modify-submission
     >        modify-user-permissions
     >        redeploy
     >        register-service
@@ -531,17 +532,23 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    11. modify-user-permissions
+    11. modify-submission
+
+        a. metadata__submission__submitted_by
+
+        b. metadata__submission__status (only present if changed)
+
+    12. modify-user-permissions
 
         a. metadata__permissions__username
 
-    12. redeploy
+    13. redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    13. register-service
+    14. register-service
 
         a. metadata__hook__uid
 
@@ -549,21 +556,21 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    14. transfer
+    15. transfer
 
         a. metadata__username
 
-    15. unarchive
+    16. unarchive
 
         a. metadata__latest_version_uid
 
-    16. update-name
+    17. update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    17. update-settings
+    18. update-settings
 
         a. metadata__settings__description__old
 
@@ -690,6 +697,7 @@ class ProjectHistoryLogViewSet(
     >        modify-imported-fields
     >        modify-service
     >        modify-sharing
+    >        modify-submission
     >        modify-user-permissions
     >        redeploy
     >        register-service
@@ -782,17 +790,23 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    11. modify-user-permissions
+    11. modify-submission
+
+        a. metadata__submission__submitted_by
+
+        b. metadata__submission__status (only present if changed)
+
+    12. modify-user-permissions
 
         a. metadata__permissions__username
 
-    12. redeploy
+    13. redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    13. register-service
+    14. register-service
 
         a. metadata__hook__uid
 
@@ -800,21 +814,21 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    14. transfer
+    15. transfer
 
         a. metadata__username
 
-    15. unarchive
+    16. unarchive
 
         a. metadata__latest_version_uid
 
-    16. update-name
+    17. update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    17. update-settings
+    18. update-settings
 
         a. metadata__settings__description__old
 
