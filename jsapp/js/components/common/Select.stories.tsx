@@ -1,4 +1,4 @@
-import {Select} from '@mantine/core';
+import {Select} from './Select';
 import type {Meta, StoryObj} from '@storybook/react';
 
 /**
@@ -8,6 +8,13 @@ import type {Meta, StoryObj} from '@storybook/react';
 const meta: Meta<typeof Select> = {
   title: 'Mantine/Select',
   component: Select,
+  decorators: [
+    (Story) => (
+      <div style={{maxWidth: 400, padding: 40, margin: 'auto'}}>
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 const data = [

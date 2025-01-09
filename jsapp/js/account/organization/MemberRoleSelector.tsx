@@ -1,10 +1,7 @@
-import KoboSelect from 'jsapp/js/components/common/koboSelect';
+import {Select} from 'jsapp/js/components/common/Select';
 import {usePatchOrganizationMember} from './membersQuery';
 import {OrganizationUserRole} from './organizationQuery';
-import {type KoboDropdownPlacement} from 'jsapp/js/components/common/koboDropdown';
-import {LoadingOverlay, Select} from '@mantine/core';
-import { disabled } from 'jsapp/js/project/projectTopTabs.module.scss';
-import { useState } from 'react';
+import {LoadingOverlay} from '@mantine/core';
 
 interface MemberRoleSelectorProps {
   username: string;
@@ -28,48 +25,24 @@ export default function MemberRoleSelector({
 
   return (
     <>
-    <LoadingOverlay visible={patchMember.isPending}/>
-    <Select
-      size='sm'
-      data={[
-        {
-          value: OrganizationUserRole.admin,
-          label: t('Admin'),
-        },
-        {
-          value: OrganizationUserRole.member,
-          label: t('Member'),
-        },
-      ]}
-      value={role}
-      onChange={handleRoleChange}
-      allowDeselect={false}
-      clearable={false}
-    />
+      <LoadingOverlay visible={patchMember.isPending} />
+      <Select
+        size='sm'
+        data={[
+          {
+            value: OrganizationUserRole.admin,
+            label: t('Admin'),
+          },
+          {
+            value: OrganizationUserRole.member,
+            label: t('Member'),
+          },
+        ]}
+        value={role}
+        onChange={handleRoleChange}
+        allowDeselect={false}
+        clearable={false}
+      />
     </>
-    // <KoboSelect
-    //   name={`member-role-selector-${username}`}
-    //   type='outline'
-    //   size='m'
-    //   placement={placement}
-    //   options={[
-    //     {
-    //       value: OrganizationUserRole.admin,
-    //       label: t('Admin'),
-    //     },
-    //     {
-    //       value: OrganizationUserRole.member,
-    //       label: t('Member'),
-    //     },
-    //   ]}
-    //   selectedOption={role}
-    //   onChange={(newRole: string | null) => {
-    //     if (newRole) {
-    //       patchMember.mutateAsync({role: newRole as OrganizationUserRole});
-    //     }
-    //   }}
-    //   isPending={patchMember.isPending}
-    //   isDisabled={!canModifyRole}
-    // />
   );
 }

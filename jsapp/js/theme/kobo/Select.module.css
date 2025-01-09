@@ -7,10 +7,6 @@
   }
 }
 
-.input[data-expanded] + div > i {
-  transform: rotate(180deg) translateY(2px);
-}
-
 .dropdown {
   border-color: var(--mantine-color-gray-6);
   padding: 0;
@@ -32,6 +28,12 @@
   background-color: var(--mantine-color-blue-8);
 }
 
-.section {
+.section[data-position='right'] {
+  display: flex;
+  width: auto;
+}
+
+.section,
+.section svg {
   color: var(--mantine-color-gray-4);
 }
