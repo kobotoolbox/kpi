@@ -79,7 +79,7 @@ class UserListTests(BaseTestCase):
 
     def test_superuser_can_get_token_for_another_user(self):
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         response = self.client.get(self.url, {'username': self.username})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(

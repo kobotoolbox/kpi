@@ -57,7 +57,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def setUp(self):
         super().setUp()
         # log in as admin
-        user = User.objects.get(username='admin')
+        user = User.objects.get(username='adminuser')
         self.user = user
         self.client.force_login(user=user)
         # use the same asset
@@ -1390,7 +1390,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'permission': reverse(
                     'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
                 ),
-                'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'admin'}),
+                'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'adminuser'}),
             },
         ]
         self.client.post(
@@ -1476,9 +1476,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    @data('admin', 'someuser')
+    @data('adminuser', 'someuser')
     def test_log_created_for_duplicate_submission(self, duplicating_user):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         submissions = self.asset.deployment.get_submissions(
             self.asset.owner, fields=['_id']
         )
@@ -1505,7 +1505,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(metadata['submission']['submitted_by'], duplicating_user)
 
-    @data('admin', None)
+    @data('adminuser', None)
     def test_update_one_submission_content(self, username):
         self._add_submission(username)
         submissions_xml = self.asset.deployment.get_submissions(
@@ -1550,7 +1550,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['submission']['submitted_by'], submitted_by)
 
     def test_update_multiple_submissions_content(self):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         self._add_submission('someuser')
         self._add_submission(None)
 
@@ -1574,7 +1574,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(
-            metadata__submission__submitted_by='admin'
+            metadata__submission__submitted_by='adminuser'
         ).first()
         self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
@@ -1591,7 +1591,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
 
-    @data('admin', None)
+    @data('adminuser', None)
     def test_update_single_submission_validation_status(self, username):
         self._add_submission(username)
         submissions_json = self.asset.deployment.get_submissions(
@@ -1615,7 +1615,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['submission']['status'], 'On Hold')
 
     def test_multiple_submision_validation_statuses(self):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         self._add_submission('someuser')
         self._add_submission(None)
         submissions_json = self.asset.deployment.get_submissions(
@@ -1639,7 +1639,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(
-            metadata__submission__submitted_by='admin'
+            metadata__submission__submitted_by='adminuser'
         ).first()
         self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
