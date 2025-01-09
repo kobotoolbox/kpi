@@ -8,6 +8,7 @@ import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.response import Response
@@ -37,6 +38,11 @@ from kpi.constants import (
 from kpi.models import Asset, AssetFile, ObjectPermission, PairedData
 from kpi.models.asset import AssetSetting
 from kpi.utils.strings import to_str
+from kpi.utils.xml import (
+    edit_submission_xml,
+    fromstring_preserve_root_xmlns,
+    xml_tostring,
+)
 
 
 @ddt
@@ -65,6 +71,20 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def tearDown(self):
         # clean up mongo
         settings.MONGO_DB.instances.delete_many({})
+
+    def _add_submission(self, username):
+        uuid_ = uuid.uuid4()
+        # add a submission by <username>
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': username,
+        }
+        self.asset.deploy(backend='mock')
+
+        self.asset.deployment.mock_submissions([submission_data])
 
     def _check_common_metadata(self, metadata_dict, expected_subtype):
         self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
@@ -1458,18 +1478,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     @data('admin', 'someuser')
     def test_log_created_for_duplicate_submission(self, duplicating_user):
-        uuid_ = uuid.uuid4()
-        # add a submission by 'admin'
-        submission_data = {
-            'q1': 'answer',
-            'q2': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            '_uuid': str(uuid_),
-            '_submitted_by': 'admin',
-        }
-        self.asset.deploy(backend='mock')
-
-        self.asset.deployment.mock_submissions([submission_data])
+        self._add_submission('admin')
         submissions = self.asset.deployment.get_submissions(
             self.asset.owner, fields=['_id']
         )
@@ -1495,3 +1504,157 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
         self.assertEqual(metadata['submission']['submitted_by'], duplicating_user)
+
+    @data('admin', None)
+    def test_update_one_submission_content(self, username):
+        self._add_submission(username)
+        submissions_xml = self.asset.deployment.get_submissions(
+            self.asset.owner, format_type='xml'
+        )
+        submission_xml = submissions_xml[0]
+        submissions_json = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_json = submissions_json[0]
+
+        xml_parsed = fromstring_preserve_root_xmlns(submission_xml)
+        edit_submission_xml(
+            xml_parsed, 'meta/deprecatedID', submission_json['meta/instanceID']
+        )
+        edit_submission_xml(xml_parsed, 'meta/instanceID', 'foo')
+        edit_submission_xml(xml_parsed, 'Q1', 'new answer')
+        edited_submission = xml_tostring(xml_parsed)
+        url = reverse(
+            self._get_endpoint('api_v2:assetsnapshot-submission-alias'),
+            args=(self.asset.snapshot().uid,),
+        )
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'name.txt', edited_submission.encode()
+            )
+        }
+        self.client.post(
+            path=url,
+            data=data,
+            format='multipart',
+        )
+        self.asset.refresh_from_db()
+
+        # make sure a log was created
+        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+        # check the log has the expected fields and metadata
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
+        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        submitted_by = username if username is not None else 'AnonymousUser'
+        self.assertEqual(log.metadata['submission']['submitted_by'], submitted_by)
+
+    def test_update_multiple_submissions_content(self):
+        self._add_submission('admin')
+        self._add_submission('someuser')
+        self._add_submission(None)
+
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        payload = json.dumps(
+            {
+                'submission_ids': [sub['_id'] for sub in submissions_json],
+                'data': {'Q1': 'new_answer'},
+            }
+        )
+
+        self.client.patch(
+            path=reverse(
+                'api_v2:submission-bulk', kwargs={'parent_lookup_asset': self.asset.uid}
+            ),
+            data={'payload': payload},
+            format='json',
+        )
+
+        self.assertEqual(ProjectHistoryLog.objects.count(), 3)
+        log1 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='admin'
+        ).first()
+        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
+
+        log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='someuser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
+
+        log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='AnonymousUser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
+
+    @data('admin', None)
+    def test_update_single_submission_validation_status(self, username):
+        self._add_submission(username)
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.patch,
+            url=reverse(
+                'api_v2:submission-validation-status',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submissions_json[0]['_id'],
+                },
+            ),
+            request_data={'validation_status.uid': 'validation_status_on_hold'},
+            expected_action=AuditAction.MODIFY_SUBMISSION,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        expected_username = username if username is not None else 'AnonymousUser'
+        self.assertEqual(log_metadata['submission']['submitted_by'], expected_username)
+        self.assertEqual(log_metadata['submission']['status'], 'On Hold')
+
+    def test_multiple_submision_validation_statuses(self):
+        self._add_submission('admin')
+        self._add_submission('someuser')
+        self._add_submission(None)
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        payload = json.dumps(
+            {
+                'submission_ids': [sub['_id'] for sub in submissions_json],
+                'validation_status.uid': 'validation_status_on_hold',
+            }
+        )
+
+        self.client.patch(
+            path=reverse(
+                'api_v2:submission-validation-statuses',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data={'payload': payload},
+            format='json',
+        )
+
+        self.assertEqual(ProjectHistoryLog.objects.count(), 3)
+        log1 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='admin'
+        ).first()
+        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
+        self.assertEqual(log1.metadata['submission']['status'], 'On Hold')
+
+        log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='someuser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
+        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
+
+        log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='AnonymousUser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
+        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')

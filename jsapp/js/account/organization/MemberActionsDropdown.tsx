@@ -18,6 +18,8 @@ import {OrganizationUserRole} from './organizationQuery';
 
 // Styles
 import styles from './memberActionsDropdown.module.scss';
+import router from 'jsapp/js/router/router';
+import { ROUTES } from 'jsapp/js/router/routerConstants';
 
 interface MemberActionsDropdownProps {
   targetUsername: string;
@@ -69,15 +71,21 @@ export default function MemberActionsDropdown(
       .replace('##TEAM_OR_ORGANIZATION##', mmoLabel);
   }
 
+  const onRemovalConfirmation = () => {
+    setIsRemoveModalVisible(false);
+    if (isAdminRemovingSelf) {
+      // Redirect to account root after leaving the organization
+      router.navigate(ROUTES.ACCOUNT_ROOT);
+    }
+  };
+
   return (
     <>
       {isRemoveModalVisible &&
         <MemberRemoveModal
           username={targetUsername}
           isRemovingSelf={isAdminRemovingSelf}
-          onConfirmDone={() => {
-            setIsRemoveModalVisible(false);
-          }}
+          onConfirmDone={onRemovalConfirmation}
           onCancel={() => setIsRemoveModalVisible(false)}
         />
       }
