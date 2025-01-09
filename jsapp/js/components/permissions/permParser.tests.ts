@@ -524,7 +524,7 @@ describe('permParser', () => {
       ]);
     });
 
-    it('should not lose permissions with multiple partial perms targeting same user', () => {
+    it('should omit implied permissions with multiple partial perms targeting same user', () => {
       const parsed = parseFormData({
         username: 'leszek',
         formView: true,
@@ -562,10 +562,7 @@ describe('permParser', () => {
           user: '/api/v2/users/leszek/',
           permission: '/api/v2/permissions/partial_submissions/',
           partial_permissions: [
-            // {
-            //   url: '/api/v2/permissions/view_submissions/',
-            //   filters: [{_submitted_by: 'josh'}],
-            // },
+            // We don't have `view_submissions` here because they are implied.
             {
               url: '/api/v2/permissions/change_submissions/',
               filters: [{_submitted_by: 'josh'}],
