@@ -11,7 +11,7 @@ import {stores} from 'js/stores';
 import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';
 import {
@@ -262,7 +262,7 @@ export class TranslationSettings extends React.Component {
       this.state.asset?.content &&
       hasAssetRestriction(
         this.state.asset.content,
-        LOCKING_RESTRICTIONS.language_edit.name
+        LockingRestrictionName.language_edit
       )
     );
   }

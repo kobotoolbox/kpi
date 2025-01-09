@@ -10,7 +10,7 @@ $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
 isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
 hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
-LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LockingRestrictionName = require('js/components/locking/lockingConstants').LockingRestrictionName
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
@@ -333,7 +333,7 @@ module.exports = do ->
       # hide all ways of adding new questions
       if (
         @isLockable() and
-        @hasRestriction(LOCKING_RESTRICTIONS.question_add.name)
+        @hasRestriction(LockingRestrictionName.question_add)
       )
         # "+" buttons
         @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
@@ -638,7 +638,7 @@ module.exports = do ->
         @features.multipleQuestions and
         not (
           @isLockable() and
-          @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+          @hasRestriction(LockingRestrictionName.question_order_edit)
         )
       )
         @activateSortable()
