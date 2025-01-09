@@ -1,0 +1,37 @@
+.input {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-4);
+    opacity: 1;
+  }
+}
+
+.input[data-expanded] + div > i {
+  transform: rotate(180deg) translateY(2px);
+}
+
+.dropdown {
+  border-color: var(--mantine-color-gray-6);
+  padding: 0;
+}
+
+.options:hover .option[data-checked] {
+  background-color: transparent;
+}
+
+.option {
+  border-radius: 0;
+}
+
+.option:hover {
+  background-color: var(--mantine-color-blue-8) !important;
+}
+
+.option[data-checked] {
+  background-color: var(--mantine-color-blue-8);
+}
+
+.section {
+  color: var(--mantine-color-gray-4);
+}
