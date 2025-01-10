@@ -5,6 +5,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ObjectPermission
+
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_permissions
 from kpi.tests.kpi_test_case import KpiTestCase

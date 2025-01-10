@@ -1390,7 +1390,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'permission': reverse(
                     'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
                 ),
-                'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'adminuser'}),
+                'user': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'adminuser'}
+                ),
             },
         ]
         self.client.post(
