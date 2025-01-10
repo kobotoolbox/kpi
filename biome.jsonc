@@ -1,58 +1,41 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "include": ["jsapp/**"],
+    "ignore": ["jsapp/compiled/**", "jsapp/node_modules/**", "*.css"],
+  },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true
   },
-  // "formatter": {
-  //   "enabled": true,
-  //   "useEditorconfig": true,
-  //   "formatWithErrors": false,
-  //   "ignore": [],
-  //   "attributePosition": "auto",
-  //   "lineEnding": "lf"
-  // },
-  // "javascript": {
-  //   "formatter": {
-  //     "attributePosition": "multiline",
-  //     "quoteProperties": "asNeeded",
-  //     "lineWidth": 80,
-  //     "quoteStyle": "single",
-  //     "jsxQuoteStyle": "single",
-  //     "trailingCommas": "es5",
-  //     "bracketSpacing": false,
-  //     "semicolons": "always"
-  //   }
-  // },
   "formatter": {
-    // "enabled": true,                   // Default.
-    // "formatWithErrors": false,         // Default.
-    // "ignore": [],                      // Default.
-    // "attributePosition": "auto",       // Default.
-    "indentStyle": "space",               // best-fit to Kobo previous code style.
-    // "indentWidth": 2,                  // Default.
-    // "lineWidth": 80,                   // Default.
-    // "lineEnding": "lf"                 // Default.
+    "enabled": true,                   // Default.
+    "formatWithErrors": false,         // Default.
+    "ignore": [],                      // Default.
+    "attributePosition": "auto",       // Default.
+    "indentStyle": "space",               // Default is tab, we use space due imho the real standard.
+    "indentWidth": 2,                  // Default.
+    "lineWidth": 120,                     // Default is 80, we use 120 due wider monitors nowadays.
+    "lineEnding": "lf"                 // Default.
   },
   "javascript": {
     "formatter": {
-      // "arrowParentheses":"always",     // Default.
-      // "bracketSameLine": false,        // Default.
-      "bracketSpacing": false,            // best-fit to Kobo previous code style.
-      "jsxQuoteStyle": "single",          // best-fit to Kobo previous code style.
-      "quoteProperties": "preserve",      // best-fit to Kobo previous code style.
-      // "semicolons": "always",          // Default.
-      "trailingCommas": "es5",            // best-fit to Kobo previous code style.
-      // "attributePosition": "auto",     // Default.
-      "quoteStyle": "single",             // best-fit to Kobo previous code style.
-      // "trailingComma": "all",          // Default.
+      "arrowParentheses":"always",     // Default.
+      "bracketSameLine": false,        // Default.
+      "bracketSpacing": true,             // Default.
+      "jsxQuoteStyle": "single",          // Default is double, we use single for a cleaner look.
+      "quoteProperties": "asNeeded",      // Default.
+      "semicolons": "asNeeded",           // Default is always, we use asNeeded for a cleaner look.
+      "trailingCommas": "all",            // Default
+      "attributePosition": "auto",     // Default.
+      "quoteStyle": "single",             // Default is double, we use single for a cleaner look.
     }
   },
   "organizeImports": {
     "enabled": false  // TODO: depends on standardized `#jsapp/*` internal TS alias imports for import distance calculation.
   },
   "linter": {
-    "enabled": false // TBD
+    "enabled": false  // TODO: for later.
   }
 }
