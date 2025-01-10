@@ -48,51 +48,7 @@ const jsRules = {
   'react/wrap-multilines': 0,
   strict: 1,
 
-  // Formatting (stylistic) rules.
-  //
-  // 'Deprecated' in ESLint 8.53.0, see announcement
-  // - Announcement: https://eslint.org/blog/2023/10/deprecating-formatting-rules/
-  // - Rules deprecated: (https://github.com/eslint/eslint/commit/528e1c00dc2a)
-  //
-  // Successor: ESLint Stylistic, community project
-  // - Rules: https://eslint.style/packages/default#rules
-  //
-  // It'll be useful to keep a variant of these rules around as an alternative
-  // "auto-fixer" (versus Biome), since Biome modifies line wrappings in
-  // a way that can harm code readability at times.
-  //
-  // Idea:
-  //  * Create a 'stylistic-only' ESLint config with these rules
-  //  * Use the stylistic config for 'auto-fix' (lightweight formatting) in editor
-  //    (normalize quotes, commas, semicolons, etc. without touching linebreaks)
-  //  * Remove 'stylistic' rules from the main config, to reduce diagnostic
-  //    clutter in code or in the 'Problems' pane
-  //  * Keep an optional well-configured 'Biome' tooling, able to run on
-  //    modified lines or current/selected paragraph, around for convenience
-  'arrow-parens': [1, 'always'],
-  'arrow-spacing': 1,
-  'block-spacing': [1, 'never'],
-  'brace-style': [1, '1tbs', {allowSingleLine: true}],
-  'comma-dangle': [1, 'always-multiline'],
-  'comma-spacing': [1, {before: false, after: true}],
-  'eol-last': [1, 'always'],
-  'func-call-spacing': 1,
-  'jsx-quotes': ['warn', 'prefer-single'],
-  'key-spacing': [1, {beforeColon: false, afterColon: true, mode: 'strict'}],
-  'no-confusing-arrow': 1,
-  'no-extra-semi': 1,
-  'no-mixed-spaces-and-tabs': 1,
-  'no-multi-spaces': 1, // Comment out to permit columnar formatting
-  'no-multiple-empty-lines': [1, {max: 2, maxEOF: 1}],
-  'no-trailing-spaces': 1,
-  'no-whitespace-before-property': 1,
-  'quotes': ['warn', 'single', {avoidEscape: true}],
-  'semi-spacing': [1, {before: false, after: true}],
-  'semi-style': [1, 'last'],
-  'semi': 1,
-  'space-before-function-paren': 'off',
-  'space-in-parens': [1, 'never'],
-  'space-infix-ops': 1,
+  'no-extra-semi': 0,  // Explicitly turn off deprecated stylistic rule.
 
   // React Plugin - Default to plugin:react/recommended.
   //   https://github.com/jsx-eslint/eslint-plugin-react
@@ -201,47 +157,6 @@ const tsRules = Object.assign({}, jsRules, {
   'no-unused-vars': 'off',
   'no-useless-backreference': 'off',
   'no-var': 1,
-
-  // Formatting (stylistic) rules, for TypeScript.
-  // 'Deprecated' in @typescript-eslint v6.16.0 (https://typescript-eslint.io/blog/deprecating-formatting-rules/),
-  // Still useful for us in some form, particularly with auto-fix.
-  // See "Formatting (stylistic) rules" comment, above.
-  '@typescript-eslint/comma-dangle': [1, 'always-multiline'],
-  '@typescript-eslint/comma-spacing': [1, {before: false, after: true}],
-  '@typescript-eslint/func-call-spacing': [1, 'never'],
-  '@typescript-eslint/keyword-spacing': [1, {before: true, after: true}],
-  '@typescript-eslint/no-extra-parens': 'off',
-  '@typescript-eslint/no-extra-semi': 1,
-  '@typescript-eslint/object-curly-spacing': 1,
-  '@typescript-eslint/member-delimiter-style': [1, {
-    multiline: {delimiter: 'semi'},
-    singleline: {delimiter: 'semi'},
-  }],
-  '@typescript-eslint/quotes': ['warn', 'single', {avoidEscape: true}],
-  '@typescript-eslint/semi': 1,
-  '@typescript-eslint/type-annotation-spacing': [1, {
-    before: false,
-    after: true,
-    overrides: {
-      arrow: {
-        before: true,
-        after: true,
-      },
-    },
-  }],
-  '@typescript-eslint/space-before-function-paren': [1, {
-    anonymous: 'always',
-    named: 'never',
-    asyncArrow: 'always',
-  }],
-  // Turn off equivalent ESLint rules
-  'comma-dangle': 'off',
-  'comma-spacing': 'off',
-  'func-call-spacing': 'off',
-  'no-extra-semi': 'off',
-  'quotes': 'off',
-  'semi': 'off',
-
 });
 
 module.exports = {
