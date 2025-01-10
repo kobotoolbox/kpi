@@ -440,7 +440,6 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_can_search_access_logs_by_username(self):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        admin = User.objects.get(username='adminuser')
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user2)
         self.force_login_user(User.objects.get(username='adminuser'))
