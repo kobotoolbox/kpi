@@ -822,12 +822,17 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
     ).order_by('-id')
 
-    latest_attachments = queryset[:len(basenames)]
-    remaining_attachments = queryset.exclude(
-        id__in=latest_attachments.values_list('id', flat=True)
-    )
+    latest_attachments, remaining_attachments_ids = [], []
+    basename_set = set(basenames)
+    for attachment in queryset:
+        if attachment.media_file_basename in basename_set:
+            latest_attachments.append(attachment)
+            basename_set.remove(attachment.media_file_basename)
+        else:
+            remaining_attachments_ids.append(attachment.id)
+    remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
+    soft_deleted_attachments = list(remaining_attachments)
 
-    soft_deleted_attachments = list(remaining_attachments.all())
     # The query below updates only the database records, not the in-memory
     # `Attachment` objects.
     # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
