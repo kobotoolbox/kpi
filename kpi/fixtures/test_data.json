@@ -12,7 +12,7 @@
             "last_name": "",
             "password": "pbkdf2_sha256$15000$fsiY4ICrvcIa$z8esAlmJ/ip0sR7TZkmpxxt4CWw1O1+cfWLbZ3/ip4E=",
             "user_permissions": [],
-            "username": "admin"
+            "username": "adminuser"
         },
         "model": "kobo_auth.user",
         "pk": 1

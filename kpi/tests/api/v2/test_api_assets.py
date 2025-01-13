@@ -1098,7 +1098,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
 
         # Verify an admin user has access to the data
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

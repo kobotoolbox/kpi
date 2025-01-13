@@ -165,7 +165,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        self.admin = User.objects.get(username='admin')
+        self.admin = User.objects.get(username='adminuser')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
 

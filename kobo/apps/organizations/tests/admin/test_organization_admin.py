@@ -19,7 +19,7 @@ class TestOrganizationAdminTestCase(TestCase):
 
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
-        self.admin = User.objects.get(username='admin')
+        self.admin = User.objects.get(username='adminuser')
 
         self.organization.add_user(self.someuser)  # someuser becomes the owner
 
