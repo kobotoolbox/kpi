@@ -263,6 +263,24 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.data['count'] == 1
         assert response.data['results'] == expected
 
+    def test_view_log_from_deleted_user(self):
+        someuser = get_user_model().objects.get(username='someuser')
+        date_created = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        AuditLog.objects.create(
+            user=someuser,
+            app_label='foo',
+            model_name='bar',
+            object_id=1,
+            date_created=date_created,
+            action=AuditAction.UPDATE,
+            log_type=AuditType.DATA_EDITING,
+        )
+        someuser.delete()
+        self.login_user(username='adminuser', password='pass')
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['username'] is None
 
 class ApiAccessLogTestCase(BaseAuditLogTestCase):
 
