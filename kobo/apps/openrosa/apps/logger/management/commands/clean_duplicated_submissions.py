@@ -89,7 +89,6 @@ class Command(BaseCommand):
 
             # Handle the different xml_hash duplicates (update uuid)
             if different_xml_hash_duplicates:
-                instance_ref = different_xml_hash_duplicates.pop(0)
                 self._replace_duplicates(different_xml_hash_duplicates)
 
     def _delete_duplicates(self, instance_ref, duplicated_instances):
@@ -165,12 +164,19 @@ class Command(BaseCommand):
 
             if self._verbosity >= 1:
                 self.stdout.write(
-                    f'\tUpdating instance #{instance.pk} ({instance.uuid})…'
+                    f'\tUpdating instance #{instance.pk}…'
                 )
 
             # Update the UUID and XML hash
-            instance.uuid = (f'DUPLICATE-{idx}-{instance.xform.id_string}-'
-                             f'{instance.uuid}')
+            old_uuid = instance.uuid
+            instance.uuid = (
+                f'DUPLICATE-{idx}-{instance.xform.id_string}-'
+                f'{instance.uuid}'
+            )
+            if self._verbosity >= 2:
+                self.stdout.write(
+                    f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
+                )
             instance.xml = set_meta(
                 instance.xml, 'instanceID', instance.uuid
             )
