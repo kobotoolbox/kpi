@@ -32,7 +32,7 @@ def parse_script_args():
     for arg in sys.argv[2:]:
         if '=' in arg:
             key, value = arg.split('=', 1)
-            if value.startswith(f"{key}="):
+            if value.startswith(f'{key}='):
                 value = value.split('=', 1)[1]
             args[key] = value
     return args
@@ -55,9 +55,9 @@ def run(
     provider_id = parsed_args.get('provider_id', provider_id)
 
     logger.debug(
-        f"Raw arguments - client_id: {client_id}, client_secret: {client_secret}, "
-        f"social_app_name: {social_app_name}, provider_id: {provider_id}, "
-        f"google_auth_enabled: {google_auth_enabled}")
+        f'Raw arguments - client_id: {client_id}, client_secret: {client_secret}, '
+        f'social_app_name: {social_app_name}, provider_id: {provider_id}, '
+        f'google_auth_enabled: {google_auth_enabled}')
 
     if google_auth_enabled is not None:
         google_auth_enabled = str(google_auth_enabled).lower() in ['true', '1', 'yes']
