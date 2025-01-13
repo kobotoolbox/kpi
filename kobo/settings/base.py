@@ -1101,14 +1101,6 @@ if STRIPE_ENABLED:
 
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
 
-"""SSO Configuration"""
-
-GOOGLE_AUTH_ENABLED = env.bool('GOOGLE_AUTH_ENABLED', False)
-if GOOGLE_AUTH_ENABLED:
-    GOOGLE_CLIENT_ID = env.str('GOOGLE_CLIENT_ID', None)
-    GOOGLE_CLIENT_SECRET = env.str('GOOGLE_CLIENT_SECRET', None)
-    SOCIAL_APP_NAME = env.str('SOCIAL_APP_NAME', None)
-    SOCIAL_APP_PROVIDER_ID = env.str('SOCIAL_APP_PROVIDER_ID', None)
 
 """Organizations settings"""
 # necessary to prevent calls to `/organizations/{ORG_ID}/service_usage/` (and any other
