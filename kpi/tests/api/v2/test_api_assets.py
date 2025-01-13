@@ -1862,10 +1862,48 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             deploy_response.data['error'],
-            (
-                'ODK Validation Error: '
-                "The survey element named 'Enter_an_int_number' has no label or hint."
-            ),
+            "The survey element named 'Enter_an_int_number' has no label or hint.",
+        )
+
+    def test_asset_deployment_with_sheet_name_Settings(self):  # noqa
+        content = {
+            'schema': '1',
+            'survey': [
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    'label': ['Enter a float number'],
+                    'required': False,
+                },
+            ],
+            'choices': [],
+            'settings': {},
+            'Settings': [],  # simulate sheet name called `Settings` on import
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset = Asset.objects.get(uid=asset_response.data.get('uid'))
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        assert deploy_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            "Sheetname 'Settings', with case ignored, is already in use"
+            in deploy_response.data['error']
         )
 
     @patch('kpi.views.v2.asset.ProjectHistoryLog.create_from_deployment_request')
