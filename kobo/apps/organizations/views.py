@@ -445,7 +445,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
-            organization_id=organization_id,
+            organization_id=OuterRef('organization_id'),
             organization_user=OuterRef('pk')
         ).values('pk')
 
@@ -486,12 +486,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 invitee_id__isnull=True
             )
 
-            combined_queryset = (
+            queryset = (
                 list(queryset) +
                 list(registered_invitees) +
                 list(unregistered_invitees)
             )
-            return combined_queryset
         return queryset
 
 
