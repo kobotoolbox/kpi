@@ -1,5 +1,7 @@
 from django.conf import settings
 from pyxform.errors import PyXFormError
+from pyxform.validators.enketo_validate import EnketoValidateError
+from pyxform.validators.odk_validate import ODKValidateError
 from rest_framework import serializers
 from xlsxwriter.exceptions import DuplicateWorksheetName
 
@@ -36,7 +38,12 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         try:
             asset.deploy(backend=backend_id, active=validated_data.get('active', False))
-        except (DuplicateWorksheetName, PyXFormError) as e:
+        except (
+            DuplicateWorksheetName,
+            EnketoValidateError,
+            PyXFormError,
+            ODKValidateError,
+        ) as e:
             raise serializers.ValidationError({'error': str(e)})
         return asset.deployment
 
