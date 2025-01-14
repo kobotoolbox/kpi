@@ -29,6 +29,7 @@ import type {
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
 import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
+import type {AssetLockingProfileDefinition} from 'jsapp/js/components/locking/lockingConstants';
 
 interface AssetsRequestData {
   q?: string;
@@ -391,11 +392,6 @@ export interface SurveyChoice {
   $autoname?: string;
 }
 
-interface AssetLockingProfileDefinition {
-  name: string;
-  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
-}
-
 export interface AssetContentSettings {
   name?: string;
   version?: string;
@@ -404,7 +400,9 @@ export interface AssetContentSettings {
   form_id?: string;
   title?: string;
   'kobo--lock_all'?: boolean;
-  'kobo--locking-profile'?: 'string';
+  /** The name of the locking profile applied to whole form. */
+  'kobo--locking-profile'?: string;
+  default_language?: string;
 }
 
 /**
@@ -420,6 +418,7 @@ export interface AssetContent {
   translated?: string[];
   /** A list of languages. */
   translations?: Array<string | null>;
+  /** A list of all availavble locking profiles */
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
 

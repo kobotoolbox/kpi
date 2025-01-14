@@ -200,7 +200,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             action=AuditAction.DELETE,
             log_type=AuditType.DATA_EDITING,
         )
-        self.login_user(username='admin', password='pass')
+        self.login_user(username='adminuser', password='pass')
         expected = [
             {
                 'app_label': 'foo',
@@ -242,7 +242,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             action=AuditAction.DELETE,
             log_type=AuditType.DATA_EDITING,
         )
-        self.login_user(username='admin', password='pass')
+        self.login_user(username='adminuser', password='pass')
         expected = [
             {
                 'app_label': 'foo',
@@ -262,6 +262,26 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert audit_logs_count == 2
         assert response.data['count'] == 1
         assert response.data['results'] == expected
+
+    def test_view_log_from_deleted_user(self):
+        someuser = get_user_model().objects.get(username='someuser')
+        date_created = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        AuditLog.objects.create(
+            user=someuser,
+            app_label='foo',
+            model_name='bar',
+            object_id=1,
+            date_created=date_created,
+            action=AuditAction.UPDATE,
+            log_type=AuditType.DATA_EDITING,
+        )
+        someuser.delete()
+        self.login_user(username='adminuser', password='pass')
+        response = self.client.get(self.url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['username'] is None
+        assert response.data['results'][0]['user'] is None
 
 
 class ApiAccessLogTestCase(BaseAuditLogTestCase):
@@ -363,14 +383,14 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_show_all_access_logs_succeeds_for_superuser(self):
-        self.force_login_user(User.objects.get(username='admin'))
+        self.force_login_user(User.objects.get(username='adminuser'))
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_show_all_access_logs_includes_all_users(self):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        admin = User.objects.get(username='admin')
+        admin = User.objects.get(username='adminuser')
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user2)
         self.force_login_user(admin)
@@ -384,7 +404,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         # this is just to ensure that we're using the grouping query
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        admin = User.objects.get(username='admin')
+        admin = User.objects.get(username='adminuser')
 
         self.force_login_user(admin)
         jan_1_1_30_am = datetime.fromisoformat('2024-01-01T01:30:25.123456+00:00')
@@ -440,10 +460,9 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_can_search_access_logs_by_username(self):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        admin = User.objects.get(username='admin')
         AccessLog.objects.create(user=user1)
         AccessLog.objects.create(user=user2)
-        self.force_login_user(User.objects.get(username='admin'))
+        self.force_login_user(User.objects.get(username='adminuser'))
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
 
         # only return logs from user1
@@ -456,7 +475,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     ):
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
-        admin = User.objects.get(username='admin')
+        admin = User.objects.get(username='adminuser')
         self.force_login_user(admin)
 
         # create two submissions that will be grouped together
@@ -489,7 +508,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_can_search_access_logs_by_date(self):
         user = User.objects.get(username='someuser')
         with skip_login_access_log():
-            self.client.force_login(User.objects.get(username='admin'))
+            self.client.force_login(User.objects.get(username='adminuser'))
         tomorrow = timezone.now() + timedelta(days=1)
         tomorrow_str = tomorrow.strftime('%Y-%m-%d')
         # create one log from today and one from tomorrow
@@ -514,7 +533,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
     def test_can_search_access_logs_by_date_including_submission_groups(self):
         user = User.objects.get(username='someuser')
         with skip_login_access_log():
-            self.client.force_login(User.objects.get(username='admin'))
+            self.client.force_login(User.objects.get(username='adminuser'))
         tomorrow = timezone.now() + timedelta(days=1)
         two_days_from_now = tomorrow + timedelta(days=1)
         tomorrow_str = tomorrow.strftime('%Y-%m-%d')
@@ -649,7 +668,7 @@ class ApiAllProjectHistoryLogsTestCase(
 
     def setUp(self):
         super().setUp()
-        self.user = User.objects.get(username='admin')
+        self.user = User.objects.get(username='adminuser')
         self.asset = Asset.objects.get(pk=1)
         self.force_login_user(self.user)
 
@@ -705,7 +724,7 @@ class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_export_for_superuser_commences(self):
-        self.force_login_user(User.objects.get(username='admin'))
+        self.force_login_user(User.objects.get(username='adminuser'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -790,12 +809,12 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_export_access_logs_for_superuser_returns_success(self):
-        self.force_login_user(User.objects.get(username='admin'))
+        self.force_login_user(User.objects.get(username='adminuser'))
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_superuser_create_export_task_on_post(self):
-        test_superuser = User.objects.get(username='admin')
+        test_superuser = User.objects.get(username='adminuser')
         self.force_login_user(test_superuser)
 
         response = self.client.post(self.url)
@@ -811,7 +830,7 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertTrue(task.get_all_logs)
 
     def test_superuser_get_status_tasks(self):
-        test_superuser = User.objects.get(username='admin')
+        test_superuser = User.objects.get(username='adminuser')
         self.force_login_user(test_superuser)
 
         AccessLogExportTask.objects.create(
@@ -844,7 +863,7 @@ class AllApiAccessLogsExportTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_multiple_export_tasks_not_allowed(self):
-        test_superuser = User.objects.get(username='admin')
+        test_superuser = User.objects.get(username='adminuser')
         self.force_login_user(test_superuser)
 
         response_first = self.client.post(self.url)
