@@ -281,6 +281,8 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert response.data['results'][0]['username'] is None
+        assert response.data['results'][0]['user'] is None
+
 
 class ApiAccessLogTestCase(BaseAuditLogTestCase):
 
