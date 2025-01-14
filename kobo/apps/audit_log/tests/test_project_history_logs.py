@@ -1665,12 +1665,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
 
     @data(
+        # submit as anonymous?, use v1 endpoint?
         (True, False),
         (False, True),
         (False, False),
     )
     @unpack
     def test_add_submission(self, anonymous, v1):
+        # prepare submission data
         uuid_ = uuid.uuid4()
         self.asset.deploy(backend='mock')
         submission_data = {
@@ -1695,19 +1697,24 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             kwargs=kwargs,
         )
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
+
         if not anonymous:
+            # the submission endpoints don't allow session authentication, so
+            # just force the request to attach the correct user
             self.client.force_authenticate(user=self.user)
 
+        # can't use _base_project_history_log_test here because our format is xml,
+        # not json
         self.client.post(
             url,
             data=data,
         )
-        # make sure a log was created
         logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(logs.count(), 1)
         log = logs.first()
-        # check the log has the expected fields and metadata
+
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
