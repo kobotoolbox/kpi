@@ -1657,12 +1657,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
 
-        log2 = ProjectHistoryLog.objects.filter(
+        log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
-        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
+        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
+        self.assertEqual(log3.metadata['submission']['status'], 'On Hold')
 
     @data(
         # submit as anonymous?, use v1 endpoint?
@@ -1720,3 +1720,67 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         username = 'AnonymousUser' if anonymous else self.user.username
         self.assertEqual(log.metadata['submission']['submitted_by'], username)
+
+    def test_delete_single_submission(self):
+        self._add_submission('adminuser')
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                'api_v2:submission-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submissions_json[0]['_id'],
+                },
+            ),
+            request_data={},
+            expected_action=AuditAction.DELETE_SUBMISSION,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['submission']['submitted_by'], 'adminuser')
+
+    def test_delete_multiple_submissions(self):
+        self._add_submission('adminuser')
+        self._add_submission('someuser')
+        self._add_submission(None)
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        payload = json.dumps(
+            {
+                'submission_ids': [sub['_id'] for sub in submissions_json],
+            }
+        )
+
+        self.client.delete(
+            path=reverse(
+                'api_v2:submission-bulk',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data={'payload': payload},
+            format='json',
+        )
+
+        self.assertEqual(ProjectHistoryLog.objects.count(), 3)
+        log1 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='adminuser'
+        ).first()
+        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log1.action, AuditAction.DELETE_SUBMISSION)
+
+        log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='someuser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.DELETE_SUBMISSION)
+
+        log3 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='AnonymousUser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)
+
+    def test_delete_multiple_submissions_timeout(self):
+        pass

@@ -399,6 +399,7 @@ class ProjectHistoryLog(AuditLog):
             'assetsnapshot-submission-alias': cls._create_from_submission_request,
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
+            'submission-detail': cls._create_from_submission_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -615,6 +616,8 @@ class ProjectHistoryLog(AuditLog):
         for instance in instances.values():
             if instance.action == 'add':
                 action = AuditAction.ADD_SUBMISSION
+            elif instance.action == 'delete':
+                action = AuditAction.DELETE_SUBMISSION
             else:
                 action = AuditAction.MODIFY_SUBMISSION
             metadata = {
