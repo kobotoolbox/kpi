@@ -1,0 +1,16 @@
+.item {
+  color: var(--mantine-color-blue-4);
+
+  &[data-hovered] {
+    color: var(--mantine-color-blue-5);
+    background-color: transparent;
+  }
+
+  &[data-variant='danger'] {
+    color: var(--mantine-color-red-5);
+
+    &[data-hovered] {
+      color: var(--mantine-color-red-6);
+    }
+  }
+}
