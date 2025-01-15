@@ -29,11 +29,14 @@ import {
 import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils';
 import pageState from 'js/pageState.store';
 
+import '@mantine/core/styles.css';
+import { MantineProvider } from '@mantine/core';
+
 // Query-related
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './query/queryClient.ts';
 import { RequireOrg } from './router/RequireOrg';
+import { themeKobo } from './theme';
 
 class App extends React.Component {
   constructor(props) {
@@ -107,46 +110,48 @@ class App extends React.Component {
     return (
       <DocumentTitle title='KoboToolbox'>
         <QueryClientProvider client={queryClient}>
-          <RootContextProvider>
-            <RequireOrg>
-              <Tracking />
-              <ToasterConfig />
+          <MantineProvider theme={themeKobo}>
+            <RootContextProvider>
+              <RequireOrg>
+                <Tracking />
+                <ToasterConfig />
 
-              {this.shouldDisplayMainLayoutElements() &&
-                <div className='header-stretch-bg' />
-              }
+                {this.shouldDisplayMainLayoutElements() &&
+                  <div className='header-stretch-bg' />
+                }
 
-              <bem.PageWrapper
-                m={pageWrapperModifiers}
-                className='mdl-layout mdl-layout--fixed-header'
-              >
-                {this.state.pageState.modal && (
-                  <BigModal params={this.state.pageState.modal} />
-                )}
-
-                {this.shouldDisplayMainLayoutElements() && (
-                  <>
-                    <MainHeader assetUid={assetid} />
-                    <Drawer />
-                  </>
-                )}
-
-                <bem.PageWrapper__content
-                  className='mdl-layout__content'
-                  m={pageWrapperContentModifiers}
+                <bem.PageWrapper
+                  m={pageWrapperModifiers}
+                  className='mdl-layout mdl-layout--fixed-header'
                 >
+                  {this.state.pageState.modal && (
+                    <BigModal params={this.state.pageState.modal} />
+                  )}
+
                   {this.shouldDisplayMainLayoutElements() && (
                     <>
-                      {this.isFormSingle() && <ProjectTopTabs />}
-                      <FormViewSideTabs show={this.isFormSingle()} />
+                      <MainHeader assetUid={assetid} />
+                      <Drawer />
                     </>
                   )}
 
-                  <Outlet />
-                </bem.PageWrapper__content>
-              </bem.PageWrapper>
-            </RequireOrg>
-          </RootContextProvider>
+                  <bem.PageWrapper__content
+                    className='mdl-layout__content'
+                    m={pageWrapperContentModifiers}
+                  >
+                    {this.shouldDisplayMainLayoutElements() && (
+                      <>
+                        {this.isFormSingle() && <ProjectTopTabs />}
+                        <FormViewSideTabs show={this.isFormSingle()} />
+                      </>
+                    )}
+
+                    <Outlet />
+                  </bem.PageWrapper__content>
+                </bem.PageWrapper>
+              </RequireOrg>
+            </RootContextProvider>
+          </MantineProvider>
 
 
           {/* React Query Devtools - GUI for inspecting and modifying query status

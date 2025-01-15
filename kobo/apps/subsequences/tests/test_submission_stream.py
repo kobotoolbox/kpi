@@ -1,8 +1,10 @@
 from copy import deepcopy
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.models import Asset
@@ -254,30 +256,39 @@ class TestSubmissionStream(TestCase):
                 '_uuid': '1c05898e-b43c-491d-814c-79595eb84e81',
             },
         ]
-        self.asset.deployment.mock_submissions(submissions)
 
-        # Process submissions with extras
-        output = list(
-            stream_with_extras(
-                self.asset.deployment.get_submissions(user=self.asset.owner),
-                self.asset,
+        # Mock the get_submissions method to return the test submissions
+        with patch.object(
+            self.asset.deployment,
+            'get_submissions',
+            return_value=submissions,
+        ):
+            # Expect a ConflictingSubmissionUUIDError due to duplicated UUIDs
+            with self.assertRaises(ConflictingSubmissionUUIDError):
+                self.asset.deployment.mock_submissions(submissions)
+
+            # Process submissions with extras
+            output = list(
+                stream_with_extras(
+                    self.asset.deployment.get_submissions(user=self.asset.owner),
+                    self.asset,
+                )
             )
-        )
 
-        # Make sure that uuid values for single or multiple choice qualitative
-        # analysis questions are kept as strings and not mutated
-        for submission in output:
-            supplemental_details = submission['_supplementalDetails']
-            for qual_response in supplemental_details['Tell_me_a_story']['qual']:
-                if qual_response['type'] not in [
-                    'qual_select_one',
-                    'qual_select_multiple',
-                ]:
-                    # question is not a single or multiple choice one
-                    continue
+            # Make sure that uuid values for single or multiple choice qualitative
+            # analysis questions are kept as strings and not mutated
+            for submission in output:
+                supplemental_details = submission['_supplementalDetails']
+                for qual_response in supplemental_details['Tell_me_a_story']['qual']:
+                    if qual_response['type'] not in [
+                        'qual_select_one',
+                        'qual_select_multiple',
+                    ]:
+                        # question is not a single or multiple choice one
+                        continue
 
-                for v in qual_response['val']:
-                    assert isinstance(v['uuid'], str)
+                    for v in qual_response['val']:
+                        assert isinstance(v['uuid'], str)
 
     def test_stream_with_extras_ignores_empty_qual_responses(self):
         # Modify submission extras 'val' to be an empty string
