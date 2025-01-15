@@ -1678,8 +1678,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         submission_data = {
             'q1': 'answer',
             'q2': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            'formhub/uuid': self.asset.deployment.xform.uuid,
+            'meta': {'instanceID': f'uuid:{uuid_}'},
+            'formhub': {'uuid': self.asset.deployment.xform.uuid},
             '_uuid': str(uuid_),
         }
         xml = ET.fromstring(
