@@ -1,9 +1,22 @@
+import multiprocessing
 import os
+from collections import defaultdict
+from functools import partial
 
+import pytest
+import requests
 import simplejson as json
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.test.testcases import LiveServerTestCase
 from django_digest.test import DigestAuth
+from rest_framework.authtoken.models import Token
+
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
@@ -11,8 +24,10 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Attachment
+from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kobo.apps.openrosa.libs.utils import logger_tools
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     OpenRosaResponseNotAllowed,
     OpenRosaTemporarilyUnavailable,
@@ -212,7 +227,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             self.assertTrue('error' in rendered_response.data)
             self.assertTrue(
                 rendered_response.data['error'].startswith(
-                    'Received empty submission'
+                    'Instance ID is required'
                 )
             )
             self.assertTrue(rendered_response.status_code == 400)
@@ -418,7 +433,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
     def test_submission_blocking_flag(self):
         # Set 'submissions_suspended' True in the profile to test if
-        # submission do fail with the flag set
+        # submission does fail with the flag set
         self.xform.user.profile.submissions_suspended = True
         self.xform.user.profile.save()
 
@@ -536,3 +551,108 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                         self.assertContains(
                             response, 'Successful submission.', status_code=201
                         )
+
+
+class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
+    """
+    Inherit from LiveServerTestCase to be able to test concurrent requests
+    to submission endpoint in different transactions (and different processes).
+    Otherwise, DB is populated only on the first request but still empty on
+    subsequent ones.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='bob', password='bob', email='bob@columbia.edu'
+        )
+        self.token, _ = Token.objects.get_or_create(user=self.user)
+        UserProfile.objects.get_or_create(user=self.user)
+
+    def publish_xls_form(self):
+        path = os.path.join(
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
+            'transportation.xls',
+        )
+
+        with open(path, 'rb') as f:
+            xls_file = ContentFile(f.read(), name='transportation.xls')
+
+        self.xform = logger_tools.publish_xls_form(xls_file, self.user)
+
+    @pytest.mark.skipif(
+        settings.SKIP_TESTS_WITH_CONCURRENCY,
+        reason='GitLab does not seem to support multi-processes'
+    )
+    def test_post_concurrent_same_submissions(self):
+        DUPLICATE_SUBMISSIONS_COUNT = 2  # noqa
+
+        self.publish_xls_form()
+        username = 'bob'
+        survey = 'transport_2011-07-25_19-05-49'
+        results = defaultdict(int)
+
+        with multiprocessing.Pool() as pool:
+            for result in pool.map(
+                partial(
+                    submit_data,
+                    live_server_url=self.live_server_url,
+                    survey_=survey,
+                    username_=username,
+                    token_=self.token.key
+                ),
+                range(DUPLICATE_SUBMISSIONS_COUNT),
+            ):
+                results[result] += 1
+
+        assert results[status.HTTP_201_CREATED] == 1
+        assert results[status.HTTP_202_ACCEPTED] == DUPLICATE_SUBMISSIONS_COUNT - 1
+
+
+def submit_data(identifier, survey_, username_, live_server_url, token_):
+    """
+    Submit data to live server.
+
+    It has to be outside `ConcurrentSubmissionTestCase` class to be pickled by
+    `multiprocessing.Pool().map()`.
+    """
+    media_file = '1335783522563.jpg'
+    main_directory = os.path.dirname(main_tests.__file__)
+    path = os.path.join(
+        main_directory,
+        'fixtures',
+        'transportation',
+        'instances',
+        survey_,
+        media_file,
+    )
+    with open(path, 'rb') as f:
+        f = InMemoryUploadedFile(
+            f,
+            'media_file',
+            media_file,
+            'image/jpg',
+            os.path.getsize(path),
+            None,
+        )
+        submission_path = os.path.join(
+            main_directory,
+            'fixtures',
+            'transportation',
+            'instances',
+            survey_,
+            f'{survey_}.xml',
+        )
+        with open(submission_path) as sf:
+            files = {'xml_submission_file': sf, 'media_file': f}
+            headers = {'Authorization': f'Token {token_}'}
+            response = requests.post(
+                f'{live_server_url}/{username_}/submission',
+                files=files,
+                headers=headers
+            )
+            return response.status_code

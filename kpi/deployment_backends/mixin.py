@@ -8,6 +8,7 @@ from kpi.models.asset_file import AssetFile
 
 from .backends import DEPLOYMENT_BACKENDS
 from .base_backend import BaseDeploymentBackend
+from .kc_access.utils import kc_transaction_atomic
 
 
 class DeployableMixin:
@@ -29,7 +30,8 @@ class DeployableMixin:
 
     def connect_deployment(self, backend: str, **kwargs):
         deployment_backend = self.__get_deployment_backend(backend)
-        deployment_backend.connect(**kwargs)
+        with kc_transaction_atomic():
+            deployment_backend.connect(**kwargs)
 
     def deploy(self, backend=False, active=True):
         """
