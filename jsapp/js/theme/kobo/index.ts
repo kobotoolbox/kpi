@@ -3,6 +3,7 @@ import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
 import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './menu';
+import {AlertThemeKobo} from './Alert';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -55,6 +56,18 @@ export const themeKobo = createTheme({
       'hsl(0deg 100% 90%)', // #ffcccc
       'hsl(0deg 100% 96%)', // #ffe9e9
     ],
+    amber: [
+      '#000',
+      '#000',
+      '#000',
+      '#000',
+      '#000',
+      'hsl(30deg 100% 25%)', // #803f00 ($kobo-dark-amber)
+      'hsl(29deg 100% 75%)', // #ffbe80 ($kobo-amber)
+      'hsl(30deg 100% 90%)', // #ffe8cc ($kobo-light-amber)
+      '#000',
+      '#000',
+    ]
   },
 
   // Typography
@@ -87,6 +100,7 @@ export const themeKobo = createTheme({
   },
 
   components: {
+    Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
     Menu: MenuThemeKobo,
     Tooltip: TooltipThemeKobo,
