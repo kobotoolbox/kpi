@@ -12,6 +12,7 @@ from google.cloud import storage
 from googleapiclient import discovery
 
 from kobo.apps.trackers.utils import update_nlp_counter
+from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, make_nlp_async_cache_key
 from ...exceptions import SubsequenceTimeoutError
 from ...models import SubmissionExtras
@@ -36,6 +37,11 @@ class GoogleService(ABC):
         self.user = submission.asset.owner
         self.credentials = google_credentials_from_constance_config()
         self.storage_client = storage.Client(credentials=self.credentials)
+        if settings.GS_BUCKET_NAME is None:
+            logging.warning(
+                'GS_BUCKET_NAME is None, NLP processing will fail '
+                'when storing files in google cloud.'
+            )
         self.bucket = self.storage_client.bucket(
             bucket_name=settings.GS_BUCKET_NAME
         )

@@ -141,11 +141,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
-        with kc_transaction_atomic():
-            self._xform = publish_xls_form(xlsx_file, self.asset.owner)
-            self._xform.downloadable = active
-            self._xform.kpi_asset_uid = self.asset.uid
-            self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform = publish_xls_form(xlsx_file, self.asset.owner)
+        self._xform.downloadable = active
+        self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
 
         self.store_data(
             {
@@ -322,7 +321,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         The returned Response should be in XML (expected format by Enketo Express)
         """
         user = request.user
-
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -353,9 +351,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
 
         # Validate write access for users with partial permissions
-        self.validate_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
         )
+
+        if submission_ids:
+            # If `submission_ids` is not empty, it indicates the user has partial
+            # permissions and has successfully passed validation. Therefore, set the
+            # `has_partial_perms` attribute on `request.user` to grant the necessary
+            # permissions when invoking `logger_tool.py::_has_edit_xform_permission()`.
+            user.has_partial_perms = True
 
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
@@ -991,8 +996,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        # TODO simplify response when KobocatDeploymentBackend
-        #  and MockDeploymentBackend are gone
         try:
             instance = Instance.objects.only('validation_status', 'date_modified').get(
                 pk=submission_id

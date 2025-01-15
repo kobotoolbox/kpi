@@ -1098,7 +1098,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
 
         # Verify an admin user has access to the data
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1724,6 +1724,92 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert (
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
+        )
+
+    def test_asset_deployment_validation_error(self):
+        bad_content = {
+            'schema': '1',
+            'survey': [
+                {
+                    'name': 'start',
+                    'type': 'start',
+                    '$kuid': 'O23MoETkI',
+                    '$xpath': 'start',
+                    '$autoname': 'start',
+                },
+                {
+                    'name': 'end',
+                    'type': 'end',
+                    '$kuid': '9rvIvjnrP',
+                    '$xpath': 'end',
+                    '$autoname': 'end',
+                },
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    '$kuid': 'e2v7ZTcDw',
+                    'label': ['Enter a float number'],
+                    '$xpath': 'Enter_a_float_number',
+                    'required': False,
+                    '$autoname': 'Enter_a_float_number',
+                },
+                {
+                    'name': 'What_s_your_name',
+                    'type': 'text',
+                    '$kuid': 'w8nnstZ1r',
+                    'label': ["What's your name?"],
+                    '$xpath': 'What_s_your_name',
+                    'required': False,
+                    '$autoname': 'What_s_your_name',
+                },
+                {
+                    'name': 'Enter_an_int_number',
+                    'type': 'integer',
+                    '$kuid': 'hpw7EKED0',
+                    '$xpath': 'Enter_an_int_number',
+                    'required': False,
+                    '$autoname': 'Enter_an_int_number',
+                },
+                {
+                    'name': 'Enter_a_time',
+                    'type': 'time',
+                    '$kuid': 'rwf9XqdlC',
+                    'label': ['Enter a time'],
+                    '$xpath': 'Enter_a_time',
+                    'required': False,
+                    '$autoname': 'Enter_a_time',
+                },
+            ],
+            'choices': [],
+            'settings': {},
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': bad_content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset = Asset.objects.get(uid=asset_response.data.get('uid'))
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            deploy_response.data['error'],
+            (
+                'ODK Validation Error: '
+                "The survey element named 'Enter_an_int_number' has no label or hint."
+            ),
         )
 
     def test_asset_redeployment(self):

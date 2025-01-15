@@ -1,22 +1,26 @@
 // Libraries
-import {useMutation, useQuery, useQueryClient, type UndefinedInitialDataOptions} from '@tanstack/react-query';
+import {useMutation, useQuery} from '@tanstack/react-query';
 import {useEffect} from 'react';
 
 // Stores, hooks and utilities
 import {fetchGetUrl, fetchPatch} from 'jsapp/js/api';
-import {FeatureFlag, useFeatureFlag} from 'js/featureFlags';
-import sessionStore from 'js/stores/session';
 import {useSession} from 'jsapp/js/stores/useSession';
 
 // Constants and types
 import type {FailResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
+import {queryClient} from 'jsapp/js/query/queryClient';
 
 // Comes from `kobo/apps/accounts/forms.py`
-export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none';
+export type OrganizationTypeName =
+  | 'non-profit'
+  | 'government'
+  | 'educational'
+  | 'commercial'
+  | 'none';
 
 export const ORGANIZATION_TYPES: {
-  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string}
+  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string};
 } = {
   'non-profit': {name: 'non-profit', label: t('Non-profit organization')},
   government: {name: 'government', label: t('Government institution')},
@@ -52,70 +56,55 @@ export enum OrganizationUserRole {
  * refetch data (are invalidated).
  */
 export function usePatchOrganization() {
-  const queryClient = useQueryClient();
   const session = useSession();
   const organizationUrl = session.currentLoggedAccount?.organization?.url;
 
   return useMutation({
-    mutationFn: async (data: Partial<Organization>) => (
+    mutationFn: async (data: Partial<Organization>) =>
       // We're asserting the `organizationUrl` is not `undefined` here, because
       // the parent query (`useOrganizationQuery`) wouldn't be enabled without
       // it. Plus all the organization-related UI is accessible only to
       // logged in users.
-      fetchPatch<Organization>(organizationUrl!, data, {prependRootUrl: false})
-    ),
+      fetchPatch<Organization>(organizationUrl!, data, {prependRootUrl: false}),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organization]});
     },
   });
 }
 
+interface OrganizationQueryParams {
+  shouldForceInvalidation?: boolean;
+}
+
 /**
  * Organization object is used globally.
  * For convenience, errors are handled once at the top, see `RequireOrg`.
- * No need to handle errors at every usage.
+ * No need to handle errors at every usage. Has custom staleTime, so use params
+ * to invalidate data and refetch when absolute latest data is needed.
  */
-export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<Organization, FailResponse, Organization, QueryKeys[]>, 'queryFn' | 'queryKey'>) => {
-  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
+export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
+  useEffect(() => {
+    if (params?.shouldForceInvalidation) {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organization],
+        refetchType: 'none',
+      });
+    }
+  }, [params?.shouldForceInvalidation]);
 
   const session = useSession();
-  const organizationUrl = session.currentLoggedAccount?.organization?.url;
-
-  // Using a separated function to fetch the organization data to prevent
-  // feature flag dependencies from being added to the hook
-  const fetchOrganization = async (): Promise<Organization> => {
-    // `organizationUrl` is a full url with protocol and domain name, so we're
-    // using fetchGetUrl.
-    // We're asserting the `organizationUrl` is not `undefined` here because
-    // the query is disabled without it.
-    const organization = await fetchGetUrl<Organization>(organizationUrl!);
-
-    if (isMmosEnabled) {
-      return organization;
-    }
-
-    // While the project is in development we will force a `false` return for
-    // the `is_mmo` to make sure we don't have any implementations appearing
-    // for users.
-    return {
-      ...organization,
-      is_mmo: false,
-    };
-  };
+  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined;
 
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
   // data.
-  const isQueryEnabled =
-    !sessionStore.isPending &&
-    sessionStore.isInitialLoadComplete &&
-    !!organizationUrl;
-
-  const query = useQuery<Organization, FailResponse, Organization, QueryKeys[]>({
-    ...options,
-    queryFn: fetchOrganization,
-    queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled && options?.enabled !== false,
+  const query = useQuery<Organization, FailResponse>({
+    staleTime: 1000 * 60 * 2,
+    // We're asserting the `organizationUrl` is not `undefined` here because
+    // the query is disabled without it.
+    queryFn: () => fetchGetUrl<Organization>(organizationUrl!),
+    queryKey: [QueryKeys.organization, organizationUrl],
+    enabled: !!organizationUrl,
   });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
@@ -125,7 +114,7 @@ export const useOrganizationQuery = (options?: Omit<UndefinedInitialDataOptions<
   // DEBT: don't retry the failing url 3-4 times before switching to the new url.
   useEffect(() => {
     if (query.error?.status === 404) {
-      sessionStore.refreshAccount();
+      session.refreshAccount();
     }
   }, [query.error?.status]);
 

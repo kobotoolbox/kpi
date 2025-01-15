@@ -1,13 +1,14 @@
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
-from rest_framework_extensions.mixins import NestedViewSetMixin
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import AccessLogExportTask
 from kpi.permissions import IsAuthenticated
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.tasks import export_task_in_background
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -25,15 +26,13 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     Lists actions performed by users.
     Only available for superusers.
 
-    <span class='label label-warning'>For now, only `DELETE`s are logged</span>
-
     <pre class="prettyprint">
     <b>GET</b> /api/v2/audit-logs/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/audit-logs/
+    >       curl -X GET https://[kpi-url]/api/v2/audit-logs/
 
     > Response 200
 
@@ -82,24 +81,24 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         a. Available actions:
 
-            i. create
-            ii. delete
-            iii. in-trash
-            iv. put-back
-            v. remove
-            vi. update
-            vii. auth
+        * create
+        * delete
+        * in-trash
+        * put-back
+        * remove
+        * update
+        * auth
 
     4. log_type
 
         a. Available log types:
 
-            i. access
-            ii. project-history
-            iii. data-editing
-            iv. submission-management
-            v. user-management
-            vi. asset-management
+        * access
+        * project-history
+        * data-editing
+        * submission-management
+        * user-management
+        * asset-management
 
     5. date_created
 
@@ -139,7 +138,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
 
     6. All authentications from superusers<br>
-        `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True
+        `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
     *Notes: Do not forget to wrap search terms in double-quotes if they contain spaces
     (e.g. date and time "2022-11-15 20:34")*
@@ -424,8 +423,10 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
+    >        clone-permissions
     >        connect-project
     >        delete-media
     >        delete-service
@@ -438,6 +439,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        modify-imported-fields
     >        modify-service
     >        modify-sharing
+    >        modify-submission
     >        modify-user-permissions
     >        redeploy
     >        register-service
@@ -448,7 +450,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        unarchive
     >        unshare-data-publicly
     >        unshare-form-publicly
-    >        update_content
+    >        update-content
     >        update-name
     >        update-settings
     >        update-qa
@@ -470,33 +472,37 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
     **Filterable fields by action:**
 
-    1. add-media
+    * add-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    2. archive
+    * add-submission
+
+        a. metadata__submission__submitted_by
+
+    * archive
 
         a. metadata__latest_version_uid
 
-    3. clone-permissions
+    * clone-permissions
 
         a. metadata__cloned_from
 
-    4. connect-project
+    * connect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    5. delete-media
+    * delete-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    6. delete-service
+    * delete-service
 
         a. metadata__hook__uid
 
@@ -504,25 +510,25 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    7. deploy
+    * deploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    8. disconnect-project
+    * disconnect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    9. modify-imported-fields
+    * modify-imported-fields
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    10. modify-service
+    * modify-service
 
         a. metadata__hook__uid
 
@@ -530,17 +536,23 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    11. modify-user-permissions
+    * modify-submission
+
+        a. metadata__submission__submitted_by
+
+        b. metadata__submission__status (only present if changed)
+
+    * modify-user-permissions
 
         a. metadata__permissions__username
 
-    12. redeploy
+    * redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    13. register-service
+    * register-service
 
         a. metadata__hook__uid
 
@@ -548,21 +560,21 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    14. transfer
+    * transfer
 
         a. metadata__username
 
-    15. unarchive
+    * unarchive
 
         a. metadata__latest_version_uid
 
-    16. update-name
+    * update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    17. update-settings
+    * update-settings
 
         a. metadata__settings__description__old
 
@@ -673,8 +685,10 @@ class ProjectHistoryLogViewSet(
         available actions:
 
     >        add-media
+    >        add-submission
     >        allow-anonymous-submissions
     >        archive
+    >        clone-permissions
     >        connect-project
     >        delete-media
     >        delete-service
@@ -687,6 +701,7 @@ class ProjectHistoryLogViewSet(
     >        modify-imported-fields
     >        modify-service
     >        modify-sharing
+    >        modify-submission
     >        modify-user-permissions
     >        redeploy
     >        register-service
@@ -697,7 +712,7 @@ class ProjectHistoryLogViewSet(
     >        unarchive
     >        unshare-data-publicly
     >        unshare-form-publicly
-    >        update_content
+    >        update-content
     >        update-name
     >        update-settings
     >        update-qa
@@ -719,33 +734,37 @@ class ProjectHistoryLogViewSet(
 
     **Filterable fields by action:**
 
-    1. add-media
+    * add-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    2. archive
+    * add-submission
+
+        a. metadata__submission__submitted_by
+
+    * archive
 
         a. metadata__latest_version_uid
 
-    3. clone-permissions
+    * clone-permissions
 
         a. metadata__cloned_from
 
-    4. connect-project
+    * connect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    5. delete-media
+    * delete-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    6. delete-service
+    * delete-service
 
         a. metadata__hook__uid
 
@@ -753,25 +772,25 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    7. deploy
+    * deploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    8. disconnect-project
+    * disconnect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    9. modify-imported-fields
+    * modify-imported-fields
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    10. modify-service
+    * modify-service
 
         a. metadata__hook__uid
 
@@ -779,17 +798,23 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    11. modify-user-permissions
+    * modify-submission
+
+        a. metadata__submission__submitted_by
+
+        b. metadata__submission__status (only present if changed)
+
+    * modify-user-permissions
 
         a. metadata__permissions__username
 
-    12. redeploy
+    * redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    13. register-service
+    * register-service
 
         a. metadata__hook__uid
 
@@ -797,21 +822,21 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    14. transfer
+    * transfer
 
         a. metadata__username
 
-    15. unarchive
+    * unarchive
 
         a. metadata__latest_version_uid
 
-    16. update-name
+    * update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    17. update-settings
+    * update-settings
 
         a. metadata__settings__description__old
 
@@ -819,6 +844,29 @@ class ProjectHistoryLogViewSet(
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
     >      curl -X GET https://[kpi-url]/assets/ap732ywWxc/history/?offset=100&limit=50
+
+    ### Actions
+
+    Retrieves distinct actions performed on the asset.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
+
+    > Response 200
+
+    >   {
+    >       "actions": [
+    >           "update-name",
+    >           "update-content",
+    >           "deploy",
+    >           ...
+    >       ]
+    >   }
+
     """
 
     serializer_class = ProjectHistoryLogSerializer
@@ -831,6 +879,16 @@ class ProjectHistoryLogViewSet(
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(
             '-date_created'
         )
+
+    @action(detail=False, methods=['GET'])
+    def actions(self, request, *args, **kwargs):
+        actions = (
+            self.model.objects.filter(metadata__asset_uid=self.asset_uid)
+            .values_list('action')
+            .distinct()
+        )
+        flattened = [action[0] for action in actions]
+        return Response({'actions': flattened})
 
 
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):

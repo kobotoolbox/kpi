@@ -17,18 +17,32 @@ import KoboModal from '../modals/koboModal';
 import KoboModalHeader from '../modals/koboModalHeader';
 import {ActivityMessage} from './activityMessage.component';
 import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
+import {useParams} from 'react-router-dom';
+import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table
  * of actions that users did on the project.
  */
 export default function FormActivity() {
-  const {data: filterOptions} = useActivityLogsFilterOptionsQuery();
+  const exportActivityLogsEnabled = useFeatureFlag(
+    FeatureFlag.exportActivityLogsEnabled
+  );
 
   const [selectedFilterOption, setSelectedFilterOption] =
     useState<KoboSelectOption | null>(null);
 
   const exportData = useExportActivityLogs();
+
+  const {uid} = useParams();
+  const queryData = {
+    assetUid: uid as string,
+    actionFilter: selectedFilterOption?.value || '',
+  };
+
+  const {data: filterOptions} = useActivityLogsFilterOptionsQuery(
+    uid as string
+  );
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(
@@ -81,20 +95,24 @@ export default function FormActivity() {
             placeholder={t('Filter by')}
             options={filterOptions || []}
           />
-          <ExportToEmailButton
-            label={t('Export all data')}
-            exportFunction={exportData}
-          />
+          {exportActivityLogsEnabled && (
+            <ExportToEmailButton
+              label={t('Export all data')}
+              exportFunction={exportData}
+            />
+          )}
         </div>
       </div>
       <div className={styles.tableContainer}>
-        {detailsModalData &&
+        {detailsModalData && (
           <KoboModal
             isOpen
             size='medium'
             onRequestClose={() => setDetailsModalData(null)}
           >
-            <KoboModalHeader onRequestCloseByX={() => setDetailsModalData(null)}>
+            <KoboModalHeader
+              onRequestCloseByX={() => setDetailsModalData(null)}
+            >
               <ActivityMessage data={detailsModalData} />
             </KoboModalHeader>
 
@@ -102,11 +120,12 @@ export default function FormActivity() {
               <pre>{JSON.stringify(detailsModalData, null, '  ')}</pre>
             </section>
           </KoboModal>
-        }
+        )}
 
         <PaginatedQueryUniversalTable<ActivityLogsItem>
           columns={columns}
           queryHook={useActivityLogsQuery}
+          queryHookData={queryData}
         />
       </div>
     </div>

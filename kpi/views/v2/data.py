@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import renderers, serializers, status, viewsets
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -16,8 +16,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
+from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -54,7 +55,7 @@ from kpi.utils.xml import (
 
 
 class DataViewSet(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
 ):
     """
     ## List of submissions for a specific asset
@@ -330,6 +331,8 @@ class DataViewSet(
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = []
 
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
@@ -350,22 +353,17 @@ class DataViewSet(
         submission = deployment.get_submission(
             submission_id=submission_id,
             user=request.user,
-            fields=['_id', '_uuid']
+            fields=['_id', '_uuid', '_submitted_by'],
         )
+        request._request.instances = {
+            submission_id: SubmissionUpdate(
+                username=submission['_submitted_by'],
+                action='delete',
+                id=submission_id,
+            )
+        }
 
         if deployment.delete_submission(submission_id, user=request.user):
-            AuditLog.objects.create(
-                app_label='logger',
-                model_name='instance',
-                object_id=pk,
-                user=request.user,
-                metadata={
-                    'asset_uid': self.asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-                log_type=AuditType.SUBMISSION_MANAGEMENT,
-            )
             response = {
                 'content_type': 'application/json',
                 'status': status.HTTP_204_NO_CONTENT,
@@ -601,27 +599,16 @@ class DataViewSet(
             user=request.user,
             submission_ids=data['submission_ids'],
             query=data['query'],
-            fields=['_id', '_uuid'],
+            fields=['_id', '_uuid', '_submitted_by'],
         )
 
         # Prepare logs before deleting all submissions.
-        audit_logs = []
-        for submission in submissions:
-            audit_logs.append(
-                AuditLog(
-                    app_label='logger',
-                    model_name='instance',
-                    object_id=submission['_id'],
-                    user=request.user,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': self.asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                    log_type=AuditType.SUBMISSION_MANAGEMENT,
-                )
+        request._request.instances = {
+            sub['_id']: SubmissionUpdate(
+                id=sub['_id'], username=sub['_submitted_by'], action='delete'
             )
+            for sub in submissions
+        }
 
         try:
             deleted = deployment.delete_submissions(
@@ -633,10 +620,6 @@ class DataViewSet(
                 'content_type': 'application/json',
                 'status': status.HTTP_400_BAD_REQUEST,
             }
-
-        # If requests has succeeded, let's log deletions (if any)
-        if audit_logs and deleted:
-            AuditLog.objects.bulk_create(audit_logs)
 
         return {
             'data': {'detail': f'{deleted} submissions have been deleted'},

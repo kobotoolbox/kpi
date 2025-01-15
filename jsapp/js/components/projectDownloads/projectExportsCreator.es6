@@ -352,6 +352,8 @@ export default class ProjectExportsCreator extends React.Component {
       }
     });
 
+    exportsStore.setExportType(newStateObj.selectedExportType);
+
     this.setState(newStateObj);
   }
 

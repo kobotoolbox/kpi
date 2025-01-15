@@ -44,7 +44,8 @@ class MarkdownxUploaderFile(models.Model):
     content = PrivateFileField(
         # Avoid collisions with usernames, which must begin with `[a-z]`
         # (see `kpi.forms.USERNAME_REGEX`)
-        upload_to='__markdown_media_files/%Y/%m/%d'
+        upload_to='__markdown_media_files/%Y/%m/%d',
+        max_length=380,
     )
 
     def __str__(self):

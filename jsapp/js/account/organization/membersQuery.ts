@@ -10,13 +10,15 @@ import {
 import {fetchGet, fetchPatch, fetchDelete} from 'js/api';
 import {
   useOrganizationQuery,
-  type OrganizationUserRole
+  type OrganizationUserRole,
 } from './organizationQuery';
 
 // Constants and types
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
+import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import {useSession} from 'jsapp/js/stores/useSession';
 
 export interface OrganizationMember {
   /**
@@ -48,9 +50,10 @@ export interface OrganizationMember {
 }
 
 function getMemberEndpoint(orgId: string, username: string) {
-  return endpoints.ORGANIZATION_MEMBER_URL
-    .replace(':organization_id', orgId)
-    .replace(':username', username);
+  return endpoints.ORGANIZATION_MEMBER_URL.replace(
+    ':organization_id',
+    orgId
+  ).replace(':username', username);
 }
 
 /**
@@ -64,41 +67,51 @@ export function usePatchOrganizationMember(username: string) {
   const orgId = orgQuery.data?.id;
 
   return useMutation({
-    mutationFn: async (data: Partial<OrganizationMember>) => (
+    mutationFn: async (data: Partial<OrganizationMember>) =>
       // We're asserting the `orgId` is not `undefined` here, because the parent
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data)
-    ),
+      fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data),
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
       // directly, see: https://github.com/TanStack/query/discussions/2468)
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMembers],
+      });
     },
   });
 }
 
 /**
- * Mutation hook for removing member from organiztion. It ensures that all
+ * Mutation hook for removing member from organization. It ensures that all
  * related queries refetch data (are invalidated).
  */
 export function useRemoveOrganizationMember() {
   const queryClient = useQueryClient();
 
+  const session = useSession();
+
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
 
   return useMutation({
-    mutationFn: async (username: string) => (
+    mutationFn: async (username: string) =>
       // We're asserting the `orgId` is not `undefined` here, because the parent
       // query (`useOrganizationMembersQuery`) wouldn't be enabled without it.
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
-      fetchDelete(getMemberEndpoint(orgId!, username))
-    ),
-    onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+       fetchDelete(getMemberEndpoint(orgId!, username))
+    ,
+    onSuccess: (_data, username) => {
+      if (username === session.currentLoggedAccount?.username) {
+        // If user is removing themselves, we need to clear the session
+        session.refreshAccount();
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: [QueryKeys.organizationMembers],
+        });
+      }
     },
   });
 }
@@ -118,8 +131,10 @@ async function getOrganizationMembers(
     offset: offset.toString(),
   });
 
-  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL
-    .replace(':organization_id', orgId);
+  const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(
+    ':organization_id',
+    orgId
+  );
 
   return fetchGet<PaginatedResponse<OrganizationMember>>(
     apiUrl + '?' + params,
@@ -133,17 +148,17 @@ async function getOrganizationMembers(
  * A hook that gives you paginated list of organization members. Uses
  * `useOrganizationQuery` to get the id.
  */
-export default function useOrganizationMembersQuery(
-  itemLimit: number,
-  pageOffset: number
-) {
+export default function useOrganizationMembersQuery({
+  limit,
+  offset,
+}: PaginatedQueryHookParams) {
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
 
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers, itemLimit, pageOffset, orgId],
+    queryKey: [QueryKeys.organizationMembers, limit, offset, orgId],
     // `orgId!` because it's ensured to be there in `enabled` property :ok:
-    queryFn: () => getOrganizationMembers(itemLimit, pageOffset, orgId!),
+    queryFn: () => getOrganizationMembers(limit, offset, orgId!),
     placeholderData: keepPreviousData,
     enabled: !!orgId,
     // We might want to improve this in future, for now let's not retry

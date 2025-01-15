@@ -3,6 +3,7 @@ from django.db import models
 
 class AuditAction(models.TextChoices):
     ADD_MEDIA = 'add-media'
+    ADD_SUBMISSION = 'add-submission'
     ALLOW_ANONYMOUS_SUBMISSIONS = 'allow-anonymous-submissions'
     ARCHIVE = 'archive'
     AUTH = 'auth'
@@ -12,6 +13,7 @@ class AuditAction(models.TextChoices):
     DELETE = 'delete'
     DELETE_MEDIA = 'delete-media'
     DELETE_SERVICE = 'delete-service'
+    DELETE_SUBMISSION = 'delete-submission'
     DEPLOY = 'deploy'
     DISABLE_SHARING = 'disable-sharing'
     DISALLOW_ANONYMOUS_SUBMISSIONS = 'disallow-anonymous-submissions'
@@ -22,6 +24,7 @@ class AuditAction(models.TextChoices):
     MODIFY_IMPORTED_FIELDS = 'modify-imported-fields'
     MODIFY_SERVICE = 'modify-service'
     MODIFY_SHARING = 'modify-sharing'
+    MODIFY_SUBMISSION = 'modify-submission'
     MODIFY_USER_PERMISSIONS = 'modify-user-permissions'
     PUT_BACK = 'put-back'
     REDEPLOY = 'redeploy'

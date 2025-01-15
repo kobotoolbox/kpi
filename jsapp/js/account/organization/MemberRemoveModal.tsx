@@ -66,6 +66,16 @@ export default function MemberRemoveModal(
       .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabel);
   }
 
+  const handleRemoveMember = async () => {
+    try {
+      await removeMember.mutateAsync(username);
+    } catch (error) {
+      notify('Failed to remove member', 'error');
+    } finally {
+      onConfirmDone();
+    }
+  };
+
   return (
     <KoboModal isOpen size='medium' onRequestClose={() => onCancel()}>
       <KoboModalHeader>{textToDisplay.title}</KoboModalHeader>
@@ -87,15 +97,7 @@ export default function MemberRemoveModal(
         <Button
           type='danger'
           size='m'
-          onClick={async () => {
-            try {
-              removeMember.mutateAsync(username);
-            } catch (error) {
-              notify('Failed to remove member', 'error');
-            } finally {
-              onConfirmDone();
-            }
-          }}
+          onClick={handleRemoveMember}
           label={textToDisplay.confirmButtonLabel}
           isPending={removeMember.isPending}
         />

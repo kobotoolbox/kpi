@@ -43,7 +43,7 @@ export default function MyOrgProjectsRoute() {
       viewUid={ORG_VIEW.uid}
       baseUrl={`${ROOT_URL}${apiUrl}`}
       defaultVisibleFields={HOME_DEFAULT_VISIBLE_FIELDS}
-      includeTypeFilter={false}
+      includeTypeFilter
       defaultOrderableFields={HOME_ORDERABLE_FIELDS}
       defaultExcludedFields={HOME_EXCLUDED_FIELDS}
       isExportButtonVisible={false}

@@ -12,6 +12,7 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
+from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
@@ -37,6 +38,7 @@ from kpi.constants import (
 from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.models import Asset, ImportTask
 from kpi.utils.log import logging
+from kpi.utils.object_permission import get_database_user
 
 ANONYMOUS_USER_PERMISSION_ACTIONS = {
     # key: (permission, granting?), value: ph log action
@@ -293,6 +295,7 @@ class AccessLog(AuditLog):
 
 
 class ProjectHistoryLogManager(models.Manager, IgnoreCommonFieldsMixin):
+
     def get_queryset(self):
         return super().get_queryset().filter(log_type=AuditType.PROJECT_HISTORY)
 
@@ -322,6 +325,12 @@ class ProjectHistoryLog(AuditLog):
 
     class Meta:
         proxy = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.app_label = Asset._meta.app_label
+        self.model_name = Asset._meta.model_name
+        self.log_type = AuditType.PROJECT_HISTORY
 
     @classmethod
     def create_from_import_task(cls, task: ImportTask):
@@ -383,6 +392,14 @@ class ProjectHistoryLog(AuditLog):
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
             'project-ownership-invite-list': cls._create_from_ownership_transfer,
+            'submission-duplicate': cls._create_from_submission_request,
+            'submission-bulk': cls._create_from_submission_request,
+            'submission-validation-statuses': cls._create_from_submission_request,
+            'submission-validation-status': cls._create_from_submission_request,
+            'assetsnapshot-submission-alias': cls._create_from_submission_request,
+            'submissions': cls._create_from_submission_request,
+            'submissions-list': cls._create_from_submission_request,
+            'submission-detail': cls._create_from_submission_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -589,6 +606,44 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
+    def _create_from_submission_request(cls, request):
+        if request.method in ['GET', 'HEAD']:
+            return
+        instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
+        logs = []
+        url_name = request.resolver_match.url_name
+        user = get_database_user(request.user)
+        for instance in instances.values():
+            if instance.action == 'add':
+                action = AuditAction.ADD_SUBMISSION
+            elif instance.action == 'delete':
+                action = AuditAction.DELETE_SUBMISSION
+            else:
+                action = AuditAction.MODIFY_SUBMISSION
+            metadata = {
+                'asset_uid': request.asset.uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'submission': {
+                    'submitted_by': instance.username,
+                },
+            }
+            if 'validation-status' in url_name:
+                metadata['submission']['status'] = instance.status
+
+            logs.append(
+                ProjectHistoryLog(
+                    user=user,
+                    object_id=request.asset.id,
+                    action=action,
+                    user_uid=user.extra_details.uid,
+                    metadata=metadata,
+                )
+            )
+        ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
     def _create_from_ownership_transfer(cls, request):
         updated_data = getattr(request, 'updated_data')
         transfers = updated_data['transfers'].values(
@@ -603,9 +658,6 @@ class ProjectHistoryLog(AuditLog):
                     object_id=transfer['asset__id'],
                     action=AuditAction.TRANSFER,
                     user=request.user,
-                    app_label=Asset._meta.app_label,
-                    model_name=Asset._meta.model_name,
-                    log_type=AuditType.PROJECT_HISTORY,
                     user_uid=request.user.extra_details.uid,
                     metadata={
                         'asset_uid': transfer['asset__uid'],
@@ -655,9 +707,6 @@ class ProjectHistoryLog(AuditLog):
         log_base = {
             'user': request.user,
             'object_id': asset_id,
-            'app_label': Asset._meta.app_label,
-            'model_name': Asset._meta.model_name,
-            'log_type': AuditType.PROJECT_HISTORY,
             'user_uid': request.user.extra_details.uid,
         }
         # get all users whose permissions changed
