@@ -68,7 +68,7 @@ export default function MembersRoute() {
     {
       key: 'role',
       label: t('Role'),
-      size: 120,
+      size: 140,
       cellFormatter: (member: OrganizationMember) => {
         if (
           member.role === OrganizationUserRole.owner ||
