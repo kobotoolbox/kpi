@@ -3,7 +3,7 @@ import {ComponentStory, ComponentMeta} from '@storybook/react';
 import InlineMessage from 'js/components/common/inlineMessage';
 
 export default {
-  title: 'common/Inline Message',
+  title: 'commonDeprecated/Inline Message',
   component: InlineMessage,
   argTypes: {},
 } as ComponentMeta<typeof InlineMessage>;
