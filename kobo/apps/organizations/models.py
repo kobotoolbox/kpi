@@ -52,11 +52,8 @@ class OrganizationInviteStatusChoices(models.TextChoices):
 
     ACCEPTED = 'accepted'
     CANCELLED = 'cancelled'
-    COMPLETE = 'complete'
     DECLINED = 'declined'
     EXPIRED = 'expired'
-    FAILED = 'failed'
-    IN_PROGRESS = 'in_progress'
     PENDING = 'pending'
     RESENT = 'resent'
 
@@ -328,6 +325,14 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             if is_registered_user
             else self.invitee_identifier
         )
+
+        # Get recipient role with an article
+        recipient_role = self.invitee_role
+        if recipient_role and recipient_role[0].lower() in 'aeiou':
+            recipient_role = 'an ' + recipient_role
+        else:
+            recipient_role = 'a ' + recipient_role
+
         # To avoid circular import
         User = apps.get_model('kobo_auth', 'User')
         has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
@@ -341,7 +346,8 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
                 if is_registered_user
                 else self.invitee_identifier
             ),
-            'recipient_role': self.invitee_role,
+            'recipient_email': to_email,
+            'recipient_role': recipient_role,
             'organization_name': organization_name,
             'base_url': settings.KOBOFORM_URL,
             'invite_uid': self.guid,
