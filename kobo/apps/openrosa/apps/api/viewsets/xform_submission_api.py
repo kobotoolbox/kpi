@@ -8,6 +8,8 @@ from rest_framework.exceptions import NotAuthenticated
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs import filters
@@ -27,7 +29,6 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.utils.object_permission import get_database_user
-
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
@@ -64,7 +65,10 @@ def create_instance_from_json(username, request):
 
 
 class XFormSubmissionApi(
-    OpenRosaHeadersMixin, mixins.CreateModelMixin, OpenRosaGenericViewSet
+    OpenRosaHeadersMixin,
+    mixins.CreateModelMixin,
+    OpenRosaGenericViewSet,
+    AuditLoggedViewSet,
 ):
     """
     Implements OpenRosa Api [FormSubmissionAPI](\
@@ -124,6 +128,7 @@ class XFormSubmissionApi(
                         BrowsableAPIRenderer)
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
+    log_type = AuditType.PROJECT_HISTORY
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -150,7 +155,6 @@ class XFormSubmissionApi(
         ]
 
     def create(self, request, *args, **kwargs):
-
         username = self.kwargs.get('username')
 
         if self.request.user.is_anonymous:
