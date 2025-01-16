@@ -62,9 +62,9 @@ export const themeKobo = createTheme({
       '#000',
       '#000',
       '#000',
-      'hsl(30deg 100% 25%)', // #803f00 ($kobo-dark-amber)
-      'hsl(29deg 100% 75%)', // #ffbe80 ($kobo-amber)
-      'hsl(30deg 100% 90%)', // #ffe8cc ($kobo-light-amber)
+      'hsl(30, 100%, 25%)', // #803f00 ($kobo-dark-amber)
+      'hsl(29, 100%, 75%)', // #ffbe80 ($kobo-amber)
+      'hsl(30, 100%, 90%)', // #ffe8cc ($kobo-light-amber)
       '#000',
       '#000',
     ]

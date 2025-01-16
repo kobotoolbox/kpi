@@ -10,9 +10,6 @@ declare module '@mantine/core' {
 
 export const AlertThemeKobo = Alert.extend({
   classNames: classes,
-  defaultProps: {
-    autoContrast: false,
-  },
   vars: (theme, props) => {
     return {
       root: {
