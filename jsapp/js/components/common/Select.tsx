@@ -1,15 +1,8 @@
 import type {SelectProps, ComboboxItem} from '@mantine/core';
-import {
-  ActionIcon,
-  Box,
-  Button,
-  CloseButton,
-  Group,
-  Select as MantineSelect,
-} from '@mantine/core';
-import Icon, {IconSize} from './icon';
+import {CloseButton, Group, Select as MantineSelect} from '@mantine/core';
+import type {IconSize} from './icon';
+import Icon from './icon';
 import {useState} from 'react';
-import {UnstyledButton} from '@mantine/core';
 
 declare module '@mantine/core/lib/components/Select' {
   /** @deprecated use Kobo implementation instead. (deprecating a new interface because can't augment variables) */
