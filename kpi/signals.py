@@ -6,6 +6,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from taggit.models import Tag
 
+from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
@@ -20,6 +21,11 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     """ Make sure we have a TagUid object for each newly-created Tag """
     if raw or not created:
         return
+
+    # We don't want to create KPI things for OpenRosa models
+    if kwargs.get('using') == settings.OPENROSA_DB_ALIAS:  # noqa
+        return
+
     TagUid.objects.get_or_create(tag=instance)
 
 
