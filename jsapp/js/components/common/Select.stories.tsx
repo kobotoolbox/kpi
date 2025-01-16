@@ -1,23 +1,18 @@
+import {Stack, type MantineSize} from '@mantine/core';
 import {Select} from './Select';
 import type {Meta, StoryObj} from '@storybook/react';
 
-/**
- * Mantine [Select](https://mantine.dev/core/select/) component stories.
- * See detailed uses in [Mantine's Select page](https://mantine.dev/core/select/)
- */
-const meta: Meta<typeof Select> = {
-  title: 'Common/Select',
-  component: Select,
-  decorators: [
-    (Story) => (
-      <div style={{maxWidth: 400, padding: 40, margin: 'auto'}}>
-        <Story />
-      </div>
-    ),
-  ],
-};
+const sizes: MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
 const data = [
+  {label: 'Apple', value: '1'},
+  {label: 'Banana', value: '2'},
+  {label: 'Cherry', value: '3'},
+  {label: 'Grape', value: '7'},
+  {label: 'Lemon', value: '12'},
+];
+
+const largeData = [
   {label: 'Apple', value: '1'},
   {label: 'Banana', value: '2'},
   {label: 'Cherry', value: '3'},
@@ -37,30 +32,91 @@ const data = [
   {label: 'Quince', value: '17'},
 ];
 
+/**
+ * Mantine [Select](https://mantine.dev/core/select/) component stories.
+ * See detailed uses in [Mantine's Select page](https://mantine.dev/core/select/)
+ */
+const meta: Meta<typeof Select> = {
+  title: 'Common/Select',
+  component: Select,
+  decorators: [
+    (Story) => (
+      <div style={{maxWidth: 400, padding: 40, margin: 'auto'}}>
+        <Story />
+      </div>
+    ),
+  ],
+  parameters: {
+    controls: {expanded: false},
+  },
+  argTypes: {
+    label: {
+      description: 'Select label',
+      control: {type: 'text'},
+    },
+    placeholder: {
+      description: 'Placeholder for the input',
+      control: {type: 'text'},
+    },
+    size: {
+      description: 'Select size',
+      options: sizes,
+      control: {type: 'select'},
+    },
+    clearable: {
+      description: 'Add clear button to the right side of the input',
+      control: 'boolean',
+    },
+    searchable: {
+      description: 'Filter items by typing',
+      control: 'boolean',
+    },
+    data: {
+      description: 'Array of objects with label and value',
+      control: {type: 'object'},
+    },
+  },
+  args: {
+    label: 'Select',
+    placeholder: 'Pick one',
+    size: 'md',
+    clearable: false,
+    searchable: false,
+    data,
+  },
+};
+
 type Story = StoryObj<typeof Select>;
 
 /**
  * Basic usage of Select component
  */
-export const Basic: Story = {
-  args: {
-    label: 'Select',
-    placeholder: 'Pick one',
-    data,
-    clearable: false,
-    searchable: false,
-  },
-};
+export const Basic: Story = {};
+
+/**
+ * Different sizes of the Select component
+ */
+export const Sizes = () => (
+  <Stack gap='md'>
+    {sizes.map((size) => (
+      <Select
+        key={size}
+        label={size}
+        placeholder='Pick one'
+        data={data}
+        size={size}
+      />
+    ))}
+  </Stack>
+);
 
 /**
  * Clear button is added to the right side of the input when an option is selected
  */
 export const Clearable: Story = {
   args: {
-    label: 'Select',
-    placeholder: 'Pick one',
     clearable: true,
-    data,
+    value: data[3].value,
   },
 };
 
@@ -69,11 +125,16 @@ export const Clearable: Story = {
  */
 export const Searchable: Story = {
   args: {
-    label: 'Select',
-    placeholder: 'Pick one',
     searchable: true,
-    data,
-    leftSection: <i className='k-icon k-icon-search' />,
+  },
+};
+
+/**
+ * Select with large data set and scrollable dropdown
+ */
+export const Scrollable: Story = {
+  args: {
+    data: largeData,
   },
 };
 

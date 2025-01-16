@@ -40,8 +40,6 @@ export default function MemberRoleSelector({
         ]}
         value={role}
         onChange={handleRoleChange}
-        allowDeselect={false}
-        clearable={false}
       />
     </>
   );

@@ -1,12 +1,28 @@
 import type {SelectProps, ComboboxItem} from '@mantine/core';
-import {Box, CloseButton, Select as MantineSelect} from '@mantine/core';
-import Icon from './icon';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  CloseButton,
+  Group,
+  Select as MantineSelect,
+} from '@mantine/core';
+import Icon, {IconSize} from './icon';
 import {useState} from 'react';
+import {UnstyledButton} from '@mantine/core';
 
 declare module '@mantine/core/lib/components/Select' {
   /** @deprecated use Kobo implementation instead. (deprecating a new interface because can't augment variables) */
   export interface Select {}
 }
+
+const iconSizeMap: Record<string, IconSize> = {
+  xs: 'xxs',
+  sm: 'xs',
+  md: 's',
+  lg: 'm',
+  xl: 'l',
+};
 
 export const Select = (props: SelectProps) => {
   const [value, setValue] = useState<string | null>(props.value || null);
@@ -24,9 +40,15 @@ export const Select = (props: SelectProps) => {
     props.onClear?.();
   };
 
+  const iconSize =
+    typeof props.size === 'string' ? iconSizeMap[props.size] : 's';
+
   const clearButton =
     props.clearable && value && !props.disabled && !props.readOnly ? (
-      <CloseButton size={props.size} variant='transparent' onClick={clear} />
+      <CloseButton
+        onClick={clear}
+        icon={<Icon name='close' size={iconSize} />}
+      />
     ) : null;
 
   return (
@@ -37,12 +59,12 @@ export const Select = (props: SelectProps) => {
       onDropdownOpen={() => setIsOpened(true)}
       onDropdownClose={() => setIsOpened(false)}
       rightSection={
-        <>
+        <Group gap={1} mr='sm'>
           {clearButton}
-          <Box pr='xs'>
-            <Icon name={isOpened ? 'caret-up' : 'caret-down'} size='xxs' />
-          </Box>
-        </>
+          <UnstyledButton>
+            <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
+          </UnstyledButton>
+        </Group>
       }
     />
   );
