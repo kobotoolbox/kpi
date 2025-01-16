@@ -472,33 +472,37 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
     **Filterable fields by action:**
 
-    1. add-media
+    * add-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    2. archive
+    * add-submission
+
+        a. metadata__submission__submitted_by
+
+    * archive
 
         a. metadata__latest_version_uid
 
-    3. clone-permissions
+    * clone-permissions
 
         a. metadata__cloned_from
 
-    4. connect-project
+    * connect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    5. delete-media
+    * delete-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    6. delete-service
+    * delete-service
 
         a. metadata__hook__uid
 
@@ -506,25 +510,25 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    7. deploy
+    * deploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    8. disconnect-project
+    * disconnect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    9. modify-imported-fields
+    * modify-imported-fields
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    10. modify-service
+    * modify-service
 
         a. metadata__hook__uid
 
@@ -532,23 +536,23 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    11. modify-submission
+    * modify-submission
 
         a. metadata__submission__submitted_by
 
         b. metadata__submission__status (only present if changed)
 
-    12. modify-user-permissions
+    * modify-user-permissions
 
         a. metadata__permissions__username
 
-    13. redeploy
+    * redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    14. register-service
+    * register-service
 
         a. metadata__hook__uid
 
@@ -556,21 +560,21 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
-    15. transfer
+    * transfer
 
         a. metadata__username
 
-    16. unarchive
+    * unarchive
 
         a. metadata__latest_version_uid
 
-    17. update-name
+    * update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    18. update-settings
+    * update-settings
 
         a. metadata__settings__description__old
 
@@ -730,33 +734,37 @@ class ProjectHistoryLogViewSet(
 
     **Filterable fields by action:**
 
-    1. add-media
+    * add-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    2. archive
+    * add-submission
+
+        a. metadata__submission__submitted_by
+
+    * archive
 
         a. metadata__latest_version_uid
 
-    3. clone-permissions
+    * clone-permissions
 
         a. metadata__cloned_from
 
-    4. connect-project
+    * connect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    5. delete-media
+    * delete-media
 
         a. metadata__asset-file__uid
 
         b. metadata__asset-file__filename
 
-    6. delete-service
+    * delete-service
 
         a. metadata__hook__uid
 
@@ -764,25 +772,25 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    7. deploy
+    * deploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    8. disconnect-project
+    * disconnect-project
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    9. modify-imported-fields
+    * modify-imported-fields
 
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
 
-    10. modify-service
+    * modify-service
 
         a. metadata__hook__uid
 
@@ -790,23 +798,23 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    11. modify-submission
+    * modify-submission
 
         a. metadata__submission__submitted_by
 
         b. metadata__submission__status (only present if changed)
 
-    12. modify-user-permissions
+    * modify-user-permissions
 
         a. metadata__permissions__username
 
-    13. redeploy
+    * redeploy
 
         a. metadata__latest_version_uid
 
         b. metadata__latest_deployed_version_uid
 
-    14. register-service
+    * register-service
 
         a. metadata__hook__uid
 
@@ -814,21 +822,21 @@ class ProjectHistoryLogViewSet(
 
         c. metadata__hook__active
 
-    15. transfer
+    * transfer
 
         a. metadata__username
 
-    16. unarchive
+    * unarchive
 
         a. metadata__latest_version_uid
 
-    17. update-name
+    * update-name
 
         a. metadata__name__old
 
         b. metadata__name__new
 
-    18. update-settings
+    * update-settings
 
         a. metadata__settings__description__old
 
