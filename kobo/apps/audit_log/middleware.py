@@ -1,7 +1,6 @@
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditType, ProjectHistoryLog
-from kpi.utils import log
 
 
 def create_project_history_log_middleware(get_response):
@@ -23,9 +22,8 @@ def create_project_history_log_middleware(get_response):
         elif (
             log_type == AuditType.PROJECT_HISTORY
             and url_name == 'submission-bulk'
-            and request.METHOD == 'DELETE'
+            and request.method == 'DELETE'
         ):
-            log.info('Creating anyway')
             ProjectHistoryLog.create_from_request(request)
         return response
 
