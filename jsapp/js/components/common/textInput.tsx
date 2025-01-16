@@ -26,6 +26,7 @@ export const TextInput: React.FC<CustomTextInputProps> = (props) => {
     if (props.readOnly || !props.onChange) {
       return;
     }
+    setValue(newValue);
     props.onChange(newValue);
   };
 
