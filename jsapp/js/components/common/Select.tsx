@@ -61,9 +61,7 @@ export const Select = (props: SelectProps) => {
       rightSection={
         <Group gap={1} mr='sm'>
           {clearButton}
-          <UnstyledButton>
-            <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
-          </UnstyledButton>
+          <Icon name={isOpened ? 'angle-up' : 'angle-down'} size={iconSize} />
         </Group>
       }
     />
