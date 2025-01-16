@@ -8,7 +8,8 @@ export const SelectThemeKobo = Select.extend({
     withCheckIcon: false,
     allowDeselect: false,
     comboboxProps: {
-      offset: 1,
+      offset: 0,
+      dropdownPadding: 0,
     },
   },
 });

@@ -6,7 +6,7 @@ import type {Meta, StoryObj} from '@storybook/react';
  * See detailed uses in [Mantine's Select page](https://mantine.dev/core/select/)
  */
 const meta: Meta<typeof Select> = {
-  title: 'Mantine/Select',
+  title: 'Common/Select',
   component: Select,
   decorators: [
     (Story) => (

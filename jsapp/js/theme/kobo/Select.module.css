@@ -9,11 +9,6 @@
 
 .dropdown {
   border-color: var(--mantine-color-gray-6);
-  padding: 0;
-}
-
-.options:hover .option[data-checked] {
-  background-color: transparent;
 }
 
 .option {
@@ -21,11 +16,14 @@
 }
 
 .option:hover {
-  background-color: var(--mantine-color-blue-8) !important;
+  background-color: var(--mantine-color-blue-8);
+  color: var(--mantine-color-black);
 }
 
-.option[data-checked] {
+.option[data-combobox-selected],
+.option[data-combobox-active] {
   background-color: var(--mantine-color-blue-8);
+  color: var(--mantine-color-black);
 }
 
 .section[data-position='right'] {
