@@ -25,7 +25,9 @@ export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
 
   if (!orgQuery.data) {
-    return <LoadingSpinner />;
+    return (
+      <LoadingSpinner />
+    );
   }
 
   const columns: Array<UniversalTableColumn<OrganizationMember>> = [
@@ -61,8 +63,7 @@ export default function MembersRoute() {
       key: 'date_joined',
       label: t('Date added'),
       size: 140,
-      cellFormatter: (member: OrganizationMember) =>
-        formatTime(member.date_joined),
+      cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
     },
     {
       key: 'role',

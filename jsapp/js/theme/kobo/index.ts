@@ -83,7 +83,8 @@ export const themeKobo = createTheme({
     lg: rem(16),
     xl: rem(18),
   },
-  lineHeights: {},
+  lineHeights: {
+  },
   headings: {
     fontWeight: '500',
   },
