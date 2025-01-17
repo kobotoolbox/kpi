@@ -96,8 +96,18 @@ interface GetExportDefinition extends Function {
 }
 
 interface GetExportCompletedDefinition extends Function {
-  (response: any): void;
-  listen: (callback: (response: any) => void) => Function;
+  (response: ExportDataResponse): void;
+  listen: (callback: (response: ExportDataResponse) => void) => Function;
+}
+
+interface GetExportSettingsDefinition extends Function {
+  (assetUid: string, options: {preselectLastSettings: boolean}): void;
+  completed: GetExportSettingsCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+interface GetExportSettingsCompletedDefinition extends Function {
+  (response: PaginatedResponse<ExportSetting>, passData: {}): void;
+  listen: (callback: (response: PaginatedResponse<ExportSetting>, passData?: {preselectLastSettings?: boolean}) => void) => Function;
 }
 
 interface TableUpdateSettingsDefinition extends Function {
@@ -256,6 +266,13 @@ export namespace actions {
     const media: object;
     const exports: {
       getExport: GetExportDefinition;
+      getExports: GenericDefinition;
+      createExport: GenericDefinition;
+      deleteExport: GenericDefinition;
+      getExportSettings: GetExportSettingsDefinition;
+      updateExportSetting: GenericDefinition;
+      createExportSetting: GenericDefinition;
+      deleteExportSetting: GenericDefinition;
     };
     const dataShare: object;
 }
