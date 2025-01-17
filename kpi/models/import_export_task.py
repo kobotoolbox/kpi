@@ -48,6 +48,7 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -58,6 +59,7 @@ from kpi.utils.data_exports import (
     ACCESS_LOGS_EXPORT_FIELDS,
     ASSET_FIELDS,
     CONFIG,
+    PROJECT_HISTORY_LOGS_EXPORT_FIELDS,
     SETTINGS,
     create_data_export,
     filter_remaining_metadata,
@@ -568,6 +570,63 @@ class AccessLogExportTask(ExportTaskMixin, ImportExportTask):
             'initial_user_username',
             'initial_user_uid',
             'authorized_app_name',
+        ]
+        for row in data:
+            row['other_details'] = filter_remaining_metadata(
+                row, accessed_metadata_fields
+            )
+        buff = create_data_export(export_type, data)
+        self._export_data_to_file(messages, buff)
+
+
+class ProjectHistoryLogExportTask(ExportTaskMixin, ImportExportTask):
+    uid = KpiUidField(uid_prefix='ale')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    asset_uid = models.CharField(null=True)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Project History Log Report Complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        user_url = Concat(
+            Value(f'{settings.KOBOFORM_URL}/api/v2/users/'),
+            F('user__username'),
+            output_field=CharField(),
+        )
+
+        return filtered_queryset.annotate(
+            user_url=user_url,
+            username=F('user__username'),
+            source=F('metadata__source'),
+            ip_address=F('metadata__ip_address'),
+            asset_uid=F('metadata__asset_uid'),
+            other_details=F('metadata'),
+        ).values(*PROJECT_HISTORY_LOGS_EXPORT_FIELDS)
+
+    def _run_task(self, messages: list) -> None:
+        if self.asset_uid is None and not self.user.is_superuser:
+            raise PermissionError(
+                'Only superusers can export all project history logs.'
+            )
+        elif self.asset_uid is not None:
+            survey = Asset.objects.get(uid=self.asset_uid)
+            if not survey.has_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET):
+                raise PermissionError(
+                    'User does not have permission to export logs for this asset.'
+                )
+
+        export_type, view = self._get_export_details()
+        config = CONFIG[export_type]
+
+        queryset = config['queryset']()
+        if self.asset_uid is not None:
+            queryset = queryset.filter(metadata__asset_uid=self.asset_uid)
+        data = self.get_data(queryset)
+        accessed_metadata_fields = [
+            'source',
+            'ip_address',
+            'asset_uid',
         ]
         for row in data:
             row['other_details'] = filter_remaining_metadata(
