@@ -15,23 +15,32 @@ const meta: Meta<typeof Loader> = {
     ),
   ],
   argTypes: {
-    size: {
-      description: 'Select size',
-      options: ['sm', 'md', 'lg'],
+    type: {
+      description: 'Select loader type',
+      options: ['regular', 'big'],
       control: 'radio',
     },
-  },
-  args: {
-    size: 'md',
   },
 };
 
 type Story = StoryObj<typeof Loader>;
 
 /**
- * Basic usage of Loader component
+ * Regular variant
  */
-export const Basic: Story = {};
+export const Regular: Story = {
+  args: {
+    type: 'regular',
+  },
+};
 
+/**
+ * Big variant
+ */
+export const Big: Story = {
+  args: {
+    type: 'big',
+  },
+};
 
 export default meta;

@@ -64,4 +64,14 @@ export const NotVisible: Story = {
   },
 };
 
+/**
+ * Using 'big' variant
+ */
+export const Big: Story = {
+  args: {
+    visible: true,
+    loaderProps: {type: 'big'},
+  },
+};
+
 export default meta;

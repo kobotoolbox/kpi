@@ -3,15 +3,27 @@ import {Box, Loader} from '@mantine/core';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import {forwardRef} from 'react';
 
-const KoboLoader: MantineLoaderComponent = forwardRef(({...others}, ref) => (
+const KoboLoaderRegular: MantineLoaderComponent = forwardRef(
+  ({...others}, ref) => (
+    <Box component='span' {...others} ref={ref}>
+      <LoadingSpinner message={false} />
+    </Box>
+  )
+);
+
+const KoboLoaderBig: MantineLoaderComponent = forwardRef(({...others}, ref) => (
   <Box component='span' {...others} ref={ref}>
-    <LoadingSpinner message={false} />
+    <LoadingSpinner message={false} type='big' />
   </Box>
 ));
 
 export const LoaderThemeKobo = Loader.extend({
   defaultProps: {
-    loaders: {...Loader.defaultLoaders, custom: KoboLoader},
-    type: 'custom',
+    loaders: {
+      ...Loader.defaultLoaders,
+      regular: KoboLoaderRegular,
+      big: KoboLoaderBig,
+    },
+    type: 'regular',
   },
 });
