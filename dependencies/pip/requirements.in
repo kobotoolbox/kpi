@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@5a8cda8cc37a56a2313c98b88fcacc18049ef477#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@894d285b1d2955b2990500427158e845af32259d#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.

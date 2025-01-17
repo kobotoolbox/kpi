@@ -20,6 +20,9 @@
 
       // Syntax Support
       "almahdi.code-django", // Django templates
+      "vunguyentuan.vscode-css-variables", // CSS
+      "vunguyentuan.vscode-postcss", // CSS
+
     ]
   },
   "settings": {
@@ -37,6 +40,15 @@
     "stylelint.validate": ["css", "scss"],
     "css.validate": false,
     "scss.validate": false,
+
+    // Mantine / PostCSS
+    "cssVariables.lookupFiles": [
+      "**/*.css",
+      "**/*.scss",
+      "**/*.sass",
+      "**/*.less",
+      "node_modules/@mantine/core/styles.css"
+    ],
 
     // Formatting Toggle
     "formattingToggle.affects": [
