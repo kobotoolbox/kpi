@@ -101,6 +101,11 @@ export default class ProjectExportsCreator extends React.Component<
   ProjectExportsCreatorProps,
   ProjectExportsCreatorState
 > {
+  constructor(props: ProjectExportsCreatorProps) {
+    super(props);
+    this.state = this.getInitialState();
+  }
+
   getInitialState(): ProjectExportsCreatorState {
     const newState = {
       isComponentReady: false,
