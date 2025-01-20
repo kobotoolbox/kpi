@@ -1,3 +1,4 @@
+from django.http import HttpResponseNotFound
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditType, ProjectHistoryLog
@@ -8,7 +9,7 @@ def create_project_history_log_middleware(get_response):
         response = get_response(request)
         if request.method in ['GET', 'HEAD']:
             return response
-        if response.status == status.HTTP_404_NOT_FOUND:
+        if response.status_code == status.HTTP_404_NOT_FOUND:
             return response
         log_type = getattr(request, 'log_type', None)
         url_name = request.resolver_match.url_name
