@@ -165,7 +165,7 @@ class ProjectHistoryLogTestCaseMixin:
             PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
         )
 
-    def test_export(self):
+    def test_export_task_created(self):
         now = timezone.now()
         ProjectHistoryLog.objects.create(
             user=self.user,
@@ -688,7 +688,6 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
         )
 
     def test_export_creates_task_for_single_asset(self):
-        now = timezone.now()
         response = self.client.post(f'{self.url}export/')
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -699,6 +698,14 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
             .first()
         )
         self.assertEqual(task.asset_uid, self.asset.uid)
+
+    def test_cannot_export_without_manage_permission(self):
+        user2 = User.objects.get(username='anotheruser')
+        # make sure this user doesn't have management permissions
+        self.asset.remove_perm(user_obj=user2, perm=PERM_MANAGE_ASSET)
+        self.client.force_login(user=user2)
+        response = self.client.post(f'{self.url}export/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ApiAllProjectHistoryLogsTestCase(
@@ -759,7 +766,14 @@ class ApiAllProjectHistoryLogsTestCase(
             .order_by('-date_created')
             .first()
         )
+        # empty task uid means the task is for all PH logs
         self.assertEqual(task.asset_uid, None)
+
+    def test_cannot_export_all_if_not_superuser(self):
+        user2 = User.objects.get(username='anotheruser')
+        self.client.force_login(user=user2)
+        response = self.client.post(f'{self.url}export/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):

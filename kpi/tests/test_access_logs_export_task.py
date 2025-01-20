@@ -56,10 +56,12 @@ class AccessLogExportTaskTests(TestCase):
         task.run()
 
         self.assertIsNotNone(task.result, 'The task.result should not be None.')
+        # filename should be type-username-date (and sometimes a random 7-char suffix
+        # for uniqueness)
         expected_pattern = (
             rf'{self.superuser.username}/exports/access_logs_export-'
             rf'{self.superuser.username}-'
-            r'\d{4}-\d{2}-\d{2}T\d{6}Z\.csv'
+            r'\d{4}-\d{2}-\d{2}T\d{6}Z(_\w{7})?\.csv'
         )
 
         self.assertRegex(
@@ -145,10 +147,12 @@ class ProjectHistoryLogExportTaskTests(TestCase):
         task.run()
 
         self.assertIsNotNone(task.result, 'The task.result should not be None.')
+        # filename should be type-username-date (and sometimes a random 7-char suffix
+        # for uniqueness)
         expected_pattern = (
             rf'adminuser/exports/project_history_logs_export-'
             rf'adminuser-'
-            r'\d{4}-\d{2}-\d{2}T\d{6}Z\.csv'
+            r'\d{4}-\d{2}-\d{2}T\d{6}Z(_\w{7})?\.csv'
         )
 
         self.assertRegex(
@@ -210,3 +214,93 @@ class ProjectHistoryLogExportTaskTests(TestCase):
             self.assertEqual(first_row['source'], 'test_source')
             self.assertEqual(first_row['ip_address'], '127.0.0.1')
             self.assertIsNotNone(first_row['other_details'])
+
+    def test_export_for_single_asset(self):
+        asset = Asset.objects.get(id=1)
+        adminuser = User.objects.get(username='adminuser')
+        log1 = ProjectHistoryLog.objects.create(
+            user=User.objects.get(username='someuser'),
+            action=AuditAction.ADD_SUBMISSION,
+            metadata={
+                'source': 'source',
+                'ip_address': '12345',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
+            object_id=asset.id,
+        )
+        # use a different action to make it easy to identify
+        log2 = ProjectHistoryLog.objects.create(
+            user=User.objects.get(username='someuser'),
+            action=AuditAction.MODIFY_SUBMISSION,
+            metadata={
+                'source': 'source',
+                'ip_address': '12345',
+                'asset_uid': 'fakeuid',
+                'log_subtype': 'project',
+            },
+            object_id=2,
+        )
+        task = self.create_export_task(user=adminuser, asset_uid=asset.uid)
+        task.run()
+        with default_storage.open(str(task.result), mode='r') as csv_file:
+            reader = csv.DictReader(csv_file)
+            rows = list(reader)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]['action'], AuditAction.ADD_SUBMISSION)
+
+    def test_export_all(self):
+        asset = Asset.objects.get(id=1)
+        adminuser = User.objects.get(username='adminuser')
+        log1 = ProjectHistoryLog.objects.create(
+            user=User.objects.get(username='someuser'),
+            action=AuditAction.ADD_SUBMISSION,
+            metadata={
+                'source': 'source',
+                'ip_address': '12345',
+                'asset_uid': asset.uid,
+                'log_subtype': 'project',
+            },
+            object_id=asset.id,
+        )
+        # use a different action to make it easy to identify
+        log2 = ProjectHistoryLog.objects.create(
+            user=User.objects.get(username='someuser'),
+            action=AuditAction.MODIFY_SUBMISSION,
+            metadata={
+                'source': 'source',
+                'ip_address': '12345',
+                'asset_uid': 'fakeuid',
+                'log_subtype': 'project',
+            },
+            object_id=2,
+        )
+        task = self.create_export_task(user=adminuser)
+        task.run()
+        with default_storage.open(str(task.result), mode='r') as csv_file:
+            reader = csv.DictReader(csv_file)
+            rows = list(reader)
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0]['action'], AuditAction.MODIFY_SUBMISSION)
+            self.assertEqual(rows[1]['action'], AuditAction.ADD_SUBMISSION)
+
+    def test_non_superuser_cannot_export_all(self):
+        task = self.create_export_task(user=User.objects.get(username='someuser'))
+        with self.assertRaises(PermissionError) as context:
+            task._run_task([])
+        self.assertEqual(
+            str(context.exception),
+            'Only superusers can export all project history logs.',
+        )
+
+    def test_user_must_have_manage_asset_permission(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        asset = Asset.objects.get(id=1)
+        asset.remove_perm(user_obj=anotheruser, perm=PERM_MANAGE_ASSET)
+        task = self.create_export_task(anotheruser, asset_uid=asset.uid)
+        with self.assertRaises(PermissionError) as context:
+            task._run_task([])
+        self.assertEqual(
+            str(context.exception),
+            'User does not have permission to export logs for this asset.',
+        )

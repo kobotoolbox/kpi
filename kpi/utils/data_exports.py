@@ -142,15 +142,6 @@ def create_data_export(export_type: str, data: QuerySet) -> StringIO:
     buff.seek(0)
     return buff
 
-
-def filter_remaining_metadata(row, accessed_fields):
-    metadata = row['other_details']
-    if metadata is not None:
-        return {
-            key: value for key, value in metadata.items() if key not in accessed_fields
-        }
-
-
 def flatten_settings_inplace(settings: dict) -> None:
     for k, v in settings.items():
         if isinstance(v, list) and v:
