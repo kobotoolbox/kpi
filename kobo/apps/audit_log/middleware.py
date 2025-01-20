@@ -8,6 +8,8 @@ def create_project_history_log_middleware(get_response):
         response = get_response(request)
         if request.method in ['GET', 'HEAD']:
             return response
+        if response.status == status.HTTP_404_NOT_FOUND:
+            return response
         log_type = getattr(request, 'log_type', None)
         url_name = request.resolver_match.url_name
 
