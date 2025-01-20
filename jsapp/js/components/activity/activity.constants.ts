@@ -4,6 +4,7 @@
  */
 export enum AuditActions {
   'add-media' = 'add-media',
+  'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
   'archive' = 'archive',
   'clone-permissions' = 'clone-permissions',
@@ -19,6 +20,7 @@ export enum AuditActions {
   'modify-imported-fields' = 'modify-imported-fields',
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
+  'modify-submission' = 'modify-submission',
   'modify-user-permissions' = 'modify-user-permissions',
   'redeploy' = 'redeploy',
   'register-service' = 'register-service',
@@ -50,6 +52,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     name: AuditActions['add-media'],
     label: t('add media attachment'),
     message: t('##username## added a media attachment'),
+  },
+  'add-submission': {
+    order: 30,
+    name: AuditActions['add-submission'],
+    label: t('add submission'),
+    message: t('##username## added a submission'),
   },
   'allow-anonymous-submissions': {
     order: 16,
@@ -141,6 +149,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('modify data sharing'),
     message: t('##username## modified data sharing'),
   },
+  'modify-submission': {
+    order: 31,
+    name: AuditActions['modify-submission'],
+    label: t('modify submission'),
+    message: t('##username## modified a submission'),
+  },
   'modify-user-permissions': {
     order: 12,
     name: AuditActions['modify-user-permissions'],
@@ -228,6 +242,8 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
 };
 
 export const FALLBACK_MESSAGE = '##username## did action ##action##';
+
+export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']];
 
 /**
  * All possible log item types.
