@@ -9,9 +9,20 @@ def create_project_history_log_middleware(get_response):
         if request.method in ['GET', 'HEAD']:
             return response
         log_type = getattr(request, 'log_type', None)
+        url_name = request.resolver_match.url_name
+
         if (
             status.is_success(response.status_code) and
             log_type == AuditType.PROJECT_HISTORY
+        ):
+            ProjectHistoryLog.create_from_request(request)
+        # special case: log bulk delete requests even if there is an
+        # error. Things may have been deleted in mongo before the request timed out,
+        # and we'd rather have false positives than missing records
+        elif (
+            log_type == AuditType.PROJECT_HISTORY
+            and url_name == 'submission-bulk'
+            and request.method == 'DELETE'
         ):
             ProjectHistoryLog.create_from_request(request)
         return response
