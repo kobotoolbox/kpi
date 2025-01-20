@@ -17,6 +17,7 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 
 from .constants import (
@@ -28,6 +29,7 @@ from .constants import (
     INVITE_NOT_FOUND_ERROR
 )
 from .tasks import transfer_member_data_ownership_to_org
+from .utils import replace_placeholders
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
@@ -338,6 +340,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         if email_func:
             email_func()
 
+    @void_cache_for_request(keys=("organization",))
     def _update_invitee_organization(self, instance):
         """
         Update the organization of the invitee after accepting the invitation
@@ -410,7 +413,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             if instance.invitee.organization.is_owner(request_user):
                 raise PermissionDenied(
                     {
-                        'detail': t(INVITE_OWNER_ERROR).format(
+                        'detail': replace_placeholders(
+                            t(INVITE_OWNER_ERROR),
                             organization_name=instance.invitee.organization.name
                         )
                     }
@@ -418,7 +422,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             else:
                 raise PermissionDenied(
                     {
-                        'detail': t(INVITE_MEMBER_ERROR).format(
+                        'detail': replace_placeholders(
+                            t(INVITE_MEMBER_ERROR),
                             organization_name=instance.invitee.organization.name
                         )
                     }

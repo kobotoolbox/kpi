@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
-from django.utils.translation import gettext_lazy as t
+from django.utils.translation import activate, gettext_lazy as t
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Customer, Subscription
@@ -297,6 +297,14 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
     )
 
     def send_acceptance_email(self):
+        """
+        Send an email to the sender of the invitation to notify them that the
+        invitee has accepted the invitation
+        """
+        sender_language = self.invited_by.extra_details.data.get(
+            'last_ui_language', 'en'
+        )
+        activate(sender_language)
 
         template_variables = {
             'sender_username': self.invited_by.username,
@@ -313,7 +321,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             plain_text_content_or_template='emails/accepted_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/accepted_invite.html',
-            language=self.invitee.extra_details.data.get('last_ui_language'),
+            language=sender_language
         )
 
         Mailer.send(email_message)
@@ -325,14 +333,17 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             if is_registered_user
             else self.invitee_identifier
         )
+        invitee_language = (
+            self.invitee.extra_details.data.get('last_ui_language', 'en')
+            if is_registered_user
+            else 'en'
+        )
+        activate(invitee_language)
 
         # Get recipient role with an article
-        recipient_role = self.invitee_role
-        if recipient_role and recipient_role[0].lower() in 'aeiou':
-            recipient_role = 'an ' + recipient_role
-        else:
-            recipient_role = 'a ' + recipient_role
-
+        recipient_role = (
+            t('an admin') if self.invitee_role == 'admin' else t('a member')
+        )
         # To avoid circular import
         User = apps.get_model('kobo_auth', 'User')
         has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
@@ -365,21 +376,26 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         email_message = EmailMessage(
             to=to_email,
             subject=t(
-                f"You're invited to join {organization_name}'s organization"
-            ),
+                f"You're invited to join ##organization_name## organization"
+            ).replace('##organization_name##', organization_name),
             plain_text_content_or_template=text_template,
             template_variables=template_variables,
             html_content_or_template=html_template,
-            language=(
-                self.invitee.extra_details.data.get('last_ui_language')
-                if is_registered_user
-                else 'en'
-            ),
+            language=invitee_language,
         )
 
         Mailer.send(email_message)
 
     def send_refusal_email(self):
+        """
+        Send an email to the sender of the invitation to notify them that the
+        invitee has declined the invitation
+        """
+        sender_language = self.invited_by.extra_details.data.get(
+            'last_ui_language', 'en'
+        )
+        activate(sender_language)
+
         template_variables = {
             'sender_username': self.invited_by.username,
             'sender_email': self.invited_by.email,
@@ -398,11 +414,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             plain_text_content_or_template='emails/declined_invite.txt',
             template_variables=template_variables,
             html_content_or_template='emails/declined_invite.html',
-            language=(
-                self.invitee.extra_details.data.get('last_ui_language')
-                if self.invitee
-                else 'en'
-            ),
+            language=sender_language,
         )
 
         Mailer.send(email_message)

@@ -25,12 +25,7 @@ from kpi.utils.mailer import EmailMessage, Mailer
 )
 def transfer_member_data_ownership_to_org(user_id: int):
     sender = User.objects.get(pk=user_id)
-    # Get sender's organization without using the cached organization property,
-    # as it may be outdated.
-    sender_organization = Organization.objects.filter(
-        organization_users__user=sender
-    ).first()
-    recipient = sender_organization.owner_user_object
+    recipient = sender.organization.owner_user_object
     user_assets = (
         sender.assets.only('pk', 'uid')
         .exclude(

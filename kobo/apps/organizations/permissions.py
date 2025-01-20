@@ -72,21 +72,29 @@ class OrgMembershipInvitePermission(
         if not super().has_permission(request=request, view=view):
             return False
 
-        user = get_database_user(request.user)
         organization_id = view.kwargs.get('organization_id')
         try:
             organization = Organization.objects.get(id=organization_id)
         except Organization.DoesNotExist:
             raise Http404
 
+        # Fetch and attach the user role to the view for reuse in the viewset
+        user = get_database_user(request.user)
         user_role = organization.get_user_role(user)
+        view.user_role = user_role
 
         # Allow only owners or admins for POST and DELETE
         if request.method in ['POST', 'DELETE']:
             return user_role in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
 
-        # Allow only authenticated users for GET and PATCH
-        if request.method in ['GET', 'PATCH']:
-            return True
+        if (
+            request.method == 'PATCH' and
+            request.data.get('status') in ['resent', 'cancelled']
+        ):
+            # Only allow OWNER and ADMIN for these statuses
+            return user_role in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
 
-        return False
+        if request.method == 'GET' and user_role == ORG_EXTERNAL_ROLE:
+            raise Http404
+
+        return True
