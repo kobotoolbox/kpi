@@ -1,7 +1,4 @@
-import {
-  Alert as AlertMantine,
-  createPolymorphicComponent,
-} from '@mantine/core';
+import {Alert as AlertMantine} from '@mantine/core';
 import type {AlertProps as AlertPropsMantine} from '@mantine/core/lib/components';
 import Icon from './icon';
 import type {IconName} from 'jsapp/fonts/k-icons';
@@ -19,13 +16,9 @@ export interface AlertProps extends Omit<AlertPropsMantine, 'icon' | 'variant' |
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(
   ({iconName, ...props}, ref) => {
-    const icon = iconName ? (<Icon name={iconName} size='m'/>) : null;
-    return (
-      <AlertMantine {...props} icon={icon} ref={ref}/>
-    );
+    const icon = iconName ? <Icon name={iconName} size='m' /> : null;
+    return <AlertMantine {...props} icon={icon} ref={ref} />;
   }
 );
 
-export default createPolymorphicComponent<'div', AlertProps>(
-  Alert
-);
+export default Alert;
