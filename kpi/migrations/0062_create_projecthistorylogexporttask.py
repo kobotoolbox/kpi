@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
                     'result',
                     private_storage.fields.PrivateFileField(
                         max_length=380,
-                        storage=private_storage.storage.files.PrivateFileSystemStorage(),
+                        storage=private_storage.storage.files.PrivateFileSystemStorage(),  # noqa
                         upload_to=kpi.models.import_export_task.export_upload_to,
                     ),
                 ),

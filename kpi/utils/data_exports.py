@@ -142,6 +142,7 @@ def create_data_export(export_type: str, data: QuerySet) -> StringIO:
     buff.seek(0)
     return buff
 
+
 def flatten_settings_inplace(settings: dict) -> None:
     for k, v in settings.items():
         if isinstance(v, list) and v:

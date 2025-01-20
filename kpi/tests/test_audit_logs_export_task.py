@@ -150,8 +150,8 @@ class ProjectHistoryLogExportTaskTests(TestCase):
         # filename should be type-username-date (and sometimes a random 7-char suffix
         # for uniqueness)
         expected_pattern = (
-            rf'adminuser/exports/project_history_logs_export-'
-            rf'adminuser-'
+            r'adminuser/exports/project_history_logs_export-'
+            r'adminuser-'
             r'\d{4}-\d{2}-\d{2}T\d{6}Z(_\w{7})?\.csv'
         )
 
@@ -218,7 +218,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
     def test_export_for_single_asset(self):
         asset = Asset.objects.get(id=1)
         adminuser = User.objects.get(username='adminuser')
-        log1 = ProjectHistoryLog.objects.create(
+        ProjectHistoryLog.objects.create(
             user=User.objects.get(username='someuser'),
             action=AuditAction.ADD_SUBMISSION,
             metadata={
@@ -230,7 +230,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
             object_id=asset.id,
         )
         # use a different action to make it easy to identify
-        log2 = ProjectHistoryLog.objects.create(
+        ProjectHistoryLog.objects.create(
             user=User.objects.get(username='someuser'),
             action=AuditAction.MODIFY_SUBMISSION,
             metadata={
@@ -252,7 +252,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
     def test_export_all(self):
         asset = Asset.objects.get(id=1)
         adminuser = User.objects.get(username='adminuser')
-        log1 = ProjectHistoryLog.objects.create(
+        ProjectHistoryLog.objects.create(
             user=User.objects.get(username='someuser'),
             action=AuditAction.ADD_SUBMISSION,
             metadata={
@@ -264,7 +264,7 @@ class ProjectHistoryLogExportTaskTests(TestCase):
             object_id=asset.id,
         )
         # use a different action to make it easy to identify
-        log2 = ProjectHistoryLog.objects.create(
+        ProjectHistoryLog.objects.create(
             user=User.objects.get(username='someuser'),
             action=AuditAction.MODIFY_SUBMISSION,
             metadata={

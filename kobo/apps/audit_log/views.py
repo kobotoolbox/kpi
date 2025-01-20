@@ -947,7 +947,8 @@ class ProjectHistoryLogViewSet(
             return Response(
                 {
                     'error': (
-                        'Export task for project history logs for this asset already in progress.'
+                        'Export task for project history logs for this asset already in'
+                        ' progress.'
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
