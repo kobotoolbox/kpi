@@ -1,4 +1,3 @@
-from django.http import HttpResponseNotFound
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditType, ProjectHistoryLog
