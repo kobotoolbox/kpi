@@ -1,6 +1,5 @@
 import {
   ActionIcon as ActionIconMantine,
-  createPolymorphicComponent,
 } from '@mantine/core';
 import type {ActionIconProps as ActionIconPropsMantine} from '@mantine/core/lib/components';
 import Icon, {IconSize} from './icon';
@@ -25,6 +24,4 @@ const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(
   }
 );
 
-export default createPolymorphicComponent<'button', ActionIconProps>(
-  ActionIcon
-);
+export default ActionIcon
