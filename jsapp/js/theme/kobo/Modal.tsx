@@ -10,7 +10,6 @@ export const ModalThemeKobo = Modal.extend({
     overlayProps: {
       backgroundOpacity: 0.5,
       color: 'var(--mantine-color-blue-9)',
-      blur: 2,
       zIndex: 3000,
     },
     zIndex: 4000,
