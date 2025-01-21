@@ -21,6 +21,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
@@ -1084,6 +1085,33 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         for idx, attachment in enumerate(attachments):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
+
+    def test_inject_root_uuid_if_not_present(self):
+        """
+        Ensure `meta/rootUUid` is present in API response even if rootUuid was
+        not present (e.g. like old submissions)
+        """
+        # remove "meta/rootUuid" from MongoDB
+        submission = self.submissions_submitted_by_someuser[0]
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+        root_uuid = mongo_document.pop(META_ROOT_UUID, None)
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        assert response.data['_id'] == submission['_id']
+        assert META_ROOT_UUID in response.data
+        assert response.data[META_ROOT_UUID] == root_uuid
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):

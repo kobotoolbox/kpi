@@ -19,7 +19,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
-from rest_framework.request import Request
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
