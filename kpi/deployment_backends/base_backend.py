@@ -19,9 +19,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.request import Request
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -782,8 +784,23 @@ class BaseDeploymentBackend(abc.ABC):
             queryset = PairedData.objects(self.asset).values()
             return queryset
 
+    def _inject_properties(
+        self, submission: dict, request: 'rest_framework.request.Request'
+    ) -> dict:
+        submission = self._rewrite_json_attachment_urls(submission, request)
+        submission = self._inject_root_uuid(submission)
+        return submission
+
+    def _inject_root_uuid(self, submission: dict) -> dict:
+
+        if submission.get(META_ROOT_UUID):
+            return submission
+
+        submission[META_ROOT_UUID] = submission['_uuid']
+        return submission
+
     def _rewrite_json_attachment_urls(
-        self, submission: dict, request
+        self, submission: dict, request: 'rest_framework.request.Request'
     ) -> dict:
         if not request or '_attachments' not in submission:
             return submission

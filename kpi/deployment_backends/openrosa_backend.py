@@ -1400,7 +1400,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
-            self._rewrite_json_attachment_urls(
+            self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
             )

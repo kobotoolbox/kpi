@@ -13,6 +13,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
     GEOLOCATION,
     ID,
+    META_ROOT_UUID,
     MONGO_STRFTIME,
     NOTES,
     SUBMISSION_TIME,
@@ -268,6 +269,7 @@ class ParsedInstance(models.Model):
 
         data = {
             UUID: self.instance.uuid,
+            META_ROOT_UUID: self.instance.root_uuid,
             ID: self.instance.id,
             self.USERFORM_ID: userform_id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
