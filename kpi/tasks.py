@@ -13,18 +13,29 @@ from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import ImportTask, SubmissionExportTask
+from kpi.utils.log import logging
 
+SLEEP_TIME = 2
+RETRIES = 10
+
+def _get_task_with_retry(model_class:type, uid:str):
+    for i in range(RETRIES):
+        try:
+            return model_class.objects.get(uid=uid)
+        except model_class.DoesNotExist:
+            time.sleep(SLEEP_TIME)
+    raise model_class.DoesNotExist
 
 @celery_app.task
 def import_in_background(import_task_uid):
-    import_task = ImportTask.objects.get(uid=import_task_uid)
+    import_task = _get_task_with_retry(ImportTask, import_task_uid)
     import_task.run()
     return import_task.uid
 
 
 @celery_app.task
 def export_in_background(export_task_uid):
-    export_task = SubmissionExportTask.objects.get(uid=export_task_uid)
+    export_task = _get_task_with_retry(SubmissionExportTask, export_task_uid)
     export_task.run()
 
 
@@ -34,7 +45,8 @@ def export_task_in_background(
 ) -> None:
     user = User.objects.get(username=username)
     export_task_class = apps.get_model(export_task_name)
-    export_task = export_task_class.objects.get(uid=export_task_uid)
+
+    export_task = _get_task_with_retry(export_task_class, export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
         file_url = f'{settings.KOBOFORM_URL}{export.result.url}'
