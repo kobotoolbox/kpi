@@ -41,7 +41,12 @@ def _process_instances_batch(
     xform: XForm, instance_batch: list[Instance], first_try=True
 ) -> bool:
     for instance in instance_batch:
-        instance._populate_root_uuid()  # noqa
+        try:
+            instance._populate_root_uuid()  # noqa
+        except AssertionError as e:
+            if 'root_uuid should not be empty' in str(e):
+                # fallback on `uuid` to back-fill `root_uuid`
+                instance.root_uuid = instance.uuid
     try:
         Instance.objects.bulk_update(
             instance_batch, fields=['root_uuid']
