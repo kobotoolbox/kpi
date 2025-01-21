@@ -1,8 +1,30 @@
 import type {ModalProps} from '@mantine/core';
-import {Button, Center, Modal, Stack, Text} from '@mantine/core';
+import {Button, Center, Modal, Stack, Text, Group} from '@mantine/core';
 import type {Meta, StoryObj} from '@storybook/react';
 import {useArgs} from '@storybook/preview-api';
-import {Group} from '@mantine/core';
+import {useDisclosure} from '@mantine/hooks';
+
+const RenderModal = ({...args}: ModalProps) => {
+  const [{opened}, updateArgs] = useArgs();
+
+  return (
+    <Center w={400} h={80}>
+      <Button onClick={() => updateArgs({opened: !opened})}>Open modal</Button>
+      <Modal {...args} onClose={() => updateArgs({opened: !opened})}>
+        <Stack>
+          <Text p='md'>
+            Example modal content. Press esc, click outside or close button to
+            close.
+          </Text>
+          <Group justify='flex-end'>
+            <Button variant='danger'>Won&apos;t close</Button>
+            <Button onClick={() => updateArgs({opened: false})}>Close</Button>
+          </Group>
+        </Stack>
+      </Modal>
+    </Center>
+  );
+};
 
 /**
  * Mantine [Modal](https://mantine.dev/core/modal/) component stories.
@@ -10,29 +32,7 @@ import {Group} from '@mantine/core';
 const meta: Meta<typeof Modal> = {
   title: 'Common/Modal',
   component: Modal,
-  render: ({...args}: ModalProps) => {
-    const [{opened}, updateArgs] = useArgs();
-
-    return (
-      <Center w={400} h={80}>
-        <Button onClick={() => updateArgs({opened: !opened})}>
-          Open modal
-        </Button>
-        <Modal {...args} onClose={() => updateArgs({opened: !opened})}>
-          <Stack>
-            <Text p='md'>
-              Example modal content. Press esc, click outside or close button to
-              close.
-            </Text>
-            <Group justify='flex-end'>
-              <Button variant='danger'>Won&apos;t close</Button>
-              <Button onClick={() => updateArgs({opened: false})}>Close</Button>
-            </Group>
-          </Stack>
-        </Modal>
-      </Center>
-    );
-  },
+  render: RenderModal,
   argTypes: {
     opened: {
       description: 'Modal opened state',
