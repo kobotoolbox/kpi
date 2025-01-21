@@ -16,9 +16,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
-from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.models import AuditType
+from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -349,26 +349,7 @@ class DataViewSet(
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
 
-        # Need to get `uuid` before the data is gone
-        submission = deployment.get_submission(
-            submission_id=submission_id,
-            user=request.user,
-            fields=['_id', '_uuid']
-        )
-
         if deployment.delete_submission(submission_id, user=request.user):
-            AuditLog.objects.create(
-                app_label='logger',
-                model_name='instance',
-                object_id=pk,
-                user=request.user,
-                metadata={
-                    'asset_uid': self.asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-                log_type=AuditType.SUBMISSION_MANAGEMENT,
-            )
             response = {
                 'content_type': 'application/json',
                 'status': status.HTTP_204_NO_CONTENT,
@@ -597,34 +578,21 @@ class DataViewSet(
         # Prepare audit logs
         data = copy.deepcopy(bulk_actions_validator.data)
         # Retrieve all submissions matching `submission_ids` or `query`.
-        # If user is not allowed to see some of the submissions (i.e.: user
-        # with partial permissions), the request will be rejected
-        # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+
         submissions = deployment.get_submissions(
             user=request.user,
             submission_ids=data['submission_ids'],
             query=data['query'],
-            fields=['_id', '_uuid'],
+            fields=['_id', '_uuid', '_submitted_by'],
         )
 
         # Prepare logs before deleting all submissions.
-        audit_logs = []
-        for submission in submissions:
-            audit_logs.append(
-                AuditLog(
-                    app_label='logger',
-                    model_name='instance',
-                    object_id=submission['_id'],
-                    user=request.user,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': self.asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                    log_type=AuditType.SUBMISSION_MANAGEMENT,
-                )
+        request._request.instances = {
+            sub['_id']: SubmissionUpdate(
+                id=sub['_id'], username=sub['_submitted_by'], action='delete'
             )
+            for sub in submissions
+        }
 
         try:
             deleted = deployment.delete_submissions(
@@ -636,10 +604,6 @@ class DataViewSet(
                 'content_type': 'application/json',
                 'status': status.HTTP_400_BAD_REQUEST,
             }
-
-        # If requests has succeeded, let's log deletions (if any)
-        if audit_logs and deleted:
-            AuditLog.objects.bulk_create(audit_logs)
 
         return {
             'data': {'detail': f'{deleted} submissions have been deleted'},
