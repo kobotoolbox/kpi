@@ -6,6 +6,7 @@ import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './Menu';
 import {AlertThemeKobo} from './Alert';
 import {SelectThemeKobo} from './Select';
+import {LoaderThemeKobo} from './Loader';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -83,8 +84,7 @@ export const themeKobo = createTheme({
     lg: rem(16),
     xl: rem(18),
   },
-  lineHeights: {
-  },
+  lineHeights: {},
   headings: {
     fontWeight: '500',
   },
@@ -109,5 +109,6 @@ export const themeKobo = createTheme({
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
     Select: SelectThemeKobo,
+    Loader: LoaderThemeKobo,
   },
 });
