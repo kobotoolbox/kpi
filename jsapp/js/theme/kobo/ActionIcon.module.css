@@ -1,0 +1,7 @@
+.root {
+  &[data-disabled] {
+    color: var(--ai-color);
+    background: var(--ai-bg);
+    opacity: 0.5;
+  }
+}

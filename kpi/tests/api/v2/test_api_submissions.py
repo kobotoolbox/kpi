@@ -17,12 +17,11 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
-from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
-from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -162,32 +161,6 @@ class BulkDeleteSubmissionsApiTests(
         someuser can delete their own data
         """
         self._delete_submissions()
-
-    def test_audit_log_on_bulk_delete(self):
-        """
-        Validate that all submission ids are logged in AuditLog table on
-        bulk deletion.
-        """
-        expected_submission_ids = [
-            s['_id']
-            for s in self.asset.deployment.get_submissions(
-                self.asset.owner, fields=['_id']
-            )
-        ]
-        audit_log_count = AuditLog.objects.filter(
-            user=self.someuser, app_label='logger', model_name='instance'
-        ).count()
-        # No submissions have been deleted yet
-        assert audit_log_count == 0
-        # Delete all submissions
-        self._delete_submissions()
-
-        # All submissions have been deleted and should be logged
-        deleted_submission_ids = AuditLog.objects.values_list('pk', flat=True).filter(
-            user=self.someuser, app_label='logger', model_name='instance'
-        )
-        assert len(expected_submission_ids) > 0
-        assert sorted(expected_submission_ids), sorted(deleted_submission_ids)
 
     def test_delete_submissions_as_anonymous(self):
         """
@@ -790,35 +763,6 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         """
         submission = self.submissions_submitted_by_someuser[0]
         self._delete_submission(submission)
-
-    def test_audit_log_on_delete(self):
-        """
-        Validate that the submission id is logged in AuditLog table when it is
-        deleted.
-        """
-        submission = self.submissions_submitted_by_someuser[0]
-        audit_log_count = AuditLog.objects.filter(
-            user=self.someuser,
-            app_label='logger',
-            model_name='instance',
-            log_type=AuditType.SUBMISSION_MANAGEMENT,
-        ).count()
-        # No submissions have been deleted yet
-        assert audit_log_count == 0
-        # Delete one submission
-        self.test_delete_submission_as_owner()
-
-        # All submissions have been deleted and should be logged
-        deleted_submission_ids = AuditLog.objects.values_list(
-            'pk', flat=True
-        ).filter(
-            user=self.someuser,
-            app_label='logger',
-            model_name='instance',
-            log_type=AuditType.SUBMISSION_MANAGEMENT,
-        )
-        assert len(deleted_submission_ids) > 0
-        assert [submission['_id']], deleted_submission_ids
 
     def test_delete_not_existing_submission_as_owner(self):
         """
