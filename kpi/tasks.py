@@ -27,6 +27,7 @@ def _get_task_with_retry(model_class: type, uid: str):
             if i == RETRIES - 1:
                 raise
 
+
 @celery_app.task
 def import_in_background(import_task_uid):
     import_task = _get_task_with_retry(ImportTask, import_task_uid)
