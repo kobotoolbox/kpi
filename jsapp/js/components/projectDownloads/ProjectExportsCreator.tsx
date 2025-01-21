@@ -492,7 +492,7 @@ export default class ProjectExportsCreator extends React.Component<
     // to update it.
     } else if (foundDefinedExport) {
       this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
-        this.handleScheduledExport
+        this.handleScheduledExport.bind(this)
       );
       actions.exports.updateExportSetting(
         this.props.asset.uid,
@@ -502,7 +502,7 @@ export default class ProjectExportsCreator extends React.Component<
     // Case 4: There is no defined export like this one, we need to create it.
     } else {
       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
-        this.handleScheduledExport
+        this.handleScheduledExport.bind(this)
       );
       actions.exports.createExportSetting(
         this.props.asset.uid,
@@ -585,7 +585,7 @@ export default class ProjectExportsCreator extends React.Component<
       <MultiCheckbox
         type='frame'
         items={rows}
-        onChange={this.onSelectedRowsChange}
+        onChange={this.onSelectedRowsChange.bind(this)}
       />
     );
   }
