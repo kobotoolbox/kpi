@@ -13,12 +13,12 @@ from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import ImportTask, SubmissionExportTask
-from kpi.utils.log import logging
 
 SLEEP_TIME = 2
 RETRIES = 10
 
-def _get_task_with_retry(model_class:type, uid:str):
+
+def _get_task_with_retry(model_class: type, uid: str):
     for i in range(RETRIES):
         try:
             return model_class.objects.get(uid=uid)
