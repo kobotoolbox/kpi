@@ -6,7 +6,6 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from taggit.models import Tag
 
-from kobo.apps.openrosa.libs.constants import OPENROSA_APP_LABELS
 from kpi.constants import PERM_ADD_SUBMISSIONS
 from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset, TagUid
@@ -34,7 +33,8 @@ def post_delete_asset(sender, instance, **kwargs):
     # Update parent's languages if this object is a child of another asset.
     try:
         parent = instance.parent
-    except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
+    except Asset.DoesNotExist:
+        # `parent` may exist in DJANGO models cache but not in DB
         pass
     else:
         if parent:

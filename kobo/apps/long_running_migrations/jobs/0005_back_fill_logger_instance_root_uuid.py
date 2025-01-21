@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db import IntegrityError
 from more_itertools import chunked
-from taggit.models import Tag, TaggedItem
+from taggit.models import TaggedItem
 
 from kobo.apps.openrosa.apps.logger.models import XForm, Instance
 from kpi.utils.database import use_db
