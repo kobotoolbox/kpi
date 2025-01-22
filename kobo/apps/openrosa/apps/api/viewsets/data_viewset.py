@@ -300,51 +300,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     >
     >        HTTP 200 OK
 
-
-    ## Query submitted validation status of a specific submission
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
-
-    > Example
-    >
-    >       curl -X GET https://example.com/api/v1/data/22845/56/validation_status
-
-    > Response
-    >
-    >       {
-    >           "timestamp": 1513299978,
-    >           "by_whom ": "John Doe",
-    >           "uid": "validation_status_approved",
-    >           "label: "Approved"
-    >       }
-
-    ## Change validation status of a submission data point
-
-    A `PATCH` payload of parameter `validation_status`.
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
-
-    Payload
-
-    >       {
-    >           "validation_status_uid": "validation_status_not_approved"
-    >       }
-
-    > Example
-    >
-    >       curl -X PATCH https://example.com/api/v1/data/22845/56/validation_status
-
-    > Response
-    >
-    >       {
-    >           "timestamp": 1513299978,
-    >           "by_whom ": "John Doe",
-    >           "uid": "validation_status_not_approved",
-    >           "label": "Not Approved"
-    >       }
-
     ## Get enketo edit link for a submission instance
 
     <pre class="prettyprint">
@@ -357,24 +312,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
     > Response
     >       {"url": "https://hmh2a.enketo.formhub.org"}
-    >
-    >
-
-    ## Delete a specific submission instance
-
-    Delete a specific submission in a form
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://example.com/api/v1/data/28058/20
-
-    > Response
-    >
-    >       HTTP 204 No Content
     >
     >
     """
@@ -393,67 +330,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     lookup_fields = ('pk', 'dataid')
     extra_lookup_fields = None
     queryset = XForm.objects.all()
-
-    def bulk_delete(self, request, *args, **kwargs):
-        """
-        Bulk delete instances
-        """
-        xform = self.get_object()
-
-        try:
-            deleted_records_count = delete_instances(xform, request.data)
-        except BuildDbQueriesBadArgumentError:
-            raise ValidationError(
-                {'payload': t("`query` and `instance_ids` can't be used together")}
-            )
-        except BuildDbQueriesAttributeError:
-            raise ValidationError(
-                {'payload': t('Invalid `query` or `submission_ids` params')}
-            )
-        except BuildDbQueriesNoConfirmationProvidedError:
-            raise NoConfirmationProvidedAPIException()
-
-        return Response(
-            {
-                'detail': t('{} submissions have been deleted').format(
-                    deleted_records_count
-                )
-            },
-            status.HTTP_200_OK,
-        )
-
-    def bulk_validation_status(self, request, *args, **kwargs):
-
-        xform = self.get_object()
-        real_user = get_database_user(request.user)
-
-        try:
-            updated_records_count = set_instance_validation_statuses(
-                xform, request.data, real_user.username
-            )
-        except BuildDbQueriesBadArgumentError:
-            raise ValidationError(
-                {'payload': t("`query` and `instance_ids` can't be used together")}
-            )
-        except BuildDbQueriesAttributeError:
-            raise ValidationError(
-                {'payload': t('Invalid `query` or `submission_ids` params')}
-            )
-        except BuildDbQueriesNoConfirmationProvidedError:
-            raise NoConfirmationProvidedAPIException()
-        except MissingValidationStatusPayloadError:
-            raise ValidationError({
-                'payload': t('No `validation_status.uid` provided')
-            })
-
-        return Response(
-            {
-                'detail': t('{} submissions have been updated').format(
-                    updated_records_count
-                )
-            },
-            status.HTTP_200_OK,
-        )
 
     def get_serializer_class(self):
         pk_lookup, dataid_lookup = self.lookup_fields
@@ -525,38 +401,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
                 qs = self._filtered_or_shared_qs(qs, pk)
 
         return qs
-
-    @action(detail=True, methods=['GET', 'PATCH', 'DELETE'])
-    def validation_status(self, request, *args, **kwargs):
-        """
-        View or modify validation status of specific instance.
-        User needs 'validate_xform' permission to update the data.
-
-        :param request: Request
-        :return: Response
-        """
-        http_status = status.HTTP_200_OK
-        instance = self.get_object()
-        data = {}
-
-        if request.method != 'GET':
-            username = get_database_user(request.user).username
-            validation_status_uid = request.data.get('validation_status.uid')
-            if request.method == 'PATCH' and not add_validation_status_to_instance(
-                username, validation_status_uid, instance
-            ):
-                http_status = status.HTTP_400_BAD_REQUEST
-            elif request.method == 'DELETE':
-                if remove_validation_status_from_instance(instance):
-                    http_status = status.HTTP_204_NO_CONTENT
-                    data = None
-                else:
-                    http_status = status.HTTP_400_BAD_REQUEST
-
-        if http_status == status.HTTP_200_OK:
-            data = instance.validation_status
-
-        return Response(data, status=http_status)
 
     @action(
         detail=True,
@@ -660,15 +504,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             return Response(instance.xml)
         else:
             return super().retrieve(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if isinstance(instance, XForm):
-            raise ParseError(t('Data id not provided'))
-        elif isinstance(instance, Instance):
-            instance.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request, *args, **kwargs):
         lookup_field = self.lookup_field
