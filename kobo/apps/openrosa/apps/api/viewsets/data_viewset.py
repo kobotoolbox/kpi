@@ -10,6 +10,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from kobo.apps.openrosa.apps.api.permissions import XFormDataPermissions
 from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
