@@ -3,7 +3,7 @@ import type {ComponentStory, ComponentMeta} from '@storybook/react';
 import KoboSelect from 'js/components/common/koboSelect';
 
 export default {
-  title: 'common/KoboSelect',
+  title: 'commonDeprecated/KoboSelect',
   component: KoboSelect,
   argTypes: {
     selectedOption: {

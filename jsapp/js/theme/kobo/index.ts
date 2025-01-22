@@ -4,6 +4,9 @@ import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
 import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './Menu';
+import {AlertThemeKobo} from './Alert';
+import {SelectThemeKobo} from './Select';
+import {LoaderThemeKobo} from './Loader';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -56,6 +59,18 @@ export const themeKobo = createTheme({
       'hsl(0, 100%, 90%)', // #ffcccc
       'hsl(0, 100%, 96%)', // #ffe9e9
     ],
+    amber: [
+      '#000',
+      '#000',
+      '#000',
+      '#000',
+      '#000',
+      'hsl(30, 100%, 25%)', // #803f00 ($kobo-dark-amber)
+      'hsl(29, 100%, 75%)', // #ffbe80 ($kobo-amber)
+      'hsl(30, 100%, 90%)', // #ffe8cc ($kobo-light-amber)
+      '#000',
+      '#000',
+    ],
   },
 
   // Typography
@@ -69,8 +84,7 @@ export const themeKobo = createTheme({
     lg: rem(16),
     xl: rem(18),
   },
-  lineHeights: {
-  },
+  lineHeights: {},
   headings: {
     fontWeight: '500',
   },
@@ -89,9 +103,12 @@ export const themeKobo = createTheme({
 
   components: {
     ActionIcon: ActionIconThemeKobo,
+    Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
     Menu: MenuThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
+    Select: SelectThemeKobo,
+    Loader: LoaderThemeKobo,
   },
 });

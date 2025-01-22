@@ -79,6 +79,19 @@ ACCESS_LOGS_EXPORT_FIELDS = (
     'authorized_application',
     'other_details',
 )
+
+PROJECT_HISTORY_LOGS_EXPORT_FIELDS = (
+    'user_url',
+    'user_uid',
+    'username',
+    'action',
+    'date_created',
+    'source',
+    'ip_address',
+    'asset_uid',
+    'other_details',
+)
+
 CONFIG = {
     'assets': {
         'queryset': Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
@@ -98,6 +111,13 @@ CONFIG = {
         .order_by('-date_created'),
         'key': 'metadata',
         'columns': ACCESS_LOGS_EXPORT_FIELDS,
+    },
+    'project_history_logs_export': {
+        'queryset': lambda: apps.get_model('audit_log', 'ProjectHistoryLog')
+        .objects.all()
+        .order_by('-date_created'),
+        'key': 'metadata',
+        'columns': PROJECT_HISTORY_LOGS_EXPORT_FIELDS,
     },
 }
 
@@ -121,14 +141,6 @@ def create_data_export(export_type: str, data: QuerySet) -> StringIO:
 
     buff.seek(0)
     return buff
-
-
-def filter_remaining_metadata(row, accessed_fields):
-    metadata = row['other_details']
-    if metadata is not None:
-        return {
-            key: value for key, value in metadata.items() if key not in accessed_fields
-        }
 
 
 def flatten_settings_inplace(settings: dict) -> None:
