@@ -8,31 +8,12 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
-from kobo.apps.openrosa.apps.api.exceptions import NoConfirmationProvidedAPIException
-from kobo.apps.openrosa.apps.api.permissions import (
-    EnketoSubmissionEditPermissions,
-    EnketoSubmissionViewPermissions,
-    XFormDataPermissions,
-)
 from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
-from kobo.apps.openrosa.apps.logger.exceptions import (
-    BuildDbQueriesAttributeError,
-    BuildDbQueriesBadArgumentError,
-    BuildDbQueriesNoConfirmationProvidedError,
-    MissingValidationStatusPayloadError,
-)
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.utils.instance import (
-    add_validation_status_to_instance,
-    delete_instances,
-    remove_validation_status_from_instance,
-    set_instance_validation_statuses,
-)
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
     AnonymousUserPublicFormsMixin,
@@ -43,11 +24,6 @@ from kobo.apps.openrosa.libs.serializers.data_serializer import (
     DataListSerializer,
     DataSerializer,
 )
-from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    EnketoError,
-    get_enketo_submission_url,
-)
-from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -299,21 +275,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     > Response
     >
     >        HTTP 200 OK
-
-    ## Get enketo edit link for a submission instance
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/enketo
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://example.com/api/v1/data/28058/20/enketo?return_url=url
-
-    > Response
-    >       {"url": "https://hmh2a.enketo.formhub.org"}
-    >
-    >
     """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
@@ -438,64 +399,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             http_status = status.HTTP_200_OK
 
         return Response(data, status=http_status)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionEditPermissions],
-    )
-    def enketo(self, request, *args, **kwargs):
-        # keep `/enketo` for retro-compatibility
-        return self.enketo_edit(request, *args, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionEditPermissions],
-    )
-    def enketo_edit(self, request, *args, **kwargs):
-        return self._enketo_request(request, action_='edit', *args, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionViewPermissions],
-    )
-    def enketo_view(self, request, *args, **kwargs):
-        return self._enketo_request(request, action_='view', *args, **kwargs)
-
-    def _enketo_request(self, request, action_, *args, **kwargs):
-        object_ = self.get_object()
-        data = {}
-        if isinstance(object_, XForm):
-            raise ParseError(t('Data id not provided.'))
-        elif isinstance(object_, Instance):
-            return_url = request.query_params.get('return_url')
-            if not return_url and not action_ == 'view':
-                raise ParseError(t('`return_url` not provided.'))
-
-            if not object_.xform.require_auth and action_ == 'edit':
-                # Trying to edit in Enketo while `xform.require_auth == False`
-                # leads to an infinite authentication loop because Enketo never
-                # sends credentials unless it receives a 401 response to an
-                # unauthenticated HEAD request.
-                # There's no way to send such a response for editing only while
-                # simultaneously allowing anonymous submissions to the same endpoint.
-                # Avoid the infinite loop by blocking doomed requests here and
-                # returning a helpful error message.
-                raise ValidationError(t(
-                    'Cannot edit submissions while "Require authentication to '
-                    'see form and submit data" is disabled for your project'
-                ))
-
-            try:
-                data['url'] = get_enketo_submission_url(
-                    request, object_, return_url, action=action_
-                )
-            except EnketoError as e:
-                data['detail'] = str(e)
-
-        return Response(data=data)
 
     def retrieve(self, request, *args, **kwargs):
         # XML rendering does not a serializer
