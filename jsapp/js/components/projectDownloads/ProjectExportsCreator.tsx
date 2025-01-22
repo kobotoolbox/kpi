@@ -150,7 +150,7 @@ export default class ProjectExportsCreator extends React.Component<
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted.bind(this)),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
-      actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSettingCompleted),
+      actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSettingCompleted.bind(this)),
     );
 
     this.fetchExportSettings(true);
