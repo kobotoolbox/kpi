@@ -5,7 +5,11 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
-from kpi.models.import_export_task import AccessLogExportTask
+from kpi.models.import_export_task import (
+    AccessLogExportTask,
+    ImportExportTask,
+    ProjectHistoryLogExportTask,
+)
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -430,6 +434,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        connect-project
     >        delete-media
     >        delete-service
+    >        delete-submission
     >        deploy
     >        disable-sharing
     >        disallow-anonymous-submissions
@@ -510,6 +515,10 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. metadata__hook__active
 
+    * delete-submission
+
+        a. metadata__submission__submitted_by
+
     * deploy
 
         a. metadata__latest_version_uid
@@ -587,6 +596,38 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     queryset = ProjectHistoryLog.objects.all().order_by('-date_created')
     serializer_class = ProjectHistoryLogSerializer
     filter_backends = (SearchFilter,)
+
+    @action(detail=False, methods=['GET', 'POST'])
+    def export(self, request, *args, **kwargs):
+        in_progress = ProjectHistoryLogExportTask.objects.filter(
+            user=request.user, asset_uid=None, status=ImportExportTask.PROCESSING
+        ).count()
+        if in_progress > 0:
+            return Response(
+                {
+                    'error': (
+                        'Export task for all project history logs already in progress.'
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        export_task = ProjectHistoryLogExportTask.objects.create(
+            user=request.user,
+            asset_uid=None,
+            data={
+                'type': 'project_history_logs_export',
+            },
+        )
+
+        export_task_in_background.delay(
+            export_task_uid=export_task.uid,
+            username=export_task.user.username,
+            export_task_name='kpi.ProjectHistoryLogExportTask',
+        )
+        return Response(
+            {f'status: {export_task.status}'},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class ProjectHistoryLogViewSet(
@@ -692,6 +733,7 @@ class ProjectHistoryLogViewSet(
     >        connect-project
     >        delete-media
     >        delete-service
+    >        delete-submission
     >        deploy
     >        disable-sharing
     >        disallow-anonymous-submissions
@@ -771,6 +813,10 @@ class ProjectHistoryLogViewSet(
         b. metadata__hook__endpoint
 
         c. metadata__hook__active
+
+    * delete-submission
+
+        a. metadata__submission__submitted_by
 
     * deploy
 
@@ -889,6 +935,41 @@ class ProjectHistoryLogViewSet(
         )
         flattened = [action[0] for action in actions]
         return Response({'actions': flattened})
+
+    @action(detail=False, methods=['POST'])
+    def export(self, request, *args, **kwargs):
+        in_progress = ProjectHistoryLogExportTask.objects.filter(
+            user=request.user,
+            asset_uid=self.asset_uid,
+            status=ImportExportTask.PROCESSING,
+        ).count()
+        if in_progress > 0:
+            return Response(
+                {
+                    'error': (
+                        'Export task for project history logs for this asset already in'
+                        ' progress.'
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        export_task = ProjectHistoryLogExportTask.objects.create(
+            user=request.user,
+            asset_uid=self.asset_uid,
+            data={
+                'type': 'project_history_logs_export',
+            },
+        )
+
+        export_task_in_background.delay(
+            export_task_uid=export_task.uid,
+            username=export_task.user.username,
+            export_task_name='kpi.ProjectHistoryLogExportTask',
+        )
+        return Response(
+            {f'status: {export_task.status}'},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):

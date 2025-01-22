@@ -17,7 +17,10 @@ from kpi.constants import (
     PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
 from kpi.models import Asset
-from kpi.models.import_export_task import AccessLogExportTask
+from kpi.models.import_export_task import (
+    AccessLogExportTask,
+    ProjectHistoryLogExportTask,
+)
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -161,6 +164,32 @@ class ProjectHistoryLogTestCaseMixin:
             response.data['results'][0]['metadata']['log_subtype'],
             PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
         )
+
+    def test_export_task_created(self):
+        now = timezone.now()
+        ProjectHistoryLog.objects.create(
+            user=self.user,
+            object_id=self.asset.id,
+            action=AuditAction.DELETE,
+            metadata={
+                'asset_uid': self.asset.uid,
+                'ip_address': '1.2.3.4',
+                'source': 'source',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            },
+            date_created=now,
+        )
+        response = self.client.post(f'{self.url}export/')
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            ProjectHistoryLogExportTask.objects.filter(user=self.user)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertIsNotNone(task)
+        self.assertIn(task.status, ['created', 'processing', 'complete'])
 
 
 class ApiAuditLogTestCase(BaseAuditLogTestCase):
@@ -658,6 +687,26 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
             [AuditAction.DELETE_MEDIA, AuditAction.DELETE_SERVICE, AuditAction.DEPLOY],
         )
 
+    def test_export_creates_task_for_single_asset(self):
+        response = self.client.post(f'{self.url}export/')
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            ProjectHistoryLogExportTask.objects.filter(user=self.user)
+            .order_by('-date_created')
+            .first()
+        )
+        self.assertEqual(task.asset_uid, self.asset.uid)
+
+    def test_cannot_export_without_manage_permission(self):
+        user2 = User.objects.get(username='anotheruser')
+        # make sure this user doesn't have management permissions
+        self.asset.remove_perm(user_obj=user2, perm=PERM_MANAGE_ASSET)
+        self.client.force_login(user=user2)
+        response = self.client.post(f'{self.url}export/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class ApiAllProjectHistoryLogsTestCase(
     BaseAuditLogTestCase, ProjectHistoryLogTestCaseMixin
@@ -706,6 +755,25 @@ class ApiAllProjectHistoryLogsTestCase(
             response.data['results'][1]['metadata']['asset_uid'], asset1.uid
 
         )
+
+    def test_export_creates_task_for_all_assets(self):
+        response = self.client.post(f'{self.url}export/')
+
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        task = (
+            ProjectHistoryLogExportTask.objects.filter(user=self.user)
+            .order_by('-date_created')
+            .first()
+        )
+        # empty task uid means the task is for all PH logs
+        self.assertEqual(task.asset_uid, None)
+
+    def test_cannot_export_all_if_not_superuser(self):
+        user2 = User.objects.get(username='anotheruser')
+        self.client.force_login(user=user2)
+        response = self.client.post(f'{self.url}export/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class ApiAccessLogsExportTestCase(BaseAuditLogTestCase):
