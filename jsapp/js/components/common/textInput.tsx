@@ -1,61 +1,40 @@
-import React, {useEffect, useState} from 'react';
+import React, {forwardRef} from 'react';
 import {
-  TextInput as MantineTextInput,
-  type TextInputProps,
+  TextInput as TextInputMantine,
+  type TextInputProps as TextInputPropsMantine,
 } from '@mantine/core';
 import Icon from './icon';
+import {IconName} from 'jsapp/fonts/k-icons';
 
-interface CustomTextInputProps extends Omit<TextInputProps, 'onChange'> {
-  onChange?: (newValue: string) => void;
-  renderFocused?: boolean;
+export interface TextInputProps
+  extends Omit<TextInputPropsMantine, 'leftSection' | 'size' | 'rightSection'> {
+  leftIconName: IconName;
+  rightIconName: IconName;
+  size: 'sm' | 'md' | 'lg';
 }
 
-export const TextInput: React.FC<CustomTextInputProps> = (props) => {
-  const {error, disabled, rightSection, ...rest} = props;
-  const [value, setValue] = useState(props.value || '');
-  const inputReference: React.MutableRefObject<null | HTMLInputElement> =
-    React.createRef();
+// TODO: Find a way to move icon handling to the base Input component
+// so we don't need to repeat this code for other input types
+const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
+  ({leftIconName, rightIconName, ...others}, ref) => {
+    const leftSection = leftIconName ? (
+      <Icon name={leftIconName} size='s' />
+    ) : null;
+    const rightSection = others.error ? (
+      <Icon name='alert' size='s' />
+    ) : rightIconName ? (
+      <Icon name={leftIconName} size='s' />
+    ) : null;
+    return (
+      <TextInputMantine
+        {...others}
+        ref={ref}
+        error={others.error}
+        leftSection={leftSection}
+        rightSection={rightSection}
+      />
+    );
+  }
+);
 
-  useEffect(() => {
-    if (props.renderFocused) {
-      inputReference.current?.focus();
-    }
-  }, []);
-
-  const onValueChange = (newValue: string) => {
-    if (props.readOnly || !props.onChange) {
-      return;
-    }
-    setValue(newValue);
-    props.onChange(newValue);
-  };
-
-  return (
-    <MantineTextInput
-      {...rest}
-      value={value}
-      onInput={(evt: React.ChangeEvent<HTMLInputElement>) => {
-        onValueChange(evt.currentTarget.value);
-      }}
-      onChange={() => false}
-      ref={inputReference}
-      error={error}
-      disabled={disabled}
-      rightSection={
-        error ? <Icon name='alert' color='mid-red' /> : rightSection
-      }
-      styles={(theme) => {
-        return {
-          input: {
-            borderColor: disabled
-              ? theme.colors.gray[2]
-              : error
-                ? theme.colors.red[7]
-                : theme.colors.gray[6],
-            color: disabled ? theme.colors.gray[2] : theme.colors.gray[1],
-          },
-        };
-      }}
-    />
-  );
-};
+export default TextInput;

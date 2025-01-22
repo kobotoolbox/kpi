@@ -16,7 +16,7 @@ const textBoxTypes: TextBoxType[] = [
 const textBoxSizes: TextBoxSize[] = ['s', 'm', 'l'];
 
 export default {
-  title: 'common/TextBox',
+  title: 'commonDeprecated/TextBox',
   component: TextBox,
   description:
     'This is a component that displays an input. It uses most of the browser built-in functionalities.',

@@ -1,7 +1,12 @@
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import {TextInput} from './textInput';
+import type {Meta, StoryObj} from '@storybook/react';
+import TextInput, {TextInputProps} from './textInput';
 import {IconNames} from 'jsapp/fonts/k-icons';
-import Icon from './icon';
+
+const inputSizes: Array<TextInputProps['size']> = [
+  'sm',
+  'md',
+  'lg',
+];
 
 export default {
   title: 'common/TextInput',
@@ -14,7 +19,6 @@ export default {
     placeholder: {
       description: 'Placeholder text for the input',
       control: 'text',
-      type: 'string',
     },
     value: {
       description: 'Current value of the input',
@@ -26,35 +30,19 @@ export default {
     size: {
       description:
         'Changes the size of the component (similar sizing as Button)',
-      defaultValue: {summary: 'lg'},
-      options: ['sm', 'md', 'lg'],
+      defaultValue: 'md',
+      options: inputSizes,
       control: {type: 'radio'},
     },
-    leftSection: {
+    leftIconName: {
       description: 'Appears inside the input, on the beginning.',
       options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map(
-          (key) =>
-            [key, <Icon name={key as IconNames} color='storm' />] as const
-        )
-        .reduce((o, [k, v]) => {
-          return {...o, [k]: v};
-        }, {}),
       control: {type: 'select'},
     },
-    rightSection: {
+    rightIconName: {
       description:
         'Appears inside the input, on the end. Is replaced by "alert" icon if there are any errors.',
       options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map(
-          (key) =>
-            [key, <Icon name={key as IconNames} color='storm' />] as const
-        )
-        .reduce((o, [k, v]) => {
-          return {...o, [k]: v};
-        }, {}),
       control: {type: 'select'},
     },
     disabled: {
@@ -69,46 +57,54 @@ export default {
       description: 'Error message or state for the input',
       control: 'text',
     },
-    withAsterisk: {
-      description: 'Displays an asterisk if the input is required',
-      control: 'boolean',
-    },
   },
-} as ComponentMeta<typeof TextInput>;
+} as Meta<typeof TextInput>;
 
-const Template: ComponentStory<typeof TextInput> = (args) => (
-  <TextInput {...args} />
-);
+type Story = StoryObj<typeof TextInput>;
 
-export const Primary = Template.bind({});
-Primary.args = {
-  label: 'Default Text Input',
-  placeholder: 'Enter text...',
-  size: 'md',
+export const Primary: Story = {
+  args: {
+    label: 'Default Text Input',
+    placeholder: 'Enter text...',
+    size: 'md',
+  },
 };
 
-export const Disabled = Template.bind({});
-Disabled.args = {
-  label: 'Disabled Input',
-  placeholder: 'You cannot type here',
-  size: 'md',
-  disabled: true,
+export const AutoFocused: Story = {
+  args: {
+    label: 'Default Text Input',
+    placeholder: 'Enter text...',
+    size: 'md',
+    autoFocus: true,
+  },
 };
 
-export const WithError = Template.bind({});
-WithError.args = {
-  label: 'Email',
-  placeholder: 'Enter your email',
-  error: 'Invalid email address',
-  size: 'md',
+export const Disabled: Story = {
+  args: {
+    label: 'Disabled Input',
+    placeholder: 'You cannot type here',
+    size: 'md',
+    disabled: true,
+  },
 };
 
-export const WithIcon = Template.bind({});
-WithIcon.args = {
-  label: 'Required Input',
-  placeholder: 'This field is required',
-  required: true,
-  withAsterisk: true,
-  leftSection: <Icon name='user' color='storm' />,
-  size: 'md',
+export const WithError: Story = {
+  args: {
+    label: 'Email',
+    placeholder: 'Enter your email',
+    value: "not an email",
+    error: 'Invalid email address',
+    size: 'md',
+  },
+};
+
+export const WithIcon: Story = {
+  args: {
+    label: 'Required Input',
+    placeholder: 'This field is required',
+    required: true,
+    withAsterisk: true,
+    leftIconName: 'user',
+    size: 'md',
+  },
 };
