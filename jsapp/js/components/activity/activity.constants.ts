@@ -11,6 +11,7 @@ export enum AuditActions {
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
   'delete-service' = 'delete-service',
+  'delete-submission' = 'delete-submission',
   'deploy' = 'deploy',
   'disable-sharing' = 'disable-sharing',
   'disallow-anonymous-submissions' = 'disallow-anonymous-submissions',
@@ -95,6 +96,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('delete a REST service'),
     message: t('##username## deleted a REST service'),
   },
+  'delete-submission': {
+    order: 32,
+    name: AuditActions['delete-submission'],
+    label: t('delete a submission'),
+    message: t('##username## deleted a submission'),
+  },
   'deploy': {
     order: 2,
     name: AuditActions['deploy'],
@@ -152,8 +159,8 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
   'modify-submission': {
     order: 31,
     name: AuditActions['modify-submission'],
-    label: t('modify submission'),
-    message: t('##username## modified a submission'),
+    label: t('edit submission'),
+    message: t('##username## edited a submission'),
   },
   'modify-user-permissions': {
     order: 12,
