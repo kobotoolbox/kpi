@@ -128,7 +128,7 @@ class AbstractDataFrameBuilder:
         return dict([(e.get_abbreviated_xpath(), [c.get_abbreviated_xpath()
                     for c in e.children])
                     for e in dd.get_survey_elements()
-                    if e.type == SELECT_ALL_THAT_APPLY])
+                    if isinstance(e,Question) and  e.type == SELECT_ALL_THAT_APPLY])
 
     @classmethod
     def _split_select_multiples(cls, record, select_multiples,
@@ -172,7 +172,7 @@ class AbstractDataFrameBuilder:
     @classmethod
     def _collect_gps_fields(cls, dd):
         return [e.get_abbreviated_xpath() for e in dd.get_survey_elements()
-                if e.bind.get("type") == "geopoint"]
+                if isinstance(e, Question) and e.bind.get("type") == "geopoint"]
 
     @classmethod
     def _tag_edit_string(cls, record):
@@ -577,7 +577,6 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
         are not considered columns
         """
         for child in survey_element.children:
-            # child_xpath = child.get_abbreviated_xpath()
             if isinstance(child, Section):
                 child_is_repeating = False
                 if isinstance(child, RepeatingSection):
