@@ -1,9 +1,13 @@
 {% load i18n %}
-{% trans "Hello," %}
-
-{% blocktrans %}{{ sender_name }} ({{ sender_email }}, username: {{ sender_username }}) has invited you (username: {{ recipient_username }}) to join {{ organization_name }} organization as {{recipient_role}}.{% endblocktrans %}
 {% if has_multiple_accounts %}
-If you already have an account (or have several accounts), please sign in with the correct account.
+{% trans "Hello" %} {{ recipient_email }},
+{% else %}
+{% trans "Hello" %} {{ recipient_username }},
+{% endif %}
+
+{% blocktrans %}{{ sender_name }} ({{ sender_email }}, username {{ sender_username }}) has invited you to join {{ organization_name }} organization as {{recipient_role}}.{% endblocktrans %}
+{% if has_multiple_accounts %}
+{% blocktrans %}If you already have an account (or have several accounts), please sign in with the correct account. If you don't already have a KoboToolbox account, you can create one <a href="{{ base_url }}/accounts/signup/" target="_blank">here</a>. After creating your account, click on the link below to accept the invite.{% endblocktrans %}
 {% endif %}
 
 {% trans "What joining the organization means for you:" %}

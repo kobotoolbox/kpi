@@ -16,6 +16,7 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
+from .constants import ORG_OWNER_ROLE, ORG_ADMIN_ROLE
 from ..accounts.mfa.models import MfaMethod
 from .models import (
     Organization,
@@ -637,12 +638,6 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
 
-    def get_queryset(self):
-        organization_id = self.kwargs['organization_id']
-        return OrganizationInvitation.objects.select_related(
-            'invitee', 'invited_by', 'organization'
-        ).filter(organization_id=organization_id)
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -653,3 +648,24 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             invitations, many=True, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        organization_id = self.kwargs['organization_id']
+
+        # Reuse user_role set by the permission class to avoid redundant queries
+        user_role = getattr(self, 'user_role', None)
+
+        query_filter = {'organization_id': organization_id}
+        if user_role not in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]:
+            query_filter['invitee'] = self.request.user
+
+        base_queryset = OrganizationInvitation.objects.select_related(
+            'invitee', 'invited_by', 'organization'
+        )
+        queryset = base_queryset.filter(**query_filter)
+        if not queryset.exists():
+            # Fetch invite by email for unregistered users
+            query_filter.pop('invitee', None)
+            query_filter['invitee_identifier'] = self.request.user.email
+            queryset = base_queryset.filter(**query_filter)
+        return queryset

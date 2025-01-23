@@ -26,11 +26,8 @@ class Migration(migrations.Migration):
                 choices=[
                     ('accepted', 'Accepted'),
                     ('cancelled', 'Cancelled'),
-                    ('complete', 'Complete'),
                     ('declined', 'Declined'),
                     ('expired', 'Expired'),
-                    ('failed', 'Failed'),
-                    ('in_progress', 'In Progress'),
                     ('pending', 'Pending'),
                     ('resent', 'Resent'),
                 ],

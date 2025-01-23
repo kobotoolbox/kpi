@@ -3,6 +3,7 @@ from constance.test import override_config
 from django.core import mail
 from django.urls import reverse
 from django.db.models import Q
+from django.utils.translation import gettext as t
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -19,6 +20,7 @@ from kobo.apps.organizations.tests.test_organizations_api import (
 )
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
+from kpi.utils.placeholders import replace_placeholders
 
 
 @ddt
@@ -63,57 +65,86 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(user)
         return self.client.patch(self.detail_url(guid), data={'status': status})
 
-    def test_owner_can_send_invitation(self):
+    @data(
+        ('owner', status.HTTP_201_CREATED),
+        ('admin', status.HTTP_201_CREATED),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND)
+    )
+    @unpack
+    def test_owner_can_send_invitation(self, user_role, expected_status):
         """
-        Test that the organization owner can create invitations
+        Test that only organization owner or admin can create invitations
         """
-        response = self._create_invite(self.owner_user)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(
-            len(response.data), len(self.invitation_data['invitees'])
-        )
-        for index, invitation in enumerate(response.data):
-            self.assertIn(
-                invitation['invitee'], self.invitation_data['invitees']
-            )
-            # Check that the email was sent
-            invite = User.objects.filter(
-                Q(username=invitation['invitee']) |
-                Q(email=invitation['invitee'])
-            ).first()
+        user = getattr(self, f'{user_role}_user')
+        response = self._create_invite(user)
+        self.assertEqual(response.status_code, expected_status)
+        if response.status_code == status.HTTP_201_CREATED:
             self.assertEqual(
-                mail.outbox[index].to[0],
-                invite.email if invite else invitation['invitee']
+                len(response.data), len(self.invitation_data['invitees'])
             )
+            for index, invitation in enumerate(response.data):
+                self.assertIn(
+                    invitation['invitee'], self.invitation_data['invitees']
+                )
+                # Check that the email was sent
+                invite = User.objects.filter(
+                    Q(username=invitation['invitee']) |
+                    Q(email=invitation['invitee'])
+                ).first()
+                self.assertEqual(
+                    mail.outbox[index].to[0],
+                    invite.email if invite else invitation['invitee']
+                )
 
-    def test_owner_can_resend_invitation(self):
+    @data(
+        ('owner', status.HTTP_200_OK),
+        ('admin', status.HTTP_200_OK),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND)
+    )
+    @unpack
+    def test_owner_can_resend_invitation(self, user_role, expected_status):
         """
-        Test that the organization owner can resend an invitation
+        Test that only organization owner or admin can resend an invitation
         """
         self._create_invite(self.owner_user)
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
         response = self.client.patch(
             self.detail_url(invitation.guid), data={'status': 'resent'}
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'resent')
-        self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
+        self.assertEqual(response.status_code, expected_status)
+        if response.status_code == status.HTTP_200_OK:
+            self.assertEqual(response.data['status'], 'resent')
+            self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
 
-    def test_owner_can_cancel_invitation(self):
+    @data(
+        ('owner', status.HTTP_200_OK),
+        ('admin', status.HTTP_200_OK),
+        ('member', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND)
+    )
+    @unpack
+    def test_owner_can_cancel_invitation(self, user_role, expected_status):
         """
-        Test that the organization owner can cancel an invitation
+        Test that only organization owner or admin can cancel an invitation
         """
         self._create_invite(self.owner_user)
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
         response = self.client.patch(
             self.detail_url(invitation.guid), data={'status': 'cancelled'}
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'cancelled')
+        self.assertEqual(response.status_code, expected_status)
+        if response.status_code == status.HTTP_200_OK:
+            self.assertEqual(response.data['status'], 'cancelled')
 
     def test_list_invitations(self):
         """
@@ -126,6 +157,21 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
             self.assertIn('url', invite)
             self.assertIn('invitee', invite)
             self.assertIn('invited_by', invite)
+
+        # Test that a user from another organization cannot see invitations
+        self.another_owner_user = User.objects.create_user(
+            username='another_owner_user',
+            email='another_owner_user@example.com',
+            password='password'
+        )
+        self.another_organization = Organization.objects.create(
+            id='org1234', name='Another Organization', mmo_override=True
+        )
+        self.another_organization.add_user(self.another_owner_user)
+        self.client.force_login(self.another_owner_user)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
     def test_registered_user_can_accept_invitation(self):
         self._create_invite(self.owner_user)
@@ -218,7 +264,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_204_NO_CONTENT),
         ('admin', status.HTTP_204_NO_CONTENT),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
     def test_owner_or_admin_can_delete_invitation(self, user_role, expected_status):
@@ -321,7 +367,8 @@ class OrganizationInviteValidationTestCase(OrganizationInviteTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
             response.data['detail'],
-            INVITE_OWNER_ERROR.format(
+            replace_placeholders(
+                t(INVITE_OWNER_ERROR),
                 organization_name=self.another_organization.name
             )
         )
@@ -337,7 +384,8 @@ class OrganizationInviteValidationTestCase(OrganizationInviteTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
             response.data['detail'],
-            INVITE_MEMBER_ERROR.format(
+            replace_placeholders(
+                t(INVITE_MEMBER_ERROR),
                 organization_name=self.another_organization.name
             )
         )
@@ -360,9 +408,6 @@ class OrganizationInviteValidationTestCase(OrganizationInviteTestCase):
             self.new_user, invitation.guid, 'accepted'
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(
-            response.data['detail'], INVITE_NOT_FOUND_ERROR
-        )
 
     def test_invitee_with_different_email_cannot_accept_invitation(self):
         """
@@ -385,4 +430,3 @@ class OrganizationInviteValidationTestCase(OrganizationInviteTestCase):
             self.new_user, invitation.guid, 'accepted'
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['detail'], INVITE_NOT_FOUND_ERROR)

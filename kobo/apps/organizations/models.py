@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
 from django_request_cache import cache_for_request
-from django.utils.translation import gettext_lazy as t
+from django.utils.translation import activate, gettext_lazy as t, override
 
 if settings.STRIPE_ENABLED:
     from djstripe.models import Customer, Subscription
@@ -26,6 +26,7 @@ from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
 from kpi.utils.mailer import EmailMessage, Mailer
+from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
     ORG_ADMIN_ROLE,
@@ -52,11 +53,8 @@ class OrganizationInviteStatusChoices(models.TextChoices):
 
     ACCEPTED = 'accepted'
     CANCELLED = 'cancelled'
-    COMPLETE = 'complete'
     DECLINED = 'declined'
     EXPIRED = 'expired'
-    FAILED = 'failed'
-    IN_PROGRESS = 'in_progress'
     PENDING = 'pending'
     RESENT = 'resent'
 
@@ -300,26 +298,33 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
     )
 
     def send_acceptance_email(self):
-
-        template_variables = {
-            'sender_username': self.invited_by.username,
-            'sender_email': self.invited_by.email,
-            'recipient_username': self.invitee.username,
-            'recipient_email': self.invitee.email,
-            'organization_name': self.invited_by.organization.name,
-            'base_url': settings.KOBOFORM_URL,
-        }
-
-        email_message = EmailMessage(
-            to=self.invited_by.email,
-            subject=t('KoboToolbox organization invitation accepted'),
-            plain_text_content_or_template='emails/accepted_invite.txt',
-            template_variables=template_variables,
-            html_content_or_template='emails/accepted_invite.html',
-            language=self.invitee.extra_details.data.get('last_ui_language'),
+        """
+        Send an email to the sender of the invitation to notify them that the
+        invitee has accepted the invitation
+        """
+        sender_language = self.invited_by.extra_details.data.get(
+            'last_ui_language', settings.LANGUAGE_CODE
         )
+        with override(sender_language):
+            template_variables = {
+                'sender_username': self.invited_by.username,
+                'sender_email': self.invited_by.email,
+                'recipient_username': self.invitee.username,
+                'recipient_email': self.invitee.email,
+                'organization_name': self.invited_by.organization.name,
+                'base_url': settings.KOBOFORM_URL,
+            }
 
-        Mailer.send(email_message)
+            email_message = EmailMessage(
+                to=self.invited_by.email,
+                subject=t('KoboToolbox organization invitation accepted'),
+                plain_text_content_or_template='emails/accepted_invite.txt',
+                template_variables=template_variables,
+                html_content_or_template='emails/accepted_invite.html',
+                language=sender_language
+            )
+
+            Mailer.send(email_message)
 
     def send_invite_email(self):
         is_registered_user = bool(self.invitee)
@@ -328,78 +333,97 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             if is_registered_user
             else self.invitee_identifier
         )
+
+        # Get recipient role with an article
+        recipient_role = (
+            t('an admin') if self.invitee_role == 'admin' else t('a member')
+        )
         # To avoid circular import
         User = apps.get_model('kobo_auth', 'User')
         has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
         organization_name = self.invited_by.organization.name
-        template_variables = {
-            'sender_name': self.invited_by.extra_details.data['name'],
-            'sender_username': self.invited_by.username,
-            'sender_email': self.invited_by.email,
-            'recipient_username': (
-                self.invitee.username
-                if is_registered_user
-                else self.invitee_identifier
-            ),
-            'recipient_role': self.invitee_role,
-            'organization_name': organization_name,
-            'base_url': settings.KOBOFORM_URL,
-            'invite_uid': self.guid,
-            'is_registered_user': is_registered_user,
-            'has_multiple_accounts': has_multiple_accounts,
-        }
-
-        if is_registered_user:
-            html_template = 'emails/registered_user_invite.html'
-            text_template = 'emails/registered_user_invite.txt'
-        else:
-            html_template = 'emails/unregistered_user_invite.html'
-            text_template = 'emails/unregistered_user_invite.txt'
-
-        email_message = EmailMessage(
-            to=to_email,
-            subject=t(
-                f"You're invited to join {organization_name}'s organization"
-            ),
-            plain_text_content_or_template=text_template,
-            template_variables=template_variables,
-            html_content_or_template=html_template,
-            language=(
-                self.invitee.extra_details.data.get('last_ui_language')
-                if is_registered_user
-                else 'en'
-            ),
+        current_language = settings.LANGUAGE_CODE
+        invitee_language = (
+            self.invitee.extra_details.data.get(
+                'last_ui_language', current_language
+            )
+            if is_registered_user
+            else current_language
         )
+        with override(invitee_language):
+            template_variables = {
+                'sender_name': self.invited_by.extra_details.data['name'],
+                'sender_username': self.invited_by.username,
+                'sender_email': self.invited_by.email,
+                'recipient_username': (
+                    self.invitee.username
+                    if is_registered_user
+                    else self.invitee_identifier
+                ),
+                'recipient_email': to_email,
+                'recipient_role': recipient_role,
+                'organization_name': organization_name,
+                'base_url': settings.KOBOFORM_URL,
+                'invite_uid': self.guid,
+                'is_registered_user': is_registered_user,
+                'has_multiple_accounts': has_multiple_accounts,
+            }
 
-        Mailer.send(email_message)
+            if is_registered_user:
+                html_template = 'emails/registered_user_invite.html'
+                text_template = 'emails/registered_user_invite.txt'
+            else:
+                html_template = 'emails/unregistered_user_invite.html'
+                text_template = 'emails/unregistered_user_invite.txt'
+
+            email_message = EmailMessage(
+                to=to_email,
+                subject=replace_placeholders(
+                    t(
+                        "You're invited to join ##organization_name## "
+                        "organization"
+                    ),
+                    organization_name=organization_name
+                ),
+                plain_text_content_or_template=text_template,
+                template_variables=template_variables,
+                html_content_or_template=html_template,
+                language=invitee_language,
+            )
+
+            Mailer.send(email_message)
 
     def send_refusal_email(self):
-        template_variables = {
-            'sender_username': self.invited_by.username,
-            'sender_email': self.invited_by.email,
-            'recipient': (
-                self.invitee.username
-                if self.invitee
-                else self.invitee_identifier
-            ),
-            'organization_name': self.invited_by.organization.name,
-            'base_url': settings.KOBOFORM_URL,
-        }
-
-        email_message = EmailMessage(
-            to=self.invited_by.email,
-            subject=t('KoboToolbox organization invitation declined'),
-            plain_text_content_or_template='emails/declined_invite.txt',
-            template_variables=template_variables,
-            html_content_or_template='emails/declined_invite.html',
-            language=(
-                self.invitee.extra_details.data.get('last_ui_language')
-                if self.invitee
-                else 'en'
-            ),
+        """
+        Send an email to the sender of the invitation to notify them that the
+        invitee has declined the invitation
+        """
+        sender_language = self.invited_by.extra_details.data.get(
+            'last_ui_language', settings.LANGUAGE_CODE
         )
+        with override(sender_language):
+            template_variables = {
+                'sender_username': self.invited_by.username,
+                'sender_email': self.invited_by.email,
+                'recipient': (
+                    self.invitee.username
+                    if self.invitee
+                    else self.invitee_identifier
+                ),
+                'organization_name': self.invited_by.organization.name,
+                'base_url': settings.KOBOFORM_URL,
+            }
 
-        Mailer.send(email_message)
+            email_message = EmailMessage(
+                to=self.invited_by.email,
+                subject=t('KoboToolbox organization invitation declined'),
+                plain_text_content_or_template='emails/declined_invite.txt',
+                template_variables=template_variables,
+                html_content_or_template='emails/declined_invite.html',
+                language=sender_language,
+            )
+
+            Mailer.send(email_message)
 
 
 create_organization = partial(create_organization_base, model=Organization)

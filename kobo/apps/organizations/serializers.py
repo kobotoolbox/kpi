@@ -17,7 +17,9 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
     ORG_EXTERNAL_ROLE,
@@ -247,47 +249,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             'modified'
         ]
 
-    def _handle_invitee_assignment(self, instance):
-        """
-        Assigns the invitee to the invite after the external user registers
-        and accepts the invite
-        """
-        invitee_identifier = instance.invitee_identifier
-        if invitee_identifier and not instance.invitee:
-            try:
-                instance.invitee = User.objects.get(email=invitee_identifier)
-                instance.save(update_fields=['invitee'])
-            except User.DoesNotExist:
-                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
-
-    def _handle_status_update(self, instance, status):
-        instance.status = getattr(
-            OrganizationInviteStatusChoices, status.upper()
-        )
-        instance.save(update_fields=['status'])
-        self._send_status_email(instance, status)
-
-    def _send_status_email(self, instance, status):
-        status_map = {
-            'accepted': instance.send_acceptance_email,
-            'declined': instance.send_refusal_email,
-            'resent': instance.send_invite_email
-        }
-
-        email_func = status_map.get(status)
-        if email_func:
-            email_func()
-
-    def _update_invitee_organization(self, instance):
-        """
-        Update the organization of the invitee after accepting the invitation
-        """
-        org_user = OrganizationUser.objects.get(user=instance.invitee)
-        Organization.objects.filter(organization_users=org_user).delete()
-        org_user.organization = instance.invited_by.organization
-        org_user.is_admin = instance.invitee_role == 'admin'
-        org_user.save()
-
     def create(self, validated_data):
         """
         Create multiple invitations for the provided invitees.
@@ -336,6 +297,60 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         return invites
 
+    def update(self, instance, validated_data):
+        status = validated_data.get('status')
+        if status == 'accepted':
+            self._handle_invitee_assignment(instance)
+            self.validate_invitation_acceptance(instance)
+            self._update_invitee_organization(instance)
+
+            # Transfer ownership of invitee's assets to the organization
+            transfer_member_data_ownership_to_org(instance.invitee.id)
+        self._handle_status_update(instance, status)
+        return instance
+
+    def _handle_invitee_assignment(self, instance):
+        """
+        Assigns the invitee to the invite after the external user registers
+        and accepts the invite
+        """
+        invitee_identifier = instance.invitee_identifier
+        if invitee_identifier and not instance.invitee:
+            try:
+                instance.invitee = User.objects.get(email=invitee_identifier)
+                instance.save(update_fields=['invitee'])
+            except User.DoesNotExist:
+                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+
+    def _handle_status_update(self, instance, status):
+        instance.status = getattr(
+            OrganizationInviteStatusChoices, status.upper()
+        )
+        instance.save(update_fields=['status'])
+        self._send_status_email(instance, status)
+
+    def _send_status_email(self, instance, status):
+        status_map = {
+            'accepted': instance.send_acceptance_email,
+            'declined': instance.send_refusal_email,
+            'resent': instance.send_invite_email
+        }
+
+        email_func = status_map.get(status)
+        if email_func:
+            email_func()
+
+    @void_cache_for_request(keys=('organization',))
+    def _update_invitee_organization(self, instance):
+        """
+        Update the organization of the invitee after accepting the invitation
+        """
+        org_user = OrganizationUser.objects.get(user=instance.invitee)
+        Organization.objects.filter(organization_users=org_user).delete()
+        org_user.organization = instance.invited_by.organization
+        org_user.is_admin = instance.invitee_role == 'admin'
+        org_user.save()
+
     def get_invited_by(self, invite):
         return reverse(
             'user-kpi-detail',
@@ -370,18 +385,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             representation['invitee'] = None
         return representation
 
-    def update(self, instance, validated_data):
-        status = validated_data.get('status')
-        if status == 'accepted':
-            self._handle_invitee_assignment(instance)
-            self.validate_invitation_acceptance(instance)
-            self._update_invitee_organization(instance)
-
-            # Transfer ownership of invitee's assets to the organization
-            transfer_member_data_ownership_to_org.delay(instance.invitee.id)
-        self._handle_status_update(instance, status)
-        return instance
-
     def validate_invitation_acceptance(self, instance):
         """
         Validate the acceptance of an invitation
@@ -410,7 +413,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             if instance.invitee.organization.is_owner(request_user):
                 raise PermissionDenied(
                     {
-                        'detail': t(INVITE_OWNER_ERROR).format(
+                        'detail': replace_placeholders(
+                            t(INVITE_OWNER_ERROR),
                             organization_name=instance.invitee.organization.name
                         )
                     }
@@ -418,7 +422,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             else:
                 raise PermissionDenied(
                     {
-                        'detail': t(INVITE_MEMBER_ERROR).format(
+                        'detail': replace_placeholders(
+                            t(INVITE_MEMBER_ERROR),
                             organization_name=instance.invitee.organization.name
                         )
                     }
