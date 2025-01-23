@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'allauth.usersessions',
     'hub.HubAppConfig',
     'import_export',
+    'import_export_celery',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -168,6 +169,7 @@ MIDDLEWARE = [
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
+    'author.middlewares.AuthorDefaultBackendMiddleware',
 ]
 
 
@@ -1795,3 +1797,13 @@ ACCESS_LOG_DELETION_BATCH_SIZE = 1000
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
 
 DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
+
+# Import/Export Celery
+IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
+
+IMPORT_EXPORT_CELERY_MODELS = {
+    'OrganizationUser': {
+        'app_label': 'organization',
+        'model_name': 'OrganizationUser',
+    },
+}
