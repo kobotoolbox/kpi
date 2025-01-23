@@ -24,6 +24,7 @@ jobs:
       KOBOCAT_URL: http://kobocat
       KOBOCAT_INTERNAL_URL: http://kobocat
       KOBOFORM_URL: http://kpi
+      SKIP_TESTS_WITH_CONCURRENCY: 'True'
     strategy:
       matrix:
         python-version: ['3.10']

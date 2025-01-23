@@ -1,0 +1,31 @@
+@use 'js/components/common/icon';
+
+.root {
+  font-weight: 500;
+
+  &[data-size='sm'] {
+    min-width: 28px;
+  }
+  &[data-size='md'] {
+    min-width: 32px;
+  }
+  &[data-size='lg'] {
+    min-width: 38px;
+  }
+
+  &[data-disabled] {
+      color: var(--button-color);
+      background: var(--button-bg);
+      opacity: 0.5;
+  }
+
+}
+
+.section {
+  &[data-position='left'] {
+    margin-right: calc(var(--button-height) * 0.1);
+  }
+  &[data-position='right'] {
+    margin-left: calc(var(--button-height) * 0.1);
+  }
+}

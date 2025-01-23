@@ -13,6 +13,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from pymongo.errors import PyMongoError
 from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 
@@ -1678,8 +1679,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         submission_data = {
             'q1': 'answer',
             'q2': 'answer',
-            'meta/instanceID': f'uuid:{uuid_}',
-            'formhub/uuid': self.asset.deployment.xform.uuid,
+            'meta': {'instanceID': f'uuid:{uuid_}'},
+            'formhub': {'uuid': self.asset.deployment.xform.uuid},
             '_uuid': str(uuid_),
         }
         xml = ET.fromstring(
@@ -1741,7 +1742,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['submission']['submitted_by'], 'adminuser')
 
-    def test_delete_multiple_submissions(self):
+
+    @data(True, False)
+    def test_delete_multiple_submissions(self, simulate_error):
         self._add_submission('adminuser')
         self._add_submission('someuser')
         self._add_submission(None)
@@ -1753,6 +1756,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'submission_ids': [sub['_id'] for sub in submissions_json],
             }
         )
+        if simulate_error:
+            # tell the client to return a 500 like a normal request would
+            # instead of raising errors directly
+            self.client.raise_request_exception = False
+
+            # simulate a DB error
+            mongo_patcher = patch(
+                'kobo.apps.openrosa.apps.viewer.models.parsed_instance.xform_instances.delete_many',  # noqa
+                side_effect=PyMongoError(),
+            )
+            mongo_patcher.start()
 
         self.client.delete(
             path=reverse(
@@ -1762,6 +1776,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             data={'payload': payload},
             format='json',
         )
+        if simulate_error:
+            mongo_patcher.stop()
+
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(
@@ -1781,6 +1798,3 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ).first()
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)
-
-    def test_delete_multiple_submissions_timeout(self):
-        pass
