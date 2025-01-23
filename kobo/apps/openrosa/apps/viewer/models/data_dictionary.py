@@ -220,7 +220,7 @@ class DataDictionary(XForm):
         """
         names = {}
         for elem in self.get_survey_elements():
-            names[MongoHelper.encode(str(get_abbreviated_xpath(elem)))] = (
+            names[MongoHelper.encode(get_abbreviated_xpath(elem))] = (
                 get_abbreviated_xpath(elem)
             )
         return names
@@ -259,7 +259,7 @@ class DataDictionary(XForm):
         if result is None:
             result = []
         path = '/'.join([prefix, str(survey_element.name)])
-        if hasattr(survey_element, 'children') and survey_element.children is not None:
+        if getattr(survey_element, 'children', None) is not None:
             # add xpaths to result for each child
             indices = [''] if type(survey_element) != RepeatingSection else \
                 ['[%d]' % (i + 1) for i in range(repeat_iterations)]

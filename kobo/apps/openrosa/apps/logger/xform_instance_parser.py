@@ -415,8 +415,13 @@ def get_xform_media_question_xpaths(
 
 
 def get_abbreviated_xpath(element: SurveyElement) -> str:
+    """
+    Construct the xpath of an element, leaving out the root element.
+
+    If the element itself is the root element, just return the element name.
+    """
     def is_flat(elem):
-        return hasattr(elem, 'flat') and elem.get('flat')
+        return elem.get('flat', False)
 
     lineage = [
         parent[0] for parent in element.iter_ancestors() if not is_flat(parent[0])
@@ -424,6 +429,6 @@ def get_abbreviated_xpath(element: SurveyElement) -> str:
     lineage.reverse()
     lineage.append(element)
     if len(lineage) > 1:
-        return '/'.join([str(n.name) for n in lineage[1:]])
+        return '/'.join([n.name for n in lineage[1:]])
     else:
         return lineage[0].name
