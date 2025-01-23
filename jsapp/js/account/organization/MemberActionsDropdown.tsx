@@ -1,11 +1,10 @@
 // Libraries
 import {useState} from 'react';
-import cx from 'classnames';
 
 // Partial components
-import KoboDropdown, {type KoboDropdownPlacement} from 'jsapp/js/components/common/koboDropdown';
-import Button from 'jsapp/js/components/common/button';
+import ActionIcon from 'jsapp/js/components/common/ActionIcon';
 import MemberRemoveModal from './MemberRemoveModal';
+import {Menu} from '@mantine/core';
 
 // Stores, hooks and utilities
 import {useSession} from 'jsapp/js/stores/useSession';
@@ -17,9 +16,8 @@ import subscriptionStore from 'jsapp/js/account/subscriptionStore';
 import {OrganizationUserRole} from './organizationQuery';
 
 // Styles
-import styles from './memberActionsDropdown.module.scss';
 import router from 'jsapp/js/router/router';
-import { ROUTES } from 'jsapp/js/router/routerConstants';
+import {ROUTES} from 'jsapp/js/router/routerConstants';
 
 interface MemberActionsDropdownProps {
   targetUsername: string;
@@ -28,15 +26,15 @@ interface MemberActionsDropdownProps {
    * wants to do the actions (not the role of the target member).
    */
   currentUserRole: OrganizationUserRole;
-  placement: KoboDropdownPlacement;
 }
 
 /**
  * A dropdown with all actions that can be taken towards an organization member.
  */
-export default function MemberActionsDropdown(
-  {targetUsername, currentUserRole, placement}: MemberActionsDropdownProps
-) {
+export default function MemberActionsDropdown({
+  targetUsername,
+  currentUserRole,
+}: MemberActionsDropdownProps) {
   const session = useSession();
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false);
 
@@ -90,23 +88,19 @@ export default function MemberActionsDropdown(
         />
       }
 
-      <KoboDropdown
-        name={`member-actions-dropdown-${targetUsername}`}
-        placement={placement}
-        hideOnMenuClick
-        triggerContent={<Button type='text' size='m' startIcon='more'/>}
-        menuContent={
-          <div className={styles.menuContenet}>
-            <Button
-              className={cx(styles.menuButton, styles.menuButtonRed)}
-              type='text'
-              size='m'
-              label={removeButtonLabel}
-              onClick={() => setIsRemoveModalVisible(true)}
-            />
-          </div>
-        }
-      />
+      <Menu width={100} offset={0}>
+        <Menu.Target>
+          <ActionIcon variant='transparent' size='md' iconName='more' />
+        </Menu.Target>
+
+        <Menu.Dropdown>
+          <Menu.Item
+            variant='danger'
+            children={removeButtonLabel}
+            onClick={() => setIsRemoveModalVisible(true)}
+          />
+        </Menu.Dropdown>
+      </Menu>
     </>
   );
 }
