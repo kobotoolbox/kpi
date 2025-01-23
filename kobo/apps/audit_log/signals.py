@@ -16,9 +16,7 @@ from kpi.utils.object_permission import (
     post_remove_partial_perms,
     post_remove_perm,
 )
-from ..openrosa.apps.logger.models import Instance
 from .models import AccessLog, ProjectHistoryLog
-from .utils import SubmissionUpdate
 
 # Access Log receivers
 

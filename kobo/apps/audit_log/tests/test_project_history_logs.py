@@ -1742,6 +1742,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_metadata['submission']['submitted_by'], 'adminuser')
 
+
     @data(True, False)
     def test_delete_multiple_submissions(self, simulate_error):
         self._add_submission('adminuser')
@@ -1766,6 +1767,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 side_effect=PyMongoError(),
             )
             mongo_patcher.start()
+
         self.client.delete(
             path=reverse(
                 'api_v2:submission-bulk',
@@ -1776,6 +1778,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         if simulate_error:
             mongo_patcher.stop()
+
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(

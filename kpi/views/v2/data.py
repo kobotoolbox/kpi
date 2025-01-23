@@ -349,6 +349,7 @@ class DataViewSet(
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
 
+
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
                 'content_type': 'application/json',
