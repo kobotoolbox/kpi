@@ -2,8 +2,7 @@ import {createTheme, rem} from '@mantine/core';
 import {ActionIconThemeKobo} from './ActionIcon';
 import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
-import {InputThemeKobo} from './Input';
-import {InputWrapperThemeKobo} from './InputWrapper'
+import {TextInputThemeKobo} from './TextInput';
 import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './Menu';
 import {AlertThemeKobo} from './Alert';
@@ -107,8 +106,7 @@ export const themeKobo = createTheme({
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
-    Input: InputThemeKobo,
-    InputWrapper: InputWrapperThemeKobo,
+    TextInput: TextInputThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Select: SelectThemeKobo,
