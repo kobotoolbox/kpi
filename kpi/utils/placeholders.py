@@ -12,6 +12,6 @@ def replace_placeholders(message, **placeholders):
         respective values.
     """
     for key, value in placeholders.items():
-        placeholder = f"##{key}##"
+        placeholder = f'##{key}##'
         message = message.replace(placeholder, value)
     return message

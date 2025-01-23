@@ -11,7 +11,6 @@ from kobo.apps.organizations.constants import (
     INVITE_OWNER_ERROR,
     INVITE_MEMBER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
-    INVITE_NOT_FOUND_ERROR
 )
 from kobo.apps.organizations.models import OrganizationInvitation, Organization
 from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
@@ -171,7 +170,6 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(self.another_owner_user)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
 
     def test_registered_user_can_accept_invitation(self):
         self._create_invite(self.owner_user)

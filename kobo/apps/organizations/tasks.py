@@ -8,10 +8,7 @@ from django.utils.translation import gettext as t
 from more_itertools import chunked
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import (
-    Organization,
-    OrganizationInviteStatusChoices
-)
+from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from kobo.apps.project_ownership.models import Transfer
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.celery import celery_app

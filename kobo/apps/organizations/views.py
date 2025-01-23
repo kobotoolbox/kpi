@@ -603,7 +603,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
 
     > Response 200
 
