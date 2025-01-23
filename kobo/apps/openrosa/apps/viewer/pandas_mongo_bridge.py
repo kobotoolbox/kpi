@@ -13,34 +13,35 @@ except ImportError:
     from pandas import ExcelWriter
 
 from pyxform.constants import SELECT_ALL_THAT_APPLY
-from pyxform.survey_element import SurveyElement
-from pyxform.section import Section, RepeatingSection
 from pyxform.question import Question
+from pyxform.section import RepeatingSection, Section
+from pyxform.survey_element import SurveyElement
 
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
 from kobo.apps.openrosa.libs.utils.common_tags import (
-    ID,
-    XFORM_ID_STRING,
-    STATUS,
     ATTACHMENTS,
-    GEOLOCATION, UUID,
-    SUBMISSION_TIME,
-    NA_REP,
     DELETEDAT,
-    TAGS,
+    GEOLOCATION,
+    ID,
+    NA_REP,
     NOTES,
+    STATUS,
+    SUBMISSION_TIME,
     SUBMITTED_BY,
-    VALIDATION_STATUS
+    TAGS,
+    UUID,
+    VALIDATION_STATUS,
+    XFORM_ID_STRING,
 )
 from kobo.apps.openrosa.libs.utils.export_tools import question_types_to_exclude
-
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
 
-GEOPOINT_BIND_TYPE = "geopoint"
+GEOPOINT_BIND_TYPE = 'geopoint'
 
 # column group delimiters
 GROUP_DELIMITER_SLASH = '/'
@@ -64,7 +65,7 @@ def get_valid_sheet_name(sheet_name, existing_name_list):
         # make name the required len
         if len(generated_name) > allowed_name_len:
             generated_name = generated_name[:allowed_name_len]
-        generated_name = "{0}{1}".format(generated_name, i)
+        generated_name = '{0}{1}'.format(generated_name, i)
         i += 1
     return generated_name
 
@@ -120,15 +121,24 @@ class AbstractDataFrameBuilder:
 
     @classmethod
     def _fields_to_select(cls, dd):
-        return [c.get_abbreviated_xpath()
-                for c in dd.get_survey_elements() if isinstance(c, Question)]
+        return [
+            get_abbreviated_xpath(c)
+            for c in dd.get_survey_elements()
+            if isinstance(c, Question)
+        ]
 
     @classmethod
     def _collect_select_multiples(cls, dd):
-        return dict([(e.get_abbreviated_xpath(), [c.get_abbreviated_xpath()
-                    for c in e.children])
-                    for e in dd.get_survey_elements()
-                    if isinstance(e,Question) and  e.type == SELECT_ALL_THAT_APPLY])
+        return dict(
+            [
+                (
+                    get_abbreviated_xpath(e),
+                    [get_abbreviated_xpath(c) for c in e.children],
+                )
+                for e in dd.get_survey_elements()
+                if isinstance(e, Question) and e.type == SELECT_ALL_THAT_APPLY
+            ]
+        )
 
     @classmethod
     def _split_select_multiples(cls, record, select_multiples,
@@ -143,8 +153,7 @@ class AbstractDataFrameBuilder:
             if key in record:
                 # split selected choices by spaces and join by / to the
                 # element's xpath
-                selections = ["%s/%s" % (key, r)
-                              for r in record[key].split(" ")]
+                selections = ['%s/%s' % (key, r) for r in record[key].split(' ')]
                 # remove the column since we are adding separate columns
                 # for each choice
                 record.pop(key)
@@ -171,8 +180,11 @@ class AbstractDataFrameBuilder:
 
     @classmethod
     def _collect_gps_fields(cls, dd):
-        return [e.get_abbreviated_xpath() for e in dd.get_survey_elements()
-                if isinstance(e, Question) and e.bind.get("type") == "geopoint"]
+        return [
+            get_abbreviated_xpath(e)
+            for e in dd.get_survey_elements()
+            if isinstance(e, Question) and e.bind.get('type') == 'geopoint'
+        ]
 
     @classmethod
     def _tag_edit_string(cls, record):
@@ -224,9 +236,9 @@ class AbstractDataFrameBuilder:
             'count': True
         }
         count_object = ParsedInstance.query_mongo(**count_args)
-        record_count = count_object[0]["count"]
+        record_count = count_object[0]['count']
         if record_count == 0:
-            raise NoRecordsFoundError("No records found for your query")
+            raise NoRecordsFoundError('No records found for your query')
         # if count was requested, return the count
         if count:
             return record_count
@@ -255,9 +267,10 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
     This builder can choose to query the data in batches and write to a single
     ExcelWriter object using multiple instances of DataFrameXLSWriter
     """
-    INDEX_COLUMN = "_index"
-    PARENT_TABLE_NAME_COLUMN = "_parent_table_name"
-    PARENT_INDEX_COLUMN = "_parent_index"
+
+    INDEX_COLUMN = '_index'
+    PARENT_TABLE_NAME_COLUMN = '_parent_table_name'
+    PARENT_INDEX_COLUMN = '_parent_index'
     EXTRA_COLUMNS = [INDEX_COLUMN, PARENT_TABLE_NAME_COLUMN,
                      PARENT_INDEX_COLUMN]
     SHEET_NAME_MAX_CHARS = 30
@@ -301,10 +314,11 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
                 # so ignore sections that have 0 records
                 if len(records) > 0:
                     # use a different group delimiter if needed
-                    columns = section["columns"]
+                    columns = section['columns']
                     if self.group_delimiter != DEFAULT_GROUP_DELIMITER:
-                        columns = [self.group_delimiter.join(col.split("/"))
-                                   for col in columns]
+                        columns = [
+                            self.group_delimiter.join(col.split('/')) for col in columns
+                        ]
                     columns = columns + self.EXTRA_COLUMNS
                     writer = XLSDataFrameWriter(records, columns)
                     writer.write_to_excel(self.xls_writer, section_name,
@@ -325,7 +339,7 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
         data = dict((section_name, []) for section_name in self.sections.keys())
 
         main_section = self.sections[self.survey_name]
-        main_sections_columns = main_section["columns"]
+        main_sections_columns = main_section['columns']
 
         for record in cursor:
             # from record, we'll end up with multiple records, one for each
@@ -340,8 +354,8 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
             for sheet_name, section in self.sections.items():
                 # skip default section i.e survey name
                 if sheet_name != self.survey_name:
-                    xpath = section["xpath"]
-                    columns = section["columns"]
+                    xpath = section['xpath']
+                    columns = section['columns']
                     # TODO: handle nested repeats -ignoring nested repeats for
                     # now which will not be in the top level record, perhaps
                     # nest sections as well so we can recurs in and get them
@@ -410,7 +424,8 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
         self.survey_name = get_valid_sheet_name(
             survey_element.name, self.sections.keys())
         self._create_section(
-            self.survey_name, survey_element.get_abbreviated_xpath(), False)
+            self.survey_name, get_abbreviated_xpath(survey_element), False
+        )
         # build sections
         self._build_sections_recursive(self.survey_name, self.dd.get_survey())
 
@@ -433,21 +448,22 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
                     new_section_name = get_valid_sheet_name(
                         child.name, list(self.sections))
                     self._create_section(
-                        new_section_name, child.get_abbreviated_xpath(), True)
+                        new_section_name, get_abbreviated_xpath(child), True
+                    )
 
                 self._build_sections_recursive(
                     new_section_name, child, new_is_repeating)
             else:
                 # add to survey_sections
-                child_bind_type = child.bind.get("type")
+                child_bind_type = child.bind.get('type')
                 if isinstance(child, Question) and not \
                         question_types_to_exclude(child.type)\
                         and not child.type == SELECT_ALL_THAT_APPLY:
                     self._add_column_to_section(section_name, child)
                 elif child.type == SELECT_ALL_THAT_APPLY:
-                    self.select_multiples[child.get_abbreviated_xpath()] = \
-                        [option.get_abbreviated_xpath()
-                         for option in child.children]
+                    self.select_multiples[get_abbreviated_xpath(child)] = [
+                        get_abbreviated_xpath(option) for option in child.children
+                    ]
                     # if select multiple, get its choices and make them
                     # columns
                     if self.split_select_multiples:
@@ -460,17 +476,18 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
                 if child_bind_type == GEOPOINT_BIND_TYPE:
                     # add columns for geopoint components
                     for xpath in self.dd.get_additional_geopoint_xpaths(
-                            child.get_abbreviated_xpath()):
+                        get_abbreviated_xpath(child)
+                    ):
                         self._add_column_to_section(section_name, xpath)
 
     def get_exceeds_xls_limits(self):
-        if not hasattr(self, "exceeds_xls_limits"):
+        if not hasattr(self, 'exceeds_xls_limits'):
             self.exceeds_xls_limits = False
             if len(self.sections) > self.XLS_SHEET_COUNT_LIMIT:
                 self.exceeds_xls_limits = True
             else:
                 for section in self.sections.values():
-                    if len(section["columns"]) > self.XLS_COLUMN_COUNT_MAX:
+                    if len(section['columns']) > self.XLS_COLUMN_COUNT_MAX:
                         self.exceeds_xls_limits = True
                         break
         return self.exceeds_xls_limits
@@ -478,20 +495,24 @@ class XLSDataFrameBuilder(AbstractDataFrameBuilder):
     def _create_section(self, section_name, xpath, is_repeat):
         # index = len(self.sections)
         self.sections[section_name] = {
-            "name": section_name, "xpath": xpath, "columns": [],
-            "is_repeat": is_repeat, self.CURRENT_INDEX_META: 0}
+            'name': section_name,
+            'xpath': xpath,
+            'columns': [],
+            'is_repeat': is_repeat,
+            self.CURRENT_INDEX_META: 0,
+        }
 
     def _add_column_to_section(self, sheet_name, column):
         section = self.sections[sheet_name]
         xpath = None
         if isinstance(column, SurveyElement):
-            xpath = column.get_abbreviated_xpath()
+            xpath = get_abbreviated_xpath(column)
         elif isinstance(column, str):
             xpath = column
         assert(xpath)
         # make sure column is not already in list
-        if xpath not in section["columns"]:
-            section["columns"].append(xpath)
+        if xpath not in section['columns']:
+            section['columns'].append(xpath)
 
 
 class CSVDataFrameBuilder(AbstractDataFrameBuilder):
@@ -529,12 +550,12 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
                         # "children/details/immunization/polio_1",
                         # generate ["children", index, "immunization/polio_1"]
                         xpaths = [
-                            "%s[%s]" % (
-                                nested_key[:nested_key.index(key) + len(key)],
-                                index),
-                            nested_key[nested_key.index(key) + len(key) + 1:]]
+                            '%s[%s]'
+                            % (nested_key[: nested_key.index(key) + len(key)], index),
+                            nested_key[nested_key.index(key) + len(key) + 1 :],
+                        ]
                         # re-create xpath the split on /
-                        xpaths = "/".join(xpaths).split("/")
+                        xpaths = '/'.join(xpaths).split('/')
                         new_prefix = xpaths[:-1]
                         if type(nested_val) is list:
                             # if nested_value is a list, rinse and repeat
@@ -546,7 +567,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
                             # collapse xpath
                             if parent_prefix:
                                 xpaths[0:len(parent_prefix)] = parent_prefix
-                            new_xpath = "/".join(xpaths)
+                            new_xpath = '/'.join(xpaths)
                             # check if this key exists in our ordered columns
                             if key in ordered_columns.keys():
                                 if new_xpath not in ordered_columns[key]:
@@ -560,7 +581,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
             if key == NOTES:
                 # Match behavior of
                 # kobo.apps.openrosa.libs.utils.export_tools.dict_to_joined_export()
-                d[key] = "\r\n".join([v['note'] for v in value])
+                d[key] = '\r\n'.join([v['note'] for v in value])
             elif key == ATTACHMENTS:
                 d[key] = []
             else:
@@ -580,7 +601,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
             if isinstance(child, Section):
                 child_is_repeating = False
                 if isinstance(child, RepeatingSection):
-                    ordered_columns[child.get_abbreviated_xpath()] = []
+                    ordered_columns[get_abbreviated_xpath(child)] = []
                     child_is_repeating = True
                 cls._build_ordered_columns(child, ordered_columns,
                                            child_is_repeating)
@@ -591,7 +612,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
                     # so we dont add it to our list of columns,
                     # the repeating columns list will be
                     # generated when we reindex
-                ordered_columns[child.get_abbreviated_xpath()] = None
+                ordered_columns[get_abbreviated_xpath(child)] = None
 
     def _format_for_dataframe(self, cursor):
         # TODO: check for and handle empty results
@@ -631,6 +652,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
 
     def export_to(self, file_or_path, data_frame_max_size=30000):
         from math import ceil
+
         # get record count
         record_count = self._query_mongo(query=self.filter_query, count=True)
 
@@ -657,8 +679,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
 
         # use a different group delimiter if needed
         if self.group_delimiter != DEFAULT_GROUP_DELIMITER:
-            columns = [self.group_delimiter.join(col.split("/"))
-                       for col in columns]
+            columns = [self.group_delimiter.join(col.split('/')) for col in columns]
 
         # add extra columns
         columns += [col for col in self.ADDITIONAL_COLUMNS]
@@ -668,7 +689,7 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
             csv_file = file_or_path
             close = False
         else:
-            csv_file = open(file_or_path, "w")
+            csv_file = open(file_or_path, 'w')
             close = True
 
         for data in datas:

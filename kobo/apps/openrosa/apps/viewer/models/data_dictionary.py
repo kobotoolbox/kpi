@@ -11,11 +11,14 @@ from pyxform.section import RepeatingSection
 from pyxform.xform2json import create_survey_element_from_xml
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
-from kobo.apps.openrosa.libs.utils.common_tags import UUID, SUBMISSION_TIME, TAGS, NOTES
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    clean_and_parse_xml,
+    get_abbreviated_xpath,
+)
+from kobo.apps.openrosa.libs.utils.common_tags import NOTES, SUBMISSION_TIME, TAGS, UUID
 from kobo.apps.openrosa.libs.utils.export_tools import (
-    question_types_to_exclude,
     DictOrganizer,
+    question_types_to_exclude,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
 from kpi.constants import DEFAULT_SURVEY_NAME
@@ -28,7 +31,7 @@ class ColumnRename(models.Model):
     column_name = models.CharField(max_length=32)
 
     class Meta:
-        app_label = "viewer"
+        app_label = 'viewer'
 
     @classmethod
     def get_dict(cls):
@@ -57,7 +60,7 @@ class DataDictionary(XForm):
     PREFIX_NAME_REGEX = re.compile(r'(?P<prefix>.+/)(?P<name>[^/]+)$')
 
     class Meta:
-        app_label = "viewer"
+        app_label = 'viewer'
         proxy = True
 
     def __init__(self, *args, **kwargs):
@@ -71,7 +74,7 @@ class DataDictionary(XForm):
         root_node = self.xform_root_node_name
 
         doc = clean_and_parse_xml(self.xml)
-        model_nodes = doc.getElementsByTagName("model")
+        model_nodes = doc.getElementsByTagName('model')
         if len(model_nodes) != 1:
             for node in model_nodes:
                 if hasattr(node, 'parentNode') and node.parentNode.tagName == 'h:head':
@@ -79,10 +82,13 @@ class DataDictionary(XForm):
                     break
         else:
             model_node = model_nodes[0]
-        instance_nodes = [node for node in model_node.childNodes if
-                          node.nodeType == Node.ELEMENT_NODE and
-                          node.tagName.lower() == "instance" and
-                          not node.hasAttribute("id")]
+        instance_nodes = [
+            node
+            for node in model_node.childNodes
+            if node.nodeType == Node.ELEMENT_NODE
+            and node.tagName.lower() == 'instance'
+            and not node.hasAttribute('id')
+        ]
 
         if len(instance_nodes) != 1:
             raise Exception("Multiple instance nodes without the id "
@@ -108,29 +114,31 @@ class DataDictionary(XForm):
         ]
 
         if len(formhub_nodes) > 1:
-            raise Exception(
-                "Multiple formhub nodes within main instance node")
+            raise Exception('Multiple formhub nodes within main instance node')
         elif len(formhub_nodes) == 1:
             formhub_node = formhub_nodes[0]
         else:
             formhub_node = survey_node.insertBefore(
-                doc.createElement("formhub"), survey_node.firstChild)
+                doc.createElement('formhub'), survey_node.firstChild
+            )
 
-        uuid_nodes = [node for node in formhub_node.childNodes if
-                      node.nodeType == Node.ELEMENT_NODE and
-                      node.tagName == "uuid"]
+        uuid_nodes = [
+            node
+            for node in formhub_node.childNodes
+            if node.nodeType == Node.ELEMENT_NODE and node.tagName == 'uuid'
+        ]
 
         if len(uuid_nodes) == 0:
-            formhub_node.appendChild(doc.createElement("uuid"))
+            formhub_node.appendChild(doc.createElement('uuid'))
         if len(formhub_nodes) == 0:
             # append the calculate bind node
-            calculate_node = doc.createElement("bind")
+            calculate_node = doc.createElement('bind')
             calculate_node.setAttribute('nodeset', f'/{root_node}/formhub/uuid')
             calculate_node.setAttribute('type', 'string')
             calculate_node.setAttribute('calculate', f"'{self.uuid}'")
             model_node.appendChild(calculate_node)
 
-        self.xml = smart_str(doc.toprettyxml(indent="  ", encoding='utf-8'))
+        self.xml = smart_str(doc.toprettyxml(indent='  ', encoding='utf-8'))
         # hack
         # http://ronrothman.com/public/leftbraned/xml-dom-minidom-toprettyxml-\
         # and-silly-whitespace/
@@ -143,7 +151,7 @@ class DataDictionary(XForm):
         self.xml = inline_output
 
     def add_instances(self):
-        if not hasattr(self, "_dict_organizer"):
+        if not hasattr(self, '_dict_organizer'):
             _dict_organizer = DictOrganizer()
         obs = []
         for d in self.get_list_of_parsed_instances(flat=False):
@@ -169,7 +177,7 @@ class DataDictionary(XForm):
         return os.path.split(self.xls.name)[-1]
 
     def get_survey(self):
-        if not hasattr(self, "_survey"):
+        if not hasattr(self, '_survey'):
             try:
                 builder = SurveyElementBuilder()
                 self._survey = \
@@ -212,8 +220,9 @@ class DataDictionary(XForm):
         """
         names = {}
         for elem in self.get_survey_elements():
-            names[MongoHelper.encode(str(elem.get_abbreviated_xpath()))] = \
-                elem.get_abbreviated_xpath()
+            names[MongoHelper.encode(str(get_abbreviated_xpath(elem)))] = (
+                get_abbreviated_xpath(elem)
+            )
         return names
 
     survey_elements = property(get_survey_elements)
@@ -223,7 +232,7 @@ class DataDictionary(XForm):
 
         for e in self.get_survey_elements():
             if isinstance(e, Question) and e.bind.get('type') == 'geopoint':
-                geo_xpaths.append(e.get_abbreviated_xpath())
+                geo_xpaths.append(get_abbreviated_xpath(e))
 
         return geo_xpaths
 
@@ -243,12 +252,14 @@ class DataDictionary(XForm):
         """
         if survey_element is None:
             survey_element = self.survey
-        elif question_types_to_exclude(survey_element.type):
+        elif isinstance(survey_element, Question) and question_types_to_exclude(
+            survey_element.type
+        ):
             return []
         if result is None:
             result = []
         path = '/'.join([prefix, str(survey_element.name)])
-        if survey_element.children is not None:
+        if hasattr(survey_element, 'children') and survey_element.children is not None:
             # add xpaths to result for each child
             indices = [''] if type(survey_element) != RepeatingSection else \
                 ['[%d]' % (i + 1) for i in range(repeat_iterations)]
@@ -260,11 +271,17 @@ class DataDictionary(XForm):
 
         # replace the single question column with a column for each
         # item in a select all that apply question.
-        if survey_element.bind.get('type') == 'select':
+        if (
+            isinstance(survey_element, Question)
+            and survey_element.bind.get('type') == 'select'
+        ):
             result.pop()
             for child in survey_element.children:
                 result.append('/'.join([path, child.name]))
-        elif survey_element.bind.get('type') == 'geopoint':
+        elif (
+            isinstance(survey_element, Question)
+            and survey_element.bind.get('type') == 'geopoint'
+        ):
             result += self.get_additional_geopoint_xpaths(path)
 
         return result
@@ -314,13 +331,13 @@ class DataDictionary(XForm):
         return [remove_first_index(header) for header in self.get_headers()]
 
     def get_element(self, abbreviated_xpath):
-        if not hasattr(self, "_survey_elements"):
+        if not hasattr(self, '_survey_elements'):
             self._survey_elements = {}
             for e in self.get_survey_elements():
-                self._survey_elements[e.get_abbreviated_xpath()] = e
+                self._survey_elements[get_abbreviated_xpath(e)] = e
 
         def remove_all_indices(xpath):
-            return re.sub(r"\[\d+\]", "", xpath)
+            return re.sub(r'\[\d+\]', '', xpath)
 
         clean_xpath = remove_all_indices(abbreviated_xpath)
         return self._survey_elements.get(clean_xpath)
@@ -332,15 +349,14 @@ class DataDictionary(XForm):
             return e.label
 
     def get_xpath_cmp(self):
-        if not hasattr(self, "_xpaths"):
-            self._xpaths = [e.get_abbreviated_xpath()
-                            for e in self.survey_elements]
+        if not hasattr(self, '_xpaths'):
+            self._xpaths = [get_abbreviated_xpath(e) for e in self.survey_elements]
 
         def xpath_cmp(x, y):
             # For the moment, we aren't going to worry about repeating
             # nodes.
-            new_x = re.sub(r"\[\d+\]", "", x)
-            new_y = re.sub(r"\[\d+\]", "", y)
+            new_x = re.sub(r'\[\d+\]', '', x)
+            new_y = re.sub(r'\[\d+\]', '', y)
             if new_x == new_y:
                 return cmp(x, y)
             if new_x not in self._xpaths and new_y not in self._xpaths:
@@ -359,16 +375,16 @@ class DataDictionary(XForm):
         self.variable_names_json return that new name, otherwise
         return the original abbreviated_xpath.
         """
-        if not hasattr(self, "_keys"):
+        if not hasattr(self, '_keys'):
             self._keys = self.get_keys()
-        if not hasattr(self, "_headers"):
+        if not hasattr(self, '_headers'):
             self._headers = self.get_headers()
 
         assert abbreviated_xpath in self._keys, abbreviated_xpath
         i = self._keys.index(abbreviated_xpath)
         header = self._headers[i]
 
-        if not hasattr(self, "_variable_names"):
+        if not hasattr(self, '_variable_names'):
             self._variable_names = ColumnRename.get_dict()
             assert type(self._variable_names) == dict
 
@@ -387,10 +403,10 @@ class DataDictionary(XForm):
         del d[old_key]
 
     def _expand_select_all_that_apply(self, d, key, e):
-        if e and e.bind.get("type") == "select":
+        if e and e.bind.get('type') == 'select':
             options_selected = d[key].split()
             for i, child in enumerate(e.children):
-                new_key = child.get_abbreviated_xpath()
+                new_key = get_abbreviated_xpath(child)
                 if child.name in options_selected:
                     d[new_key] = True
                 else:
@@ -398,10 +414,10 @@ class DataDictionary(XForm):
             del d[key]
 
     def _expand_geocodes(self, d, key, e):
-        if e and e.bind.get("type") == "geopoint":
+        if e and e.bind.get('type') == 'geopoint':
             geodata = d[key].split()
             for i in range(len(geodata)):
-                new_key = "%s_%s" % (key, self.geodata_suffixes[i])
+                new_key = '%s_%s' % (key, self.geodata_suffixes[i])
                 d[new_key] = geodata[i]
 
     def get_data_for_excel(self):
