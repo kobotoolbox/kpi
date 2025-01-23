@@ -19,6 +19,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
     ORG_EXTERNAL_ROLE,
@@ -29,7 +30,6 @@ from .constants import (
     INVITE_NOT_FOUND_ERROR
 )
 from .tasks import transfer_member_data_ownership_to_org
-from .utils import replace_placeholders
 
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
@@ -340,7 +340,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         if email_func:
             email_func()
 
-    @void_cache_for_request(keys=("organization",))
+    @void_cache_for_request(keys=('organization',))
     def _update_invitee_organization(self, instance):
         """
         Update the organization of the invitee after accepting the invitation

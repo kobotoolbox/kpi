@@ -18,9 +18,9 @@ from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
-from kobo.apps.organizations.utils import replace_placeholders
 from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
+from kpi.utils.placeholders import replace_placeholders
 
 
 @ddt
@@ -69,7 +69,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_201_CREATED),
         ('admin', status.HTTP_201_CREATED),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_403_FORBIDDEN)
+        ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
     def test_owner_can_send_invitation(self, user_role, expected_status):
@@ -101,7 +101,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_403_FORBIDDEN)
+        ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
     def test_owner_can_resend_invitation(self, user_role, expected_status):
@@ -126,7 +126,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_403_FORBIDDEN)
+        ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
     def test_owner_can_cancel_invitation(self, user_role, expected_status):
@@ -264,7 +264,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_204_NO_CONTENT),
         ('admin', status.HTTP_204_NO_CONTENT),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_403_FORBIDDEN),
+        ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
     def test_owner_or_admin_can_delete_invitation(self, user_role, expected_status):

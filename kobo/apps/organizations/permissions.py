@@ -83,16 +83,16 @@ class OrgMembershipInvitePermission(
         user_role = organization.get_user_role(user)
         view.user_role = user_role
 
-        # Allow only owners or admins for POST and DELETE
-        if request.method in ['POST', 'DELETE']:
-            return user_role in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
-
-        if (
+        allowed_roles = [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
+        if request.method in ['POST', 'DELETE'] or (
             request.method == 'PATCH' and
             request.data.get('status') in ['resent', 'cancelled']
         ):
-            # Only allow OWNER and ADMIN for these statuses
-            return user_role in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
+            if user_role in allowed_roles:
+                return True
+            elif user_role == ORG_EXTERNAL_ROLE:
+                raise Http404
+            return False
 
         if request.method == 'GET' and user_role == ORG_EXTERNAL_ROLE:
             raise Http404
