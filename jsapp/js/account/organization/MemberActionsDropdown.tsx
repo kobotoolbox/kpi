@@ -96,9 +96,10 @@ export default function MemberActionsDropdown({
         <Menu.Dropdown>
           <Menu.Item
             variant='danger'
-            children={removeButtonLabel}
             onClick={() => setIsRemoveModalVisible(true)}
-          />
+          >
+            {removeButtonLabel}
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
     </>
