@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import abc
@@ -22,7 +21,8 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
-from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -795,7 +795,10 @@ class BaseDeploymentBackend(abc.ABC):
         if submission.get(META_ROOT_UUID):
             return submission
 
-        submission[META_ROOT_UUID] = submission['_uuid']
+        submission[META_ROOT_UUID] = submission.get(
+            META_INSTANCE_ID, add_uuid_prefix(submission['_uuid'])
+        )
+
         return submission
 
     def _rewrite_json_attachment_urls(

@@ -20,6 +20,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
@@ -1096,7 +1097,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         mongo_document = settings.MONGO_DB.instances.find_one(
             {'_id': submission['_id']}
         )
-        root_uuid = mongo_document.pop(META_ROOT_UUID, None)
+        root_uuid = mongo_document.pop(META_ROOT_UUID)
         settings.MONGO_DB.instances.update_one(
             {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
         )
@@ -1461,11 +1462,13 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
         )
 
+        submission_root_uuid = remove_uuid_prefix(json_submission['meta/rootUuid'])
+
         # Create a snapshot without specifying the root name. The default root
         # name will be the name saved in the settings of the asset version.
         snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=json_submission['meta/rootUuid']
+            submission_uuid=submission_root_uuid
         )
 
         (
@@ -1496,7 +1499,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Validate a new snapshot has been generated for the same criteria
         new_snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=json_submission['meta/rootUuid']
+            submission_uuid=submission_root_uuid
         )
         assert new_snapshot.pk != snapshot.pk
 

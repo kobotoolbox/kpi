@@ -260,7 +260,7 @@ class TestPandasMongoBridge(TestBase):
             'kids/kids_details[2]/kids_name': 'Cain',
             'kids/kids_details[2]/kids_age': '76',
             'meta/instanceID': 'uuid:435f173c688e482463a486617004534df',
-            'meta/rootUuid': '435f173c688e482463a486617004534df',
+            'meta/rootUuid': 'uuid:435f173c688e482463a486617004534df',
             'web_browsers/chrome': True,
             'web_browsers/ie': True,
             'web_browsers/safari': False,
