@@ -1451,6 +1451,12 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.asset.save()  # Create a new version
         self.asset.deploy(backend='mock', active=True)
 
+        # Retrieve the submission from MongoDB because self.submission does not match
+        # the data returned by the API (e.g., it lacks fields like `meta/rootUuid`).
+        json_submission = self.asset.deployment.get_submission(
+            self.submission['_id'], self.asset.owner
+        )
+
         xml_submission = self.asset.deployment.get_submission(
             self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
         )
@@ -1459,7 +1465,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # name will be the name saved in the settings of the asset version.
         snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=f"uuid:{self.submission['_uuid']}"
+            submission_uuid=json_submission['meta/rootUuid']
         )
 
         (
@@ -1490,7 +1496,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Validate a new snapshot has been generated for the same criteria
         new_snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=f"uuid:{self.submission['_uuid']}"
+            submission_uuid=json_submission['meta/rootUuid']
         )
         assert new_snapshot.pk != snapshot.pk
 
