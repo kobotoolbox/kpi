@@ -430,7 +430,6 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        connect-project
     >        delete-media
     >        delete-service
-    >        delete-submission
     >        deploy
     >        disable-sharing
     >        disallow-anonymous-submissions
@@ -510,10 +509,6 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         b. metadata__hook__endpoint
 
         c. metadata__hook__active
-
-    * delete-submission
-
-        a. metadata__submission__submitted_by
 
     * deploy
 
@@ -697,7 +692,6 @@ class ProjectHistoryLogViewSet(
     >        connect-project
     >        delete-media
     >        delete-service
-    >        delete-submission
     >        deploy
     >        disable-sharing
     >        disallow-anonymous-submissions
@@ -777,10 +771,6 @@ class ProjectHistoryLogViewSet(
         b. metadata__hook__endpoint
 
         c. metadata__hook__active
-
-    * delete-submission
-
-        a. metadata__submission__submitted_by
 
     * deploy
 

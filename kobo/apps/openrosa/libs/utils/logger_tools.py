@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import contextlib
-import hashlib
 import logging
 import os
 import re
@@ -22,7 +20,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.base import File
 from django.core.mail import mail_admins
-from django.db import connection, IntegrityError, transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import (
     Http404,
@@ -43,8 +41,7 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     AccountInactiveError,
     DuplicateUUIDError,
     FormInactiveError,
-    InstanceIdMissingError,
-    TemporarilyUnavailableError, ConflictingSubmissionUUIDError,
+    TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -62,13 +59,11 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_monthly_counter,
     update_xform_submission_count,
 )
-from kobo.apps.openrosa.apps.logger.exceptions import (
-    DuplicateInstanceError,
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    DuplicateInstance,
     InstanceEmptyError,
     InstanceInvalidUserError,
     InstanceMultipleNodeError,
-)
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     clean_and_parse_xml,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
@@ -82,6 +77,7 @@ from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uui
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 
@@ -138,6 +134,7 @@ def check_edit_submission_permissions(
         ))
 
 
+@transaction.atomic
 def create_instance(
     username: str,
     xml_file: File,
@@ -163,40 +160,51 @@ def create_instance(
 
     # get new and deprecated uuid's
     new_uuid = get_uuid_from_xml(xml)
-    if not new_uuid:
-        raise InstanceIdMissingError
 
-    with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
-        if not lock_acquired:
-            raise DuplicateInstanceError
-
-        # Check for an existing instance
+    # Dorey's rule from 2012 (commit 890a67aa):
+    #   Ignore submission as a duplicate IFF
+    #    * a submission's XForm collects start time
+    #    * the submitted XML is an exact match with one that
+    #      has already been submitted for that user.
+    # The start-time requirement protected submissions with identical responses
+    # from being rejected as duplicates *before* KoBoCAT had the concept of
+    # submission UUIDs. Nowadays, OpenRosa requires clients to send a UUID (in
+    # `<instanceID>`) within every submission; if the incoming XML has a UUID
+    # and still exactly matches an existing submission, it's certainly a
+    # duplicate (https://docs.opendatakit.org/openrosa-metadata/#fields).
+    if xform.has_start_time or new_uuid is not None:
+        # XML matches are identified by identical content hash OR, when a
+        # content hash is not present, by string comparison of the full
+        # content, which is slow! Use the management command
+        # `populate_xml_hashes_for_instances` to hash existing submissions
         existing_instance = Instance.objects.filter(
-            xml_hash=xml_hash,
+            Q(xml_hash=xml_hash) | Q(xml_hash=Instance.DEFAULT_XML_HASH, xml=xml),
             xform__user=xform.user,
         ).first()
+    else:
+        existing_instance = None
 
-        if existing_instance:
-            existing_instance.check_active(force=False)
-            # ensure we have saved the extra attachments
-            new_attachments, _ = save_attachments(existing_instance, media_files)
-            if not new_attachments:
-                raise DuplicateInstanceError
-            else:
-                # Update Mongo via the related ParsedInstance
-                existing_instance.parsed_instance.save(asynchronous=False)
-                return existing_instance
+    if existing_instance:
+        existing_instance.check_active(force=False)
+        # ensure we have saved the extra attachments
+        new_attachments, _ = save_attachments(existing_instance, media_files)
+        if not new_attachments:
+            raise DuplicateInstance()
         else:
-            instance = save_submission(
-                request,
-                xform,
-                xml,
-                media_files,
-                new_uuid,
-                status,
-                date_created_override,
-            )
-            return instance
+            # Update Mongo via the related ParsedInstance
+            existing_instance.parsed_instance.save(asynchronous=False)
+            return existing_instance
+    else:
+        instance = save_submission(
+            request,
+            xform,
+            xml,
+            media_files,
+            new_uuid,
+            status,
+            date_created_override,
+        )
+        return instance
 
 
 def disposition_ext_and_date(name, extension, show_date=True):
@@ -215,37 +223,6 @@ def dict2xform(submission: dict, xform_id_string: str) -> str:
     xml_tail = f'\n</{xform_id_string}>\n'
 
     return xml_head + dict2xml(submission) + xml_tail
-
-
-@contextlib.contextmanager
-def get_instance_lock(xml_hash: str, submission_uuid: str, xform_id: int) -> bool:
-    """
-    Acquires a PostgreSQL advisory lock to prevent race conditions when
-    processing form submissions. This ensures that submissions with the same
-    unique identifiers (xform_id, submission_uuid, and xml_hash) are handled
-    sequentially, preventing duplicate records in the database.
-
-    A unique integer lock key (int_lock) is generated by creating a SHAKE-128
-    hash of the unique identifiers, truncating it to 7 bytes, and converting it
-    to an integer.
-    """
-    int_lock = int.from_bytes(
-        hashlib.shake_128(
-            f'{xform_id}!!{submission_uuid}!!{xml_hash}'.encode()
-        ).digest(7), 'little'
-    )
-    acquired = False
-
-    try:
-        with transaction.atomic():
-            cur = connection.cursor()
-            cur.execute('SELECT pg_try_advisory_lock(%s::bigint);', (int_lock,))
-            acquired = cur.fetchone()[0]
-            yield acquired
-    finally:
-        # Release the lock if it was acquired
-        cur.execute('SELECT pg_advisory_unlock(%s::bigint);', (int_lock,))
-        cur.close()
 
 
 def get_instance_or_404(**criteria):
@@ -328,9 +305,6 @@ def http_open_rosa_error_handler(func, request):
     except InstanceEmptyError:
         result.error = t('Received empty submission. No instance was created')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except InstanceIdMissingError:
-        result.error = t('Instance ID is required')
-        result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except FormInactiveError:
         result.error = t('Form is not active')
         result.http_error_response = OpenRosaResponseNotAllowed(result.error)
@@ -346,13 +320,7 @@ def http_open_rosa_error_handler(func, request):
     except ExpatError:
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
-    except ConflictingSubmissionUUIDError:
-        result.error = t('Submission with this instance ID already exists')
-        response = OpenRosaResponse(result.error)
-        response.status_code = 409
-        response['Location'] = request.build_absolute_uri(request.path)
-        result.http_error_response = response
-    except DuplicateInstanceError:
+    except DuplicateInstance:
         result.error = t('Duplicate submission')
         response = OpenRosaResponse(result.error)
         response.status_code = 202
@@ -669,7 +637,9 @@ def save_attachments(
             media_file=attachment_filename,
             mimetype=f.content_type,
         ).first()
-        if existing_attachment:
+        if existing_attachment and (
+            existing_attachment.file_hash == calculate_hash(f.read())
+        ):
             # We already have this attachment!
             continue
         f.seek(0)
@@ -810,36 +780,22 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
 
     # Update Attachment objects to hide them if they are not used anymore.
     # We do not want to delete them until the instance itself is deleted.
-
-    # If the new attachment has the same basename as an existing one but
-    # different content, update the existing one.
-
     # FIXME Temporary hack to leave background-audio files and audit files alone
     #  Bug comes from `get_xform_media_question_xpaths()`
     queryset = Attachment.objects.filter(instance=instance).exclude(
-        Q(media_file_basename__endswith='.enc')
+        Q(media_file_basename__in=basenames)
+        | Q(media_file_basename__endswith='.enc')
         | Q(media_file_basename='audit.csv')
         | Q(media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$')
-    ).order_by('-id')
-
-    latest_attachments, remaining_attachments_ids = [], []
-    basename_set = set(basenames)
-    for attachment in queryset:
-        if attachment.media_file_basename in basename_set:
-            latest_attachments.append(attachment)
-            basename_set.remove(attachment.media_file_basename)
-        else:
-            remaining_attachments_ids.append(attachment.id)
-    remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
-    soft_deleted_attachments = list(remaining_attachments)
+    )
+    soft_deleted_attachments = list(queryset.all())
 
     # The query below updates only the database records, not the in-memory
     # `Attachment` objects.
     # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
     # in memory after the update.
-    # This behavior is necessary to allow the signal to handle file deletion from
-    # storage.
-    remaining_attachments.update(deleted_at=dj_timezone.now())
+    # This behavior is necessary to allow the signal to handle file deletion from storage.
+    queryset.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
 
@@ -860,20 +816,18 @@ def _get_instance(
     """
     # check if it is an edit submission
     old_uuid = get_deprecated_uuid_from_xml(xml)
-    if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
+    instances = Instance.objects.filter(uuid=old_uuid)
+
+    if instances:
         # edits
+        instance = instances[0]
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
             xml=instance.xml, xform_instance=instance, uuid=old_uuid)
         instance.xml = xml
         instance._populate_xml_hash()
         instance.uuid = new_uuid
-        try:
-            instance.save()
-        except IntegrityError as e:
-            if 'root_uuid' in str(e):
-                raise ConflictingSubmissionUUIDError
-            raise
+        instance.save()
     else:
         submitted_by = (
             get_database_user(request.user)
@@ -892,12 +846,8 @@ def _get_instance(
             # Only set the attribute if requested, i.e. don't bother ever
             # setting it to `False`
             instance.defer_counting = True
-        try:
-            instance.save()
-        except IntegrityError as e:
-            if 'root_uuid' in str(e):
-                raise ConflictingSubmissionUUIDError
-            raise
+        instance.save()
+
     return instance
 
 

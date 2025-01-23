@@ -16,13 +16,13 @@ def create_project_history_log_middleware(get_response):
             log_type == AuditType.PROJECT_HISTORY
         ):
             ProjectHistoryLog.create_from_request(request)
-        # special case: log bulk delete requests even if there is an
-        # error. Things may have been deleted in mongo before the request timed out,
-        # and we'd rather have false positives than missing records
+        # special case: log bulk delete requests even if the request times out.
+        # Things may have been deleted before the request timed out, and we'd
+        # rather have false positives than miss deletions
         elif (
-            log_type == AuditType.PROJECT_HISTORY
+            response.status_code == status.HTTP_408_REQUEST_TIMEOUT
+            and log_type == AuditType.PROJECT_HISTORY
             and url_name == 'submission-bulk'
-            and request.method == 'DELETE'
         ):
             ProjectHistoryLog.create_from_request(request)
         return response

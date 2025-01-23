@@ -349,6 +349,19 @@ class DataViewSet(
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
 
+        # Need to get `uuid` before the data is gone
+        submission = deployment.get_submission(
+            submission_id=submission_id,
+            user=request.user,
+            fields=['_id', '_uuid', '_submitted_by'],
+        )
+        request._request.instances = {
+            submission_id: SubmissionUpdate(
+                username=submission['_submitted_by'],
+                action='delete',
+                id=submission_id,
+            )
+        }
 
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
@@ -579,7 +592,9 @@ class DataViewSet(
         # Prepare audit logs
         data = copy.deepcopy(bulk_actions_validator.data)
         # Retrieve all submissions matching `submission_ids` or `query`.
-
+        # If user is not allowed to see some of the submissions (i.e.: user
+        # with partial permissions), the request will be rejected
+        # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
         submissions = deployment.get_submissions(
             user=request.user,
             submission_ids=data['submission_ids'],

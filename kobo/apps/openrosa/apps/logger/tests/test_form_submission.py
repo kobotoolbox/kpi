@@ -10,7 +10,7 @@ from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.logger.models import Instance, Attachment
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.models.instance import InstanceHistory
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import clean_and_parse_xml
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -36,7 +36,7 @@ class TestFormSubmission(TestBase):
         """
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml'
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
         )
 
         self._make_submission(xml_submission_file_path)
@@ -114,7 +114,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml'
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
         )
 
         # Anonymous should be able to submit data
@@ -154,7 +154,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml'
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
         )
         self._make_submission(xml_submission_file_path, auth=auth)
         self.assertEqual(self.response.status_code, 201)
@@ -244,169 +244,12 @@ class TestFormSubmission(TestBase):
         self.assertEqual(self.response.status_code, 201)
         self.assertEqual(Instance.objects.count(), pre_count + 1)
         inst = Instance.objects.order_by('pk').last()
-        self._make_submission(duplicate_xml_submission_file_path, assert_success=False)
-        self.assertEqual(self.response.status_code, 409)
-        self.assertEqual(Instance.objects.count(), pre_count + 1)
+        self._make_submission(duplicate_xml_submission_file_path)
+        self.assertEqual(self.response.status_code, 201)
+        self.assertEqual(Instance.objects.count(), pre_count + 2)
         # this is exactly the same instance
         another_inst = Instance.objects.order_by('pk').last()
-        self.assertEqual(inst.xml, another_inst.xml)
-
-    def test_duplicate_submission_with_same_content_but_with_attachment(self):
-        """
-        Test that submitting the same XML content twice,
-        first without and then with an attachment,
-        results in a single instance with the attachment added.
-        """
-        xml_submission_file_path = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            'tutorial_2012-06-27_11-27-53_w_attachment.xml'
-        )
-        media_file_path = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            '1335783522563.jpg'
-        )
-        initial_instance_count = Instance.objects.count()
-
-        # Test submission with XML file
-        self._make_submission(xml_submission_file_path)
-        initial_instance = Instance.objects.last()
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-
-        # Test duplicate submission with attachment
-        with open(media_file_path, 'rb') as media_file:
-            self._make_submission(xml_submission_file_path, media_file=media_file)
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
-
-    def test_duplicate_submission_with_same_content_but_with_different_attachment(self):
-        """
-        Test duplicate submission handling:
-        - New submission without attachment should succeed.
-        - Same submission with an attachment should succeed,
-        adding the attachment.
-        - Resubmission with the same attachment should be rejected
-         with a 202 status code.
-        - Resubmission with a different attachment (same file name) should be
-         rejected with a 202 status code.
-        """
-        xml_submission_file_path = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            'tutorial_2012-06-27_11-27-53_w_attachment.xml',
-        )
-        media_file_path1 = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            '1335783522563.jpg',
-        )
-        media_file_path2 = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment/'
-            'attachment_with_different_content',
-            '1335783522563.jpg',
-        )
-        initial_instance_count = Instance.objects.count()
-
-        # Test submission with XML file
-        self._make_submission(xml_submission_file_path)
-        initial_instance = Instance.objects.last()
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-
-        # Test duplicate submission with attachment
-        with open(media_file_path1, 'rb') as media_file:
-            self._make_submission(xml_submission_file_path, media_file=media_file)
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
-
-        # Test duplicate submission with the same attachment
-        with open(media_file_path1, 'rb') as media_file:
-            self._make_submission(xml_submission_file_path, media_file=media_file)
-        self.assertEqual(self.response.status_code, 202)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
-
-        # Test duplicate submission with the same attachment name but with
-        # different attachment content
-        with open(media_file_path2, 'rb') as media_file2:
-            self._make_submission(xml_submission_file_path, media_file=media_file2)
-        self.assertEqual(self.response.status_code, 202)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(
-            Attachment.objects.filter(instance=initial_instance).count(), 1
-        )
-
-    def test_edit_submission_with_same_attachment_name_but_different_content(self):
-        """
-        Test editing a submission with an attachment with the same name
-        """
-        xml_submission_file_path = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            'tutorial_2012-06-27_11-27-53_w_attachment.xml',
-        )
-        xml_edit_submission_file_path = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            'tutorial_2012-06-27_11-27-53_w_attachment_edit.xml',
-        )
-        media_file_path1 = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment',
-            '1335783522563.jpg',
-        )
-        media_file_path2 = os.path.join(
-            os.path.dirname(__file__),
-            '../fixtures/tutorial/instances/tutorial_with_attachment/'
-            'attachment_with_different_content',
-            '1335783522563.jpg',
-        )
-        initial_instance_count = Instance.objects.count()
-
-        # Test submission with attachment
-        with open(media_file_path1, 'rb') as media_file:
-            self._make_submission(
-                xml_submission_file_path, media_file=media_file
-            )
-        initial_instance = Instance.objects.order_by('-pk')[0]
-
-        attachments = Attachment.objects.filter(instance=initial_instance)
-        self.assertTrue(attachments.count() == 1)
-        self.assertEqual(self.response.status_code, 201)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        attachment = attachments[0]
-        attachment_basename = attachment.media_file_basename
-        attachment_hash = attachment.file_hash
-
-        # test edit submission with the same attachment name but different attachment
-        # content
-        with open(media_file_path2, 'rb') as media_file:
-            self._make_submission(
-                xml_edit_submission_file_path, media_file=media_file
-            )
-
-        edited_instance = Instance.objects.order_by('-pk')[0]
-        edited_attachments = Attachment.objects.filter(instance=edited_instance)
-        self.assertTrue(attachments.count() == 1)
-        self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
-        self.assertEqual(self.response.status_code, 201)
-
-        edited_attachment = edited_attachments[0]
-        edited_attachment_basename = edited_attachment.media_file_basename
-        edited_attachment_hash = edited_attachment.file_hash
-        self.assertEqual(attachment_basename, edited_attachment_basename)
-        self.assertNotEqual(attachment_hash, edited_attachment_hash)
+        self.assertNotEqual(inst.xml, another_inst.xml)
 
     def test_owner_can_edit_submissions(self):
         xml_submission_file_path = os.path.join(
@@ -549,7 +392,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml'
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
         )
         auth = DigestAuth('alice', 'alice')
         self._make_submission(
@@ -566,7 +409,7 @@ class TestFormSubmission(TestBase):
 
         xml_submission_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            '../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53_w_uuid.xml'
+            "../fixtures/tutorial/instances/tutorial_2012-06-27_11-27-53.xml"
         )
         auth = DigestAuth('alice', 'alice')
         self._make_submission(

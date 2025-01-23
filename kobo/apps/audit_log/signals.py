@@ -2,7 +2,6 @@ from collections import defaultdict
 
 from celery.signals import task_success
 from django.contrib.auth.signals import user_logged_in
-from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
 
@@ -68,41 +67,6 @@ def add_assigned_partial_perms(sender, instance, user, perms, **kwargs):
     perms_as_list_of_dicts = [{'code': k, 'filters': v} for k, v in perms.items()]
     # partial permissions are replaced rather than added
     request.partial_permissions_added[user.username] = perms_as_list_of_dicts
-
-
-def add_instance_to_request(instance, action):
-    request = get_current_request()
-    if request is None:
-        return
-    if getattr(instance.asset.asset, 'id', None) is None:
-        # if an XForm doesn't have a real associated Asset, ignore it
-        return
-    if getattr(request, 'instances', None) is None:
-        request.instances = {}
-    if getattr(request, 'asset', None) is None:
-        request.asset = instance.asset.asset
-    username = instance.user.username if instance.user else None
-    request.instances.update(
-        {
-            instance.id: SubmissionUpdate(
-                username=username,
-                status=instance.get_validation_status().get('label', 'None'),
-                action=action,
-                id=instance.id,
-            )
-        }
-    )
-
-
-@receiver(post_save, sender=Instance)
-def add_instance_to_request_post_save(instance, created, **kwargs):
-    action = 'add' if created else 'modify'
-    add_instance_to_request(instance, action)
-
-
-@receiver(post_delete, sender=Instance)
-def add_instance_to_request_post_delete(instance, *args, **kwargs):
-    add_instance_to_request(instance, 'delete')
 
 
 @receiver(post_remove_perm, sender=Asset)

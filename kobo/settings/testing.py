@@ -1,5 +1,4 @@
 # coding: utf-8
-import os
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from mongomock import MongoClient as MockMongoClient
 
@@ -51,7 +50,5 @@ WEBPACK_LOADER['DEFAULT'][
 # KoboCAT settings
 TEST_HTTP_HOST = 'testserver'
 TEST_USERNAME = 'bob'
-
-SKIP_TESTS_WITH_CONCURRENCY = os.getenv('SKIP_TESTS_WITH_CONCURRENCY', False)
 
 OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS

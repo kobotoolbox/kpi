@@ -1,7 +1,6 @@
 # coding: utf-8
 import os
 import re
-import uuid
 from tempfile import NamedTemporaryFile
 from typing import Union
 
@@ -35,33 +34,6 @@ class MakeSubmissionMixin:
 
         with NamedTemporaryFile(delete=False, mode='w') as tmp_file:
             tmp_file.write(''.join(split_xml))
-            path = tmp_file.name
-
-        return path
-
-    def _add_submission_uuid_to_submission_xml(self, path):
-        with open(path, 'rb') as _file:
-            xml_content = _file.read().decode()
-
-        # Find the closing tag of the root element (e.g., </new_repeats>)
-        closing_tag_index = xml_content.rfind(f'</{self.xform.id_string}>')
-
-        if closing_tag_index == -1:
-            raise ValueError('Root element closing tag not found')
-
-        # Construct the meta element with a new UUID
-        meta_element = f'<meta><instanceID>uuid:{str(uuid.uuid4())}</instanceID></meta>'
-
-        # Insert the meta element before the closing tag of the root element
-        xml_content = (
-            xml_content[:closing_tag_index]
-            + meta_element  # noqa: W503
-            + xml_content[closing_tag_index:]   # noqa: W503
-        )
-
-        # Write the updated XML content to a temporary file and return the path
-        with NamedTemporaryFile(delete=False, mode='w') as tmp_file:
-            tmp_file.write(xml_content)
             path = tmp_file.name
 
         return path

@@ -67,10 +67,7 @@ class TestXFormInstanceParser(TestBase):
                     'has_kids': '1'
                 },
                 'web_browsers': 'chrome ie',
-                'gps': '-1.2627557 36.7926442 0.0 30.0',
-                'meta': {
-                    'instanceID': 'uuid:364f173c688e482486a48661700466gg'
-                }
+                'gps': '-1.2627557 36.7926442 0.0 30.0'
             }
         }
         self.assertEqual(dict_, expected_dict)
@@ -88,8 +85,7 @@ class TestXFormInstanceParser(TestBase):
             'kids/has_kids': '1',
             'info/age': '80',
             'web_browsers': 'chrome ie',
-            'info/name': 'Adam',
-            'meta/instanceID': 'uuid:364f173c688e482486a48661700466gg'
+            'info/name': 'Adam'
         }
         self.assertEqual(flat_dict, expected_flat_dict)
 
@@ -164,15 +160,6 @@ class TestXFormInstanceParser(TestBase):
             xml_str = xml_file.read()
         instanceID = get_uuid_from_xml(xml_str)
         self.assertEqual(instanceID, '729f173c688e482486a48661700455ff')
-
-        # Additional test case for a custom prefixed UUID
-        submission = """<?xml version="1.0" encoding="UTF-8" ?>
-        <submission xmlns:orx="http://openrosa.org/xforms">
-            <meta><instanceID>uuid:kobotoolbox.org:123456789</instanceID></meta>
-        </submission>
-        """
-        custom_instance_id = get_uuid_from_xml(submission)
-        self.assertEqual(custom_instance_id, 'kobotoolbox.org:123456789')
 
     def test_get_deprecated_uuid_from_xml(self):
         with open(

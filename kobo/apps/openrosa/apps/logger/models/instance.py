@@ -7,7 +7,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
 from django.utils import timezone
 from django.utils.encoding import smart_str
-from django.db.models import UniqueConstraint
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
@@ -23,7 +22,6 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
     clean_and_parse_xml,
-    get_root_uuid_from_xml,
     get_uuid_from_xml,
 )
 from kobo.apps.openrosa.libs.utils.common_tags import (
@@ -87,7 +85,6 @@ class Instance(AbstractTimeStampedModel):
     # do not use it anymore.
     deleted_at = models.DateTimeField(null=True, default=None)
 
-    root_uuid = models.CharField(max_length=249, null=True, db_index=True)
     # ODK keeps track of three statuses for an instance:
     # incomplete, submitted, complete
     # we add a fourth status: submitted_via_web
@@ -107,12 +104,6 @@ class Instance(AbstractTimeStampedModel):
 
     class Meta:
         app_label = 'logger'
-        constraints = [
-            UniqueConstraint(
-                fields=['root_uuid', 'xform'],
-                name='unique_root_uuid_per_xform'
-            )
-        ]
 
     @property
     def asset(self):
@@ -198,13 +189,6 @@ class Instance(AbstractTimeStampedModel):
             if uuid is not None:
                 self.uuid = uuid
         set_uuid(self)
-
-    def _populate_root_uuid(self):
-        if self.xml and not self.root_uuid:
-            assert (
-                root_uuid := get_root_uuid_from_xml(self.xml)
-            ), 'root_uuid should not be empty'
-            self.root_uuid = root_uuid
 
     def _populate_xml_hash(self):
         """
@@ -343,7 +327,6 @@ class Instance(AbstractTimeStampedModel):
         self._set_survey_type()
         self._set_uuid()
         self._populate_xml_hash()
-        self._populate_root_uuid()
 
         # Force validation_status to be dict
         if self.validation_status is None:

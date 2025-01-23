@@ -179,6 +179,15 @@ bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav');
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside');
 
+bem.SimpleTable = makeBem(null, 'simple-table', 'table');
+bem.SimpleTable__header = makeBem(bem.SimpleTable, 'header', 'thead');
+bem.SimpleTable__body = makeBem(bem.SimpleTable, 'body', 'tbody');
+bem.SimpleTable__footer = makeBem(bem.SimpleTable, 'footer', 'tfoot');
+bem.SimpleTable__row = makeBem(bem.SimpleTable, 'row', 'tr');
+// NOTE: messageRow needs a __cell with colspan set
+bem.SimpleTable__messageRow = makeBem(bem.SimpleTable, 'message-row', 'tr');
+bem.SimpleTable__cell = makeBem(bem.SimpleTable, 'cell', 'td');
+
 bem.tagSelect = makeBem(null, 'tag-select');
 bem.collectionFilter = makeBem(null, 'collection-filter');
 

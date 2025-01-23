@@ -2,7 +2,6 @@
 from django.conf import settings
 from django.db import connections
 
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME
 
 
@@ -10,7 +9,7 @@ def _count_group(field, name, xform):
     if using_postgres:
         result = _postgres_count_group(field, name, xform)
     else:
-        raise Exception('Unsupported Database')
+        raise Exception("Unsupported Database")
 
     return result
 
@@ -40,7 +39,7 @@ def _get_fields_of_type(xform, types):
         [dd.get_survey_elements_of_type(t) for t in types])
 
     for element in survey_elements:
-        name = get_abbreviated_xpath(element)
+        name = element.get_abbreviated_xpath()
         k.append(name)
 
     return k
@@ -57,27 +56,23 @@ def _postgres_count_group(field, name, xform):
     string_args = _query_args(field, name, xform)
     if is_date_field(xform, field):
         if not settings.USE_POSTGRESQL:
-            string_args['json'] = 'date(%(json)s)' % string_args
+            string_args['json'] = "date(%(json)s)" % string_args
         else:
             string_args['json'] = (
                 "to_char(to_date(%(json)s, 'YYYY-MM-DD'), 'YYYY"
                 "-MM-DD')" % string_args
             )
 
-    return (
-        'SELECT %(json)s AS "%(name)s", COUNT(*) AS count FROM '
-        '%(table)s WHERE %(restrict_field)s=%(restrict_value)s '
-        'GROUP BY %(json)s' % string_args
-    )
+    return "SELECT %(json)s AS \"%(name)s\", COUNT(*) AS count FROM "\
+           "%(table)s WHERE %(restrict_field)s=%(restrict_value)s "\
+           "GROUP BY %(json)s" % string_args
 
 
 def _postgres_select_key(field, name, xform):
     string_args = _query_args(field, name, xform)
 
-    return (
-        'SELECT %(json)s AS "%(name)s" FROM %(table)s WHERE '
-        '%(restrict_field)s=%(restrict_value)s' % string_args
-    )
+    return "SELECT %(json)s AS \"%(name)s\" FROM %(table)s WHERE "\
+           "%(restrict_field)s=%(restrict_value)s" % string_args
 
 
 def _query_args(field, name, xform):
@@ -93,7 +88,7 @@ def _select_key(field, name, xform):
     if using_postgres:
         result = _postgres_select_key(field, name, xform)
     else:
-        raise Exception('Unsupported Database')
+        raise Exception("Unsupported Database")
 
     return result
 

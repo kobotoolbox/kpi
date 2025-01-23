@@ -6,12 +6,7 @@ if (process.env.MEASURE) {
 }
 module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
-  addons: [
-    '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
-    '@storybook/addon-a11y',
-    'storybook-dark-mode',
+  addons: ['@storybook/addon-links', '@storybook/addon-essentials', '@storybook/addon-interactions', '@storybook/addon-a11y'
   // NB:
   // 'storybook-addon-swc' may improve build speed in the future.
   // - At time of writing, the build performance gains are negated because it
