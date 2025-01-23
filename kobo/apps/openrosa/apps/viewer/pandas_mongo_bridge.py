@@ -551,8 +551,8 @@ class CSVDataFrameBuilder(AbstractDataFrameBuilder):
                         # generate ["children", index, "immunization/polio_1"]
                         xpaths = [
                             '%s[%s]'
-                            % (nested_key[ : nested_key.index(key) + len(key)], index),
-                            nested_key[nested_key.index(key) + len(key) + 1 :],
+                            % (nested_key[: nested_key.index(key) + len(key)], index),
+                            nested_key[nested_key.index(key) + len(key) + 1:],
                         ]
                         # re-create xpath the split on /
                         xpaths = '/'.join(xpaths).split('/')
