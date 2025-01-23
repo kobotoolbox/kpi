@@ -1,27 +1,37 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import Select from 'react-select';
 import bem from 'js/bem';
-import {EXPORT_TYPES} from 'js/components/projectDownloads/exportsConstants';
+import {EXPORT_TYPES, type ExportTypeDefinition} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
+
+interface ExportTypeSelectorProps {
+  disabled?: boolean;
+  /** Hides legacy options */
+  noLegacy?: boolean;
+}
+
+interface ExportTypeSelectorState {
+  selectedExportType: ExportTypeDefinition;
+}
 
 /**
  * This is a selector that is handling the currently selected export type and
  * is storing it in exportsStore.
- * @prop {boolean} [disabled]
- * @prop {boolean} [noLegacy] hides legacy options
  */
-export default class ExportTypeSelector extends React.Component {
-  constructor(props){
+export default class ExportTypeSelector extends React.Component<
+  ExportTypeSelectorProps,
+  ExportTypeSelectorState
+> {
+  constructor(props: ExportTypeSelectorProps) {
     super(props);
     this.state = {selectedExportType: exportsStore.getExportType()};
-    this.unlisteners = [];
-    autoBind(this);
   }
+
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
-      exportsStore.listen(this.onExportsStoreChange),
+      exportsStore.listen(this.onExportsStoreChange.bind(this), this),
     );
   }
 
@@ -33,13 +43,17 @@ export default class ExportTypeSelector extends React.Component {
     this.setState({selectedExportType: exportsStore.getExportType()});
   }
 
-  onSelectedExportTypeChange(newValue) {
-    exportsStore.setExportType(newValue);
+  onSelectedExportTypeChange(newValue: ExportTypeDefinition | null) {
+    // It's not really possible to have `null` here, as Select requires a value
+    // to always be set.
+    if (newValue !== null) {
+      exportsStore.setExportType(newValue);
+    }
   }
 
   render() {
     // make xls topmost (as most popular)
-    const exportTypesOptions = [
+    const exportTypesOptions: ExportTypeDefinition[] = [
       EXPORT_TYPES.xls,
       EXPORT_TYPES.csv,
       EXPORT_TYPES.geojson,
@@ -60,10 +74,10 @@ export default class ExportTypeSelector extends React.Component {
           {t('Select export type')}
         </bem.ProjectDownloads__title>
 
-        <Select
+        <Select<ExportTypeDefinition>
           value={this.state.selectedExportType}
           options={exportTypesOptions}
-          onChange={this.onSelectedExportTypeChange}
+          onChange={this.onSelectedExportTypeChange.bind(this)}
           className='kobo-select'
           classNamePrefix='kobo-select'
           menuPlacement='auto'

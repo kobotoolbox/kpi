@@ -102,6 +102,8 @@ const minimalAssetResponse = {
     'csv_legacy': 'http://kc.kobo.local/zefir/exports/aBcDe12345/csv/',
     'zip_legacy': 'http://kc.kobo.local/zefir/exports/aBcDe12345/zip/',
     'kml_legacy': 'http://kc.kobo.local/zefir/exports/aBcDe12345/kml/',
+    'geojson': 'http://kc.kobo.local/zefir/exports/aBcDe12345/geojson/',
+    'spss_labels': 'http://kc.kobo.local/zefir/exports/aBcDe12345/spss/',
     'xls': 'http://kc.kobo.local/zefir/reports/aBcDe12345/export.xlsx',
     'csv': 'http://kc.kobo.local/zefir/reports/aBcDe12345/export.csv',
   },

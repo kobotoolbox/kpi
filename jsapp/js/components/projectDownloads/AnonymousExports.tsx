@@ -1,40 +1,62 @@
+// Libraries
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
+
+// Partial components
+import ExportTypeSelector from 'js/components/projectDownloads/ExportTypeSelector';
+import Button from 'js/components/common/button';
+
+// Stores, hooks and utilities
 import {actions} from 'js/actions';
 import {downloadUrl} from 'js/utils';
-import {
-  EXPORT_STATUSES,
-  DEFAULT_EXPORT_SETTINGS,
-} from 'js/components/projectDownloads/exportsConstants';
 import {getContextualDefaultExportFormat} from 'js/components/projectDownloads/exportsUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
-import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
-import Button from 'js/components/common/button';
+
+// Constants and types
+import {
+  ExportStatusName,
+  DEFAULT_EXPORT_SETTINGS,
+  type ExportTypeDefinition,
+} from 'js/components/projectDownloads/exportsConstants';
+import type {AssetResponse, ExportDataResponse} from 'jsapp/js/dataInterface';
+
+interface AnonymousExportsProps {
+  asset: AssetResponse;
+}
+
+interface AnonymousExportsState {
+  selectedExportType: ExportTypeDefinition;
+  isPending: boolean;
+  exportUrl: string | null;
+}
 
 /**
  * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
  * users. It allows to select an export type and download a file.
  * @prop {object} asset
  */
-export default class AnonymousExports extends React.Component {
-  constructor(props){
+export default class AnonymousExports extends React.Component<
+  AnonymousExportsProps,
+  AnonymousExportsState
+> {
+  constructor(props: AnonymousExportsProps){
     super(props);
     this.state = {
       selectedExportType: exportsStore.getExportType(),
       isPending: false,
       exportUrl: null,
     };
-    this.unlisteners = [];
-    autoBind(this);
   }
+
+  private unlisteners: Function[] = [];
+  private exportFetcher?: ExportFetcher;
 
   componentDidMount() {
     this.unlisteners.push(
-      exportsStore.listen(this.onExportsStoreChange),
-      actions.exports.createExport.completed.listen(this.onCreateExportCompleted),
-      actions.exports.getExport.completed.listen(this.onGetExportCompleted),
+      exportsStore.listen(this.onExportsStoreChange.bind(this), this),
+      actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.getExport.completed.listen(this.onGetExportCompleted.bind(this)),
     );
   }
 
@@ -49,19 +71,22 @@ export default class AnonymousExports extends React.Component {
     });
   }
 
-  onCreateExportCompleted(exportData) {
+  onCreateExportCompleted(exportData: ExportDataResponse) {
     this.fetchExport(exportData.uid);
   }
 
-  onGetExportCompleted(exportData) {
+  onGetExportCompleted(exportData: ExportDataResponse) {
     this.checkExportFetcher(exportData.uid, exportData.status);
 
-    if (exportData.status === EXPORT_STATUSES.complete) {
+    if (exportData.status === ExportStatusName.complete) {
       this.setState({
         isPending: false,
         exportUrl: exportData.result,
+      }, () => {
+        if (this.state.exportUrl !== null) {
+          downloadUrl(this.state.exportUrl);
+        }
       });
-      downloadUrl(this.state.exportUrl);
     }
   }
 
@@ -90,19 +115,19 @@ export default class AnonymousExports extends React.Component {
     }
   }
 
-  checkExportFetcher(exportUid, exportStatus) {
+  checkExportFetcher(exportUid: string, exportStatus: ExportStatusName) {
     if (
-      exportStatus !== EXPORT_STATUSES.error &&
-      exportStatus !== EXPORT_STATUSES.complete &&
-      !this.fetchIntervalId
+      exportStatus !== ExportStatusName.error &&
+      exportStatus !== ExportStatusName.complete &&
+      !this.exportFetcher
     ) {
       this.exportFetcher = new ExportFetcher(this.props.asset.uid, exportUid);
     }
 
     // clean up after it is completed
     if (
-      exportStatus === EXPORT_STATUSES.error ||
-      exportStatus === EXPORT_STATUSES.complete
+      exportStatus === ExportStatusName.error ||
+      exportStatus === ExportStatusName.complete
     ) {
       if (this.exportFetcher) {
         this.exportFetcher.stop();
@@ -111,7 +136,7 @@ export default class AnonymousExports extends React.Component {
     }
   }
 
-  fetchExport(exportUid) {
+  fetchExport(exportUid: string) {
     actions.exports.getExport(this.props.asset.uid, exportUid);
   }
 

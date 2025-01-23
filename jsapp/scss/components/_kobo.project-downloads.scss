@@ -71,7 +71,7 @@
     font-size: 12px;
     text-align: right;
 
-    &[disabled] {
+    &.project-downloads-group-textbox__title--disabled {
       opacity: 0.5;
       pointer-events: none;
     }
