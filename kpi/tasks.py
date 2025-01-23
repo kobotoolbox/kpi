@@ -4,6 +4,7 @@ import requests
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -28,27 +29,27 @@ def _get_task_with_retry(model_class: type, uid: str):
                 raise
 
 
-@celery_app.task
+@celery_app.task()
 def import_in_background(import_task_uid):
     import_task = _get_task_with_retry(ImportTask, import_task_uid)
     import_task.run()
     return import_task.uid
 
 
-@celery_app.task
+@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
 def export_in_background(export_task_uid):
-    export_task = _get_task_with_retry(SubmissionExportTask, export_task_uid)
+    export_task = SubmissionExportTask.get(uid=export_task_uid)
     export_task.run()
 
 
-@celery_app.task
+@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
 def export_task_in_background(
     export_task_uid: str, username: str, export_task_name: str
 ) -> None:
     user = User.objects.get(username=username)
     export_task_class = apps.get_model(export_task_name)
 
-    export_task = _get_task_with_retry(export_task_class, export_task_uid)
+    export_task = export_task_class.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
         file_url = f'{settings.KOBOFORM_URL}{export.result.url}'
