@@ -43,8 +43,8 @@ def get_organization_plan_limit(
     if subscription := organization.active_subscription_billing_details():
         price_metadata = subscription['price_metadata']
         product_metadata = subscription['product_metadata']
-        price_limit = price_metadata[limit_key] if price_metadata else None
-        product_limit = product_metadata[limit_key] if product_metadata else None
+        price_limit = price_metadata.get(limit_key) if price_metadata else None
+        product_limit = product_metadata.get(limit_key) if product_metadata else None
         relevant_limit = price_limit or product_limit
     else:
         from djstripe.models.core import Product
