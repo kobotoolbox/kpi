@@ -14,7 +14,6 @@ from django.conf import global_settings
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
-from private_storage.appconfig import PRIVATE_STORAGE_CLASS as DEFAULT_PRIVATE_STORAGE_CLASS
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
@@ -1364,11 +1363,18 @@ default_file_storage = env.str(
 )
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     warnings.warn(
-        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, '
+        'update the environment variable.',
         DeprecationWarning,
     )
 
-PRIVATE_STORAGE_CLASS = DEFAULT_PRIVATE_STORAGE_CLASS
+# ToDo Find out why `private_storage.appconfig.PRIVATE_STORAGE_CLASS`
+#  cannot be imported. Otherwise, some tests are failing.
+# from private_storage.appconfig import (
+#   PRIVATE_STORAGE_CLASS as DEFAULT_PRIVATE_STORAGE_CLASS
+# )
+# PRIVATE_STORAGE_CLASS = DEFAULT_PRIVATE_STORAGE_CLASS
+PRIVATE_STORAGE_CLASS = 'private_storage.storage.files.PrivateFileSystemStorage'
 
 if default_file_storage:
 
