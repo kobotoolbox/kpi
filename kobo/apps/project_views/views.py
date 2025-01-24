@@ -1,6 +1,7 @@
 from typing import Union, Optional
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
@@ -110,11 +111,12 @@ class ProjectViewViewSet(
             )
 
             # Have Celery run the export in the background
+            transaction.on_commit(lambda:
             export_task_in_background.delay(
                 export_task_uid=export_task.uid,
                 username=user.username,
                 export_task_name='kpi.ProjectViewExportTask',
-            )
+            ))
 
             return Response({'status': export_task.status})
 

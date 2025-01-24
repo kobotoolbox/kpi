@@ -19,27 +19,27 @@ SLEEP_TIME = 2
 RETRIES = 10
 
 
-@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
+@celery_app.task(autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True)
 def import_in_background(import_task_uid):
-    import_task = ImportTask.get(uid=import_task_uid)
+    import_task = ImportTask.objects.get(uid=import_task_uid)
     import_task.run()
     return import_task.uid
 
 
-@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
+@celery_app.task(autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True)
 def export_in_background(export_task_uid):
-    export_task = SubmissionExportTask.get(uid=export_task_uid)
+    export_task = SubmissionExportTask.objects.get(uid=export_task_uid)
     export_task.run()
 
 
-@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
+@celery_app.task(autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True)
 def export_task_in_background(
     export_task_uid: str, username: str, export_task_name: str
 ) -> None:
     user = User.objects.get(username=username)
     export_task_class = apps.get_model(export_task_name)
 
-    export_task = export_task_class.get(uid=export_task_uid)
+    export_task = export_task_class.objects.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
         file_url = f'{settings.KOBOFORM_URL}{export.result.url}'
