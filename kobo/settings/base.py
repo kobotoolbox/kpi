@@ -1356,7 +1356,20 @@ if env.str('AWS_ACCESS_KEY_ID', False):
         AWS_S3_REGION_NAME = region
 
 # Storage configuration
-STORAGES = global_settings.STORAGES
+# STORAGES = global_settings.STORAGES
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage'
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    },
+    'import_export_celery': {
+        'BACKEND': 'kobo.apps.storage_backends.private_local_storage.PrivateLocalStorage'
+    },
+}
+IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 
 default_file_storage = env.str(
     'DEFAULT_FILE_STORAGE', env.str('KPI_DEFAULT_FILE_STORAGE', None)
