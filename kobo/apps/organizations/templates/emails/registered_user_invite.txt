@@ -1,0 +1,22 @@
+{% load i18n %}
+{% if has_multiple_accounts %}
+{% trans "Hello" %} {{ recipient_email }},
+{% else %}
+{% trans "Hello" %} {{ recipient_username }},
+{% endif %}
+
+{% blocktrans %}{{ sender_name }} ({{ sender_email }}, username {{ sender_username }}) has invited you to join {{ organization_name }} organization as {{recipient_role}}.{% endblocktrans %}
+{% if has_multiple_accounts %}
+{% blocktrans %}If you already have an account (or have several accounts), please sign in with the correct account. If you don't already have a KoboToolbox account, you can create one <a href="{{ base_url }}/accounts/signup/" target="_blank">here</a>. After creating your account, click on the link below to accept the invite.{% endblocktrans %}
+{% endif %}
+
+{% trans "What joining the organization means for you:" %}
+* {% trans "You will benefit from higher usage limits and additional features, as well as priority user support." %}
+* {% blocktrans %}Any projects owned by your account will be transferred to {{ organization_name }} and all admins in that organization will have access to your projects and data. {% endblocktrans %}
+* {% trans "You will continue to have full management permissions for all projects previously owned by you." %}
+
+{% trans "If you want to transfer any projects to another account or remove a project, please do so before accepting the invitation. This action cannot be undone." %}
+
+{% blocktrans %}To respond to this invitation, please use the following link: {{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}
+
+- KoboToolbox
