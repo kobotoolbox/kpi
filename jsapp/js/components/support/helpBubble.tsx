@@ -162,7 +162,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
               href={envStore.data.community_url}
               onClick={this.close.bind(this)}
             >
-              <i className='k-icon k-icon-forum' />
+              <i className='k-icon k-icon-help-forum' />
               <header>{t('Community Forum')}</header>
               <p>
                 {t('Connect with thousands of KoboToolbox users, ask questions, and share ideas.')}
