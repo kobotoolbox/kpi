@@ -47,7 +47,6 @@ function AccountNavLink(props: AccountNavLinkProps) {
 // by the org being single-user.
 function renderSingleUserOrgSidebar(
   isStripeEnabled: boolean,
-  showAddOnsLink: boolean,
   isOwner: boolean
 ) {
   return (
@@ -77,14 +76,12 @@ function renderSingleUserOrgSidebar(
                   name={t('Plans')}
                   to={ACCOUNT_ROUTES.PLAN}
                 />
-                {showAddOnsLink && (
-                  <AccountNavLink
-                    iconName='plus'
-                    name={t('Add-ons')}
-                    to={ACCOUNT_ROUTES.ADD_ONS}
-                    isNew
-                  />
-                )}
+                <AccountNavLink
+                  iconName='plus'
+                  name={t('Add-ons')}
+                  to={ACCOUNT_ROUTES.ADD_ONS}
+                  isNew
+                />
               </>
             )}
           </>
@@ -97,7 +94,6 @@ function renderSingleUserOrgSidebar(
 function renderMmoSidebar(
   userRole: OrganizationUserRole,
   isStripeEnabled: boolean,
-  showAddOnsLink: boolean,
   mmoLabel: string
 ) {
   const showBillingRoutes =
@@ -143,14 +139,12 @@ function renderMmoSidebar(
               name={t('Plans')}
               to={ACCOUNT_ROUTES.PLAN}
             />
-            {showAddOnsLink && (
-              <AccountNavLink
-                iconName='plus'
-                name={t('Add-ons')}
-                to={ACCOUNT_ROUTES.ADD_ONS}
-                isNew
-              />
-            )}
+            <AccountNavLink
+              iconName='plus'
+              name={t('Add-ons')}
+              to={ACCOUNT_ROUTES.ADD_ONS}
+              isNew
+            />
           </>
         )}
         {hasAdminPrivileges && (
@@ -176,10 +170,6 @@ function AccountSidebar() {
     setIsStripeEnabled(true);
   }, [subscriptionStore.isInitialised]);
 
-  const showAddOnsLink = useMemo(() => {
-    return !subscriptionStore.planResponse.length;
-  }, [subscriptionStore.isInitialised]);
-
   const mmoLabel = getSimpleMMOLabel(
     envStore.data,
     subscriptionStore.activeSubscriptions[0]
@@ -193,14 +183,12 @@ function AccountSidebar() {
     return renderMmoSidebar(
       orgQuery.data?.request_user_role,
       isStripeEnabled,
-      showAddOnsLink,
       mmoLabel
     );
   }
 
   return renderSingleUserOrgSidebar(
     isStripeEnabled,
-    showAddOnsLink,
     orgQuery.data.is_owner
   );
 }
