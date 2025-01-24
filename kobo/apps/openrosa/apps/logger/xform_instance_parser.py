@@ -421,6 +421,8 @@ def get_abbreviated_xpath(element: SurveyElement) -> str:
     If the element itself is the root element, just return the element name.
     """
     def is_flat(elem):
+        # can't use elem.get('flat', False) here because SurveyElement overrides
+        # __getitem__ and it doesn't work with defaults
         return hasattr(elem, 'flat') and elem.get('flat')
 
     lineage = [
