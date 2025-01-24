@@ -3,9 +3,6 @@ from typing import Optional
 
 from django.db import transaction
 from django.utils.translation import gettext as t
-from rest_framework import serializers
-from rest_framework.request import Request
-from rest_framework.reverse import reverse
 from formpack.constants import (
     EXPORT_SETTING_FIELDS,
     EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
@@ -27,9 +24,12 @@ from formpack.constants import (
     VALID_EXPORT_TYPES,
     VALID_MULTIPLE_SELECTS,
 )
+from rest_framework import serializers
+from rest_framework.request import Request
+from rest_framework.reverse import reverse
 
 from kpi.fields import ReadOnlyJSONField
-from kpi.models import SubmissionExportTask, Asset
+from kpi.models import Asset, SubmissionExportTask
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 from kpi.utils.object_permission import get_database_user
@@ -66,7 +66,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             user=user, data=validated_data
         )
         # Have Celery run the export in the background
-        transaction.on_commit(lambda: export_in_background.delay(export_task_uid=export_task.uid))
+        transaction.on_commit(
+            lambda: export_in_background.delay(export_task_uid=export_task.uid)
+        )
 
         return export_task
 
@@ -153,7 +155,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
                 {EXPORT_SETTING_FIELDS: t('Must be an array')}
             )
 
-        if not all((isinstance(field, str) for field in fields)):
+        if not all(isinstance(field, str) for field in fields):
             raise serializers.ValidationError(
                 {
                     EXPORT_SETTING_FIELDS: t(
