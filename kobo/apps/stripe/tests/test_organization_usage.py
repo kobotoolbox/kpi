@@ -494,6 +494,17 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == float('inf')
 
+    @data('submission', 'storage', 'characters', 'seconds')
+    def test_get_suscription_limit_missing(self, usage_type):
+        stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        product_metadata = {
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+        limit = get_organization_plan_limit(self.organization, usage_type)
+        assert limit == float('inf')
+
 
 @override_settings(STRIPE_ENABLED=True)
 class OrganizationsModelIntegrationTestCase(BaseTestCase):
