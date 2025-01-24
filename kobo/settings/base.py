@@ -14,6 +14,7 @@ from django.conf import global_settings
 from django.urls import reverse_lazy
 from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
+from private_storage.appconfig import PRIVATE_STORAGE_CLASS as DEFAULT_PRIVATE_STORAGE_CLASS
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
@@ -1367,10 +1368,13 @@ if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
         DeprecationWarning,
     )
 
+PRIVATE_STORAGE_CLASS = DEFAULT_PRIVATE_STORAGE_CLASS
+
 if default_file_storage:
 
     global_default_file_storage = STORAGES['default']['BACKEND']
     default_file_storage = STORAGES['default']['BACKEND'] = default_file_storage
+
     if default_file_storage != global_default_file_storage:
         if default_file_storage.endswith('S3Boto3Storage'):
             # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
@@ -1391,19 +1395,21 @@ if default_file_storage:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-    aws_storage_bucket_name = env.str('AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None))
+    aws_storage_bucket_name = env.str(
+        'AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None)
+    )
     if aws_storage_bucket_name:
         AWS_STORAGE_BUCKET_NAME = aws_storage_bucket_name
         AWS_DEFAULT_ACL = 'private'
         # django-private-storage needs its own S3 configuration
-        PRIVATE_STORAGE_CLASS = \
+        PRIVATE_STORAGE_CLASS = (
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
             # NB.........There's intentionally no 3 here! ^
+        )
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
@@ -1417,6 +1423,8 @@ else:
     KOBOCAT_MEDIA_ROOT = os.environ.get(
         'KOBOCAT_MEDIA_ROOT', MEDIA_ROOT.replace('kpi', 'kobocat')
     )
+
+STORAGES['import_export_celery'] = {'BACKEND': PRIVATE_STORAGE_CLASS}
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
@@ -1807,3 +1815,5 @@ IMPORT_EXPORT_CELERY_MODELS = {
         'model_name': 'OrganizationUser',
     },
 }
+
+IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
