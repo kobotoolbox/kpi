@@ -19,19 +19,9 @@ SLEEP_TIME = 2
 RETRIES = 10
 
 
-def _get_task_with_retry(model_class: type, uid: str):
-    for i in range(RETRIES):
-        try:
-            return model_class.objects.get(uid=uid)
-        except model_class.DoesNotExist:
-            time.sleep(SLEEP_TIME)
-            if i == RETRIES - 1:
-                raise
-
-
-@celery_app.task()
+@celery_app.task(autoretry_for=ObjectDoesNotExist, max_retries=RETRIES, retry_backoff=True)
 def import_in_background(import_task_uid):
-    import_task = _get_task_with_retry(ImportTask, import_task_uid)
+    import_task = ImportTask.get(uid=import_task_uid)
     import_task.run()
     return import_task.uid
 

@@ -1,4 +1,7 @@
 # coding: utf-8
+from functools import partial
+from django.db import transaction
+
 from django.db.models import TextField
 from django.db.models.functions import Cast
 from rest_framework import exceptions, serializers, status
@@ -211,7 +214,8 @@ class ExportTaskViewSet(AuditLoggedNoUpdateModelViewSet):
             user=request.user, data=task_data
         )
         # Have Celery run the export in the background
-        export_in_background.delay(export_task_uid=export_task.uid)
+        transaction.on_commit(lambda: export_in_background.delay(export_task_uid=export_task.uid))
+
         return Response({
             'uid': export_task.uid,
             'url': reverse(

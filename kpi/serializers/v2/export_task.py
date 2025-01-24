@@ -1,6 +1,7 @@
 # coding: utf-8
 from typing import Optional
 
+from django.db import transaction
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.request import Request
@@ -65,7 +66,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             user=user, data=validated_data
         )
         # Have Celery run the export in the background
-        export_in_background.delay(export_task_uid=export_task.uid)
+        transaction.on_commit(lambda: export_in_background.delay(export_task_uid=export_task.uid))
 
         return export_task
 
