@@ -28,7 +28,7 @@ class AccountTrashTestCase(TestCase):
         someuser = get_user_model().objects.get(username='someuser')
         someuser_uid = someuser.extra_details.uid
         someuser_id = someuser.pk
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
 
         # Create dummy logs for someuser
         audit_log = AuditLog.objects.create(
@@ -114,7 +114,7 @@ class AccountTrashTestCase(TestCase):
     def test_put_back(self):
         self.test_move_to_trash()
         someuser = get_user_model().objects.get(username='someuser')
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
         assert not someuser.is_active
         account_trash = AccountTrash.objects.get(user=someuser)
         periodic_task_id = account_trash.periodic_task_id
@@ -154,7 +154,7 @@ class AccountTrashTestCase(TestCase):
         everything from their account is deleted except their username
         """
         someuser = get_user_model().objects.get(username='someuser')
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
         someuser.extra_details.data['name'] = 'someuser'
         someuser.extra_details.save(update_fields=['data'])
 

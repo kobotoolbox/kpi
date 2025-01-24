@@ -1,0 +1,6 @@
+{% load i18n %}
+{% trans "Dear" %} {{ sender_username }},
+
+{% blocktrans %}{{ recipient }} has declined your request to join {{ organization_name }} organization.{% endblocktrans %}
+
+- KoboToolbox

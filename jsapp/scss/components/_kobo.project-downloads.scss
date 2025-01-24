@@ -71,7 +71,7 @@
     font-size: 12px;
     text-align: right;
 
-    &[disabled] {
+    &.project-downloads-group-textbox__title--disabled {
       opacity: 0.5;
       pointer-events: none;
     }
@@ -191,21 +191,6 @@
     &.project-downloads__exports-creator--loading {
       opacity: 0.5;
       pointer-events: none;
-    }
-  }
-
-  .simple-table.simple-table--project-exports {
-    // __row selector to not include __message-row
-    .simple-table__row .simple-table__cell {
-      &:last-child() {
-        text-align: right;
-      }
-    }
-
-    .export-list-buttons {
-      @include mixins.centerRowFlex;
-      justify-content: flex-end;
-      gap: 5px;
     }
   }
 

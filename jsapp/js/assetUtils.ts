@@ -534,7 +534,7 @@ export function renderQuestionTypeIcon(
  */
 export function injectSupplementalRowsIntoListOfRows(
   asset: AssetResponse,
-  rows: string[],
+  rows: Set<string> | Array<string>,
 ) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content');
@@ -713,7 +713,7 @@ export function getAssetSubmissionProcessingUrl(
 ) {
   const processingUrl = getAssetProcessingUrl(assetUid);
   if (processingUrl) {
-    return processingUrl + '?submission=' + submission
+    return processingUrl + '?submission=' + submission;
   }
   return undefined;
 }

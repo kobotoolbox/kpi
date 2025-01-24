@@ -21,6 +21,9 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.member_user = self.alice
         self.admin_user = self.anotheruser
         self.external_user = self.bob
+        self.registered_invitee_user = User.objects.create_user(
+            username='registered_invitee', email='registered_invitee@test.com',
+        )
 
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
@@ -34,6 +37,20 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             },
         )
 
+    def _create_invite(self, user):
+        """
+        Helper method to create and accept invitations
+        """
+        invitation_data = {
+            'invitees': ['registered_invitee', 'unregistered_invitee@test.com']
+        }
+        list_url = reverse(
+            self._get_endpoint('organization-invites-list'),
+            kwargs={'organization_id': self.organization.id},
+        )
+        self.client.force_login(user)
+        self.client.post(list_url, data=invitation_data)
+
     @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
@@ -46,10 +63,26 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         if user_role == 'anonymous':
             self.client.logout()
         else:
+            self._create_invite(self.someuser)
             user = getattr(self, f'{user_role}_user')
             self.client.force_login(user)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, expected_status)
+
+        # Check if the invite data is present for invitees
+        if response.status_code == status.HTTP_200_OK:
+            for result in response.data.get('results'):
+                self.assertIn('invite', result)
+                if result['user__username'] in [
+                    'registered_invitee', 'unregistered_invitee'
+                ]:
+                    self.assertIn('url', result['invite'])
+                    self.assertIn('invited_by', result['invite'])
+                    self.assertIn('status', result['invite'])
+                    self.assertIn('invitee_role', result['invite'])
+                    self.assertIn('invitee', result['invite'])
+                    self.assertEqual(result['invite']['status'], 'pending')
+                    self.assertEqual(result['invite']['invitee_role'], 'member')
 
     @data(
         ('owner', status.HTTP_200_OK),

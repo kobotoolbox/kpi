@@ -3,14 +3,17 @@ import copy
 import json
 import uuid
 from unittest.mock import patch
+from xml.etree import ElementTree as ET
 
 import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from pymongo.errors import PyMongoError
 from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 
@@ -19,6 +22,7 @@ from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -57,7 +61,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def setUp(self):
         super().setUp()
         # log in as admin
-        user = User.objects.get(username='admin')
+        user = User.objects.get(username='adminuser')
         self.user = user
         self.client.force_login(user=user)
         # use the same asset
@@ -1390,7 +1394,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 'permission': reverse(
                     'api_v2:permission-detail', kwargs={'codename': PERM_VIEW_ASSET}
                 ),
-                'user': reverse('api_v2:user-kpi-detail', kwargs={'username': 'admin'}),
+                'user': reverse(
+                    'api_v2:user-kpi-detail', kwargs={'username': 'adminuser'}
+                ),
             },
         ]
         self.client.post(
@@ -1476,9 +1482,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
-    @data('admin', 'someuser')
+    @data('adminuser', 'someuser')
     def test_log_created_for_duplicate_submission(self, duplicating_user):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         submissions = self.asset.deployment.get_submissions(
             self.asset.owner, fields=['_id']
         )
@@ -1505,7 +1511,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(metadata['submission']['submitted_by'], duplicating_user)
 
-    @data('admin', None)
+    @data('adminuser', None)
     def test_update_one_submission_content(self, username):
         self._add_submission(username)
         submissions_xml = self.asset.deployment.get_submissions(
@@ -1550,7 +1556,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.metadata['submission']['submitted_by'], submitted_by)
 
     def test_update_multiple_submissions_content(self):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         self._add_submission('someuser')
         self._add_submission(None)
 
@@ -1574,7 +1580,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(
-            metadata__submission__submitted_by='admin'
+            metadata__submission__submitted_by='adminuser'
         ).first()
         self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
@@ -1591,7 +1597,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
 
-    @data('admin', None)
+    @data('adminuser', None)
     def test_update_single_submission_validation_status(self, username):
         self._add_submission(username)
         submissions_json = self.asset.deployment.get_submissions(
@@ -1615,7 +1621,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_metadata['submission']['status'], 'On Hold')
 
     def test_multiple_submision_validation_statuses(self):
-        self._add_submission('admin')
+        self._add_submission('adminuser')
         self._add_submission('someuser')
         self._add_submission(None)
         submissions_json = self.asset.deployment.get_submissions(
@@ -1639,7 +1645,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(ProjectHistoryLog.objects.count(), 3)
         log1 = ProjectHistoryLog.objects.filter(
-            metadata__submission__submitted_by='admin'
+            metadata__submission__submitted_by='adminuser'
         ).first()
         self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
@@ -1652,9 +1658,140 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
 
+        log3 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='AnonymousUser'
+        ).first()
+        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
+        self.assertEqual(log3.metadata['submission']['status'], 'On Hold')
+
+    @data(
+        # submit as anonymous?, use v1 endpoint?
+        (True, False),
+        (False, True),
+        (False, False),
+    )
+    @unpack
+    def test_add_submission(self, anonymous, v1):
+        # prepare submission data
+        uuid_ = uuid.uuid4()
+        self.asset.deploy(backend='mock')
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta': {'instanceID': f'uuid:{uuid_}'},
+            'formhub': {'uuid': self.asset.deployment.xform.uuid},
+            '_uuid': str(uuid_),
+        }
+        xml = ET.fromstring(
+            dict2xform(submission_data, self.asset.deployment.xform.id_string)
+        )
+        xml.tag = self.asset.uid
+        xml.attrib = {
+            'id': self.asset.uid,
+            'version': self.asset.latest_version.uid,
+        }
+        endpoint = 'submissions-list' if v1 else 'submissions'
+        kwargs = {'username': self.user.username} if not v1 else {}
+        url = reverse(
+            self._get_endpoint(endpoint),
+            kwargs=kwargs,
+        )
+        data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
+        # ensure anonymous users are allowed to submit
+        self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
+
+        if not anonymous:
+            # the submission endpoints don't allow session authentication, so
+            # just force the request to attach the correct user
+            self.client.force_authenticate(user=self.user)
+
+        # can't use _base_project_history_log_test here because our format is xml,
+        # not json
+        self.client.post(
+            url,
+            data=data,
+        )
+        logs = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
+        self.assertEqual(logs.count(), 1)
+        log = logs.first()
+
+        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
+        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        username = 'AnonymousUser' if anonymous else self.user.username
+        self.assertEqual(log.metadata['submission']['submitted_by'], username)
+
+    def test_delete_single_submission(self):
+        self._add_submission('adminuser')
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.delete,
+            url=reverse(
+                'api_v2:submission-detail',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'pk': submissions_json[0]['_id'],
+                },
+            ),
+            request_data={},
+            expected_action=AuditAction.DELETE_SUBMISSION,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['submission']['submitted_by'], 'adminuser')
+
+    @data(True, False)
+    def test_delete_multiple_submissions(self, simulate_error):
+        self._add_submission('adminuser')
+        self._add_submission('someuser')
+        self._add_submission(None)
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_id']
+        )
+        payload = json.dumps(
+            {
+                'submission_ids': [sub['_id'] for sub in submissions_json],
+            }
+        )
+        if simulate_error:
+            # tell the client to return a 500 like a normal request would
+            # instead of raising errors directly
+            self.client.raise_request_exception = False
+
+            # simulate a DB error
+            mongo_patcher = patch(
+                'kobo.apps.openrosa.apps.viewer.models.parsed_instance.xform_instances.delete_many',  # noqa
+                side_effect=PyMongoError(),
+            )
+            mongo_patcher.start()
+        self.client.delete(
+            path=reverse(
+                'api_v2:submission-bulk',
+                kwargs={'parent_lookup_asset': self.asset.uid},
+            ),
+            data={'payload': payload},
+            format='json',
+        )
+        if simulate_error:
+            mongo_patcher.stop()
+
+        self.assertEqual(ProjectHistoryLog.objects.count(), 3)
+        log1 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='adminuser'
+        ).first()
+        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log1.action, AuditAction.DELETE_SUBMISSION)
+
         log2 = ProjectHistoryLog.objects.filter(
+            metadata__submission__submitted_by='someuser'
+        ).first()
+        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self.assertEqual(log2.action, AuditAction.DELETE_SUBMISSION)
+
+        log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
-        self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
+        self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)

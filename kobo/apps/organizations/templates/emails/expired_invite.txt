@@ -1,0 +1,7 @@
+{% load i18n %}
+{% load strings %}
+
+{% trans "Dear" %} {{ username }},
+{% blocktrans %}The request you have sent to <b>{{ recipient }}</b> to join the {{ organization }} organization has expired.{% endblocktrans %}
+
+- KoboToolbox

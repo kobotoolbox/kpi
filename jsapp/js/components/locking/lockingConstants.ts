@@ -48,7 +48,7 @@ export interface LockingRestrictionDefinition {
 }
 
 // all restrictions for questions and choices
-export const QUESTION_RESTRICTIONS = [
+export const QUESTION_RESTRICTIONS: LockingRestrictionDefinition[] = [
   {name: LockingRestrictionName.choice_add, label: t('Add choice to question')},
   {name: LockingRestrictionName.choice_delete, label: t('Remove choice from question')},
   {name: LockingRestrictionName.choice_label_edit, label: t('Edit choice labels')},
@@ -62,7 +62,7 @@ export const QUESTION_RESTRICTIONS = [
 ];
 
 // all restrictions for groups
-export const GROUP_RESTRICTIONS = [
+export const GROUP_RESTRICTIONS: LockingRestrictionDefinition[] = [
   {name: LockingRestrictionName.group_delete, label: t('Delete entire group')},
   {name: LockingRestrictionName.group_label_edit, label: t('Edit group labels')},
   {name: LockingRestrictionName.group_question_add, label: t('Add question to group')},
@@ -74,7 +74,7 @@ export const GROUP_RESTRICTIONS = [
 ];
 
 // all restrictions for form
-export const FORM_RESTRICTIONS = [
+export const FORM_RESTRICTIONS: LockingRestrictionDefinition[] = [
   {name: LockingRestrictionName.form_appearance, label: t('Change form appearance')},
   {name: LockingRestrictionName.form_meta_edit, label: t('Change form meta questions')},
   {name: LockingRestrictionName.form_replace, label: t('Replace whole form')},

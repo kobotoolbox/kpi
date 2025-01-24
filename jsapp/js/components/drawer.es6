@@ -15,8 +15,8 @@ import {ROUTES, PROJECTS_ROUTES} from 'js/router/routerConstants';
 import SidebarFormsList from '../lists/sidebarForms';
 import envStore from 'js/envStore';
 import {router, routerIsActive, withRouter} from '../router/legacy';
-import Button from 'js/components/common/button';
 import pageState from 'js/pageState.store';
+import {Button} from '@mantine/core';
 
 const AccountSidebar = lazy(() => import('js/account/accountSidebar'));
 
@@ -69,14 +69,11 @@ const FormSidebar = observer(
       return (
         <>
           <Button
-            type='primary'
-            size='l'
-            isFullWidth
-            isUpperCase
-            isDisabled={!sessionStore.isLoggedIn}
+            size='lg'
+            fullWidth
+            disabled={!sessionStore.isLoggedIn}
             onClick={this.newFormModal.bind(this)}
-            label={t('new')}
-          />
+          >{t('new').toUpperCase()}</Button>
 
           <SidebarFormsList />
         </>

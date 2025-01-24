@@ -32,7 +32,7 @@ interface MultiCheckboxProps {
  * A MultiCheckbox generic component.
  * Use optional `bem.MultiCheckbox__wrapper` to display a frame around it.
  */
-export default function MultiCheckbox (props: MultiCheckboxProps) {
+export default function MultiCheckbox(props: MultiCheckboxProps) {
   function onChange(itemIndex: number, isChecked: boolean) {
     const updatedList = props.items;
     updatedList[itemIndex].checked = isChecked;

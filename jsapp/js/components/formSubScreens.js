@@ -26,7 +26,7 @@ const DataTable = React.lazy(() =>
 );
 const ProjectDownloads = React.lazy(() =>
   import(
-    /* webpackPrefetch: true */ 'js/components/projectDownloads/projectDownloads'
+    /* webpackPrefetch: true */ 'js/components/projectDownloads/ProjectDownloads'
   )
 );
 const FormGallery = React.lazy(() =>
