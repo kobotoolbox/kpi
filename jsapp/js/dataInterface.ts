@@ -975,11 +975,11 @@ export interface ExternalServiceLogResponse {
   uid: string;
   submission_id: number;
   tries: number;
-  // See HOOK_LOG_STATUSES
+  /** See `HOOK_LOG_STATUSES` */
   status: number;
   stratus_str: string;
-  // TODO: see what else can be set here except of `null`
-  status_code: any | null;
+  status_code: number | null;
+  /** This is a SubmissionResponse stringified */
   message: string;
   date_modified: string;
 }
