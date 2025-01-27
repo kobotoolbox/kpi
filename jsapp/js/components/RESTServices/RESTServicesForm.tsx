@@ -336,10 +336,12 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   onCustomHeaderInputKeyPress(evt: React.KeyboardEvent<HTMLInputElement>) {
+    // Pressing ENTER key while editing the name, moves focus to the input for the value
     if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
       evt.preventDefault();
       (evt.currentTarget.parentElement?.querySelector('input[name="headerValue"]') as HTMLInputElement).focus();
     }
+    // Pressing ENTER key while editing the value, adds a new row and moves focus to its name input
     if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
       evt.preventDefault();
       this.addNewCustomHeaderRow();
