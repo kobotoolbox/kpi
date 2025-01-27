@@ -13,6 +13,7 @@ import MemberRoleSelector from './MemberRoleSelector';
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
 import useOrganizationMembersQuery from './membersQuery';
+import {useDisclosure} from '@mantine/hooks';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -20,9 +21,13 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 
 // Styles
 import styles from './membersRoute.module.scss';
+import ButtonNew from 'jsapp/js/components/common/ButtonNew';
+import {Modal, TextInput} from '@mantine/core';
+import {Select} from 'jsapp/js/components/common/Select';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
+  const [opened, {open, close}] = useDisclosure(false);
 
   if (!orgQuery.data) {
     return (
@@ -146,6 +151,42 @@ export default function MembersRoute() {
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
+
+      <section className={styles.inviteMembersWrapper}>
+        <div className={styles.inviteMembersText}>
+          <p className={styles.inviteMembersHeader}>{t('Invite members')}</p>
+          <p className={styles.inviteMembersBody}>
+            {t(
+              'Invite more people to join your team or change their role permissions below.'
+            )}
+          </p>
+        </div>
+
+        <div>
+          <ButtonNew onClick={open}>{t('Invite members')}</ButtonNew>
+          <Modal
+            opened={opened}
+            onClose={close}
+            title={t('Invite memebrs to your team')}
+          >
+            <div className={styles.inviteModalRoot}>
+              <div className={styles.inviteModalText}>
+                <p>
+                  {t(
+                    'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+                  )}
+                </p>
+              </div>
+              <div className={styles.inviteModalFields}>
+                <div className={styles.inviteModalFieldsRow}>
+                  <TextInput placeholder={t('Enter username or email address')} /> <Select className={styles.inviteModalSelect}></Select>
+                </div>
+                <div className={styles.inviteModalFieldsButton}><ButtonNew>{t('Send invite')}</ButtonNew></div>
+              </div>
+            </div>
+          </Modal>
+        </div>
+      </section>
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}

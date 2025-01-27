@@ -19,6 +19,38 @@ h2.headerText {
   margin: 0;
 }
 
+.inviteMembersWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid colors.$kobo-gray-300;
+  border-bottom: 1px solid colors.$kobo-gray-300;
+  margin-bottom: 20px;
+}
+
+.inviteMembersHeader {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.inviteMembersText {
+  font-size: 14px;
+}
+
+.inviteModalFieldsRow {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 24px;
+  .mantine-Select-root {
+    max-width: 117px;
+  }
+}
+
+.inviteModalFieldsButton {
+  display: flex;
+  justify-content: flex-end;
+}
+
 @include breakpoints.breakpoint(mediumAndUp) {
   .membersRouteRoot {
     padding: 50px;
