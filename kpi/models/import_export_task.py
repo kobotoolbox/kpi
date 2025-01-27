@@ -605,7 +605,7 @@ class ProjectHistoryLogExportTask(
 
     @property
     def default_email_subject(self) -> str:
-        return 'Project History Log Report Complete'
+        return 'Project activity log export complete'
 
     def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
         return filtered_queryset.annotate(
