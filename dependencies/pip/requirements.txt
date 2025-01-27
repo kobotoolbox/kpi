@@ -127,6 +127,7 @@ django==4.2.15
     #   django-filter
     #   django-guardian
     #   django-import-export
+    #   django-import-export-celery
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
@@ -142,6 +143,8 @@ django-allauth==65.1.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
+django-author==1.2.0
+    # via django-import-export-celery
 django-braces==1.15.0
     # via -r dependencies/pip/requirements.in
 django-celery-beat==2.6.0
@@ -165,6 +168,10 @@ django-filter==24.2
 django-guardian==2.4.0
     # via -r dependencies/pip/requirements.in
 django-import-export==4.1.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-import-export-celery
+django-import-export-celery==1.7.1
     # via -r dependencies/pip/requirements.in
 django-loginas==0.3.11
     # via -r dependencies/pip/requirements.in
@@ -277,6 +284,8 @@ grpcio==1.62.1
     #   grpcio-status
 grpcio-status==1.62.1
     # via google-api-core
+html2text==2024.2.26
+    # via django-import-export-celery
 httplib2==0.22.0
     # via
     #   google-api-python-client
@@ -447,6 +456,8 @@ s3transfer==0.10.1
     # via boto3
 sentry-sdk==1.44.0
     # via -r dependencies/pip/requirements.in
+setuptools-git==1.2
+    # via django-author
 shortuuid==1.0.13
     # via -r dependencies/pip/requirements.in
 six==1.16.0

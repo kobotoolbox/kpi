@@ -38,6 +38,7 @@ django-debug-toolbar
 django-environ
 django-filter
 django-import-export
+django-import-export-celery
 django-extensions
 django-oauth-toolkit
 django-organizations

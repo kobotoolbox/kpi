@@ -4,6 +4,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
+from import_export_celery.admin_actions import create_export_job_action
 from organizations.base_admin import (
     BaseOrganizationAdmin,
     BaseOrganizationOwnerAdmin,
@@ -52,6 +53,10 @@ class OrgUserResource(resources.ModelResource):
 @admin.register(OrganizationUser)
 class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
     resource_classes = [OrgUserResource]
+
+    actions = (
+        create_export_job_action,
+    )
 
 
 @admin.register(OrganizationOwner)
