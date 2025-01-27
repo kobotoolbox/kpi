@@ -9,12 +9,15 @@ import openpyxl
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import Organization, OrganizationInvitation
+from kobo.apps.organizations.tests.test_organizations_api import (
+    BaseOrganizationAssetApiTestCase
+)
 from kobo.apps.project_ownership.models.invite import Invite
 from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
@@ -901,3 +904,70 @@ class AssetSearchFieldTests(TestCase):
         self.assertEqual(
             asset.search_field['organization_name'], self.anotheruser.organization.name
         )
+
+
+class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
+    """
+    Tests for the `is_excluded_from_projects_list` flag on assets
+    """
+    def setUp(self):
+        super().setUp()
+        self.organization = self.someuser.organization
+        self.org_owner = self.someuser
+        self.external_user = self.bob
+        self.external_user_asset = self._create_asset_by_bob()
+        self.invite_list_url = reverse(
+            self._get_endpoint('organization-invites-list'),
+            kwargs={'organization_id': self.organization.id},
+        )
+        self.invite_detail_url = lambda guid: reverse(
+            self._get_endpoint('organization-invites-detail'),
+            kwargs={
+                'organization_id': self.organization.id,
+                'guid': guid
+            },
+        )
+
+    def test_asset_is_excluded_from_projects_list_flag(self):
+        # Invite the external user to the organization
+        self.client.force_login(self.org_owner)
+        response = self.client.post(
+            self.invite_list_url, data={'invitees': ['bob']}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify the flag is `False` for external user's asset initially
+        asset = Asset.objects.get(owner=self.external_user)
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # External user accepts the invite
+        self.client.force_login(self.external_user)
+        invite_guid = OrganizationInvitation.objects.get(
+            invitee=self.external_user
+        ).guid
+        response = self.client.patch(
+            self.invite_detail_url(invite_guid), data={'status': 'accepted'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify the flag is `True` after the invitation is accepted
+        asset.refresh_from_db()
+        self.assertTrue(asset.is_excluded_from_projects_list)
+
+        # Verify the flag for assets created by the organization owner
+        self.client.force_login(self.org_owner)
+        response = self.create_asset(
+            name='Breakfast',
+            content={
+                'survey': [
+                    {
+                        'name': 'egg',
+                        'type': 'integer',
+                        'label': 'how many eggs?',
+                    },
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        owner_asset = Asset.objects.get(name='Breakfast')
+        self.assertFalse(owner_asset.is_excluded_from_projects_list)

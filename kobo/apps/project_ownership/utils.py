@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
+from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.models.asset import Asset, AssetFile
 from .constants import ASYNC_TASK_HEARTBEAT
@@ -27,6 +28,14 @@ def create_invite(
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
 
     with transaction.atomic():
+        # Set 'is_excluded_from_projects_list' to 'True' for assets owned by the
+        # sender or invitee joining the organization. These assets should be
+        # excluded from the organization owner's 'My Projects' list
+        real_owner = get_real_owner(sender)
+        for asset in assets:
+            asset.is_excluded_from_projects_list = real_owner != sender
+        Asset.objects.bulk_update(assets, ['is_excluded_from_projects_list'])
+
         invite = InviteModel.objects.create(sender=sender, recipient=recipient)
         transfers = Transfer.objects.bulk_create(
             [Transfer(invite=invite, asset=asset) for asset in assets]

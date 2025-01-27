@@ -23,7 +23,12 @@ from kpi.constants import (
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
 from kpi.exceptions import BadAssetTypeException
-from kpi.filters import AssetOrderingFilter, KpiObjectPermissionsFilter, SearchFilter
+from kpi.filters import (
+    AssetOrderingFilter,
+    ExcludeOrgAssetFilter,
+    KpiObjectPermissionsFilter,
+    SearchFilter
+)
 from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
@@ -367,6 +372,7 @@ class AssetViewSet(
         KpiObjectPermissionsFilter,
         SearchFilter,
         AssetOrderingFilter,
+        ExcludeOrgAssetFilter
     ]
     renderer_classes = [
         renderers.BrowsableAPIRenderer,
