@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -108,7 +107,6 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
       payloadTemplate: '',
       payloadTemplateErrors: [],
     };
-    autoBind(this);
   }
 
   componentDidMount() {

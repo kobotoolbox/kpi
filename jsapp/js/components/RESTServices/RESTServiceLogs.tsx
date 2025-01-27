@@ -137,7 +137,6 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
       this.state.assetUid,
       this.state.hookUid,
       {
-        // TODO: fix this types
         onComplete: (response: RetryExternalServiceLogsResponse) => {
           this.overrideLogsStatus(response.pending_uids, HOOK_LOG_STATUSES.PENDING);
         },
