@@ -85,9 +85,7 @@ class LongRunningMigrationTestCase(TestCase):
             owner=bob,
             asset_type='survey',
         )
-        AssetFile.objects.create(
-            asset=asset, user=bob)
-        )
+        AssetFile.objects.create(asset=asset, user=bob)
         asset.deploy(backend='mock')
 
         # Testing 003 involves checking if Bob's assets' data are owned by
@@ -123,17 +121,19 @@ class LongRunningMigrationTestCase(TestCase):
             owner=bob,
             asset_type='survey',
         )
-        AssetFile.objects.create(
-            asset=asset, user=bob)
-        )
+        AssetFile.objects.create(asset=asset, user=bob)
         asset.deploy(backend='mock')
 
         # Testing 004 involves checking if Bob's assets' search fields are
         # labled with alice's organization
-        # -  make alice an owner of an MMO
-        # -  invite bob to alice's MMO
-        # -  assert that bob's assets' search fields are not owned by alice's
-        #    organization
-        # -  run migration 003
-        # -  assert that bob's assets' search fields are owned by alice's
-        #    organization
+        # asset.search_field
+        # remove search_field
+        # run migration
+        # assert search_field is correct
+
+        Asset.objects.filter(pk = asset.pk).update(search_field = {})
+        breakpoint()
+        assert asset.search_field == {}
+        #migration = LongRunningMigration.objects.get(name='0004_back_fill_asset_search_field_for_owner_label')
+        #migration.execute()
+        #assert 
