@@ -37,6 +37,7 @@ import {
   type ExportTypeName,
 } from './components/projectDownloads/exportsConstants';
 import {type LangString} from './utils';
+import type {HookAuthLevelName, HookExportTypeName} from './components/RESTServices/RESTServicesForm';
 
 interface AssetsRequestData {
   q?: string;
@@ -904,6 +905,7 @@ export interface DeploymentResponse {
 
 interface DataInterface {
   patchProfile: (data: AccountRequest) => JQuery.jqXHR<AccountResponse>;
+  loadNextPageUrl: <T>(nextPageUrl: string) => JQuery.jqXHR<PaginatedResponse<T>>;
   [key: string]: Function;
 }
 
@@ -939,6 +941,52 @@ export interface EnketoLinkResponse {
   responseJSON?: {
     detail?: string;
   };
+}
+
+export interface ExternalServiceHookResponse {
+  url: string;
+  logs_url: string;
+  asset: number;
+  uid: string;
+  name: string;
+  /** URL */
+  endpoint: string;
+  active: boolean;
+  export_type: HookExportTypeName;
+  auth_level: HookAuthLevelName;
+  success_count: number;
+  failed_count: number;
+  pending_count: number;
+  settings: {
+    password?: string;
+    username?: string;
+    custom_headers: {
+      [key: string]: string;
+    };
+  };
+  date_modified: string;
+  email_notification: boolean;
+  subset_fields: string[];
+  payload_template: string;
+}
+
+export interface ExternalServiceLogResponse {
+  url: string;
+  uid: string;
+  submission_id: number;
+  tries: number;
+  // See HOOK_LOG_STATUSES
+  status: number;
+  stratus_str: string;
+  // TODO: see what else can be set here except of `null`
+  status_code: any | null;
+  message: string;
+  date_modified: string;
+}
+
+export interface RetryExternalServiceLogsResponse {
+  detail: string;
+  pending_uids: string[];
 }
 
 export type ExportDataLang = ExportFormatName | LangString;
@@ -1073,14 +1121,14 @@ export const dataInterface: DataInterface = {
    * external services
    */
 
-  getHooks(uid: string): JQuery.jqXHR<any> {
+  getHooks(uid: string): JQuery.jqXHR<PaginatedResponse<ExternalServiceHookResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
       method: 'GET',
     });
   },
 
-  getHook(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  getHook(uid: string, hookUid: string): JQuery.jqXHR<ExternalServiceHookResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/`,
       method: 'GET',
@@ -1121,21 +1169,21 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getHookLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  getHookLogs(uid: string, hookUid: string): JQuery.jqXHR<PaginatedResponse<ExternalServiceLogResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/`,
       method: 'GET',
     });
   },
 
-  getHookLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<any> {
+  getHookLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<ExternalServiceLogResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
       method: 'GET',
     });
   },
 
-  retryExternalServiceLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  retryExternalServiceLogs(uid: string, hookUid: string): JQuery.jqXHR<RetryExternalServiceLogsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/retry/`,
       method: 'PATCH',
@@ -1688,7 +1736,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  loadNextPageUrl(nextPageUrl: string): JQuery.jqXHR<any> {
+  loadNextPageUrl<T>(nextPageUrl: string): JQuery.jqXHR<PaginatedResponse<T>> {
     return $ajax({
       url: nextPageUrl,
       method: 'GET',
