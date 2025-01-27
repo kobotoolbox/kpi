@@ -40,13 +40,26 @@ def get_organization_plan_limit(
     limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
 
     relevant_limit = None
-    if subscription := organization.active_subscription_billing_details():
-        price_metadata = subscription['price_metadata']
-        product_metadata = subscription['product_metadata']
+    subscription = organization.active_subscription_billing_details()
+    use_default_plan_limit = False
+
+    if subscription is None:
+        use_default_plan_limit = True
+    else:
+        price_metadata = subscription.get('price_metadata', {})
+        product_metadata = subscription.get('product_metadata', {})
         price_limit = price_metadata.get(limit_key) if price_metadata else None
         product_limit = product_metadata.get(limit_key) if product_metadata else None
-        relevant_limit = price_limit or product_limit
-    else:
+        if (
+            product_metadata.get('product_type') == 'addon'
+            and price_limit is None
+            and product_limit is None
+        ):
+            use_default_plan_limit = True
+        else:
+            relevant_limit = price_limit or product_limit
+
+    if use_default_plan_limit:
         from djstripe.models.core import Product
 
         # Anyone who does not have a subscription is on the free tier plan by default

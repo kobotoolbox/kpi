@@ -494,16 +494,33 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == float('inf')
 
-    @data('submission', 'storage', 'characters', 'seconds')
-    def test_get_suscription_limit_missing(self, usage_type):
-        stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+    def test_get_addon_suscription_default_limits(self):
+        generate_free_plan()
         product_metadata = {
-            'product_type': 'plan',
+            'product_type': 'addon',
             'plan_type': 'enterprise',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_plan_limit(self.organization, usage_type)
-        assert limit == float('inf')
+        limit = get_organization_plan_limit(self.organization, 'seconds')
+        assert limit == 600
+        limit = get_organization_plan_limit(self.organization, 'characters')
+        assert limit == 6000
+
+    def test_get_addon_suscription_limits(self):
+        generate_free_plan()
+        characters_key = stripe_key = f'{USAGE_LIMIT_MAP["characters"]}_limit'
+        seconds_key = stripe_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
+        product_metadata = {
+            'product_type': 'addon',
+            'plan_type': 'enterprise',
+            characters_key: 1234,
+            seconds_key: 123,
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata)
+        limit = get_organization_plan_limit(self.organization, 'seconds')
+        assert limit == 123
+        limit = get_organization_plan_limit(self.organization, 'characters')
+        assert limit == 1234
 
 
 @override_settings(STRIPE_ENABLED=True)
