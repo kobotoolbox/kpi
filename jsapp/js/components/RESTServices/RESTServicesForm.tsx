@@ -1,4 +1,5 @@
 import React from 'react';
+import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -221,17 +222,15 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
     this.setState({[name]: value} as unknown as Pick<RESTServicesFormState, keyof RESTServicesFormState>);
   }
 
-  handleCustomHeaderChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    const propName = evt.target.name;
-    const propValue = evt.target.value;
-    const index = evt.target.dataset.index;
-    const newCustomHeaders = this.state.customHeaders;
-    if (propName === 'headerName') {
-      newCustomHeaders[Number(index)].name = propValue;
-    }
-    if (propName === 'headerValue') {
-      newCustomHeaders[Number(index)].value = propValue;
-    }
+  handleCustomHeaderNameChange(headerIndex: number, newName: string) {
+    const newCustomHeaders = clonedeep(this.state.customHeaders);
+    newCustomHeaders[headerIndex].name = newName;
+    this.setState({customHeaders: newCustomHeaders});
+  }
+
+  handleCustomHeaderValueChange(headerIndex: number, newValue: string) {
+    const newCustomHeaders = clonedeep(this.state.customHeaders);
+    newCustomHeaders[headerIndex].value = newValue;
     this.setState({customHeaders: newCustomHeaders});
   }
 
@@ -364,11 +363,9 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
     }, 0);
   }
 
-  removeCustomHeaderRow(evt: React.MouseEvent<HTMLButtonElement>) {
-    evt.preventDefault();
-    const newCustomHeaders = this.state.customHeaders;
-    const rowIndex = evt.currentTarget.dataset.index;
-    newCustomHeaders.splice(Number(rowIndex), 1);
+  removeCustomHeaderRow(headerIndex: number) {
+    const newCustomHeaders = clonedeep(this.state.customHeaders);
+    newCustomHeaders.splice(Number(headerIndex), 1);
     if (newCustomHeaders.length === 0) {
       newCustomHeaders.push(this.getEmptyHeaderRow());
     }
@@ -383,8 +380,6 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
         </label>
 
         {this.state.customHeaders.map((_item, n) =>
-          // TODO change these inputs into `<TextBox>`es, make sure that that
-          // weird onChange handling is turned into something less confusing
            (
             <bem.FormModal__item m='http-header-row' key={n}>
               <input
@@ -393,9 +388,10 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                 id={`headerName-${n}`}
                 name='headerName'
                 value={this.state.customHeaders[n].name}
-                data-index={n}
-                onChange={this.handleCustomHeaderChange.bind(this)}
-                onKeyPress={this.onCustomHeaderInputKeyPress.bind(this)}
+                onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                  this.handleCustomHeaderNameChange(n, evt.target.value);
+                }}
+                onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
               />
 
               <input
@@ -404,18 +400,21 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                 id={`headerValue-${n}`}
                 name='headerValue'
                 value={this.state.customHeaders[n].value}
-                data-index={n}
-                onChange={this.handleCustomHeaderChange.bind(this)}
-                onKeyPress={this.onCustomHeaderInputKeyPress.bind(this)}
+                onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                  this.handleCustomHeaderValueChange(n, evt.target.value);
+                }}
+                onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
               />
 
               <Button
                 type='secondary-danger'
                 size='m'
                 className='http-header-row-remove'
-                data-index={n}
                 startIcon='trash'
-                onClick={this.removeCustomHeaderRow.bind(this)}
+                onClick={(evt) => {
+                  evt.preventDefault();
+                  this.removeCustomHeaderRow(n);
+                }}
               />
             </bem.FormModal__item>
           )
