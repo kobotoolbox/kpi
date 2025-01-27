@@ -53,6 +53,7 @@ class OrgUserResource(resources.ModelResource):
 @admin.register(OrganizationUser)
 class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
     resource_classes = [OrgUserResource]
+    search_fields = ['user__username', 'organization__name', 'organization__id']
 
     actions = (
         create_export_job_action,
