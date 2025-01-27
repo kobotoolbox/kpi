@@ -2,7 +2,6 @@ import type {ModalProps} from '@mantine/core';
 import {Button, Center, Modal, Stack, Text, Group} from '@mantine/core';
 import type {Meta, StoryObj} from '@storybook/react';
 import {useArgs} from '@storybook/preview-api';
-import {useDisclosure} from '@mantine/hooks';
 
 const RenderModal = ({...args}: ModalProps) => {
   const [{opened}, updateArgs] = useArgs();
@@ -39,7 +38,7 @@ const meta: Meta<typeof Modal> = {
       type: 'boolean',
     },
     size: {
-      description: 'Modal size',
+      description: 'Modal size - influences the width of the modal, height depends on the content',
       type: 'string',
       control: {
         type: 'select',
@@ -51,7 +50,7 @@ const meta: Meta<typeof Modal> = {
       type: 'boolean',
     },
     centered: {
-      description: 'Center modal content',
+      description: 'Center modal vertically on the viewport',
       type: 'boolean',
     },
     withCloseButton: {

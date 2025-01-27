@@ -8,7 +8,7 @@ import Button from '../common/button';
 import KoboPrompt from './koboPrompt';
 
 export default {
-  title: 'common/KoboModal',
+  title: 'commonDeprecated/KoboModal',
   component: KoboModal,
   argTypes: {
     isOpen: {control: 'boolean'},
