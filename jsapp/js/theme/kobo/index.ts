@@ -2,12 +2,13 @@ import {createTheme, rem} from '@mantine/core';
 import {ActionIconThemeKobo} from './ActionIcon';
 import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
-import {TextInputThemeKobo} from './TextInput';
+import {InputBaseThemeKobo} from './InputBase';
 import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './Menu';
 import {AlertThemeKobo} from './Alert';
 import {SelectThemeKobo} from './Select';
 import {LoaderThemeKobo} from './Loader';
+import { InputBase } from '@mantine/core';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -106,7 +107,7 @@ export const themeKobo = createTheme({
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
-    TextInput: TextInputThemeKobo,
+    InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Select: SelectThemeKobo,

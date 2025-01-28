@@ -29,7 +29,7 @@
 }
 
 .label {
-  font-size: var(--mantine-font-size-sm);
+  font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-gray-1);
   margin-bottom: 5px;
 }
