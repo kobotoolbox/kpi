@@ -44,46 +44,30 @@ export interface UsageResponse {
   };
 }
 
-const USAGE_URL = '/api/v2/service_usage/';
-const ORGANIZATION_USAGE_URL = '/api/v2/organizations/:organization_id/service_usage/';
+const ORG_SERVICE_USAGE_URL =
+  '/api/v2/organizations/:organization_id/service_usage/';
+const ORG_ASSET_USAGE_URL =
+  '/api/v2/organizations/:organization_id/asset_usage/';
 
-const ASSET_USAGE_URL = '/api/v2/asset_usage/';
-const ORGANIZATION_ASSET_USAGE_URL = '/api/v2/organizations/:organization_id/asset_usage/';
-
-export async function getUsage(organization_id: string | null = null) {
-  if (organization_id) {
-    return fetchGet<UsageResponse>(
-      ORGANIZATION_USAGE_URL.replace(':organization_id', organization_id),
-      {
-        includeHeaders: true,
-        errorMessageDisplay: t('There was an error fetching usage data.'),
-      }
-    );
-  }
-  return fetchGet<UsageResponse>(USAGE_URL, {
-    includeHeaders: true,
-    errorMessageDisplay: t('There was an error fetching usage data.'),
-  });
+export async function getOrgServiceUsage(organization_id: string) {
+  return fetchGet<UsageResponse>(
+    ORG_SERVICE_USAGE_URL.replace(':organization_id', organization_id),
+    {
+      includeHeaders: true,
+      errorMessageDisplay: t('There was an error fetching usage data.'),
+    }
+  );
 }
 
-export async function getAssetUsage(url = ASSET_USAGE_URL) {
-  return fetchGet<AssetUsage>(url, {
-    includeHeaders: true,
-    errorMessageDisplay: t('There was an error fetching asset usage data.'),
-  });
-}
-
-export async function getAssetUsageForOrganization(
+export async function getOrgAssetUsage(
   pageNumber: number | string,
-  order?: ProjectsTableOrder,
-  organizationId = ''
+  organizationId: string,
+  order?: ProjectsTableOrder
 ) {
-  // if the user isn't in an organization, just get their personal asset usage
-  if (!organizationId) {
-    return await getAssetUsage(ASSET_USAGE_URL);
-  }
-
-  const apiUrl = ORGANIZATION_ASSET_USAGE_URL.replace(':organization_id', organizationId);
+  const apiUrl = ORG_ASSET_USAGE_URL.replace(
+    ':organization_id',
+    organizationId
+  );
 
   const params = new URLSearchParams({
     page: pageNumber.toString(),
@@ -99,5 +83,8 @@ export async function getAssetUsageForOrganization(
     params.set('ordering', orderingPrefix + fieldDefinition.apiOrderingName);
   }
 
-  return await getAssetUsage(`${apiUrl}?${params}`);
+  return fetchGet<AssetUsage>(`${apiUrl}?${params}`, {
+    includeHeaders: true,
+    errorMessageDisplay: t('There was an error fetching asset usage data.'),
+  });
 }

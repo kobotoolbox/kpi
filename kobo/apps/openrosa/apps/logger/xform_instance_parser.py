@@ -135,7 +135,9 @@ def set_meta(xml_str: str, meta_name: str, new_value: str) -> str:
     if node.firstChild:
         node.firstChild.nodeValue = new_value
 
-    return root.toxml()
+    xml_output = root.toprettyxml(indent='  ')
+    xml_output = xml_output.replace('<?xml version="1.0" ?>', '').strip()
+    return xml_output
 
 
 def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:

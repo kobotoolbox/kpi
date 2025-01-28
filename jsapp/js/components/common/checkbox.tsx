@@ -19,7 +19,7 @@ interface CheckboxProps {
    * `evt.stopPropagation()` and be happy.
    */
   onClick?: (evt: React.MouseEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => void;
-  label?: string;
+  label?: React.ReactNode;
   /** Only needed if checkbox is in submittable form. */
   name?: string;
   'data-cy'?: string;

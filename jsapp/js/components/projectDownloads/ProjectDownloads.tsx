@@ -1,13 +1,29 @@
+// Libraries
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
-import sessionStore from 'js/stores/session';
 import DocumentTitle from 'react-document-title';
-import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
-import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
-import LegacyExports from 'js/components/projectDownloads/legacyExports';
-import AnonymousExports from 'js/components/projectDownloads/anonymousExports';
+
+// Partial components
+import ProjectExportsCreator from 'js/components/projectDownloads/ProjectExportsCreator';
+import ProjectExportsList from 'js/components/projectDownloads/ProjectExportsList';
+import LegacyExports from 'js/components/projectDownloads/LegacyExports';
+import AnonymousExports from 'js/components/projectDownloads/AnonymousExports';
+
+// Stores, hooks and utilities
+import sessionStore from 'js/stores/session';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
+
+// Constants and types
+import type {AssetResponse} from 'jsapp/js/dataInterface';
+import type {ExportTypeDefinition} from './exportsConstants';
+
+interface ProjectDownloadsProps {
+  asset: AssetResponse;
+}
+
+interface ProjectDownloadsState {
+  selectedExportType: ExportTypeDefinition;
+}
 
 /**
  * This is the ROUTES.FORM_DOWNLOADS route component. It will check whether the
@@ -15,17 +31,20 @@ import exportsStore from 'js/components/projectDownloads/exportsStore';
  *
  * @prop {object} asset
  */
-export default class ProjectDownloads extends React.Component {
-  constructor(props){
+export default class ProjectDownloads extends React.Component<
+  ProjectDownloadsProps,
+  ProjectDownloadsState
+> {
+  constructor(props: ProjectDownloadsProps) {
     super(props);
     this.state = {selectedExportType: exportsStore.getExportType()};
-    this.unlisteners = [];
-    autoBind(this);
   }
+
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
-      exportsStore.listen(this.onExportsStoreChange),
+      exportsStore.listen(this.onExportsStoreChange.bind(this), this),
     );
   }
 
@@ -53,7 +72,7 @@ export default class ProjectDownloads extends React.Component {
   }
 
   render() {
-    var docTitle = this.props.asset.name || t('Untitled');
+    const docTitle = this.props.asset.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView className='project-downloads'>

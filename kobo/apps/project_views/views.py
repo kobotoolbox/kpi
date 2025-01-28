@@ -1,6 +1,7 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
@@ -9,10 +10,7 @@ from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.filters import (
-    AssetOrderingFilter,
-    SearchFilter,
-)
+from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
@@ -22,10 +20,7 @@ from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-    user_has_view_perms,
-)
+from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
@@ -110,10 +105,12 @@ class ProjectViewViewSet(
             )
 
             # Have Celery run the export in the background
-            export_task_in_background.delay(
-                export_task_uid=export_task.uid,
-                username=user.username,
-                export_task_name='kpi.ProjectViewExportTask',
+            transaction.on_commit(
+                lambda: export_task_in_background.delay(
+                    export_task_uid=export_task.uid,
+                    username=user.username,
+                    export_task_name='kpi.ProjectViewExportTask',
+                )
             )
 
             return Response({'status': export_task.status})

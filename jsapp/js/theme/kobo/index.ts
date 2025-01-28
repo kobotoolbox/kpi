@@ -7,6 +7,7 @@ import {MenuThemeKobo} from './Menu';
 import {AlertThemeKobo} from './Alert';
 import {SelectThemeKobo} from './Select';
 import {LoaderThemeKobo} from './Loader';
+import {ModalThemeKobo} from './Modal';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -110,5 +111,6 @@ export const themeKobo = createTheme({
     Table: TableThemeKobo,
     Select: SelectThemeKobo,
     Loader: LoaderThemeKobo,
+    Modal: ModalThemeKobo,
   },
 });
