@@ -508,8 +508,8 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
     def test_get_addon_suscription_limits(self):
         generate_free_plan()
-        characters_key = stripe_key = f'{USAGE_LIMIT_MAP["characters"]}_limit'
-        seconds_key = stripe_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
+        characters_key = f'{USAGE_LIMIT_MAP["characters"]}_limit'
+        seconds_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
         product_metadata = {
             'product_type': 'addon',
             'plan_type': 'enterprise',
