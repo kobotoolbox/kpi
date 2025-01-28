@@ -223,13 +223,6 @@ export default function Plan(props: PlanProps) {
     [searchParams, shouldRevalidate]
   );
 
-  // if the user is not the owner of their org, send them back to the settings page
-  useEffect(() => {
-    if (!orgQuery.data?.is_owner) {
-      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
-    }
-  }, [orgQuery.data]);
-
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {
     const handlePersisted = (event: PageTransitionEvent) => {

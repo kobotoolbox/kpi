@@ -1,7 +1,7 @@
 from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -16,14 +16,25 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
+from .constants import ORG_OWNER_ROLE, ORG_ADMIN_ROLE
 from ..accounts.mfa.models import MfaMethod
-from .models import Organization, OrganizationOwner, OrganizationUser
+from .models import (
+    Organization,
+    OrganizationOwner,
+    OrganizationUser,
+    OrganizationInvitation
+)
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
+    OrgMembershipInvitePermission,
 )
-from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from .serializers import (
+    OrganizationSerializer,
+    OrganizationUserSerializer,
+    OrgMembershipInviteSerializer
+)
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -283,7 +294,8 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     >                   "role": "owner",
     >                   "user__has_mfa_enabled": true,
     >                   "date_joined": "2024-08-11T12:36:32Z",
-    >                   "user__is_active": true
+    >                   "user__is_active": true,
+    >                   "invite": {}
     >               },
     >               {
     >                   "url": "http://[kpi]/api/v2/organizations/org_12345/ \
@@ -295,8 +307,39 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     >                   "role": "admin",
     >                   "user__has_mfa_enabled": false,
     >                   "date_joined": "2024-10-21T06:38:45Z",
-    >                   "user__is_active": true
-    >               }
+    >                   "user__is_active": true,
+    >                   "invite": {
+    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
+    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
+    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
+    >                       "status": "accepted",
+    >                       "invitee_role": "admin",
+    >                       "created": "2024-10-21T05:38:45Z",
+    >                       "modified": "2024-10-21T05:40:45Z",
+    >                       "invitee": "john_doe"
+    >                   }
+    >               },
+    >               {
+    >                   "url": null,
+    >                   "user": null,
+    >                   "user__username": null,
+    >                   "user__email": "null,
+    >                   "user__extra_details__name": "null,
+    >                   "role": null,
+    >                   "user__has_mfa_enabled": null,
+    >                   "date_joined": null,
+    >                   "user__is_active": null,
+    >                   "invite": {
+    >                       "url": "http://[kpi]/api/v2/organizations/org_12345/
+    >                       invites/83c725f1-3f41-4f72-9657-9e6250e130e1/",
+    >                       "invited_by": "http://[kpi]/api/v2/users/raj_patel/",
+    >                       "status": "pending",
+    >                       "invitee_role": "admin",
+    >                       "created": "2025-01-07T09:03:50Z",
+    >                       "modified": "2025-01-07T09:03:50Z",
+    >                       "invitee": "demo"
+    >                   }
+    >               },
     >           ]
     >       }
 
@@ -403,7 +446,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
         # Subquery to check if the user is the owner
         owner_subquery = OrganizationOwner.objects.filter(
-            organization_id=organization_id,
+            organization_id=OuterRef('organization_id'),
             organization_user=OuterRef('pk')
         ).values('pk')
 
@@ -419,4 +462,210 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             ),
             has_mfa_enabled=Exists(mfa_subquery)
         )
+
+        if self.action == 'list':
+            # Include invited users who are not yet part of this organization
+            invitation_queryset = OrganizationInvitation.objects.filter(
+                organization_id=organization_id, status='pending'
+            )
+
+            # Queryset for invited users who have registered
+            registered_invitees = OrganizationUser.objects.filter(
+                user_id__in=invitation_queryset.values('invitee_id')
+            ).select_related('user__extra_details').annotate(
+                role=Case(
+                    When(Exists(owner_subquery), then=Value('owner')),
+                    When(is_admin=True, then=Value('admin')),
+                    default=Value('member'),
+                    output_field=CharField()
+                ),
+                has_mfa_enabled=Exists(mfa_subquery)
+            )
+
+            # Queryset for invited users who have not yet registered
+            unregistered_invitees = invitation_queryset.filter(
+                invitee_id__isnull=True
+            )
+
+            queryset = (
+                list(queryset) +
+                list(registered_invitees) +
+                list(unregistered_invitees)
+            )
+        return queryset
+
+
+class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
+    """
+    ### List Organization Invites
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/organizations/{organization_id}/invites/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/organizations/org_12345/invites/
+
+    > Response 200
+
+    >       {
+    >           "count": 2,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "url": "http://kf.kobo.local/api/v2/organizations/
+                        org_12345/invites/f361ebf6-d1c1-4ced-8343-04b11863d784/",
+    >                   "invited_by": "http://kf.kobo.local/api/v2/users/demo7/",
+    >                   "status": "pending",
+    >                   "invitee_role": "member",
+    >                   "created": "2024-12-11T16:00:00Z",
+    >                   "modified": "2024-12-11T16:00:00Z",
+    >                   "invitee": "raj_patel"
+    >               },
+    >               {
+    >                   "url": "http://kf.kobo.local/api/v2/organizations/
+                        org_12345/invites/1a8b93bf-eec5-4e56-bd4a-5f7657e6a2fd/",
+    >                   "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >                   "status": "pending",
+    >                   "invitee_role": "member",
+    >                   "created": "2024-12-11T18:19:56Z",
+    >                   "modified": "2024-12-11T18:19:56Z",
+    >                   "invitee": "demo7"
+    >               },
+    >           ]
+    >       }
+
+    ### Create Organization Invite
+
+    * Create organization invites for registered and unregistered users.
+    * Set the role for which the user is being invited -
+    (Choices: `member`, `admin`). Default is `member`.
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/organizations/{organization_id}/invites/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/organizations/org_12345/invites/
+
+    > Payload
+
+    >       {
+    >           "invitees": ["demo14", "demo13@demo13.com", "demo20@demo20.com"]
+    >           "role": "member"
+    >       }
+
+    > Response 200
+
+    >       [
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/
+                    org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "invitee_role": "member",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo14"
+    >           },
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/
+                    org_12345/invites/5e79e0b4-6de4-4901-bbe5-59807fcdd99a/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "invitee_role": "member",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo13"
+    >           },
+    >           {
+    >               "url": "http://kf.kobo.local/api/v2/organizations/
+                    org_12345/invites/3efb7217-171f-47a5-9a42-b23055e499d4/",
+    >               "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >               "status": "pending",
+    >               "invitee_role": "member",
+    >               "created": "2024-12-20T13:35:13Z",
+    >               "modified": "2024-12-20T13:35:13Z",
+    >               "invitee": "demo20@demo20.com"
+    >           }
+    >       ]
+
+    ### Update Organization Invite
+
+    * Update an organization invite to accept, decline, cancel, expire, or resend.
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
+
+    > Response 200
+
+    >       {
+    >           "url": "http://kf.kobo.local/api/v2/organizations/
+                org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
+    >           "status": "accepted",
+    >           "invitee_role": "member",
+    >           "created": "2024-12-20T13:35:13Z",
+    >           "modified": "2024-12-20T13:35:13Z",
+    >           "invitee": "demo14"
+    >       }
+
+    ### Delete Organization Invite
+
+    * Organization owner or admin can delete an organization invite.
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+
+    > Response 204
+
+    """
+    serializer_class = OrgMembershipInviteSerializer
+    permission_classes = [OrgMembershipInvitePermission]
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    lookup_field = 'guid'
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invitations = serializer.save()
+
+        # Return the serialized data for all created invites
+        serializer = OrgMembershipInviteSerializer(
+            invitations, many=True, context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get_queryset(self):
+        organization_id = self.kwargs['organization_id']
+
+        # Reuse user_role set by the permission class to avoid redundant queries
+        user_role = getattr(self, 'user_role', None)
+
+        query_filter = {'organization_id': organization_id}
+        if user_role not in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]:
+            query_filter['invitee'] = self.request.user
+
+        base_queryset = OrganizationInvitation.objects.select_related(
+            'invitee', 'invited_by', 'organization'
+        )
+        queryset = base_queryset.filter(**query_filter)
+        if not queryset.exists():
+            # Fetch invite by email for unregistered users
+            query_filter.pop('invitee', None)
+            query_filter['invitee_identifier'] = self.request.user.email
+            queryset = base_queryset.filter(**query_filter)
         return queryset

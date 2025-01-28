@@ -13,8 +13,8 @@ import type {
 import {dataInterface} from 'js/dataInterface';
 import {handleApiFail} from 'js/api';
 import {formatTime} from 'js/utils';
-import AssetStatusBadge from './common/assetStatusBadge';
-import Avatar from './common/avatar';
+import AssetStatusBadge from 'js/components/common/assetStatusBadge';
+import Avatar from 'js/components/common/avatar';
 import envStore from 'js/envStore';
 
 interface FormSummaryProjectInfoProps {

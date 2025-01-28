@@ -4,7 +4,7 @@ import Reflux from 'reflux';
 import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
-import {actions} from '../actions';
+import {actions} from 'js/actions';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 import {notify} from 'js/utils';
@@ -12,7 +12,7 @@ import {
   QUERY_LIMIT_DEFAULT,
   ASSET_FILE_TYPES,
 } from 'js/constants';
-import { dataInterface } from '../dataInterface';
+import { dataInterface } from 'js/dataInterface';
 import {userCan} from 'js/components/permissions/utils';
 import Button from 'js/components/common/button';
 import cx from 'classnames';

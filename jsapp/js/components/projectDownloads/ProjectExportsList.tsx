@@ -1,51 +1,75 @@
+// Libraries
 import React from 'react';
-import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import bem from 'js/bem';
-import {actions} from 'js/actions';
-import {formatTime} from 'js/utils';
-import {getLanguageIndex} from 'js/assetUtils';
+
+// Partial components
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import {
-  EXPORT_TYPES,
-  EXPORT_FORMATS,
-  EXPORT_STATUSES,
-} from 'js/components/projectDownloads/exportsConstants';
-import exportsStore from 'js/components/projectDownloads/exportsStore';
-import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
-import {userCan} from 'js/components/permissions/utils';
 import Button from 'js/components/common/button';
 import SimpleTable from 'js/components/common/SimpleTable';
 import {Text, Flex} from '@mantine/core';
 
+// Stores, hooks and utilities
+import {actions} from 'js/actions';
+import {formatTime} from 'js/utils';
+import {getLanguageIndex} from 'js/assetUtils';
+import exportsStore from 'js/components/projectDownloads/exportsStore';
+import ExportFetcher from 'js/components/projectDownloads/exportFetcher';
+import {userCan} from 'js/components/permissions/utils';
+
+// Constants and types
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
+import {
+  EXPORT_TYPES,
+  EXPORT_FORMATS,
+  ExportStatusName,
+  type ExportTypeDefinition,
+} from 'js/components/projectDownloads/exportsConstants';
+import type {
+  ExportDataResponse,
+  AssetResponse,
+  PaginatedResponse,
+  ExportDataLang,
+} from 'jsapp/js/dataInterface';
+
+interface ProjectExportsListProps {
+  asset: AssetResponse;
+}
+
+interface ProjectExportsListState {
+  isComponentReady: boolean;
+  rows: ExportDataResponse[];
+  selectedExportType: ExportTypeDefinition;
+}
+
 /**
  * Component that displays all available downloads (for logged in user only).
- *
- * @prop {object} asset
  */
-export default class ProjectExportsList extends React.Component {
-  constructor(props) {
+
+export default class ProjectExportsList extends React.Component<
+  ProjectExportsListProps,
+  ProjectExportsListState
+> {
+  constructor(props: ProjectExportsListProps) {
     super(props);
     this.state = {
       isComponentReady: false,
       rows: [],
       selectedExportType: exportsStore.getExportType(),
     };
-
-    this.unlisteners = [];
-    this.exportFetchers = new Map();
-
-    autoBind(this);
   }
+
+  private exportFetchers = new Map();
+
+  private unlisteners: Function[] = [];
 
   componentDidMount() {
     this.unlisteners.push(
-      exportsStore.listen(this.onExportsStoreChange),
-      actions.exports.getExports.completed.listen(this.onGetExports),
-      actions.exports.createExport.completed.listen(this.onCreateExport),
-      actions.exports.deleteExport.completed.listen(this.onDeleteExport),
-      actions.exports.getExport.completed.listen(this.onGetExport),
+      exportsStore.listen(this.onExportsStoreChange.bind(this), this),
+      actions.exports.getExports.completed.listen(this.onGetExports.bind(this)),
+      actions.exports.createExport.completed.listen(this.onCreateExport.bind(this)),
+      actions.exports.deleteExport.completed.listen(this.onDeleteExport.bind(this)),
+      actions.exports.getExport.completed.listen(this.onGetExport.bind(this)),
     );
     this.fetchExports();
   }
@@ -59,7 +83,7 @@ export default class ProjectExportsList extends React.Component {
     this.setState({selectedExportType: exportsStore.getExportType()});
   }
 
-  onGetExports(response) {
+  onGetExports(response: PaginatedResponse<ExportDataResponse>) {
     response.results.forEach((exportData) => {
       this.checkExportFetcher(exportData.uid, exportData.status);
     });
@@ -70,7 +94,7 @@ export default class ProjectExportsList extends React.Component {
     });
   }
 
-  onCreateExport(response) {
+  onCreateExport(response: ExportDataResponse) {
     this.fetchExport(response.uid);
   }
 
@@ -78,7 +102,7 @@ export default class ProjectExportsList extends React.Component {
     this.fetchExports();
   }
 
-  onGetExport(exportData) {
+  onGetExport(exportData: ExportDataResponse) {
     this.checkExportFetcher(exportData.uid, exportData.status);
 
     // Replace existing export with fresh data or add new on top
@@ -100,10 +124,10 @@ export default class ProjectExportsList extends React.Component {
    * This method initializes an interval for fetching export based on
    * the provided status.
    */
-  checkExportFetcher(exportUid, exportStatus) {
+  checkExportFetcher(exportUid: string, exportStatus: ExportStatusName) {
     if (
-      exportStatus !== EXPORT_STATUSES.error &&
-      exportStatus !== EXPORT_STATUSES.complete &&
+      exportStatus !== ExportStatusName.error &&
+      exportStatus !== ExportStatusName.complete &&
       !this.exportFetchers.has(exportUid)
     ) {
       this.addExportFetcher(exportUid);
@@ -111,14 +135,14 @@ export default class ProjectExportsList extends React.Component {
 
     // clean up after it is completed
     if (
-      exportStatus === EXPORT_STATUSES.error ||
-      exportStatus === EXPORT_STATUSES.complete
+      exportStatus === ExportStatusName.error ||
+      exportStatus === ExportStatusName.complete
     ) {
       this.stopExportFetcher(exportUid);
     }
   }
 
-  addExportFetcher(exportUid) {
+  addExportFetcher(exportUid: string) {
     // Creating new ExportFetcher instance will immediately start an interval.
     this.exportFetchers.set(
       exportUid,
@@ -126,7 +150,7 @@ export default class ProjectExportsList extends React.Component {
     );
   }
 
-  stopExportFetcher(exportUid) {
+  stopExportFetcher(exportUid: string) {
     const exportFetcher = this.exportFetchers.get(exportUid);
     if (exportFetcher) {
       exportFetcher.stop();
@@ -140,7 +164,7 @@ export default class ProjectExportsList extends React.Component {
     }
   }
 
-  fetchExport(exportUid) {
+  fetchExport(exportUid: string) {
     actions.exports.getExport(this.props.asset.uid, exportUid);
   }
 
@@ -148,7 +172,7 @@ export default class ProjectExportsList extends React.Component {
     actions.exports.getExports(this.props.asset.uid);
   }
 
-  deleteExport(exportUid) {
+  deleteExport(exportUid: string) {
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Delete export?'),
@@ -163,7 +187,7 @@ export default class ProjectExportsList extends React.Component {
   /**
    * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
    */
-  renderBooleanAnswer(isTrue) {
+  renderBooleanAnswer(isTrue: boolean) {
     if (isTrue) {
       return t('Yes');
     } else {
@@ -175,15 +199,16 @@ export default class ProjectExportsList extends React.Component {
    * Unchecked wisdom copied from old version of this component:
    * > Some old SPSS exports may have a meaningless `lang` attribute -- disregard it
    */
-  renderLanguage(exportLang) {
+  renderLanguage(exportLang: ExportDataLang) {
+    const exportLangCast = exportLang as keyof typeof EXPORT_FORMATS;
     // Unknown happens when export was done for a translated language that
     // doesn't exist in current form version
-    let languageDisplay = (<em>{t('Unknown')}</em>);
-    const langIndex = getLanguageIndex(this.props.asset, exportLang);
+    let languageDisplay: React.ReactNode = (<em>{t('Unknown')}</em>);
+    const langIndex = getLanguageIndex(this.props.asset, exportLangCast);
     if (langIndex !== -1) {
-      languageDisplay = exportLang;
-    } else if (EXPORT_FORMATS[exportLang]) {
-      languageDisplay = EXPORT_FORMATS[exportLang].label;
+      languageDisplay = exportLangCast;
+    } else if (EXPORT_FORMATS[exportLangCast]) {
+      languageDisplay = EXPORT_FORMATS[exportLangCast].label;
     }
     return languageDisplay;
   }
@@ -208,27 +233,29 @@ export default class ProjectExportsList extends React.Component {
           wrap='nowrap'
           key='buttons'
         >
-          {exportData.status === EXPORT_STATUSES.complete &&
+          {exportData.status === ExportStatusName.complete &&
             <Button
               type='secondary'
               size='m'
               startIcon='download'
               label={t('Download')}
               onClick={() => {
-                window.open(exportData.result, '_blank');
+                if (exportData.result !== null) {
+                  window.open(exportData.result, '_blank');
+                }
               }}
             />
           }
 
-          {exportData.status === EXPORT_STATUSES.error &&
+          {exportData.status === ExportStatusName.error &&
             <span className='right-tooltip' data-tip={exportData.messages?.error}>
               {t('Export Failed')}
             </span>
           }
 
           {(
-            exportData.status !== EXPORT_STATUSES.complete &&
-            exportData.status !== EXPORT_STATUSES.error
+            exportData.status !== ExportStatusName.complete &&
+            exportData.status !== ExportStatusName.error
           ) &&
             <span className='animate-processing'>{t('Processing…')}</span>
           }
@@ -241,7 +268,7 @@ export default class ProjectExportsList extends React.Component {
               onClick={this.deleteExport.bind(this, exportData.uid)}
             />
           }
-        </Flex>
+        </Flex>,
       ]
     ));
   }

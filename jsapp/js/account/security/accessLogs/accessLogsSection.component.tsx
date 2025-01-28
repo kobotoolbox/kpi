@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Partial components
-// import Button from 'js/components/common/button';
+import Button from 'js/components/common/button';
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
 import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component';
 
@@ -12,15 +12,15 @@ import useAccessLogsQuery, {
   type AccessLog,
 } from './accessLogs.query';
 import {formatTime} from 'js/utils';
-// import sessionStore from 'js/stores/session';
+import sessionStore from 'js/stores/session';
 
 // Styles
 import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 export default function AccessLogsSection() {
-  // function logOutAllSessions() {
-  //   sessionStore.logOutAll();
-  // }
+  function logOutAllSessions() {
+    sessionStore.logOutAll();
+  }
 
   return (
     <>
@@ -28,10 +28,7 @@ export default function AccessLogsSection() {
         <h2 className={securityStyles.securityHeaderText}>
           {t('Recent account activity')}
         </h2>
-
-        {/* TODO: we comment this out until we know how to handle exsiting
-        sessions for the moment of release of the feature. */}
-        {/*<div className={securityStyles.securityHeaderActions}>
+        <div className={securityStyles.securityHeaderActions}>
           <Button
             type='text'
             size='m'
@@ -39,7 +36,7 @@ export default function AccessLogsSection() {
             label={t('Log out of all devices')}
             startIcon='logout'
           />
-        </div>*/}
+        </div>
         <ExportToEmailButton
           label={t('Export log data')}
           exportFunction={startAccessLogsExport}

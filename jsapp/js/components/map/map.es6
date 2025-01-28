@@ -2,9 +2,9 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {dataInterface} from '../dataInterface';
+import {dataInterface} from 'js/dataInterface';
 import bem from 'js/bem';
-import {actions} from '../actions';
+import {actions} from 'js/actions';
 import PopoverMenu from 'js/popoverMenu';
 import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
@@ -25,9 +25,9 @@ import {
   MODAL_TYPES,
   QUESTION_TYPES,
   QUERY_LIMIT_DEFAULT,
-} from '../constants';
+} from 'js/constants';
 
-import {notify, checkLatLng} from 'utils';
+import {notify, checkLatLng} from 'js/utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import CenteredMessage from 'js/components/common/centeredMessage.component';

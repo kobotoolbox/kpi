@@ -8,7 +8,7 @@ import bem from 'js/bem';
 import DocumentTitle from 'react-document-title';
 import Icon from 'js/components/common/icon';
 import Avatar from 'js/components/common/avatar';
-import {getFormDataTabs} from './formViewSideTabs';
+import {getFormDataTabs} from 'js/components/formViewSideTabs';
 import {getUsernameFromUrl, ANON_USERNAME} from 'js/users/utils';
 import {MODAL_TYPES} from 'js/constants';
 import './formSummary.scss';

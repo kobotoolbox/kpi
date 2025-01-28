@@ -1,13 +1,18 @@
 import {EXPORT_FORMATS} from 'js/components/projectDownloads/exportsConstants';
+import {type ExportDataLang, type AssetResponse} from 'jsapp/js/dataInterface';
+
+export interface ExportFormatOption {
+  value: ExportDataLang;
+  label: string;
+  /** Present only for languages (not for `EXPORT_FORMATS`). */
+  langIndex?: number;
+}
 
 /**
- * @returns one of export format options, either the asset's default language
+ * Returns one of export format options, either the asset's default language
  * or `_default` (or more precisely: the first option)
- *
- * @param {object} asset
- * @returns {object} the default options from getExportFormatOptions
  */
-export function getContextualDefaultExportFormat(asset) {
+export function getContextualDefaultExportFormat(asset: AssetResponse): ExportFormatOption {
   const exportFormatOptions = getExportFormatOptions(asset);
   const defaultAssetLanguage = asset.summary?.default_translation;
   const defaultAssetLanguageOption = exportFormatOptions.find((option) =>
@@ -17,14 +22,13 @@ export function getContextualDefaultExportFormat(asset) {
 }
 
 /**
- * @param {object} asset
- * @returns {object[]} list of options available as formats for given asset
+ * Returns a list of options available as formats for given asset.
  */
-export function getExportFormatOptions(asset) {
-  const options = [];
+export function getExportFormatOptions(asset: AssetResponse): ExportFormatOption[] {
+  const options: ExportFormatOption[] = [];
 
   // Step 1: add all defined languages as options (both named and unnamed)
-  if (asset.summary?.languages.length >= 1) {
+  if (asset.summary?.languages && asset.summary.languages.length >= 1) {
     asset.summary.languages.forEach((language, index) => {
       // unnamed language gives the `_default` option
       if (language === null) {

@@ -3,8 +3,7 @@
  * For our sanity, use camel case and match key with value.
  */
 export enum FeatureFlag {
-  oneTimeAddonsEnabled = 'oneTimeAddonsEnabled',
-  exportActivityLogsEnabled = 'exportActivityLogsEnabled',
+  exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
 }
 
 /**

@@ -1,17 +1,36 @@
-import {createEnum} from 'js/constants';
+export enum ExportTypeName {
+  csv_legacy = 'csv_legacy',
+  csv = 'csv',
+  geojson = 'geojson',
+  kml_legacy = 'kml_legacy',
+  spss_labels = 'spss_labels',
+  xls_legacy = 'xls_legacy',
+  xls = 'xls',
+  zip_legacy = 'zip_legacy',
+}
 
-export const EXPORT_TYPES = Object.freeze({
-  csv_legacy: {value: 'csv_legacy', label: t('CSV (legacy)'), isLegacy: true},
-  csv: {value: 'csv', label: t('CSV'), isLegacy: false},
-  geojson: {value: 'geojson', label: t('GeoJSON'), isLegacy: false},
-  kml_legacy: {value: 'kml_legacy', label: t('GPS coordinates (KML)'), isLegacy: true},
-  spss_labels: {value: 'spss_labels', label: t('SPSS Labels'), isLegacy: false},
-  xls_legacy: {value: 'xls_legacy', label: t('XLS (legacy)'), isLegacy: true},
-  xls: {value: 'xls', label: t('XLS'), isLegacy: false},
-  zip_legacy: {value: 'zip_legacy', label: t('Media Attachments (ZIP)'), isLegacy: true},
+export interface ExportTypeDefinition {
+  value: ExportTypeName;
+  label: string;
+  isLegacy: boolean;
+}
+
+export const EXPORT_TYPES: {[key in ExportTypeName]: ExportTypeDefinition} = Object.freeze({
+  csv_legacy: {value: ExportTypeName.csv_legacy, label: t('CSV (legacy)'), isLegacy: true},
+  csv: {value: ExportTypeName.csv, label: t('CSV'), isLegacy: false},
+  geojson: {value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false},
+  kml_legacy: {value: ExportTypeName.kml_legacy, label: t('GPS coordinates (KML)'), isLegacy: true},
+  spss_labels: {value: ExportTypeName.spss_labels, label: t('SPSS Labels'), isLegacy: false},
+  xls_legacy: {value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true},
+  xls: {value: ExportTypeName.xls, label: t('XLS'), isLegacy: false},
+  zip_legacy: {value: ExportTypeName.zip_legacy, label: t('Media Attachments (ZIP)'), isLegacy: true},
 });
 
-export const EXPORT_FORMATS = Object.freeze({
+export type ExportFormatName = '_default' | '_xml';
+
+export const EXPORT_FORMATS: {
+  [key in ExportFormatName]: {value: ExportFormatName; label: string}
+} = Object.freeze({
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNTRANSLATED` is `null` which is the same as `_default`
   _default: {value: '_default', label: t('Labels')},
@@ -25,7 +44,16 @@ export const EXPORT_FORMATS = Object.freeze({
   _xml: {value: '_xml', label: t('XML values and headers')},
 });
 
-export const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
+export type ExportMultiOptionName = 'details' | 'summary' | 'both';
+
+export interface ExportMultiOption {
+  value: ExportMultiOptionName;
+  label: string;
+}
+
+export const EXPORT_MULTIPLE_OPTIONS: {
+  [key in ExportMultiOptionName]: ExportMultiOption
+} = Object.freeze({
   details: {
     value: 'details',
     label: t('Separate columns'),
@@ -40,12 +68,12 @@ export const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
   },
 });
 
-export const EXPORT_STATUSES = createEnum([
-  'created',
-  'processing',
-  'complete',
-  'error',
-]);
+export enum ExportStatusName {
+  created = 'created',
+  processing = 'processing',
+  complete = 'complete',
+  error = 'error',
+}
 
 export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   CUSTOM_EXPORT_NAME: '',

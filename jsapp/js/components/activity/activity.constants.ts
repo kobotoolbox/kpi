@@ -4,12 +4,14 @@
  */
 export enum AuditActions {
   'add-media' = 'add-media',
+  'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
   'archive' = 'archive',
   'clone-permissions' = 'clone-permissions',
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
   'delete-service' = 'delete-service',
+  'delete-submission' = 'delete-submission',
   'deploy' = 'deploy',
   'disable-sharing' = 'disable-sharing',
   'disallow-anonymous-submissions' = 'disallow-anonymous-submissions',
@@ -19,6 +21,7 @@ export enum AuditActions {
   'modify-imported-fields' = 'modify-imported-fields',
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
+  'modify-submission' = 'modify-submission',
   'modify-user-permissions' = 'modify-user-permissions',
   'redeploy' = 'redeploy',
   'register-service' = 'register-service',
@@ -50,6 +53,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     name: AuditActions['add-media'],
     label: t('add media attachment'),
     message: t('##username## added a media attachment'),
+  },
+  'add-submission': {
+    order: 30,
+    name: AuditActions['add-submission'],
+    label: t('add submission'),
+    message: t('##username## added a submission'),
   },
   'allow-anonymous-submissions': {
     order: 16,
@@ -86,6 +95,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     name: AuditActions['delete-service'],
     label: t('delete a REST service'),
     message: t('##username## deleted a REST service'),
+  },
+  'delete-submission': {
+    order: 32,
+    name: AuditActions['delete-submission'],
+    label: t('delete a submission'),
+    message: t('##username## deleted a submission'),
   },
   'deploy': {
     order: 2,
@@ -140,6 +155,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     name: AuditActions['modify-sharing'],
     label: t('modify data sharing'),
     message: t('##username## modified data sharing'),
+  },
+  'modify-submission': {
+    order: 31,
+    name: AuditActions['modify-submission'],
+    label: t('edit submission'),
+    message: t('##username## edited a submission'),
   },
   'modify-user-permissions': {
     order: 12,
@@ -228,6 +249,8 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
 };
 
 export const FALLBACK_MESSAGE = '##username## did action ##action##';
+
+export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']];
 
 /**
  * All possible log item types.
