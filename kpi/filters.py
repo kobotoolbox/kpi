@@ -158,7 +158,7 @@ class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         user = get_database_user(request.user)
         organization = user.organization
-        if organization.is_owner(user) and organization.is_mmo:
+        if organization and organization.is_owner(user) and organization.is_mmo:
             return queryset.exclude(is_excluded_from_projects_list=True)
         return queryset
 

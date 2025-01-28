@@ -369,10 +369,10 @@ class AssetViewSet(
         'subscribers_count',
     ]
     filter_backends = [
+        ExcludeOrgAssetFilter,
         KpiObjectPermissionsFilter,
         SearchFilter,
         AssetOrderingFilter,
-        ExcludeOrgAssetFilter
     ]
     renderer_classes = [
         renderers.BrowsableAPIRenderer,
