@@ -15,12 +15,11 @@ from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import ImportTask, SubmissionExportTask
 
-SLEEP_TIME = 2
-RETRIES = 10
-
 
 @celery_app.task(
-    autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
 )
 def import_in_background(import_task_uid):
     import_task = ImportTask.objects.get(uid=import_task_uid)
@@ -29,7 +28,9 @@ def import_in_background(import_task_uid):
 
 
 @celery_app.task(
-    autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
 )
 def export_in_background(export_task_uid):
     export_task = SubmissionExportTask.objects.get(uid=export_task_uid)
@@ -37,7 +38,9 @@ def export_in_background(export_task_uid):
 
 
 @celery_app.task(
-    autoretry_for=(ObjectDoesNotExist,), max_retries=RETRIES, retry_backoff=True
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
 )
 def export_task_in_background(
     export_task_uid: str, username: str, export_task_name: str

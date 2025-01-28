@@ -864,6 +864,8 @@ SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 
+MAX_RETRIES_FOR_IMPORT_EXPORT_TASK = 10
+
 # Private media file configuration
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
