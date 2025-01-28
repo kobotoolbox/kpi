@@ -1,0 +1,35 @@
+.input:focus-visible:not([data-error]) {
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
+
+.input {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-3);
+    opacity: 1;
+  }
+}
+
+.input[data-disabled] {
+  background-color: var(--mantine-color-gray-7);
+  border-color: var(--mantine-color-gray-3);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-2);
+  }
+}
+
+.input[data-error] {
+  border-color: var(--mantine-color-red-7);
+}
+
+.section {
+  color: var(--mantine-color-gray-2);
+}
+
+.label {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-gray-1);
+  margin-bottom: 5px;
+}

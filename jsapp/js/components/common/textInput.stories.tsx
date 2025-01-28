@@ -1,6 +1,6 @@
 import type {Meta, StoryObj} from '@storybook/react';
-import TextInput, {TextInputProps} from './textInput';
-import {IconNames} from 'jsapp/fonts/k-icons';
+import { TextInput, TextInputProps } from '@mantine/core';
+import Icon from './icon';
 
 const inputSizes: Array<TextInputProps['size']> = [
   'sm',
@@ -33,17 +33,6 @@ export default {
       defaultValue: 'md',
       options: inputSizes,
       control: {type: 'radio'},
-    },
-    leftIconName: {
-      description: 'Appears inside the input, on the beginning.',
-      options: Object.keys(IconNames),
-      control: {type: 'select'},
-    },
-    rightIconName: {
-      description:
-        'Appears inside the input, on the end. Is replaced by "alert" icon if there are any errors.',
-      options: Object.keys(IconNames),
-      control: {type: 'select'},
     },
     disabled: {
       description: 'Disables the input',
@@ -98,13 +87,24 @@ export const WithError: Story = {
   },
 };
 
-export const WithIcon: Story = {
+export const WithIconLeft: Story = {
   args: {
     label: 'Required Input',
     placeholder: 'This field is required',
     required: true,
     withAsterisk: true,
-    leftIconName: 'user',
+    leftSection: <Icon name='user' size='s' />,
+    size: 'md',
+  },
+};
+
+export const WithIconRight: Story = {
+  args: {
+    label: 'Required Input',
+    placeholder: 'This field is required',
+    required: true,
+    withAsterisk: true,
+    rightSection: <Icon name='user' size='s' />,
     size: 'md',
   },
 };

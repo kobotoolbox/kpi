@@ -2,8 +2,7 @@ import {createTheme, rem} from '@mantine/core';
 import {ActionIconThemeKobo} from './ActionIcon';
 import {ButtonThemeKobo} from './Button';
 import {TableThemeKobo} from './Table';
-import {InputThemeKobo} from './Input';
-import {InputWrapperThemeKobo} from './InputWrapper'
+import {InputBaseThemeKobo} from './InputBase';
 import {TooltipThemeKobo} from './Tooltip';
 import {MenuThemeKobo} from './Menu';
 import {AlertThemeKobo} from './Alert';
@@ -80,7 +79,7 @@ export const themeKobo = createTheme({
   fontFamily: '"Roboto", sans-serif',
   fontFamilyMonospace: 'Roboto Mono, monospace',
   fontSizes: {
-    xs: rem(11), // TODO: For now implied from button sizes.
+    xs: rem(12),
     sm: rem(13), // TODO: For now implied from button sizes.
     md: rem(14), // TODO: For now implied from button sizes.
     lg: rem(16),
@@ -107,8 +106,7 @@ export const themeKobo = createTheme({
     ActionIcon: ActionIconThemeKobo,
     Alert: AlertThemeKobo,
     Button: ButtonThemeKobo,
-    Input: InputThemeKobo,
-    InputWrapper: InputWrapperThemeKobo,
+    InputBase: InputBaseThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Select: SelectThemeKobo,
