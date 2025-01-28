@@ -65,7 +65,7 @@ def get_organization_plan_limit(
         # Anyone who does not have a subscription is on the free tier plan by default
         default_plan = (
             Product.objects.filter(
-                prices__unit_amount=0, prices__recurring__interval__in=('month', 'year')
+                prices__unit_amount=0, prices__recurring__interval='month'
             )
             .values(limit=F(f'metadata__{limit_key}'))
             .first()
