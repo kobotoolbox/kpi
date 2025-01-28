@@ -41,13 +41,13 @@
 /webpack/                           @magicznyleszek @p2edwards
 /.babelrc.json                      @magicznyleszek @p2edwards
 /.browserslistrc                    @magicznyleszek @p2edwards
-/.eslintignore                      @magicznyleszek @p2edwards
-/.eslintrc.js                       @magicznyleszek @p2edwards
 /.node-version                      @magicznyleszek @p2edwards
 /.nvmrc                             @magicznyleszek @p2edwards
 /.stylelintrc.js                    @magicznyleszek @p2edwards
 /.swcrc                             @magicznyleszek @p2edwards
 /.coffeelint.json                   @magicznyleszek @p2edwards
+/biome.jsonc                        @Akuukis
+/eslint.config.mjs                  @Akuukis
 /package-lock.json                  @magicznyleszek @p2edwards
 /package.json                       @magicznyleszek @p2edwards
 /tsconfig.json                      @magicznyleszek @p2edwards
@@ -92,6 +92,7 @@ _registration.scss                  @magicznyleszek @p2edwards
 
 /docker/                            @olive-KTB @jnm @noliveleger
 /scripts/                           @olive-KTB @jnm @noliveleger
+/scripts/eslintBiome.mjs            @Akuukis
 /scripts/*.js                       @magicznyleszek @p2edwards
 /.github/                           @olive-KTB @jnm @noliveleger @magicznyleszek
 /.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
@@ -103,6 +104,8 @@ _registration.scss                  @magicznyleszek @p2edwards
 
 ################
 #### Documentation section
+/CODING_STYLE_BE.md                 @noliveleger
+/CODING_STYLE_FE.md                 @Akuukis @magicznyleszek
 /CONTRIBUTING.md                    @Akuukis @magicznyleszek @noliveleger
 /README.md                          @Akuukis @jnm @magicznyleszek @noliveleger
 /.github/CODEOWNERS                 @Akuukis @jnm @noliveleger @magicznyleszek
