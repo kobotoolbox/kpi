@@ -88,6 +88,29 @@ interface AssetFileRequest {
   base64Encoded: ArrayBuffer | string | null
 }
 
+export interface AssetFileResponse {
+  uid: string;
+  url: string;
+  /** Asset URL */
+  asset: string;
+  /** User URL */
+  user: string;
+  user__username: string;
+  file_type: AssetFileType;
+  description: string;
+  date_created: string;
+  /** URL to file content */
+  content: string;
+  metadata: {
+    /** MD5 hash */
+    hash: string;
+    size: number;
+    type: string;
+    filename: string;
+    mimetype: string;
+  };
+}
+
 export interface CreateImportRequest {
   base64Encoded?: string | ArrayBuffer | null
   name?: string
@@ -1911,7 +1934,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<any> {
+  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<PaginatedResponse<AssetFileResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
       method: 'GET',
