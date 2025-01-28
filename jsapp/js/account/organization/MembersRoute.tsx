@@ -22,8 +22,9 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 // Styles
 import styles from './membersRoute.module.scss';
 import ButtonNew from 'jsapp/js/components/common/ButtonNew';
-import {Modal, TextInput} from '@mantine/core';
+import {Divider, Group, Modal, Stack, Text, TextInput, Title} from '@mantine/core';
 import {Select} from 'jsapp/js/components/common/Select';
+import {Box} from '@mantine/core';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
@@ -152,41 +153,40 @@ export default function MembersRoute() {
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
 
-      <section className={styles.inviteMembersWrapper}>
-        <div className={styles.inviteMembersText}>
-          <p className={styles.inviteMembersHeader}>{t('Invite members')}</p>
-          <p className={styles.inviteMembersBody}>
+      <Divider />
+      <Group w='100%' justify='space-between'>
+        <Stack gap='xs' pt='xs'>
+          <Title order={4}>{t('Invite members')}</Title>
+          <Text>
             {t(
               'Invite more people to join your team or change their role permissions below.'
             )}
-          </p>
-        </div>
+          </Text>
+        </Stack>
 
-        <div>
-          <ButtonNew onClick={open}>{t('Invite members')}</ButtonNew>
+        <Box>
+          <ButtonNew size='lg' onClick={open}>{t('Invite members')}</ButtonNew>
           <Modal
             opened={opened}
             onClose={close}
             title={t('Invite memebrs to your team')}
           >
-            <div className={styles.inviteModalRoot}>
-              <div className={styles.inviteModalText}>
-                <p>
-                  {t(
-                    'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
-                  )}
-                </p>
-              </div>
-              <div className={styles.inviteModalFields}>
-                <div className={styles.inviteModalFieldsRow}>
-                  <TextInput placeholder={t('Enter username or email address')} /> <Select className={styles.inviteModalSelect}></Select>
-                </div>
-                <div className={styles.inviteModalFieldsButton}><ButtonNew>{t('Send invite')}</ButtonNew></div>
-              </div>
-            </div>
+            <Stack>
+              <Text>
+                {t(
+                  'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+                )}
+              </Text>
+              <Group w='100%' gap='xs'>
+                <TextInput flex={3} placeholder={t('Enter username or email address')} />
+                <Select flex={2}></Select>
+              </Group>
+              <Group w='100%' justify='flex-end'><ButtonNew size='lg'>{t('Send invite')}</ButtonNew></Group>
+            </Stack>
           </Modal>
-        </div>
-      </section>
+        </Box>
+      </Group>
+      <Divider mb='md'/>
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
