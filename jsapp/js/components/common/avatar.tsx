@@ -32,6 +32,7 @@ interface AvatarProps {
   isUsernameVisible?: boolean;
   fullName?: string;
   email?: string;
+  variant?: 'default' | 'ghost';
 }
 
 /**
@@ -39,42 +40,50 @@ interface AvatarProps {
  * name and email.
  */
 export default function Avatar(props: AvatarProps) {
-  const isAnyTextBeingDisplayed = (
+  const isAnyTextBeingDisplayed =
     props.isUsernameVisible ||
     props.fullName !== undefined ||
-    props.email !== undefined
-  );
+    props.email !== undefined;
+
+  const isGhost = props.variant === 'ghost';
 
   return (
     <div className={cx(styles.avatar, styles[`avatar-size-${props.size}`])}>
-      <div
-        className={styles.initials}
-        style={{backgroundColor: `${stringToHSL(props.username, 80, 40)}`}}
-      >
-        {props.username.charAt(0)}
-      </div>
-
-      {isAnyTextBeingDisplayed &&
+      {isGhost ? (
+        <div className={cx(styles.initials, styles.ghost)}>
+          <svg width='100%' viewBox='0 0 24 24'>
+            <circle cx='12' cy='12' r='11' />
+          </svg>
+        </div>
+      ) : (
         <div
-          className={cx(
-            styles.text,
-            {[styles.hasFullName]: props.fullName !== undefined}
-          )}
+          className={styles.initials}
+          style={{backgroundColor: `${stringToHSL(props.username, 80, 40)}`}}
         >
-          {props.fullName !== undefined &&
+          {props.username.charAt(0)}
+        </div>
+      )}
+
+      {isAnyTextBeingDisplayed && (
+        <div
+          className={cx(styles.text, {
+            [styles.hasFullName]: props.fullName !== undefined,
+          })}
+        >
+          {!isGhost && props.fullName !== undefined && (
             <span className={styles.fullName}>{props.fullName}</span>
-          }
+          )}
 
           {/* Sometimes will be prefixed with "@" symbol */}
-          {props.isUsernameVisible &&
+          {props.isUsernameVisible && (
             <span className={styles.username}>{props.username}</span>
-          }
+          )}
 
-          {props.email !== undefined &&
+          {!isGhost && props.email !== undefined && (
             <div className={styles.email}>{props.email}</div>
-          }
+          )}
         </div>
-      }
+      )}
     </div>
   );
 }

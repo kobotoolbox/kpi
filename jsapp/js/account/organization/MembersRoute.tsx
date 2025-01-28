@@ -36,6 +36,7 @@ export default function MembersRoute() {
       label: t('Name'),
       cellFormatter: (member: OrganizationMember) => (
         <Avatar
+          variant={member.invite?.status ? 'ghost' : 'default'}
           size='m'
           username={member.user__username}
           isUsernameVisible

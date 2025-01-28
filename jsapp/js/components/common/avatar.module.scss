@@ -32,6 +32,18 @@ $avatar-size-m: 32px;
 .avatar-size-s {@include avatar-size($avatar-size-s);}
 .avatar-size-m {@include avatar-size($avatar-size-m);}
 
+.ghost {
+  svg circle {
+    fill: transparent;
+    stroke: colors.$kobo-gray-400;
+    stroke-dasharray: 3.14px;
+    stroke-width: 1px;
+  }
+
+  // Need to make sure that the transparent will be applied when ghost
+  background-color: transparent !important;
+}
+
 .initials {
   text-align: center;
   text-transform: uppercase;
