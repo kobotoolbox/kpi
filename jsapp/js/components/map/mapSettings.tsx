@@ -1,3 +1,9 @@
+// Libraries
+// Partial components
+// Stores, hooks and utilities
+// Constants and types
+// Styles
+
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';

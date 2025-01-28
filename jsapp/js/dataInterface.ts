@@ -90,6 +90,29 @@ interface AssetFileRequest {
   base64Encoded: ArrayBuffer | string | null;
 }
 
+export interface AssetFileResponse {
+  uid: string;
+  url: string;
+  /** Asset URL */
+  asset: string;
+  /** User URL */
+  user: string;
+  user__username: string;
+  file_type: AssetFileType;
+  description: string;
+  date_created: string;
+  /** URL to file content */
+  content: string;
+  metadata: {
+    /** MD5 hash */
+    hash: string;
+    size: number;
+    type: string;
+    filename: string;
+    mimetype: string;
+  };
+}
+
 export interface CreateImportRequest {
   base64Encoded?: string | ArrayBuffer | null;
   name?: string;
@@ -201,6 +224,7 @@ export interface SubmissionResponse {
   // Below are all known properties of submission response:
   __version__: string;
   _attachments: SubmissionAttachment[];
+  // TODO: when does this happen to be array of nulls?
   _geolocation: number[] | null[];
   _id: number;
   _notes: string[];
@@ -552,7 +576,7 @@ interface AssetRequestObject {
   asset_type: AssetTypeName;
   report_styles: AssetResponseReportStyles;
   report_custom: AssetResponseReportCustom;
-  map_styles: {};
+  map_styles: AssetMapStyles;
   map_custom: {};
   content?: AssetContent;
   tag_string: string;
@@ -976,6 +1000,12 @@ export interface ExportDataResponse {
     fields_from_all_versions: boolean;
     flatten?: boolean;
   };
+}
+
+export interface AssetMapStyles {
+  colorSet?: string;
+  querylimit?: string;
+  selectedQuestion?: string;
 }
 
 const $ajax = (o: {}) =>
@@ -1900,7 +1930,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<any> {
+  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<PaginatedResponse<AssetFileResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
       method: 'GET',
