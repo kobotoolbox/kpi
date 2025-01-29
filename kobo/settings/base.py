@@ -217,6 +217,12 @@ CONSTANCE_CONFIG = {
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoboToolbox Help Center"',
     ),
+    'ACADEMY_URL': (
+        env.str(
+            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
+        ),
+        'URL for "KoboToolbox Community Forum"',
+    ),
     'COMMUNITY_URL': (
         env.str(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
@@ -669,6 +675,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
+        'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
         'EXPOSE_GIT_REV',
@@ -871,6 +878,8 @@ SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
+
+MAX_RETRIES_FOR_IMPORT_EXPORT_TASK = 10
 
 # Private media file configuration
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
