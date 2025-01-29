@@ -19,6 +19,9 @@ export const MenuThemeKobo = Menu.extend({
       divider: {
         borderColor: theme.colors.gray[6],
       },
+      item: {
+        fontSize: theme.fontSizes.md
+      }
     };
   },
 });
