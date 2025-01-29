@@ -12,7 +12,6 @@ import ButtonNew from 'jsapp/js/components/common/ButtonNew';
 import {Divider, Group, Modal, Stack, Text, TextInput, Title, Box} from '@mantine/core';
 import {Select} from 'jsapp/js/components/common/Select';
 
-
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
