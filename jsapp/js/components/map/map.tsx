@@ -120,7 +120,7 @@ interface FormMapState {
   fields: SurveyRow[];
   hasGeoPoint: boolean;
   submissions: SubmissionResponse[];
-  error: string | boolean;
+  error: string | undefined;
   isFullscreen: boolean;
   showExpandedLegend: boolean;
   langIndex: number;
@@ -154,7 +154,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       fields: [],
       hasGeoPoint: hasGeoPoint,
       submissions: [],
-      error: false,
+      error: undefined,
       isFullscreen: false,
       showExpandedLegend: true,
       langIndex: 0,
@@ -579,7 +579,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints);
       }
 
-      markers.on('click', this.launchSubmissionModal).addTo(map);
+      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map);
 
       if (
         prepPoints.length > 0 &&
@@ -769,7 +769,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     return map;
   }
 
-  launchSubmissionModal(evt) {
+  launchSubmissionModal(evt: L.LeafletMouseEvent) {
     const td = this.state.submissions;
     const ids: number[] = [];
     td.forEach(function (r) {
@@ -790,28 +790,24 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     });
   }
 
-  overrideStyles(mapStyles) {
+  overrideStyles(mapStyles: AssetMapStyles) {
     this.setState({
       filteredByMarker: undefined,
       componentRefreshed: true,
       overridenStyles: mapStyles,
+    }, () => {
+      const map = this.refreshMap();
+
+      if (map) {
+        this.requestData(map, this.props.viewby);
+      }
     });
-
-    const map = this.refreshMap();
-
-    // HACK switch to setState callback after updating to React 16+
-    window.setTimeout(() => {
-      this.requestData(map, this.props.viewby);
-    }, 0);
   }
 
   toggleFullscreen() {
-    this.setState({isFullscreen: !this.state.isFullscreen});
-
-    const map = this.state.map;
-    setTimeout(function () {
-      map.invalidateSize();
-    }, 300);
+    this.setState({isFullscreen: !this.state.isFullscreen}, () => {
+      this.state.map?.invalidateSize();
+    });
   }
 
   toggleLegend() {
@@ -820,9 +816,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     });
   }
 
-  filterByMarker(evt) {
+  filterByMarker(markerId: number) {
+    const id = String(markerId);
     const markers = this.state.markers;
-    const id = evt.target.getAttribute('data-id');
     let filteredByMarker = this.state.filteredByMarker;
     const unselectedClass = 'unselected';
 
@@ -872,10 +868,13 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     const fields = this.state.fields;
     const langIndex = this.state.langIndex;
-    const langs =
-      this.props.asset.content.translations?.length > 1
-        ? this.props.asset.content.translations
-        : [];
+    let langs: Array<string | null> = [];
+    if (
+      this.props.asset.content?.translations &&
+      this.props.asset.content?.translations.length > 1
+    ) {
+      langs = this.props.asset.content.translations;
+    }
     const viewby = this.props.viewby;
 
     const colorSet = this.calcColorSet() || 'a';
@@ -884,7 +883,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (viewby) {
       fields.forEach(function (f) {
         if (viewby === f.name || viewby === f.$autoname) {
-          label = `${t('Disaggregated using:')} ${f.label[langIndex]}`;
+          label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`;
         }
       });
     } else if (this.state.noData && this.state.hasGeoPoint) {
@@ -906,7 +905,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           m={'expand'}
           onClick={this.toggleFullscreen.bind(this)}
           data-tip={t('Toggle Fullscreen')}
-          className={this.state.toggleFullscreen ? 'active' : ''}
+          className={this.state.isFullscreen ? 'active' : ''}
         >
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
@@ -947,7 +946,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
-            m={'above'}
+            // TODO: see if this is needed, as previously it was set to nonexisting prop:
+            additionalModifiers={['above']}
             clearPopover={this.state.clearDisaggregatedPopover}
             blurEventDisabled
           >
@@ -1066,8 +1066,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
                     <span
                       className={'map-marker-label'}
-                      onClick={this.filterByMarker.bind(this)}
-                      data-id={m.id}
+                      onClick={() => {
+                        this.filterByMarker(m.id)
+                      }}
                       title={markerLabel}
                     >
                       {markerLabel}
@@ -1100,8 +1101,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           >
             <MapSettings
               asset={this.props.asset}
-              toggleMapSettings={this.toggleMapSettings}
-              overrideStyles={this.overrideStyles}
+              toggleMapSettings={this.toggleMapSettings.bind(this)}
+              overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
             />
           </Modal>
