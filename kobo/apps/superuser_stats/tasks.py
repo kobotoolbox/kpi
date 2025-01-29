@@ -10,7 +10,7 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db.models import CharField, Count, DateField, F, IntegerField, Q, Sum, Value
+from django.db.models import CharField, Count, DateField, F, IntegerField, Sum, Value
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
