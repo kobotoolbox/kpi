@@ -348,7 +348,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         # To avoid circular import
         User = apps.get_model('kobo_auth', 'User')
         has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
-        organization_name = self.invited_by.organization.name
+        organization = self.invited_by.organization
         current_language = settings.LANGUAGE_CODE
         invitee_language = (
             self.invitee.extra_details.data.get(
@@ -369,7 +369,8 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             ),
             'recipient_email': to_email,
             'recipient_role': recipient_role,
-            'organization_name': organization_name,
+            'organization_name': organization.name,
+            'organization_id': organization.id,
             'base_url': settings.KOBOFORM_URL,
             'invite_uid': self.guid,
             'is_registered_user': is_registered_user,
@@ -388,7 +389,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             # by EmailMessage
             subject = replace_placeholders(
                 t("You're invited to join ##organization_name## organization"),
-                organization_name=organization_name
+                organization_name=organization.name,
             )
 
         email_message = EmailMessage(
