@@ -8,6 +8,10 @@ import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
 import MemberRoleSelector from './MemberRoleSelector';
+import ButtonNew from 'jsapp/js/components/common/ButtonNew';
+import {Divider, Group, Modal, Stack, Text, TextInput, Title, Box} from '@mantine/core';
+import {Select} from 'jsapp/js/components/common/Select';
+
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -21,10 +25,7 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 
 // Styles
 import styles from './membersRoute.module.scss';
-import ButtonNew from 'jsapp/js/components/common/ButtonNew';
-import {Divider, Group, Modal, Stack, Text, TextInput, Title} from '@mantine/core';
-import {Select} from 'jsapp/js/components/common/Select';
-import {Box} from '@mantine/core';
+import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
@@ -35,6 +36,8 @@ export default function MembersRoute() {
       <LoadingSpinner />
     );
   }
+
+  const isInviteOrgMembersEnabled = useFeatureFlag(FeatureFlag.inviteOrgMembers);
 
   const columns: Array<UniversalTableColumn<OrganizationMember>> = [
     {
@@ -147,40 +150,52 @@ export default function MembersRoute() {
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
 
-      <Divider />
-      <Group w='100%' justify='space-between'>
-        <Stack gap='xs' pt='xs'>
-          <Title order={4}>{t('Invite members')}</Title>
-          <Text>
-            {t(
-              'Invite more people to join your team or change their role permissions below.'
-            )}
-          </Text>
-        </Stack>
-
+      {isInviteOrgMembersEnabled &&
         <Box>
-          <ButtonNew size='lg' onClick={open}>{t('Invite members')}</ButtonNew>
-          <Modal
-            opened={opened}
-            onClose={close}
-            title={t('Invite memebrs to your team')}
-          >
-            <Stack>
+          <Divider />
+          <Group w='100%' justify='space-between'>
+            <Stack gap='xs' pt='xs' pb='xs'>
+              <Title order={5}>{t('Invite members')}</Title>
               <Text>
                 {t(
-                  'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+                  'Invite more people to join your team or change their role permissions below.'
                 )}
               </Text>
-              <Group w='100%' gap='xs'>
-                <TextInput flex={3} placeholder={t('Enter username or email address')} />
-                <Select flex={2}></Select>
-              </Group>
-              <Group w='100%' justify='flex-end'><ButtonNew size='lg'>{t('Send invite')}</ButtonNew></Group>
             </Stack>
-          </Modal>
+
+            <Box>
+              <ButtonNew size='lg' onClick={open}>
+                {t('Invite members')}
+              </ButtonNew>
+              <Modal
+                opened={opened}
+                onClose={close}
+                title={t('Invite memebrs to your team')}
+              >
+                <Stack>
+                  <Text>
+                    {t(
+                      'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+                    )}
+                  </Text>
+                  <Group w='100%' gap='xs'>
+                    {/*TODO: repalce with our TextInput component when it's merged*/}
+                    <TextInput
+                      flex={3}
+                      placeholder={t('Enter username or email address')}
+                    />
+                    <Select flex={2} data={['Owner', 'Admin', 'Member']} />
+                  </Group>
+                  <Group w='100%' justify='flex-end'>
+                    <ButtonNew size='lg'>{t('Send invite')}</ButtonNew>
+                  </Group>
+                </Stack>
+              </Modal>
+            </Box>
+          </Group>
+          <Divider mb='md' />
         </Box>
-      </Group>
-      <Divider mb='md'/>
+      }
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
