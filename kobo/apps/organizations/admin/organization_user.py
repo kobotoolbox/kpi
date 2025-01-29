@@ -119,12 +119,12 @@ class OrgUserResource(resources.ModelResource):
     )
     organization = Field(
         attribute='organization',
-        column_name='Organization',
+        column_name='organization',
         widget=ForeignKeyWidget(Organization, field='name'),
     )
     organization_id = Field(
         attribute='organization_id',
-        column_name='Organization Id',
+        column_name='organization_id',
     )
 
     class Meta:
