@@ -184,7 +184,7 @@ export default function MembersRoute() {
                       flex={3}
                       placeholder={t('Enter username or email address')}
                     />
-                    <Select flex={2} data={['Owner', 'Admin', 'Member']} />
+                    <Select flex={2} />
                   </Group>
                   <Group w='100%' justify='flex-end'>
                     <ButtonNew size='lg'>{t('Send invite')}</ButtonNew>
