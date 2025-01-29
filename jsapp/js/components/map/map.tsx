@@ -165,7 +165,7 @@ interface FormMapState {
   fields: SurveyRow[];
   hasGeoPoint: boolean;
   submissions: SubmissionResponse[];
-  error: string | boolean;
+  error: string | undefined;
   isFullscreen: boolean;
   showExpandedLegend: boolean;
   langIndex: number;
@@ -200,7 +200,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       fields: [],
       hasGeoPoint: hasGeoPoint,
       submissions: [],
-      error: false,
+      error: undefined,
       isFullscreen: false,
       showExpandedLegend: true,
       langIndex: 0,
@@ -742,7 +742,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers.addLayers(prepPoints)
       }
 
+<<<<<<< HEAD
       markers.on('click', this.launchSubmissionModal).addTo(map)
+=======
+      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map);
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
 
       if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
         map.fitBounds(markers.getBounds())
@@ -999,6 +1003,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 >>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
   }
 
+<<<<<<< HEAD
   launchSubmissionModal(evt) {
 <<<<<<<< HEAD:jsapp/js/components/map/map.js
     const td = this.state.submissions
@@ -1007,6 +1012,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       ids.push(r._id)
     })
 ========
+=======
+  launchSubmissionModal(evt: L.LeafletMouseEvent) {
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
     const td = this.state.submissions;
     const ids: number[] = [];
     td.forEach(function (r) {
@@ -1028,11 +1036,12 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-  overrideStyles(mapStyles) {
+  overrideStyles(mapStyles: AssetMapStyles) {
     this.setState({
       filteredByMarker: undefined,
       componentRefreshed: true,
       overridenStyles: mapStyles,
+<<<<<<< HEAD
     })
 
     const map = this.refreshMap()
@@ -1050,6 +1059,21 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     setTimeout(() => {
       map.invalidateSize()
     }, 300)
+=======
+    }, () => {
+      const map = this.refreshMap();
+
+      if (map) {
+        this.requestData(map, this.props.viewby);
+      }
+    });
+  }
+
+  toggleFullscreen() {
+    this.setState({isFullscreen: !this.state.isFullscreen}, () => {
+      this.state.map?.invalidateSize();
+    });
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
   }
 
   toggleLegend() {
@@ -1058,11 +1082,19 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
+<<<<<<< HEAD
   filterByMarker(evt) {
     const markers = this.state.markers
     const id = evt.target.getAttribute('data-id')
     let filteredByMarker = this.state.filteredByMarker
     const unselectedClass = 'unselected'
+=======
+  filterByMarker(markerId: number) {
+    const id = String(markerId);
+    const markers = this.state.markers;
+    let filteredByMarker = this.state.filteredByMarker;
+    const unselectedClass = 'unselected';
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
 
     if (!filteredByMarker) {
       filteredByMarker = [id]
@@ -1128,10 +1160,23 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       )
     }
 
+<<<<<<< HEAD
     const fields = this.state.fields
     const langIndex = this.state.langIndex
     const langs = this.props.asset.content.translations?.length > 1 ? this.props.asset.content.translations : []
     const viewby = this.props.viewby
+=======
+    const fields = this.state.fields;
+    const langIndex = this.state.langIndex;
+    let langs: Array<string | null> = [];
+    if (
+      this.props.asset.content?.translations &&
+      this.props.asset.content?.translations.length > 1
+    ) {
+      langs = this.props.asset.content.translations;
+    }
+    const viewby = this.props.viewby;
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
 
     const colorSet = this.calcColorSet() || 'a'
     let label = t('Disaggregate by survey responses')
@@ -1139,7 +1184,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (viewby) {
       fields.forEach((f) => {
         if (viewby === f.name || viewby === f.$autoname) {
+<<<<<<< HEAD
           label = `${t('Disaggregated using:')} ${f.label[langIndex]}`
+=======
+          label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`;
+>>>>>>> e6e6b071c (further improvements to map types (WIP))
         }
       })
     } else if (this.state.noData && this.state.hasGeoPoint) {
@@ -1159,7 +1208,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           m={'expand'}
           onClick={this.toggleFullscreen.bind(this)}
           data-tip={t('Toggle Fullscreen')}
-          className={this.state.toggleFullscreen ? 'active' : ''}
+          className={this.state.isFullscreen ? 'active' : ''}
         >
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
@@ -1204,7 +1253,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
-            m={'above'}
+            // TODO: see if this is needed, as previously it was set to nonexisting prop:
+            additionalModifiers={['above']}
             clearPopover={this.state.clearDisaggregatedPopover}
             blurEventDisabled
           >
@@ -1335,8 +1385,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
                     <span
                       className={'map-marker-label'}
-                      onClick={this.filterByMarker.bind(this)}
-                      data-id={m.id}
+                      onClick={() => {
+                        this.filterByMarker(m.id)
+                      }}
                       title={markerLabel}
                     >
                       {markerLabel}
@@ -1362,8 +1413,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <Modal open onClose={this.toggleMapSettings} title={t('Map Settings')}>
             <MapSettings
               asset={this.props.asset}
-              toggleMapSettings={this.toggleMapSettings}
-              overrideStyles={this.overrideStyles}
+              toggleMapSettings={this.toggleMapSettings.bind(this)}
+              overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
             />
           </Modal>
