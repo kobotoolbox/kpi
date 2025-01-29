@@ -179,12 +179,11 @@ export default function MembersRoute() {
                     )}
                   </Text>
                   <Group w='100%' gap='xs'>
-                    {/*TODO: repalce with our TextInput component when it's merged*/}
                     <TextInput
                       flex={3}
                       placeholder={t('Enter username or email address')}
                     />
-                    <Select flex={2} />
+                    <Select flex={2} placeholder={'Role'} data={['Owner', 'Admin', 'Member']}/>
                   </Group>
                   <Group w='100%' justify='flex-end'>
                     <ButtonNew size='lg'>{t('Send invite')}</ButtonNew>
