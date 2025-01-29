@@ -498,7 +498,6 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_free_plan()
         product_metadata = {
             'product_type': 'addon',
-            'plan_type': 'enterprise',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
         limit = get_organization_plan_limit(self.organization, 'seconds')
@@ -512,7 +511,6 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         seconds_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
         product_metadata = {
             'product_type': 'addon',
-            'plan_type': 'enterprise',
             characters_key: 1234,
             seconds_key: 123,
         }
