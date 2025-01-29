@@ -16,6 +16,7 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import Icon from 'js/components/common/icon';
 import ProjectOwnershipTransferModalWithBanner from 'js/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner';
 import Button from 'js/components/common/button';
+import OrgInviteModalWrapper from 'js/account/organization/invites/OrgInviteModalWrapper';
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore';
@@ -136,6 +137,8 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
       <section className={styles.root}>
         <ProjectOwnershipTransferModalWithBanner />
+
+        <OrgInviteModalWrapper />
 
         <LimitNotifications useModal />
 
