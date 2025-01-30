@@ -11,8 +11,8 @@ export default function OrgInviteModalWrapper() {
   // Get values from URL params
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const inviteId = searchParams.get('organization-invite');
-  const orgId = searchParams.get('organization-id');
+  const inviteId = searchParams.get('organization_invite');
+  const orgId = searchParams.get('organization_id');
 
   // Avoid rendering anything if there is no invite in the URL
   if (!inviteId || !orgId) {
