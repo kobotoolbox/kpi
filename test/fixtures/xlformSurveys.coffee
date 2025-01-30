@@ -4,7 +4,7 @@ fixtures of surveys, wrapped in javascript objects.
 sample surveys for tests.)
 ###
 
-_ = require("underscore")
+import _ from "underscore"
 
 class SurveyFixture
   constructor: (@name)->
@@ -161,4 +161,4 @@ surveys.groups = do ->
 
   new SurveyFixture('groups').equiv(csv, xlf1, xlf2).main(xlf1)
 
-module.exports = surveys
+export default surveys

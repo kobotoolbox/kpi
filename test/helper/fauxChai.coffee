@@ -1,7 +1,7 @@
-chai = require('chai')
+import chai from 'chai'
 chaiExpect = chai.expect
 
-module.exports =
+export default
   chai: chaiExpect
   expect: (x)->
     toBe: (y)->

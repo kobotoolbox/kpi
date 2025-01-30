@@ -1,7 +1,7 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$inputParser = require("../../jsapp/xlform/src/model.inputParser")
-$survey = require("../../jsapp/xlform/src/model.survey")
+import $inputParser from "../../jsapp/xlform/src/model.inputParser"
+import $survey from "../../jsapp/xlform/src/model.survey"
 
 describe("translations", ->
   process = (src) ->

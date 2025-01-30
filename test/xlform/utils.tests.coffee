@@ -1,6 +1,6 @@
-{expect} = require('../helper/fauxChai')
-$utils = require("../../jsapp/xlform/src/model.utils")
-_ = require('underscore')
+import {expect} from '../helper/fauxChai'
+import $utils from "../../jsapp/xlform/src/model.utils"
+import _ from 'underscore'
 
 pasted = [
             ["list_name", "name", "label", "state", "county"],

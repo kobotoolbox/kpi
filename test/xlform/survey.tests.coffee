@@ -1,6 +1,6 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$model = require("../../jsapp/xlform/src/_model")
+import $model from "../../jsapp/xlform/src/_model"
 
 do ->
   surveys = {}

@@ -1,7 +1,7 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$inputDeserializer = require("../../jsapp/xlform/src/model.inputDeserializer")
-$surveys = require("../fixtures/xlformSurveys")
+import $inputDeserializer from "../../jsapp/xlform/src/model.inputDeserializer"
+import $surveys from "../fixtures/xlformSurveys"
 
 do ->
   deserialize = $inputDeserializer.deserialize

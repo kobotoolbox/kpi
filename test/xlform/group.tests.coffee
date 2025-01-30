@@ -1,10 +1,10 @@
-{expect} = require('../helper/fauxChai')
-_ = require("underscore")
+import {expect} from '../helper/fauxChai'
+import _ from "underscore"
 
-$aliases = require("../../jsapp/xlform/src/model.aliases")
-$survey = require("../../jsapp/xlform/src/model.survey")
-$configs = require("../../jsapp/xlform/src/model.configs")
-$surveys = require("../fixtures/xlformSurveys")
+import $aliases from "../../jsapp/xlform/src/model.aliases"
+import $survey from "../../jsapp/xlform/src/model.survey"
+import $configs from "../../jsapp/xlform/src/model.configs"
+import $surveys from "../fixtures/xlformSurveys"
 
 do ->
   describe 'rank.tests', ->

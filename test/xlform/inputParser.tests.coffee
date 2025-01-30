@@ -1,8 +1,8 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$inputParser = require("../../jsapp/xlform/src/model.inputParser")
-$choices = require("../../jsapp/xlform/src/model.choices")
-$surveys = require("../fixtures/xlformSurveys")
+import $inputParser from "../../jsapp/xlform/src/model.inputParser"
+import $choices from "../../jsapp/xlform/src/model.choices"
+import $surveys from "../fixtures/xlformSurveys"
 
 do ->
   describe '" $inputParser', ->

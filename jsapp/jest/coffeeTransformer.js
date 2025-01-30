@@ -1,5 +1,11 @@
-const coffeescript = require('coffeescript');
-const createCacheKeyFunction = require('@jest/create-cache-key-function').default;
+import coffeescript from 'coffeescript'
+import createCacheKeyFunction from '@jest/create-cache-key-function'
+const createCacheKey = createCacheKeyFunction.default // Note: weirdly it's exported as { default: [Function: createCacheKey] }
+
+console.log(import.meta.resolve('coffeescript'))
+console.log(new URL(import.meta.resolve('coffeescript'), import.meta.url).pathname)
+
+
 /**
  * @typedef {import('@jest/transform').SyncTransformer}   SyncTransformer
  * @typedef {import('@jest/transform').TransformedSource} TransformedSource
@@ -11,7 +17,7 @@ const createCacheKeyFunction = require('@jest/create-cache-key-function').defaul
  *
  * @implements { SyncTransformer }
  */
-module.exports = {
+export default {
   /**
    * Process coffee files
    *
@@ -27,6 +33,16 @@ module.exports = {
         // 📜 For source maps
         filename,
         sourceMap: true,
+        // TODO: transpile coffee script files correctly with ESM so that Jest likes it.
+        // See https://coffeescript.org/#transpilation
+        // See https://babeljs.io/docs/options#sourcetype
+        // See https://jestjs.io/docs/ecmascript-modules
+        transpile: {
+          sourceType: 'module',
+          targets: {
+            node: 20
+          }
+        },
 
         // 📦 Same default as coffee-loader
         bare: true,
@@ -38,7 +54,7 @@ module.exports = {
     };
   },
 
-  getCacheKey: createCacheKeyFunction(
-    [__filename, require.resolve('coffeescript')],
+  getCacheKey: createCacheKey(
+    [import.meta.filename, new URL(import.meta.resolve('coffeescript'), import.meta.url).pathname],
   ),
 };

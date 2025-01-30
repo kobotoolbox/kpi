@@ -37,6 +37,7 @@ const config: Config = {
     '^.+\\.(js|jsx|ts|tsx|es6)$': '@swc/jest',
     '^.+\\.coffee$': '<rootDir>/coffeeTransformer.js',
   },
+  extensionsToTreatAsEsm: ['.coffee'],
 
   // Exclude these files, even if they contain tests
   testPathIgnorePatterns: [

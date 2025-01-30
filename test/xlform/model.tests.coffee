@@ -1,7 +1,7 @@
-{expect} = require('../helper/fauxChai')
-_ = require('underscore')
+import {expect} from '../helper/fauxChai'
+import _ from 'underscore'
 
-$model = require("../../jsapp/xlform/src/_model")
+import $model from "../../jsapp/xlform/src/_model"
 
 xlform_survey_model = ($model)->
   beforeEach ->

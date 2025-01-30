@@ -3,10 +3,10 @@ painstakingly reverse-compiled from this file in dkobo:
 https://github.com/kobotoolbox/dkobo/blob/225ca1/dkobo/koboform/static/js/xlform/rowDetailsSkipLogic.model.rowDetails.skipLogic.coffee
 ###
 
-_ = require 'underscore'
-Backbone = require 'backbone'
-$utils = require './model.utils'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $utils from './model.utils'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
 
 rowDetailsSkipLogic = {}
 
@@ -258,4 +258,4 @@ class rowDetailsSkipLogic.DateResponseModel extends rowDetailsSkipLogic.Response
       value = "date('" + value + "')"
     @set('value', value, validate: true)
 
-module.exports = rowDetailsSkipLogic
+export default rowDetailsSkipLogic

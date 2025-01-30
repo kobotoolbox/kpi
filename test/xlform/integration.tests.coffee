@@ -1,8 +1,8 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$view = require("../../jsapp/xlform/src/_view")
-$model = require("../../jsapp/xlform/src/_model")
-$surveys = require("../fixtures/xlformSurveys")
+import $view from "../../jsapp/xlform/src/_view"
+import $model from "../../jsapp/xlform/src/_model"
+import $surveys from "../fixtures/xlformSurveys"
 
 # test end-to-end of the system
 do ->

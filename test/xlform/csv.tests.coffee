@@ -1,6 +1,7 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-csv = require("../../jsapp/xlform/src/csv")
+import csv from "../../jsapp/xlform/src/csv"
+import $inputDeserializer from "../../jsapp/xlform/src/model.inputDeserializer"
 
 do ->
   example2 = "\"regex_sheet\"\r\n\"\",\"col1\",\"regexcol\"\r\n\"\",\"row1\",\"regex( \\s+ )\"\r\n\"regex_sheet2\"\r\n\"\",\"s2col1\",\"example2\"\r\n\"\",\"s2row1\",\"\\s\\d\\w\\S\\D\\W\"\r\n"
@@ -52,7 +53,6 @@ do ->
       converted_to_string = csv(converted_to_objects).toString()
       expect(converted_to_string).toEqual(example)
 
-$inputDeserializer = require("../../jsapp/xlform/src/model.inputDeserializer")
 
 do ->
   deserialize = $inputDeserializer.deserialize

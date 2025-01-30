@@ -1,6 +1,6 @@
-do ->
-  $viewTemplates = require './view.templates'
-  $surveyApp = require './view.surveyApp'
+import $viewTemplates from './view.templates'
+import $surveyApp from './view.surveyApp'
 
+do ->
   surveyApp: $surveyApp
   viewTemplates: $viewTemplates

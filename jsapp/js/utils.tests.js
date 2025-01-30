@@ -7,7 +7,7 @@ import {
   generateAutoname,
   formatSeconds,
   join,
-} from 'utils';
+} from 'jsapp/js/utils';
 
 describe('utils', () => {
 
