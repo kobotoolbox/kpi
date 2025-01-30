@@ -2,9 +2,9 @@
  * This scripts generates icon font from our SVG icons to be used in the app.
  */
 
-const webfontsGenerator = require('@vusion/webfonts-generator');
-const replaceInFile = require('replace-in-file');
-const fs = require('fs');
+import webfontsGenerator from '@vusion/webfonts-generator';
+import replaceInFile from 'replace-in-file';
+import { readdirSync, renameSync, copyFileSync, writeFile } from 'fs';
 const sourceDir = 'jsapp/svg-icons/';
 const destDir = 'jsapp/fonts/';
 
@@ -18,7 +18,7 @@ console.warn(
 console.info('Reading files…');
 const files = [];
 const icons = [];
-fs.readdirSync(sourceDir).forEach((file) => {
+readdirSync(sourceDir).forEach((file) => {
   if (file.endsWith('.svg')) {
     files.push(`${sourceDir}${file}`);
     icons.push(file.replace('.svg', ''));
@@ -77,7 +77,7 @@ webfontsGenerator(
         ['eot', 'svg', 'ttf', 'woff', 'woff2'].forEach((ext) => {
           const oldName = `k-icons.${ext}`;
           const newName = `k-icons.${timestamp}.${ext}`;
-          fs.renameSync(`${destDir}${oldName}`, `${destDir}${newName}`);
+          renameSync(`${destDir}${oldName}`, `${destDir}${newName}`);
           replaceInFile.sync({
             files: [`${destDir}k-icons.css`],
             // Use additional "?" to differentiate woff and woff2
@@ -91,7 +91,7 @@ webfontsGenerator(
          * sadly doesn't work with a regular CSS file.
          */
         console.info('Copying k-icons.css to SCSS file…');
-        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`);
+        copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`);
 
         generateDefinitions(icons);
       } catch(e){
@@ -121,7 +121,7 @@ function generateDefinitions(iconsList) {
   const fileContent = `export type IconName = ${typeParts.join(' | ')}
 export enum IconNames {${enumParts.join(', ')}}`;
 
-  fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
+  writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
     if (err) {
       throw new Error('Fail!', err);
     }

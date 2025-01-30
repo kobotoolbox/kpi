@@ -1,13 +1,13 @@
-const BundleTracker = require('webpack-bundle-tracker');
-const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
-const fs = require('fs');
-const lodash = require('lodash');
-const path = require('path');
-const webpack = require('webpack');
+import BundleTracker from 'webpack-bundle-tracker';
+import ExtractTranslationKeysPlugin from 'webpack-extract-translation-keys-plugin';
+import { mkdirSync } from 'fs';
+import _ from 'lodash';
+import { resolve as _resolve, join } from 'path';
+import webpack from 'webpack';
 
-const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
+const outputPath = _resolve(import.meta.dirname, '..', 'jsapp', 'compiled');
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
-fs.mkdirSync(outputPath, {recursive: true});
+mkdirSync(outputPath, {recursive: true});
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -23,7 +23,7 @@ const postCssLoader = {
 };
 
 const swcLoader = {
-  loader: require.resolve('swc-loader'),
+  loader: 'swc-loader',
   options: {
     jsc: {
       transform: {
@@ -39,9 +39,12 @@ const commonOptions = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|es6)$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: [swcLoader],
+        resolve: {
+            fullySpecified: false,
+        },
       },
       {
         test: /\.(ts|tsx)$/,
@@ -51,6 +54,9 @@ const commonOptions = {
         use: !process.env.SKIP_TS_CHECK
           ? [swcLoader, 'ts-loader']
           : [swcLoader],
+        resolve: {
+            fullySpecified: false,
+        },
       },
       {
         test: /\.css$/,
@@ -96,12 +102,12 @@ const commonOptions = {
   resolve: {
     extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
-      app: path.join(__dirname, '../app'),
-      jsapp: path.join(__dirname, '../jsapp'),
-      js: path.join(__dirname, '../jsapp/js'),
-      scss: path.join(__dirname, '../jsapp/scss'),
-      utils: path.join(__dirname, '../jsapp/js/utils'),
-      test: path.join(__dirname, '../test'),
+      app: join(import.meta.dirname, '..', 'app'),
+      jsapp: join(import.meta.dirname, '..', 'jsapp'),
+      js: join(import.meta.dirname, '..', 'jsapp', 'js'),
+      scss: join(import.meta.dirname, '..', 'jsapp', 'scss'),
+      utils: join(import.meta.dirname, '..', 'jsapp', 'js', 'utils'),
+      test: join(import.meta.dirname, '..', 'test'),
     },
     // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423
     fallback: {
@@ -110,21 +116,21 @@ const commonOptions = {
     },
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
+    new BundleTracker({path: import.meta.dirname, filname: 'webpack-stats.json'}),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
-      output: path.join(outputPath, 'extracted-strings.json'),
+      output: join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({$: 'jquery'}),
   ],
 };
 
-module.exports = function (options) {
-  options = lodash.mergeWith(
+export default function (options) {
+  options = _.mergeWith(
     commonOptions,
     options || {},
     (objValue, srcValue) => {
-      if (lodash.isArray(objValue)) {
+      if (_.isArray(objValue)) {
         return objValue.concat(srcValue);
       }
     }

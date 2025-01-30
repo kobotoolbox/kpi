@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import {execSync} from 'child_process';
+
 
 // Select a helpful hint to be logged to the console.
 // Mainly for multi-line hints, to run before package.json scripts.
@@ -78,8 +80,7 @@ if (process.version !== ok_node) {
   // you do it.
   let detectedNpm = '?';
   try {
-    detectedNpm = require('child_process')
-      .execSync('npm --version')
+    detectedNpm = execSync('npm --version')
       .toString()
       .trim();
   } catch (error) {
