@@ -9,8 +9,8 @@ import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
 import MemberRoleSelector from './MemberRoleSelector';
 import ButtonNew from 'jsapp/js/components/common/ButtonNew';
-import {Divider, Group, Modal, Stack, Text, TextInput, Title, Box} from '@mantine/core';
-import {Select} from 'jsapp/js/components/common/Select';
+import {Divider, Group, Stack, Text, Title, Box} from '@mantine/core';
+import InviteModal from 'js/account/organization/InviteModal';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
@@ -31,12 +31,12 @@ export default function MembersRoute() {
   const [opened, {open, close}] = useDisclosure(false);
 
   if (!orgQuery.data) {
-    return (
-      <LoadingSpinner />
-    );
+    return <LoadingSpinner />;
   }
 
-  const isInviteOrgMembersEnabled = useFeatureFlag(FeatureFlag.inviteOrgMembers);
+  const isInviteOrgMembersEnabled = useFeatureFlag(
+    FeatureFlag.inviteOrgMembers
+  );
 
   const columns: Array<UniversalTableColumn<OrganizationMember>> = [
     {
@@ -71,7 +71,8 @@ export default function MembersRoute() {
       key: 'date_joined',
       label: t('Date added'),
       size: 140,
-      cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
+      cellFormatter: (member: OrganizationMember) =>
+        formatTime(member.date_joined),
     },
     {
       key: 'role',
@@ -150,50 +151,27 @@ export default function MembersRoute() {
       </header>
 
       {isInviteOrgMembersEnabled &&
-        <Box>
-          <Divider />
-          <Group w='100%' justify='space-between'>
-            <Stack gap='xs' pt='xs' pb='xs'>
-              <Title order={5}>{t('Invite members')}</Title>
-              <Text>
-                {t(
-                  'Invite more people to join your team or change their role permissions below.'
-                )}
-              </Text>
-            </Stack>
+        !(orgQuery.data.request_user_role === 'member') && (
+          <Box>
+            <Divider />
+            <Group w='100%' justify='space-between'>
+              <Stack gap='xs' pt='xs' pb='xs'>
+                <Title order={5}>{t('Invite members')}</Title>
+                <Text>
+                  {t('Invite more people to join your team or change their role permissions below.')}
+                </Text>
+              </Stack>
 
-            <Box>
-              <ButtonNew size='lg' onClick={open}>
-                {t('Invite members')}
-              </ButtonNew>
-              <Modal
-                opened={opened}
-                onClose={close}
-                title={t('Invite memebrs to your team')}
-              >
-                <Stack>
-                  <Text>
-                    {t(
-                      'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
-                    )}
-                  </Text>
-                  <Group w='100%' gap='xs'>
-                    <TextInput
-                      flex={3}
-                      placeholder={t('Enter username or email address')}
-                    />
-                    <Select flex={2} placeholder={'Role'} data={['Owner', 'Admin', 'Member']}/>
-                  </Group>
-                  <Group w='100%' justify='flex-end'>
-                    <ButtonNew size='lg'>{t('Send invite')}</ButtonNew>
-                  </Group>
-                </Stack>
-              </Modal>
-            </Box>
-          </Group>
-          <Divider mb='md' />
-        </Box>
-      }
+              <Box>
+                <ButtonNew size='lg' onClick={open}>
+                  {t('Invite members')}
+                </ButtonNew>
+                <InviteModal opened={opened} onClose={close} />
+              </Box>
+            </Group>
+            <Divider mb='md' />
+          </Box>
+        )}
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
