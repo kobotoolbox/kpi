@@ -36,13 +36,13 @@ export default function MembersRoute() {
       label: t('Name'),
       cellFormatter: (member: OrganizationMember) => (
         <Avatar
-          variant={member.invite?.status ? 'ghost' : 'default'}
+          isEmpty={!!member.invite?.status}
           size='m'
           username={member.user__username}
           isUsernameVisible
-          email={member.user__email}
+          email={!member.invite?.status ? member.user__email : undefined}
           // We pass `undefined` for the case it's an empty string
-          fullName={member.user__extra_details__name || undefined}
+          fullName={!member.invite?.status ? member.user__extra_details__name : undefined}
         />
       ),
       size: 360,

@@ -27,9 +27,8 @@ export default {
       description: 'Allows testing `email` being empty string or not existing',
     },
     email: {type: 'string', if: {arg: 'hasEmail', truthy: true}},
-    variant: {
-      options: ['default', 'ghost'],
-      control: {type: 'select'},
+    isEmpty: {
+      type: 'boolean',
     },
   },
 } as ComponentMeta<typeof Avatar>;

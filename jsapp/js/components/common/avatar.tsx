@@ -32,7 +32,7 @@ interface AvatarProps {
   isUsernameVisible?: boolean;
   fullName?: string;
   email?: string;
-  variant?: 'default' | 'ghost';
+  isEmpty?: boolean;
 }
 
 /**
@@ -45,11 +45,9 @@ export default function Avatar(props: AvatarProps) {
     props.fullName !== undefined ||
     props.email !== undefined;
 
-  const isGhost = props.variant === 'ghost';
-
   return (
     <div className={cx(styles.avatar, styles[`avatar-size-${props.size}`])}>
-      {isGhost ? (
+      {props.isEmpty ? (
         <div className={cx(styles.initials, styles.ghost)}>
           <svg width='100%' viewBox='0 0 24 24'>
             <circle cx='12' cy='12' r='11' />
@@ -70,7 +68,7 @@ export default function Avatar(props: AvatarProps) {
             [styles.hasFullName]: props.fullName !== undefined,
           })}
         >
-          {!isGhost && props.fullName !== undefined && (
+          {props.fullName !== undefined && (
             <span className={styles.fullName}>{props.fullName}</span>
           )}
 
@@ -79,7 +77,7 @@ export default function Avatar(props: AvatarProps) {
             <span className={styles.username}>{props.username}</span>
           )}
 
-          {!isGhost && props.email !== undefined && (
+          {props.email !== undefined && (
             <div className={styles.email}>{props.email}</div>
           )}
         </div>
