@@ -1,12 +1,12 @@
-$skipLogicHelpers = require './mv.skipLogicHelpers'
-$modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
-$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
-$modelUtils = require './model.utils'
-$validationLogicHelpers = require './mv.validationLogicHelpers'
-$modelRowDetailValidationLogic = require './model.rowDetail.validationLogic'
-$viewRowDetailValidationLogic = require './view.rowDetail.ValidationLogic'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
+import $modelRowDetailsSkipLogic from './model.rowDetails.skipLogic'
+import $viewRowDetailSkipLogic from './view.rowDetail.SkipLogic'
+import $modelUtils from './model.utils'
+import $validationLogicHelpers from './mv.validationLogicHelpers'
+import $modelRowDetailValidationLogic from './model.rowDetail.validationLogic'
+import $viewRowDetailValidationLogic from './view.rowDetail.ValidationLogic'
 
-module.exports = do ->
+export default do ->
   # To be extended ontop of a RowDetail when the key matches
   # the attribute in XLF.RowDetailMixin
   SkipLogicDetailMixin =

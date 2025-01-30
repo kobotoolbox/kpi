@@ -8,11 +8,11 @@ Details pulled from ODK documents / google docs. Notably this one:
   https://docs.google.com/spreadsheet/ccc?key=0AgpC5gsTSm_4dDRVOEprRkVuSFZUWTlvclJ6UFRvdFE#gid=0
 ###
 
-_ = require 'underscore'
-Backbone = require 'backbone'
-txtid = require('js/utils').txtid
+import _ from 'underscore'
+import Backbone from 'backbone'
+import {txtid} from 'js/utils'
 
-module.exports = do ->
+export default do ->
   configs = {}
   configs.defaultSurveyDetails =
     start_time:

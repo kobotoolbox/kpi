@@ -1,21 +1,21 @@
 global = @
 
-_ = require 'underscore'
-Backbone = require 'backbone'
-alertify = require 'alertifyjs'
-base = require './model.base'
-$configs = require './model.configs'
-$utils = require './model.utils'
-$surveyDetail = require './model.surveyDetail'
-$aliases = require './model.aliases'
-$rowDetail = require './model.rowDetail'
-$choices = require './model.choices'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
-readParameters = require('../../js/components/formBuilder/formBuilderUtils').readParameters
-writeParameters = require('../../js/components/formBuilder/formBuilderUtils').writeParameters
-txtid = require('js/utils').txtid
+import _ from 'underscore'
+import Backbone from 'backbone'
+import alertify from 'alertifyjs'
+import base from './model.base'
+import $configs from './model.configs'
+import $utils from './model.utils'
+import $surveyDetail from './model.surveyDetail'
+import $aliases from './model.aliases'
+import $rowDetail from './model.rowDetail'
+import $choices from './model.choices'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
+import {readParameters} from '../../js/components/formBuilder/formBuilderUtils'
+import {writeParameters} from '../../js/components/formBuilder/formBuilderUtils'
+import {txtid} from 'js/utils'
 
-module.exports = do ->
+export default do ->
   row = {}
 
   class row.BaseRow extends base.BaseModel

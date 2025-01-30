@@ -1,14 +1,14 @@
-_ = require 'underscore'
+import _ from 'underscore'
 
-choices_templates = require './view.choices.templates'
-accepted_files_templates = require './view.acceptedFiles.templates'
-params_templates = require './view.params.templates'
-row_templates = require './view.row.templates'
-rowDetail_templates = require './view.rowDetail.templates'
-rowSelector_templates = require './view.rowSelector.templates'
-surveyApp_templates = require './view.surveyApp.templates'
+import choices_templates from './view.choices.templates'
+import accepted_files_templates from './view.acceptedFiles.templates'
+import params_templates from './view.params.templates'
+import row_templates from './view.row.templates'
+import rowDetail_templates from './view.rowDetail.templates'
+import rowSelector_templates from './view.rowSelector.templates'
+import surveyApp_templates from './view.surveyApp.templates'
 
-module.exports = do ->
+export default do ->
   templates =
     choices: choices_templates
     params: params_templates

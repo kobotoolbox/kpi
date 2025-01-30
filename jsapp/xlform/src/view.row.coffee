@@ -1,35 +1,35 @@
-_ = require('underscore')
-Backbone = require('backbone')
-$configs = require('./model.configs')
-$rowSelector = require('./view.rowSelector')
-$row = require('./model.row')
-$modelUtils = require('./model.utils')
-$viewTemplates = require('./view.templates')
-$viewUtils = require('./view.utils')
-$viewChoices = require('./view.choices')
-$viewParams = require('./view.params')
-$viewMandatorySetting = require('./view.mandatorySetting')
-$acceptedFilesView = require('./view.acceptedFiles')
-$viewRowDetail = require('./view.rowDetail')
-renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
-getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
-isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
-isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
-isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
-getQuestionFeatures = require('js/components/locking/lockingUtils').getQuestionFeatures
-getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeatures
-LockingRestrictionName = require('js/components/locking/lockingConstants').LockingRestrictionName
-LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
-$icons = require('./view.icons')
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $configs from './model.configs'
+import $rowSelector from './view.rowSelector'
+import $row from './model.row'
+import $modelUtils from './model.utils'
+import $viewTemplates from './view.templates'
+import $viewUtils from './view.utils'
+import $viewChoices from './view.choices'
+import $viewParams from './view.params'
+import $viewMandatorySetting from './view.mandatorySetting'
+import $acceptedFilesView from './view.acceptedFiles'
+import $viewRowDetail from './view.rowDetail'
+import {renderKobomatrix} from 'js/formbuild/renderInBackbone'
+import {hasRowRestriction} from 'js/components/locking/lockingUtils'
+import {getRowLockingProfile} from 'js/components/locking/lockingUtils'
+import {isRowLocked} from 'js/components/locking/lockingUtils'
+import {isAssetLockable} from 'js/components/locking/lockingUtils'
+import {isAssetAllLocked} from 'js/components/locking/lockingUtils'
+import {getQuestionFeatures} from 'js/components/locking/lockingUtils'
+import {getGroupFeatures} from 'js/components/locking/lockingUtils'
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants'
+import {LOCKING_UI_CLASSNAMES} from 'js/components/locking/lockingConstants'
+import $icons from './view.icons'
 # TODO: port this and others from alertify.dialog to new modal system
 # https://github.com/kobotoolbox/kpi/issues/3977
-multiConfirm = require('js/alertify').multiConfirm
-alertify = require('alertifyjs')
-constants = require('js/constants')
-notify = require('js/utils').notify
+import {multiConfirm} from 'js/alertify'
+import alertify from 'alertifyjs'
+import constants from 'js/constants'
+import {notify} from 'js/utils'
 
-module.exports = do ->
+export default do ->
   class BaseRowView extends Backbone.View
     tagName: 'li'
     className: 'survey__row  xlf-row-view xlf-row-view--depr'

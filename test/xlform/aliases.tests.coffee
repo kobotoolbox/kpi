@@ -1,8 +1,7 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
+import $aliases from '../../jsapp/xlform/src/model.aliases'
 
-$aliases = require('../../jsapp/xlform/src/model.aliases')
-
-module.exports = do ->
+export default do ->
   expectSorted = (q)->
     unless q instanceof Array
       throw new Error("aliases.tests:expectSorted needs an array")

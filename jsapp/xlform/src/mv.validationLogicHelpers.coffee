@@ -1,7 +1,7 @@
-$validationLogicParser = require './model.validationLogicParser'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
+import $validationLogicParser from './model.validationLogicParser'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
 
-module.exports = do ->
+export default do ->
   validationLogicHelpers = {}
 
   class validationLogicHelpers.ValidationLogicHelperFactory extends $skipLogicHelpers.SkipLogicHelperFactory

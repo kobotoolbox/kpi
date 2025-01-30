@@ -1,18 +1,18 @@
-_ = require 'underscore'
-$base = require './model.base'
-$choices = require './model.choices'
-$modelUtils = require './model.utils'
-$configs = require './model.configs'
-$surveyFragment = require './model.surveyFragment'
-$surveyDetail = require './model.surveyDetail'
-$inputDeserializer = require './model.inputDeserializer'
-$inputParser = require './model.inputParser'
-$markdownTable = require './model.utils.markdownTable'
-csv = require './csv'
-LOCKING_PROFILES_PROP_NAME = require('js/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
-txtid = require('js/utils').txtid
+import _ from 'underscore'
+import $base from './model.base'
+import $choices from './model.choices'
+import $modelUtils from './model.utils'
+import $configs from './model.configs'
+import $surveyFragment from './model.surveyFragment'
+import $surveyDetail from './model.surveyDetail'
+import $inputDeserializer from './model.inputDeserializer'
+import $inputParser from './model.inputParser'
+import $markdownTable from './model.utils.markdownTable'
+import csv from './csv'
+import {LOCKING_PROFILES_PROP_NAME} from 'js/components/locking/lockingConstants'
+import {txtid} from 'js/utils'
 
-module.exports = do ->
+export default do ->
   class Survey extends $surveyFragment.SurveyFragment
     constructor: (options={}, addlOpts)->
       super()

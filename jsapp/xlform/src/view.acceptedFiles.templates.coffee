@@ -1,4 +1,4 @@
-module.exports = do ->
+export default do ->
 
   acceptedFilesInput = (value, placeholder) ->
     return """

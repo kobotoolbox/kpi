@@ -1,9 +1,9 @@
-_ = require 'underscore'
-$surveyApp = require './view.surveyApp'
-$viewUtils = require './view.utils'
-$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
+import _ from 'underscore'
+import $surveyApp from './view.surveyApp'
+import $viewUtils from './view.utils'
+import $viewRowDetailSkipLogic from './view.rowDetail.SkipLogic'
 
-module.exports = do ->
+export default do ->
   view = {}
 
   _.extend(view,

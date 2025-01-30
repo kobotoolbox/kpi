@@ -1,7 +1,7 @@
-_ = require 'underscore'
-Validator = require './view.utils.validator'
+import _ from 'underscore'
+import Validator from './view.utils.validator'
 
-module.exports = do ->
+export default do ->
   viewUtils = {}
   viewUtils.Validator = Validator
 

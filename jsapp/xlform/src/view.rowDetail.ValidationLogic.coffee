@@ -1,9 +1,9 @@
-_ = require 'underscore'
-$skipLogicView = require './view.rowDetail.SkipLogic'
-$viewWidgets = require './view.widgets'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
+import _ from 'underscore'
+import $skipLogicView from './view.rowDetail.SkipLogic'
+import $viewWidgets from './view.widgets'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
 
-module.exports = do ->
+export default do ->
   viewRowDetailValidationLogic = {}
   class viewRowDetailValidationLogic.ValidationLogicViewFactory extends $skipLogicView.SkipLogicViewFactory
     create_criterion_builder_view: () ->

@@ -1,11 +1,11 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-validation = require 'backbone-validation'
-$viewUtils = require './view.utils'
-$configs = require './model.configs'
-$rowDetailMixins = require './model.rowDetailMixins'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import validation from 'backbone-validation'
+import $viewUtils from './view.utils'
+import $configs from './model.configs'
+import $rowDetailMixins from './model.rowDetailMixins'
 
-module.exports = do ->
+export default do ->
   _.extend validation.validators, {
     invalidChars: (value, attr, customValue)->
       unless $viewUtils.Validator.__validators.invalidChars(value, customValue)

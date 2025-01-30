@@ -1,12 +1,12 @@
-{expect} = require('../helper/fauxChai')
+import {expect} from '../helper/fauxChai'
 
-$survey = require("../../jsapp/xlform/src/model.survey")
-$choices = require("../../jsapp/xlform/src/model.choices")
-_ = require "underscore"
-$surveyFixtures = require("../fixtures/xlformSurveys")
+import $survey from "../../jsapp/xlform/src/model.survey"
+import $choices from "../../jsapp/xlform/src/model.choices"
+import _ from "underscore"
+import $surveyFixtures from "../fixtures/xlformSurveys"
 window._ = _
 
-module.exports = do ->
+export default do ->
   describe 'model.choices', ->
     beforeEach ->
       @survey = $survey.Survey.load({

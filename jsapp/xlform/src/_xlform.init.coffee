@@ -32,11 +32,11 @@ DAMAGE.
 #   Used to create surveys that can be compiled to XForms using the python library: pyxform
 #   ###
 
-$model = require './_model'
-$view = require './_view'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
+import $model from './_model'
+import $view from './_view'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
 
-module.exports = do ->
+export default do ->
   XLF =
     model: $model
     view: $view

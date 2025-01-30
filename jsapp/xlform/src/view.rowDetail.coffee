@@ -1,15 +1,15 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$modelUtils = require './model.utils'
-$configs = require './model.configs'
-$viewUtils = require './view.utils'
-$icons = require './view.icons'
-$hxl = require './view.rowDetail.hxlDict'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $modelUtils from './model.utils'
+import $configs from './model.configs'
+import $viewUtils from './view.utils'
+import $icons from './view.icons'
+import $hxl from './view.rowDetail.hxlDict'
 
-$viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'
-$viewTemplates = require './view.templates'
+import $viewRowDetailSkipLogic from './view.rowDetail.SkipLogic'
+import $viewTemplates from './view.templates'
 
-module.exports = do ->
+export default do ->
   viewRowDetail = {}
 
   class viewRowDetail.DetailView extends Backbone.View

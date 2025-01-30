@@ -1,8 +1,8 @@
-_ = require 'underscore'
-$skipLogicParser = require './model.skipLogicParser'
-$validationLogicParser = require './model.validationLogicParser'
+import _ from 'underscore'
+import $skipLogicParser from './model.skipLogicParser'
+import $validationLogicParser from './model.validationLogicParser'
 
-module.exports = do ->
+export default do ->
 
   utils =
     skipLogicParser: $skipLogicParser

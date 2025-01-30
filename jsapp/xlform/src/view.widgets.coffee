@@ -1,7 +1,7 @@
-_ = require 'underscore'
-Backbone = require('backbone')
+import _ from 'underscore'
+import Backbone from 'backbone'
 
-module.exports = do ->
+export default do ->
   viewWidgets = {}
 
   class viewWidgets.Base extends Backbone.View

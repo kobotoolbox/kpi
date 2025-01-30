@@ -1,10 +1,10 @@
-_ = require 'underscore'
-cloneDeep = require('lodash.clonedeep')
-$aliases = require './model.aliases'
-$configs = require './model.configs'
-formBuilderUtils = require '../../js/components/formBuilder/formBuilderUtils'
+import _ from  'underscore'
+import cloneDeep from 'lodash.clonedeep'
+import $aliases from './model.aliases'
+import $configs from './model.configs'
+import {nullifyTranslations} from '../../js/components/formBuilder/formBuilderUtils'
 
-module.exports = do ->
+export default do ->
   inputParser = {}
 
   class ParsedStruct
@@ -112,7 +112,7 @@ module.exports = do ->
   inputParser.parse = (o, baseSurvey)->
     translations = o.translations
 
-    nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
+    nullified = nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
     # we edit the received object directly, which is totally a case of BAD CODE™
     # but in fact is a necessary part of the nullify hack

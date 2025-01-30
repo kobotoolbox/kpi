@@ -1,6 +1,6 @@
-_ = require 'underscore'
+import _ from 'underscore'
 
-module.exports = do ->
+export default do ->
   aliases_dict = {
     group: [
       "begin group"

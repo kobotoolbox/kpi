@@ -1,12 +1,12 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
-$viewWidgets = require './view.widgets'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $modelRowDetailsSkipLogic from './model.rowDetails.skipLogic'
+import $viewWidgets from './view.widgets'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
 
 PLACEHOLDER_VALUE = 'placeholderVal'
 
-module.exports = do ->
+export default do ->
   viewRowDetailSkipLogic = {}
 
   ###----------------------------------------------------------------------------------------------------------###

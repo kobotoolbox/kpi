@@ -1,8 +1,8 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$skipLogicParser = require './model.skipLogicParser'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $skipLogicParser from './model.skipLogicParser'
 
-module.exports = do ->
+export default do ->
   skipLogicHelpers = {}
 
   ###----------------------------------------------------------------------------------------------------------###

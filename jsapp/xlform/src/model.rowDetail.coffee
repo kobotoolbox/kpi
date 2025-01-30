@@ -1,4 +1,4 @@
-$base = require './model.base'
+import $base from './model.base'
 
-module.exports = do ->
+export default do ->
   RowDetail: $base.RowDetail

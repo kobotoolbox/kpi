@@ -1,4 +1,4 @@
-module.exports = do ->
+export default do ->
 
   addOptionButton = () ->
       """<div class="card__addoptions js-card-add-options">

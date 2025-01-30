@@ -1,11 +1,11 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$baseView = require './view.pluggedIn.backboneView'
-$viewTemplates = require './view.templates'
-$icons = require './view.icons'
-$configs = require './model.configs'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $baseView from './view.pluggedIn.backboneView'
+import $viewTemplates from './view.templates'
+import $icons from './view.icons'
+import $configs from './model.configs'
 
-module.exports = do ->
+export default do ->
   viewRowSelector = {}
 
   class viewRowSelector.RowSelector extends $baseView

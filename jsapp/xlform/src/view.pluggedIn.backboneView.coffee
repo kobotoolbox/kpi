@@ -4,11 +4,10 @@ have access to those plugins and a proper error message is
 displayed.
 ###
 
-Backbone = require 'backbone'
-@jQuery = $
-select2 = require 'select2'
+import Backbone from 'backbone'
+import select2 from 'select2'
 
-module.exports = do ->
+export default do ->
   missingPlugins = []
   errorMessageUnlessExists = (base, param, message)->
     unless base[param]

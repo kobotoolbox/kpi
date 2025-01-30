@@ -1,8 +1,8 @@
-Backbone = require 'backbone'
-$baseView = require './view.pluggedIn.backboneView'
-$viewTemplates = require './view.templates'
+import Backbone from 'backbone'
+import $baseView from './view.pluggedIn.backboneView'
+import $viewTemplates from './view.templates'
 
-module.exports = do ->
+export default do ->
   class AcceptedFilesView extends $baseView
     className: 'accepted-files card__settings__fields__field'
     events: {

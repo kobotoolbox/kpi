@@ -1,5 +1,6 @@
-module.exports = do ->
-  replaceSupportEmail = require('js/textUtils').replaceSupportEmail
+import {replaceSupportEmail} from 'js/textUtils'
+
+export default do ->
 
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">

@@ -1,6 +1,6 @@
-csv = require './csv'
+import csv from './csv'
 
-module.exports = do ->
+export default do ->
 
   markdownTable = {}
   ###

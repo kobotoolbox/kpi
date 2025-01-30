@@ -1,17 +1,16 @@
 
-_ = require 'underscore'
-Backbone = require 'backbone'
-$base = require './model.base'
-$row = require './model.row'
-$aliases = require './model.aliases'
-$utils = require './model.utils'
-$configs = require './model.configs'
-$surveyDetail = require './model.surveyDetail'
-$skipLogicHelpers = require './mv.skipLogicHelpers'
-txtid = require('js/utils').txtid
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $base from './model.base'
+import $row from './model.row'
+import $aliases from './model.aliases'
+import $utils from './model.utils'
+import $configs from './model.configs'
+import $surveyDetail from './model.surveyDetail'
+import $skipLogicHelpers from './mv.skipLogicHelpers'
+import {txtid} from 'js/utils'
 
-module.exports = do ->
-  _t = require("utils").t
+export default do ->
 
   surveyFragment = {}
 

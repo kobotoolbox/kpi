@@ -1,6 +1,6 @@
-$factory = require('./model.validationLogicParserFactory')
+import $factory from './model.validationLogicParserFactory'
 
-module.exports = do ->
+export default do ->
   equalityCriterionPattern = ///
       (\.)\s*                            # always a leading dot
       (!=|<=|>=|=|<|>)\s*                # operator (careful: if < is listed before <=, the = will be treated as part of the value)

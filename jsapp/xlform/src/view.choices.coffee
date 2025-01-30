@@ -1,12 +1,12 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$choices = require './model.choices'
-$modelUtils = require './model.utils'
-$baseView = require './view.pluggedIn.backboneView'
-$viewTemplates = require './view.templates'
-$viewUtils = require './view.utils'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $choices from './model.choices'
+import $modelUtils from './model.utils'
+import $baseView from './view.pluggedIn.backboneView'
+import $viewTemplates from './view.templates'
+import $viewUtils from './view.utils'
 
-module.exports = do ->
+export default do ->
   class ListView extends $baseView
     initialize: ({@rowView, @model})->
       @list = @model

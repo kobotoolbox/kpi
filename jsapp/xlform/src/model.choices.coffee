@@ -1,9 +1,9 @@
-_ = require 'underscore'
-base = require './model.base'
-$modelUtils = require './model.utils'
-txtid = require('js/utils').txtid
+import _ from 'underscore'
+import base from './model.base'
+import $modelUtils from './model.utils'
+import {txtid} from 'js/utils'
 
-module.exports = do ->
+export default do ->
 
   choices = {}
 

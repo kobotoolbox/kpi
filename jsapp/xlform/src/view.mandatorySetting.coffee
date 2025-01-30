@@ -1,10 +1,10 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$configs = require './model.configs'
-$baseView = require './view.pluggedIn.backboneView'
-$viewTemplates = require './view.templates'
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $configs from './model.configs'
+import $baseView from './view.pluggedIn.backboneView'
+import $viewTemplates from './view.templates'
 
-module.exports = do ->
+export default do ->
   class MandatorySettingView extends $baseView
     className: 'mandatory-setting'
     events: {

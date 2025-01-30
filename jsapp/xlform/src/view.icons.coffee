@@ -1,9 +1,8 @@
-_ = require('underscore')
-Backbone = require('backbone')
-constants = require('../../js/constants')
+import _ from 'underscore'
+import Backbone from 'backbone'
+import constants from '../../js/constants'
 
-module.exports = do ->
-  _t = require("utils").t
+export default do ->
 
   addIconToRow = (typeDef, group) ->
     iconDetails.push({

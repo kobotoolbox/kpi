@@ -1,4 +1,4 @@
-module.exports = do ->
+export default do ->
   numberParam = (label, currentValue, defaultValue) ->
     if typeof defaultValue isnt 'undefined'
       defaultValueAttr = "placeholder='#{defaultValue}'"

@@ -1,4 +1,4 @@
-$factory = require('./model.validationLogicParserFactory')
+import $factory from './model.validationLogicParserFactory'
 
 ### debug method for regexes
 err_if_unmatch = (re1, re2)->
@@ -10,7 +10,7 @@ log_equiv = (i1, i2, i3)->
   i1
 ###
 
-module.exports = do ->
+export default do ->
   equalityCriterionPattern = ///
       ^\${(\w+)}\s*                      # question reference in the format of ${name}
       (!=|<=|>=|=|<|>)\s*                # operator (careful: if < is listed before <=, the = will be treated as part of the value)

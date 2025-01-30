@@ -1,7 +1,7 @@
-Backbone = require 'backbone'
-$skipLogicModel = require './model.rowDetails.skipLogic'
+import Backbone from 'backbone'
+import $skipLogicModel from './model.rowDetails.skipLogic'
 
-module.exports = do ->
+export default do ->
   rowDetailValidationLogic = {}
   class rowDetailValidationLogic.ValidationLogicModelFactory extends $skipLogicModel.SkipLogicFactory
     create_operator: (type, symbol, id) ->

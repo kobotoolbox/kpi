@@ -1,6 +1,6 @@
-base = require './model.base'
+import base from './model.base'
 
-module.exports = do ->
+export default do ->
 
   # SurveyDetails (attached to a XLF.Survey instance) containing details such as
   #     start time, deviceid, (etc.)

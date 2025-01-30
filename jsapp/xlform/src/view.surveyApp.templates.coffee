@@ -1,4 +1,4 @@
-module.exports = do ->
+export default do ->
 
   surveyApp = (surveyApp) ->
       survey = surveyApp.survey

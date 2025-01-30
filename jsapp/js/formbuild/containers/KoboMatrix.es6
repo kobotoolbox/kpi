@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import { bemComponents } from 'js/libs/reactBemComponents';
-import {sluggify} from '../../../xlform/src/model.utils';
+import xlform from '../../../xlform/src/model.utils';
 import {txtid} from 'js/utils';
 import { Map } from 'immutable';
 import Select from 'react-select';
@@ -117,7 +117,7 @@ class KoboMatrix extends React.Component {
       });
     }
 
-    return sluggify(val, {
+    return xlform.sluggify(val, {
       preventDuplicates: names,
       lowerCase: true,
       lrstrip: true,

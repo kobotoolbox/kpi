@@ -1,19 +1,19 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$survey = require './model.survey'
-$modelUtils = require './model.utils'
-$viewTemplates = require './view.templates'
-$viewRowSelector = require './view.rowSelector'
-$rowView = require './view.row'
-$baseView = require './view.pluggedIn.backboneView'
-$viewUtils = require './view.utils'
-alertify = require 'alertifyjs'
-isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
-hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
-LockingRestrictionName = require('js/components/locking/lockingConstants').LockingRestrictionName
-LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
+import _ from 'underscore'
+import Backbone from 'backbone'
+import $survey from './model.survey'
+import $modelUtils from './model.utils'
+import $viewTemplates from './view.templates'
+import $viewRowSelector from './view.rowSelector'
+import $rowView from './view.row'
+import $baseView from './view.pluggedIn.backboneView'
+import $viewUtils from './view.utils'
+import alertify from 'alertifyjs'
+import {isAssetLockable} from 'js/components/locking/lockingUtils'
+import {hasAssetRestriction} from 'js/components/locking/lockingUtils'
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants'
+import {LOCKING_UI_CLASSNAMES} from 'js/components/locking/lockingConstants'
 
-module.exports = do ->
+export default do ->
   surveyApp = {}
 
   _notifyIfRowsOutOfOrder = do ->

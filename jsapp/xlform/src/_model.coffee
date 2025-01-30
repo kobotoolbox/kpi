@@ -2,14 +2,14 @@
 dkobo_xlform.model[...]
 ###
 
-_ = require 'underscore'
-$survey = require './model.survey'
-$utils = require './model.utils'
-$row = require './model.row'
-$rowDetailsSkipLogic = require './model.rowDetails.skipLogic'
-$configs = require './model.configs'
+import _ from 'underscore'
+import $survey from './model.survey'
+import $utils from './model.utils'
+import $row from './model.row'
+import $rowDetailsSkipLogic from './model.rowDetails.skipLogic'
+import $configs from './model.configs'
 
-module.exports = do ->
+export default do ->
 
   model = {}
 

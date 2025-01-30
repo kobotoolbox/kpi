@@ -4,11 +4,11 @@
 # ______________________________________________________________________
 ###
 
-_ = require 'underscore'
-csv = require './csv'
-$aliases = require './model.aliases'
+import _ from 'underscore'
+import csv from './csv'
+import $aliases from './model.aliases'
 
-module.exports = do ->
+export default do ->
   inputDeserializer = (inp, ctx={})->
     r = deserialize inp, ctx
     if not ctx.error and ctx.validate

@@ -1,4 +1,4 @@
-module.exports = do ->
+export default do ->
   (that) ->
     """
     <code>#{that.model.key}:</code>
