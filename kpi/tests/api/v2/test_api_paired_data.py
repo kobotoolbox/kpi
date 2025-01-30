@@ -1,16 +1,15 @@
-# coding: utf-8
 import unittest
-from django.contrib.auth.models import User
+
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
-from hub.models import ExtraUserDetail
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
@@ -38,7 +37,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                     {
                         'name': 'group_restaurant',
                         'type': 'begin_group',
-                        "label": "Restaurant"
+                        'label': 'Restaurant',
                     },
                     {
                         'name': 'favourite_restaurant',
@@ -97,9 +96,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
         if not source_url:
             source_url = self.source_asset_detail_url
 
-        response = self.client.patch(source_url,
-                                     data=payload,
-                                     format='json')
+        response = self.client.patch(source_url, data=payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         return response
 
@@ -376,8 +373,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # collectors need to have 'add_submission' permission to view the paired
         # data.
         self.client.logout()
-        self.anotheruser.extra_details.data['require_auth'] = True
-        self.anotheruser.extra_details.save()
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -391,19 +386,9 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         # When owner's destination asset does not require any authentications,
         # everybody can see their data
         self.client.logout()
-        response = self.client.get(self.external_xml_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_get_external_from_owner_with_extra_detail(self):
-        self.deploy_source()
-        # When owner's destination asset does not require any authentications,
-        # everybody can see their data
-        self.client.logout()
-
-        # Remove owner's extra detail
-        ExtraUserDetail.objects.filter(user=self.anotheruser).delete()
-        self.anotheruser.refresh_from_db()
-
+        xform = self.destination_asset.deployment.xform
+        xform.require_auth = False
+        xform.save(update_fields=['require_auth'])
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

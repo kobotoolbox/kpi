@@ -1,5 +1,4 @@
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 /*
 Note: these styles include bunch of overrides, because we have these horrible
@@ -8,9 +7,9 @@ placese. As soon as these are removed, we can simplify this file.
 */
 
 .react-tagsinput {
-  border: sizes.$x1 solid colors.$kobo-gray-92;
-  border-radius: sizes.$x8;
-  padding: sizes.$x8 sizes.$x8 sizes.$x4;
+  border: 1px solid colors.$kobo-gray-300;
+  border-radius: 8px;
+  padding: 8px 8px 4px;
 
   // Instead of indicating focus by default way (i.e. the input element being
   // highlighted), we highlight the wrapper.
@@ -21,30 +20,30 @@ placese. As soon as these are removed, we can simplify this file.
   &.react-tagsinput-invalid {
     .react-tagsinput-input {
       color: colors.$kobo-red;
-      border-bottom-color: colors.$kobo-red;
+      border-bottom-color: colors.$kobo-mid-red;
     }
   }
 }
 
 .react-tagsinput-tag {
-  background-color: colors.$kobo-gray-40;
-  color: colors.$kobo-white;
+  color: colors.$kobo-gray-800;
+  background-color: colors.$kobo-gray-300;
   font-weight: 400;
-  margin-bottom: sizes.$x4;
-  margin-right: sizes.$x4;
-  padding: sizes.$x4 sizes.$x8 sizes.$x4 sizes.$x10;
+  margin-bottom: 4px;
+  margin-right: 4px;
+  padding: 4px 8px 4px 10px;
   display: inline-block;
-  border-radius: sizes.$x4;
+  border-radius: 4px;
 }
 
 /* a.k-tagsinput-remove */
 .react-tagsinput-remove {
   cursor: pointer;
-  color: colors.$kobo-white !important;
+  color: inherit !important;
   opacity: 0.6;
-  margin-left: sizes.$x6;
+  margin-inline-start: 6px;
   vertical-align: middle;
-  font-size: sizes.$x20;
+  font-size: 20px;
 
   &::after {
     content: '\00D7';
@@ -59,18 +58,18 @@ placese. As soon as these are removed, we can simplify this file.
 .react-tagsinput input[type].react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   font-family: sans-serif;
   font-weight: 400;
-  margin-top: sizes.$x2;
-  margin-bottom: sizes.$x4;
-  margin-left: sizes.$x4;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  margin-left: 4px;
   outline: none;
   padding: 0;
   min-width: 90px;
 
   &::placeholder {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
     opacity: 1;
   }
 

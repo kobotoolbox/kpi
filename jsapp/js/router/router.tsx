@@ -6,27 +6,27 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 import App from 'js/app';
-import {ROUTES} from './routerConstants';
+import {ROUTES, PROJECTS_ROUTES} from './routerConstants';
 import accountRoutes from 'js/account/routes';
-import projectsRoutes, {PROJECTS_ROUTES} from 'js/projects/routes';
+import projectsRoutes from 'js/projects/routes';
 import RequireAuth from './requireAuth';
 import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
+import processingRoutes from 'js/components/processing/routes';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
-import {PERMISSIONS_CODENAMES} from '../constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {injectRouter} from './legacy';
 
 const Reports = React.lazy(
   () => import(/* webpackPrefetch: true */ 'js/components/reports/reports')
 );
 const FormLanding = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/formLanding')
+  () => import(/* webpackPrefetch: true */ 'js/components/formLanding/formLanding')
 );
 const FormSummary = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/formSummary')
+  () => import(/* webpackPrefetch: true */ 'js/components/formSummary/formSummary')
 );
 const FormSubScreens = React.lazy(
   () => import(/* webpackPrefetch: true */ 'js/components/formSubScreens')
@@ -52,7 +52,7 @@ export const router = createHashRouter(
         element={<Navigate to={ROUTES.FORMS} replace />}
       />
       <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
-      <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
+      {projectsRoutes()}
       <Route path={ROUTES.LIBRARY}>
         <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />
         <Route
@@ -210,15 +210,7 @@ export const router = createHashRouter(
                 />
               }
             />
-            <Route
-              path={ROUTES.FORM_PROCESSING}
-              element={
-                <PermProtectedRoute
-                  requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  protectedComponent={SingleProcessingRoute}
-                />
-              }
-            />
+            <Route path={ROUTES.FORM_PROCESSING_ROOT}>{processingRoutes()}</Route>
           </Route>
 
           <Route path={ROUTES.FORM_SETTINGS}>
@@ -276,6 +268,16 @@ export const router = createHashRouter(
             />
             <Route
               path={ROUTES.FORM_REST_HOOK}
+              element={
+                <PermProtectedRoute
+                  protectedComponent={FormSubScreens}
+                  requiredPermissions={[PERMISSIONS_CODENAMES.manage_asset]}
+                />
+              }
+            />
+
+            <Route
+              path={ROUTES.FORM_ACTIVITY}
               element={
                 <PermProtectedRoute
                   protectedComponent={FormSubScreens}

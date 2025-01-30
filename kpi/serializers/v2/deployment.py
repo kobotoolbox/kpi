@@ -1,13 +1,15 @@
-# coding: utf-8
 from django.conf import settings
+from pyxform.errors import PyXFormError
+from pyxform.validators.enketo_validate import EnketoValidateError
+from pyxform.validators.odk_validate import ODKValidateError
 from rest_framework import serializers
+from xlsxwriter.exceptions import DuplicateWorksheetName
 
 from .asset import AssetSerializer
 
 
 class DeploymentSerializer(serializers.Serializer):
     backend = serializers.CharField(required=False)
-    identifier = serializers.CharField(read_only=True)
     active = serializers.BooleanField(required=False)
     version_id = serializers.CharField(required=False)
     asset = serializers.SerializerMethodField()
@@ -16,8 +18,9 @@ class DeploymentSerializer(serializers.Serializer):
     def _raise_unless_current_version(asset, validated_data):
         # Stop if the requester attempts to deploy any version of the asset
         # except the current one
-        if 'version_id' in validated_data and \
-                validated_data['version_id'] != str(asset.version_id):
+        if 'version_id' in validated_data and validated_data[
+            'version_id'
+        ] != str(asset.version_id):
             raise NotImplementedError(
                 'Only the current version_id can be deployed')
 
@@ -29,13 +32,19 @@ class DeploymentSerializer(serializers.Serializer):
         asset = self.context['asset']
         self._raise_unless_current_version(asset, validated_data)
         # if no backend is provided, use the installation's default backend
-        backend_id = validated_data.get('backend',
-                                        settings.DEFAULT_DEPLOYMENT_BACKEND)
+        backend_id = validated_data.get('backend', settings.DEFAULT_DEPLOYMENT_BACKEND)
 
-        # asset.deploy deploys the latest version and updates that versions'
+        # `asset.deploy()` deploys the latest version and updates that versions'
         # 'deployed' boolean value
-        asset.deploy(backend=backend_id,
-                     active=validated_data.get('active', False))
+        try:
+            asset.deploy(backend=backend_id, active=validated_data.get('active', False))
+        except (
+            DuplicateWorksheetName,
+            EnketoValidateError,
+            PyXFormError,
+            ODKValidateError,
+        ) as e:
+            raise serializers.ValidationError({'error': str(e)})
         return asset.deployment
 
     def update(self, instance, validated_data):

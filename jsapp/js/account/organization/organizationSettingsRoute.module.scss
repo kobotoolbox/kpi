@@ -1,0 +1,59 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'js/components/common/textBox.module';
+
+$s-field-width: 285px;
+
+.orgSettingsRoot {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+header.orgSettingsHeader {
+  @include mixins.centerRowFlex;
+  margin: 24px 0;
+
+  &:not(:first-child) {
+    margin-top: 44px;
+  }
+}
+
+h2.orgSettingsHeaderText {
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 700;
+  flex: 1;
+  margin: 0;
+}
+
+.fieldsRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  &:not(:first-child) {
+    margin-top: 16px;
+  }
+}
+
+.field {
+  max-width: $s-field-width;
+  width: 100%;
+}
+
+.fieldLong {
+  // When we display two fields in one row, and long field in other, we want
+  // them to align nicely, thus:
+  max-width: $s-field-width + 16px + $s-field-width;
+  width: 100%;
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .orgSettingsRoot {
+    padding: 50px;
+  }
+}

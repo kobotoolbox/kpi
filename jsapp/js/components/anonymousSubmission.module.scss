@@ -1,0 +1,11 @@
+@use 'scss/colors';
+
+.root {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+}
+
+.root > *:not(:last-child) {
+  margin-right: 8px;
+}

@@ -22,13 +22,26 @@ const postCssLoader = {
   },
 };
 
+const swcLoader = {
+  loader: require.resolve('swc-loader'),
+  options: {
+    jsc: {
+      transform: {
+        react: {
+          refresh: true
+        }
+      }
+    }
+  }
+}
+
 const commonOptions = {
   module: {
     rules: [
       {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
-        use: ['swc-loader'],
+        use: [swcLoader],
       },
       {
         test: /\.(ts|tsx)$/,
@@ -36,8 +49,8 @@ const commonOptions = {
         // Find TypeScript errors on CI and local builds
         // Allow skipping to save resources.
         use: !process.env.SKIP_TS_CHECK
-          ? ['swc-loader', 'ts-loader']
-          : ['swc-loader'],
+          ? [swcLoader, 'ts-loader']
+          : [swcLoader],
       },
       {
         test: /\.css$/,
@@ -89,6 +102,11 @@ const commonOptions = {
       scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
+    },
+    // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
     },
   },
   plugins: [

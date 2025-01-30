@@ -1,14 +1,11 @@
-import type {
-  LabelValuePair,
-  TransxLanguages,
-  FailResponse,
-} from 'js/dataInterface';
+import type {LabelValuePair, TransxLanguages} from 'js/dataInterface';
 import {makeAutoObservable} from 'mobx';
-import {fetchGet, handleApiFail} from 'js/api';
+import {fetchGet} from 'js/api';
+import type {UserFieldName} from './account/account.constants';
 
 const ENV_ENDPOINT = '/environment/';
 
-interface EnvironmentResponse {
+export interface EnvironmentResponse {
   mfa_has_availability_list: boolean;
   terms_of_service_url: string;
   privacy_policy_url: string;
@@ -16,8 +13,9 @@ interface EnvironmentResponse {
   support_email: string;
   support_url: string;
   community_url: string;
+  academy_url: string;
   project_metadata_fields: EnvStoreFieldItem[];
-  user_metadata_fields: EnvStoreFieldItem[];
+  user_metadata_fields: UserMetadataField[];
   sector_choices: string[][];
   operational_purpose_choices: string[][];
   country_choices: string[][];
@@ -25,6 +23,7 @@ interface EnvironmentResponse {
   transcription_languages: TransxLanguages;
   translation_languages: TransxLanguages;
   submission_placeholder: string;
+  use_team_label: boolean;
   frontend_min_retry_time: number;
   frontend_max_retry_time: number;
   asr_mt_features_enabled: boolean;
@@ -39,6 +38,14 @@ interface EnvironmentResponse {
   enable_custom_password_guidance_text: boolean;
   custom_password_localized_help_text: string;
   enable_password_entropy_meter: boolean;
+  /**
+   * Whether the TOS message is defined. This causes the whole TOS Screen checks
+   * to be put into motion; i.e. when this is `false` we don't bother to check
+   * if we should display TOS Screen to user :)
+   */
+  terms_of_service__sitewidemessage__exists: boolean;
+  open_rosa_server: string;
+  project_history_log_lifespan: number;
 }
 
 /*
@@ -50,6 +57,12 @@ interface EnvironmentResponse {
  * JustWorks™ given our frontend architecture.
  */
 
+export interface UserMetadataField {
+  name: UserFieldName;
+  required: boolean;
+  label: string;
+}
+
 export interface EnvStoreFieldItem {
   name: string;
   required: boolean;
@@ -59,6 +72,7 @@ export interface EnvStoreFieldItem {
 export interface SocialApp {
   name: string;
   provider: string;
+  provider_id: string;
   client_id: string;
 }
 
@@ -81,17 +95,18 @@ type ProjectMetadataFieldKey =
   | 'operational_purpose'
   | 'collects_pii';
 
-class EnvStoreData {
+export class EnvStoreData {
   public terms_of_service_url = '';
   public privacy_policy_url = '';
   public source_code_url = '';
   public support_email = '';
   public support_url = '';
   public community_url = '';
+  public academy_url = '';
   public min_retry_time = 4; // seconds
   public max_retry_time: number = 4 * 60; // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = [];
-  public user_metadata_fields: EnvStoreFieldItem[] = [];
+  public user_metadata_fields: UserMetadataField[] = [];
   public sector_choices: LabelValuePair[] = [];
   public operational_purpose_choices: LabelValuePair[] = [];
   public country_choices: LabelValuePair[] = [];
@@ -99,6 +114,7 @@ class EnvStoreData {
   public transcription_languages: TransxLanguages = {};
   public translation_languages: TransxLanguages = {};
   public submission_placeholder = '';
+  public use_team_label = true;
   public asr_mt_features_enabled = false;
   public mfa_localized_help_text = '';
   public mfa_enabled = false;
@@ -117,6 +133,8 @@ class EnvStoreData {
   public enable_custom_password_guidance_text = false;
   public custom_password_localized_help_text = '';
   public enable_password_entropy_meter = false;
+  public terms_of_service__sitewidemessage__exists = false;
+  public open_rosa_server = '';
 
   getProjectMetadataField(
     fieldName: ProjectMetadataFieldKey
@@ -142,11 +160,21 @@ class EnvStoreData {
 
   public getUserMetadataFieldsAsSimpleDict() {
     // dict[name] => {name, required, label}
-    const dict: {[fieldName: string]: EnvStoreFieldItem} = {};
+    const dict: {[fieldName: string]: UserMetadataField} = {};
     for (const field of this.user_metadata_fields) {
       dict[field.name] = field;
     }
     return dict;
+  }
+
+  public getUserMetadataRequiredFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields
+      .filter((item) => item.required)
+      .map((item) => item.name);
+  }
+
+  public getUserMetadataFieldNames(): UserFieldName[] {
+    return this.user_metadata_fields.map((item) => item.name);
   }
 }
 
@@ -184,11 +212,13 @@ class EnvStore {
     this.data.support_email = response.support_email;
     this.data.support_url = response.support_url;
     this.data.community_url = response.community_url;
+    this.data.academy_url = response.academy_url;
     this.data.min_retry_time = response.frontend_min_retry_time;
     this.data.max_retry_time = response.frontend_max_retry_time;
     this.data.project_metadata_fields = response.project_metadata_fields;
     this.data.user_metadata_fields = response.user_metadata_fields;
     this.data.submission_placeholder = response.submission_placeholder;
+    this.data.use_team_label = response.use_team_label;
     this.data.mfa_localized_help_text = response.mfa_localized_help_text;
     this.data.mfa_enabled = response.mfa_enabled;
     this.data.mfa_per_user_availability = response.mfa_per_user_availability;
@@ -198,6 +228,7 @@ class EnvStore {
     this.data.social_apps = response.social_apps;
     this.data.free_tier_thresholds = response.free_tier_thresholds;
     this.data.free_tier_display = response.free_tier_display;
+    this.data.open_rosa_server = response.open_rosa_server;
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(
@@ -227,6 +258,9 @@ class EnvStore {
       response.custom_password_localized_help_text;
     this.data.enable_password_entropy_meter =
       response.enable_password_entropy_meter;
+
+    this.data.terms_of_service__sitewidemessage__exists =
+      response.terms_of_service__sitewidemessage__exists;
 
     this.isReady = true;
   }

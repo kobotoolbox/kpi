@@ -1,0 +1,62 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+.root {
+	position: relative;
+}
+
+.wrapper {
+	position: relative;
+}
+
+.dialog {
+  max-width: 30rem;
+  position: absolute;
+  border-radius: 4px;
+  padding: 12px;
+  color: colors.$kobo-white;
+  background: colors.$kobo-dark-blue;
+  z-index: 1100; // 1 index lower than a modal
+}
+
+.pointer {
+  content: " ";
+  border: solid transparent;
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-width: 6px;
+  margin-left: -(6px);
+  bottom: 100%;
+  border-bottom-color: colors.$kobo-dark-blue;
+}
+
+.header {
+  color: colors.$kobo-white;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  align-items: center;
+
+  .k-button :hover {
+    background-color: transparent;
+  }
+}
+
+.support {
+  padding-top: 8px;
+  margin: 0;
+  color: lighten(colors.$kobo-blue, 20%);
+  text-decoration: underline;
+}
+
+.closeButton {
+  @include mixins.buttonReset;
+  color: colors.$kobo-white;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

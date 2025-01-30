@@ -1,22 +1,21 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
+@use 'scss/colors';
 @use 'scss/mixins';
 
 .root {
   background-color: colors.$kobo-white;
-  padding: sizes.$x30;
+  padding: 30px;
 }
 
 .periodSwitcher {
   @include mixins.centerRowFlex;
-  gap: sizes.$x10;
-  margin-bottom: sizes.$x20;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .periodToggle {
   @include mixins.buttonReset;
-  padding: sizes.$x8;
-  border-radius: sizes.$x6;
+  padding: 8px;
+  border-radius: 6px;
   background-color: colors.$kobo-white;
 
   &[disabled] {
@@ -31,22 +30,22 @@
   &::after {
     width: 0;
     height: 0;
-    border-left: sizes.$x10 solid transparent;
-    border-right: sizes.$x10 solid transparent;
-    border-top: sizes.$x10 solid colors.$kobo-light-teal;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid colors.$kobo-light-teal;
     content: '';
     position: absolute;
-    bottom: -1 * sizes.$x10;
+    bottom: -1 * 10px;
     left: 50%;
-    margin-left: -1 * sizes.$x10;
+    margin-left: -1 * 10px;
   }
 }
 
 .graph {
   @include mixins.centerRowFlex;
   position: relative;
-  min-height: sizes.$x150;
-  margin-bottom: sizes.$x20;
+  min-height: 150px;
+  margin-bottom: 20px;
 }
 
 .graph:not(.graphVisible) canvas {
@@ -68,23 +67,23 @@
 
 .statsWrapper {
   @include mixins.centerRowFlex;
-  gap: sizes.$x10;
+  gap: 10px;
 }
 
 .stats {
   flex: 1;
-  border: sizes.$x1 solid colors.$kobo-gray-92;
-  padding: sizes.$x20;
+  border: 1px solid colors.$kobo-gray-300;
+  padding: 20px;
 }
 
 .statsCount {
   display: block;
-  font-size: sizes.$x32;
+  font-size: 32px;
   font-weight: 600;
   color: colors.$kobo-teal;
 }
 
 .statsDateRange {
   display: block;
-  margin-top: sizes.$x8;
+  margin-top: 8px;
 }

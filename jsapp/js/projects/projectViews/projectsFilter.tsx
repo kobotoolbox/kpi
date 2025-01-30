@@ -1,12 +1,21 @@
+// Libraries
 import React, {useState} from 'react';
-import classNames from 'classnames';
+import cx from 'classnames';
 import clonedeep from 'lodash.clonedeep';
+
+// Partial components
 import Button from 'js/components/common/button';
 import KoboModal from 'js/components/modals/koboModal';
 import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import type {ProjectFieldName, ProjectsFilterDefinition} from './constants';
 import ProjectsFilterEditor from './projectsFilterEditor';
+
+// Utilities
 import {removeIncorrectFilters} from './utils';
+
+// Constants and types
+import type {ProjectFieldName, ProjectsFilterDefinition} from './constants';
+
+// Styles
 import styles from './projectsFilter.module.scss';
 
 // If there are "many" filters being displayed, we want the modal content to be
@@ -25,6 +34,11 @@ interface ProjectsFilterProps {
   excludedFields?: ProjectFieldName[];
 }
 
+/**
+ * This module displays a button for opening a modal with a list of filters.
+ * Each filter is being rendered and modified by a separate
+ * `ProjectsFilterEditor` component.
+ */
 export default function ProjectsFilter(props: ProjectsFilterProps) {
   const getInitialFilters = () => {
     if (props.filters.length === 0) {
@@ -79,33 +93,26 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
   return (
     <div className={styles.root}>
-      {/* Trigger button */}
-      {props.filters.length === 0 && (
-        <Button
-          type='bare'
-          size='s'
-          color='storm'
-          onClick={toggleModal}
-          startIcon='filter'
-          label={t('filter')}
-        />
-      )}
-      {/* With any filters active, we want to highlight the button - the same
-      color will be used for all columns that filters apply to. */}
-      {props.filters.length >= 1 && (
-        <Button
-          type='full'
-          size='s'
-          color='light-blue'
-          onClick={toggleModal}
-          startIcon='filter'
-          label={
-            <span>
-              {t('filter')} <strong>{props.filters.length}</strong>
-            </span>
-          }
-        />
-      )}
+      <Button
+        type='text'
+        size='s'
+        onClick={toggleModal}
+        startIcon='filter'
+        label={(
+          <span>
+            {t('filter')}
+            {props.filters.length >= 1 &&
+              <>
+                &nbsp;
+                <strong>{props.filters.length}</strong>
+              </>
+            }
+          </span>
+        )}
+        // With any filters active, we want to highlight the button - the same
+        // color will be used for all columns that filters apply to.
+        className={cx({[styles.buttonHasFilters]: props.filters.length >= 1})}
+      />
 
       <KoboModal isOpen={isModalOpen} onRequestClose={toggleModal} size='large'>
         <KoboModalHeader
@@ -117,7 +124,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
         </KoboModalHeader>
 
         <section
-          className={classNames({
+          className={cx({
             [styles.content]: true,
             [styles.hasManyFilters]: filters.length >= MANY_FILTERS_AMOUNT,
           })}
@@ -145,8 +152,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
 
         <footer className={styles.footer}>
           <Button
-            type='bare'
-            color='blue'
+            type='secondary'
             size='m'
             onClick={addFilter}
             startIcon='plus'
@@ -154,16 +160,14 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
           />
 
           <Button
-            type='frame'
-            color='storm'
+            type='secondary-danger'
             size='m'
             onClick={resetFilters}
             label={t('Reset')}
           />
 
           <Button
-            type='frame'
-            color='blue'
+            type='primary'
             size='m'
             onClick={applyFilters}
             label={t('Apply')}

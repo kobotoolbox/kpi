@@ -1,14 +1,15 @@
 import Reflux from 'reflux';
-import {PermissionDefinition} from 'js/dataInterface'
+import type {PermissionDefinition} from 'js/dataInterface';
+import type {PermissionCodename} from './permConstants';
 
 class PermConfigStore extends Reflux.Store {
-  permissions: PermissionDefinition[] = []
+  permissions: PermissionDefinition[] = [];
 
   public setPermissions(permissions: PermissionDefinition[]) {
     this.permissions = permissions;
   }
 
-  public getPermissionByCodename(wantedCodename: string) {
+  public getPermissionByCodename(wantedCodename: PermissionCodename) {
     this.verifyReady();
     return this.permissions.find((perm) => perm.codename === wantedCodename);
   }
@@ -24,7 +25,9 @@ class PermConfigStore extends Reflux.Store {
    */
   private verifyReady() {
     if (!this.isReady()) {
-      throw new Error('Permission config is not ready or failed to initialize!');
+      throw new Error(
+        'Permission config is not ready or failed to initialize!'
+      );
     }
   }
 

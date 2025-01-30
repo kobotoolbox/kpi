@@ -1,4 +1,4 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 /*
 Overrides to Select2 CSS Defaults
@@ -14,7 +14,7 @@ Overrides to Select2 CSS Defaults
 }
 
 .select2-container-multi .select2-choices .select2-search-choice {
-  background-color: colors.$kobo-alt-blue;
+  background-color: colors.$kobo-mid-blue;
   background-image: none;
   border: none;
   border-radius: 2px;
@@ -27,7 +27,7 @@ Overrides to Select2 CSS Defaults
 }
 
 .select2-container-multi .select2-choices .select2-search-choice-focus {
-  background: colors.$kobo-alt-blue;
+  background: colors.$kobo-mid-blue;
 }
 
 .select2-search-choice-close {

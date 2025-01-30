@@ -27,7 +27,6 @@ let devConfig = WebpackCommon({
   },
   entry: {
     app: ['./jsapp/js/main.es6'],
-    browsertests: path.resolve(__dirname, '../test/index.js'),
   },
   output: {
     library: 'KPI',

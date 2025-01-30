@@ -1,5 +1,4 @@
-@use '~kobo-common/src/styles/colors';
-@use "scss/sizes";
+@use 'scss/colors';
 @use "scss/mixins";
 
 .language-selector {
@@ -7,11 +6,11 @@
 }
 
 .language-selector__title {
-  font-size: sizes.$x18;
+  font-size: 18px;
   font-weight: 400;
   text-align: center;
-  line-height: sizes.$x20;
-  margin: 0 auto sizes.$x24;
+  line-height: 20px;
+  margin: 0 auto 24px;
 }
 
 /*
@@ -28,8 +27,8 @@
 
 // The arrow icon
 .language-selector__search-box-row > .k-icon {
-  margin: 0 sizes.$x20;
-  color: colors.$kobo-gray-85;
+  margin: 0 20px;
+  color: colors.$kobo-gray-400;
   transform: translateY(11px);
 }
 
@@ -39,11 +38,11 @@
 
 .language-selector__source-label,
 .language-selector__search-box-label {
-  color: colors.$kobo-gray-55;
-  font-size: sizes.$x12;
+  color: colors.$kobo-gray-600;
+  font-size: 12px;
   line-height: 1;
   display: block;
-  margin-bottom: sizes.$x6;
+  margin-bottom: 6px;
 }
 
 .language-selector__source-language {
@@ -51,8 +50,8 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  line-height: sizes.$x40;
-  font-size: sizes.$x16;
+  line-height: 40px;
+  font-size: 16px;
   font-weight: 500;
 
   span {
@@ -63,16 +62,16 @@
 }
 
 .language-selector__source-language > .k-icon {
-  margin-right: sizes.$x6;
-  color: colors.$kobo-gray-65;
+  margin-right: 6px;
+  color: colors.$kobo-gray-500;
 }
 
 .language-selector__selected-language,
 .language-selector__search-box {
-  border: sizes.$x2 solid colors.$kobo-gray-92;
-  border-radius: sizes.$x6;
-  height: sizes.$x40;
-  line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
+  border: 2px solid colors.$kobo-gray-300;
+  border-radius: 6px;
+  height: 40px;
+  line-height: 40px - (2 * 2px); // minus the border
   display: flex;
   flex-direction: row;
   align-content: center;
@@ -85,8 +84,8 @@
   .k-icon.k-icon-language-alt {
     pointer-events: none;
     position: absolute;
-    left: sizes.$x12;
-    color: colors.$kobo-gray-85;
+    left: 12px;
+    color: colors.$kobo-gray-400;
   }
 }
 
@@ -98,10 +97,10 @@
 .language-selector__search-box-input {
   flex: 1;
   border: 0;
-  padding: 0 sizes.$x40;
+  padding: 0 40px;
   margin: 0;
   background: transparent;
-  line-height: sizes.$x40;
+  line-height: 40px;
 }
 
 .language-selector__selected-language-label {
@@ -114,7 +113,7 @@
 .language-selector__search-box-input {
   &::placeholder {
     opacity: 1;
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
   }
   &:focus {
     outline: none;
@@ -124,11 +123,11 @@
 .language-selector__clear-selected-language,
 .language-selector__clear-search-box {
   @include mixins.buttonReset();
-  margin-right: sizes.$x12;
-  color: colors.$kobo-gray-85;
+  margin-right: 12px;
+  color: colors.$kobo-gray-400;
 
   &:hover {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
   }
 
   .k-icon.k-icon-close {
@@ -141,9 +140,9 @@
  */
 
 .language-selector__list {
-  min-height: sizes.$x100;
-  max-height: sizes.$x200;
-  margin: sizes.$x16 0 0;
+  min-height: 100px;
+  max-height: 200px;
+  margin: 16px 0 0;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -159,12 +158,12 @@
 
   li {
     // One third minus margins.
-    width: calc(33.33% - #{sizes.$x50});
+    width: calc(33.33% - #{50px});
     // This is the size that is small enough to allows 3 columns to appear
     // in processing view.
-    min-width: sizes.$x140;
-    margin-right: sizes.$x50;
-    margin-bottom: sizes.$x5;
+    min-width: 140px;
+    margin-right: 50px;
+    margin-bottom: 5px;
 
     &.language-selector__not-found-message {
       width: 100%;
@@ -184,29 +183,29 @@
 }
 
 .language-selector__not-found-message {
-  padding: sizes.$x6 sizes.$x8;
-  text-align: left;
+  padding: 6px 8px;
+  text-align: initial;
   font-style: italic;
 }
 
 .language-selector__help-bar {
-  border-top: sizes.$x2 solid colors.$kobo-gray-92;
+  border-top: 2px solid colors.$kobo-gray-300;
   display: flex;
   flex-direction: row;
   align-content: center;
   justify-content: center;
   align-items: center;
-  line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
-  margin-top: sizes.$x16;
-  padding-top: sizes.$x4;
+  line-height: 40px - (2 * 2px); // mimick the search box size
+  margin-top: 16px;
+  padding-top: 4px;
 }
 
 .language-selector__line {
-  width: calc(100% - #{sizes.$x5});
+  width: calc(100% - #{5px});
   height: 1px;
   border: 0;
   // Bottom margin is bigger to be in line with what <li> already have.
-  margin: sizes.$x5 0 #{sizes.$x5 + sizes.$x5} 0;
+  margin: 5px 0 #{5px + 5px} 0;
   padding: 0;
-  background-color: colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-300;
 }

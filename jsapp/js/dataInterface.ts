@@ -6,19 +6,37 @@
  */
 
 import {ROOT_URL, COMMON_QUERIES} from './constants';
-import type {EnvStoreFieldItem, FreeTierDisplay, SocialApp} from 'js/envStore';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {
   AnyRowTypeName,
   AssetTypeName,
-  ValidationStatus,
   AssetFileType,
-  PermissionCodename,
 } from 'js/constants';
+import type {PermissionCodename} from 'js/components/permissions/permConstants';
 import type {Json} from './components/common/common.interfaces';
 import type {ProjectViewsSettings} from './projects/customViewStore';
-import type {FreeTierThresholds} from 'js/envStore';
-import type {ReportsResponse} from 'js/components/reports/reportsConstants';
+import type {
+  AnalysisQuestionSchema,
+  SubmissionAnalysisResponse,
+} from './components/processing/analysis/constants';
+import type {TransxObject} from './components/processing/processingActions';
+import type {UserResponse} from 'js/users/userExistence.store';
+import type {
+  ReportsPaginatedResponse,
+  AssetResponseReportStyles,
+  AssetResponseReportCustom,
+} from 'js/components/reports/reportsConstants';
+import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
+import type {SortValues} from 'js/components/submissions/tableConstants';
+import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
+import type {AssetLockingProfileDefinition} from 'jsapp/js/components/locking/lockingConstants';
+import {
+  type ExportFormatName,
+  type ExportMultiOptionName,
+  type ExportStatusName,
+  type ExportTypeName,
+} from './components/projectDownloads/exportsConstants';
+import {type LangString} from './utils';
 
 interface AssetsRequestData {
   q?: string;
@@ -55,17 +73,14 @@ export interface SearchAssetsPredefinedParams {
   status?: string;
 }
 
-interface BulkSubmissionsRequest {
-  query: {
+export interface BulkSubmissionsRequest {
+  query?: {
     [id: string]: any;
   };
   confirm?: boolean;
   submission_ids?: string[];
-}
-
-interface BulkSubmissionsValidationStatusRequest
-  extends BulkSubmissionsRequest {
-  'validation_status.uid': ValidationStatus;
+  // Needed for updating validation status
+  'validation_status.uid'?: ValidationStatusName;
 }
 
 interface AssetFileRequest {
@@ -146,6 +161,7 @@ export interface SubmissionAttachment {
   download_small_url: string;
   mimetype: string;
   filename: string;
+  question_xpath: string;
   instance: number;
   xform: number;
   id: number;
@@ -153,50 +169,53 @@ export interface SubmissionAttachment {
 
 interface SubmissionSupplementalDetails {
   [questionName: string]: {
-    transcript?: {
-      languageCode: LanguageCode;
-      value: string;
-      dateCreated: string;
-      dateModified: string;
-      engine?: string;
-      revisions?: Array<{
-        dateModified: string;
-        engine?: string;
-        languageCode: LanguageCode;
-        value: string;
-      }>;
+    transcript?: TransxObject;
+    translation?: {
+      [languageCode: LanguageCode]: TransxObject;
     };
-    translated?: {
-      [languageCode: LanguageCode]: {
-        languageCode: LanguageCode;
-        value: string;
-        dateCreated: string;
-        dateModified: string;
-        engine?: string;
-        revisions?: Array<{
-          dateModified: string;
-          engine?: string;
-          languageCode: LanguageCode;
-          value: string;
-        }>;
-      };
-    };
+    qual?: SubmissionAnalysisResponse[];
   };
 }
 
+/**
+ * Value of a property found in `SubmissionResponse`, it can be either a built
+ * in submission property (e.g. `_geolocation`) or a response to a form question
+ */
+export type SubmissionResponseValue =
+  | string
+  | string[]
+  | number
+  | number[]
+  | null
+  | object
+  | SubmissionAttachment[]
+  | SubmissionSupplementalDetails
+  // This happens with responses to questions inside repeat groups
+  | Array<{[questionName: string]: SubmissionResponseValue}>
+  | undefined;
+
 export interface SubmissionResponse {
-  [questionName: string]: any;
+  // `SubmissionResponseValue` covers all possible values (responses to form
+  // questions and other submission properties)
+  [propName: string]: SubmissionResponseValue;
+  // Below are all known properties of submission response:
   __version__: string;
   _attachments: SubmissionAttachment[];
-  _geolocation: any[];
+  _geolocation: number[] | null[];
   _id: number;
-  _notes: any[];
+  _notes: string[];
   _status: string;
   _submission_time: string;
   _submitted_by: string | null;
   _tags: string[];
   _uuid: string;
-  _validation_status: object;
+  _validation_status: {
+    timestamp?: number;
+    uid?: ValidationStatusName;
+    by_whom?: string;
+    color?: string;
+    label?: string;
+  };
   _version_: string;
   _xform_id_string: string;
   deviceid?: string;
@@ -210,21 +229,34 @@ export interface SubmissionResponse {
   _supplementalDetails?: SubmissionSupplementalDetails;
 }
 
-interface AssignablePermission {
+interface AssignablePermissionRegular {
   url: string;
   label: string;
 }
 
+/**
+ * A list of labels for partial permissions.
+ *
+ * WARNING: it only includes labels for `…PartialByUsers` type ("…only from
+ * specific users"), so please use `CHECKBOX_LABELS` from `permConstants` file
+ * instead.
+ */
+export interface AssignablePermissionPartialLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
 interface AssignablePermissionPartial {
   url: string;
-  label: {
-    default: string;
-    view_submissions: string;
-    change_submissions: string;
-    delete_submissions: string;
-    validate_submissions: string;
-  };
+  label: AssignablePermissionPartialLabel;
 }
+
+export type AssignablePermission =
+  | AssignablePermissionRegular
+  | AssignablePermissionPartial;
 
 export interface LabelValuePair {
   /** Note: the labels are always localized in the current UI language */
@@ -232,57 +264,116 @@ export interface LabelValuePair {
   value: string;
 }
 
+export interface PartialPermissionFilterByUsers {
+  _submitted_by?: string | {$in: string[]};
+}
+
+export interface PartialPermissionFilterByResponses {
+  [questionName: string]: string;
+}
+
 /**
- * A single permission instance for a given user.
+ * Filter can have properties of both of these interfaces, thus we use union
+ * type here.
  */
-export interface Permission {
+export type PartialPermissionFilter =
+  | PartialPermissionFilterByUsers
+  | PartialPermissionFilterByResponses;
+
+export interface PartialPermission {
   url: string;
+  /**
+   * An array of filters (objects). Multiple objects means "OR", multiple
+   * properties within the same filter mean "AND".
+   *
+   * There are much more possible cases here, but Front End is supporting only
+   * a single filter object, i.e. the code will ignore `filters[1]`,
+   * `filters[2]` etc. So the cases supported by current UI are:
+   *
+   * 1. single user:
+   *    `filters: [{_submitted_by: 'joe'}]`
+   * 2. single user alternative (equivalent to point above):
+   *    `filters: [{_submitted_by: {$in: ['joe']}}]`
+   * 3. multiple users:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}}]`
+   * 4. single question response:
+   *    `filters: [{question_one: 'answer'}]`
+   * 5. user AND single question response:
+   *    `filters: [{_submitted_by: 'joe', question_one: 'answer'}]`
+   * 6. multiple users AND single question response:
+   *    `filters: [{_submitted_by: {$in: ['bob', 'adam']}, question_one: 'answer'}]`
+   */
+  filters: PartialPermissionFilter[];
+}
+
+/** Permission object to be used when making API requests. */
+export interface PermissionBase {
+  /** User URL */
   user: string;
+  /** URL of given permission type. */
   permission: string;
-  label: string;
-  partial_permissions?: Array<{
-    url: string;
-    filters: Array<{_submitted_by: {$in: string[]}}>;
-  }>;
+  partial_permissions?: PartialPermission[];
+}
+
+interface PartialPermissionLabel {
+  default: string;
+  view_submissions: string;
+  change_submissions: string;
+  delete_submissions: string;
+  validate_submissions: string;
+}
+
+/** A single permission instance for a given user coming from API endpoint. */
+export interface PermissionResponse extends PermissionBase {
+  /** URL of given permission instance (permission x user). */
+  url: string;
+  label?: string | PartialPermissionLabel;
 }
 
 /**
  * A saved export settings instance.
  */
-interface ExportSetting {
+export interface ExportSetting {
   uid: string;
   url: string;
   name: string;
+  data_url_csv: string;
+  data_url_xlsx: string;
   date_modified: string;
   export_settings: ExportSettingSettings;
 }
 
-interface ExportSettingRequest {
+export interface ExportSettingRequest {
   name: string;
   export_settings: ExportSettingSettings;
 }
 
-interface ExportSettingSettings {
-  lang: string;
-  type: string;
+export interface ExportSettingSettings {
+  lang: ExportDataLang;
+  type: ExportTypeName;
   fields: string[];
   group_sep: string;
-  xls_types: boolean;
-  multiple_select: string;
+  multiple_select: ExportMultiOptionName;
+  include_media_url?: boolean;
+  xls_types_as_text?: boolean;
   hierarchy_in_labels: boolean;
   fields_from_all_versions: boolean;
+  /** Only for GeoJSON */
+  flatten?: boolean;
 }
 
 /**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
+ * Interesting fact: a `SurveyRow` with the least amount of properties is group
+ * end - it only has `$kuid` and `type`.
  */
 export interface SurveyRow {
-  /** This is a unique identifier that includes both name and path (names of parents). */
-  $qpath: string;
-  $autoname: string;
   $kuid: string;
   type: AnyRowTypeName;
+  /** This is a unique identifier that includes both name and path (names of parents). */
+  $xpath?: string;
+  $autoname?: string;
   calculation?: string;
   label?: string[];
   hint?: string[];
@@ -297,7 +388,8 @@ export interface SurveyRow {
   'kobo--score-choices'?: string;
   'kobo--locking-profile'?: string;
   /** HXL tags. */
-  tags: string[];
+  tags?: string[];
+  select_from_list_name?: string;
 }
 
 export interface SurveyChoice {
@@ -307,11 +399,9 @@ export interface SurveyChoice {
   list_name: string;
   name: string;
   'media::image'?: string[];
-}
-
-interface AssetLockingProfileDefinition {
-  name: string;
-  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
+  // Possibly deprecated? Most code doesn't use it at all, old reports code was
+  // using it as fallback.
+  $autoname?: string;
 }
 
 export interface AssetContentSettings {
@@ -322,7 +412,9 @@ export interface AssetContentSettings {
   form_id?: string;
   title?: string;
   'kobo--lock_all'?: boolean;
-  'kobo--locking-profile'?: 'string';
+  /** The name of the locking profile applied to whole form. */
+  'kobo--locking-profile'?: string;
+  default_language?: string;
 }
 
 /**
@@ -338,6 +430,7 @@ export interface AssetContent {
   translated?: string[];
   /** A list of languages. */
   translations?: Array<string | null>;
+  /** A list of all availavble locking profiles */
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
 
@@ -347,7 +440,7 @@ interface AssetSummary {
   columns?: string[];
   lock_all?: boolean;
   lock_any?: boolean;
-  languages?: Array<string | null>;
+  languages?: Array<LangString | null>;
   row_count?: number;
   default_translation?: string | null;
   /** To be used in a warning about missing or poorly written question names. */
@@ -372,14 +465,6 @@ interface AssetSummary {
   naming_conflicts?: string[];
 }
 
-interface AssetReportStylesSpecified {
-  [name: string]: {};
-}
-
-interface AssetReportStylesKuidNames {
-  [name: string]: {};
-}
-
 interface AdvancedSubmissionSchema {
   type: 'string' | 'object';
   $description: string;
@@ -387,7 +472,7 @@ interface AdvancedSubmissionSchema {
   properties?: AdvancedSubmissionSchemaDefinition;
   additionalProperties?: boolean;
   required?: string[];
-  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition};
+  definitions?: AdvancedSubmissionSchemaDefinition;
 }
 
 export interface AssetAdvancedFeatures {
@@ -403,42 +488,59 @@ export interface AssetAdvancedFeatures {
     /** List of translations enabled languages. */
     languages?: string[];
   };
+  qual?: {
+    qual_survey?: AnalysisQuestionSchema[];
+  };
 }
 
 interface AdvancedSubmissionSchemaDefinition {
   [name: string]: {
-    type: 'string' | 'object';
-    description: string;
+    type?: 'string' | 'object';
+    description?: string;
     properties?: {[name: string]: {}};
     additionalProperties?: boolean;
     required?: string[];
+    anyOf?: Array<{$ref: string}>;
+    allOf?: Array<{$ref: string}>;
   };
+}
+
+export interface TableSortBySetting {
+  fieldId: string;
+  value: SortValues;
 }
 
 /**
  * None of these are actually stored as `null`s, but we use this interface for
  * a new settings draft too and it's simpler that way.
  */
-export interface AssetTableSettings {
+interface AssetTableSettingsObject {
   'selected-columns'?: string[] | null;
   'frozen-column'?: string | null;
   'show-group-name'?: boolean | null;
   'translation-index'?: number | null;
   'show-hxl-tags'?: boolean | null;
-  'sort-by'?: {
-    fieldId: string;
-    value: 'ASCENDING' | 'DESCENDING';
-  } | null;
+  'sort-by'?: TableSortBySetting | null;
+}
+
+/**
+ * This interface consists of properties from `AssetTableSettingsObject` and one
+ * more property that holds a temporary copy of `AssetTableSettingsObject`
+ */
+export interface AssetTableSettings extends AssetTableSettingsObject {
+  /** This is the same object as AssetTableSettings */
+  'data-table'?: AssetTableSettingsObject;
 }
 
 export interface AssetSettings {
-  sector?: LabelValuePair | null;
+  sector?: LabelValuePair | null | {};
   country?: LabelValuePair | LabelValuePair[] | null;
   description?: string;
   'data-table'?: AssetTableSettings;
   organization?: string;
   collects_pii?: LabelValuePair | null;
   operational_purpose?: LabelValuePair | null;
+  country_codes?: string[];
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
@@ -448,30 +550,14 @@ interface AssetRequestObject {
   parent: string | null;
   settings: AssetSettings;
   asset_type: AssetTypeName;
-  report_styles?: {
-    default?: {};
-    specified?: AssetReportStylesSpecified;
-    kuid_names?: AssetReportStylesKuidNames;
-  };
-  report_custom?: {
-    [reportName: string]: {
-      crid: string;
-      name: string;
-      questions: string[];
-      reportStyle: {
-        groupDataBy: string;
-        report_type: string;
-        report_colors: string[];
-        translationIndex: number;
-      };
-    };
-  };
-  map_styles?: {};
-  map_custom?: {};
+  report_styles: AssetResponseReportStyles;
+  report_custom: AssetResponseReportCustom;
+  map_styles: {};
+  map_custom: {};
   content?: AssetContent;
   tag_string: string;
   name: string;
-  permissions: Permission[];
+  permissions: PermissionResponse[];
   export_settings: ExportSetting[];
   data_sharing: {};
   paired_data?: string;
@@ -484,6 +570,25 @@ export type AssetDownloads = Array<{
   url: string;
 }>;
 
+export interface AnalysisFormJsonField {
+  label: string;
+  name: string;
+  dtpath: string;
+  type: string;
+  language: string;
+  source: string;
+  xpath: string;
+  settings: {
+    mode: string;
+    engine: string;
+  } | '??';
+  path: string[];
+  choices?: Array<{
+    uuid: string;
+    labels: {[key: string]: string};
+  }>;
+}
+
 /**
  * This is the complete asset object we use throught the Frontend code. It is
  * built upon the object we get from Backend responses (i.e. we extend a few
@@ -494,15 +599,22 @@ export interface AssetResponse extends AssetRequestObject {
   url: string;
   owner: string;
   owner__username: string;
+  owner_label: string;
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
+  date_deployed?: string;
   version_id: string | null;
   version__content_hash?: string | null;
   version_count?: number;
   has_deployment: boolean;
   deployed_version_id: string | null;
-  analysis_form_json?: any;
+  analysis_form_json?: {
+    engines: {
+      [engingeName: string]: {details: string};
+    };
+    additional_fields: AnalysisFormJsonField[];
+  };
   deployed_versions?: {
     count: number;
     next: string | null;
@@ -515,7 +627,6 @@ export interface AssetResponse extends AssetRequestObject {
       date_modified: string;
     }>;
   };
-  deployment__identifier: string | null;
   deployment__links?: {
     url?: string;
     single_url?: string;
@@ -528,12 +639,7 @@ export interface AssetResponse extends AssetRequestObject {
   };
   deployment__active: boolean;
   deployment__data_download_links?: {
-    xls_legacy?: string;
-    csv_legacy?: string;
-    zip_legacy?: string;
-    kml_legacy?: string;
-    xls?: string;
-    csv?: string;
+    [key in ExportTypeName]: string | undefined;
   };
   deployment__submission_count: number;
   deployment_status: 'archived' | 'deployed' | 'draft';
@@ -547,9 +653,7 @@ export interface AssetResponse extends AssetRequestObject {
   uid: string;
   kind: string;
   xls_link?: string;
-  assignable_permissions?: Array<
-    AssignablePermission | AssignablePermissionPartial
-  >;
+  assignable_permissions: AssignablePermission[];
   /**
    * A list of all permissions (their codenames) that current user has in
    * regards to this asset. It is a sum of permissions assigned directly for
@@ -564,6 +668,7 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number;
   status: string;
   access_types: string[] | null;
+  files?: any[];
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -574,6 +679,7 @@ export interface AssetResponse extends AssetRequestObject {
   settings__style?: string;
   settings__form_id?: string;
   settings__title?: string;
+  project_ownership: ProjectTransferAssetDetail | null;
 }
 
 /** This is the asset object returned by project-views endpoint. */
@@ -585,6 +691,7 @@ export interface ProjectViewAsset {
   date_deployed: string | null;
   owner: string;
   owner__username: string;
+  owner_label: string;
   owner__email: string;
   /** Full name */
   owner__name: string;
@@ -625,9 +732,10 @@ export interface PaginatedResponse<T> {
 export interface PermissionDefinition {
   url: string;
   name: string;
-  description: string;
-  codename: string;
+  codename: PermissionCodename;
+  /** A list of urls pointing to permissions definitions */
   implied: string[];
+  /** A list of urls pointing to permissions definitions */
   contradictory: string[];
 }
 
@@ -635,6 +743,7 @@ export type PermissionsConfigResponse = PaginatedResponse<PermissionDefinition>;
 
 interface SocialAccount {
   provider: string;
+  provider_id: string;
   uid: string;
   last_login: string;
   date_joined: string;
@@ -662,11 +771,17 @@ export interface AccountResponse {
    * sensitive. The default value is `true`.
    */
   validated_password: boolean;
+  /**
+   * This will be `true` for user who accepted the latest TOS. If it's missing
+   * or `false`, it means that the latest TOS was not accepted.
+   */
+  accepted_tos?: boolean;
   extra_details: {
     name: string;
     gender: string;
     sector: string;
     country: string;
+    organization_type: string;
     organization: string;
     organization_website: string;
     bio: string;
@@ -675,6 +790,7 @@ export interface AccountResponse {
     twitter: string;
     linkedin: string;
     instagram: string;
+    newsletter_subscription: boolean;
     project_views_settings: ProjectViewsSettings;
     /** We store this for usage statistics only. */
     last_ui_language?: string;
@@ -689,6 +805,12 @@ export interface AccountResponse {
     tag: string | boolean;
   };
   social_accounts: SocialAccount[];
+  // Organization details
+  organization?: {
+    url: string;
+    name: string;
+    uid: string;
+  };
 }
 
 export interface AccountRequest {
@@ -715,15 +837,6 @@ export interface AccountRequest {
 
 interface UserNotLoggedInResponse {
   message: string;
-}
-
-export interface UserResponse {
-  url: string;
-  username: string;
-  assets: PaginatedResponse<{url: string}>;
-  date_joined: string;
-  public_collection_subscribers_count: number;
-  public_collections_count: number;
 }
 
 export interface TransxLanguages {
@@ -794,6 +907,77 @@ interface DataInterface {
   [key: string]: Function;
 }
 
+export interface ValidationStatusResponse {
+  timestamp: number;
+  uid: ValidationStatusName;
+  /** username */
+  by_whom: string;
+  /** HEX color */
+  color: string;
+  label: string;
+}
+
+// TODO: this should be moved to some better place, like
+// `…/actions/submissions.es6` after moving it to TypeScript
+export interface GetSubmissionsOptions {
+  uid: string;
+  pageSize?: number;
+  page?: number;
+  sort?: Array<{
+    /** Column name */
+    id: string;
+    /** Is `true` for descending and `false` for ascending */
+    desc: boolean;
+  }>;
+  fields?: string[];
+  filter?: string;
+}
+
+export interface EnketoLinkResponse {
+  url: string;
+  version_id: string;
+  responseJSON?: {
+    detail?: string;
+  };
+}
+
+export type ExportDataLang = ExportFormatName | LangString;
+
+/**
+ * TODO: this interface is WIP, so some of the properties might be incomplete or
+ * incorrect. It was created by doing a few exports and comparing responses.
+ */
+export interface ExportDataResponse {
+  url: string;
+  status: ExportStatusName;
+  messages: {
+    error?: string;
+  };
+  uid: string;
+  date_created: string;
+  last_submission_time: string | null;
+  /** URL to download the file. Stops being `null` when report is ready. */
+  result: string | null;
+  data: {
+    lang: ExportDataLang;
+    name: null;
+    type: ExportTypeName;
+    /** List of form row names. */
+    fields: string[];
+    /** Asset URL. */
+    source: string;
+    group_sep: string;
+    multiple_select: ExportMultiOptionName;
+    include_media_url?: boolean;
+    xls_types_as_text?: boolean;
+    hierarchy_in_labels: boolean;
+    /** Is defined when report is ready. */
+    processing_time_seconds?: number;
+    fields_from_all_versions: boolean;
+    flatten?: boolean;
+  };
+}
+
 const $ajax = (o: {}) =>
   $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
@@ -812,18 +996,6 @@ export const dataInterface: DataInterface = {
     $ajax({
       url: userUrl,
     }),
-
-  queryUserExistence: (username: string): JQuery.Promise<string, boolean> => {
-    const d = $.Deferred();
-    $ajax({url: `${ROOT_URL}/api/v2/users/${username}/`})
-      .done(() => {
-        d.resolve(username, true);
-      })
-      .fail(() => {
-        d.reject(username, false);
-      });
-    return d.promise();
-  },
 
   logout: (): JQuery.Promise<AccountResponse | UserNotLoggedInResponse> => {
     const d = $.Deferred();
@@ -985,7 +1157,7 @@ export const dataInterface: DataInterface = {
     uid: string;
     identifiers: string[];
     group_by: string;
-  }): JQuery.jqXHR<PaginatedResponse<ReportsResponse>> {
+  }): JQuery.jqXHR<ReportsPaginatedResponse> {
     let identifierString;
     if (data.identifiers) {
       identifierString = `?names=${data.identifiers.join(',')}`;
@@ -1129,7 +1301,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetPermissions(assetUid: string): JQuery.jqXHR<any> {
+  getAssetPermissions(assetUid: string): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
       method: 'GET',
@@ -1139,7 +1311,7 @@ export const dataInterface: DataInterface = {
   bulkSetAssetPermissions(
     assetUid: string,
     perms: Array<{user: string; permission: string}>
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<PermissionResponse[]> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/bulk/`,
       method: 'POST',
@@ -1228,7 +1400,7 @@ export const dataInterface: DataInterface = {
     }
   },
 
-  getAssetExports(assetUid: string): JQuery.jqXHR<any> {
+  getAssetExports(assetUid: string): JQuery.jqXHR<PaginatedResponse<ExportDataResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       data: {
@@ -1243,7 +1415,7 @@ export const dataInterface: DataInterface = {
   createAssetExport(
     assetUid: string,
     data: ExportSettingSettings
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
@@ -1253,7 +1425,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<any> {
+  getAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
       method: 'GET',
@@ -1633,7 +1805,7 @@ export const dataInterface: DataInterface = {
 
   bulkPatchSubmissionsValidationStatus(
     uid: string,
-    data: BulkSubmissionsValidationStatusRequest
+    data: BulkSubmissionsRequest
   ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
@@ -1644,7 +1816,7 @@ export const dataInterface: DataInterface = {
 
   bulkRemoveSubmissionsValidationStatus(
     uid: string,
-    data: BulkSubmissionsValidationStatusRequest
+    data: BulkSubmissionsRequest
   ): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
@@ -1656,8 +1828,8 @@ export const dataInterface: DataInterface = {
   updateSubmissionValidationStatus(
     uid: string,
     sid: string,
-    data: {'validation_status.uid': ValidationStatus}
-  ): JQuery.jqXHR<any> {
+    data: {'validation_status.uid': ValidationStatusName}
+  ): JQuery.jqXHR<ValidationStatusResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
       method: 'PATCH',
@@ -1700,13 +1872,13 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getEnketoEditLink(uid: string, sid: string): JQuery.jqXHR<any> {
+  getEnketoEditLink(uid: string, sid: string): JQuery.jqXHR<EnketoLinkResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
       method: 'GET',
     });
   },
-  getEnketoViewLink(uid: string, sid: string): JQuery.jqXHR<any> {
+  getEnketoViewLink(uid: string, sid: string): JQuery.jqXHR<EnketoLinkResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
       method: 'GET',

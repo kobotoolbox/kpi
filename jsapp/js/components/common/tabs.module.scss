@@ -1,0 +1,32 @@
+@use 'scss/colors';
+
+.root {
+  width: auto;
+  padding-top: 20px;
+  margin: 0 40px;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 2px solid colors.$kobo-gray-400;
+}
+
+.tab {
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: colors.$kobo-gray-600;
+  font-weight: 600;
+  padding: 14px 30px 10px;
+  margin-bottom: -(2px);
+  outline: none;
+
+  &.active {
+    color: colors.$kobo-dark-blue;
+    background-color: colors.$kobo-bg-blue;
+    border-bottom: 2px solid colors.$kobo-dark-blue;
+    border-radius: 8px 8px 0 0;
+  }
+}
+
+button {
+  border: none;
+}

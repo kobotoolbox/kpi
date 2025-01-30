@@ -311,7 +311,7 @@
             "user_permissions": [],
             "username": "admin"
         },
-        "model": "auth.user",
+        "model": "kobo_auth.user",
         "pk": 1
     },
     {

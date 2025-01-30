@@ -2,21 +2,22 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@b84b5e355d876a31bc3d5eb7127255a6fe70dc0e#egg=formpack
-
-# service-account
--e git+https://github.com/kobotoolbox/kobo-service-account.git@871762cdd099ed543d36f0a29bfbff1de4766a8b#egg=kobo-service-account
+-e git+https://github.com/kobotoolbox/formpack.git@894d285b1d2955b2990500427158e845af32259d#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
--e git+https://github.com/dimagi/django-digest@419f7306443f9a800b07d832b2cc147941062d59#egg=django_digest
+-e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
 
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
 
+# django-dont-vary-on
+# using a fork for django > 1.1.0 compatibility
+-e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
+
 # Regular PyPI packages
-Django>=3.2,<3.3
+Django>=4.2,<4.3
 Markdown
 Pygments
 amqp
@@ -24,17 +25,20 @@ billiard
 celery
 celery[redis]
 dict2xml
+defusedxml
 dj-static
 dj-stripe
 django-allauth
 django-braces
 django-celery-beat
-django-constance[database]
+django-constance
 django-cors-headers
 django-csp
 django-debug-toolbar
 django-environ
 django-filter
+django-import-export
+django-import-export-celery
 django-extensions
 django-oauth-toolkit
 django-organizations
@@ -45,8 +49,6 @@ django-webpack-loader
 django-loginas
 django-markdownx
 django-prometheus
-
-django-mptt
 
 django-reversion
 django-taggit
@@ -67,13 +69,14 @@ jsonfield
 jsonschema
 kombu
 lxml
+more-itertools
 oauthlib
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-psycopg2
-pymongo==3.12.3
+psycopg
+pymongo
 python-dateutil
-pyxform==1.9.0
+pyxform==2.2.0
 requests
 regex
 responses
@@ -81,8 +84,9 @@ shortuuid
 sqlparse
 static3
 tabulate
+ua-parser
 uWSGI
-Werkzeug<=2.0.3
+Werkzeug
 xlrd
 xlwt
 xlutils
@@ -102,5 +106,9 @@ django-trench
 # Sentry
 sentry-sdk
 
-# Python 3.8 support
-backports.zoneinfo; python_version < '3.9'
+# Kobocat
+django-guardian
+modilabs-python-utils
+djangorestframework-csv
+djangorestframework-jsonp
+pandas

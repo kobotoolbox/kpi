@@ -74,7 +74,8 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
           $targetEl.parents('.help-bubble__popup').length === 0 &&
           $targetEl.parents('.help-bubble__popup-content').length === 0 &&
           $targetEl.parents('.help-bubble__row').length === 0 &&
-          $targetEl.parents('.help-bubble__row-wrapper').length === 0
+          $targetEl.parents('.help-bubble__row-wrapper').length === 0 &&
+          $targetEl.parents('.help-bubble').length === 0
         ) {
           this.close();
         }
@@ -147,11 +148,9 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-articles' />
-              <header>{t('KoboToolbox Help Center')}</header>
+              <header>{t('Help Center')}</header>
               <p>
-                {t(
-                  'A vast collection of user support articles and tutorials related to Kobo'
-                )}
+                {t('Find answers in our extensive library of user support articles and tutorials.')}
               </p>
             </bem.HelpBubble__rowAnchor>
           )}
@@ -163,12 +162,25 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
               href={envStore.data.community_url}
               onClick={this.close.bind(this)}
             >
-              <i className='k-icon k-icon-forum' />
-              <header>{t('KoboToolbox Community Forum')}</header>
+              <i className='k-icon k-icon-help-forum' />
+              <header>{t('Community Forum')}</header>
               <p>
-                {t(
-                  'Post your questions to get answers from experienced Kobo users around the world'
-                )}
+                {t('Connect with thousands of KoboToolbox users, ask questions, and share ideas.')}
+              </p>
+            </bem.HelpBubble__rowAnchor>
+          )}
+
+          {envStore.isReady && envStore.data.academy_url && (
+            <bem.HelpBubble__rowAnchor
+              m='link'
+              target='_blank'
+              href={envStore.data.academy_url}
+              onClick={this.close.bind(this)}
+            >
+              <i className='k-icon k-icon-help-academy' />
+              <header>{t('KoboToolbox Academy')}</header>
+              <p>
+                {t('Enroll in an online self-paced course designed by Kobo staff experts.')}
               </p>
             </bem.HelpBubble__rowAnchor>
           )}

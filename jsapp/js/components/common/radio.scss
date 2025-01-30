@@ -1,6 +1,5 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
-@use 'scss/sizes';
 @use 'scss/mixins';
 
 // Note: we can't change this into a CSS Module, because some Form Builder code
@@ -8,49 +7,12 @@
 
 .radio {
   .radio__row {
-    padding: sizes.$x4 0;
+    padding: 4px 0;
     cursor: pointer;
     display: block;
 
     &.radio__row--title {
       cursor: default;
-    }
-  }
-
-  // Disabled state
-  &.radio--disabled {
-    .radio__row {
-      cursor: default;
-    }
-
-    .radio__input,
-    .radio__label {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .radio__input:checked {
-      color: colors.$kobo-white;
-      border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-gray-40;
-    }
-  }
-
-  // Hover states
-  .radio__row:hover {
-    // Unchecked
-    .radio__input:not(:checked) {
-      border-color: colors.$kobo-gray-40;
-      background-color: colors.$kobo-light-blue;
-    }
-
-    // Checked
-    .radio__input:checked {
-      border-color: colors.$kobo-alt-blue;
-
-      &::after {
-        background-color: colors.$kobo-alt-blue;
-      }
     }
   }
 
@@ -61,13 +23,13 @@
   }
 
   .radio__label {
-    max-width: calc(100% - sizes.$x32);
-    color: colors.$kobo-gray-24;
+    max-width: calc(100% - 32px);
+    color: colors.$kobo-gray-800;
     font-size: variables.$base-font-size;
   }
 
   .radio__input + .radio__label {
-    margin-left: sizes.$x6;
+    margin-inline-start: 6px;
   }
 
   .radio__input {
@@ -75,11 +37,11 @@
     appearance: none;
     position: relative;
     margin: 0;
-    color: colors.$kobo-gray-65;
-    border: sizes.$x1 solid colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
+    border: 1px solid currentcolor;
     background-color: colors.$kobo-white;
-    width: sizes.$x20;
-    height: sizes.$x20;
+    width: 20px;
+    height: 20px;
     outline: 0;
     cursor: pointer;
     overflow: hidden; // HACK FIX to not cause scrollbar when near the edge
@@ -87,25 +49,50 @@
     &::after {
       display: block;
       position: absolute;
-      opacity: 0;
       content: '';
-      top: sizes.$x4;
-      left: sizes.$x4;
+      top: 4px;
+      left: 4px;
       border-radius: 50%;
-      width: sizes.$x10;
-      height: sizes.$x10;
-      background-color: colors.$kobo-blue;
+      width: 10px;
+      height: 10px;
+      background-color: currentcolor;
     }
 
-    &:checked {
-      border-color: colors.$kobo-blue;
-
-      &::after {opacity: 1;}
+    &:not(:checked)::after {
+      display: none;
     }
 
     // Keyboard focus styles
     &:focus-visible {
       @include mixins.default-ui-focus;
     }
+  }
+
+  // Idle checked state
+  .radio__input:checked {
+    color: colors.$kobo-blue;
+  }
+
+  // Disabled state
+  &.radio--disabled {
+    .radio__row {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .radio__input:checked {
+      color: colors.$kobo-gray-700;
+    }
+  }
+
+  // Hover unchecked state
+  .radio__row:hover .radio__input:not(:checked) {
+    color: colors.$kobo-gray-700;
+    background-color: colors.$kobo-bg-blue;
+  }
+
+  // Hover checked state
+  .radio__row:hover .radio__input:checked {
+    color: colors.$kobo-mid-blue;
   }
 }

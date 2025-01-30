@@ -1,0 +1,23 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+
+.foundInstancesRow {
+  @include mixins.centerRowFlex;
+}
+
+.keywordsWrapper {
+  @include mixins.centerRowFlex;
+  flex: 1;
+}
+
+.loading {
+  color: colors.$kobo-gray-700;
+}
+
+.keywords {
+  font-weight: 700;
+}
+
+.date {
+  font-weight: 700;
+}

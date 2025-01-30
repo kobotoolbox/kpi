@@ -1,27 +1,20 @@
-# coding: utf-8
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.contrib.contenttypes.models import ContentType
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET
-from kpi.fields import PaginatedApiField
 from kpi.models.asset import Asset, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from .asset import AssetUrlListSerializer
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     url = HyperlinkedIdentityField(
-        lookup_field='username', view_name='user-detail')
+        lookup_field='username', view_name='user-kpi-detail')
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()

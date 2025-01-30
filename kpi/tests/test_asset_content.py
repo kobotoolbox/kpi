@@ -6,6 +6,10 @@ from collections import OrderedDict
 from copy import deepcopy
 from functools import reduce
 
+import pytest
+from django.conf import settings
+from model_bakery import baker
+
 from kpi.models import Asset
 from kpi.utils.sluggify import sluggify_label
 
@@ -242,13 +246,20 @@ def test_autoname_shortens_long_names():
         'Four_score_and_seven_th_on_this_continent_001',
     ]
 
-    assert _name_to_autoname([{'label': x} for x in [
-        "What is your favorite all-time place to go swimming?",
-        "What is your favorite all-time place to go running?",
-        "What is your favorite all-time place to go to relax?",
-    ]]) == ['What_is_your_favorit_place_to_go_swimming',
-            'What_is_your_favorit_place_to_go_running',
-            'What_is_your_favorit_place_to_go_to_relax']
+    assert _name_to_autoname(
+        [
+            {'label': x}
+            for x in [
+                'What is your favorite all-time place to go swimming?',
+                'What is your favorite all-time place to go running?',
+                'What is your favorite all-time place to go to relax?',
+            ]
+        ]
+    ) == [
+        'What_is_your_favorit_place_to_go_swimming',
+        'What_is_your_favorit_place_to_go_running',
+        'What_is_your_favorit_place_to_go_to_relax',
+    ]
 
 
 def test_remove_empty_expressions():
@@ -841,7 +852,7 @@ def test_kuid_persists():
     assert content['survey'][1].get('$kuid') == initial_kuid_2
 
 
-def test_populates_qpath_xpath_correctly():
+def test_populates_xpath_correctly():
     asset = Asset(content={
         'survey': [
             {'type': 'begin_group', 'name': 'g1'},
@@ -854,5 +865,28 @@ def test_populates_qpath_xpath_correctly():
     })
     asset.adjust_content_on_save()
     rs = asset.content['survey'][0:4]
-    assert [rr['$qpath'] for rr in rs] == ['g1', 'g1-r1', 'g1-g2', 'g1-g2-r2']
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
+
+
+@pytest.mark.django_db()
+def test_return_xpaths_even_if_missing():
+    user = baker.make(
+        settings.AUTH_USER_MODEL, username='johndoe'
+    )
+    asset = Asset.objects.create(owner=user, content={
+        'survey': [
+            {'type': 'begin_group', 'name': 'g1'},
+            {'type': 'audio', 'name': 'r1', '$kuid': 'k1'},
+            {'type': 'begin_group', 'name': 'g2'},
+            {'type': 'image', 'name': 'r2', '$kuid': 'k2'},
+            {'type': 'end_group'},
+            {'type': 'end_group'},
+        ],
+    })
+
+    expected = ['g1/r1', 'g1/g2/r2']
+    # 'xpath' is not injected until an Asset object is saved with
+    # `adjust_content=True` or `adjust_content_on_save()` is called directly.
+    # No matter what, `get_attachment_xpaths()` should be able to return
+    # attachment xpaths.
+    assert asset.get_attachment_xpaths(deployed=False) == expected

@@ -2,7 +2,7 @@ import React, {createRef} from 'react';
 import bem, {makeBem} from 'js/bem';
 import Icon from 'js/components/common/icon';
 import Button from 'js/components/common/button';
-import {formatSeconds, generateUid} from 'js/utils';
+import {formatSeconds, generateUuid, notify} from 'js/utils';
 import 'js/components/common/miniAudioPlayer.scss';
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player');
@@ -32,7 +32,7 @@ class MiniAudioPlayer extends React.Component<
 > {
   audioRef = createRef<HTMLAudioElement>();
   /** Useful for stopping. */
-  uid = generateUid();
+  uid = generateUuid();
 
   private onAudioLoadedBound = this.onAudioLoaded.bind(this);
   private onAudioErrorBound = this.onAudioError.bind(this);
@@ -132,9 +132,13 @@ class MiniAudioPlayer extends React.Component<
   }
 
   start() {
-    this.audioRef.current!.play();
-    const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
-    document.dispatchEvent(event);
+    const playPromise = this.audioRef.current!.play();
+    playPromise.then(() => {
+      const event = new CustomEvent(PLAYER_STARTED_EVENT, {detail: this.uid});
+      document.dispatchEvent(event);
+    }).catch((reason) => {
+      notify.error(reason.name + ' ' + reason.message);
+    });
   }
 
   stop() {
@@ -151,10 +155,9 @@ class MiniAudioPlayer extends React.Component<
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon={this.state.isPlaying ? 'stop' : 'play'}
           size='s'
-          color='blue'
           onClick={this.onButtonClick.bind(this)}
           data-cy='mini audio player playstop'
         />
@@ -173,10 +176,9 @@ class MiniAudioPlayer extends React.Component<
     return (
       <React.Fragment>
         <Button
-          type='bare'
+          type='text'
           startIcon='play'
           size='s'
-          color='blue'
           onClick={() => null}
           isDisabled
         />

@@ -1,22 +1,27 @@
+// Libraries
 import $ from 'jquery';
 import isEqual from 'lodash.isequal';
 import {makeAutoObservable, reaction} from 'mobx';
+
+// Stores and utilities
+import {handleApiFail} from 'js/api';
+import {buildQueriesFromFilters} from './projectViews/utils';
+import session from 'js/stores/session';
+import searchBoxStore from 'js/components/header/searchBoxStore';
+
+// Constants and types
 import type {
   AssetResponse,
   ProjectViewAsset,
   PaginatedResponse,
   FailResponse,
 } from 'js/dataInterface';
-import {handleApiFail} from 'js/api';
 import {DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS} from './projectViews/constants';
 import type {
   ProjectFieldName,
   ProjectsFilterDefinition,
 } from './projectViews/constants';
-import {buildQueriesFromFilters} from './projectViews/utils';
 import type {ProjectsTableOrder} from './projectsTable/projectsTable';
-import session from 'js/stores/session';
-import searchBoxStore from 'js/components/header/searchBoxStore';
 import {COMMON_QUERIES} from 'js/constants';
 
 const SAVE_DATA_NAME = 'project_views_settings';
@@ -64,6 +69,7 @@ class CustomViewStore {
   private nextPageUrl: string | null = null;
   private ongoingFetch?: JQuery.jqXHR;
   private searchContext?: string;
+  private includeTypeFilter?: boolean;
 
   constructor() {
     makeAutoObservable(this);
@@ -93,7 +99,8 @@ class CustomViewStore {
   public setUp(
     viewUid: string,
     baseUrl: string,
-    defaultVisibleFields: ProjectFieldName[]
+    defaultVisibleFields: ProjectFieldName[],
+    includeTypeFilter = true,
   ) {
     this.viewUid = viewUid;
     this.baseUrl = baseUrl;
@@ -102,6 +109,7 @@ class CustomViewStore {
     this.isFirstLoadComplete = false;
     this.isLoading = false;
     this.nextPageUrl = null;
+    this.includeTypeFilter = includeTypeFilter;
     this.loadSettings();
 
     this.searchContext = viewUid;
@@ -151,12 +159,50 @@ class CustomViewStore {
       return null;
     }
 
-    const fieldDefinition = PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
+    const fieldDefinition =
+      PROJECT_FIELDS[this.order.fieldName as ProjectFieldName];
 
     if (this.order.direction === 'descending') {
       return `-${fieldDefinition.apiOrderingName}`;
     }
     return fieldDefinition.apiOrderingName;
+  }
+
+  /**
+   * Constructs all the parameters needed for the API call to fetch assets.
+   * Left public for easier testing.
+   */
+  public constructFullQueryParams(url: URL) {
+    const params = new URLSearchParams(url.search);
+
+    // Step 1: Build queries for Back end (for `q=`).
+    const queries = buildQueriesFromFilters(this.filters);
+
+    // We are only interested in surveys, but some URLs will automatically add that query on the backend, so let the
+    // caller decide if we need to add it explicitly
+    if (this.includeTypeFilter) {
+      queries.push(COMMON_QUERIES.s);
+    }
+
+    // Step 2: Add search query
+    const searchPhrase = (searchBoxStore.data.searchPhrase ?? '').trim();
+    if (searchPhrase !== '') {
+      queries.push(searchPhrase);
+    }
+    if (queries.length > 0) {
+      const queriesString = '(' + queries.join(') AND (') + ')';
+      params.set('q', queriesString);
+    }
+
+    // Step 3: Build ordering string
+    const orderingString = this.getOrderQuery();
+    if (orderingString) {
+      params.set('ordering', orderingString);
+    }
+
+    params.set('limit', String(PAGE_SIZE));
+
+    return params;
   }
 
   /**
@@ -175,35 +221,14 @@ class CustomViewStore {
 
     // Step 2: Prepare url
     const url = new URL(this.baseUrl);
-    const params = new URLSearchParams(url.search);
+    const params = this.constructFullQueryParams(url)
 
-    // Step 3: Build queries for Back end (for `q=`)
-    const queries = buildQueriesFromFilters(this.filters);
-    // We are only interested in surveys
-    queries.push(COMMON_QUERIES.s);
-    // Add search query
-    const searchPhrase = (searchBoxStore.data.searchPhrase ?? '').trim();
-    if (searchPhrase !== '') {
-      queries.push(searchPhrase);
-    }
-    const queriesString = '(' + queries.join(') AND (') + ')';
-    params.set('q', queriesString);
-
-    // Step 4: Build ordering string
-    const orderingString = this.getOrderQuery();
-    if (orderingString) {
-      params.set('ordering', orderingString);
-    }
-
-    // Step 5: Stop any ongoing call (as it is no longer needed)
+    // Step 3: Stop any ongoing call (as it is no longer needed)
     if (this.ongoingFetch) {
       this.ongoingFetch.abort();
     }
 
-    // Step 6: Set limit
-    params.set('limit', String(PAGE_SIZE));
-
-    // Step 7: Make API call :)
+    // Step 4: Make API call :)
     this.ongoingFetch = $.ajax({
       dataType: 'json',
       method: 'GET',
@@ -258,8 +283,7 @@ class CustomViewStore {
       // `Asset Response` we need to find the last deployed version
       originalAsset.date_deployed !==
         modifiedAsset.deployed_versions?.results[0].date_modified ||
-      originalAsset.settings.sector?.value !==
-        modifiedAsset.settings.sector?.value ||
+      !isEqual(originalAsset.settings.sector, modifiedAsset.settings.sector) ||
       !isEqual(
         originalAsset.settings.country,
         modifiedAsset.settings.country
@@ -351,8 +375,7 @@ class CustomViewStore {
     // Then we load the saved settings (if they exist)
     if (
       'email' in session.currentAccount &&
-      session.currentAccount.extra_details[SAVE_DATA_NAME] &&
-      session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid]
+      session.currentAccount.extra_details[SAVE_DATA_NAME]?.[this.viewUid]
     ) {
       const savedViewData =
         session.currentAccount.extra_details[SAVE_DATA_NAME][this.viewUid];

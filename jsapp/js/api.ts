@@ -2,51 +2,75 @@
 import {ROOT_URL} from './constants';
 import type {Json} from './components/common/common.interfaces';
 import type {FailResponse} from 'js/dataInterface';
-import {notify} from './utils';
+import {notify} from 'js/utils';
+import * as Sentry from '@sentry/react';
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display
- * a helpful error toast notification and to pass the error message to Raven.
+ * a helpful error toast notification and to pass the error message to Sentry.
  *
  * It can detect if we got HTML string as response and uses a generic message
- * instead of spitting it out.
+ * instead of spitting it out. The error message displayed to the user can be
+ * customized using the optional `toastMessage` argument.
  */
-export function handleApiFail(response: FailResponse) {
-  // Avoid displaying toast when purposefuly aborted a request
+export function handleApiFail(response: FailResponse, toastMessage?: string) {
+  // Don't do anything if we purposefully aborted the request
   if (response.status === 0 && response.statusText === 'abort') {
     return;
   }
 
-  let message = response.responseText;
+  const responseMessage = response.responseText;
+  let htmlMessage = '';
 
   // Detect if response is HTML code string
   if (
-    typeof message === 'string' &&
-    message.includes('</html>') &&
-    message.includes('</body>')
+    typeof responseMessage === 'string' &&
+    responseMessage.includes('</html>') &&
+    responseMessage.includes('</body>')
   ) {
     // Try plucking the useful error message from the HTML string - this works
     // for Werkzeug Debugger only. It is being used on development environment,
     // on production this would most probably result in undefined message (and
     // thus falling back to the generic message below).
-    const htmlDoc = new DOMParser().parseFromString(message, 'text/html');
-    message = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
+    const htmlDoc = new DOMParser().parseFromString(
+      responseMessage,
+      'text/html'
+    );
+    htmlMessage = htmlDoc.getElementsByClassName('errormsg')?.[0]?.innerHTML;
   }
 
-  if (!message) {
-    message = t('An error occurred');
-    if (response.status || response.statusText) {
-      message += ` — ${response.status} ${response.statusText}`;
-    } else if (!window.navigator.onLine) {
+  const message = htmlMessage || responseMessage;
+
+  /*
+  the message shown to the user, which uses (in descending order of priority)
+  1. the toast message (if provided)
+  2. the html-plucked error
+  3. the raw response
+  4. a generic error
+  */
+  let displayMessage = message;
+
+  if (toastMessage || !displayMessage) {
+    // display toastMessage or, if we don't have *any* message available, use a generic error
+    displayMessage = toastMessage || t('An error occurred');
+
+    if (!window.navigator.onLine) {
       // another general case — the original fetch response.message might have
       // something more useful to say.
-      message += ' — ' + t('Your connection is offline');
+      displayMessage += '\n\n' + t('Your connection is offline');
     }
   }
 
-  notify.error(message);
+  let errorMessageDisplay = message;
+  if (response.status || response.statusText) {
+    errorMessageDisplay = `${response.status} ${response.statusText}`;
+  }
 
-  window.Raven?.captureMessage(message);
+  // show the error message to the user
+  notify.error(displayMessage, undefined, errorMessageDisplay);
+
+  // send the message to our error tracker
+  Sentry.captureMessage(message || displayMessage);
 }
 
 const JSON_HEADER = 'application/json';
@@ -73,6 +97,13 @@ interface FetchDataOptions {
    * `true` by default
    */
   notifyAboutError?: boolean;
+  /**
+   * Override the default error toast message text. Sentry will still receive the
+   * default error message, for debugging purposes.
+   *
+   * Only applies when `notifyAboutError` is `true`.
+   */
+  errorMessageDisplay?: string;
   /**
    * Useful if you already have a full URL to be called and there is no point
    * adding `ROOT_URL` to it.
@@ -110,7 +141,9 @@ const fetchData = async <T>(
 
   // For when it's needed we pass authentication data
   if (method === 'DELETE' || data) {
-    const csrfCookie = document.cookie.match(/csrftoken=(\w{64})/);
+    // Need to support old token (64 characters - prior to Django 4.1)
+    // and new token (32 characters).
+    const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/);
     if (csrfCookie) {
       headers['X-CSRFToken'] = csrfCookie[1];
     }
@@ -164,7 +197,7 @@ const fetchData = async <T>(
         response.status === 404 ||
         response.status >= 500)
     ) {
-      handleApiFail(failResponse);
+      handleApiFail(failResponse, options?.errorMessageDisplay);
     }
 
     return Promise.reject(failResponse);
@@ -185,6 +218,15 @@ const fetchData = async <T>(
 /** GET Kobo API at path */
 export const fetchGet = async <T>(path: string, options?: FetchDataOptions) =>
   fetchData<T>(path, 'GET', undefined, options);
+
+/** GET data from Kobo API at url */
+export const fetchGetUrl = async <T>(
+  url: string,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(url, 'GET', undefined, options);
+};
 
 /** POST data to Kobo API at path */
 export const fetchPost = async <T>(
@@ -210,6 +252,16 @@ export const fetchPatch = async <T>(
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'PATCH', data, options);
 
+/** PATCH (update) data to Kobo API at url */
+export const fetchPatchUrl = async <T>(
+  path: string,
+  data: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'PATCH', data, options);
+};
+
 /** PUT (replace) data to Kobo API at path */
 export const fetchPut = async <T>(
   path: string,
@@ -217,9 +269,29 @@ export const fetchPut = async <T>(
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'PUT', data, options);
 
-/** DELETE data to Kobo API at path, data is optional */
+/** PUT (replace) data to Kobo API at url */
+export const fetchPutUrl = async <T>(
+  path: string,
+  data: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'PUT', data, options);
+};
+
+/** DELETE something from Kobo API at path, data is optional */
 export const fetchDelete = async <T>(
   path: string,
   data?: Json,
   options?: FetchDataOptions
 ) => fetchData<T>(path, 'DELETE', data, options);
+
+/** DELETE something from Kobo API at url, data is optional */
+export const fetchDeleteUrl = async <T>(
+  path: string,
+  data?: Json,
+  options?: FetchDataOptions
+) => {
+  options = Object.assign({}, options, {prependRootUrl: false});
+  return fetchData<T>(path, 'DELETE', data, options);
+};

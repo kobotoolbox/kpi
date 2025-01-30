@@ -2,6 +2,7 @@ import base64
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -40,6 +41,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         self.user = get_user_model().objects.get(username='someuser')
         self.user_token, _ = Token.objects.get_or_create(user=self.user)
 
+    @override_settings(STRIPE_ENABLED=False)
     def test_access_forbidden_with_invalid_password(self):
         # Ensure password is valid first
         self.user.extra_details.validated_password = True
@@ -183,20 +185,3 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         # `/environment`
         response = self.client.get(reverse('environment'), **headers)
         assert response.status_code == status.HTTP_200_OK
-
-        # Hook signal is a particular case but should not return a 403
-        data = {'submission_id': submission_id}
-        # # `/api/v2/assets/<parent_lookup_asset>/hook-signal/`
-        response = self.client.post(
-            reverse(
-                self._get_endpoint('hook-signal-list'),
-                kwargs={
-                    'format': 'json',
-                    'parent_lookup_asset': self.asset.uid,
-                },
-            ),
-            data=data,
-            **headers,
-        )
-        # return a 202 first time but 409 other attempts.
-        assert response.status_code != status.HTTP_403_FORBIDDEN

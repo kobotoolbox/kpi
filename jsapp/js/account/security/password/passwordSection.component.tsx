@@ -1,36 +1,51 @@
+// Libraries
 import React from 'react';
-import {ACCOUNT_ROUTES} from 'js/account/routes';
-import {PATHS} from 'js/router/routerConstants';
-import Button from 'jsapp/js/components/common/button';
-import styles from './passwordSection.module.scss';
+
+// Partial components
 import {NavLink} from 'react-router-dom';
+import Button from 'jsapp/js/components/common/button';
+
+// Constants
+import {PATHS} from 'js/router/routerConstants';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+
+// Styles
+import styles from './passwordSection.module.scss';
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10);
 
 export default function PasswordSection() {
   return (
-    <div className={styles.root}>
-      <div className={styles.titleSection}>
-        <h2 className={styles.title}>{t('Password')}</h2>
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Password')}</h2>
       </div>
 
-      <div className={styles.bodySection}>
+      <div className={securityStyles.securitySectionBody}>
         <p className={styles.passwordDisplay}>{HIDDEN_TOKEN_VALUE}</p>
       </div>
 
-      <div className={styles.optionsSection}>
-        <a href={PATHS.RESET}>{t('forgot password')}</a>
-
-        <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`} className={styles.passwordLink}>
+      <div className={styles.options}>
+        <a href={PATHS.RESET}>
           <Button
-            label='Update'
+            label={t('forgot password')}
             size='m'
-            color='blue'
-            type='frame'
-            onClick={() => {/*TODO: Handle NavLink and Button*/}}
+            type='text'
+          />
+        </a>
+
+        <NavLink to={`${ACCOUNT_ROUTES.CHANGE_PASSWORD}`}>
+          <Button
+            label={t('Update')}
+            size='m'
+            type='primary'
+            onClick={() => {
+              /*TODO: Handle NavLink and Button*/
+            }}
           />
         </NavLink>
       </div>
-    </div>
+    </section>
   );
 }

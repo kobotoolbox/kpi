@@ -1,6 +1,5 @@
-@use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 // Note: this needs to override a lot of styles defined in `_kobo.bem.ui.scss`,
@@ -8,34 +7,37 @@
 // because of too general styles of Form Builder.
 // See: https://github.com/kobotoolbox/kpi/issues/3914
 
-$input-color: colors.$kobo-gray-24;
-$wrapper-border-radius: sizes.$x6;
+$input-color: colors.$kobo-gray-800;
+$wrapper-border-radius: 6px;
+// This is being shared by multiple components
+$label-margin: 3px;
+$label-leading: 20px;
 
 .root {
   width: 100%;
 
   &.hasValue {
     .inputWrapper {
-      border-color: colors.$kobo-gray-85;
+      border-color: colors.$kobo-gray-400;
     }
   }
 
   &.isDisabled {
     .inputWrapper {
-      color: colors.$kobo-gray-65;
-      background-color: colors.$kobo-gray-98;
-      border-color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
+      background-color: colors.$kobo-gray-100;
+      border-color: colors.$kobo-gray-500;
     }
 
     .startIcon,
     .endIcon {
-      color: colors.$kobo-gray-65;
+      color: colors.$kobo-gray-500;
     }
   }
 
   &.hasError {
     .inputWrapper {
-      border-color: colors.$kobo-red;
+      border-color: colors.$kobo-mid-red;
     }
 
     .input {
@@ -51,20 +53,20 @@ $wrapper-border-radius: sizes.$x6;
 }
 
 .label {
-  color: colors.$kobo-gray-24;
-  font-size: sizes.$x12;
-  line-height: 1.6;
-  margin-bottom: sizes.$x3;
+  color: colors.$kobo-gray-800;
+  font-size: 12px;
+  line-height: $label-leading;
+  margin-bottom: $label-margin;
 }
 
 .requiredMark {
   // Smaller than the design, because there is also a single whitespace
   // character between the label and this mark
-  margin-left: sizes.$x2;
+  margin-left: 2px;
   color: colors.$kobo-red;
-  font-size: sizes.$x14;
+  font-size: 14px;
   // Magic number to align it similarly to Figma designs
-  line-height: sizes.$x16;
+  line-height: 16px;
   display: inline-block;
   vertical-align: bottom;
 }
@@ -75,7 +77,7 @@ $wrapper-border-radius: sizes.$x6;
   align-content: flex-start;
   color: $input-color;
   background-color: colors.$kobo-white;
-  border: sizes.$x1 solid colors.$kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-300;
   padding: 0; // size dictates the paddings
   border-radius: $wrapper-border-radius;
   cursor: text;
@@ -89,7 +91,7 @@ $wrapper-border-radius: sizes.$x6;
 // TODO: use a normal selector in far future when we no longer have bad CSS code
 textarea[class].input.input,
 input[class].input.input {
-  font-size: sizes.$x14;
+  font-size: 14px;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -103,32 +105,37 @@ input[class].input.input {
   }
 
   &:disabled {
-    color: colors.$kobo-gray-65;
+    color: colors.$kobo-gray-500;
     pointer-events: none;
 
     &::placeholder {
-      color: colors.$kobo-gray-55;
+      color: colors.$kobo-gray-600;
     }
   }
 
   &::placeholder {
-    color: colors.$kobo-gray-55;
+    color: colors.$kobo-gray-600;
     opacity: 1;
   }
 }
 
+textarea[class].input.input {
+  // Disallows resizing resizeable textarea to tiny size
+  min-height: 20px;
+}
+
 .startIcon,
 .endIcon {
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
 }
 
 .startIcon {
-  margin-right: sizes.$x8;
+  margin-right: 8px;
 }
 
 .endIcon,
 .errorIcon {
-  margin-left: sizes.$x8;
+  margin-left: 8px;
 }
 
 .errorIcon {
@@ -136,12 +143,12 @@ input[class].input.input {
 }
 
 .errorMessages {
-  font-size: sizes.$x12;
+  font-size: 12px;
   line-height: 1.6;
   font-weight: 400;
   font-style: normal;
   color: colors.$kobo-red;
-  margin-top: sizes.$x6;
+  margin-top: 6px;
 }
 
 // Note: TextBox is built differently from Button (for many reasons) so we can't
@@ -149,13 +156,13 @@ input[class].input.input {
 // both components in the same size have the same height :)
 
 .sizeL .inputWrapper {
-  padding: sizes.$x10 sizes.$x16;
+  padding: 8px 16px;
 }
 
 .sizeM .inputWrapper {
-  padding: sizes.$x5 sizes.$x12;
+  padding: 5px 12px;
 }
 
 .sizeS .inputWrapper {
-  padding: sizes.$x3 sizes.$x10;
+  padding: 3px 10px;
 }

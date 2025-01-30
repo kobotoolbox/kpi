@@ -1,8 +1,6 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
-@use './singleProcessingVariables';
-
-$s-single-processing-header: sizes.$x60;
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'scss/z-indexes';
 
 .root {
   // make it appear above everything
@@ -17,36 +15,73 @@ $s-single-processing-header: sizes.$x60;
   align-items: stretch;
   width: 100%;
   height: 100%;
-  background-color: colors.$kobo-cloud;
+  background-color: colors.$kobo-light-storm;
 }
 
 .top {
   width: 100%;
-  height: $s-single-processing-header;
+  background-color: colors.$kobo-white;
+  z-index: z-indexes.$z-processing-top;
+  box-shadow: 0 1px 0 colors.$kobo-light-storm;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .bottom {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  overflow-y: auto;
   width: 100%;
-  height: calc(100% - #{$s-single-processing-header});
-  padding: 0 60px;
+  flex: 1;
+  padding-top: 0; // This needs to be 0 for sticky scroll elements
+  padding-bottom: 12px;
 }
 
-.bottomLeft {
-  flex: 61;
-  margin-right: sizes.$x16;
-  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
-  max-width: 60vw; // ensure very long words don't murder the UI
+@include breakpoints.breakpoint(veryNarrow) {
+  .top {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .bottom {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
-.bottomRight {
-  flex: 39;
-  // used for details
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
-  min-width: 30vw; // ensure very long words don't murder the UI
+@include breakpoints.breakpoint(narrow) {
+  .bottom {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .top {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+
+  .bottomLeft {
+    flex: 61;
+    max-width: 60vw; // ensure very long words don't murder the UI
+    margin-right: 16px;
+  }
+
+  .bottomRight {
+    flex: 39;
+    min-width: 30vw; // ensure very long words don't murder the UI
+    // used for details
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 }

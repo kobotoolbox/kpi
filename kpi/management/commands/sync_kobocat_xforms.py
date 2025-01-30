@@ -8,28 +8,25 @@ from collections import defaultdict
 import requests
 import xlwt
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
+from guardian.models import UserObjectPermission
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.xls_to_ss_structure import xlsx_to_dicts
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import PERM_FROM_KC_ONLY
-from kpi.utils.log import logging
-from kpi.deployment_backends.kc_access.shadow_models import (
-    KobocatPermission,
-    KobocatUserObjectPermission,
-    KobocatXForm,
-    ShadowModel,
-)
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.models import Asset, ObjectPermission
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.log import logging
 from kpi.utils.models import _set_auto_field_update
+from kpi.utils.object_permission import get_anonymous_user
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -40,17 +37,24 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = KobocatXForm.get_content_type()
+XFORM_CT = ContentType.objects.using(settings.OPENROSA_DB_ALIAS).get(
+    app_label=XForm._meta.app_label, model=XForm._meta.model_name
+)
+
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
 
 KPI_PKS_TO_CODENAMES = {}
 for kc_codename, kpi_codename in permission_map_copy.items():
-    kc_perm_pk = KobocatPermission.objects.get(
-        content_type=XFORM_CT, codename=kc_codename).pk
+    kc_perm_pk = (
+        Permission.objects.using(settings.OPENROSA_DB_ALIAS)
+        .get(content_type=XFORM_CT, codename=kc_codename)
+        .pk
+    )
     kpi_perm_pk = Permission.objects.get(
-        content_type=ASSET_CT, codename=kpi_codename).pk
+        content_type=ASSET_CT, codename=kpi_codename
+    ).pk
 
     del PERMISSIONS_MAP[kc_codename]
 
@@ -95,7 +99,7 @@ def _convert_dict_to_xls(ss_dict):
     workbook = xlwt.Workbook()
     for sheet_name in ss_dict.keys():
         # pyxform.xls2json_backends adds "_header" items for each sheet.....
-        if not re.match(r".*_header$", sheet_name):
+        if not re.match(r'.*_header$', sheet_name):
             # Sheets with empty names are rejected by xlwt; omit them
             if not sheet_name:
                 continue
@@ -175,24 +179,14 @@ def _xform_to_asset_content(xform):
     return asset_content
 
 
-def _get_kc_backend_response(xform):
-    # Get the form data from KC
-    user = xform.user
-    response = _kc_forms_api_request(user.auth_token, xform.pk)
-    if response.status_code == 404:
-        raise SyncKCXFormsWarning([
-            user.username,
-            xform.id_string,
-            'unable to load form data ({})'.format(response.status_code)
-        ])
-    elif response.status_code != 200:
-        raise SyncKCXFormsError([
-            user.username,
-            xform.id_string,
-            'unable to load form data ({})'.format(response.status_code)
-        ])
-    backend_response = response.json()
-    return backend_response
+def _get_backend_response(xform):
+    return {
+        'formid': xform.pk,
+        'uuid': xform.uuid,
+        'id_string': xform.id_string,
+        'kpi_asset_uid': xform.asset.uid,
+        'hash': xform.prefixed_hash,
+    }
 
 
 def _sync_form_content(asset, xform, changes):
@@ -241,9 +235,7 @@ def _sync_form_content(asset, xform, changes):
     if modified:
         # It's important to update `deployment_data` with the new hash from KC;
         # otherwise, we'll be re-syncing the same content forever (issue #1302)
-        asset.deployment.store_data(
-            {'backend_response': _get_kc_backend_response(xform)}
-        )
+        asset.deployment.store_data({'backend_response': _get_backend_response(xform)})
 
     return modified
 
@@ -258,15 +250,15 @@ def _sync_form_metadata(asset, xform, changes):
     if not asset.has_deployment:
         # A brand-new asset
         asset.date_created = xform.date_created
-        kc_deployment = KobocatDeploymentBackend(asset)
-        kc_deployment.store_data({
-            'backend': 'kobocat',
-            'identifier': KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string),
-            'active': xform.downloadable,
-            'backend_response': _get_kc_backend_response(xform),
-            'version': asset.version_id
-        })
+        backend_deployment = OpenRosaDeploymentBackend(asset)
+        backend_deployment.store_data(
+            {
+                'backend': 'openrosa',
+                'active': xform.downloadable,
+                'backend_response': _get_backend_response(xform),
+                'version': asset.version_id,
+            }
+        )
         changes.append('CREATE METADATA')
         asset.set_deployment(kc_deployment)
         # `_sync_permissions()` will save `asset` if it has no `pk`
@@ -278,23 +270,12 @@ def _sync_form_metadata(asset, xform, changes):
 
     modified = False
     fetch_backend_response = False
-    backend_response = asset.deployment.backend_response
 
-    if (asset.deployment.active != xform.downloadable or
-            backend_response['downloadable'] != xform.downloadable):
+    if asset.deployment.active != xform.downloadable:
         asset.deployment.store_data({'active': xform.downloadable})
         modified = True
         fetch_backend_response = True
         changes.append('ACTIVE')
-
-    if settings.KOBOCAT_URL not in asset.deployment.identifier:
-        # Issue #1122
-        asset.deployment.store_data({
-            'identifier': KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string)})
-        fetch_backend_response = True
-        modified = True
-        changes.append('IDENTIFIER')
 
     # Check to see if the asset name matches the xform title. Per #857, the
     # xform title takes priority.  The first check is a cheap one:
@@ -307,9 +288,7 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        asset.deployment.store_data({
-            'backend_response': _get_kc_backend_response(xform)
-        })
+        asset.deployment.store_data({'backend_response': _get_backend_response(xform)})
         modified = True
 
     affected_users = _sync_permissions(asset, xform)
@@ -329,11 +308,15 @@ def _sync_permissions(asset, xform):
         return []
 
     # Get all applicable KC permissions set for this xform
-    xform_user_perms = KobocatUserObjectPermission.objects.filter(
-        permission_id__in=PERMISSIONS_MAP.keys(),
-        content_type=XFORM_CT,
-        object_pk=xform.pk
-    ).values_list('user', 'permission')
+    xform_user_perms = (
+        UserObjectPermission.objects.using(settings.OPENROSA_DB_ALIAS)
+        .filter(
+            permission_id__in=PERMISSIONS_MAP.keys(),
+            content_type=XFORM_CT,
+            object_pk=xform.pk,
+        )
+        .values_list('user', 'permission')
+    )
 
     if not xform_user_perms and not asset.pk:
         # Nothing to do
@@ -484,9 +467,9 @@ class Command(BaseCommand):
         sync_kobocat_form_media = options.get('sync_kobocat_form_media')
         verbosity = options.get('verbosity')
         users = User.objects.all()
-        # Do a basic query just to make sure the KobocatXForm model is
+        # Do a basic query just to make sure the XForm model is
         # loaded
-        if not KobocatXForm.objects.exists():
+        if not XForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -495,8 +478,8 @@ class Command(BaseCommand):
         self._print_str('%d users selected' % users.count())
 
         # We'll be copying the date fields from KC, so don't auto-update them
-        _set_auto_field_update(Asset, "date_created", False)
-        _set_auto_field_update(Asset, "date_modified", False)
+        _set_auto_field_update(Asset, 'date_created', False)
+        _set_auto_field_update(Asset, 'date_modified', False)
 
         for user in users:
             # Make sure the user has a token for access to KC's API
@@ -514,8 +497,8 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            # KobocatXForm has a foreign key on KobocatUser, not on User
-            xforms = KobocatXForm.objects.filter(user_id=user.pk).all()
+            # XForm has a foreign key on KobocatUser, not on User
+            xforms = XForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
@@ -576,8 +559,8 @@ class Command(BaseCommand):
                     logging.exception('sync_kobocat_xforms: {}'.format(
                         ', '.join(error_information)))
 
-        _set_auto_field_update(Asset, "date_created", True)
-        _set_auto_field_update(Asset, "date_modified", True)
+        _set_auto_field_update(Asset, 'date_created', True)
+        _set_auto_field_update(Asset, 'date_modified', True)
 
         if populate_xform_kpi_asset_uid:
             call_command(

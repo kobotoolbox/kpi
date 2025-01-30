@@ -4,7 +4,7 @@ import {KeyNames} from 'js/constants';
 import type {IconName} from 'jsapp/fonts/k-icons';
 import {escapeHtml} from 'js/utils';
 import type {ReactElement} from 'react';
-import {render} from 'react-dom';
+import ReactDOMServer from 'react-dom/server';
 
 interface MultiConfirmButton {
   label: string;
@@ -192,7 +192,5 @@ export function destroyConfirm(
  * strings).
  */
 export function renderJSXMessage(jsx: ReactElement) {
-  const domNode = document.createElement('div');
-  render(jsx, domNode);
-  return domNode.outerHTML;
+  return ReactDOMServer.renderToStaticMarkup(jsx);
 }

@@ -15,13 +15,14 @@ import sessionStore from 'js/stores/session';
 import {actions} from './actions';
 import type {
   AssetResponse,
-  Permission,
+  PermissionResponse,
   ProjectViewAsset,
   DeploymentResponse,
 } from './dataInterface';
 import {router, routerIsActive} from './router/legacy';
 import {ROUTES} from './router/routerConstants';
-import {ASSET_TYPES, MODAL_TYPES, PERMISSIONS_CODENAMES} from './constants';
+import {ASSET_TYPES, MODAL_TYPES} from './constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import {notify, renderCheckbox} from './utils';
 import assetUtils from './assetUtils';
 import myLibraryStore from './components/library/myLibraryStore';
@@ -29,9 +30,10 @@ import permConfig from './components/permissions/permConfig';
 import toast from 'react-hot-toast';
 import {userCan} from './components/permissions/utils';
 import {renderJSXMessage} from './alertify';
+import pageState from 'js/pageState.store';
 
 export function openInFormBuilder(uid: string) {
-  if (routerIsActive('library')) {
+  if (routerIsActive(ROUTES.LIBRARY)) {
     router!.navigate(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid));
   } else {
     router!.navigate(ROUTES.FORM_EDIT.replace(':uid', uid));
@@ -399,22 +401,24 @@ export function cloneAssetAsSurvey(sourceUid: string, sourceName: string) {
 
 export function removeAssetSharing(uid: string) {
   /**
-   * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+   * Extends `removeAllPermissions` from `userPermissionRow.component.tsx`:
    * Checks for permissions from current user before finding correct
    * "most basic" permission to remove.
    */
   const asset = stores.allAssets.byUid[uid];
-  const userViewAssetPerm = asset.permissions.find((perm: Permission) => {
-    // Get permissions url related to current user
-    const permUserUrl = perm.user.split('/');
-    return (
-      permUserUrl[permUserUrl.length - 2] ===
-        sessionStore.currentAccount.username &&
-      perm.permission ===
-        permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
-          ?.url
-    );
-  });
+  const userViewAssetPerm = asset.permissions.find(
+    (perm: PermissionResponse) => {
+      // Get permissions url related to current user
+      const permUserUrl = perm.user.split('/');
+      return (
+        permUserUrl[permUserUrl.length - 2] ===
+          sessionStore.currentAccount.username &&
+        perm.permission ===
+          permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset)
+            ?.url
+      );
+    }
+  );
 
   const dialog = alertify.dialog('confirm');
   const opts = {
@@ -488,10 +492,8 @@ function _redeployAsset(
       actions.resources.deployAsset(asset, true, {
         onDone: (response: DeploymentResponse) => {
           notify(t('redeployed form'));
-          // TODO: this ensures that after deploying an asset, we get the fresh
-          // data for it. But this also causes duplicated calls in some cases.
-          // It needs some investigation.
-          actions.resources.loadAsset({id: asset.uid});
+          // this ensures that after deploying an asset, we get the fresh data for it
+          actions.resources.loadAsset({id: asset.uid}, true);
           if (dialog && typeof dialog.destroy === 'function') {
             dialog.destroy();
           }
@@ -532,12 +534,12 @@ export function deployAsset(
 
 /** Opens a modal for sharing asset. */
 export function manageAssetSharing(uid: string) {
-  stores.pageState.showModal({type: MODAL_TYPES.SHARING, uid: uid});
+  pageState.showModal({type: MODAL_TYPES.SHARING, uid: uid});
 }
 
 /** Opens a modal for replacing an asset using a file. */
 export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({type: MODAL_TYPES.REPLACE_PROJECT, asset: asset});
+  pageState.showModal({type: MODAL_TYPES.REPLACE_PROJECT, asset: asset});
 }
 
 /**
@@ -546,7 +548,7 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * up front via `asset` parameter.
  */
 export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
-  stores.pageState.showModal({
+  pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
     assetUid: uid,
     asset: asset,
@@ -554,12 +556,12 @@ export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
 }
 
 export function manageAssetEncryption(uid: string) {
-  stores.pageState.showModal({type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid});
+  pageState.showModal({type: MODAL_TYPES.ENCRYPT_FORM, assetUid: uid});
 }
 
 /** Opens a modal for modifying asset tags (also editable in Details Modal). */
 export function modifyAssetTags(asset: AssetResponse | ProjectViewAsset) {
-  stores.pageState.showModal({type: MODAL_TYPES.ASSET_TAGS, asset: asset});
+  pageState.showModal({type: MODAL_TYPES.ASSET_TAGS, asset: asset});
 }
 
 /**
@@ -574,7 +576,7 @@ export function manageAssetSettings(asset: AssetResponse) {
     modalType = MODAL_TYPES.LIBRARY_COLLECTION;
   }
   if (modalType) {
-    stores.pageState.showModal({
+    pageState.showModal({
       type: modalType,
       asset: asset,
     });

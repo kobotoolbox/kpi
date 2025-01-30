@@ -8,7 +8,7 @@ import Button from '../common/button';
 import KoboPrompt from './koboPrompt';
 
 export default {
-  title: 'common/KoboModal',
+  title: 'commonDeprecated/KoboModal',
   component: KoboModal,
   argTypes: {
     isOpen: {control: 'boolean'},
@@ -52,16 +52,14 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
 
     <KoboModalFooter>
       <Button
-        type='full'
-        color='blue'
+        type='primary'
         size='m'
         onClick={() => {}}
         label={'click to close modal from inside'}
       />
 
       <Button
-        type='full'
-        color='red'
+        type='danger'
         size='m'
         onClick={() => {}}
         label={'some action that needs confirmation'}
@@ -73,15 +71,15 @@ const Template: ComponentStory<typeof KoboModal> = (args: any) => (
       onRequestClose={() => {}}
       title='Are you sure?'
       titleIcon='alert'
-      titleIconColor='red'
+      titleIconColor='mid-red'
       buttons={[
         {
-          color: 'storm',
+          type: 'secondary',
           label: 'cancel',
           onClick: () => {},
         },
         {
-          color: 'red',
+          type: 'danger',
           label: 'confirm',
           onClick: () => {},
         },

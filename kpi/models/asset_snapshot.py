@@ -2,10 +2,11 @@
 # 😬
 import copy
 
+from django.conf import settings
 from django.db import models
+from formpack import FormPack
 from rest_framework.reverse import reverse
 
-from formpack import FormPack
 
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
@@ -54,19 +55,14 @@ class AssetSnapshot(
     """
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
-
-    TODO: come up with a policy to clear this cache out.
-    DO NOT: depend on these snapshots existing for more than a day
-    until a policy is set.
-    Done with https://github.com/kobotoolbox/kpi/pull/2434.
-    Remove above lines when PR is merged
     """
     xml = models.TextField()
     source = models.JSONField(default=dict)
     details = models.JSONField(default=dict)
-    owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
+    # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
     submission_uuid = models.CharField(null=True, max_length=41)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.ForeignKey(
@@ -218,11 +214,12 @@ class AssetSnapshot(
 
         warnings = []
         details = {}
+
         try:
             xml = FormPack({'content': source_copy},
-                           root_node_name=root_node_name,
-                           id_string=id_string,
-                           title=form_title)[0].to_xml(warnings=warnings)
+                            root_node_name=root_node_name,
+                            id_string=id_string,
+                            title=form_title)[0].to_xml(warnings=warnings)
 
             details.update({
                 'status': 'success',
@@ -245,3 +242,18 @@ class AssetSnapshot(
                 'warnings': warnings,
             })
         return xml, details
+
+    @property
+    def xform_root_node_name(self):
+        """
+        Retrieves the name of the XML tag representing the root node of the "survey"
+        in the XForm XML structure.
+
+        This method uses the `name` setting from the XLSForm to determine the tag name.
+        If no name is provided, it falls back to using the asset UID.
+        """
+
+        try:
+            return self.asset.content['settings']['name']
+        except KeyError:
+            return self.asset.uid

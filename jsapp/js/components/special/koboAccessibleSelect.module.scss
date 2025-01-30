@@ -1,0 +1,177 @@
+@use 'scss/mixins';
+@use 'scss/z-indexes';
+@use 'scss/colors';
+@use 'js/components/common/button';
+@use 'js/components/common/textBox.module';
+
+// see koboDropdown.scss,
+//     koboSelect.scss
+//     textBox.module.scss
+
+$input-color: colors.$kobo-gray-800;
+
+.root {
+  width: 100%;
+  position: relative;
+  font-size: 12px;
+}
+
+.m {
+  width: 60%;
+}
+
+.s {
+  width: 8em;
+}
+
+.fit {
+  width: min-content;
+}
+
+// Dropdown trigger.
+// A focusable input that receives keyboard shortcuts and mouse clicks
+.trigger {
+  // Sizing
+  height: 36px;
+  width: 100%;
+  font-size: 12px;
+  padding: 0 16px;
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  cursor: pointer; // this differs from <select> built-in
+
+  .selectedOptionLabel {
+    @include mixins.textEllipsis;
+  }
+
+  // Color styles for 'outline' style.
+  color: $input-color;
+  border-style: solid;
+  border-width: 1px;
+  border-color: colors.$kobo-gray-300;
+  border-radius: 6px;
+  background-color: colors.$kobo-white;
+
+  // This transition reduces visual glitching when script initiates focus()
+  outline: 0 solid colors.$kobo-mid-blue;
+  transition: outline-width 20ms, border-color 20ms;
+
+  &:hover {
+    border-color: colors.$kobo-gray-400;
+  }
+
+  &:focus {
+    border-width: 1px;
+    border-color: colors.$kobo-blue;
+    transition: outline-width 20ms, border-color 20ms;
+    outline: 3px solid colors.$kobo-mid-blue;
+  }
+  // Specificity-fighting with normalize.css in Firefox
+  &button:focus-visible,
+  &[type='button']:focus-visible {
+    outline: 3px solid colors.$kobo-mid-blue;
+  }
+
+  &.hasError {
+    border-color: colors.$kobo-mid-red;
+    &:hover {border-color: colors.$kobo-red;}
+    &:focus {border-color: colors.$kobo-dark-blue;}
+  }
+
+  :global .k-icon {
+    color: colors.$kobo-gray-600; // chosen for balance
+    // color: colors.$kobo-gray-400; // - old design with caret triangle
+  }
+
+  &[aria-expanded='true'] {
+    border-color: colors.$kobo-blue;
+    :global .k-icon {
+      color: colors.$kobo-blue;
+    }
+  }
+
+  &.placeholding {
+    color: colors.$kobo-gray-600;
+  }
+
+  &button {
+    user-select: none;
+  }
+}
+
+$k-select-option-height: 36px;
+$k-select-menu-padding: 6px;
+
+// Menu containing a list of options.
+.menu {
+  display: none;
+  &[data-expanded='true'] {
+    display: block;
+  }
+  user-select: none;
+
+  position: absolute;
+  z-index: z-indexes.$z-dropdown;
+
+  // width: 100%;
+  min-width: 100%;
+  max-width: 98vw;
+  overflow-x: auto;
+  margin: 2px 0 0;
+  padding: $k-select-menu-padding 0;
+
+  background-color: colors.$kobo-white;
+  border: 1px solid colors.$kobo-light-blue; // more contrast for keyboard
+  border-radius: button.$button-border-radius;
+  box-shadow: 0 0 6px rgba(colors.$kobo-storm, 0.3);
+
+  &:not(.noMaxMenuHeight) {
+    // Show a four-and-a-half options to suggest there are more
+    // (noMaxMenuHeight lets us disable this in case we expect e.g. 5 options)
+    max-height: ($k-select-option-height * 4.5) + $k-select-menu-padding;
+  }
+}
+
+// Menu option
+.option {
+  background: colors.$kobo-white;
+  color: colors.$kobo-gray-800;
+
+  min-height: $k-select-option-height;
+
+  // slight overhang for clarity when cut short
+  padding: 8px 16px 8px 20px;
+  text-indent: 0 - 4px;
+
+  &.selected {
+    // background: colors.$kobo-gray-200; // prior design
+    background: colors.$kobo-light-blue; // a11y: adds contrast for keyboard use
+    color: colors.$kobo-gray-900;
+    border-radius: 2px;
+  }
+}
+
+// Form label displayed above the trigger
+.label {
+  font-size: 12px;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
+  &.label.label { // selector specificity-fighting with kobo bem
+    color: colors.$kobo-gray-800;
+  }
+}
+
+// Required-indicator asterisk
+.redAsterisk {
+  color: colors.$kobo-red;
+}
+
+// Paragraph of error feedback text
+.error {
+  color: colors.$kobo-red;
+
+  line-height: 1.6;
+  font-weight: 400;
+  font-style: normal;
+  margin: 6px auto 0;
+}

@@ -1,4 +1,5 @@
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
+@use 'scss/breakpoints';
 
 .limitBannerContainer {
   background-color: colors.$kobo-light-red;
@@ -9,7 +10,11 @@
   min-height: 75px;
   flex-shrink: 0;
   border-radius: 0.5em;
-  margin: 0 1% 1%;
+  margin: 2% 1% 0%;
+}
+
+.accountPage {
+  margin: 0;
 }
 
 .warningBanner {
@@ -17,7 +22,15 @@
 }
 
 .bannerContent {
-  padding: 0 2%;
+  padding: 16px 2%;
+}
+
+.bannerContent p {
+  margin: 0;
+}
+
+.bannerContent a {
+  color: colors.$kobo-dark-blue;
 }
 
 .bannerLink {
@@ -27,18 +40,18 @@
 
 .bannerBtn {
   flex-shrink: 0;
-  min-width: 120px !important;
+  min-width: 100px !important;
   height: 32px;
   margin-inline: auto 0;
+  font-weight: bold;
 }
 
-
-@media (max-width: 979px) {
+@include breakpoints.breakpoint(mediumAndUp) {
   .bannerBtn {
-    min-width: 100px !important;
+    min-width: 120px !important;
   }
 
   .bannerContent {
-    padding: 2%;
+    padding: 16px 2%;
   }
 }

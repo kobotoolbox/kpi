@@ -2,18 +2,19 @@
 import os
 from collections import defaultdict
 
-from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, ExportTask, AssetExportSettings
+from kpi.models import Asset, AssetExportSettings, SubmissionExportTask
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -26,7 +27,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         uid = self.asset.uid if asset is None else asset.uid
         user = self.user if user is None else user
 
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = user
         export_task.data = {
             'source': reverse(
@@ -335,9 +336,10 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             self._get_endpoint('asset-export-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
-        exports_list_response = self.client.post(
-            exports_list_url, data=es.export_settings
-        )
+        with immediate_on_commit():
+            exports_list_response = self.client.post(
+                exports_list_url, data=es.export_settings
+            )
         assert exports_list_response.status_code == status.HTTP_201_CREATED
 
         exports_detail_response = self.client.get(
@@ -473,7 +475,8 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             'fields_from_all_versions': 'false',
             'multiple_select': 'both',
         }
-        response = self.client.post(list_url, data=data)
+        with immediate_on_commit():
+            response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
         export_response = self.client.get(response.data['url'])
         filepath = export_response.data['result']

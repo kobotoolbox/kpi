@@ -1,6 +1,6 @@
-@use 'scss/sizes';
 @use 'scss/mixins';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/breakpoints';
+@use 'scss/colors';
 @use 'scss/_variables';
 
 .form-view--form-media {
@@ -25,14 +25,14 @@
       top: -2px;
       font-size: 24px;
       height: 24px;
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       cursor: pointer;
     }
   }
 
   .form-media__upload {
     .form-media-upload-url {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-700;
       font-size: 18px;
       font-weight: 500;
       margin: auto;
@@ -48,15 +48,15 @@
       .form-media-upload-url__form {
         @include mixins.centerRowFlex;
         align-items: flex-start;
-        gap: sizes.$x20;
-        padding-top: sizes.$x10;
+        gap: 20px;
+        padding-top: 10px;
 
         > label {
           flex: 1;
         }
 
         .k-button {
-          min-width: sizes.$x150;
+          min-width: 150px;
 
           .k-button__label {
             text-align: center;
@@ -73,33 +73,23 @@
     label.form-media__label {
       margin-bottom: 11px;
       padding-bottom: 16px;
-      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-300;
     }
 
     .form-media__list-item {
       font-size: 16px;
       position: relative;
       padding-bottom: 12px;
-      border-bottom: 1px solid colors.$kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-300;
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
-
-      // TODO: Find a better way to implement button size without editing parent
-      // See: https://github.com/kobotoolbox/kpi/issues/3917
-      button.kobo-light-button {
-        padding-bottom: 25px;
-
-        i.k-icon-trash {
-          font-size: 24px;
-        }
-      }
 
       i.form-media__file-type {
         position: absolute;
         left: -5px;
         top: 2px;
-        color: colors.$kobo-gray-65;
+        color: colors.$kobo-gray-500;
         font-size: 24px;
       }
 
@@ -122,15 +112,9 @@
   }
 
   .form-media__label {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     font-weight: 500;
     font-size: 22px;
     display: block;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .media-settings--upload-file {
-    width: auto;
   }
 }

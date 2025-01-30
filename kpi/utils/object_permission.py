@@ -2,16 +2,18 @@
 from collections import defaultdict
 from typing import Union
 
+import django.dispatch
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import User, Permission, AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
-from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.constants import PERM_FROM_KC_ONLY, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.utils.permissions import is_user_anonymous
 
 
@@ -237,6 +239,11 @@ def get_user_permission_assignments_queryset(affected_object, user):
 
     """
 
+    # Import here to avoid circular import of `get_database_user()`, which
+    # could be moved elsewhere like `kpi.utils.permissions`, eventually. Avoid
+    # such refactoring now while large work like #4888 remains in progress.
+    from kpi.utils.project_views import user_has_project_view_asset_perm
+
     # `affected_object.permissions` is a `GenericRelation(ObjectPermission)`
     # Don't Prefetch `content_object`.
     # See `AssetPermissionAssignmentSerializer.to_representation()`
@@ -255,12 +262,21 @@ def get_user_permission_assignments_queryset(affected_object, user):
                 settings.ANONYMOUS_USER_ID,
             ]
         )
-    elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
-        # Display only users' permissions if they are not allowed to modify
-        # others' permissions
-        queryset = queryset.filter(user_id__in=[user.pk,
-                                                affected_object.owner_id,
-                                                settings.ANONYMOUS_USER_ID])
+    # Users granted the `view_asset` permission via the Project Views feature
+    # may list all permission assignments, but other users may only view a
+    # subset of non-sensitive assignments
+    elif not affected_object.has_perm(
+        user, PERM_MANAGE_ASSET
+    ) and not user_has_project_view_asset_perm(
+        affected_object, user, PERM_VIEW_ASSET
+    ):
+        queryset = queryset.filter(
+            user_id__in=[
+                user.pk,
+                affected_object.owner_id,
+                settings.ANONYMOUS_USER_ID,
+            ]
+        )
 
     return queryset
 
@@ -282,3 +298,9 @@ def perm_parse(perm, obj=None):
         app_label = obj_app_label
         codename = perm
     return app_label, codename
+
+
+post_assign_perm = django.dispatch.Signal()
+post_remove_perm = django.dispatch.Signal()
+post_assign_partial_perm = django.dispatch.Signal()
+post_remove_partial_perms = django.dispatch.Signal()

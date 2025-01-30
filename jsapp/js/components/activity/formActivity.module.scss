@@ -1,0 +1,56 @@
+@use 'scss/mixins';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: colors.$kobo-white !important;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 20px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.headerActions {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.filterSelect {
+  width: 280px;
+}
+
+.tableContainer {
+  flex: 1;
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+
+.seeDetailsButton {
+  background: transparent;
+  border: none;
+  color: colors.$kobo-gray-900;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.detailsModalContent {
+  padding: 30px;
+  overflow-x: auto;
+}
+
+.detailsModalContent pre {
+  margin: 0;
+}

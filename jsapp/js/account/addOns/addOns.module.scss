@@ -1,0 +1,34 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+
+.root {
+  padding: 20px;
+}
+
+.headerText {
+  font-size: 18px;
+  font-weight: 700;
+  // TODO: this should be a color from our palette
+  color: hsl(225, 33%, 59%);
+  padding: 0.5em 0;
+  text-transform: uppercase;
+}
+
+.article {
+  p {
+    display: inline;
+  }
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .root {
+    padding: 40px;
+  }
+}

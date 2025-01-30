@@ -8,14 +8,16 @@ import {
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
 import {
-  QUESTION_TYPES,
+  QuestionTypeName,
   FUSE_OPTIONS,
 } from 'js/constants';
 import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
+import Button from 'js/components/common/button';
+import SimpleTable from 'js/components/common/SimpleTable';
+import {Text} from '@mantine/core';
 import envStore from 'js/envStore';
-import './bulkEditSubmissionsForm.scss';
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');
@@ -24,6 +26,15 @@ const EMPTY_VALUE_LABEL = t('n/d');
 const EMPTY_VALUE = null;
 const MULTIPLE_VALUES_LABEL = t('Multiple responses');
 const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html';
+
+/** These types are not compatible with bulk editing. */
+const EXCLUDED_TYPES = [
+  QuestionTypeName.audio,
+  QuestionTypeName['background-audio'],
+  QuestionTypeName.video,
+  QuestionTypeName.image,
+  QuestionTypeName.file,
+];
 
 /**
  * The content of the BULK_EDIT_SUBMISSIONS modal
@@ -174,9 +185,9 @@ class BulkEditSubmissionsForm extends React.Component {
     questions = questions.filter((question) => {
       // let's hide rows that don't carry any submission data
       if (
-        question.type === QUESTION_TYPES.calculate.id ||
-        question.type === QUESTION_TYPES.note.id ||
-        question.type === QUESTION_TYPES.hidden.id
+        question.type === QuestionTypeName.calculate ||
+        question.type === QuestionTypeName.note ||
+        question.type === QuestionTypeName.hidden
       ) {
         return false;
       }
@@ -212,55 +223,8 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
-  renderRow(questionData, itemIndex) {
-    let question = questionData;
-    if (typeof questionData.refIndex !== 'undefined') {
-      question = questionData.item;
-    }
-
-    let modifiers = [];
-    // we don't support bulk editing questions from repeat groups yet
-    // we display them but disabled
-    if (question.hasRepeatParent) {
-      modifiers.push('bulk-edit-row-disabled');
-    }
-
-    return (
-      <bem.SimpleTable__row key={itemIndex} m={modifiers}>
-        <bem.SimpleTable__cell>
-          {renderQuestionTypeIcon(question.type)}
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          {question.parents.length > 0 &&
-            <small>{question.parents.join(' / ') + ' /'}</small>
-          }
-
-          <div>
-            {question.isRequired && <strong title={t('Required')}>*&nbsp;</strong>}
-            {question.label}
-          </div>
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          {question.hasRepeatParent &&
-            <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
-          }
-          {!question.hasRepeatParent &&
-            this.renderRowDataValues(question.name, question.selectedData)
-          }
-        </bem.SimpleTable__cell>
-
-        <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m='blue'
-            onClick={this.selectQuestion.bind(this, question)}
-          >
-            {t('Edit')}
-          </bem.KoboTextButton>
-        </bem.SimpleTable__cell>
-      </bem.SimpleTable__row>
-    );
+  isEditDisabled(questionType) {
+    return EXCLUDED_TYPES.includes(questionType);
   }
 
   /**
@@ -299,6 +263,74 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
+  getFiltersRow() {
+    return [
+      '',
+      <TextBox
+        key='filter-by-name'
+        value={this.state.filterByName}
+        onChange={this.onFilterByNameChange}
+        placeholder={t('Type to filter')}
+      />,
+      <TextBox
+        key='filter-by-value'
+        value={this.state.filterByValue}
+        onChange={this.onFilterByValueChange}
+        placeholder={t('Type to filter')}
+      />,
+      '',
+    ];
+  }
+
+  getRows(data) {
+    return data.map((questionData) => {
+      let question = questionData;
+      if (typeof questionData.refIndex !== 'undefined') {
+        question = questionData.item;
+      }
+
+      return [
+        renderQuestionTypeIcon(question.type),
+        <>
+          {question.parents.length > 0 &&
+            <small>{question.parents.join(' / ') + ' /'}</small>
+          }
+
+          <div>
+            {question.isRequired && <strong title={t('Required')}>*&nbsp;</strong>}
+            {question.label}
+          </div>
+        </>,
+        <>
+          {question.hasRepeatParent &&
+            <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
+          }
+          {!question.hasRepeatParent &&
+            this.renderRowDataValues(question.name, question.selectedData)
+          }
+        </>,
+        <Text key='action-button' ta='right'>
+          <Button
+            type='secondary'
+            size='m'
+            onClick={() => {
+              if (!this.isEditDisabled(question.type)) {
+                this.selectQuestion(question);
+              }
+            }}
+            isDisabled={
+              this.isEditDisabled(question.type) ||
+              // we don't support bulk editing questions from repeat groups yet
+              // we display them but disabled
+              question.hasRepeatParent
+            }
+            label={t('Edit')}
+          />
+        </Text>,
+      ];
+    });
+  }
+
   renderList() {
     const displayData = this.getDisplayData();
 
@@ -325,72 +357,34 @@ class BulkEditSubmissionsForm extends React.Component {
           {t('Updated responses')}
         </bem.FormModal__item>
 
-        <bem.SimpleTable m='bulk-edit-list'>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
-                {t('Type')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Question')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Response')}
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                {t('Action')}
-              </bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell/>
-
-              <bem.SimpleTable__cell>
-                <TextBox
-                  value={this.state.filterByName}
-                  onChange={this.onFilterByNameChange}
-                  placeholder={t('Type to filter')}
-                />
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>
-                <TextBox
-                  value={this.state.filterByValue}
-                  onChange={this.onFilterByValueChange}
-                  placeholder={t('Type to filter')}
-                />
-              </bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell/>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
-
-          <bem.SimpleTable__body>
-            {finalData.map(this.renderRow)}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
+        <SimpleTable
+          head={[
+            t('Type'),
+            t('Question'),
+            t('Response'),
+            <Text key='action-button' ta='right'>{t('Action')}</Text>,
+          ]}
+          body={[this.getFiltersRow(), ...this.getRows(finalData)]}
+          minWidth={600}
+        />
 
         <bem.Modal__footer>
-          <bem.KoboButton
-            m='red'
-            type='button'
-            onClick={this.onReset}
-            disabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
-          >
-            {t('Discard Changes')}
-          </bem.KoboButton>
+          <Button
+            type='danger'
+            size='l'
+            onClick={this.onReset.bind(this)}
+            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            label={t('Discard Changes')}
+          />
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
-          >
-            {t('Confirm & close')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
+            label={t('Confirm & close')}
+          />
         </bem.Modal__footer>
       </React.Fragment>
     );
@@ -413,22 +407,20 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.KoboButton
+          <Button
+            type='secondary'
+            size='l'
+            onClick={this.goBackToList.bind(this)}
+            label={t('Back')}
             className='footer-back-button'
-            m='whitegray'
-            type='button'
-            onClick={this.goBackToList}
-          >
-            {t('Back')}
-          </bem.KoboButton>
+          />
 
-          <bem.KoboButton
-            m='blue'
-            type='button'
-            onClick={this.saveOverride}
-          >
-            {t('Save')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.saveOverride.bind(this)}
+            label={t('Save')}
+          />
         </bem.Modal__footer>
       </React.Fragment>
     );
@@ -482,7 +474,10 @@ class BulkEditRowForm extends React.Component {
   }
 
   /**
-   * @returns {object[]} an ordered list of unique responses with frequency data
+   * @returns {[][]} an ordered list of unique responses with frequency data.
+   * Each data item (an array) has:
+   * [0] {string|null} - the unique response value
+   * [1] {number} - the total count for this unique response
    */
   getUniqueResponses() {
     let uniqueResponses = new Map();
@@ -498,38 +493,34 @@ class BulkEditRowForm extends React.Component {
     return uniqueResponses;
   }
 
-  /**
-   * @param {string|null} data[0] - the unique response value
-   * @param {number} data[1] - the total count for this unique response
-   */
-  renderResponseRow(data) {
-    const count = data[1];
-    const response = data[0];
+  getRows() {
+    return Array.from(this.getUniqueResponses()).map((data) => {
+      const count = data[1];
+      const response = data[0];
 
-    let responseLabel = response;
-    let responseValue = response;
-    if (response === undefined) {
-      responseLabel = EMPTY_VALUE_LABEL;
-      responseValue = EMPTY_VALUE;
-    }
+      let responseLabel = response;
+      let responseValue = response;
+      if (response === undefined) {
+        responseLabel = EMPTY_VALUE_LABEL;
+        responseValue = EMPTY_VALUE;
+      }
 
-    const percentage = (count / this.props.originalData.length * 100).toFixed(2);
+      const percentage = (count / this.props.originalData.length * 100).toFixed(2);
 
-    return (
-      <bem.SimpleTable__row key={responseLabel}>
-        <bem.SimpleTable__cell>{responseLabel}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>{count}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>{percentage}</bem.SimpleTable__cell>
-        <bem.SimpleTable__cell>
-          <bem.KoboTextButton
-            m='blue'
+      return [
+        responseLabel,
+        count,
+        percentage,
+        <Text key='action-button' ta='right'>
+          <Button
+            type='secondary'
+            size='m'
             onClick={this.onChange.bind(this, responseValue)}
-          >
-            {t('Select')}
-          </bem.KoboTextButton>
-        </bem.SimpleTable__cell>
-      </bem.SimpleTable__row>
-    );
+            label={t('Select')}
+          />
+        </Text>,
+      ];
+    });
   }
 
   render() {
@@ -541,7 +532,7 @@ class BulkEditRowForm extends React.Component {
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m={['columns', 'columns-top']}>
+        <bem.FormView__cell m={['columns', 'columns-top']} dir='auto'>
           <bem.FormView__cell m='column-icon'>
             {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>
@@ -550,7 +541,7 @@ class BulkEditRowForm extends React.Component {
             <h2>{this.props.question.label}</h2>
 
             <TextBox
-              customClassNames={['bulk-edit-response-textbox']}
+              className='bulk-edit-response-textbox'
               type='text-multiline'
               value={inputValue}
               onChange={this.onChange}
@@ -559,23 +550,17 @@ class BulkEditRowForm extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__cell>
 
-        <bem.SimpleTable m='bulk-edit-responses'>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>{t('Response value')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Frequency')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Percentage')}</bem.SimpleTable__cell>
-
-              <bem.SimpleTable__cell>{t('Action')}</bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
-
-          <bem.SimpleTable__body>
-            {Array.from(this.getUniqueResponses()).map(this.renderResponseRow)}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
+        <SimpleTable
+          mt='lg'
+          head={[
+            t('Response value'),
+            t('Frequency'),
+            t('Percentage'),
+            <Text key='action-button' ta='right'>{t('Action')}</Text>,
+          ]}
+          body={this.getRows()}
+          minWidth={600}
+        />
       </React.Fragment>
     );
   }

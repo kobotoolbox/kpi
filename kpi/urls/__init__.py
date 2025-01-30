@@ -1,18 +1,22 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.urls import include, re_path, path
+from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kpi.views import authorized_application_authenticate_user
-from kpi.views import home, browser_tests, modern_browsers
-from kpi.views.environment import EnvironmentView
+from kpi.views import (
+    authorized_application_authenticate_user,
+    home,
+    modern_browsers,
+)
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
-
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
+from ..views.v2.logout import logout_from_all_devices
+
 
 # TODO: Give other apps their own `urls.py` files instead of importing their
 # views directly! See
@@ -29,16 +33,14 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1.urls)),
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
-    re_path(r'^api/v2/', include('kobo.apps.languages.urls')),
-    re_path(r'^api/v2/', include('kobo.apps.audit_log.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     re_path(
         r'^authorized_application/authenticate_user/$',
-        authorized_application_authenticate_user
+        authorized_application_authenticate_user,
+        name='authenticate_user',
     ),
-    path('browser_tests/', browser_tests),
     path('modern_browsers/', modern_browsers),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
@@ -50,7 +52,11 @@ urlpatterns = [
             ConfigurationFile.content_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    re_path(r'^superuser_stats/', include(('kobo.apps.superuser_stats.urls', 'superuser_stats'))),
+    re_path(
+        r'^superuser_stats/',
+        include(('kobo.apps.superuser_stats.urls', 'superuser_stats')),
+    ),
+    path('logout-all/', logout_from_all_devices, name='logout_all'),
 ]
 
 

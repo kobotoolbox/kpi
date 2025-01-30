@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 def create_extrauserdetails(apps, schema_editor):
     ExtraUserDetail = apps.get_model('hub', 'ExtraUserDetail')
-    User = apps.get_model('auth', 'User')
+    User = apps.get_model('kobo_auth', 'User')
     for user in User.objects.all():
         ExtraUserDetail.objects.get_or_create(user=user)
 

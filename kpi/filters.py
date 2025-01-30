@@ -1,16 +1,7 @@
-# coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import (
-    Case,
-    Count,
-    F,
-    IntegerField,
-    Q,
-    Value,
-    When,
-)
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import filters
@@ -18,10 +9,10 @@ from rest_framework.request import Request
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
-    ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
+    ASSET_STATUS_SHARED,
     PERM_DISCOVER_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -34,14 +25,24 @@ from kpi.exceptions import (
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
 from kpi.utils.django_orm_helper import OrderCustomCharField
-from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
-    get_objects_for_user,
     get_anonymous_user,
+    get_database_user,
+    get_objects_for_user,
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
+
 from .models import Asset, ObjectPermission
+
+
+class DeploymentFilter:
+    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
+        AssetDeploymentStatus.DEPLOYED.value,
+        AssetDeploymentStatus.DRAFT.value,
+        AssetDeploymentStatus.ARCHIVED.value,
+    ]
 
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
@@ -51,11 +52,36 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        fields = {"asset__owner": request.user}
+        fields = {'asset__owner': request.user}
         return queryset.filter(**fields)
 
 
-class AssetOrderingFilter(filters.OrderingFilter):
+class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
+
+    DEFAULT_USAGE_ORDERING_FIELDS = [
+        'name',
+        '_deployment_status',
+    ]
+
+    ordering_fields = DEFAULT_USAGE_ORDERING_FIELDS
+
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+
+        if ordering:
+            queryset = queryset.order_by(*ordering)
+        else:
+            return queryset.order_by(
+                OrderCustomCharField(
+                    '_deployment_status',
+                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                )
+            )
+
+        return queryset
+
+
+class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
@@ -72,12 +98,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
         'owner__extra_details__data__organization',
         'owner__email',
         '_deployment_status',
-    ]
-
-    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
-        AssetDeploymentStatus.DEPLOYED.value,
-        AssetDeploymentStatus.DRAFT.value,
-        AssetDeploymentStatus.ARCHIVED.value,
     ]
 
     def filter_queryset(self, request, queryset, view):
@@ -137,6 +157,7 @@ class KpiObjectPermissionsFilter:
     DATA_SHARING_PARAMETER = 'data_sharing__enabled'
 
     def filter_queryset(self, request, queryset, view):
+
         user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
@@ -376,17 +397,29 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
     """
     Uses KpiObjectPermissionsFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
-    related to those assets. The queryset's model must be related to `Asset`
-    via a field named `asset`.
+    related to those assets.
+    If the current user is an admin of an organization, all assets of that organization
+    should be added too.
+    The queryset's model must be related to `Asset` via a field named `asset`.
     """
 
     def filter_queryset(self, request, queryset, view):
+
+        user = get_database_user(request.user)
+        organization = user.organization
+        if organization.is_admin_only(user):
+            # Admins do not receive explicit permission assignments,
+            # but they have the same access to assets as the organization owner.
+            org_assets = Asset.objects.filter(owner=organization.owner_user_object)
+        else:
+            org_assets = Asset.objects.none()
+
         available_assets = super().filter_queryset(
             request=request,
             queryset=Asset.objects.all(),
             view=view
         )
-        return queryset.filter(asset__in=available_assets)
+        return queryset.filter(asset__in=available_assets | org_assets)
 
 
 class SearchFilter(filters.BaseFilterBackend):
@@ -400,6 +433,7 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+
         try:
             q = request.query_params['q']
         except AttributeError:

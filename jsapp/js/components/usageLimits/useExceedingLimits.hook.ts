@@ -1,16 +1,17 @@
 import {useState, useReducer, useContext, useEffect} from 'react';
-import type {BaseSubscription, BasePrice} from '../../account/stripe.api';
-import {getAccountLimits, getProducts} from '../../account/stripe.api';
-import type {FreeTierThresholds} from 'js/envStore';
-import envStore from 'js/envStore';
+import {SubscriptionInfo, UsageLimitTypes} from 'js/account/stripe.types';
+import {getAccountLimits} from 'js/account/stripe.api';
 import {USAGE_WARNING_RATIO} from 'js/constants';
+import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
 import {when} from 'mobx';
 import subscriptionStore from 'js/account/subscriptionStore';
-import {UsageContext} from 'js/account/useUsage.hook';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
+import {ProductsContext} from 'jsapp/js/account/useProducts.hook';
+import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
 
 interface SubscribedState {
-  subscribedProduct: null | BaseSubscription;
+  subscribedProduct: null | SubscriptionInfo;
 }
 
 const initialState = {
@@ -23,7 +24,9 @@ function subscriptionReducer(state: SubscribedState, action: {prodData: any}) {
 
 export const useExceedingLimits = () => {
   const [state, dispatch] = useReducer(subscriptionReducer, initialState);
-  const usage = useContext(UsageContext);
+  const [usage, _, usageStatus] = useContext(UsageContext);
+  const [productsContext] = useContext(ProductsContext);
+  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
 
   const [exceedList, setExceedList] = useState<string[]>([]);
   const [warningList, setWarningList] = useState<string[]>([]);
@@ -44,14 +47,24 @@ export const useExceedingLimits = () => {
 
   // Get products and get default limits for community plan
   useWhenStripeIsEnabled(() => {
-    getAccountLimits().then((limits) => {
-      setSubscribedSubmissionLimit(limits.submission_limit);
-      setSubscribedStorageLimit(limits.storage_bytes_limit);
-      setTranscriptionMinutes(Number(limits.nlp_seconds_limit));
-      setTranslationChars(Number(limits.nlp_character_limit));
-      setAreLimitsLoaded(true);
-    });
-  }, []);
+    if (productsContext.isLoaded && oneTimeAddOnsContext.isLoaded) {
+      getAccountLimits(
+        productsContext.products,
+        oneTimeAddOnsContext.oneTimeAddOns
+      ).then((limits) => {
+        setSubscribedSubmissionLimit(limits.remainingLimits.submission_limit);
+        setSubscribedStorageLimit(limits.remainingLimits.storage_bytes_limit);
+        setTranscriptionMinutes(limits.remainingLimits.asr_seconds_limit);
+        setTranslationChars(limits.remainingLimits.mt_characters_limit);
+        setAreLimitsLoaded(true);
+      });
+    }
+  }, [
+    productsContext.isLoaded,
+    productsContext.products,
+    oneTimeAddOnsContext.isLoaded,
+    oneTimeAddOnsContext.oneTimeAddOns,
+  ]);
 
   // Get subscription data
   useWhenStripeIsEnabled(
@@ -87,22 +100,31 @@ export const useExceedingLimits = () => {
 
   // Check if usage is more than limit
   useEffect(() => {
-    if (!usage.isLoaded || !areLimitsLoaded) {
+    if (usageStatus.error || usageStatus.pending || !areLimitsLoaded) {
       return;
     }
-    isOverLimit(subscribedStorageLimit, usage.storage, 'storage');
-    isOverLimit(subscribedSubmissionLimit, usage.submissions, 'submission');
+
+    // Reset lists or else there will be duplicates
+    setExceedList(() => []);
+    setWarningList(() => []);
+
+    isOverLimit(subscribedStorageLimit, usage.storage, UsageLimitTypes.STORAGE);
+    isOverLimit(
+      subscribedSubmissionLimit,
+      usage.submissions,
+      UsageLimitTypes.SUBMISSION
+    );
     isOverLimit(
       subscribedTranscriptionMinutes,
       usage.transcriptionMinutes,
-      'automated transcription'
+      UsageLimitTypes.TRANSCRIPTION
     );
     isOverLimit(
       subscribedTranslationChars,
       usage.translationChars,
-      'machine translation'
+      UsageLimitTypes.TRANSLATION
     );
-  }, [usage.isLoaded, areLimitsLoaded]);
+  }, [usageStatus, areLimitsLoaded]);
 
   return {exceedList, warningList};
 };

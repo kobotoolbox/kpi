@@ -1,0 +1,30 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'scss/mixins';
+
+.mobileMenuToggle {
+  @include mixins.buttonReset;
+  display: flex;
+  padding: 6px;
+  color: colors.$kobo-white;
+  margin-right: 8px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @media screen and (min-width: breakpoints.$bMobileMenu) {
+    display: none;
+  }
+}
+
+.accountSection {
+  display: flex;
+  margin-left: auto;
+  position: relative;
+}
+
+.badgeWrapper {
+  padding-top: 2px;
+  margin-right: 20px;
+}

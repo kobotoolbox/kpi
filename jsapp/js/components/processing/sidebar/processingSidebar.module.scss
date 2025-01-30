@@ -1,0 +1,22 @@
+@use 'scss/colors';
+
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+}
+
+.displays {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: auto;
+}
+
+.emptyMessage {
+  background-color: colors.$kobo-white;
+  border-radius: 6px;
+  padding: 30px;
+}

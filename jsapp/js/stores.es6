@@ -24,7 +24,6 @@ import {
   notify,
 } from 'utils';
 import { toast } from 'react-hot-toast';
-import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
 
@@ -113,58 +112,7 @@ stores.translations = Reflux.createStore({
   },
 });
 
-stores.pageState = Reflux.createStore({
-  init () {
-    this.state = {
-      assetNavExpanded: false,
-      showFixedDrawer: false
-    };
-  },
-  setState (chz) {
-    var changed = changes(this.state, chz);
-    if (changed) {
-      Object.assign(this.state, changed);
-      this.trigger(changed);
-    }
-  },
-  toggleFixedDrawer () {
-    var _changes = {};
-    var newval = !this.state.showFixedDrawer;
-    _changes.showFixedDrawer = newval;
-    Object.assign(this.state, _changes);
-    this.trigger(_changes);
-  },
-  showModal (params) {
-    this.setState({
-      modal: params
-    });
-  },
-  hideModal () {
-    if (this._onHideModal) {
-      this._onHideModal();
-    }
-    this.setState({
-      modal: false
-    });
-  },
-  // use it when you have one modal opened and want to display different one
-  // because just calling showModal has weird outcome
-  switchModal (params) {
-    this.hideModal();
-    // HACK switch to setState callback after updating to React 16+
-    window.setTimeout(() => {
-      this.showModal(params);
-    }, 0);
-  },
-  switchToPreviousModal() {
-    this.switchModal({
-      type: this.state.modal.previousType
-    });
-  },
-  hasPreviousModal() {
-    return this.state.modal && this.state.modal.previousType;
-  }
-});
+
 
 stores.snapshots = Reflux.createStore({
   init () {
@@ -304,25 +252,4 @@ stores.allAssets = Reflux.createStore({
     }
     notify(response?.responseJSON?.detail || t('failed to list assets'), iconStyle, opts);
   },
-});
-
-stores.userExists = Reflux.createStore({
-  init () {
-    this.checked = {};
-    this.listenTo(actions.misc.checkUsername.completed, this.usernameExists);
-    this.listenTo(actions.misc.checkUsername.failed, this.usernameDoesntExist);
-  },
-  checkUsername (username) {
-    if (username in this.checked) {
-      return this.checked[username];
-    }
-  },
-  usernameExists (username) {
-    this.checked[username] = true;
-    this.trigger(this.checked, username);
-  },
-  usernameDoesntExist (username) {
-    this.checked[username] = false;
-    this.trigger(this.checked, username);
-  }
 });

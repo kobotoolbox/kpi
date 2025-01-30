@@ -37,7 +37,7 @@ interface TextBoxProps {
   endIcon?: IconName;
   value: string;
   /** Not needed if `readOnly` */
-  onChange?: Function;
+  onChange?: (newValue: string) => void;
   onBlur?: Function;
   onKeyPress?: Function;
   /**
@@ -61,7 +61,9 @@ interface TextBoxProps {
    * uses this component.
    */
   required?: boolean;
-  customClassNames?: string[];
+  /** Additional class name */
+  className?: string;
+  disableAutocomplete?: boolean;
   'data-cy'?: string;
   /** Gives focus to the input immediately after rendering */
   renderFocused?: boolean;
@@ -70,6 +72,7 @@ interface TextBoxProps {
 /**
  * A generic text box component. It relies on parent to handle all the data
  * updates.
+ * * @deprecated Use mantine inputs
  */
 export default function TextBox(props: TextBoxProps) {
   const inputReference: React.MutableRefObject<null | HTMLInputElement> =
@@ -122,8 +125,12 @@ export default function TextBox(props: TextBoxProps) {
     return true;
   }
 
-  const rootClassNames = props.customClassNames || [];
+  const rootClassNames = [];
   rootClassNames.push(styles.root);
+
+  if (props.className) {
+    rootClassNames.push(props.className);
+  }
 
   let size: TextBoxSize = props.size || DefaultSize;
   switch (size) {
@@ -176,6 +183,9 @@ export default function TextBox(props: TextBoxProps) {
     // For `number` type we allow only positive integers
     step: props.type === 'number' ? 1 : undefined,
     min: props.type === 'number' ? 0 : undefined,
+    // All textboxes handles text direction of user content with browser
+    // built-in functionality
+    dir: 'auto',
   };
 
   // For now we only support one size of TextBox, but when we're going to
@@ -200,26 +210,31 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.startIcon}
-            classNames={[styles.startIcon]}
+            className={styles.startIcon}
           />
         )}
-
+        {/* We use this to prevent browsers that ignore autocomplete='off' from attempting to fill the field */}
+        {props.disableAutocomplete && <input type='password' hidden={true} />}
         {/* We use two different components based on the type of the TextBox */}
         {props.type === 'text-multiline' && (
           <TextareaAutosize
             className={styles.input}
+            aria-required={props.required}
             ref={textareaReference}
             onChange={(evt: React.FormEvent<HTMLTextAreaElement>) => {
               onValueChange(evt.currentTarget.value);
             }}
+            autoComplete={props.disableAutocomplete ? 'off' : 'on'}
             {...inputProps}
           />
         )}
         {props.type !== 'text-multiline' && (
           <input
             className={styles.input}
+            aria-required={props.required}
             type={type}
             ref={inputReference}
+            autoComplete={props.disableAutocomplete ? 'off' : 'on'}
             // We use `onInput` instead of `onChange` here, because (for some
             // reason I wasn't able to grasp) `input[type="number"]` is not
             // calling onChange when non-number is typed, but regardless to that
@@ -243,15 +258,15 @@ export default function TextBox(props: TextBoxProps) {
           <Icon
             size={iconSize}
             name={props.endIcon}
-            classNames={[styles.endIcon]}
+            className={styles.endIcon}
           />
         )}
         {errors.length > 0 && (
           <Icon
             size={iconSize}
             name='alert'
-            color='red'
-            classNames={[styles.errorIcon]}
+            color='mid-red'
+            className={styles.errorIcon}
           />
         )}
       </div>

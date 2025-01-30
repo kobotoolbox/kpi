@@ -9,12 +9,12 @@ from django.utils.timezone import now
 from django_celery_beat.models import (
     ClockedSchedule,
     PeriodicTask,
-    PeriodicTasks,
 )
 from requests.exceptions import HTTPError
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.trackers.models import NLPUsageCounter
-from kobo.apps.audit_log.models import AuditLog, AuditAction
 from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatCommunicationError
@@ -25,7 +25,11 @@ from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.project import ProjectTrash
-from .utils import delete_asset, replace_user_with_placeholder
+from .utils import (
+    delete_asset,
+    replace_user_with_placeholder,
+    temporarily_disconnect_signals,
+)
 
 
 @celery_app.task(
@@ -110,6 +114,7 @@ def empty_account(account_trash_id: int):
                 'metadata': {
                     'username': user.username,
                 },
+                'log_type': AuditType.USER_MANAGEMENT
             }
 
             if account_trash.retain_placeholder:
@@ -204,8 +209,6 @@ def empty_project(project_trash_id: int):
 
 @task_failure.connect(sender=empty_account)
 def empty_account_failure(sender=None, **kwargs):
-    # Force scheduler to refresh
-    PeriodicTasks.update_changed()
 
     exception = kwargs['exception']
     account_trash_id = kwargs['args'][0]
@@ -233,8 +236,6 @@ def empty_account_retry(sender=None, **kwargs):
 
 @task_failure.connect(sender=empty_project)
 def empty_project_failure(sender=None, **kwargs):
-    # Force scheduler to refresh
-    PeriodicTasks.update_changed()
 
     exception = kwargs['exception']
     project_trash_id = kwargs['args'][0]
@@ -262,27 +263,29 @@ def empty_project_retry(sender=None, **kwargs):
 
 @celery_app.task
 def garbage_collector():
-    with transaction.atomic():
-        # Remove orphan periodic tasks
-        PeriodicTask.objects.exclude(
-            pk__in=AccountTrash.objects.values_list(
-                'periodic_task_id', flat=True
-            ),
-        ).filter(
-            name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
-        ).delete()
 
-        PeriodicTask.objects.exclude(
-            pk__in=ProjectTrash.objects.values_list(
-                'periodic_task_id', flat=True
-            ),
-        ).filter(
-            name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
-        ).delete()
+    with temporarily_disconnect_signals(delete=True):
+        with transaction.atomic():
+            # Remove orphan periodic tasks
+            PeriodicTask.objects.exclude(
+                pk__in=AccountTrash.objects.values_list(
+                    'periodic_task_id', flat=True
+                ),
+            ).filter(
+                name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
+            ).delete()
 
-        # Then, remove clocked schedules
-        ClockedSchedule.objects.exclude(
-            pk__in=PeriodicTask.objects.filter(
-                clocked__isnull=False
-            ).values_list('clocked_id', flat=True),
-        ).delete()
+            PeriodicTask.objects.exclude(
+                pk__in=ProjectTrash.objects.values_list(
+                    'periodic_task_id', flat=True
+                ),
+            ).filter(
+                name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
+            ).delete()
+
+            # Then, remove clocked schedules
+            ClockedSchedule.objects.exclude(
+                pk__in=PeriodicTask.objects.filter(
+                    clocked__isnull=False
+                ).values_list('clocked_id', flat=True),
+            ).delete()

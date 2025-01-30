@@ -14,15 +14,6 @@ from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 
 
-class DataPagination(LimitOffsetPagination):
-    """
-    Pagination class for submissions.
-    """
-    default_limit = settings.SUBMISSION_LIST_LIMIT
-    offset_query_param = 'start'
-    max_limit = settings.SUBMISSION_LIST_LIMIT
-
-
 class Paginated(LimitOffsetPagination):
     """ Adds 'root' to the wrapping response object. """
     root = SerializerMethodField('get_parent_url', read_only=True)
@@ -112,6 +103,38 @@ class AssetPagination(Paginated):
                 'results': schema,
             }
         }
+
+
+class AssetUsagePagination(PageNumberPagination):
+    """
+    Pagination class for usage project breakdown table.
+    """
+    page_size = 8
+    page_size_query_param = 'page_size'
+
+
+class DataPagination(LimitOffsetPagination):
+    """
+    Pagination class for submissions.
+    """
+    default_limit = settings.SUBMISSION_LIST_LIMIT
+    offset_query_param = 'start'
+    max_limit = settings.SUBMISSION_LIST_LIMIT
+
+
+class FastAssetPagination(Paginated):
+    """
+    Pagination class optimized for faster counting for DISTINCT queries on large tables.
+
+    This class overrides the get_count() method to only look at the primary key field, avoiding expensive DISTINCTs
+    comparing several fields. This may not work for queries with lots of joins, especially with one-to-many or
+    many-to-many type relationships.
+    """
+
+    def get_count(self, queryset):
+        if queryset.query.distinct:
+            return queryset.only('pk').count()
+        return super().get_count(queryset)
 
 
 class TinyPaginated(PageNumberPagination):

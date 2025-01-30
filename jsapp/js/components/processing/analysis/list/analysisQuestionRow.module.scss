@@ -1,0 +1,45 @@
+@use 'scss/colors';
+@use '../analysisVariables';
+
+.root {
+  display: flex;
+  flex-direction: row;
+
+  &.isBeingDragged {
+    opacity: 0.5;
+  }
+
+  &.isDragDisabled {
+    .dragHandle {
+      cursor: initial;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  }
+}
+
+.content {
+  flex: 1;
+}
+
+.dragHandle {
+  color: colors.$kobo-gray-500;
+  width: analysisVariables.$icon-size;
+  line-height: analysisVariables.$icon-size;
+  cursor: move;
+  position: relative;
+
+  &:hover {
+    color: colors.$kobo-gray-700;
+  }
+
+  // We make the handle area bigger by adding this invisible element
+  &::after {
+    content: '';
+    width: calc(200% + analysisVariables.$icon-size);
+    height: calc(100% + analysisVariables.$rows-gap);
+    position: absolute;
+    top: analysisVariables.$rows-gap * -0.5;
+    left: calc(-50% - analysisVariables.$icon-size * 0.5);
+  }
+}

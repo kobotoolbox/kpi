@@ -1,0 +1,37 @@
+@use 'scss/mixins';
+@use 'scss/breakpoints';
+@use 'js/components/common/button';
+@use '../analysisVariables';
+
+$choice-width: 66.66%;
+
+.choice {
+  @include mixins.centerRowFlex;
+  gap: analysisVariables.$inner-horizontal-gap;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+}
+
+.labelInput {
+  flex: 1;
+}
+
+.addOption {
+  :global .k-button {
+    width: 100%;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .choice {
+    width: $choice-width;
+  }
+
+  .addOption {
+    // We make it shorter to take the trash icon buttons from choices above into
+    // the picture
+    width: calc($choice-width - button.$button-height-m - 6px);
+  }
+}

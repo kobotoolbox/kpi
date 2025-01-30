@@ -1,6 +1,6 @@
 # coding: utf-8
-from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -11,7 +11,16 @@ class UserListTests(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        # This user has a pre-made token in the test fixture
+        # It uses to be in the test fixture, but it was in conflicts with Kobocat
+        # code.
+        token, _ = Token.objects.get_or_create(
+            user__username='anotheruser',
+        )
+        # Cannot use `save` because it always makes INSERTs.
+        Token.objects.filter(key=token.key).update(
+            key='3a8da043dd1b669688dae523b015177a1d4201d5'
+        )
+
         self.username = 'anotheruser'
         self.client.login(username='anotheruser', password='anotheruser')
         self.url = reverse('token')
@@ -61,7 +70,7 @@ class UserListTests(BaseTestCase):
     def test_anonymous_access_denied(self):
         self.client.logout()
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_regular_user_cannot_get_token_for_another_user(self):
         response = self.client.get(self.url, {'username': 'someuser'})
@@ -70,7 +79,7 @@ class UserListTests(BaseTestCase):
 
     def test_superuser_can_get_token_for_another_user(self):
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         response = self.client.get(self.url, {'username': self.username})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(

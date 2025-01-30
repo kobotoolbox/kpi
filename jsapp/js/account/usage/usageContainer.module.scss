@@ -1,0 +1,55 @@
+@use 'scss/colors';
+
+.usage {
+  display: grid;
+  grid: 1fr / 100%;
+  width: 100%;
+  margin-top: 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+
+  & > li {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &.hasAddon {
+      grid: 1.5em 1.5em 1.5em 1.5em / 100%;
+  }
+}
+
+.balanceEntry {
+  align-items: center;
+  margin-top: -0.5em;
+}
+
+.balanceContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5em 0.5em;
+  margin-right: -0.5em;
+  border-radius: 0.25em;;
+
+  i {
+    margin-right: 0.5em;
+  }
+}
+
+.warning {
+  background-color: colors.$kobo-light-amber;
+}
+
+.warningIcon {
+  color: colors.$kobo-mid-red;
+}
+
+.overlimit {
+  background-color: colors.$kobo-light-red;
+}
+
+.description {
+  color: colors.$kobo-storm;
+}

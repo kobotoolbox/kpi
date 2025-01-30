@@ -1,36 +1,32 @@
-# coding: utf-8
-from typing import Union
+from typing import Optional, Union
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models.query import QuerySet
 from django.http import Http404
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.filters import (
-    AssetOrderingFilter,
-    SearchFilter,
-)
+from kpi.filters import AssetOrderingFilter, SearchFilter
+from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
+from kpi.paginators import FastAssetPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
+from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
-from kpi.utils.project_views import (
-    get_region_for_view,
-    user_has_view_perms,
-)
-from kpi.tasks import project_view_export_in_background
+from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
 
 class ProjectViewViewSet(
-    ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
+    AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
 ):
 
     serializer_class = ProjectViewSerializer
@@ -52,6 +48,7 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
+        pagination_class=FastAssetPagination,
     )
     def assets(self, request, uid):
         if not user_has_view_perms(request.user, uid):
@@ -108,9 +105,12 @@ class ProjectViewViewSet(
             )
 
             # Have Celery run the export in the background
-            project_view_export_in_background.delay(
-                export_task_uid=export_task.uid,
-                username=user.username,
+            transaction.on_commit(
+                lambda: export_task_in_background.delay(
+                    export_task_uid=export_task.uid,
+                    username=user.username,
+                    export_task_name='kpi.ProjectViewExportTask',
+                )
             )
 
             return Response({'status': export_task.status})
@@ -131,9 +131,17 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self):
+    def get_serializer_context(self, data: Optional[list] = None):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
+        if not data:
+            return context_
+
+        asset_ids = [asset.pk for asset in data]
+        context_['organizations_per_asset'] = (
+            self.get_organizations_per_asset_ids(asset_ids)
+        )
+
         return context_
 
     def _get_regional_response(self, queryset, serializer_class):
@@ -158,7 +166,7 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_context()
+        context_ = self.get_serializer_context(queryset)
 
         return serializer_class(
             queryset,

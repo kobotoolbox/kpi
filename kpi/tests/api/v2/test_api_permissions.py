@@ -1,9 +1,8 @@
-# coding: utf-8
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
@@ -12,6 +11,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, ObjectPermission
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.mixins import PermissionAssignmentTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
@@ -50,8 +50,11 @@ class ApiAnonymousPermissionsTestCase(KpiTestCase):
         url = reverse(self._get_endpoint('asset-list'))
         data = {'name': 'my asset', 'content': ''}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
-                         msg="anonymous user cannot create a asset")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+            msg='anonymous user cannot create a asset',
+        )
 
 
 class ApiPermissionsPublicAssetTestCase(KpiTestCase):
@@ -61,7 +64,7 @@ class ApiPermissionsPublicAssetTestCase(KpiTestCase):
         KpiTestCase.setUp(self)
 
         self.anon = get_anonymous_user()
-        self.admin = User.objects.get(username='admin')
+        self.admin = User.objects.get(username='adminuser')
         self.admin_password = 'pass'
         self.someuser = User.objects.get(username='someuser')
         self.someuser_password = 'someuser'
@@ -122,7 +125,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.admin = User.objects.get(username='admin')
+        self.admin = User.objects.get(username='adminuser')
         self.admin_password = 'pass'
         self.someuser = User.objects.get(username='someuser')
         self.someuser_password = 'someuser'
@@ -144,7 +147,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.admin_password)
 
     def test_viewable_asset_in_asset_list(self):
-        # Give "someuser" view permissions on an asset owned by "admin".
+        # Give "someuser" view permissions on an asset owned by "adminuser".
         self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         # Test that "someuser" can now view the asset.
@@ -154,7 +157,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_non_viewable_asset_not_in_asset_list(self):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
-        #   asset owned by "admin".
+        #   asset owned by "adminuser".
         perm_name = self._get_perm_name('view_', self.admin_asset)
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_asset))
 
@@ -163,8 +166,8 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.someuser_password, viewable=False)
 
     def test_inherited_viewable_assets_in_asset_list(self):
-        # Give "someuser" view permissions on a collection owned by "admin" and
-        #   add an asset also owned by "admin" to that collection.
+        # Give "someuser" view permissions on a collection owned by "adminuser" and
+        #   add an asset also owned by "adminuser" to that collection.
         self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         self.add_to_collection(self.admin_asset, self.admin_collection,
@@ -213,7 +216,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.someuser_password, viewable=False)
 
     def test_viewable_asset_not_deletable(self):
-        # Give "someuser" view permissions on an asset owned by "admin".
+        # Give "someuser" view permissions on an asset owned by "adminuser".
         self.add_perm(self.admin_asset, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the asset.
@@ -228,8 +231,8 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_inherited_viewable_asset_not_deletable(self):
-        # Give "someuser" view permissions on a collection owned by "admin" and
-        #   add an asset also owned by "admin" to that collection.
+        # Give "someuser" view permissions on a collection owned by "adminuser" and
+        #   add an asset also owned by "adminuser" to that collection.
         self.add_perm(self.admin_asset, self.someuser, 'view_')
         self.add_to_collection(self.admin_asset, self.admin_collection,
                                self.admin, self.admin_password)
@@ -395,7 +398,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert not yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
 
     def test_copy_permissions_between_assets(self):
-        # Give "someuser" edit permissions on an asset owned by "admin"
+        # Give "someuser" edit permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'change_')
         # Confirm that "someuser" has received the implied permissions
         expected_perms = [PERM_CHANGE_ASSET, PERM_VIEW_ASSET]
@@ -438,7 +441,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         )
 
     def test_cannot_copy_permissions_between_non_owned_assets(self):
-        # Give "someuser" view permissions on an asset owned by "admin"
+        # Give "someuser" view permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
         self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset))
         # Create another asset to receive the copied permissions
@@ -446,7 +449,7 @@ class ApiPermissionsTestCase(KpiTestCase):
             name='destination asset', owner=self.admin,
             owner_password=self.admin_password
         )
-        # Give "someuser" edit permissions on the new asset owned by "admin"
+        # Give "someuser" edit permissions on the new asset owned by "adminuser"
         self.add_perm(new_asset, self.someuser, 'change_')
         self.assertTrue(self.someuser.has_perm(PERM_CHANGE_ASSET, new_asset))
         new_asset_perms_before_copy_attempt = new_asset.get_users_with_perms(
@@ -476,7 +479,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         )
 
     def test_user_cannot_copy_permissions_from_non_viewable_asset(self):
-        # Make sure "someuser" cannot view the asset owned by "admin"
+        # Make sure "someuser" cannot view the asset owned by "adminuser"
         self.assertFalse(
             self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset)
         )
@@ -514,7 +517,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         )
 
     def test_user_cannot_copy_permissions_to_non_editable_asset(self):
-        # Give "someuser" view permissions on an asset owned by "admin"
+        # Give "someuser" view permissions on an asset owned by "adminuser"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
         self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset))
         # Create another asset to receive the copied permissions
@@ -522,7 +525,7 @@ class ApiPermissionsTestCase(KpiTestCase):
             name='destination asset', owner=self.admin,
             owner_password=self.admin_password
         )
-        # Give "someuser" view permissions on the new asset owned by "admin"
+        # Give "someuser" view permissions on the new asset owned by "adminuser"
         self.add_perm(new_asset, self.someuser, 'view_')
         self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, new_asset))
         # Take note of the destination asset's permissions to make sure they
@@ -560,7 +563,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.admin_password)
 
     def test_viewable_collection_in_collection_list(self):
-        # Give "someuser" view permissions on a collection owned by "admin".
+        # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Test that "someuser" can now view the collection.
@@ -570,7 +573,7 @@ class ApiPermissionsTestCase(KpiTestCase):
     def test_non_viewable_collection_not_in_collection_list(self):
         # Wow, that's quite a function name...
         # Ensure that "someuser" doesn't have permission to view the survey
-        #   collection owned by "admin".
+        #   collection owned by "adminuser".
         perm_name = self._get_perm_name('view_', self.admin_collection)
         self.assertFalse(self.someuser.has_perm(perm_name, self.admin_collection))
 
@@ -625,7 +628,7 @@ class ApiPermissionsTestCase(KpiTestCase):
                              self.someuser_password, viewable=False)
 
     def test_viewable_collection_not_deletable(self):
-        # Give "someuser" view permissions on a collection owned by "admin".
+        # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the collection.
@@ -642,7 +645,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_inherited_viewable_collection_not_deletable(self):
-        # Give "someuser" view permissions on a collection owned by "admin".
+        # Give "someuser" view permissions on a collection owned by "adminuser".
         self.add_perm(self.admin_collection, self.someuser, 'view_')
 
         # Confirm that "someuser" is not allowed to delete the child collection.
@@ -658,7 +661,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class ApiAssignedPermissionsTestCase(KpiTestCase):
+class ApiAssignedPermissionsTestCase(PermissionAssignmentTestCaseMixin, KpiTestCase):
     """
     An obnoxiously large amount of code to test that the endpoint for listing
     assigned permissions complies with the following rules:
@@ -681,7 +684,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
     def setUp(self):
         super().setUp()
         self.anon = get_anonymous_user()
-        self.super = User.objects.get(username='admin')
+        self.super = User.objects.get(username='adminuser')
         self.super_password = 'pass'
         self.someuser = User.objects.get(username='someuser')
         self.someuser_password = 'someuser'
@@ -705,13 +708,11 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         for username in [self.asset.owner.username, self.anon.username]:
             user_urls.append(
                 self.absolute_reverse(
-                    self._get_endpoint('user-detail'),
+                    self._get_endpoint('user-kpi-detail'),
                     kwargs={'username': username},
                 )
             )
-        self.assertSetEqual(
-            set((a['user'] for a in response.data)), set(user_urls)
-        )
+        self.assertSetEqual(set(a['user'] for a in response.data), set(user_urls))
 
     def test_user_sees_relevant_permissions_on_assigned_objects(self):
         # A user with explicitly-assigned permissions should see their

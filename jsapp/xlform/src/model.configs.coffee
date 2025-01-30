@@ -10,7 +10,7 @@ Details pulled from ODK documents / google docs. Notably this one:
 
 _ = require 'underscore'
 Backbone = require 'backbone'
-$utils = require './model.utils'
+txtid = require('js/utils').txtid
 
 module.exports = do ->
   configs = {}
@@ -25,6 +25,11 @@ module.exports = do ->
       label: "end time"
       description: "records when the survey was marked as completed"
       default: true
+    startgeo:
+      name: "start-geopoint"
+      label: "start geopoint early"
+      description: '"warms up" the GPS to make it quicker to get an accurate reading'
+      default: false
     today:
       name: "today"
       label: "today"
@@ -168,6 +173,16 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    select_one_from_file:
+      label:
+        value: "Select One from file"
+      file:
+        value: "DEFAULT_CHOICES_FILE"
+    select_multiple_from_file:
+      label:
+        value: "Select Multiple from file"
+      file:
+        value: "DEFAULT_CHOICES_FILE"
     'xml-external':
       label:
         value: "File_name"
@@ -222,6 +237,7 @@ module.exports = do ->
   configs.columns = [
     "type",
     "name",
+    "file",
     "label",
     "hint",
     "guidance_hint",
@@ -258,7 +274,9 @@ module.exports = do ->
       ["rank", "Rank"],
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
-      ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true],
+      ["select_one_from_file", "Select one from file"],
+      ["select_multiple_from_file", "Select multiple from file"],
       ["xml-external", "External XML"],
     ]
 
@@ -322,7 +340,7 @@ module.exports = do ->
   configs.newGroupDetails =
     name:
       value: ->
-        "group_#{$utils.txtid()}"
+        "group_#{txtid()}"
     label:
       value: "Group"
     type:

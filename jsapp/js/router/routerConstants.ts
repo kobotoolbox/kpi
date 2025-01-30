@@ -5,13 +5,11 @@ export const PATHS = Object.freeze({
   MS_SSO: '/accounts/microsoft/login/',
 });
 
-/** Needed for easier detecting if a processing route. */
-export const FORM_PROCESSING_BASE = '/forms/:uid/data/processing'
-
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ROOT: '',
   ACCOUNT_ROOT: '/account',
+  ORGANIZATION: '/account/organization',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',
   PUBLIC_COLLECTIONS: '/library/public-collections',
@@ -37,9 +35,10 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
-  /** Has: :uid, :qpath, :submissionEditId */
-  FORM_PROCESSING: `${FORM_PROCESSING_BASE}/:qpath/:submissionEditId`,
+  /** Has: :uid, :xpath, :submissionEditId */
+  FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',
+  FORM_ACTIVITY: '/forms/:uid/settings/activity',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
   FORM_RECORDS: '/forms/:uid/settings/records',
@@ -47,3 +46,20 @@ export const ROUTES = Object.freeze({
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_RESET: '/forms/:uid/reset',
 });
+
+export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
+  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
+  /**
+   * We break from the default way to set routes here, as we want to be
+   * consistent with other organization related routes.
+   */
+  MY_ORG_PROJECTS: '/organization/projects',
+  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
+};
+
+export const PROCESSING_ROUTE_GENERIC = ROUTES.FORM_PROCESSING_ROOT + '/:tabName';
+export const PROCESSING_ROUTES: {readonly [key: string]: string} = {
+  TRANSCRIPT: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'transcript'),
+  TRANSLATIONS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'translations'),
+  ANALYSIS: PROCESSING_ROUTE_GENERIC.replace(':tabName', 'analysis'),
+};

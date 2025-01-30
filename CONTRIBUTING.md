@@ -11,20 +11,22 @@ We'd love your input! We want to make contributing to this project as easy and t
 
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
-## We Use [GitHub Flow](https://guides.github.com/introduction/flow/index.html), So All Code Changes Happen Through Pull Requests
+## All Code Changes Happen Through Pull Requests
 
-Pull requests are the best way to propose changes to the codebase (we use [GitHub Flow](https://guides.github.com/introduction/flow/index.html)). We actively welcome your pull requests:
+Pull requests are the best way to propose changes to the codebase (we use [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)).
+We actively welcome your pull requests:
 
-1. Fork the repo and create your branch from `master`.
+1. Fork the repo and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update (or create!) the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-6. Issue that pull request!
+6. Issue that pull request and follow the pull request template!
 
 ## Any contributions you make will be under the GNU Affero General Public License
 
-In short, when you submit code changes, your submissions are understood to be under the same [GNU Affero General Public License](./LICENSE) that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same [GNU Affero General Public License](./LICENSE) that covers the project.
+Feel free to contact the maintainers if that's a concern.
 
 ## Report bugs using GitHub's [issues](https://github.com/kobotoolbox/kpi/issues)
 

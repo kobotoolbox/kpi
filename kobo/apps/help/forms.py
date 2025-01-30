@@ -1,10 +1,18 @@
 # coding: utf-8
 import os
 
+from django.forms import ModelForm, ValidationError
 from django.urls import reverse
 from markdownx.forms import ImageForm
 
-from .models import InAppMessageFile
+from .models import InAppMessage, InAppMessageFile
+
+
+class InAppMessageForm(ModelForm):
+
+    class Meta:
+        model = InAppMessage
+        exclude = ['generic_related_objects']
 
 
 class InAppMessageImageForm(ImageForm):

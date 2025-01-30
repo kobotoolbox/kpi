@@ -1,0 +1,119 @@
+@use 'scss/z-indexes';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+
+/*
+Kobo Tooltips
+
+Add `data-tip` attribute to any element with tooltip text as attribute value.
+
+Additional class names:
+- `right-tooltip`
+- `left-tooltip`
+*/
+
+// Our own, css-only tooltips
+@media screen and (min-width: breakpoints.$b768) {
+  [data-tip] {
+    position: relative;
+
+    // avoid tooltips getting in front of other interactive layout elements
+    &::before,
+    &::after {
+      pointer-events: none;
+      position: absolute;
+      opacity: 0;
+      visibility: hidden;
+      transition-duration: 0.2s;
+      transition-property: visibility, opacity;
+      z-index: z-indexes.$z-tooltip;
+    }
+
+    &::after {
+      content: attr(data-tip);
+      font-size: 13px;
+      line-height: 1.35em;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-gray-700;
+      padding: 6px 12px;
+      top: 96%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
+      @include box-shadow;
+    }
+
+    &::before {
+      content: "";
+      border-bottom: 5px solid colors.$kobo-gray-700;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      top: calc(96% - 5px);
+      width: 0;
+      height: 0;
+      left: 50%;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  [data-tip]:hover::after,
+  [data-tip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  // Custom tooltips position for sidebar elements
+  .k-drawer {
+    [data-tip]::after {
+      left: 95%;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
+
+    [data-tip]::before {
+      left: calc(95% - 5px);
+      top: 50%;
+      transform: translate(0, -50%);
+      border-right: 5px solid colors.$kobo-gray-700;
+      border-bottom: 5px solid transparent;
+      border-top: 5px solid transparent;
+      border-left: none;
+    }
+  }
+
+  // right aligned tooltips
+  .right-tooltip [data-tip]::after,
+  .right-tooltip[data-tip]::after {
+    left: auto;
+    right: calc(50% - 10px);
+    transform: translate(0);
+  }
+
+  // left aligned tooltips
+  .left-tooltip [data-tip]::after,
+  .left-tooltip[data-tip]::after {
+    left: calc(50% - 10px);
+    right: auto;
+    transform: translate(0);
+  }
+
+  .wrapped-tooltip [data-tip]::after,
+  .wrapped-tooltip[data-tip]::after {
+    width: 300px;
+    white-space: normal;
+  }
+
+  // more actions in asset-row adjustment
+  .asset-row .popover-menu [data-tip]::after {
+    left: -60%;
+  }
+
+  // Modify positioning to header tooltips
+  .mdl-layout__header [data-tip]::after {
+    left: 50px;
+  }
+
+  .mdl-layout__header [data-tip]::before {
+    left: 50px;
+  }
+}

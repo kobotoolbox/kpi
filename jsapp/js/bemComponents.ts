@@ -6,17 +6,6 @@
 
 import bem, {makeBem} from 'js/bem';
 
-// DEPRECATED: please don't use this component. From now on, we will only use
-// the `Button` component (from `js/components/common/button`) as it covers
-// all possible cases.
-bem.Button = makeBem(null, 'mdl-button', 'button');
-bem.KoboButton = makeBem(null, 'kobo-button', 'button');
-bem.KoboLightButton = makeBem(null, 'kobo-light-button', 'button');
-bem.KoboTextButton = makeBem(null, 'kobo-text-button', 'button');
-// END DEPRECATED
-
-bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
-
 bem.KoboSelect = makeBem(null, 'kobo-select');
 bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper');
 bem.KoboSelect__label = makeBem(bem.KoboSelect, 'label', 'span');
@@ -27,21 +16,14 @@ bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge');
 bem.PageWrapper = makeBem(null, 'page-wrapper');
 bem.PageWrapper__content = makeBem(bem.PageWrapper, 'content');
 
-bem.Loading = makeBem(null, 'loading');
-bem.Loading__inner = makeBem(bem.Loading, 'inner');
-bem.Loading__msg = makeBem(bem.Loading, 'msg');
-
 bem.EmptyContent = makeBem(null, 'empty-content', 'section');
 bem.EmptyContent__icon = makeBem(bem.EmptyContent, 'icon', 'i');
 bem.EmptyContent__title = makeBem(bem.EmptyContent, 'title', 'h1');
 bem.EmptyContent__message = makeBem(bem.EmptyContent, 'message', 'p');
-bem.EmptyContent__button = makeBem(bem.EmptyContent, 'button', 'button');
 
 bem.ServiceRow = makeBem(null, 'service-row');
 bem.ServiceRow__column = makeBem(bem.ServiceRow, 'column');
-bem.ServiceRow__actionButton = makeBem(bem.ServiceRow, 'action-button', 'button');
 bem.ServiceRow__linkOverlay = makeBem(bem.ServiceRow, 'link-overlay', 'a');
-bem.ServiceRowButton = makeBem(null, 'service-row-button', 'button');
 
 bem.FormBuilder = makeBem(null, 'form-builder');
 bem.FormBuilder__contents = makeBem(bem.FormBuilder, 'contents');
@@ -59,8 +41,6 @@ bem.FormBuilderHeader = makeBem(null, 'form-builder-header');
 bem.FormBuilderHeader__row = makeBem(bem.FormBuilderHeader, 'row');
 bem.FormBuilderHeader__cell = makeBem(bem.FormBuilderHeader, 'cell');
 bem.FormBuilderHeader__item = makeBem(bem.FormBuilderHeader, 'item', 'span');
-bem.FormBuilderHeader__button = makeBem(bem.FormBuilderHeader, 'button', 'button');
-bem.FormBuilderHeader__close = makeBem(bem.FormBuilderHeader, 'close', 'button');
 
 bem.FormMedia = makeBem(null, 'form-media');
 bem.FormMedia__title = makeBem(bem.FormMedia, 'title');
@@ -105,16 +85,6 @@ bem.TableMeta__bulkOptions = makeBem(bem.TableMeta, 'bulk-options');
 
 bem.CollectionsWrapper = makeBem(null, 'collections-wrapper');
 
-bem.CollectionNav = makeBem(null, 'collection-nav');
-bem.CollectionNav__search = makeBem(bem.CollectionNav, 'search');
-bem.CollectionNav__searchcriteria = makeBem(bem.CollectionNav, 'searchcriteria', 'ul');
-bem.CollectionNav__searchcriterion = makeBem(bem.CollectionNav, 'searchcriterion', 'li');
-bem.CollectionNav__actions = makeBem(bem.CollectionNav, 'actions');
-bem.CollectionNav__button = makeBem(bem.CollectionNav, 'button', 'button');
-bem.CollectionNav__link = makeBem(bem.CollectionNav, 'link', 'a');
-bem.CollectionNav__searchcancel = makeBem(bem.CollectionNav, 'searchcancel', 'i');
-bem.CollectionNav__searchicon = makeBem(bem.CollectionNav, 'searchicon', 'i');
-
 bem.FormView = makeBem(null, 'form-view');
 // used in header.es6
 bem.FormView__title = makeBem(bem.FormView, 'title');
@@ -127,7 +97,6 @@ bem.FormView__sidetabs = makeBem(bem.FormView, 'sidetabs');
 bem.FormView__label = makeBem(bem.FormView, 'label');
 bem.FormView__group = makeBem(bem.FormView, 'group');
 bem.FormView__item = makeBem(bem.FormView, 'item');
-bem.FormView__iconButton = makeBem(bem.FormView, 'icon-button', 'button');
 
 bem.FormView__row = makeBem(bem.FormView, 'row');
 bem.FormView__cell = makeBem(bem.FormView, 'cell');
@@ -135,9 +104,6 @@ bem.FormView__cellLabel = makeBem(bem.FormView, 'cell-label');
 bem.FormView__column = makeBem(bem.FormView, 'column');
 
 bem.FormView__banner = makeBem(bem.FormView, 'banner');
-bem.FormView__link = makeBem(bem.FormView, 'link', 'a');
-bem.FormView__secondaryButtons = makeBem(bem.FormView, 'secondaryButtons');
-bem.FormView__secondaryButton = makeBem(bem.FormView, 'secondaryButton', 'button');
 bem.FormView__reportButtons = makeBem(bem.FormView, 'reportButtons');
 bem.FormView__form = makeBem(bem.FormView, 'form', 'form');
 
@@ -151,7 +117,6 @@ bem.ReportView__item = makeBem(bem.ReportView, 'item');
 bem.ReportView__itemHeading = makeBem(bem.ReportView, 'itemHeading');
 bem.ReportView__headingMeta = makeBem(bem.ReportView, 'headingMeta');
 bem.ReportView__itemContent = makeBem(bem.ReportView, 'itemContent');
-bem.ReportView__headingButton = makeBem(bem.ReportView, 'headingButton', 'button');
 bem.ReportView__chart = makeBem(bem.ReportView, 'chart');
 
 bem.GraphSettings = makeBem(null, 'graph-settings');
@@ -186,7 +151,6 @@ bem.LoginBox = makeBem(null, 'login-box');
 
 bem.AccountBox = makeBem(null, 'account-box');
 bem.AccountBox__name = makeBem(bem.AccountBox, 'name', 'div');
-bem.AccountBox__initials = makeBem(bem.AccountBox, 'initials', 'span');
 bem.AccountBox__menu = makeBem(bem.AccountBox, 'menu', 'ul');
 bem.AccountBox__menuLI = makeBem(bem.AccountBox, 'menu-li', 'li');
 bem.AccountBox__menuItem = makeBem(bem.AccountBox, 'menu-item', 'div');
@@ -201,9 +165,6 @@ bem.UserRow__perms = makeBem(bem.UserRow, 'perms');
 bem.UserRow__perm = makeBem(bem.UserRow, 'perm');
 bem.UserRow__editor = makeBem(bem.UserRow, 'editor');
 
-bem.uiPanel = makeBem(null, 'ui-panel');
-bem.uiPanel__body = makeBem(bem.uiPanel, 'body');
-
 bem.FormSidebarWrapper = makeBem(null, 'form-sidebar-wrapper');
 bem.FormSidebar = makeBem(null, 'form-sidebar');
 bem.FormSidebar__item = makeBem(bem.FormSidebar, 'item', 'a');
@@ -217,15 +178,6 @@ bem.KDrawer = makeBem(null, 'k-drawer');
 bem.KDrawer__primaryIcons = makeBem(bem.KDrawer, 'primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = makeBem(bem.KDrawer, 'secondary-icons', 'nav');
 bem.KDrawer__sidebar = makeBem(bem.KDrawer, 'sidebar', 'aside');
-
-bem.SimpleTable = makeBem(null, 'simple-table', 'table');
-bem.SimpleTable__header = makeBem(bem.SimpleTable, 'header', 'thead');
-bem.SimpleTable__body = makeBem(bem.SimpleTable, 'body', 'tbody');
-bem.SimpleTable__footer = makeBem(bem.SimpleTable, 'footer', 'tfoot');
-bem.SimpleTable__row = makeBem(bem.SimpleTable, 'row', 'tr');
-// NOTE: messageRow needs a __cell with colspan set
-bem.SimpleTable__messageRow = makeBem(bem.SimpleTable, 'message-row', 'tr');
-bem.SimpleTable__cell = makeBem(bem.SimpleTable, 'cell', 'td');
 
 bem.tagSelect = makeBem(null, 'tag-select');
 bem.collectionFilter = makeBem(null, 'collection-filter');
@@ -243,7 +195,6 @@ bem.Breadcrumbs__divider = makeBem(bem.Breadcrumbs, 'divider', 'i');
 bem.AssetInfoBox = makeBem(null, 'asset-info-box');
 bem.AssetInfoBox__column = makeBem(bem.AssetInfoBox, 'column');
 bem.AssetInfoBox__cell = makeBem(bem.AssetInfoBox, 'cell');
-bem.AssetInfoBox__toggle = makeBem(bem.AssetInfoBox, 'toggle', 'button');
 
 bem.PrintOnly = makeBem(null, 'print-only');
 
@@ -252,13 +203,11 @@ bem.ProjectDownloads__advancedView = makeBem(bem.ProjectDownloads, 'advanced-vie
 bem.ProjectDownloads__column = makeBem(bem.ProjectDownloads, 'column');
 bem.ProjectDownloads__columnRow = makeBem(bem.ProjectDownloads, 'column-row');
 bem.ProjectDownloads__title = makeBem(bem.ProjectDownloads, 'title', 'span');
-bem.ProjectDownloads__textButton = makeBem(bem.ProjectDownloads, 'text-button', 'button');
 bem.ProjectDownloads__selectorRow = makeBem(bem.ProjectDownloads, 'selector-row');
 bem.ProjectDownloads__anonymousRow = makeBem(bem.ProjectDownloads, 'anonymous-row');
 bem.ProjectDownloads__legacyIframeWrapper = makeBem(bem.ProjectDownloads, 'legacy-iframe-wrapper');
 bem.ProjectDownloads__submitRow = makeBem(bem.ProjectDownloads, 'submit-row', 'footer');
 bem.ProjectDownloads__exportsSelector = makeBem(bem.ProjectDownloads, 'exports-selector');
-bem.ProjectDownloads__deleteSettingsButton = makeBem(bem.ProjectDownloads, 'delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = makeBem(bem.ProjectDownloads, 'exports-creator');
 
 bem.BackgroundAudioPlayer = makeBem(null, 'background-audio-player');

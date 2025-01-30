@@ -1,11 +1,19 @@
 # coding: utf-8
+
 from django.urls import path
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
+from kobo.apps.audit_log.urls import router as audit_log_router
+from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
-from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
-from kobo.apps.organizations.views import OrganizationViewSet
+from kobo.apps.languages.urls import router as language_router
+from kobo.apps.organizations.views import (
+    OrganizationMemberViewSet,
+    OrganizationViewSet,
+    OrgMembershipInviteViewSet
+)
+from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
@@ -101,17 +109,19 @@ asset_routes.register(r'exports',
                       parents_query_lookups=['asset'],
                       )
 
-asset_routes.register(r'hook-signal',
-                      HookSignalViewSet,
-                      basename='hook-signal',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'paired-data',
+    PairedDataViewset,
+    basename='paired-data',
+    parents_query_lookups=['asset'],
+)
 
-asset_routes.register(r'paired-data',
-                      PairedDataViewset,
-                      basename='paired-data',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'history',
+    ProjectHistoryLogViewSet,
+    basename='history',
+    parents_query_lookups=['asset'],
+)
 
 data_routes = asset_routes.register(r'data',
                                     DataViewSet,
@@ -144,11 +154,30 @@ router_api_v2.register(r'asset_usage', AssetUsageViewSet, basename='asset-usage'
 router_api_v2.register(r'imports', ImportTaskViewSet)
 router_api_v2.register(r'organizations',
                        OrganizationViewSet, basename='organizations',)
+router_api_v2.register(
+    r'organizations/(?P<organization_id>[^/.]+)/members',
+    OrganizationMemberViewSet,
+    basename='organization-members',
+)
+router_api_v2.register(
+    r'organizations/(?P<organization_id>[^/.]+)/invites',
+    OrgMembershipInviteViewSet,
+    basename='organization-invites',
+)
+
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
-router_api_v2.register(r'users', UserViewSet)
+router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
+
+
+# Merge django apps routers with API v2 router
+# All routes are under `/api/v2/` within the same namespace.
+router_api_v2.registry.extend(project_ownership_router.registry)
+router_api_v2.registry.extend(language_router.registry)
+router_api_v2.registry.extend(audit_log_router.registry)
+
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)

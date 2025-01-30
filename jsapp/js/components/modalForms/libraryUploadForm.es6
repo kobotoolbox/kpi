@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {observer} from 'mobx-react';
 import Dropzone from 'react-dropzone';
-import WrappedSelect from 'js/components/common/wrappedSelect';
+import Checkbox from 'js/components/common/checkbox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import sessionStore from 'js/stores/session';
@@ -12,17 +12,8 @@ import {withRouter} from 'js/router/legacy';
 import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';
 import {ASSET_TYPES} from 'js/constants';
-
-const DESIRED_TYPES = [
-  {
-    value: ASSET_TYPES.block.id,
-    label: ASSET_TYPES.block.label,
-  },
-  {
-    value: ASSET_TYPES.template.id,
-    label: ASSET_TYPES.template.label,
-  },
-];
+import envStore from 'js/envStore';
+import Button from 'js/components/common/button';
 
 /**
  * @prop {function} onSetModalTitle
@@ -33,8 +24,7 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
     super(props);
     this.state = {
       isPending: false,
-      // default is block
-      desiredType: DESIRED_TYPES[0],
+      isUploadAsTemplateChecked: false,
       currentFile: this.props.file || null,
     };
 
@@ -54,19 +44,26 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
     }
   }
 
-  onDesiredTypeChange(newValue) {
-    this.setState({desiredType: newValue});
+  onUploadAsTemplateChange(isChecked) {
+    this.setState({isUploadAsTemplateChecked: isChecked});
   }
 
   onSubmit(evt) {
     evt.preventDefault();
+    // The modal will be closed from outside this component upon successful
+    // import, thus we never set it back to `false` here.
+    // TODO: This should be improved, but we should migrate the modal to using
+    // new `KoboModal` component first.
     this.setState({isPending: true});
-    this.dropFiles(
-      [this.state.currentFile],
-      [],
-      evt,
-      {desired_type: this.state.desiredType.value}
-    );
+
+    // Only pass desired type if user wants to upload as template. Back-end code
+    // will create either a block, or a collection - based on the file content.
+    const options = {};
+    if (this.state.isUploadAsTemplateChecked) {
+      options.desired_type = ASSET_TYPES.template.id;
+    }
+
+    this.dropFiles([this.state.currentFile], [], evt, options);
   }
 
   render() {
@@ -102,13 +99,26 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
             </bem.FormModal__item>
 
             <bem.FormModal__item>
-              <WrappedSelect
-                label={t('Choose desired type')}
-                value={this.state.desiredType}
-                onChange={this.onDesiredTypeChange}
-                options={DESIRED_TYPES}
-                isLimitedHeight
+              <Checkbox
+                checked={this.state.is}
+                disabled={this.state.isPending}
+                onChange={this.onUploadAsTemplateChange.bind(this)}
+                label={t('Upload as template')}
               />
+
+              <small>
+                {t('Note that this will be ignored when uploading a collection file.')}
+                {' '}
+                <a
+                  href={
+                    envStore.data.support_url +
+                    'question_library.html#importing-collections'
+                  }
+                  target='_blank'
+                >
+                  {t('Learn more')}
+                </a>
+              </small>
             </bem.FormModal__item>
           </React.Fragment>
         }
@@ -121,14 +131,14 @@ const LibraryUploadForm = observer(class LibraryUploadForm extends React.Compone
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={!this.isSubmitEnabled()}
-          >
-            {t('Upload')}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={t('Upload')}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

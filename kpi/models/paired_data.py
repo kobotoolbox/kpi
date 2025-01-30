@@ -157,6 +157,10 @@ class PairedData(OpenRosaManifestInterface,
                        args=(self.asset.uid, self.paired_data_uid, 'xml'),
                        request=request)
 
+    @property
+    def source(self):
+        return self.get_source()
+
     def get_source(self, force: bool = False) -> Union['Asset', None]:
         # if `self._source_asset` has been already set once, use the cache
         # object instead of fetching it from DB again.
@@ -210,8 +214,6 @@ class PairedData(OpenRosaManifestInterface,
             return calculate_hash(
                 f'{str(time.time())}.{self.backend_media_id}', prefix=True
             ) + '-time'
-
-        return self.asset_file.md5_hash
 
     @property
     def is_remote_url(self):

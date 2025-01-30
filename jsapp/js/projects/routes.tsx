@@ -1,19 +1,19 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ROUTES} from 'js/router/routerConstants';
+import {PROJECTS_ROUTES} from 'js/router/routerConstants';
+import {RequireOrgPermissions} from 'js/router/RequireOrgPermissions.component';
+import { OrganizationUserRole } from '../account/organization/organizationQuery';
 
 const MyProjectsRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './myProjectsRoute')
 );
+const MyOrgProjectsRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ './myOrgProjectsRoute')
+);
 const CustomViewRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './customViewRoute')
 );
-
-export const PROJECTS_ROUTES: {readonly [key: string]: string} = {
-  MY_PROJECTS: ROUTES.PROJECTS_ROOT + '/home',
-  CUSTOM_VIEW: ROUTES.PROJECTS_ROOT + '/:viewUid',
-};
 
 export default function routes() {
   return (
@@ -27,6 +27,23 @@ export default function routes() {
         element={
           <RequireAuth>
             <MyProjectsRoute />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={PROJECTS_ROUTES.MY_ORG_PROJECTS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[
+                OrganizationUserRole.owner,
+                OrganizationUserRole.admin,
+              ]}
+              mmoOnly
+              redirectRoute={PROJECTS_ROUTES.MY_PROJECTS}
+            >
+              <MyOrgProjectsRoute />
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />

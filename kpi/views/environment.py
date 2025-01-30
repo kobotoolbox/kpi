@@ -5,22 +5,25 @@ import logging
 import constance
 from allauth.socialaccount.models import SocialApp
 from django.conf import settings
+from django.core.exceptions import MultipleObjectsReturned
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as t
 from markdown import markdown
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
-from kobo.apps.organizations.models import OrganizationOwner
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
-from kobo.static_lists import COUNTRIES
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
+from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
+from kobo.static_lists import COUNTRIES
 from kpi.utils.object_permission import get_database_user
 
 
-def _check_asr_mt_access_for_user(user):
+def check_asr_mt_access_for_user(user):
     # This is for proof-of-concept testing and will be replaced with proper
     # quotas and accounting
     if user.is_anonymous:
@@ -43,9 +46,15 @@ class EnvironmentView(APIView):
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
+        'ACADEMY_URL',
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
+        'USE_TEAM_LABEL',
+    ]
+
+    OTHER_CONFIGS = [
+        'PROJECT_HISTORY_LOG_LIFESPAN',
     ]
 
     @classmethod
@@ -60,30 +69,18 @@ class EnvironmentView(APIView):
         'FREE_TIER_THRESHOLDS',
     ]
 
-    @classmethod
-    def process_json_configs(cls):
+    def get(self, request, *args, **kwargs):
         data = {}
-        for key in cls.JSON_CONFIGS:
-            value = getattr(constance.config, key)
-            try:
-                value = to_python_object(value)
-            except json.JSONDecodeError:
-                logging.error(
-                    f'Configuration value for `{key}` has invalid JSON'
-                )
-                continue
-            data[key.lower()] = value
-        return data
-
-    @staticmethod
-    def split_with_newline_kludge(value):
-        """
-        django-constance formerly (before 2.7) used `\r\n` for newlines but
-        later changed that to `\n` alone. See #3825, #3831. This fix-up process
-        is *only* needed for settings that existed prior to this change; do not
-        use it when adding new settings.
-        """
-        return (line.strip('\r') for line in value.split('\n'))
+        data.update(self.process_simple_configs())
+        data.update(self.process_json_configs())
+        data.update(self.process_choice_configs())
+        data.update(self.process_mfa_configs(request))
+        data.update(self.process_password_configs(request))
+        data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_user_metadata_configs(request))
+        data.update(self.process_other_configs(request))
+        data.update(self.static_configs(request))
+        return Response(data)
 
     @classmethod
     def process_choice_configs(cls):
@@ -108,6 +105,21 @@ class EnvironmentView(APIView):
         )
         data['country_choices'] = COUNTRIES
         data['interface_languages'] = settings.LANGUAGES
+        return data
+
+    @classmethod
+    def process_json_configs(cls):
+        data = {}
+        for key in cls.JSON_CONFIGS:
+            value = getattr(constance.config, key)
+            try:
+                value = to_python_object(value)
+            except json.JSONDecodeError:
+                logging.error(
+                    f'Configuration value for `{key}` has invalid JSON'
+                )
+                continue
+            data[key.lower()] = value
         return data
 
     @staticmethod
@@ -146,34 +158,40 @@ class EnvironmentView(APIView):
         return data
 
     @staticmethod
-    def process_user_metadata_configs(request):
-        data = {
-            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
-        }
-        return data
-
-    @staticmethod
     def process_other_configs(request):
         data = {}
 
-        # django-allauth social apps are configured in both settings and the
-        # database. Optimize by avoiding extra DB call when unnecessary
-        social_apps = []
-        if settings.SOCIALACCOUNT_PROVIDERS:
-            social_apps = list(
-                SocialApp.objects.filter(custom_data__isnull=True).values(
-                    'provider', 'name', 'client_id'
-                )
+        data['social_apps'] = list(
+            (SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))).values(
+                'provider', 'name', 'client_id', 'provider_id'
             )
-        data['social_apps'] = social_apps
+        )
 
-        data['asr_mt_features_enabled'] = _check_asr_mt_access_for_user(
-            request.user
-        )
+        data['asr_mt_features_enabled'] = check_asr_mt_access_for_user(request.user)
         data['submission_placeholder'] = SUBMISSION_PLACEHOLDER
-        data['stripe_public_key'] = (
-            settings.STRIPE_PUBLIC_KEY if settings.STRIPE_ENABLED else None
-        )
+
+        for key in EnvironmentView.OTHER_CONFIGS:
+            data[key.lower()] = getattr(constance.config, key)
+
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            try:
+                data['stripe_public_key'] = str(
+                    APIKey.objects.get(
+                        type='publishable', livemode=settings.STRIPE_LIVE_MODE
+                    ).secret
+                )
+            except MultipleObjectsReturned as e:
+                raise MultipleObjectsReturned(
+                    'Remove extra api keys from the django admin.'
+                ) from e
+            except APIKey.DoesNotExist as e:
+                raise APIKey.DoesNotExist(
+                    'Add a stripe api key to the django admin.'
+                ) from e
+        else:
+            data['stripe_public_key'] = None
 
         # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
         if request.user.id:
@@ -191,16 +209,28 @@ class EnvironmentView(APIView):
                 data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
                 data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
 
+        data[
+            'terms_of_service__sitewidemessage__exists'
+        ] = SitewideMessage.objects.filter(slug='terms_of_service').exists()
+
         return data
 
-    def get(self, request, *args, **kwargs):
-        data = {}
-        data.update(self.process_simple_configs())
-        data.update(self.process_json_configs())
-        data.update(self.process_choice_configs())
-        data.update(self.process_mfa_configs(request))
-        data.update(self.process_password_configs(request))
-        data.update(self.process_project_metadata_configs(request))
-        data.update(self.process_user_metadata_configs(request))
-        data.update(self.process_other_configs(request))
-        return Response(data)
+    @staticmethod
+    def process_user_metadata_configs(request):
+        data = {
+            'user_metadata_fields': I18nUtils.get_metadata_fields('user')
+        }
+        return data
+
+    @staticmethod
+    def split_with_newline_kludge(value):
+        """
+        django-constance formerly (before 2.7) used `\r\n` for newlines but
+        later changed that to `\n` alone. See #3825, #3831. This fix-up process
+        is *only* needed for settings that existed prior to this change; do not
+        use it when adding new settings.
+        """
+        return (line.strip('\r') for line in value.split('\n'))
+
+    def static_configs(self, request):
+        return {'open_rosa_server': settings.KOBOCAT_URL}

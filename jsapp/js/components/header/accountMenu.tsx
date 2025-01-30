@@ -3,12 +3,16 @@ import {useNavigate} from 'react-router-dom';
 import PopoverMenu from 'js/popoverMenu';
 import sessionStore from 'js/stores/session';
 import bem from 'js/bem';
-import {currentLang, stringToColor} from 'js/utils';
+import {currentLang} from 'js/utils';
 import envStore from 'js/envStore';
 import type {LabelValuePair} from 'js/dataInterface';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
-import {ACCOUNT_ROUTES} from 'jsapp/js/account/routes';
+import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
+import {isAnyRouteBlockerActive} from 'js/router/routerUtils';
+import Button from 'js/components/common/button';
+import Avatar from 'js/components/common/avatar';
+import OrganizationBadge from './organizationBadge.component';
 
 /**
  * UI element that display things only for logged-in user. An avatar that gives
@@ -76,46 +80,40 @@ export default function AccountMenu() {
       ? sessionStore.currentAccount.email
       : '';
 
-  const initialsStyle = {background: `#${stringToColor(accountName)}`};
-  const accountMenuLabel = (
-    <bem.AccountBox__initials style={initialsStyle}>
-      {accountName.charAt(0)}
-    </bem.AccountBox__initials>
-  );
-
-  const isInvalidatedPasswordUser = (
-    'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
-  );
-
   return (
     <bem.AccountBox>
-      <PopoverMenu type='account-menu' triggerLabel={accountMenuLabel}>
+      <PopoverMenu
+        type='account-menu'
+        triggerLabel={<Avatar size='m' username={accountName} />}
+      >
         <bem.AccountBox__menu>
           <bem.AccountBox__menuLI key='1'>
             <bem.AccountBox__menuItem m={'avatar'}>
-              {accountMenuLabel}
+              <Avatar
+                size='m'
+                username={accountName}
+                fullName={accountName}
+                email={accountEmail}
+              />
             </bem.AccountBox__menuItem>
 
-            <bem.AccountBox__menuItem m={'mini-profile'}>
-              <span className='account-username'>{accountName}</span>
-              <span className='account-email'>{accountEmail}</span>
-            </bem.AccountBox__menuItem>
+            <OrganizationBadge color='light-blue'/>
 
             {/*
-              There is no UI we can show to a user with invalidated password, so
+              There is no UI we can show to a user who sees a router blocker, so
               we don't allow any in-app navigation.
             */}
-            {!isInvalidatedPasswordUser &&
+            {!isAnyRouteBlockerActive() && (
               <bem.AccountBox__menuItem m={'settings'}>
-                <bem.KoboButton
+                <Button
+                  type='primary'
+                  size='l'
+                  isFullWidth
                   onClick={openAccountSettings}
-                  m={['blue', 'fullwidth']}
-                >
-                  {t('Account Settings')}
-                </bem.KoboButton>
+                  label={t('Account Settings')}
+                />
               </bem.AccountBox__menuItem>
-            }
+            )}
           </bem.AccountBox__menuLI>
 
           {shouldDisplayUrls && (
@@ -147,7 +145,7 @@ export default function AccountMenu() {
           </bem.AccountBox__menuLI>
 
           <bem.AccountBox__menuLI m={'logout'} key='4'>
-            <bem.AccountBox__menuLink onClick={actions.auth.logout}>
+            <bem.AccountBox__menuLink onClick={sessionStore.logOut}>
               <i className='k-icon k-icon-logout' />
               {t('Logout')}
             </bem.AccountBox__menuLink>

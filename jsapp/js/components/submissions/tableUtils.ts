@@ -5,10 +5,16 @@ import {
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
+import type {AnyRowTypeName} from 'js/constants';
+import {ValidationStatusAdditionalName} from 'js/components/submissions/validationStatus.constants';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  TEXT_FILTER_QUESTION_IDS,
+  TEXT_FILTER_QUESTION_TYPES,
+  FILTER_EXACT_TYPES,
+  DROPDOWN_FILTER_QUESTION_TYPES,
 } from 'js/components/submissions/tableConstants';
 import type {
   SubmissionResponse,
@@ -21,6 +27,7 @@ import {
   injectSupplementalRowsIntoListOfRows,
 } from 'js/assetUtils';
 import {getSupplementalPathParts} from 'js/components/processing/processingUtils';
+import type {Filter} from 'react-table';
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -28,6 +35,10 @@ export function getColumnLabel(
   showGroupName: boolean,
   translationIndex = 0
 ): string {
+  // NOTE: Some very old code has something to do with nonexistent/negative
+  // translationIndex. No idea what is that. It does influences returned value.
+  const showLabels = translationIndex > -1;
+
   if (asset.content?.survey === undefined) {
     return key;
   }
@@ -42,21 +53,25 @@ export function getColumnLabel(
         o.$autoname === questionPath[questionPath.length - 1]
     );
   } else {
+    questionPath = [key];
     question = asset.content.survey.find(
       (o) => o.name === key || o.$autoname === key
     );
   }
 
-  // This identifies the supplemental details column.
+  // This identifies the supplemental details column. For such column question
+  // was not found by the `key` provided (because it starts with
+  // `SUPPLEMENTAL_DETAILS_PROP`) - we will find the question based on the value
+  // returned by `getSupplementalPathParts` later.
   if (question === undefined && questionPath[0] === SUPPLEMENTAL_DETAILS_PROP) {
     const supplementalPathParts = getSupplementalPathParts(key);
 
-    const groupsIfAnyAndName = supplementalPathParts.sourceRowName.split('-');
-    const sourceName = groupsIfAnyAndName.join('/');
+    const sourceName = supplementalPathParts.sourceRowPath;
 
     // Supplemental details keys are built like one of:
     // - prefix / source question name / transcript _ language code
     // - prefix / source question name / translated _ language code
+    // e.g. `_supplementalDetails/Wie_heisst_du/transcript_de`
     const sourceQuestionLabel = getColumnLabel(
       asset,
       sourceName,
@@ -64,20 +79,36 @@ export function getColumnLabel(
       translationIndex
     );
 
-    if (supplementalPathParts.isTranscript) {
+    if (supplementalPathParts.type === 'transcript') {
       return `${t('transcript')} (${
         supplementalPathParts.languageCode
       }) | ${sourceQuestionLabel}`;
-    } else if (supplementalPathParts.isTranslation) {
+    } else if (supplementalPathParts.type === 'translation') {
       return `${t('translation')} (${
         supplementalPathParts.languageCode
       }) | ${sourceQuestionLabel}`;
+    } else {
+      // this is absurd, to undo what `injectSupplementalRowsIntoListOfRows()`
+      // did when the back end already provided what's needed in the first
+      // place
+      const dtpath = key.slice('_supplementalDetails/'.length);
+      // FIXME: pass the entire object (or at least the label!) provided by
+      // the back end through to this function, without doing all this nonsense
+      const analysisQuestion =
+        asset.analysis_form_json?.additional_fields.filter(
+          (f) => f.dtpath === dtpath
+        )[0];
+      if (analysisQuestion?.label) {
+        return `${analysisQuestion.label} | ${sourceQuestionLabel}`;
+      }
     }
   }
 
-  // NOTE: Some very old code has something to do with nonexistent/negative
-  // translationIndex. No idea what is that. It does influences returned value.
-  const showLabels = translationIndex > -1;
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users.
+  if (key === QUESTION_TYPES['background-audio'].id && showLabels) {
+    return t('Background audio');
+  }
 
   if (key === SUBMISSION_ACTIONS_ID) {
     return t('Multi-select checkboxes column');
@@ -143,7 +174,7 @@ export function getBackgroundAudioQuestionName(
 ): string | null {
   return (
     asset?.content?.survey?.find(
-      (item) => item.type === META_QUESTION_TYPES['background-audio']
+      (item) => item.type === QUESTION_TYPES['background-audio'].id
     )?.name || null
   );
 }
@@ -260,4 +291,99 @@ export function getAllDataColumns(
   output = injectSupplementalRowsIntoListOfRows(asset, output);
 
   return output;
+}
+
+export interface TableFilterQuery {
+  queryString: string;
+  queryObj: {
+    [key: string]:
+      | string
+      | null
+      | {$in: number[]}
+      | {$regex: string; $options: string};
+  };
+}
+
+/**
+ * This function uses filters list from `react-table` output to produce queries
+ * that our Back end can understand. We use it it multiple places that intensely
+ * need to use identical output. We might simply return `queryObj` and make
+ * the code stringify it by itself, but it will make it less robust.
+ */
+export function buildFilterQuery(
+  /** Whole survey of given asset - we need it to get questions types */
+  survey: SurveyRow[],
+  /** List of `react-table` filters */
+  filters: Filter[]
+): TableFilterQuery {
+  const output: TableFilterQuery = {
+    queryString: '',
+    queryObj: {},
+  };
+
+  filters.forEach((filter) => {
+    switch (filter.id) {
+      case '_id': {
+        output.queryObj[filter.id] = {$in: [parseInt(filter.value)]};
+        break;
+      }
+      case VALIDATION_STATUS_ID_PROP: {
+        if (filter.value === ValidationStatusAdditionalName.no_status) {
+          output.queryObj[filter.id] = null;
+        } else {
+          output.queryObj[filter.id] = filter.value;
+        }
+        break;
+      }
+      // Apart from few exceptions in above cases, we tend to treat all columns
+      // (`filter.id`s) with the same algorithm
+      default: {
+        // We assume `filter.id` is the question name (Data Table column name)
+        const foundRow = survey.find((row) => getRowName(row) === filter.id);
+
+        // Some question types needs the data to be filtered by exact values
+        // (e.g. "yes" shouldn't mach "yessica" or "yes and no")
+        if (foundRow && FILTER_EXACT_TYPES.includes(foundRow.type)) {
+          output.queryObj[filter.id] = {
+            $regex: `^${filter.value}$`,
+            $options: 'i',
+          };
+        } else {
+          output.queryObj[filter.id] = {$regex: filter.value, $options: 'i'};
+        }
+        break;
+      }
+    }
+  });
+
+  if (Object.keys(output.queryObj).length > 0) {
+    output.queryString = JSON.stringify(output.queryObj);
+  }
+
+  return output;
+}
+
+/**
+ * For checking if given column from Data Table should display a text input
+ * filter. It works for columns associated with form questions and for other
+ * columns too (e.g. submission metadata).
+ */
+export function isTableColumnFilterableByTextInput(
+  questionType: AnyRowTypeName | undefined,
+  columnId: string
+) {
+  return (
+    (questionType && TEXT_FILTER_QUESTION_TYPES.includes(questionType)) ||
+    TEXT_FILTER_QUESTION_IDS.includes(columnId)
+  );
+}
+
+/**
+ * For checking if given column from Data Table should display a dropdown
+ * filter.
+ */
+export function isTableColumnFilterableByDropdown(
+  questionType: AnyRowTypeName | undefined
+) {
+  return questionType && DROPDOWN_FILTER_QUESTION_TYPES.includes(questionType);
 }

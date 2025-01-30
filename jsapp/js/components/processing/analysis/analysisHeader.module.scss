@@ -1,0 +1,94 @@
+@use 'sass:color';
+@use 'scss/mixins';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+@use 'js/components/common/button';
+@use 'js/components/common/koboSelect';
+
+// For now we just mimick the KoboSelect styles
+$option-height: koboSelect.$k-select-option-height;
+$menu-padding: koboSelect.$k-select-menu-padding;
+
+.root {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  background-color: colors.$kobo-white;
+  border-bottom: 1px solid colors.$kobo-light-storm;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.addQuestionMenu {
+  display: block;
+  width: 100%;
+  // We want to show at least three options at a time, with half of the next one
+  // visible to suggest that there are more options.
+  min-height: ($option-height * 3.5) + $menu-padding;
+  max-height: 50vh;
+  min-width: 180px;
+  overflow-x: auto;
+  margin: 2px 0 0;
+  padding: $menu-padding ($menu-padding * 0.5);
+  border-radius: button.$button-border-radius;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 6px color.change(colors.$kobo-storm, $alpha: 0.3);
+}
+
+.addQuestionMenuButton {
+  @include mixins.buttonReset;
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  width: 100%;
+  height: $option-height;
+  color: colors.$kobo-gray-700;
+  padding: 0 #{16px - 2px};
+  text-align: initial;
+  font-weight: 500;
+
+  &:hover {
+    color: colors.$kobo-gray-800;
+    background-color: colors.$kobo-gray-200;
+  }
+
+  :global .k-icon {
+    color: colors.$kobo-storm;
+  }
+
+  > *:not(:last-child) {
+    margin-right: 6px;
+  }
+
+  :global label {
+    @include mixins.textEllipsis;
+    cursor: inherit;
+    flex: 1;
+  }
+}
+
+.addQuestionMenuButtonDisabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.addQuestionMenu :global h2 {
+  text-align: initial;
+  border-top: 1px solid colors.$kobo-gray-300;
+  font-size: 12px;
+  line-height: $option-height;
+  padding: 0;
+  color: colors.$kobo-storm;
+  margin: 0 12px;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .root {
+    padding: 20px 0 10px;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .root {
+    padding: 30px 0 16px;
+  }
+}

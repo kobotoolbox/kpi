@@ -1,16 +1,23 @@
+// Libraries
 import React from 'react';
 import InfiniteScroll from 'react-infinite-scroller';
+import cx from 'classnames';
+
+// Partial components
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import ProjectsTableRow from './projectsTableRow';
+import ProjectsTableHeader from './projectsTableHeader';
+
+// Constants and types
+import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
 import type {
   ProjectFieldName,
   OrderDirection,
 } from 'js/projects/projectViews/constants';
-import ProjectsTableHeader from './projectsTableHeader';
-import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
+
+// Styles
 import styles from './projectsTable.module.scss';
 import rowStyles from './projectsTableRow.module.scss';
-import classNames from 'classnames';
 
 const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-successfully';
 
@@ -80,7 +87,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
         {props.isLoading && <LoadingSpinner />}
 
         {!props.isLoading && props.assets.length === 0 && (
-          <div className={classNames(rowStyles.row, rowStyles.rowTypeMessage)}>
+          <div className={cx(rowStyles.row, rowStyles.rowTypeMessage)}>
             {props.emptyMessage || t('There are no projects to display.')}
           </div>
         )}
@@ -93,7 +100,7 @@ export default function ProjectsTable(props: ProjectsTableProps) {
           loader={
             // We want to hide the plugin spinner when we already display
             // the main one - this ensures no double spinners
-            props.isLoading ? <></> : <LoadingSpinner hideMessage key='0' />
+            props.isLoading ? <></> : <LoadingSpinner message={false} key='0' />
           }
           useWindow={false}
           initialLoad={false}

@@ -1,10 +1,80 @@
+# Formatters are optional, this configuration attempts to make as many
+# tools "just work" in a way compatible with kobo code standards
 [tool.black]
 # Do not enable `verbose = true` unless Black changes their behavior to respect
 # `--quiet` on the command line properly
 # verbose = true
-line-length = 80
+line-length = 88
 skip-string-normalization = true
+
+[tool.darker]
+src = [
+    "kobo",
+    "hub",
+    "kpi",
+]
+isort = true
+
 [tool.isort]
 profile = "black"
+line_length = 88 # same as black
 known_first_party = "kobo"
 no_lines_before = ["LOCALFOLDER"]
+
+[tool.ruff]
+line-length = 88
+[tool.ruff.format]
+quote-style = "single"  # Preserve is coming soon to ruff
+[tool.ruff.lint]
+extend-select = [
+    "I", # Enable ruff isort
+    "Q", # Flake quotes
+    "E", # pycodestyle, some needs `--preview` to be enable
+    "N", # PEP-8 naming convention
+    "UP026", # deprecated mock
+    "UP034", # extraneous-parentheses
+    "UP039", # Unnecessary parentheses after class definition
+    "W1", # Indentation warning
+    "W292", # no newline at end of file
+    "T20", # (p)print found
+]
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single" # To prefer single quotes over double quote
+multiline-quotes = "double"
+docstring-quotes = "double"
+[tool.ruff.lint.isort]
+known-first-party = ["kobo"]
+
+[tool.flake8]
+inline-quotes = "single"
+multiline-quotes = "double"
+docstring-quotes = "double"
+max-line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = [
+    'kobo',
+    'kpi',
+    'hub',
+]
+env = [
+    'DJANGO_SETTINGS_MODULE=kobo.settings.testing',
+]
+addopts = [
+    '-m not performance',
+]
+markers = [
+    "performance: marks test for performance that may unexpectedly fail on slower platforms (not executed by default - select with '-m \"performance\"')",
+]
+
+# Types are not enforced but are a good practice
+[tool.mypy]
+# Exclude virtual environment projects that cause mypy to error
+exclude = [
+    "src/django-digest",
+    "src/formpack",
+    "src/kobo-service-account",
+    "src/python-digest",
+]
+[tool.django-stubs]
+django_settings_module = "kobo.settings"

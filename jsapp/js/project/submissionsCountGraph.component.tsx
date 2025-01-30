@@ -167,7 +167,9 @@ export default function SubmissionsCountGraph(
         let path = ASSET_COUNTS_ENDPOINT.replace('<uid>', props.assetUid);
         const days = StatsPeriods[currentPeriod];
         path += `?days=${days}`;
-        const response = await fetchGet<AssetCountsResponse>(path);
+        const response = await fetchGet<AssetCountsResponse>(path, {
+          notifyAboutError: false,
+        });
         setCounts(response);
       } catch (error) {
         const errorObj = error as FailResponse;
@@ -197,7 +199,7 @@ export default function SubmissionsCountGraph(
         responsive: true,
         elements: {
           bar: {
-            backgroundColor: '#64c0ff', // $kobo-alt-blue
+            backgroundColor: '#64c0ff', // $kobo-mid-blue
             borderRadius: 4,
           },
           point: {
@@ -292,7 +294,7 @@ export default function SubmissionsCountGraph(
           [styles.graphVisible]: !isLoading && hasData,
         })}
       >
-        {isLoading && <LoadingSpinner hideMessage />}
+        {isLoading && <LoadingSpinner message={false} />}
 
         <canvas ref={canvasRef} />
 

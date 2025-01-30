@@ -1,0 +1,13 @@
+{% load allauth %}
+{% load static %}
+<section class="registration registration__sso--login">
+  <h2>
+      {% slot title %}
+      {% endslot %}
+  </h2>
+  {% slot body %}
+  {% endslot %}
+  {% slot actions %}
+  {% endslot %}
+  <script src="{% static 'js/sso_buttons.js' %}"></script>
+</section>

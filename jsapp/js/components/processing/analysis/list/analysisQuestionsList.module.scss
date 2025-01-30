@@ -1,0 +1,10 @@
+@use 'scss/colors';
+@use '../analysisVariables';
+
+.root {
+  list-style: none;
+
+  > *:not(:last-child) {
+    margin-bottom: analysisVariables.$rows-gap;
+  }
+}

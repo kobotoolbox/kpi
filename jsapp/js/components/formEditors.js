@@ -1,12 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import editableFormMixin from '../editorMixins/editableForm';
 import {update_states} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
-import mixins from '../mixins';
 import {withRouter} from 'js/router/legacy';
 
 /**
@@ -29,7 +27,6 @@ export class FormPage extends React.Component {
 }
 reactMixin(FormPage.prototype, Reflux.ListenerMixin);
 reactMixin(FormPage.prototype, editableFormMixin);
-FormPage.contextTypes = {router: PropTypes.object};
 
 class LibraryAssetEditorComponent extends React.Component {
   constructor(props) {
@@ -69,6 +66,5 @@ class LibraryAssetEditorComponent extends React.Component {
 }
 reactMixin(LibraryAssetEditorComponent.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetEditorComponent.prototype, editableFormMixin);
-LibraryAssetEditorComponent.contextTypes = {router: PropTypes.object};
 
 export const LibraryAssetEditor = withRouter(LibraryAssetEditorComponent);

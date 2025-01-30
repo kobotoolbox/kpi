@@ -1,0 +1,9 @@
+@use 'scss/colors';
+
+.root {
+  margin: 20px 0;
+}
+
+.lockIcon {
+  color: colors.$kobo-gray-400;
+}

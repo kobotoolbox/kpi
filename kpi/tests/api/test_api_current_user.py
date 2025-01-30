@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from constance.test import override_config
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -143,3 +143,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.validated_password
         assert self.user.extra_details.password_date_changed is not None
         assert self.user.extra_details.password_date_changed >= now
+
+    def test_cannot_update_organization_fields_with_mmo(self):
+        self.user.organization.mmo_override = True
+        self.user.organization.save()

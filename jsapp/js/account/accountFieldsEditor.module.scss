@@ -1,0 +1,79 @@
+@use 'js/components/common/textBox.module';
+@use 'scss/colors';
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 0 20px;
+  width: 100%;
+
+  &:not(:last-child) {
+    margin-bottom: 15px;
+  }
+
+  // This handles the issue of grouping the possibly not displayed items in
+  // a simple and elegant way - as opposed to adding more logic to the TSX file.
+  &:empty {
+    display: none;
+  }
+
+  .checkboxLabel {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    color: colors.$kobo-gray-800;
+  }
+
+  :global {
+    .checkbox__wrapper {
+      margin-top: 6px;
+    }
+  }
+}
+
+.flexFields {
+  // Flexbox helps us maintain a wrapping layout when some fields may be
+  // customized or removed.
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: flex-start; // better alignment when there's error feedback
+  gap: 15px 20px;
+  margin-bottom: 15px;
+
+  .field {
+    flex: 1;
+    // If there's enough room, let fields sit next to each other in pairs.
+    min-width: (max(40%, 14em));
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+.field {
+  width: 100%;
+  flex: 1;
+}
+
+.socialLabel,
+.checkboxLabel {
+  width: 100%;
+  color: colors.$kobo-gray-800;
+  font-size: 12px;
+  line-height: textBox.$label-leading;
+  margin-bottom: textBox.$label-margin;
+}
+
+// Show 5 options without having to scroll for the last one
+.orgTypeDropdown :global .kobo-dropdown__menu > .k-select__menu {
+  max-height: none;
+}
+
+// Heighten bio field
+.row > .field :global textarea {
+  min-height: 2.5em;
+}

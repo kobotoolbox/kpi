@@ -1,10 +1,8 @@
 # coding: utf-8
 from typing import Optional
 
+from django.db import transaction
 from django.utils.translation import gettext as t
-from rest_framework import serializers
-from rest_framework.request import Request
-from rest_framework.reverse import reverse
 from formpack.constants import (
     EXPORT_SETTING_FIELDS,
     EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
@@ -26,9 +24,12 @@ from formpack.constants import (
     VALID_EXPORT_TYPES,
     VALID_MULTIPLE_SELECTS,
 )
+from rest_framework import serializers
+from rest_framework.request import Request
+from rest_framework.reverse import reverse
 
 from kpi.fields import ReadOnlyJSONField
-from kpi.models import ExportTask, Asset
+from kpi.models import Asset, SubmissionExportTask
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 from kpi.utils.object_permission import get_database_user
@@ -40,7 +41,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     data = ReadOnlyJSONField()
 
     class Meta:
-        model = ExportTask
+        model = SubmissionExportTask
         fields = (
             'url',
             'status',
@@ -58,14 +59,16 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             'result',
         )
 
-    def create(self, validated_data: dict) -> ExportTask:
+    def create(self, validated_data: dict) -> SubmissionExportTask:
         # Create a new export task
         user = get_database_user(self._get_request.user)
-        export_task = ExportTask.objects.create(
+        export_task = SubmissionExportTask.objects.create(
             user=user, data=validated_data
         )
         # Have Celery run the export in the background
-        export_in_background.delay(export_task_uid=export_task.uid)
+        transaction.on_commit(
+            lambda: export_in_background.delay(export_task_uid=export_task.uid)
+        )
 
         return export_task
 
@@ -152,7 +155,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
                 {EXPORT_SETTING_FIELDS: t('Must be an array')}
             )
 
-        if not all((isinstance(field, str) for field in fields)):
+        if not all(isinstance(field, str) for field in fields):
             raise serializers.ValidationError(
                 {
                     EXPORT_SETTING_FIELDS: t(
@@ -262,7 +265,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             )
         return export_type
 
-    def get_url(self, obj: ExportTask) -> str:
+    def get_url(self, obj: SubmissionExportTask) -> str:
         return reverse(
             'asset-export-detail',
             args=(self._get_asset.uid, obj.uid),
@@ -276,4 +279,3 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     @property
     def _get_request(self) -> Request:
         return self.context['request']
-

@@ -1,0 +1,176 @@
+@use 'scss/colors';
+@use 'scss/breakpoints';
+@use 'js/account/plans/plan.module';
+
+.header {
+  font-size: 18px;
+  font-weight: 700;
+  color: colors.$kobo-storm;
+  text-transform: uppercase;
+}
+
+.caption {
+  text-align: start;
+}
+
+.table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  max-width: plan.$plans-page-max-width;
+
+  tr {
+    border-top: 1px solid colors.$kobo-light-storm;
+
+    &:last-child {
+      border-bottom: 1px solid colors.$kobo-light-storm;
+    }
+  }
+
+  td {
+    padding-block: 1em;
+    font-weight: 600;
+    font-size: 16px;
+  }
+}
+
+.productAndPrice {
+  line-height: 2em;
+}
+
+.price {
+  color: colors.$kobo-gray-700;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.oneTimePrice {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 16px;
+  color: colors.$kobo-gray-700;
+  padding-right: 15px;
+}
+
+.productName {
+  display: flex;
+  margin-right: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.description {
+  display: none;
+}
+
+.oneTime {
+  display: flex;
+  width: 100%;
+  justify-content: right;
+}
+
+.purchasedAddOns {
+  padding-top: 2%;
+  padding-bottom: 2%;
+}
+
+.activePrice {
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.addonDescription {
+  display: flex;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.row {
+  display: table;
+  width: 100%;
+  align-items: center;
+}
+
+.buy {
+  width: 200px;
+}
+
+.mobileView {
+  display: flex;
+  vertical-align: center;
+  flex: 1;
+  align-items: center;
+}
+
+.fullScreen {
+  display: none;
+}
+
+@media screen and (min-width: breakpoints.$b600) {
+  .table td:nth-child(2) {
+    margin-inline-end: 10em;
+  }
+
+  .description {
+    display: flex;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .productName {
+    display: table-cell;
+    width: 40%;
+  }
+
+  .fullScreen,
+  .price {
+    display: table-cell;
+    width: 30%;
+  }
+
+  .mobileView {
+    display: none;
+  }
+
+  .oneTimePrice,
+  .buy {
+    display: table-cell;
+    vertical-align: middle;
+    justify-content: center;
+  }
+
+  .oneTimePrice {
+    width: 50%;
+  }
+
+  .oneTime {
+    justify-content: center;
+
+    :last-child {
+      margin-left: 8px;
+    }
+  }
+
+  .productName {
+    margin-right: 12px;
+  }
+
+  .buy {
+    width: 140px;
+    padding-left: 20px;
+  }
+}
+
+@include breakpoints.breakpoint(mediumAndUp) {
+  .productAndPrice {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 20px;
+  }
+}

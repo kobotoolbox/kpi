@@ -1,6 +1,5 @@
 @use 'sass:color';
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 @mixin buttonReset() {
   display: inline-block;
@@ -23,7 +22,7 @@
 
   &:active {
     // to make it look pressed-in
-    transform: translateY(sizes.$x1);
+    transform: translateY(1px);
   }
 }
 
@@ -43,11 +42,11 @@
 // Use this for dropdowns and menus
 @mixin floatingRoundedBox() {
   background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
-  box-shadow: 0 0 sizes.$x6 color.change(colors.$kobo-storm, $alpha: 0.3);
+  border-radius: 6px;
+  box-shadow: 0 0 6px color.change(colors.$kobo-storm, $alpha: 0.3);
 }
 
 @mixin default-ui-focus() {
-  outline: sizes.$x3 solid colors.$kobo-alt-blue !important;
+  outline: 3px solid colors.$kobo-mid-blue !important;
   border-color: colors.$kobo-blue !important;
 }

@@ -1,8 +1,8 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -92,7 +92,7 @@ class BaseAssetBulkActionsTestCase(BaseTestCase):
 
     def _login_superuser(self):
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
 
     def _login_user(self, userpass: str):
         self.client.logout()
@@ -220,7 +220,7 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
         self.client.logout()
         response = self._create_send_payload([asset.uid], 'archive')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         # Ensure anonymous user still access someuser's public project
         detail_response = self._get_asset_detail_results(asset.uid)
@@ -293,7 +293,7 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         asset.assign_perm(anonymous, PERM_VIEW_ASSET)
         self.client.logout()
         response = self._create_send_payload([asset.uid], 'delete')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         asset.refresh_from_db()
         assert asset.deployment.active is True

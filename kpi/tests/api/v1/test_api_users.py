@@ -1,7 +1,7 @@
 # coding: utf-8
-from django.contrib.auth.models import User
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.api.v2 import test_api_users
 
 

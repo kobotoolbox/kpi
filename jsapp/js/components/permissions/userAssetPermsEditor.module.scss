@@ -1,0 +1,33 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+.row > *:not(:last-child),
+.subRow > *:not(:last-child) {
+  margin-bottom: 8px;
+}
+
+.row {
+  &:not(:last-child) {
+    margin-bottom: 10px;
+  }
+
+  &.rowUsername {
+    width: calc(100% - 32px);
+  }
+}
+
+.subRow {
+  padding-left: 16px;
+}
+
+.byResponsesInputs {
+  @include mixins.centerRowFlex;
+  gap: 8px;
+}
+
+// These wrappers are needed so that the reset button can have as much space
+// as it needs, without label being wrappped or overflowing outside the area
+.questionSelectWrapper,
+.valueInputWrapper {
+  flex: 1;
+}

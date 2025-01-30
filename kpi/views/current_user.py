@@ -1,14 +1,14 @@
-# coding: utf-8
 from constance import config
-from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import gettext as t
 from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.serializers import CurrentUserSerializer
+from kpi.versioning import APIV2Versioning
 
 
 class CurrentUserViewSet(viewsets.ModelViewSet):
@@ -44,9 +44,9 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "linkedin": string,
     >               "instagram": string,
     >               "organization": string,
-    >               "require_auth": boolean,
     >               "last_ui_language": string,
-    >               "organization_website": sting,
+    >               "organization_website": string,
+    >               "newsletter_subscription": boolean,
     >           },
     >           "git_rev": {
     >               "short": boolean,
@@ -55,6 +55,12 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >               "tag": boolean,
     >           },
     >           "social_accounts": []
+    >           "accepted_tos": boolean,
+    >           "organization": {
+    >               "url": string,
+    >               "name": string,
+    >               "uid": string,
+    >           }
     >       }
 
     Update account details
@@ -93,6 +99,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.none()
     serializer_class = CurrentUserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    versioning_class = APIV2Versioning
 
     def get_object(self):
         return self.request.user

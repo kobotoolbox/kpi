@@ -4,9 +4,8 @@
  */
 
 import React from 'react';
-import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
+import {ANON_USERNAME_URL} from 'js/users/utils';
 import envStore from 'js/envStore';
 import sessionStore from 'js/stores/session';
 import type {
@@ -17,33 +16,29 @@ import type {
 import assetStore from 'js/assetStore';
 import {
   ASSET_TYPES,
-  MODAL_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  ANON_USERNAME,
-  PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
+  XML_VALUES_OPTION_VALUE,
 } from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
 import type {
   AssetContent,
   AssetResponse,
   ProjectViewAsset,
   SurveyRow,
   SurveyChoice,
-  Permission,
+  PermissionResponse,
+  AnalysisFormJsonField,
 } from 'js/dataInterface';
-import {
-  getSupplementalTranscriptPath,
-  getSupplementalTranslationPath,
-} from 'js/components/processing/processingUtils';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
 import type {IconName} from 'jsapp/fonts/k-icons';
+import {QUAL_NOTE_TYPE} from 'js/components/processing/analysis/constants';
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -82,7 +77,13 @@ export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewA
  * Returns the index of language or null if not found.
  */
 export function getLanguageIndex(asset: AssetResponse, langString: string) {
-  let foundIndex = null;
+  // Return -1 instead of null as that would allow
+  // `getQuestionOrChoiceDisplayName` to default to xml names.
+  if (langString === XML_VALUES_OPTION_VALUE) {
+    return -1;
+  }
+
+  let foundIndex = 0;
 
   if (
     Array.isArray(asset.summary?.languages) &&
@@ -123,7 +124,7 @@ export function getLanguagesDisplayString(asset: AssetResponse | ProjectViewAsse
 export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset): string {
   let output = '-';
 
-  if (asset.settings.sector?.value) {
+  if (asset.settings.sector && 'value' in asset.settings.sector) {
     /**
      * We don't want to use labels from asset's settings, as these are localized
      * and thus prone to not be true (e.g. creating form in spanish UI language
@@ -218,6 +219,8 @@ export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): D
 /**
  * Returns usable name of the question or choice when possible, fallbacks to
  * "Unlabelled". `translationIndex` defaults to first (default) language.
+ *
+ * TODO: see how does this function output differs from `getTranslatedRowLabel`
  */
 export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyChoice | SurveyRow,
@@ -230,6 +233,11 @@ export function getQuestionOrChoiceDisplayName(
   }
 
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    // If the user hasn't made translations yet for a form language show
+    // the xml names instead of blank.
+    if (questionOrChoice.label[translationIndex] === null) {
+      return getRowName(questionOrChoice);
+    }
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
@@ -257,12 +265,12 @@ export function isLibraryAsset(assetType: AssetTypeName) {
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
  */
-export function isAssetPublic(permissions?: Permission[]) {
+export function isAssetPublic(permissions?: PermissionResponse[]) {
   let isDiscoverableByAnonymous = false;
   permissions?.forEach((perm) => {
     const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
-      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.user === ANON_USERNAME_URL &&
       foundPerm !== undefined &&
       perm.permission === foundPerm.url
     ) {
@@ -413,6 +421,8 @@ export function isRowSpecialLabelHolder(
  * @param rowName - could be either a survey row name or choices row name
  * @param data - is either a survey or choices
  * Returns null for not found
+ *
+ * TODO: see how does this function output differs from `getQuestionOrChoiceDisplayName`
  */
 export function getTranslatedRowLabel(
   rowName: string,
@@ -421,6 +431,16 @@ export function getTranslatedRowLabel(
 ): string | null {
   let foundRowIndex: number | undefined;
   let foundRow: SurveyChoice | SurveyRow | undefined;
+
+  // Background audio questions don't have labels, but we need something to be
+  // displayed to users. If translation we want is `-1`, it means we want to
+  // display xml name.
+  if (
+    translationIndex !== -1 &&
+    rowName === QUESTION_TYPES['background-audio'].id
+  ) {
+    return t('Background audio');
+  }
 
   if (data === undefined) {
     return null;
@@ -450,8 +470,8 @@ export function findRow(assetContent: AssetContent, rowName: string) {
   return assetContent?.survey?.find((row) => getRowName(row) === rowName);
 }
 
-export function findRowByQpath(assetContent: AssetContent, qpath: string) {
-  return assetContent?.survey?.find((row) => row.$qpath === qpath);
+export function findRowByXpath(assetContent: AssetContent, xpath: string) {
+  return assetContent?.survey?.find((row) => row.$xpath === xpath);
 }
 
 export function getRowType(assetContent: AssetContent, rowName: string) {
@@ -459,8 +479,8 @@ export function getRowType(assetContent: AssetContent, rowName: string) {
   return foundRow?.type;
 }
 
-export function getRowNameByQpath(assetContent: AssetContent, qpath: string) {
-  const foundRow = findRowByQpath(assetContent, qpath);
+export function getRowNameByXpath(assetContent: AssetContent, xpath: string) {
+  const foundRow = findRowByXpath(assetContent, xpath);
   if (foundRow) {
     return getRowName(foundRow);
   }
@@ -479,9 +499,7 @@ export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
     return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
-  if (rowType === META_QUESTION_TYPES['background-audio']) {
-    return 'background-rec';
-  } else if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
+  if (rowType && Object.prototype.hasOwnProperty.call(META_QUESTION_TYPES, rowType)) {
     return 'qt-meta-default';
   }
 
@@ -509,98 +527,54 @@ export function renderQuestionTypeIcon(
 }
 
 /**
- * This returns a list of paths for all applicable question names - we do it
- * this way to make it easier to connect the paths to the source question.
- */
-export function getSupplementalDetailsPaths(asset: AssetResponse): {
-  [questionName: string]: string[];
-} {
-  const paths: {[questionName: string]: string[]} = {};
-  const advancedFeatures = asset.advanced_features;
-
-  advancedFeatures?.transcript?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    // NOTE: the values for transcripts are not nested in submission, but we
-    // need the path to contain language for other parts of code to work.
-    advancedFeatures.transcript?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranscriptPath(questionName, languageCode)
-      );
-    });
-  });
-
-  advancedFeatures?.translation?.values?.forEach((questionName: string) => {
-    if (!Array.isArray(paths[questionName])) {
-      paths[questionName] = [];
-    }
-    advancedFeatures.translation?.languages?.forEach((languageCode: LanguageCode) => {
-      paths[questionName].push(
-        getSupplementalTranslationPath(questionName, languageCode)
-      );
-    });
-  });
-
-  return paths;
-}
-
-/**
- * Injects supplemental details columns next to (immediately after) their
- * matching rows in a given list of rows.
+ * Injects supplemental details columns next to their respective source rows in
+ * a given list of rows. Returns a new updated `rows` list.
  *
- * NOTE: it returns a new updated `rows` list.
+ * Note: we omit injecting `qual_note` questions.
  */
 export function injectSupplementalRowsIntoListOfRows(
   asset: AssetResponse,
-  rows: string[],
+  rows: Set<string> | Array<string>,
 ) {
   if (asset.content?.survey === undefined) {
     throw new Error('Asset has no content');
   }
 
+  // Step 1: clone the list
   let output = Array.from(rows);
 
-  // First filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
+  // Step 2: filter out the SUPPLEMENTAL_DETAILS_PROP as it bears no data
   output = output.filter((key) => key !== SUPPLEMENTAL_DETAILS_PROP);
 
-  const supplementalDetailsPaths = getSupplementalDetailsPaths(asset);
+  // Step 3: use the list of additional columns (with data), that was generated
+  // on Back end, to build a list of columns grouped by source question
+  const additionalFields = asset.analysis_form_json?.additional_fields || [];
+  const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {};
+  additionalFields.forEach((field: AnalysisFormJsonField) => {
+    // Note questions make sense only in the context of writing responses to
+    // Qualitative Analysis questions. They bear no data, so there is no point
+    // displaying them outside of Single Processing route. As this function is
+    // part of Data Table and Data Downloads, we need to hide the notes.
+    if (field.type === QUAL_NOTE_TYPE) {
+      return;
+    }
 
-  const { analysis_form_json } = asset;
-  const additional_fields: any = analysis_form_json.additional_fields;
-
-  const extraColsBySource: Record<string, any[]> = {};
-  additional_fields.forEach((add_field: any) => {
-    let sourceName: string = add_field.source;
+    const sourceName: string = field.source;
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = [];
     }
-    extraColsBySource[sourceName].push(add_field);
+    extraColsBySource[sourceName].push(field);
   });
 
+  // Step 4: Inject all the extra columns immediately after source question
   const outputWithCols: string[] = [];
   output.forEach((col: string) => {
-    let qpath = col.replace(/\//g, '-')
     outputWithCols.push(col);
-    (extraColsBySource[qpath] || []).forEach((assetAddlField) => {
-      outputWithCols.push(`_supplementalDetails/${assetAddlField.dtpath}`)
+    (extraColsBySource[col] || []).forEach((extraCol) => {
+      outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`);
     });
   });
 
-  /*
-  revisit this before merge: (does this work with longer paths / within groups?)
-
-  Object.keys(supplementalDetailsPaths).forEach((rowName) => {
-    // In supplementalDetailsPaths we get row names, in output we already have
-    // row paths. We need to find a matching row and put all paths immediately
-    // after it.
-    const rowPath = flatPathsWithGroups[rowName];
-    const sourceRowIndex = output.indexOf(rowPath);
-    if (sourceRowIndex !== -1) {
-      output.splice(sourceRowIndex + 1, 0, ...supplementalDetailsPaths[rowName]);
-    }
-  });
-  */
   return outputWithCols;
 }
 
@@ -697,7 +671,7 @@ export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
   return (
     asset &&
     sessionStore.currentAccount &&
-    asset.owner__username === sessionStore.currentAccount.username
+    asset.owner_label === sessionStore.currentAccount.username
   );
 }
 
@@ -723,6 +697,7 @@ export function getAssetAdvancedFeatures(assetUid: string) {
   return undefined;
 }
 
+// This url returns `ProcessingDataResponse`
 export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset) {
@@ -731,7 +706,19 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
   return undefined;
 }
 
-/** Returns a list of all rows (their `qpath`s) activated for advanced features. */
+// This url returns `SubmissionProcessingDataResponse`
+export function getAssetSubmissionProcessingUrl(
+  assetUid: string,
+  submission: string
+) {
+  const processingUrl = getAssetProcessingUrl(assetUid);
+  if (processingUrl) {
+    return processingUrl + '?submission=' + submission;
+  }
+  return undefined;
+}
+
+/** Returns a list of all rows (their `xpath`s) activated for advanced features. */
 export function getAssetProcessingRows(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid);
   if (foundAsset?.advanced_submission_schema?.properties) {
@@ -752,9 +739,9 @@ export function getAssetProcessingRows(assetUid: string) {
   return undefined;
 }
 
-export function isRowProcessingEnabled(assetUid: string, qpath: string) {
+export function isRowProcessingEnabled(assetUid: string, xpath: string) {
   const processingRows = getAssetProcessingRows(assetUid);
-  return Array.isArray(processingRows) && processingRows.includes(qpath);
+  return Array.isArray(processingRows) && processingRows.includes(xpath);
 }
 
 export function isAssetProcessingActivated(assetUid: string) {

@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import bem, {makeBem} from 'js/bem';
 import Button from 'js/components/common/button';
 import {
-  downloadUrl,
   formatTimeDate,
   formatDate,
 } from 'js/utils';
@@ -21,14 +20,20 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {MetaQuestionTypeName} from 'js/constants';
+import type {
+  AnyRowTypeName,
+  QuestionTypeName,
+  MetaQuestionTypeName,
+} from 'js/constants';
 import './submissionDataTable.scss';
 import type {
   AssetResponse,
   SubmissionResponse,
 } from 'jsapp/js/dataInterface';
 import AudioPlayer from 'js/components/common/audioPlayer';
-import {openProcessing} from 'js/components/processing/processingUtils';
+import {goToProcessing} from 'js/components/processing/routes.utils';
+import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
+import SimpleTable from 'js/components/common/SimpleTable';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row');
@@ -43,6 +48,10 @@ interface SubmissionDataTableProps {
   showXMLNames?: boolean;
 }
 
+/**
+ * This is a table that displays all data for single submission. It is currently
+ * being used int Single Submission Modal.
+ */
 class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   constructor(props: SubmissionDataTableProps) {
     super(props);
@@ -52,15 +61,14 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   openProcessing(name: string) {
     if (this.props.asset?.content) {
       const foundRow = findRow(this.props.asset?.content, name);
-      if (foundRow) {
-        openProcessing(
+      if (foundRow && foundRow.$xpath !== undefined) {
+        goToProcessing(
           this.props.asset.uid,
-          foundRow.$qpath,
+          foundRow.$xpath,
           this.props.submissionData._uuid
         );
       }
     }
-
   }
 
   renderGroup(item: DisplayGroup, itemIndex?: number) {
@@ -68,6 +76,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       <bem.SubmissionDataTable__row
         m={['group', `type-${item.type}`]}
         key={`${item.name}__${itemIndex}`}
+        dir='auto'
       >
         {item.name !== null &&
           <bem.SubmissionDataTable__row m='group-label'>
@@ -114,6 +123,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       <bem.SubmissionDataTable__row
         m={['columns', 'response', `type-${item.type}`]}
         key={`${item.name}__${itemIndex}`}
+        dir='auto'
       >
         <bem.SubmissionDataTable__column m='type'>
           {item.type !== null && renderQuestionTypeIcon(item.type)}
@@ -128,21 +138,23 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           }
         </bem.SubmissionDataTable__column>
 
-        <bem.SubmissionDataTable__column m='data'>
+        <bem.SubmissionDataTable__column m={['data', `type-${item.type}`]}>
           {this.renderResponseData(item)}
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     );
   }
 
-  renderResponseData(
-    item: DisplayResponse
-    // type: AnyRowTypeName | null,
-    // data: string | null,
-    // listName?: string
-  ) {
-    if (item.data === null) {
+  renderResponseData(item: DisplayResponse) {
+    if (item.data === null || item.data === undefined) {
       return null;
+    }
+
+    if (typeof item.data !== 'string') {
+      // We are only expecting strings at this point in the code, if we get
+      // anything else, we fall back to displaying raw data as a string (better
+      // than displaying nothing)
+      return String(item.data);
     }
 
     let choice;
@@ -196,17 +208,15 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             {formatTimeDate(item.data)}
           </bem.SubmissionDataTable__value>
         );
-      case QUESTION_TYPES.geopoint.id:
-        return this.renderPointData(item.data);
       case QUESTION_TYPES.image.id:
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES.video.id:
       case QUESTION_TYPES.file.id:
-        return this.renderAttachment(item.type, item.data, item.name);
+        return this.renderAttachment(item.type, item.data, item.name, item.xpath);
+      case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
-        return this.renderMultiplePointsData(item.data);
       case QUESTION_TYPES.geoshape.id:
-        return this.renderMultiplePointsData(item.data);
+        return this.renderPointsData(item.data);
       default:
         // all types not specified above just returns raw data
         return (
@@ -223,79 +233,68 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     );
   }
 
-  renderPointData(data: string) {
-    const parts = data.split(' ');
+  renderPointsData(data: string) {
+    const pointsArray: string[][] = data.split(';').map((pointString) => pointString.split(' '));
+
     return (
-      <ul>
-        <li>
-          {t('latitude (x.y °):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[0]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('longitude (x.y °):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[1]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('altitude (m):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[2]}</bem.SubmissionDataTable__value>
-        </li>
-        <li>
-          {t('accuracy (m):') + ' '}
-          <bem.SubmissionDataTable__value>{parts[3]}</bem.SubmissionDataTable__value>
-        </li>
-      </ul>
+      <SimpleTable
+        head={[
+          t('Point'),
+          t('latitude (x.y °):'),
+          t('longitude (x.y °):'),
+          t('altitude (m):'),
+          t('accuracy (m):'),
+        ]}
+        body={pointsArray.map((pointArray, pointIndex) => (
+          [<>P<sub>{pointIndex + 1}</sub></>, ...pointArray]
+        ))}
+      />
     );
   }
 
-  renderMultiplePointsData(data: string) {
-    return (data.split(';').map((pointData, pointIndex) =>
-      <bem.SubmissionDataTable__row m={['columns', 'point']} key={pointIndex}>
-        <bem.SubmissionDataTable__column>
-          P<sub>{pointIndex + 1}</sub>
-        </bem.SubmissionDataTable__column>
-        <bem.SubmissionDataTable__column>
-          {this.renderPointData(pointData)}
-        </bem.SubmissionDataTable__column>
-      </bem.SubmissionDataTable__row>
-    ));
-  }
-
-  renderAttachment(type: string, filename: string, name: string) {
-    const attachment = getMediaAttachment(this.props.submissionData, filename);
+  renderAttachment(
+    type: AnyRowTypeName | null,
+    filename: string,
+    name: string,
+    xpath: string
+  ) {
+    const attachment = getMediaAttachment(this.props.submissionData, filename, xpath);
     if (attachment && attachment instanceof Object) {
-      if (type === QUESTION_TYPES.audio.id) {
-        return (
-          <React.Fragment>
-            <AudioPlayer mediaURL={attachment.download_url} />
+      return (
+        <>
+          {type === QUESTION_TYPES.audio.id &&
+            <>
+              <AudioPlayer mediaURL={attachment.download_url} />
 
-            <Button
-              type='full'
-              size='s'
-              color='blue'
-              endIcon='arrow-up-right'
-              label={t('Open')}
-              onClick={this.openProcessing.bind(this, name)}
-            />
+              <Button
+                type='primary'
+                size='s'
+                endIcon='arrow-up-right'
+                label={t('Open')}
+                onClick={this.openProcessing.bind(this, name)}
+              />
+            </>
+          }
+          {type === QUESTION_TYPES.image.id &&
+            <a href={attachment.download_url} target='_blank'>
+              <img src={attachment.download_medium_url}/>
+            </a>
+          }
 
-            <Button
-              type='frame'
-              size='s'
-              color='blue'
-              endIcon='download'
-              label={t('Download')}
-              onClick={downloadUrl.bind(this, attachment.download_url)}
+          {type === QUESTION_TYPES.video.id &&
+            <video
+              src={attachment.download_url}
+              controls
             />
-          </React.Fragment>
-        );
-      } else if (type === QUESTION_TYPES.image.id) {
-        return (
-          <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_medium_url}/>
-          </a>
-        );
-      } else {
-        return (<a href={attachment.download_url} target='_blank'>{filename}</a>);
-      }
+          }
+
+          {type === QUESTION_TYPES.file.id &&
+            <a href={attachment.download_url} target='_blank'>
+              {filename}
+            </a>
+          }
+        </>
+      );
     // In the case that an attachment is missing, don't crash the page
     } else {
       return attachment;
@@ -304,7 +303,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {
     return (
-      <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
+      <bem.SubmissionDataTable__row
+        m={['columns', 'response', 'metadata']}
+        dir='auto'
+      >
         <bem.SubmissionDataTable__column m='type'>
           {typeof dataName !== 'string' && renderQuestionTypeIcon(dataName)}
         </bem.SubmissionDataTable__column>

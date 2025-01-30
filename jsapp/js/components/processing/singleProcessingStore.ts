@@ -1,20 +1,18 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import type {RouterState} from '@remix-run/router';
-import {FORM_PROCESSING_BASE} from 'js/router/routerConstants';
-import {
-  isFormSingleProcessingRoute,
-  getSingleProcessingRouteParameters,
-} from 'js/router/routerUtils';
 import {router} from 'js/router/legacy';
+import {getCurrentPath} from 'js/router/routerUtils';
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
   isAssetProcessingActivated,
   getAssetAdvancedFeatures,
-  findRowByQpath,
+  findRowByXpath,
   getRowName,
-  getRowNameByQpath,
+  getRowNameByXpath,
+  getFlatQuestionsList,
+  getLanguageIndex,
 } from 'js/assetUtils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
@@ -28,13 +26,42 @@ import type {
   GetProcessingSubmissionsResponse,
 } from 'js/dataInterface';
 import type {LanguageCode} from 'js/components/languages/languagesStore';
-import type {AnyRowTypeName} from 'js/constants';
+import {QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE} from 'js/constants';
+import {destroyConfirm} from 'js/alertify';
+import {
+  isAnyProcessingRoute,
+  isAnyProcessingRouteActive,
+  getProcessingRouteParts,
+  getCurrentProcessingRouteParts,
+  ProcessingTab,
+} from 'js/components/processing/routes.utils';
+import type {KoboSelectOption} from 'js/components/common/koboSelect';
+import {getExponentialDelayTime} from 'jsapp/js/utils';
+import envStore from 'jsapp/js/envStore';
 
-export enum SingleProcessingTabs {
-  Transcript = 'trc',
-  Translations = 'trl',
-  Analysis = 'an',
+export enum StaticDisplays {
+  Data = 'Data',
+  Audio = 'Audio',
+  Transcript = 'Transcript',
 }
+
+export type DisplaysList = Array<LanguageCode | StaticDisplays>;
+
+type SidebarDisplays = {
+  [tabName in ProcessingTab]: DisplaysList;
+};
+
+export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
+  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Data]],
+  [
+    ProcessingTab.Translations,
+    [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+  [
+    ProcessingTab.Analysis,
+    [StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript],
+  ],
+]);
 
 /** Shared interface for transcript and translations. */
 export interface Transx {
@@ -72,13 +99,13 @@ interface TransxDraft {
  * ```
  */
 interface SubmissionsEditIds {
-  [qpath: string]: Array<{
+  [xpath: string]: Array<{
     editId: string;
     hasResponse: boolean;
   }>;
 }
 
-interface AutoTranscriptionEvent {
+interface AutoTransxEvent {
   response: ProcessingDataResponse;
   submissionEditId: string;
 }
@@ -90,10 +117,21 @@ interface SingleProcessingStoreData {
   translationDraft?: TransxDraft;
   /** Being displayed on the left side of the screen during translation editing. */
   source?: string;
-  activeTab: SingleProcessingTabs;
   submissionData?: SubmissionResponse;
   /** A list of all submissions editIds (`meta/rootUuid` or `_uuid`). */
   submissionsEditIds?: SubmissionsEditIds;
+  /**
+   * Whether any changes were made to the data by user after Single Processing
+   * View was opened (only changes saved to Back end are taken into account).
+   */
+  isPristine: boolean;
+  /** Marks some backend calls being in progress. */
+  isFetchingData: boolean;
+  isPollingForTranscript: boolean;
+  isPollingForTranslation: boolean;
+  hiddenSidebarQuestions: string[];
+  currentlyDisplayedLanguage: LanguageCode | string;
+  exponentialBackoffCount: number;
 }
 
 class SingleProcessingStore extends Reflux.Store {
@@ -109,43 +147,57 @@ class SingleProcessingStore extends Reflux.Store {
   private isSubmissionLoaded = false;
   private isProcessingDataLoaded = false;
 
-  // We want to give access to this only through methods.
-  private data: SingleProcessingStoreData = {
-    translations: [],
-    activeTab: SingleProcessingTabs.Transcript,
-  };
-  /** Marks some backend calls being in progress. */
-  public isFetchingData = false;
-  public isPollingForTranscript = false;
+  /**
+   * A list of active sidebar displays for each of the tabs. They start off with
+   * some default values for each tab, and can be configured through Display
+   * Settings and remembered for as long as the Processing View is being opened.
+   */
+  private displays = this.getInitialDisplays();
 
+  private analysisTabHasUnsavedWork = false;
+
+  public data: SingleProcessingStoreData = {
+    translations: [],
+    isPristine: true,
+    isFetchingData: false,
+    isPollingForTranscript: false,
+    isPollingForTranslation: false,
+    hiddenSidebarQuestions: [],
+    currentlyDisplayedLanguage: this.getInitialDisplayedLanguage(),
+    exponentialBackoffCount: 1,
+  };
+
+  /** Clears all data - useful before making initialisation call */
   private resetProcessingData() {
     this.isProcessingDataLoaded = false;
-    this.isPollingForTranscript = false;
-
+    this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.data.transcript = undefined;
     this.data.transcriptDraft = undefined;
     this.data.translations = [];
     this.data.translationDraft = undefined;
     this.data.source = undefined;
-    this.data.activeTab = SingleProcessingTabs.Transcript;
+    this.data.isPristine = true;
+    this.data.currentlyDisplayedLanguage = this.getInitialDisplayedLanguage();
+    this.data.exponentialBackoffCount = 1;
   }
 
-  public get currentAssetUid(): string {
-    return getSingleProcessingRouteParameters().uid;
+  public get currentAssetUid() {
+    return getCurrentProcessingRouteParts().assetUid;
   }
 
-  public get currentQuestionQpath(): string | undefined {
-    return getSingleProcessingRouteParameters().qpath;
+  public get currentQuestionXpath() {
+    return getCurrentProcessingRouteParts().xpath;
   }
 
-  public get currentSubmissionEditId(): string {
-    return getSingleProcessingRouteParameters().submissionEditId;
+  public get currentSubmissionEditId() {
+    return getCurrentProcessingRouteParts().submissionEditId;
   }
 
   public get currentQuestionName() {
     const asset = assetStore.getAsset(this.currentAssetUid);
-    if (asset?.content && this.currentQuestionQpath) {
-      const foundRow = findRowByQpath(asset.content, this.currentQuestionQpath);
+    if (asset?.content) {
+      const foundRow = findRowByXpath(asset.content, this.currentQuestionXpath);
       if (foundRow) {
         return getRowName(foundRow);
       }
@@ -156,10 +208,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   public get currentQuestionType(): AnyRowTypeName | undefined {
     const asset = assetStore.getAsset(this.currentAssetUid);
-    if (asset?.content && this.currentQuestionQpath) {
-      const foundRow = findRowByQpath(
+    if (asset?.content) {
+      const foundRow = findRowByXpath(
         asset?.content,
-        this.currentQuestionQpath
+        this.currentQuestionXpath
       );
       return foundRow?.type;
     }
@@ -168,6 +220,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   init() {
     this.resetProcessingData();
+
+    // We start off with noting down current path if there is none (i.e. case
+    // of opening processing directly from URL)
+    if (!this.previousPath) {
+      this.previousPath = getCurrentPath();
+    }
 
     // HACK: We add this ugly `setTimeout` to ensure router exists.
     setTimeout(() => router!.subscribe(this.onRouteChange.bind(this)));
@@ -231,6 +289,9 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranslation.completed.listen(
       this.onRequestAutoTranslationCompleted.bind(this)
     );
+    processingActions.requestAutoTranslation.in_progress.listen(
+      this.onRequestAutoTranslationInProgress.bind(this)
+    );
     processingActions.requestAutoTranslation.failed.listen(
       this.onAnyCallFailed.bind(this)
     );
@@ -245,16 +306,8 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   /** This is making sure the asset processing features are activated. */
-  onAssetLoad(asset: AssetResponse) {
-    if (
-      this.currentQuestionQpath &&
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      ) &&
-      this.currentAssetUid === asset.uid
-    ) {
+  private onAssetLoad(asset: AssetResponse) {
+    if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
       if (!isAssetProcessingActivated(this.currentAssetUid)) {
         this.activateAsset();
       } else {
@@ -263,11 +316,11 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  onActivateAssetCompleted() {
+  private onActivateAssetCompleted() {
     this.fetchAllInitialDataForAsset();
   }
 
-  activateAsset() {
+  private activateAsset() {
     processingActions.activateAsset(this.currentAssetUid, true, []);
   }
 
@@ -276,14 +329,7 @@ class SingleProcessingStore extends Reflux.Store {
    * the processing route URL directly the asset data might not be here yet.
    */
   private startupStore() {
-    if (
-      this.currentQuestionQpath &&
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
+    if (isAnyProcessingRouteActive()) {
       const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid));
       if (isAssetLoaded) {
         this.fetchAllInitialDataForAsset();
@@ -326,41 +372,76 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onRouteChange(data: RouterState) {
-    if (this.previousPath === data.location.pathname) {
+    const newPath = data.location.pathname;
+
+    // Store path for future `onRouteChange`s.
+    // Note: Make sure not to use `this.previousPath` in the further code within
+    // this function! I save it here, because the code doesn't always reach
+    // the end of the function :)
+    const oldPath = this.previousPath;
+    this.previousPath = newPath;
+
+    // Skip non-changes; not sure if this happens, but better safe than sorry.
+    if (oldPath === newPath) {
       return;
     }
 
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(
-      ':uid',
-      this.currentAssetUid
-    );
+    let previousPathParts;
+    if (oldPath) {
+      previousPathParts = getProcessingRouteParts(oldPath);
+    }
+    const newPathParts = getProcessingRouteParts(newPath);
 
-    // Case 1: switching from a processing route to a processing route.
-    // This means that we are changing either the question and the submission
-    // or just the submission.
+    // Cleanup: When we leave Analysis tab, we need to reset the flag
+    // responsible for keeping the status of unsaved changes. This way it's not
+    // blocking the navigation after leaving the tab directly from editing.
+    if (previousPathParts?.tabName === ProcessingTab.Analysis) {
+      this.setAnalysisTabHasUnsavedChanges(false);
+    }
+
+    // Case 1: navigating to different processing tab, but within the same
+    // submission and question (neither entering nor leaving Single Processing
+    // View)
     if (
-      this.previousPath !== data.location.pathname &&
-      this.previousPath !== undefined &&
-      this.previousPath.startsWith(baseProcessingRoute) &&
-      data.location.pathname.startsWith(baseProcessingRoute)
+      isAnyProcessingRoute(oldPath) &&
+      isAnyProcessingRoute(newPath) &&
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      previousPathParts.xpath === newPathParts.xpath &&
+      previousPathParts.submissionEditId === newPathParts.submissionEditId &&
+      // This check is needed to avoid going into this in case when route
+      // redirects from no tab (e.g. `/`) into default tab (e.g. `/transcript`).
+      previousPathParts.tabName !== undefined &&
+      previousPathParts.tabName !== newPathParts.tabName
+    ) {
+      // When changing tab, discard all drafts and the selected source.
+      this.data.transcriptDraft = undefined;
+      this.data.translationDraft = undefined;
+      this.data.source = undefined;
+    }
+
+    // Case 2: navigating to a different submission or different question
+    // (neither entering nor leaving Single Processing View)
+    if (
+      isAnyProcessingRoute(oldPath) &&
+      isAnyProcessingRoute(newPath) &&
+      previousPathParts &&
+      previousPathParts.assetUid === newPathParts.assetUid &&
+      (previousPathParts.xpath !== newPathParts.xpath ||
+        previousPathParts.submissionEditId !== newPathParts.submissionEditId)
     ) {
       this.fetchProcessingData();
       this.fetchSubmissionData();
-    } else if (
-      // Case 2: switching into processing route out of other place (most
-      // probably from assets data table route).
-      this.previousPath !== data.location.pathname &&
-      this.currentQuestionQpath &&
-      isFormSingleProcessingRoute(
-        this.currentAssetUid,
-        this.currentQuestionQpath,
-        this.currentSubmissionEditId
-      )
-    ) {
-      this.fetchAllInitialDataForAsset();
     }
 
-    this.previousPath = data.location.pathname;
+    // Case 3: switching into processing route out of other place (most
+    // probably from assets data table route).
+    if (!isAnyProcessingRoute(oldPath) && isAnyProcessingRoute(newPath)) {
+      this.fetchAllInitialDataForAsset();
+      // Each time user visits Processing View from some different route we want
+      // to present the same default displays.
+      this.displays = this.getInitialDisplays();
+    }
   }
 
   private fetchSubmissionData(): void {
@@ -398,8 +479,8 @@ class SingleProcessingStore extends Reflux.Store {
     const asset = assetStore.getAsset(this.currentAssetUid);
     let flatPaths: SurveyFlatPaths = {};
 
-    // We need to get a regular path (not qpath!) for each of the processing
-    // rows. In theory we could just convert the qpath strings, but it's safer
+    // We need to get a regular path (not xpath!) for each of the processing
+    // rows. In theory we could just convert the xpath strings, but it's safer
     // to use the asset data that we already have.
     const processingRowsPaths: string[] = [];
 
@@ -407,11 +488,11 @@ class SingleProcessingStore extends Reflux.Store {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
 
       if (processingRows) {
-        processingRows.forEach((qpath) => {
+        processingRows.forEach((xpath) => {
           if (asset?.content) {
-            // Here we need to "convert" qpath into name, as flatPaths work with
-            // names only. We search the row by qpath and use its name.
-            const rowName = getRowNameByQpath(asset.content, qpath);
+            // Here we need to "convert" xpath into name, as flatPaths work with
+            // names only. We search the row by xpath and use its name.
+            const rowName = getRowNameByXpath(asset.content, xpath);
 
             if (rowName && flatPaths[rowName]) {
               processingRowsPaths.push(flatPaths[rowName]);
@@ -440,16 +521,16 @@ class SingleProcessingStore extends Reflux.Store {
       flatPaths = getSurveyFlatPaths(asset.content.survey);
 
       if (processingRows !== undefined) {
-        processingRows.forEach((qpath) => {
-          submissionsEditIds[qpath] = [];
+        processingRows.forEach((xpath) => {
+          submissionsEditIds[xpath] = [];
         });
 
         response.results.forEach((result) => {
-          processingRows.forEach((qpath) => {
+          processingRows.forEach((xpath) => {
             if (asset?.content) {
-              // Here we need to "convert" qpath into name, as flatPaths work with
-              // names only. We search the row by qpath and use its name.
-              const rowName = getRowNameByQpath(asset.content, qpath);
+              // Here we need to "convert" xpath into name, as flatPaths work with
+              // names only. We search the row by xpath and use its name.
+              const rowName = getRowNameByXpath(asset.content, xpath);
 
               if (rowName) {
                 // `meta/rootUuid` is persistent across edits while `_uuid` is not;
@@ -458,7 +539,7 @@ class SingleProcessingStore extends Reflux.Store {
                 if (uuid === undefined) {
                   uuid = result['_uuid'];
                 }
-                submissionsEditIds[qpath].push({
+                submissionsEditIds[xpath].push({
                   editId: uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
                 });
@@ -494,16 +575,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onFetchProcessingDataStarted(abort: () => void) {
     this.abortFetchData = abort;
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     this.trigger(this.data);
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
+    const transcriptResponse = response[this.currentQuestionXpath]?.transcript;
     // NOTE: we treat empty transcript object same as nonexistent one
     this.data.transcript = undefined;
     if (transcriptResponse?.value && transcriptResponse?.languageCode) {
@@ -511,8 +588,9 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     const translationsResponse =
-      response[this.currentQuestionQpath]?.translation;
+      response[this.currentQuestionXpath]?.translation;
     const translationsArray: Transx[] = [];
+
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach(
         (languageCode: LanguageCode) => {
@@ -532,7 +610,9 @@ class SingleProcessingStore extends Reflux.Store {
 
     delete this.abortFetchData;
     this.isProcessingDataLoaded = true;
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
+
+    this.cleanupDisplays();
 
     this.trigger(this.data);
   }
@@ -554,42 +634,38 @@ class SingleProcessingStore extends Reflux.Store {
     }
     alertify.notify(errorText, 'error');
     delete this.abortFetchData;
-    this.isFetchingData = false;
-    this.isPollingForTranscript = false;
+    this.data.isFetchingData = false;
+    this.data.isPollingForTranscript = false;
+    this.data.isPollingForTranslation = false;
     this.trigger(this.data);
   }
 
   private onSetTranscriptCompleted(response: ProcessingDataResponse) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
+    const transcriptResponse = response[this.currentQuestionXpath]?.transcript;
 
-    const transcriptResponse = response[this.currentQuestionQpath]?.transcript;
-
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
 
     if (transcriptResponse) {
       this.data.transcript = transcriptResponse;
     }
     // discard draft after saving (exit the editor)
     this.data.transcriptDraft = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
   private onDeleteTranscriptCompleted() {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.transcript = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private isAutoTranscriptionEventApplicable(event: AutoTranscriptionEvent) {
-    // previously initiated automatic transcriptions may no longer be
+  private isAutoTranscriptionEventApplicable(event: AutoTransxEvent) {
+    // Note: previously initiated automatic transcriptions may no longer be
     // applicable to the current route
-    if (!this.currentQuestionQpath) {
-      return false;
-    }
     const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+      event.response[this.currentQuestionXpath]?.googlets;
     return (
       event.submissionEditId === this.currentSubmissionEditId &&
       googleTsResponse &&
@@ -600,63 +676,109 @@ class SingleProcessingStore extends Reflux.Store {
     );
   }
 
-  private onRequestAutoTranscriptionCompleted(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionCompleted(event: AutoTransxEvent) {
     if (
-      !this.currentQuestionQpath ||
-      !this.isPollingForTranscript ||
+      !this.currentQuestionXpath ||
+      !this.data.isPollingForTranscript ||
       !this.data.transcriptDraft
     ) {
       return;
     }
-    const googleTsResponse =
-      event.response[this.currentQuestionQpath]?.googlets;
+
+    const googleTsResponse = event.response[this.currentQuestionXpath]?.googlets;
     if (googleTsResponse && this.isAutoTranscriptionEventApplicable(event)) {
-      this.isPollingForTranscript = false;
+      this.data.isPollingForTranscript = false;
       this.data.transcriptDraft.value = googleTsResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
+
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranscriptionInProgress(event: AutoTranscriptionEvent) {
+  private onRequestAutoTranscriptionInProgress(event: AutoTransxEvent) {
     setTimeout(() => {
       // make sure to check for applicability *after* the timeout fires, not
       // before. someone can do a lot of navigating in 5 seconds
       if (this.isAutoTranscriptionEventApplicable(event)) {
-        this.isPollingForTranscript = true;
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
+        this.data.isPollingForTranscript = true;
         this.requestAutoTranscription();
       } else {
-        this.isPollingForTranscript = false;
+        this.data.isPollingForTranscript = false;
       }
-    }, 5000);
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   private onSetTranslationCompleted(newTranslations: Transx[]) {
-    this.isFetchingData = false;
+    this.data.isFetchingData = false;
     this.data.translations = newTranslations;
     // discard draft after saving (exit the editor)
     this.data.translationDraft = undefined;
     this.data.source = undefined;
+    this.setNotPristine();
     this.trigger(this.data);
   }
 
-  private onRequestAutoTranslationCompleted(response: ProcessingDataResponse) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    const googleTxResponse = response[this.currentQuestionQpath]?.googletx;
-
-    this.isFetchingData = false;
-    if (
+  private isAutoTranslationEventApplicable(event: AutoTransxEvent) {
+    const googleTxResponse =
+      event.response[this.currentQuestionXpath]?.googletx;
+    return (
+      event.submissionEditId === this.currentSubmissionEditId &&
       googleTxResponse &&
       this.data.translationDraft &&
       (googleTxResponse.languageCode ===
         this.data.translationDraft.languageCode ||
         googleTxResponse.languageCode === this.data.translationDraft.regionCode)
+    );
+  }
+
+  private onRequestAutoTranslationCompleted(event: AutoTransxEvent) {
+    if (
+      !this.currentQuestionXpath ||
+      !this.data.isPollingForTranslation ||
+      !this.data.translationDraft
+    ) {
+      return;
+    }
+
+    const googleTxResponse = event.response[this.currentQuestionXpath]?.googletx;
+    if (
+      googleTxResponse &&
+      this.isAutoTranslationEventApplicable(event)
     ) {
       this.data.translationDraft.value = googleTxResponse.value;
+      this.data.exponentialBackoffCount = 1;
     }
+
+    this.setNotPristine();
     this.trigger(this.data);
+  }
+
+  private onRequestAutoTranslationInProgress(event: AutoTransxEvent) {
+    setTimeout(() => {
+      // make sure to check for applicability *after* the timeout fires, not
+      // before. someone can do a lot of navigating in 5 seconds
+      if (this.isAutoTranslationEventApplicable(event)) {
+        this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1;
+        this.data.isPollingForTranslation = true;
+        console.log('trying to poll!'); // TEMP DELETEME
+        this.requestAutoTranslation(
+          event.response[this.currentQuestionXpath]!.googlets!.languageCode
+        );
+      } else {
+        console.log('no more polling!'); // TEMP DELETEME
+        this.data.isPollingForTranslation = false;
+      }
+    }, getExponentialDelayTime(
+      this.data.exponentialBackoffCount,
+      envStore.data.min_retry_time,
+      envStore.data.max_retry_time
+    ));
   }
 
   /**
@@ -686,36 +808,16 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data);
   }
 
-  /** Returns whole transcript/translation for selected source. */
-  getSourceData(): Transx | undefined {
-    if (!this.data.source) {
-      return undefined;
-    }
-
-    if (this.data.source === this.data.transcript?.languageCode) {
-      return this.data.transcript;
-    } else {
-      const found = this.data.translations.find(
-        (translation) => translation.languageCode === this.data.source
-      );
-      return found;
-    }
-  }
-
   /** Returns a local cached transcript data. */
   getTranscript() {
     return this.data.transcript;
   }
 
   setTranscript(languageCode: LanguageCode, value: string) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranscript(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode,
       value
@@ -724,28 +826,20 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranscript() {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranscript(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId
     );
     this.trigger(this.data);
   }
 
   requestAutoTranscription() {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isPollingForTranscript = true;
+    this.data.isPollingForTranscript = true;
     processingActions.requestAutoTranscription(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       this.data.transcriptDraft?.languageCode,
       this.data.transcriptDraft?.regionCode
@@ -765,6 +859,18 @@ class SingleProcessingStore extends Reflux.Store {
   deleteTranscriptDraft() {
     this.data.transcriptDraft = undefined;
     this.trigger(this.data);
+  }
+
+  safelyDeleteTranscriptDraft() {
+    if (this.hasUnsavedTranscriptDraftValue()) {
+      destroyConfirm(
+        this.deleteTranscriptDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranscriptDraft();
+    }
   }
 
   /**
@@ -794,14 +900,10 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** This stores the translation on backend. */
   setTranslation(languageCode: LanguageCode, value: string) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.setTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode,
       value
@@ -810,14 +912,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   deleteTranslation(languageCode: LanguageCode) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isFetchingData = true;
+    this.data.isFetchingData = true;
     processingActions.deleteTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode
     );
@@ -825,14 +923,10 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   requestAutoTranslation(languageCode: string) {
-    if (!this.currentQuestionQpath) {
-      return;
-    }
-
-    this.isFetchingData = true;
+    this.data.isPollingForTranslation = true;
     processingActions.requestAutoTranslation(
       this.currentAssetUid,
-      this.currentQuestionQpath,
+      this.currentQuestionXpath,
       this.currentSubmissionEditId,
       languageCode
     );
@@ -845,10 +939,6 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransxDraft) {
     this.data.translationDraft = newTranslationDraft;
-    // We use transcript as source by default.
-    if (this.data.source === undefined) {
-      this.data.source = this.data.transcript?.languageCode;
-    }
     this.trigger(this.data);
   }
 
@@ -857,6 +947,18 @@ class SingleProcessingStore extends Reflux.Store {
     // If we clear the draft, we remove the source too.
     this.data.source = undefined;
     this.trigger(this.data);
+  }
+
+  safelyDeleteTranslationDraft() {
+    if (this.hasUnsavedTranslationDraftValue()) {
+      destroyConfirm(
+        this.deleteTranslationDraft.bind(this),
+        t('Discard unsaved changes?'),
+        t('Discard')
+      );
+    } else {
+      this.deleteTranslationDraft();
+    }
   }
 
   /**
@@ -871,38 +973,30 @@ class SingleProcessingStore extends Reflux.Store {
     return [];
   }
 
-  activateTab(tab: SingleProcessingTabs) {
-    this.data.activeTab = tab;
-
-    // When changing tab, discard all drafts and the selected source.
-    this.data.transcriptDraft = undefined;
-    this.data.translationDraft = undefined;
-    this.data.source = undefined;
-
-    this.trigger(this.data);
-  }
-
   getSubmissionData() {
     return this.data.submissionData;
   }
 
   /** NOTE: Returns editIds for current question name, not for all of them. */
   getCurrentQuestionSubmissionsEditIds() {
-    if (
-      this.currentQuestionQpath &&
-      this.data.submissionsEditIds !== undefined
-    ) {
-      return this.data.submissionsEditIds[this.currentQuestionQpath];
+    if (this.data.submissionsEditIds !== undefined) {
+      return this.data.submissionsEditIds[this.currentQuestionXpath];
     }
     return undefined;
   }
 
-  getSubmissionsEditIds() {
-    return this.data.submissionsEditIds;
+  getProcessedFileLabel() {
+    if (this.currentQuestionType === QUESTION_TYPES.audio.id) {
+      return QUESTION_TYPES.audio.label.toLowerCase();
+    } else if (this.currentQuestionType === QUESTION_TYPES['background-audio'].id) {
+      return QUESTION_TYPES['background-audio'].label.toLowerCase();
+    }
+    // Fallback
+    return t('source file');
   }
 
-  getActiveTab() {
-    return this.data.activeTab;
+  getSubmissionsEditIds() {
+    return this.data.submissionsEditIds;
   }
 
   hasUnsavedTranscriptDraftValue() {
@@ -923,7 +1017,8 @@ class SingleProcessingStore extends Reflux.Store {
   hasAnyUnsavedWork() {
     return (
       this.hasUnsavedTranscriptDraftValue() ||
-      this.hasUnsavedTranslationDraftValue()
+      this.hasUnsavedTranslationDraftValue() ||
+      this.analysisTabHasUnsavedWork
     );
   }
 
@@ -935,11 +1030,163 @@ class SingleProcessingStore extends Reflux.Store {
       this.isProcessingDataLoaded
     );
   }
+
+  getDisplayedLanguagesList(): KoboSelectOption[] {
+    const languagesList = [];
+
+    languagesList.push({label: t('XML values'), value: XML_VALUES_OPTION_VALUE});
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    const baseLabel = t('Labels');
+
+    // If there are some languages defined in the form, we build a list of
+    // options - one for each language…
+    if (asset?.summary?.languages && asset?.summary?.languages.length > 0) {
+      asset.summary.languages.forEach((language) => {
+        let label = baseLabel;
+        if (language !== null) {
+          label += ` - ${language}`;
+        }
+        languagesList.push({label: label, value: language});
+      });
+    // …otherwise we creat a single "default language" option that uses empty
+    // string as value.
+    } else {
+      languagesList.push({label: baseLabel, value: ''});
+    }
+
+    return languagesList;
+  }
+
+  getInitialDisplayedLanguage() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+    if (asset?.summary?.languages && asset?.summary?.languages[0]) {
+      return asset?.summary?.languages[0];
+    } else {
+      return '';
+    }
+  }
+
+  getCurrentlyDisplayedLanguage() {
+    return this.data.currentlyDisplayedLanguage;
+  }
+
+  getInitialDisplays(): SidebarDisplays {
+    return {
+      transcript: DefaultDisplays.get(ProcessingTab.Transcript) || [],
+      translations: DefaultDisplays.get(ProcessingTab.Translations) || [],
+      analysis: DefaultDisplays.get(ProcessingTab.Analysis) || [],
+    };
+  }
+
+  /** Returns available displays for given tab */
+  getAvailableDisplays(tabName: ProcessingTab) {
+    const outcome: DisplaysList = [StaticDisplays.Audio, StaticDisplays.Data];
+    if (tabName !== ProcessingTab.Transcript && this.data.transcript) {
+      outcome.push(StaticDisplays.Transcript);
+    }
+    this.getTranslations().forEach((translation) => {
+      outcome.push(translation.languageCode);
+    });
+    return outcome;
+  }
+
+  /** Returns displays for given tab. */
+  getDisplays(tabName: ProcessingTab | undefined) {
+    if (tabName !== undefined) {
+      return this.displays[tabName];
+    }
+    return [];
+  }
+
+  getAllSidebarQuestions() {
+    const asset = assetStore.getAsset(this.currentAssetUid);
+
+    if (asset?.content?.survey) {
+      const questionsList = getFlatQuestionsList(
+        asset.content.survey,
+        getLanguageIndex(asset, this.data.currentlyDisplayedLanguage)
+      )
+        .filter((question) => !(question.name === this.currentQuestionName))
+        .map((question) => {
+          // We make an object to show the question label to the user but use the
+          // name internally so it works with duplicate question labels
+          return {name: question.name, label: question.label};
+        });
+      return questionsList;
+    } else {
+      return [];
+    }
+  }
+
+  getHiddenSidebarQuestions() {
+    return this.data.hiddenSidebarQuestions;
+  }
+
+  /** Updates the list of active displays for given tab. */
+  setDisplays(tabName: ProcessingTab, displays: DisplaysList) {
+    this.displays[tabName] = displays;
+    this.trigger(this.displays);
+  }
+
+  /** Resets the list of displays for given tab to a default list. */
+  resetDisplays(tabName: ProcessingTab) {
+    this.displays[tabName] = DefaultDisplays.get(tabName) || [];
+    this.trigger(this.displays);
+  }
+
+  /**
+   * Removes nonexistent displays from the list of active displays, e.g. when
+   * use activated "Polish (pl)" translation to appear in sidebar, but then
+   * removed it, it should also disappear from the displays list. Leftovers
+   * would usually cause no problems - until user re-adds that "Polish (pl)"
+   * translation.
+   */
+  cleanupDisplays() {
+    Object.values<ProcessingTab>(ProcessingTab).forEach((tab) => {
+      const availableDisplays = this.getAvailableDisplays(tab);
+      this.displays[tab].filter((display) => {
+        availableDisplays.includes(display);
+      });
+    });
+    this.trigger(this.displays);
+  }
+
+  /** Updates store with the unsaved changes state from the analysis reducer. */
+  setAnalysisTabHasUnsavedChanges(hasUnsavedWork: boolean) {
+    this.analysisTabHasUnsavedWork = hasUnsavedWork;
+    if (hasUnsavedWork) {
+      this.setNotPristine();
+    }
+    this.trigger(this.data);
+  }
+
+  /**
+   * Marks the data as having some changes being made (both saved and unsaved).
+   * There is no need to set it back to pristine, as it happens only after
+   */
+  setNotPristine() {
+    if (this.data.isPristine) {
+      this.data.isPristine = false;
+      this.trigger(this.data);
+    }
+  }
+
+  setHiddenSidebarQuestions(list: string[]) {
+    this.data.hiddenSidebarQuestions = list;
+
+    this.trigger(this.data);
+  }
+
+  setCurrentlyDisplayedLanguage(language: LanguageCode) {
+    this.data.currentlyDisplayedLanguage = language;
+
+    this.trigger(this.data);
+  }
 }
 
 /**
  * Stores all data necessary for rendering the single processing route and all
- * its features. Handles draft transcripts/translations, switching content tabs.
+ * its features. Handles draft transcripts/translations.
  */
 const singleProcessingStore = new SingleProcessingStore();
 singleProcessingStore.init();

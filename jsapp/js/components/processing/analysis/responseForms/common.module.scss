@@ -1,0 +1,42 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+@use '../analysisVariables';
+
+$label-left-position: analysisVariables.$icon-size +
+  analysisVariables.$inner-horizontal-gap;
+
+.header {
+  @include mixins.centerRowFlex;
+  align-items: flex-start;
+  gap: analysisVariables.$inner-horizontal-gap;
+
+  &:not(:last-child) {
+    margin-bottom: analysisVariables.$inner-vertical-gap;
+  }
+}
+
+.headerLabel {
+  color: colors.$kobo-gray-700;
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+  // These below are useful for questions with long labels that are being
+  // rendered in multiple wrapped lines
+  min-height: analysisVariables.$icon-size;
+  display: flex;
+  align-items: center;
+}
+
+.headerIcon {
+  background-color: colors.$kobo-light-teal;
+  color: colors.$kobo-teal;
+  border-radius: 6px;
+  width: analysisVariables.$icon-size;
+  height: analysisVariables.$icon-size;
+  line-height: analysisVariables.$icon-size;
+  text-align: center;
+}
+
+.content {
+  padding-left: $label-left-position;
+}

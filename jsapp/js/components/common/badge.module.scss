@@ -1,28 +1,33 @@
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/mixins';
+@use 'scss/colors';
 
-$badge-height-s: sizes.$x24;
-$badge-font-s: sizes.$x12;
+$badge-height-s: 24px;
+$badge-font-s: 12px;
 
-$badge-height-m: sizes.$x28;
-$badge-font-m: sizes.$x13;
+$badge-height-m: 28px;
+$badge-font-m: 13px;
 
-$badge-height-l: sizes.$x32;
-$badge-font-l: sizes.$x14;
+$badge-height-l: 32px;
+$badge-font-l: 14px;
 
 .root {
   display: inline-block;
   vertical-align: middle;
   text-align: center;
+  max-width: 100%;
+}
+
+.root:not(.disableShortening) {
+  @include mixins.textEllipsis;
 }
 
 .icon {
   vertical-align: top;
 }
 
-.color-cloud {
-  color: colors.$kobo-gray-24;
-  background-color: colors.$kobo-cloud;
+.color-light-storm {
+  color: colors.$kobo-gray-800;
+  background-color: colors.$kobo-light-storm;
 }
 
 .color-light-amber {
@@ -32,12 +37,27 @@ $badge-font-l: sizes.$x14;
 
 .color-light-blue {
   color: colors.$kobo-dark-blue;
-  background-color: colors.$kobo-light-blue;
+  background-color: colors.$kobo-bg-blue;
+}
+
+.color-light-red {
+  color: colors.$kobo-dark-red;
+  background-color: colors.$kobo-light-red;
 }
 
 .color-light-teal {
   color: colors.$kobo-dark-teal;
   background-color: colors.$kobo-light-teal;
+}
+
+.color-light-green {
+  color: colors.$kobo-dark-green;
+  background-color: colors.$kobo-light-green;
+}
+
+.color-dark-gray {
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-gray-700;
 }
 
 @mixin badge-size($size, $font) {
@@ -47,7 +67,11 @@ $badge-font-l: sizes.$x14;
   line-height: $size;
   font-size: $font;
   border-radius: $size * 0.5;
-  padding: 0 $size * 0.4;
+  padding: 0 $size * 0.2;
+
+  &.hasLabel {
+    padding: 0 $size * 0.4;
+  }
 
   .icon + .label {
     margin-left: $size * 0.15;

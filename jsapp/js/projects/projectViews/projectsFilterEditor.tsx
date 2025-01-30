@@ -1,17 +1,25 @@
+// Libraries
 import React from 'react';
+
+// Partial components
 import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import KoboSelect from 'js/components/common/koboSelect';
-import {generateUid} from 'js/utils';
+
+// Stores and utilities
+import {generateUuid} from 'js/utils';
+import {isFilterConditionValueRequired} from './utils';
+import envStore from 'js/envStore';
+
+// Constants and types
 import type {
   FilterConditionName,
   ProjectFieldName,
   ProjectsFilterDefinition,
 } from './constants';
 import {FILTER_CONDITIONS, PROJECT_FIELDS} from './constants';
-import {isFilterConditionValueRequired} from './utils';
-import envStore from 'js/envStore';
-import WrappedSelect from 'js/components/common/wrappedSelect';
+
+// Styles
 import styles from './projectsFilterEditor.module.scss';
 
 interface ProjectsFilterEditorProps {
@@ -26,6 +34,10 @@ interface ProjectsFilterEditorProps {
 
 const COUNTRIES = envStore.data.country_choices;
 
+/**
+ * This component renders a single (editable) filter row. It has few dropdowns,
+ * and textboxes, and a delete button.
+ */
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
   const onFilterValueChange = (newValue: string) => {
     props.onFilterChange({
@@ -105,7 +117,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           <span className={styles.label}>{t('Filter by')}</span>
         )}
         <KoboSelect
-          name={generateUid()}
+          name={generateUuid()}
           type='outline'
           size='m'
           isClearable
@@ -123,7 +135,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           <span className={styles.label}>{t('Condition')}</span>
         )}
         <KoboSelect
-          name={generateUid()}
+          name={generateUuid()}
           type='outline'
           size='m'
           isClearable
@@ -152,12 +164,13 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
               placeholder={t('Enter value')}
               // Requires field to be selected first
               disabled={!props.filter.fieldName}
+              size='m'
             />
           )}
         {isFilterConditionValueRequired(props.filter.condition) &&
           isCountryFilterSelected && (
             <KoboSelect
-              name={generateUid()}
+              name={generateUuid()}
               type='outline'
               size='m'
               isClearable
@@ -175,8 +188,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
       <div className={styles.column}>
         <Button
-          type='bare'
-          color='red'
+          type='secondary-danger'
           size='m'
           onClick={props.onDelete}
           startIcon='trash'

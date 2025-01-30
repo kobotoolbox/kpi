@@ -1,19 +1,18 @@
 # coding: utf-8
 import base64
+import unittest
 from io import BytesIO
 
-import responses
-import unittest
 import openpyxl
+import responses
 import xlwt
-from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
@@ -767,7 +766,7 @@ class AssetImportTaskTest(BaseTestCase):
         assert expected_content_settings == created_asset.content['settings']
         assert not created_asset.content['kobo--locking-profiles']
 
-    def test_import_library_bulk_xls(self):
+    def _test_import_library_bulk(self, filetype='xlsx'):
         library_sheet_content = [
             ['block', 'name', 'type', 'label', 'tag:subject:fungus', 'tag:subject:useless'],
             ['mushroom', 'cap', 'text', 'Describe the cap', '1', None],
@@ -785,14 +784,19 @@ class AssetImportTaskTest(BaseTestCase):
             ['seasons', 'fall', 'Fall'],
             ['seasons', 'winter', 'Winter'],
         ]
-
         content = (
             ('library', library_sheet_content),
             ('choices', choices_sheet_content),
         )
-        task_data = self._construct_xls_for_import(
-            content, name='Collection created from bulk library import'
-        )
+        name='Collection created from bulk library import'
+
+        if filetype ==  'xls':
+            task_data = self._construct_xls_for_import(content, name=name)
+        elif filetype == 'xlsx':
+            task_data = self._construct_xlsx_for_import(content, name=name)
+        else:
+            raise NotImplementedError(f'{filetype} must be either xls or xlsx')
+
         post_url = reverse('api_v2:importtask-list')
         response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
@@ -888,6 +892,12 @@ class AssetImportTaskTest(BaseTestCase):
             tagged_as_useless[1], non_block_assets[1]
         )
 
+    def test_import_library_bulk_xls(self):
+        self._test_import_library_bulk('xls')
+
+    def test_import_library_bulk_xlsx(self):
+        self._test_import_library_bulk('xlsx')
+
     def test_import_asset_xls(self):
         xlsx_io = self.asset.to_xlsx_io()
         task_data = {
@@ -939,7 +949,9 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
 
     def test_import_xls_with_default_language_but_no_translations(self):
-        xlsx_io = self.asset.to_xlsx_io(append={"settings": {"default_language": "English (en)"}})
+        xlsx_io = self.asset.to_xlsx_io(
+            append={'settings': {'default_language': 'English (en)'}}
+        )
         task_data = {
             'file': xlsx_io,
             'name': 'I was imported via XLS!',
@@ -953,9 +965,9 @@ class AssetImportTaskTest(BaseTestCase):
 
     def test_import_xls_with_default_language_not_in_translations(self):
         asset = Asset.objects.get(pk=2)
-        xlsx_io = asset.to_xlsx_io(append={
-            "settings": {"default_language": "English (en)"}
-        })
+        xlsx_io = asset.to_xlsx_io(
+            append={'settings': {'default_language': 'English (en)'}}
+        )
         task_data = {
             'file': xlsx_io,
             'name': 'I was imported via XLS!',
@@ -969,8 +981,8 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'error')
         self.assertTrue(
             detail_response.data['messages']['error'].startswith(
-                "`English (en)` is specified as the default language, "
-                "but only these translations are present in the form:"
+                '`English (en)` is specified as the default language, '
+                'but only these translations are present in the form:'
             )
         )
 
@@ -1001,3 +1013,71 @@ class AssetImportTaskTest(BaseTestCase):
         )
         expected_name = 'A project with a new line'
         assert asset_response.data['name'] == expected_name
+
+    @responses.activate
+    def test_import_to_existing_asset_from_xls_url_records_audit_log_info(self):
+        self.asset.owner = self.user
+        self.asset.save()
+        # Host the XLS on a mock HTTP server
+        mock_xls_url = 'http://mock.kbtdev.org/form.xls'
+        responses.add(
+            responses.GET,
+            mock_xls_url,
+            content_type='application/xls',
+            body=self.asset.to_xlsx_io().read(),
+        )
+        task_data = {
+            'url': mock_xls_url,
+            'name': 'I was imported via URL!',
+            'destination': reverse(
+                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+            ),
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        task = ImportTask.objects.get(uid=response.data['uid'])
+        audit_logs = task.messages['audit_logs']
+        self.assertEqual(len(audit_logs), 1)
+        audit_log_info = audit_logs[0]
+        self.assertDictEqual(
+            audit_log_info,
+            {
+                'asset_uid': self.asset.uid,
+                'asset_id': self.asset.id,
+                'latest_version_uid': self.asset.latest_version.uid,
+                'ip_address': task.data['ip_address'],
+                'source': task.data['source'],
+                'old_name': self.asset.name,
+                'new_name': self.asset.name,
+            },
+        )
+
+    def test_import_to_existing_asset_base64_xls_records_audit_log_info(self):
+        self.asset.owner = self.user
+        self.asset.save()
+        encoded_xls = base64.b64encode(self.asset.to_xlsx_io().read())
+        task_data = {
+            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
+            'name': 'I was imported via base64-encoded XLS!',
+            'destination': reverse(
+                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+            ),
+        }
+        post_url = reverse(self._get_endpoint('importtask-list'))
+        response = self.client.post(post_url, task_data)
+        task = ImportTask.objects.get(uid=response.data['uid'])
+        audit_logs = task.messages['audit_logs']
+        self.assertEqual(len(audit_logs), 1)
+        audit_log_info = audit_logs[0]
+        self.assertDictEqual(
+            audit_log_info,
+            {
+                'asset_uid': self.asset.uid,
+                'asset_id': self.asset.id,
+                'latest_version_uid': self.asset.latest_version.uid,
+                'ip_address': task.data['ip_address'],
+                'source': task.data['source'],
+                'old_name': self.asset.name,
+                'new_name': self.asset.name,
+            },
+        )

@@ -10,6 +10,7 @@
     },
     "target": "es2017",
     "module": "es2020",
+    "lib": ["ES2021"],
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strict": true,
@@ -25,8 +26,11 @@
     "skipLibCheck": true,
     "allowJs": true,
     "outDir": "out",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "plugins": [{ "name": "typescript-plugin-css-modules"}]
+  },
+  "ts-node": {
+    "swc": true
   },
   "include": [
     "jsapp/**/*.ts",

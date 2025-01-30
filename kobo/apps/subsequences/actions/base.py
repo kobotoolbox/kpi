@@ -1,11 +1,13 @@
 import datetime
-import pytz
+from zoneinfo import ZoneInfo
+
 from django.utils import timezone
 
-from kobo.apps.subsequences.constants import (GOOGLETS, GOOGLETX)
+from kobo.apps.subsequences.constants import GOOGLETS, GOOGLETX
 
 ACTION_NEEDED = 'ACTION_NEEDED'
 PASSES = 'PASSES'
+
 
 class BaseAction:
     ID = None
@@ -19,7 +21,7 @@ class BaseAction:
         self.load_params(params)
 
     def cur_time(self):
-        return datetime.datetime.now(tz=pytz.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.now(tz=ZoneInfo('UTC')).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def load_params(self, params):
         raise NotImplementedError('subclass must define a load_params method')
@@ -34,10 +36,10 @@ class BaseAction:
         return schema
 
     def compile_revised_record(self, content, edits):
-        '''
+        """
         a method that applies changes to a json structure and appends previous
         changes to a revision history
-        '''
+        """
         if self.ID is None:
             return content
         for field_name, vals in edits.items():
@@ -106,9 +108,9 @@ class BaseAction:
     def build_params(kls, *args, **kwargs):
         raise NotImplementedError(f'{kls.__name__} has not implemented a build_params method')
 
-    def get_qpath(self, row):
+    def get_xpath(self, row):
         # return the full path...
-        for name_field in ['qpath', 'name', '$autoname']:
+        for name_field in ['xpath', 'name', '$autoname']:
             if name_field in row:
                 return row[name_field]
         return None

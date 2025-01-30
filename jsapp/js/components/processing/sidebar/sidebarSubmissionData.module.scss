@@ -1,0 +1,13 @@
+@use 'scss/colors';
+
+.dataList {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid colors.$kobo-gray-400;
+  border-radius: 6px;
+}
+
+.dataListBody {
+  overflow-y: auto;
+  height: 100%;
+}

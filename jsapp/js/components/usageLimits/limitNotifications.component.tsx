@@ -3,26 +3,29 @@ import LimitModal from 'js/components/usageLimits/overLimitModal.component';
 import React, {useContext, useState} from 'react';
 import {Cookies} from 'react-cookie';
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import {UsageContext} from 'js/account/useUsage.hook';
+import {UsageContext} from 'js/account/usage/useUsage.hook';
 import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
+import { OrganizationUserRole, useOrganizationQuery } from 'jsapp/js/account/organization/organizationQuery';
 
 const cookies = new Cookies();
 
 interface LimitNotificationsProps {
   useModal?: boolean;
-  usagePage?: boolean;
+  accountPage?: boolean;
 }
 
 const LimitNotifications = ({
   useModal = false,
-  usagePage = false,
+  accountPage = false,
 }: LimitNotificationsProps) => {
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(!useModal);
   const [stripeEnabled, setStripeEnabled] = useState(false);
 
-  const usage = useContext(UsageContext);
+  const [usage] = useContext(UsageContext);
   const limits = useExceedingLimits();
+
+  const orgQuery = useOrganizationQuery();
 
   useWhenStripeIsEnabled(() => {
     setStripeEnabled(true);
@@ -32,6 +35,7 @@ const LimitNotifications = ({
     }
     const limitsCookie = cookies.get('kpiOverLimitsCookie');
     if (
+      (!orgQuery.data?.is_mmo || orgQuery.data?.request_user_role === OrganizationUserRole.owner) &&
       limitsCookie === undefined &&
       (limits.exceedList.includes('storage') ||
         limits.exceedList.includes('submission'))
@@ -62,7 +66,7 @@ const LimitNotifications = ({
         <LimitBanner
           interval={usage.trackingPeriod}
           limits={limits.exceedList}
-          usagePage={Boolean(usagePage)}
+          accountPage={Boolean(accountPage)}
         />
       )}
       {!limits.exceedList.length && (
@@ -70,7 +74,7 @@ const LimitNotifications = ({
           warning
           interval={usage.trackingPeriod}
           limits={limits.warningList}
-          usagePage={Boolean(usagePage)}
+          accountPage={Boolean(accountPage)}
         />
       )}
       {useModal && (

@@ -276,8 +276,7 @@ class LanguageSelector extends React.Component<
     return (
       <li key={language.code}>
         <Button
-          type='bare'
-          color='storm'
+          type='text'
           size='m'
           label={<LanguageDisplayLabel code={language.code} name={language.name}/>}
           onClick={this.selectLanguage.bind(this, language)}
@@ -345,7 +344,7 @@ class LanguageSelector extends React.Component<
         }
         <bem.LanguageSelector__searchBox>
           {this.store.isLoading &&
-            <Icon name='spinner' size='s' classNames={['k-spin']}/>
+            <Icon name='spinner' size='s' className='k-spin' />
           }
           {!this.store.isLoading &&
             <Icon name='search' size='m'/>
@@ -390,7 +389,7 @@ class LanguageSelector extends React.Component<
             pageStart={0}
             loadMore={this.fetchMoreLanguages.bind(this)}
             hasMore={this.store.hasMoreLanguages}
-            loader={<LoadingSpinner hideMessage key='loadingspinner'/>}
+            loader={<LoadingSpinner message={false} key='loadingspinner'/>}
             useWindow={false}
           >
             <ul key='unorderedlist'>
@@ -419,8 +418,7 @@ class LanguageSelector extends React.Component<
         {this.isCannotFindVisible &&
           <bem.LanguageSelector__helpBar>
             <Button
-              type='bare'
-              color='blue'
+              type='text'
               startIcon='information'
               size='s'
               onClick={this.openSupportPage.bind(this)}

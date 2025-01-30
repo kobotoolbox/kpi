@@ -1,20 +1,17 @@
-# coding: utf-8
+# flake8: noqa: F401
+import datetime
 import os
 import zipfile
 from collections import defaultdict
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from unittest import mock
+from zoneinfo import ZoneInfo
 
-import datetime
-import mock
 import openpyxl
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.urls import reverse
 from django.test import TestCase
+from django.urls import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -22,9 +19,9 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset, ExportTask
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.models import Asset, SubmissionExportTask
 from kpi.utils.mongo_helper import drop_mock_only
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class MockDataExportsBase(TestCase):
@@ -34,7 +31,6 @@ class MockDataExportsBase(TestCase):
     """
 
     fixtures = ['test_data']
-
 
     forms = {
         'Identificación de animales': {
@@ -187,7 +183,6 @@ class MockDataExportsBase(TestCase):
                     '_attachments': [],
                     '_bamboo_dataset_id': '',
                     '_geolocation': [None, None],
-                    '_id': 61,
                     '_notes': [],
                     '_status': 'submitted_via_web',
                     '_submission_time': '2017-10-23T09:41:19',
@@ -208,7 +203,6 @@ class MockDataExportsBase(TestCase):
                     '_attachments': [],
                     '_bamboo_dataset_id': '',
                     '_geolocation': [None, None],
-                    '_id': 62,
                     '_notes': [],
                     '_status': 'submitted_via_web',
                     '_submission_time': '2017-10-23T09:41:38',
@@ -229,7 +223,6 @@ class MockDataExportsBase(TestCase):
                     '_attachments': [],
                     '_bamboo_dataset_id': '',
                     '_geolocation': [None, None],
-                    '_id': 63,
                     '_notes': [],
                     '_status': 'submitted_via_web',
                     '_submission_time': '2017-10-23T09:42:11',
@@ -277,7 +270,6 @@ class MockDataExportsBase(TestCase):
             },
             'submissions': [
                 {
-                    '_id': 9999,
                     'formhub/uuid': 'cfb562511e8e44d1998de69002b492d9',
                     'people/person': [
                         {
@@ -320,19 +312,18 @@ class MockDataExportsBase(TestCase):
             },
             'submissions': [
                 {
-                    '_id': 99999,
                     'formhub/uuid': 'cfb562511e8e44d1998de69002b49299',
-                    'an_image': 'image.png',
+                    'an_image': 'audio_conversion_test_image.jpg',
                     '__version__': 'vbKavWWCpgBCZms6hQX4FB',
                     'meta/instanceID': 'uuid:f80be949-89b5-4af1-a42d-7d292b2bc0cd',
                     '_xform_id_string': 'aaURCfR8mYe8pzc5h3YiZz',
                     '_uuid': 'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
                     '_attachments': [
                         {
-                            'download_url': 'http://testserver/image.png',
-                            'filename': 'path/to/image.png',
-                            }
-                        ],
+                            'download_url': 'http://testserver/audio_conversion_test_image.jpg',
+                            'filename': 'path/to/audio_conversion_test_image.jpg',
+                        }
+                    ],
                     '_status': 'submitted_via_web',
                     '_geolocation': [None, None],
                     '_submission_time': '2021-06-30T22:12:56',
@@ -378,7 +369,8 @@ class MockDataExportsBase(TestCase):
             submission.update({
                 '__version__': v_uid
             })
-        asset.deployment.mock_submissions(submissions, flush_db=False)
+        asset.deployment.set_namespace('api_v2')
+        asset.deployment.mock_submissions(submissions)
         return asset
 
 
@@ -416,11 +408,11 @@ class MockDataExports(MockDataExportsBase):
                           UTF-8 encoded representation should match the export
                           result
         `export_options`: (optional) a list of extra options for
-                          `ExportTask.data`. Do not include `source` or `type`
+                          `SubmissionExportTask.data`. Do not include `source` or `type`
         `asset`: (optional) the asset to export. Defaults to `self.asset`
         `user`: (optional) the user to own the export. Defaults to `self.user`
         """
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         asset = self.asset if asset is None else asset
         export_task.user = self.user if user is None else user
         export_task.data = {
@@ -454,11 +446,11 @@ class MockDataExports(MockDataExportsBase):
         `expected_rows`: a list of strings *without* trailing newlines whose
                           UTF-8 encoded representation should match the export
                           result
-        `export_options`: a list of extra options for `ExportTask.data`. Do not
+        `export_options`: a list of extra options for `SubmissionExportTask.data`. Do not
                           include `source` or `type`
         """
         asset = self.asset if asset is None else asset
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user if user is None else user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),
@@ -487,26 +479,29 @@ class MockDataExports(MockDataExportsBase):
                 assert result_row == expected_row
 
     def test_csv_export_default_options(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version.uid
         expected_lines = [
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines)
 
     def test_csv_export_default_options_partial_submissions(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         expected_lines = [
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             f'"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"1"',
         ]
         self.run_csv_export_test(expected_lines, user=self.anotheruser)
 
     def test_csv_export_english_labels(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {
             'lang': 'English',
@@ -514,13 +509,14 @@ class MockDataExports(MockDataExportsBase):
         expected_lines = [
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             f'"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_spanish_labels(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {
             'lang': 'Spanish',
@@ -528,13 +524,14 @@ class MockDataExports(MockDataExportsBase):
         expected_lines = [
             '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_english_labels_no_hxl(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {
             'lang': 'English',
@@ -542,13 +539,14 @@ class MockDataExports(MockDataExportsBase):
         }
         expected_lines = [
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_english_labels_group_sep(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         # Check `group_sep` by looking at the `select_multiple` question
         export_options = {
@@ -558,121 +556,651 @@ class MockDataExports(MockDataExportsBase):
         expected_lines = [
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?%Spherical";"What kind of symmetry do you have?%Radial";"What kind of symmetry do you have?%Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_hierarchy_in_labels(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
             '"start";"end";"External Characteristics/What kind of symmetry do you have?";"External Characteristics/What kind of symmetry do you have?/Spherical";"External Characteristics/What kind of symmetry do you have?/Radial";"External Characteristics/What kind of symmetry do you have?/Bilateral";"External Characteristics/How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism", "_index"]}
+        export_options = {
+            'fields': [
+                'start',
+                'end',
+                'Do_you_descend_from_unicellular_organism',
+                '_index',
+            ]
+        }
         expected_lines = [
-            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3"',
+            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_uuid";"_index"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_xls_export_english_labels(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'lang': 'English'}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id','_uuid','_submission_time','_validation_status','_notes', '_status',  '_submitted_by', '__version__', '_tags', '_index'],
-            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'Spherical Radial Bilateral', '1', '1', '1', '6', 'Yes, and some extracellular space', 'No', 61.0, '48583952-1892-4931-8d9c-869e7b49bafb', '2017-10-23T09:41:19', '', '', 'submitted_via_web', '', version_uid, '', 1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'Radial', '0', '1', '0', '3', 'Yes', 'No', 62.0, '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '2017-10-23T09:41:38', '', '', 'submitted_via_web', '', version_uid, '', 2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '3f15cdfe-3eab-4678-8352-7806febf158d', '2017-10-23T09:42:11', '', '', 'submitted_via_web', 'anotheruser', version_uid, '', 3.0]
-        ]}
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'What kind of symmetry do you have?',
+                    'What kind of symmetry do you have?/Spherical',
+                    'What kind of symmetry do you have?/Radial',
+                    'What kind of symmetry do you have?/Bilateral',
+                    'How many segments does your body have?',
+                    'Do you have body fluids that occupy intracellular space?',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_id',
+                    '_uuid',
+                    '_submission_time',
+                    '_validation_status',
+                    '_notes',
+                    '_status',
+                    '_submitted_by',
+                    '__version__',
+                    '_tags',
+                    '_index',
+                ],
+                [
+                    '',
+                    '',
+                    '#symmetry',
+                    '',
+                    '',
+                    '',
+                    '#segments',
+                    '#fluids',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'Spherical Radial Bilateral',
+                    '1',
+                    '1',
+                    '1',
+                    '6',
+                    'Yes, and some extracellular space',
+                    'No',
+                    submissions[0]['_id'],
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    '2017-10-23T09:41:19',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'Radial',
+                    '0',
+                    '1',
+                    '0',
+                    '3',
+                    'Yes',
+                    'No',
+                    submissions[1]['_id'],
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    '2017-10-23T09:41:38',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Bilateral',
+                    '0',
+                    '0',
+                    '1',
+                    '2',
+                    'No / Unsure',
+                    'Yes',
+                    submissions[2]['_id'],
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    '2017-10-23T09:42:11',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    'anotheruser',
+                    version_uid,
+                    '',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_english_labels_partial_submissions(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'lang': 'English'}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id','_uuid','_submission_time','_validation_status','_notes', '_status',  '_submitted_by', '__version__', '_tags', '_index'],
-            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '3f15cdfe-3eab-4678-8352-7806febf158d', '2017-10-23T09:42:11', '', '', 'submitted_via_web', 'anotheruser', version_uid, '', 1.0]
-        ]}
-        self.run_xls_export_test(
-            expected_data, export_options, user=self.anotheruser
-        )
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'What kind of symmetry do you have?',
+                    'What kind of symmetry do you have?/Spherical',
+                    'What kind of symmetry do you have?/Radial',
+                    'What kind of symmetry do you have?/Bilateral',
+                    'How many segments does your body have?',
+                    'Do you have body fluids that occupy intracellular space?',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_id',
+                    '_uuid',
+                    '_submission_time',
+                    '_validation_status',
+                    '_notes',
+                    '_status',
+                    '_submitted_by',
+                    '__version__',
+                    '_tags',
+                    '_index',
+                ],
+                [
+                    '',
+                    '',
+                    '#symmetry',
+                    '',
+                    '',
+                    '',
+                    '#segments',
+                    '#fluids',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Bilateral',
+                    '0',
+                    '0',
+                    '1',
+                    '2',
+                    'No / Unsure',
+                    'Yes',
+                    submissions[2]['_id'],
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    '2017-10-23T09:42:11',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    'anotheruser',
+                    version_uid,
+                    '',
+                    1.0,
+                ],
+            ]
+        }
+        self.run_xls_export_test(expected_data, export_options, user=self.anotheruser)
 
     def test_xls_export_multiple_select_both(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'lang': 'English', 'multiple_select': 'both'}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id','_uuid','_submission_time','_validation_status','_notes', '_status',  '_submitted_by', '__version__', '_tags', '_index'],
-            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'Spherical Radial Bilateral', '1', '1', '1', '6', 'Yes, and some extracellular space', 'No', 61.0, '48583952-1892-4931-8d9c-869e7b49bafb', '2017-10-23T09:41:19', '', '', 'submitted_via_web', '', version_uid, '', 1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'Radial', '0', '1', '0', '3', 'Yes', 'No', 62.0, '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '2017-10-23T09:41:38', '', '', 'submitted_via_web', '', version_uid, '', 2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '3f15cdfe-3eab-4678-8352-7806febf158d', '2017-10-23T09:42:11', '', '', 'submitted_via_web', 'anotheruser', version_uid, '', 3.0]
-        ]}
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'What kind of symmetry do you have?',
+                    'What kind of symmetry do you have?/Spherical',
+                    'What kind of symmetry do you have?/Radial',
+                    'What kind of symmetry do you have?/Bilateral',
+                    'How many segments does your body have?',
+                    'Do you have body fluids that occupy intracellular space?',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_id',
+                    '_uuid',
+                    '_submission_time',
+                    '_validation_status',
+                    '_notes',
+                    '_status',
+                    '_submitted_by',
+                    '__version__',
+                    '_tags',
+                    '_index',
+                ],
+                [
+                    '',
+                    '',
+                    '#symmetry',
+                    '',
+                    '',
+                    '',
+                    '#segments',
+                    '#fluids',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'Spherical Radial Bilateral',
+                    '1',
+                    '1',
+                    '1',
+                    '6',
+                    'Yes, and some extracellular space',
+                    'No',
+                    submissions[0]['_id'],
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    '2017-10-23T09:41:19',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'Radial',
+                    '0',
+                    '1',
+                    '0',
+                    '3',
+                    'Yes',
+                    'No',
+                    submissions[1]['_id'],
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    '2017-10-23T09:41:38',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Bilateral',
+                    '0',
+                    '0',
+                    '1',
+                    '2',
+                    'No / Unsure',
+                    'Yes',
+                    submissions[2]['_id'],
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    '2017-10-23T09:42:11',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    'anotheruser',
+                    version_uid,
+                    '',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_multiple_select_summary(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'lang': 'English', 'multiple_select': 'summary'}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'What kind of symmetry do you have?', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id', '_uuid', '_submission_time', '_validation_status', '_notes', '_status', '_submitted_by', '__version__', '_tags', '_index'],
-            ['', '', '#symmetry', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'Spherical Radial Bilateral', '6', 'Yes, and some extracellular space', 'No', 61.0, '48583952-1892-4931-8d9c-869e7b49bafb', '2017-10-23T09:41:19', '', '', 'submitted_via_web', '', version_uid, '', 1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'Radial', '3', 'Yes', 'No', 62.0, '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '2017-10-23T09:41:38', '', '', 'submitted_via_web', '', version_uid, '', 2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '2', 'No / Unsure', 'Yes', 63.0, '3f15cdfe-3eab-4678-8352-7806febf158d', '2017-10-23T09:42:11', '', '', 'submitted_via_web', 'anotheruser', version_uid, '', 3.0]
-        ]}
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'What kind of symmetry do you have?',
+                    'How many segments does your body have?',
+                    'Do you have body fluids that occupy intracellular space?',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_id',
+                    '_uuid',
+                    '_submission_time',
+                    '_validation_status',
+                    '_notes',
+                    '_status',
+                    '_submitted_by',
+                    '__version__',
+                    '_tags',
+                    '_index',
+                ],
+                [
+                    '',
+                    '',
+                    '#symmetry',
+                    '#segments',
+                    '#fluids',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'Spherical Radial Bilateral',
+                    '6',
+                    'Yes, and some extracellular space',
+                    'No',
+                    submissions[0]['_id'],
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    '2017-10-23T09:41:19',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'Radial',
+                    '3',
+                    'Yes',
+                    'No',
+                    submissions[1]['_id'],
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    '2017-10-23T09:41:38',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Bilateral',
+                    '2',
+                    'No / Unsure',
+                    'Yes',
+                    submissions[2]['_id'],
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    '2017-10-23T09:42:11',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    'anotheruser',
+                    version_uid,
+                    '',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_multiple_select_details(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'lang': 'English', 'multiple_select': 'details'}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id', '_uuid', '_submission_time', '_validation_status', '_notes', '_status', '_submitted_by', '__version__', '_tags', '_index'],
-            ['', '', '#symmetry', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', '1', '1', '1', '6', 'Yes, and some extracellular space', 'No', 61.0, '48583952-1892-4931-8d9c-869e7b49bafb', '2017-10-23T09:41:19', '', '', 'submitted_via_web', '', version_uid, '', 1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', '0', '1', '0', '3', 'Yes', 'No', 62.0, '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '2017-10-23T09:41:38', '', '', 'submitted_via_web', '', version_uid, '', 2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '3f15cdfe-3eab-4678-8352-7806febf158d', '2017-10-23T09:42:11', '', '', 'submitted_via_web', 'anotheruser', version_uid, '', 3.0]
-        ]}
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'What kind of symmetry do you have?/Spherical',
+                    'What kind of symmetry do you have?/Radial',
+                    'What kind of symmetry do you have?/Bilateral',
+                    'How many segments does your body have?',
+                    'Do you have body fluids that occupy intracellular space?',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_id',
+                    '_uuid',
+                    '_submission_time',
+                    '_validation_status',
+                    '_notes',
+                    '_status',
+                    '_submitted_by',
+                    '__version__',
+                    '_tags',
+                    '_index',
+                ],
+                [
+                    '',
+                    '',
+                    '#symmetry',
+                    '',
+                    '',
+                    '#segments',
+                    '#fluids',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    '1',
+                    '1',
+                    '1',
+                    '6',
+                    'Yes, and some extracellular space',
+                    'No',
+                    submissions[0]['_id'],
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    '2017-10-23T09:41:19',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    '0',
+                    '1',
+                    '0',
+                    '3',
+                    'Yes',
+                    'No',
+                    submissions[1]['_id'],
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    '2017-10-23T09:41:38',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    '',
+                    version_uid,
+                    '',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    '0',
+                    '0',
+                    '1',
+                    '2',
+                    'No / Unsure',
+                    'Yes',
+                    submissions[2]['_id'],
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    '2017-10-23T09:42:11',
+                    '',
+                    '',
+                    'submitted_via_web',
+                    'anotheruser',
+                    version_uid,
+                    '',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields(self):
-        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism', '_index']}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'Do you descend from an ancestral unicellular organism?', '_index'],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No',  1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No',  2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes',  3.0],
-        ]}
+        export_options = {
+            'fields': [
+                'start',
+                'end',
+                'Do_you_descend_from_unicellular_organism',
+                '_index',
+            ]
+        }
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_uuid',
+                    '_index',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'No',
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    1.0,
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'No',
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    2.0,
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Yes',
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    3.0,
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields_without_index(self):
-        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism']}
-        expected_data = {self.asset.name: [
-            ['start', 'end', 'Do you descend from an ancestral unicellular organism?'],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No'],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No'],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes'],
-        ]}
+        export_options = {
+            'fields': [
+                'start',
+                'end',
+                'Do_you_descend_from_unicellular_organism',
+            ]
+        }
+        expected_data = {
+            self.asset.name: [
+                [
+                    'start',
+                    'end',
+                    'Do you descend from an ancestral unicellular organism?',
+                    '_uuid',
+                ],
+                [
+                    '2017-10-23T05:40:39.000-04:00',
+                    '2017-10-23T05:41:13.000-04:00',
+                    'No',
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                ],
+                [
+                    '2017-10-23T05:41:14.000-04:00',
+                    '2017-10-23T05:41:32.000-04:00',
+                    'No',
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                ],
+                [
+                    '2017-10-23T05:41:32.000-04:00',
+                    '2017-10-23T05:42:05.000-04:00',
+                    'Yes',
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                ],
+            ]
+        }
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields_with_media_url(self):
         asset_name = 'Simple media'
         export_options = {'fields': ['an_image'], 'include_media_url': True}
+        asset = self.assets[asset_name]
+        submissions = self.forms[asset_name]['submissions']
+        submission = asset.deployment.get_submission(submissions[0]['_id'], asset.owner)
+        media_url = submission['_attachments'][0]['download_url']
         expected_data = {
             asset_name: [
-                ['Submit an image', 'Submit an image_URL'],
-                ['image.png', 'http://testserver/image.png'],
+                ['Submit an image', 'Submit an image_URL', '_uuid'],
+                [
+                    'audio_conversion_test_image.jpg',
+                    media_url,
+                    'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
+                ],
             ]
         }
         self.run_xls_export_test(
@@ -759,6 +1287,7 @@ class MockDataExports(MockDataExportsBase):
 
     def test_xls_export_repeat_groups(self):
         asset = self.assets['Simple repeat group']
+        submissions = self.forms['Simple repeat group']['submissions']
         version_uid = asset.latest_deployed_version_uid
         expected_data = {
             asset.name: [
@@ -775,7 +1304,7 @@ class MockDataExports(MockDataExportsBase):
                     '_index',
                 ],
                 [
-                    9999.0,
+                    submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     '2021-06-30T22:12:56',
                     '',
@@ -810,7 +1339,7 @@ class MockDataExports(MockDataExportsBase):
                     1.0,
                     'Simple repeat group',
                     1.0,
-                    9999.0,
+                    submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     '2021-06-30T22:12:56',
                     '',
@@ -826,7 +1355,7 @@ class MockDataExports(MockDataExportsBase):
                     2.0,
                     'Simple repeat group',
                     1.0,
-                    9999.0,
+                    submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     '2021-06-30T22:12:56',
                     '',
@@ -841,7 +1370,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_data, asset=asset, repeat_group=True)
 
     def test_export_spss_labels(self):
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
@@ -939,22 +1468,22 @@ class MockDataExports(MockDataExportsBase):
         }
         # Create and run one export, so we can verify that it's `result` file
         # is later deleted
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
         export_task.run()
-        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
         result = export_task.result
         self.assertTrue(result.storage.exists(result.name))
         # Make an excessive amount of additional exports
         excess_count = 5 + settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
         for _ in range(excess_count):
-            export_task = ExportTask()
+            export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask.objects.filter(
+        created_export_tasks = SubmissionExportTask.objects.filter(
             user=self.user, data__source=task_data['source']
         )
         self.assertEqual(excess_count + 1, created_export_tasks.count())
@@ -963,13 +1492,13 @@ class MockDataExports(MockDataExportsBase):
             :settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM]
         # Call `run()` once more since it invokes the cleanup logic
         export_task.run()
-        self.assertEqual(export_task.status, ExportTask.COMPLETE)
+        self.assertEqual(export_task.status, SubmissionExportTask.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
         self.assertListEqual(  # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
             list(
-                ExportTask.objects.filter(
+                SubmissionExportTask.objects.filter(
                     user=self.user, data__source=task_data['source']
                 ).order_by('-date_created').values_list('pk', flat=True)
             ),
@@ -982,13 +1511,13 @@ class MockDataExports(MockDataExportsBase):
         }
         self.assertEqual(
             0,
-            ExportTask.objects.filter(
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).count(),
         )
         # Simulate a few stuck exports
-        for status in (ExportTask.CREATED, ExportTask.PROCESSING):
-            export_task = ExportTask()
+        for status in (SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING):
+            export_task = SubmissionExportTask()
             export_task.user = self.user
             export_task.data = task_data
             export_task.status = status
@@ -996,21 +1525,21 @@ class MockDataExports(MockDataExportsBase):
             export_task.date_created -= datetime.timedelta(days=1)
             export_task.save()
         self.assertSequenceEqual(
-            [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask.objects.filter(
+            [SubmissionExportTask.CREATED, SubmissionExportTask.PROCESSING],
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),
         )
         # Run another export, which invokes the cleanup logic
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
         export_task.run()
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
-            [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask.objects.filter(
+            [SubmissionExportTask.ERROR, SubmissionExportTask.ERROR, SubmissionExportTask.COMPLETE],
+            SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
             ).order_by('pk').values_list('status', flat=True),
         )
@@ -1022,14 +1551,14 @@ class MockDataExports(MockDataExportsBase):
             'jugs dum cornelia legit flavia scribit et laeta est flavia quod '
             'cornelia iam in villa habitat et cornelia et flavia sunt amicae'
         )
-        assert len(what_a_title) > ExportTask.MAXIMUM_FILENAME_LENGTH
+        assert len(what_a_title) > SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
         self.asset.name = what_a_title
         self.asset.save()
         task_data = {
             'source': reverse('asset-detail', args=[self.asset.uid]),
             'type': 'csv',
         }
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = task_data
         export_task.save()
@@ -1037,10 +1566,11 @@ class MockDataExports(MockDataExportsBase):
 
         assert (
             len(os.path.basename(export_task.result.name)) ==
-                ExportTask.MAXIMUM_FILENAME_LENGTH
+                SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
         )
 
     def test_export_latest_version_only(self):
+        submissions = self.forms[self.form_names[0]]['submissions']
         new_survey_content = [{
             'label': ['Do you descend... new label',
                       '\xbfDesciende de... etiqueta nueva'],
@@ -1059,9 +1589,9 @@ class MockDataExports(MockDataExportsBase):
         self.asset.deploy(backend='mock', active=True)
         expected_lines = [
             '"Do you descend... new label";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
-            f'"no";"61";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
-            f'"no";"62";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
-            f'"yes";"63";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"'
+            f'"no";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"";"submitted_via_web";"";"{version_uid}";"";"1"',
+            f'"no";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
+            f'"yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
         self.run_csv_export_test(
             expected_lines, {'fields_from_all_versions': 'false'})
@@ -1076,7 +1606,7 @@ class MockDataExports(MockDataExportsBase):
         asset = Asset.objects.create(
             name='Lots of submissions',
             owner=self.user,
-            content={'survey': [{'name': 'q', 'type': 'integer'}]},
+            content={'survey': [{'label': 'q', 'name': 'q', 'type': 'integer'}]},
         )
         asset.deploy(backend='mock', active=True)
         submissions = [
@@ -1086,7 +1616,7 @@ class MockDataExports(MockDataExportsBase):
             } for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
-        export_task = ExportTask()
+        export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),
@@ -1101,19 +1631,26 @@ class MockDataExports(MockDataExportsBase):
         asset = Asset.objects.create(
             name='Form with undocumented `disabled` column',
             owner=self.user,
-            content={'survey': [
-                {'name': 'q', 'type': 'integer'},
-                {'name': 'ignore', 'type': 'select_one nope', 'disabled': True},
-            ]},
+            content={
+                'survey': [
+                    {'label': 'q', 'name': 'q', 'type': 'integer'},
+                    {'name': 'ignore', 'type': 'select_one nope', 'disabled': True},
+                ]
+            },
         )
         asset.deploy(backend='mock', active=True)
-        asset.deployment.mock_submissions(
-            [{'__version__': asset.latest_deployed_version.uid, 'q': 123,}]
-        )
+        submissions = [
+            {
+                '__version__': asset.latest_deployed_version.uid,
+                'q': 123,
+                '_submission_time': '2017-10-23T09:41:19',
+            }
+        ]
+        asset.deployment.mock_submissions(submissions)
         # observe that `ignore` does not appear!
         expected_lines = [
             '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"__version__";"_tags";"_index"',
-            f'"123";"1";"";"";"";"";"";"";"{asset.latest_deployed_version.uid}";"";"1"',
+            f'"123";"{submissions[0]["_id"]}";"{submissions[0]["_uuid"]}";"2017-10-23T09:41:19";"";"";"submitted_via_web";"someuser";"{asset.latest_deployed_version.uid}";"";"1"',
         ]
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)

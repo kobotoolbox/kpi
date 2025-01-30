@@ -1,13 +1,14 @@
 # coding: utf-8
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
-from mock import patch
 
-from kobo.apps.audit_log.models import AuditAction, AuditLog
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models.account import AccountTrash
@@ -27,11 +28,15 @@ class AccountTrashTestCase(TestCase):
         someuser = get_user_model().objects.get(username='someuser')
         someuser_uid = someuser.extra_details.uid
         someuser_id = someuser.pk
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
 
         # Create dummy logs for someuser
         audit_log = AuditLog.objects.create(
-            app_label='foo', model_name='bar', object_id=1, user=someuser
+            app_label='foo',
+            model_name='bar',
+            object_id=1,
+            user=someuser,
+            log_type=AuditType.ACCESS,
         )
 
         grace_period = 0
@@ -98,17 +103,18 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser_id,
             user=someuser,
             action=AuditAction.IN_TRASH,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
     def test_put_back(self):
         self.test_move_to_trash()
         someuser = get_user_model().objects.get(username='someuser')
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
         assert not someuser.is_active
         account_trash = AccountTrash.objects.get(user=someuser)
         periodic_task_id = account_trash.periodic_task_id
@@ -134,11 +140,12 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.PUT_BACK,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
     def test_remove_user(self):
@@ -147,7 +154,7 @@ class AccountTrashTestCase(TestCase):
         everything from their account is deleted except their username
         """
         someuser = get_user_model().objects.get(username='someuser')
-        admin = get_user_model().objects.get(username='admin')
+        admin = get_user_model().objects.get(username='adminuser')
         someuser.extra_details.data['name'] = 'someuser'
         someuser.extra_details.save(update_fields=['data'])
 
@@ -188,11 +195,12 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
-            app_label='auth',
+            app_label='kobo_auth',
             model_name='user',
             object_id=someuser.pk,
             user=admin,
             action=AuditAction.REMOVE,
+            log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
 
@@ -241,6 +249,7 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.IN_TRASH,
+            log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()
 
     def test_put_back(self):
@@ -278,4 +287,5 @@ class ProjectTrashTestCase(TestCase):
             object_id=asset.pk,
             user=asset.owner,
             action=AuditAction.PUT_BACK,
+            log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()

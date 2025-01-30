@@ -1,7 +1,9 @@
 # coding: utf-8
+import sys
+
 from django.db import migrations
 
-from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
+from kpi.deployment_backends.openrosa_backend import OpenRosaDeploymentBackend
 from kpi.utils.models import _set_auto_field_update
 
 
@@ -14,30 +16,30 @@ def explode_assets(apps, schema_editor):
     asset_progress_interval = max(1, int(total_assets / 50))
     assets_done = 0
     # Do not automatically update asset timestamps during this migration
-    _set_auto_field_update(Asset, "date_created", False)
-    _set_auto_field_update(Asset, "date_modified", False)
+    _set_auto_field_update(Asset, 'date_created', False)
+    _set_auto_field_update(Asset, 'date_modified', False)
     for asset in deployed_assets:
         deployment = asset.assetdeployment_set.last()
         # Copy the deployment-related data
-        kc_deployment = KobocatDeploymentBackend(asset)
-        kc_deployment.store_data({
-            'backend': 'kobocat',
-            'identifier': kc_deployment.make_identifier(
-                asset.owner.username, deployment.xform_id_string),
-            'active': deployment.data['downloadable'],
-            'backend_response': deployment.data,
-            # deployment.asset_version_id was mistakenly set to the id of the
-            # _oldest_ version of the asset, making it useless, so we use zero
-            # as a placeholder
-            'version': 0
-        })
+        backend_deployment = OpenRosaDeploymentBackend(asset)
+        backend_deployment.store_data(
+            {
+                'backend': 'kobocat',
+                'active': deployment.data['downloadable'],
+                'backend_response': deployment.data,
+                # deployment.asset_version_id was mistakenly set to the id of the
+                # _oldest_ version of the asset, making it useless, so we use zero
+                # as a placeholder
+                'version': 0,
+            }
+        )
         asset.save()
         assets_done += 1
         if assets_done % asset_progress_interval == 0:
             sys.stdout.write('.')
             sys.stdout.flush()
-    _set_auto_field_update(Asset, "date_created", True)
-    _set_auto_field_update(Asset, "date_modified", True)
+    _set_auto_field_update(Asset, 'date_created', True)
+    _set_auto_field_update(Asset, 'date_modified', True)
 
     ContentType = apps.get_model('contenttypes', 'ContentType')
     try:

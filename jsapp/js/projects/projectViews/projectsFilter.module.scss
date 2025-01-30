@@ -1,5 +1,5 @@
 @use 'scss/mixins';
-@use 'scss/sizes';
+@use 'scss/colors';
 @use 'js/components/modals/koboModal.scss';
 
 .root {
@@ -18,7 +18,7 @@
 
     // We need a tiny bit space on bottom to avoid scrollbar appearing
     // unnecessarily, when delete button of last filter row is being pressed.
-    padding-bottom: sizes.$x1;
+    padding-bottom: 1px;
   }
 }
 
@@ -26,11 +26,19 @@
   @include mixins.centerRowFlex;
 
   justify-content: space-between;
-  gap: sizes.$x8;
+  gap: 8px;
   padding: koboModal.$kobo-modal-padding;
 
   // To display the first button on the left and the rest on the right.
   > *:first-child {
     margin-right: auto;
   }
+}
+
+// We want the button to look distinct if there are any filters enabled, so that
+// user is not confused why some of their projects might not appear on the list.
+.buttonHasFilters {
+  background-color: colors.$kobo-bg-blue;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }

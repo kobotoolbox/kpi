@@ -44,6 +44,12 @@ class BadPermissionsException(Exception):
     pass
 
 
+class BulkUpdateSubmissionsClientException(exceptions.ValidationError):
+    # This is message should be overridden with something more specific
+    default_detail = t('Invalid payload for bulk updating of submissions')
+    default_code = 'bulk_update_submissions_client_error'
+
+
 class DeploymentDataException(Exception):
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +64,28 @@ class DeploymentNotFound(Exception):
         self, message=t('Must call `asset.connect_deployment()` first')
     ):
         super().__init__(message)
+
+
+class DTDForbiddenException(Exception):
+    """
+    Exception to be used when DTDs are forbidden while parsing XML using the
+    LXML library
+    """
+
+    def __init__(self, message=t('XML contains forbidden DTDs')):
+        self.message = message
+        super().__init__(self.message)
+
+
+class EntitiesForbiddenException(Exception):
+    """
+    Exception to be used when Entities are forbidden while parsing XML
+    using the LXML library
+    """
+
+    def __int__(self, message=t('XML contains forbidden entities')):
+        self.message = message
+        super().__init__(self.message)
 
 
 class FFMpegException(Exception):
@@ -85,7 +113,8 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class InvalidXFormException(Exception):
-    pass
+    def __init__(self, message=t('Deployment links to an unexpected KoboCAT XForm')):
+        super().__init__(message)
 
 
 class InvalidXPathException(Exception):
@@ -98,19 +127,6 @@ class KobocatCommunicationError(Exception):
         self, message='Could not communicate with KoBoCAT', *args, **kwargs
     ):
         super().__init__(message, *args, **kwargs)
-
-
-class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
-    # This is message should be overridden with something more specific
-    default_detail = t('Invalid payload for bulk updating of submissions')
-    default_code = 'bulk_update_submissions_client_error'
-
-
-class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = t(
-        'An error occurred trying to bulk update the submissions.')
-    default_code = 'bulk_update_submissions_error'
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -138,6 +154,10 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
 
 
 class KobocatProfileException(Exception):
+    pass
+
+
+class MissingXFormException(Exception):
     pass
 
 

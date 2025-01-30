@@ -1,0 +1,8 @@
+@use 'scss/colors';
+
+.root {
+  background-color: colors.$kobo-white;
+  border-radius: 6px;
+  min-height: 150px;
+  flex: 1;
+}

@@ -1,10 +1,7 @@
-# coding: utf-8
-import json
-
-from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_MANAGE_ASSET,
@@ -55,13 +52,6 @@ class AssetExportSettingsApiTest(BaseTestCase):
             'multiple_select': 'both',
             'type': 'csv',
         }
-
-    def _log_in_as_another_user(self):
-        """
-        Helper to switch user from `someuser` to `anotheruser`.
-        """
-        self.client.logout()
-        self.client.login(username='anotheruser', password='anotheruser')
 
     def _create_foo_export_settings(self, name=None):
         if name is None:
@@ -228,14 +218,14 @@ class AssetExportSettingsApiTest(BaseTestCase):
         # assign `view_asset` to anotheruser
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.export_settings_list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_api_list_asset_export_settings_with_perms(self):
         self._create_foo_export_settings()
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(self.export_settings_list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -250,14 +240,14 @@ class AssetExportSettingsApiTest(BaseTestCase):
         export_settings = self._create_foo_export_settings()
         url = self._get_detail_url(export_settings.uid)
 
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
         response = self.client.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_api_detail_asset_export_settings_shared_with_manage_asset_perms(self):
         export_settings = self._create_foo_export_settings()
         url = self._get_detail_url(export_settings.uid)
-        self._log_in_as_another_user()
+        self.client.force_login(self.anotheruser)
 
         # assign `view_asset` to anotheruser so that they can see the asset but
         # not the export settings
@@ -281,4 +271,3 @@ class AssetExportSettingsApiTest(BaseTestCase):
             url, HTTP_ACCEPT='application/json'
         )
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
-

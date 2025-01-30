@@ -42,7 +42,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
           <Icon name={assetUtils.getAssetIcon(this.props.asset)} size='l' />
         </bem.AssetsTableRow__column>
 
-        <bem.AssetsTableRow__column m='name'>
+        <bem.AssetsTableRow__column m='name' dir='auto'>
           <AssetName asset={this.props.asset}/>
 
           {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
@@ -61,7 +61,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='owner'>
-          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
+          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner_label)}
         </bem.AssetsTableRow__column>
 
         {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&

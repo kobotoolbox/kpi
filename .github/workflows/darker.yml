@@ -1,0 +1,50 @@
+name: Python linter (Darker)
+
+on: workflow_call
+jobs:
+  darker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # In addition to checking out the 'merge commit', we also want to
+          # fetch enough commits to find the most recent commit in the base
+          # branch (typically 'main')
+          fetch-depth: 100
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install pip dependencies
+        run: python -m pip install darker[isort] flake8 flake8-quotes isort --quiet
+
+      - name: Run Darker, comparing '${{github.ref_name}}' with the latest in '${{github.event.pull_request.base.ref}}'
+        run: |
+          # Run darker only on file changes introduced in this PR.
+          # Allows incremental adoption of linter rules on a per-file basis.
+
+          # Prevents this scenario:
+          #  - PR A is opened, modifying file A; CI passes.
+          #  - PR B is opened & merged, with linter errors in file B.
+          #  - PR A is updated again, modifying file A. CI fails from file B.
+          # Get the latest commit in the base branch (usually 'main') at time of
+          # CI run, to compare with this PR's merge branch.
+          # GitHub doesn't provide a nice name for this SHA, but we can find it:
+          # https://www.kenmuse.com/blog/the-many-shas-of-a-github-pull-request/#extracting-the-base-sha
+          MERGE_PARENTS=($(git rev-list --parents -1 ${{ github.sha }}))
+          LATEST_IN_BASE_BRANCH=${MERGE_PARENTS[1]}
+
+          # Run darker. (https://github.com/akaihola/darker)
+          # -L runs the linter
+          #  `--ignore=F821` avoids raising false positive error in typing
+          #   annotations with string, e.g. def my_method(my_model: 'ModelName')
+          # -r REV specifies a commit to compare with the worktree
+          output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r $LATEST_IN_BASE_BRANCH)
+
+          # darker still exits with code 1 even with no errors on changes
+          # So, make this fail CI only if there is output from darker.
+          [[ -n "$output" ]] && echo "$output" && exit 1 || exit 0
+        shell: /usr/bin/bash {0}

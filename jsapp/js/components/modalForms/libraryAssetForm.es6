@@ -6,11 +6,9 @@ import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import WrappedSelect from 'js/components/common/wrappedSelect';
-import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
 import sessionStore from 'js/stores/session';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
@@ -18,9 +16,11 @@ import assetUtils from 'js/assetUtils';
 import {renderBackButton} from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
-import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import managedCollectionsStore from 'js/components/library/managedCollectionsStore';
 import envStore from 'js/envStore';
 import {withRouter} from 'js/router/legacy';
+import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -94,7 +94,7 @@ export class LibraryAssetFormComponent extends React.Component {
   onCreateResourceCompleted(response) {
     this.setState({isPending: false});
     notify(t('##type## ##name## created').replace('##type##', this.getFormAssetType()).replace('##name##', response.name));
-    stores.pageState.hideModal();
+    pageState.hideModal();
     if (this.getFormAssetType() === ASSET_TYPES.collection.id) {
       this.props.router.navigate(`/library/asset/${response.uid}`);
     } else if (this.getFormAssetType() === ASSET_TYPES.template.id) {
@@ -109,7 +109,7 @@ export class LibraryAssetFormComponent extends React.Component {
 
   onUpdateAssetCompleted() {
     this.setState({isPending: false});
-    stores.pageState.hideModal();
+    pageState.hideModal();
   }
 
   onUpdateAssetFailed() {
@@ -152,7 +152,7 @@ export class LibraryAssetFormComponent extends React.Component {
         this.isLibrarySingle() &&
         params.asset_type !== ASSET_TYPES.collection.id
       ) {
-        const found = ownedCollectionsStore.find(this.currentAssetID());
+        const found = managedCollectionsStore.find(this.currentAssetID());
         if (found && found.asset_type === ASSET_TYPES.collection.id) {
           // when creating from within a collection page, make the new asset
           // a child of this collection
@@ -276,14 +276,13 @@ export class LibraryAssetFormComponent extends React.Component {
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
 
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={!this.isSubmitEnabled()}
-          >
-            {this.getSubmitButtonLabel()}
-          </bem.KoboButton>
+          <Button
+            type='primary'
+            size='l'
+            onClick={this.onSubmit.bind(this)}
+            isDisabled={!this.isSubmitEnabled()}
+            label={this.getSubmitButtonLabel()}
+          />
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -293,5 +292,4 @@ export class LibraryAssetFormComponent extends React.Component {
 reactMixin(LibraryAssetFormComponent.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetFormComponent.prototype, mixins.contextRouter);
 
-LibraryAssetFormComponent.contextTypes = {router: PropTypes.object};
 export const LibraryAssetForm = withRouter(LibraryAssetFormComponent);

@@ -1,0 +1,117 @@
+@use 'scss/colors';
+
+.root {
+  width: auto;
+  padding-bottom: 40px;
+  padding-top: 15px;
+  margin: 0 40px;
+  height: 100%;
+  overflow-x: auto;
+}
+
+.intervalBanner {
+  background-color: colors.$kobo-bg-blue;
+  display: flex;
+  padding: 0 2%;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 75px;
+  border-radius: 0.5em;
+  margin: 2% 0% 2% 0%;
+}
+
+.intervalBannerContent {
+  display: flex;
+  align-items: center;
+  flex-basis: 100%;
+}
+
+.intervalBannerText {
+  padding: 2%;
+}
+
+.root table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block-end: 60px;
+}
+
+.root table th {
+  padding: 0 8px;
+}
+
+.projects {
+  padding-right: 15%;
+  padding-left: 8px;
+}
+
+.root th {
+  font-weight: 700;
+  font-size: 13px;
+  color: colors.$kobo-gray-700;
+  text-align: initial;
+  padding-block: 1.5%;
+}
+
+.root tr {
+  font-weight: 400;
+  font-size: 16px;
+  color: colors.$kobo-gray-800;
+  border-bottom: 1px solid colors.$kobo-gray-300;
+}
+
+.root td {
+  padding: 18px 8px;
+}
+
+.link {
+  color: colors.$kobo-dark-blue;
+  font-weight: 600;
+}
+
+.currentMonth {
+  font-weight: 600;
+}
+
+.pagination {
+  font-weight: 400;
+  font-size: 14px;
+  color: colors.$kobo-gray-800;
+  position: fixed;
+  bottom: 20px;
+  background-color: white;
+  border: 1px solid colors.$kobo-gray-400;
+  width: 150px;
+  border-radius: 4px;
+  padding: 5px 0;
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+
+.root button {
+  background: transparent;
+  border: none;
+  padding: 0 8px 0 8px;
+  color: colors.$kobo-gray-400;
+  cursor: pointer;
+
+  &.active {
+    color: colors.$kobo-gray-800;
+  }
+}
+
+.range {
+  padding: 6px 6px;
+  border-right: 1px solid colors.$kobo-gray-400;
+  border-left: 1px solid colors.$kobo-gray-400;
+  flex: 1;
+  text-align: center;
+}
+
+.emptyMessage {
+  padding: 40px;
+  font-size: 1.2rem;
+  justify-content: center;
+  text-align: center;
+}

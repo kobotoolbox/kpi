@@ -1,5 +1,4 @@
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 
 .form-builder-meta {
   .form-builder-meta__columns {
@@ -8,18 +7,18 @@
   }
 
   .form-builder-meta__row {
-    margin-top: sizes.$x10;
+    margin-top: 10px;
   }
 
   .form-builder-meta__row--background-audio {
-    margin-top: sizes.$x20;
+    margin-top: 20px;
 
     .form-builder-aside__header {
       margin-bottom: 0;
     }
 
     .toggle-switch {
-      margin-top: sizes.$x10;
+      margin-top: 10px;
     }
 
     label {
@@ -29,10 +28,10 @@
 
   .form-builder-meta__column {
     flex: 1;
-    margin-right: sizes.$x10;
+    margin-right: 10px;
 
     .checkbox:not(:last-of-type) {
-      margin-bottom: sizes.$x10;
+      margin-bottom: 10px;
     }
   }
 }
@@ -40,7 +39,7 @@
 .form-builder-meta__label-link {
   display: inline-block;
   vertical-align: top;
-  margin-left: sizes.$x3;
+  margin-left: 3px;
   line-height: 1.4;
 
   &:hover {

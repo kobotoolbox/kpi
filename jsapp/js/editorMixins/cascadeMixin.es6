@@ -7,11 +7,11 @@ import bem, {makeBem} from 'js/bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import last from 'lodash.last';
 import envStore from 'js/envStore';
+import Button from 'js/components/common/button';
 
 bem.CascadePopup = makeBem(null, 'cascade-popup');
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message');
 bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper');
-bem.CascadePopup__button = makeBem(bem.CascadePopup, 'button', 'button');
 
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
@@ -118,15 +118,18 @@ export const cascadeMixin = {
             }
 
             <bem.CascadePopup__buttonWrapper>
-              <bem.CascadePopup__button disabled={!this.state.cascadeReady}
-                onClick={()=>{
+              <Button
+                type='primary'
+                size='l'
+                isDisabled={!this.state.cascadeReady}
+                onClick={() => {
                   var survey = this.app.survey;
                   survey.insertSurvey(this.state.cascadeReadySurvey,
                     this.state.cascadeLastSelectedRowIndex);
                   this.cancelCascade();
-                }}>
-                {t('DONE')}
-              </bem.CascadePopup__button>
+                }}
+                label={t('DONE')}
+              />
             </bem.CascadePopup__buttonWrapper>
           </bem.CascadePopup>
       );

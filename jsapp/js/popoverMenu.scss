@@ -1,0 +1,183 @@
+@use 'scss/z-indexes';
+@use 'scss/breakpoints';
+@use 'scss/colors';
+@use 'sass:color';
+
+// Popover menu
+.popover-menu {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.popover-menu__toggle {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  color: colors.$kobo-gray-700;
+  display: inline-block;
+  vertical-align: middle;
+
+  &:hover {
+    color: colors.$kobo-blue;
+  }
+}
+
+.popover-menu__content {
+  @include box-shadow-mid;
+
+  overflow: hidden;
+  position: absolute;
+  min-width: 160px;
+  max-width: 300px;
+  text-align: initial;
+  background: colors.$kobo-white;
+  z-index: z-indexes.$z-dropdown;
+  right: -10px;
+  transition: opacity 0.35s;
+  opacity: 1;
+
+  &.popover-menu__content--hiding {
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  &.popover-menu__content--hidden {
+    display: none;
+  }
+
+  &.popover-menu__content--visible {
+    display: block;
+  }
+}
+
+.popover-menu--below .popover-menu__content {
+  top: 100%;
+}
+
+.popover-menu--right .popover-menu__content {
+  right: auto;
+  left: -10px;
+}
+
+.popover-menu--above .popover-menu__content,
+.popover-menu--viewby-menu .popover-menu__content {
+  bottom: 100%;
+  top: auto;
+}
+
+.popover-menu__link,
+.popover-menu__item {
+  background-color: colors.$kobo-white;
+  display: block;
+  padding: 6px 12px 6px 6px;
+  position: relative;
+  color: colors.$kobo-dark-blue;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  > i:first-child {
+    margin-right: 5px;
+    font-size: 28px;
+    width: 28px;
+    vertical-align: middle;
+  }
+
+  span {
+    vertical-align: middle;
+  }
+
+  &:hover {
+    background-color: colors.$kobo-gray-200;
+    color: color.adjust(colors.$kobo-dark-blue, $lightness: -5%);
+  }
+
+  &.active {
+    color: colors.$kobo-hover-blue;
+  }
+
+  &.divider {
+    border-top: 1px solid colors.$kobo-gray-300;
+  }
+}
+
+.popover-menu__moveTo {
+  max-height: 120px;
+  overflow: auto;
+  overflow-x: hidden;
+  background-color: colors.$kobo-gray-200;
+  border-bottom: 1px solid colors.$kobo-gray-300;
+}
+
+.popover-menu__item--move-coll-item {
+  background-color: colors.$kobo-gray-200;
+  position: relative;
+  text-align: initial;
+  padding: 3px 8px 3px 5px;
+
+  span {
+    display: inline-block;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+
+  &.popover-menu__item--move-coll-item-parent {
+    pointer-events: none;
+    font-weight: 700;
+    color: colors.$kobo-gray-800;
+  }
+}
+
+.popover-menu__heading {
+  padding: 8px 15px;
+  color: colors.$kobo-gray-800;
+  border-top: 1px solid colors.$kobo-gray-300;
+  background-color: colors.$kobo-gray-200;
+  margin: 0px;
+}
+
+.popover-menu--formLanding-menu {
+  .popover-menu__content {
+    right: 10px;
+  }
+}
+
+.popover-menu--assets-table {
+  .popover-menu__content {
+    max-height: 26px * 7.5;
+    overflow: auto;
+  }
+}
+
+.popover-menu--bulkUpdate-menu {
+  .popover-menu__toggle {
+    color: colors.$kobo-blue;
+
+    &:hover {
+      color: lighten(colors.$kobo-blue, 10%);
+    }
+  }
+
+  .popover-menu__content {
+    line-height: 20px;
+  }
+}
+
+.popover-menu__link.popover-menu__link--red {
+  color: colors.$kobo-red;
+}
+
+@media screen and (max-height: 475px) {
+  .popover-menu__link,
+  .popover-menu__item {
+    i.k-icon:first-child {
+      font-size: 22px;
+    }
+  }
+}

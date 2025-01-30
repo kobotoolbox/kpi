@@ -1,0 +1,27 @@
+@use 'scss/colors';
+
+.root {
+  // Avoids taking space
+  position: fixed;
+}
+
+.modalBody {
+  line-height: 24px;
+  padding: 0 30px;
+
+  p:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.note {
+  display: flex;
+  padding: 12px;
+  margin: 24px 0 0 0;
+  background-color: colors.$kobo-bg-blue;
+  border-radius: 5px;
+}
+
+.noteIcon {
+  margin-right: 8px;
+}

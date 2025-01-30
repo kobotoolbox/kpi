@@ -1,14 +1,24 @@
 # KPI
 
-[![Python Build Status](https://github.com/kobotoolbox/kpi/workflows/pytest/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest)
-[![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=master)](https://coveralls.io/github/kobotoolbox/kpi?branch=master)
-[![JavaScript Build Status](https://github.com/kobotoolbox/kpi/workflows/npm-test/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test)
+[![Python Build Status](https://github.com/kobotoolbox/kpi/actions/workflows/pytest.yml/badge.svg?branch=main)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest+branch%3Amain)
+[![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=main)](https://coveralls.io/github/kobotoolbox/kpi?branch=main)
+[![JavaScript Build Status](https://github.com/kobotoolbox/kpi/actions/workflows/npm-test.yml/badge.svg?branch=main)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test+branch%3Amain)
+
+For production always use a specific release branch, `main` branch may include breaking changes. Run `git branch -rl 'origin/release/*'` to list release branches and then switch to a release branch of your choice.
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
+## Important notice when upgrading from any release older than [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19)
+
+Prior to release [`2.024.19`](https://github.com/kobotoolbox/kpi/releases/tag/2.024.19), this project (KPI) and [KoboCAT](https://github.com/kobotoolbox/kobocat) were two separated projects.
+KoboCAT is now part of KPI code base and its repository has been archived.
+
+KoboCAT deprecation notices will be maintained in this repository.
+[More details here](./kobo/apps/openrosa/README.md)
+
 ## Important notice when upgrading from any release older than [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18)
 
-Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoBoCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
+Prior to release [`2.020.18`](https://github.com/kobotoolbox/kpi/releases/tag/2.020.18), this project (KPI) and [KoboCAT](https://github.com/kobotoolbox/kobocat) both shared a common Postgres database. They now each have their own. **If you are upgrading an existing single-database installation, you must follow [these instructions](https://community.kobotoolbox.org/t/upgrading-to-separate-databases-for-kpi-and-kobocat/7202)** to migrate the KPI tables to a new database and adjust your configuration appropriately.
 
 If you do not want to upgrade at this time, please use the [`shared-database-obsolete`](https://github.com/kobotoolbox/kpi/tree/shared-database-obsolete) branch instead.
 
@@ -35,7 +45,7 @@ syntax, see the documentation at the top of
 
 ## Admin reports
 
-There are several types of data reports available to superusers. 
+There are several types of data reports available to superusers.
 * Full list of users including their details provided during signup, number of deployed projects (XForm count), number of submissions, date joined, and last login: `<kpi base url>/superuser_stats/user_report/`. File being created is a CSV, so don't download immediately to wait for server to be finished writing to the file (it will download even if incomplete).
 * Monthly aggregate figures for number of forms, deployed projects, and submissions (from kobocat): `<kc server domain>/<superuser username>/superuser_stats/`
 

@@ -1,15 +1,14 @@
 @use 'sass:color';
 @use 'scss/mixins';
-@use 'scss/sizes';
-@use '~kobo-common/src/styles/colors';
+@use 'scss/colors';
 @use 'scss/variables';
 @use 'scss/z-indexes';
 
-$projects-table-hover-bg: colors.$kobo-gray-98;
-$projects-table-row-padding: sizes.$x8;
+$projects-table-hover-bg: colors.$kobo-gray-100;
+$projects-table-row-padding: 8px;
 // The shared height of a row: project rows are bigger due to padding, but
 // header rows use this size without paddings
-$projects-table-row-height: sizes.$x36;
+$projects-table-row-height: 36px;
 
 .row {
   display: flex;
@@ -17,15 +16,15 @@ $projects-table-row-height: sizes.$x36;
   position: relative;
   align-items: stretch;
   cursor: pointer;
-  margin: 0 sizes.$x8;
+  margin: 0 8px;
 
   user-select: none;
 }
 
 .cell {
-  border-bottom: sizes.$x1 solid colors.$kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-300;
   padding: $projects-table-row-padding;
-  color: colors.$kobo-gray-40;
+  color: colors.$kobo-gray-700;
   flex: 1 0 auto;
   // ensures the table columns are same width for all rows
   width: 10%;
@@ -43,8 +42,8 @@ $projects-table-row-height: sizes.$x36;
   }
 
   &[data-field='checkbox'] {
-    max-width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
-    width: $projects-table-row-padding + sizes.$x20 + $projects-table-row-padding;
+    max-width: $projects-table-row-padding + 20px + $projects-table-row-padding;
+    width: $projects-table-row-padding + 20px + $projects-table-row-padding;
     @include mixins.centerRowFlex;
   }
 
@@ -64,7 +63,7 @@ $projects-table-row-height: sizes.$x36;
     width: 15%;
 
     > *:not(:last-child) {
-      margin-right: sizes.$x5;
+      margin-right: 5px;
     }
   }
 
@@ -101,7 +100,7 @@ $projects-table-row-height: sizes.$x36;
         outline: 1px solid colors.$kobo-blue;
         border-radius: 2px;
         outline-offset: 4px;
-        text-decoration-color: colors.$kobo-alt-blue;
+        text-decoration-color: colors.$kobo-mid-blue;
         text-decoration-line: underline;
       }
     }
@@ -109,7 +108,7 @@ $projects-table-row-height: sizes.$x36;
     // Setup for underlining the Project Name on row hover.
     // This clarifies the size of the checkbox touch-target
     // and makes full-navigation a little more predictable.
-    text-decoration: 1px solid underline color.change(colors.$kobo-alt-blue, $alpha: 0);
+    text-decoration: 1px solid underline color.change(colors.$kobo-mid-blue, $alpha: 0);
     text-underline-offset: 3px;
   }
 
@@ -155,8 +154,8 @@ $projects-table-row-height: sizes.$x36;
       }
       // left: cover whitespace left of project table
       &::before {
-        left: 0 - sizes.$x32;
-        width: sizes.$x32;
+        left: 0 - 32px;
+        width: 32px;
       }
       // uncrop element
       overflow: visible;
@@ -168,7 +167,7 @@ $projects-table-row-height: sizes.$x36;
     background-color: $projects-table-hover-bg;
 
     &.cellHighlighted {
-      background-color: color.change(colors.$kobo-light-blue, $alpha: 0.6);
+      background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.6);
     }
 
     // Various hover rules to tell the user what will happen:
@@ -178,15 +177,15 @@ $projects-table-row-height: sizes.$x36;
     // Hovering any cell  ->  Outline the checkbox
     &[data-field='checkbox'] {
       :global .checkbox__input {
-        outline: sizes.$x2 solid colors.$kobo-alt-blue;
-        outline-offset: 0 - sizes.$x1;
+        outline: 2px solid colors.$kobo-mid-blue;
+        outline-offset: 0 - 1px;
       }
 
       &:hover {
         // Do an even bigger outline if you're actually near the checkbox
         :global .checkbox__input {
-          outline-width: sizes.$x3;
-          outline-offset: 0 - sizes.$x1;
+          outline-width: 3px;
+          outline-offset: 0 - 1px;
 
           // Override checkbox hover states to reduce flashing
           &:hover {
@@ -208,7 +207,7 @@ $projects-table-row-height: sizes.$x36;
     // Hovering 'Project name' cell…
     //  ->  Underline project name (link)
     &[data-field='name']:hover {
-      text-decoration-color: colors.$kobo-alt-blue;
+      text-decoration-color: colors.$kobo-mid-blue;
     }
     //  ->  De-emphasize the checkbox
     &[data-field='checkbox']:has(~ [data-field='name']:hover) {
@@ -223,7 +222,7 @@ $projects-table-row-height: sizes.$x36;
 .row.rowTypeHeader {
   .cell {
     @include mixins.centerRowFlex;
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
     border-top: 0;
     cursor: pointer;
     height: $projects-table-row-height;
@@ -234,7 +233,7 @@ $projects-table-row-height: sizes.$x36;
     contain: inline-size style;
 
     &:hover {
-      color: colors.$kobo-gray-14 !important;
+      color: colors.$kobo-gray-900 !important;
     }
 
     // checkbox header not clickable - use default cursor
@@ -245,29 +244,25 @@ $projects-table-row-height: sizes.$x36;
 }
 
 .row.rowTypeMessage {
-  padding: sizes.$x40;
+  padding: 40px;
   font-size: 1.2rem;
   justify-content: center;
   text-align: center;
-
-  .proTip {
-    font-size: 1rem;
-    margin-top: sizes.$x20;
-  }
+  cursor: initial;
 }
 
 .headerLabel {
   font-weight: 700;
-  font-size: sizes.$x13;
+  font-size: 13px;
 }
 
 // Highlighted columns:
 
 .row.rowTypeProject .cell.cellHighlighted {
-  background-color: color.change(colors.$kobo-light-blue, $alpha: 0.3);
+  background-color: color.change(colors.$kobo-bg-blue, $alpha: 0.3);
 }
 
 .row.rowTypeHeader .cell.cellHighlighted {
-  background-color: colors.$kobo-light-blue;
+  background-color: colors.$kobo-bg-blue;
   color: colors.$kobo-dark-blue;
 }

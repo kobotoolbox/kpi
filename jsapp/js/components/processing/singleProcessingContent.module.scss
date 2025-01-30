@@ -1,7 +1,6 @@
-@use '~kobo-common/src/styles/colors';
-@use 'scss/sizes';
-@use './singleProcessingVariables';
+@use 'scss/colors';
 @use 'scss/mixins';
+@use 'scss/breakpoints';
 
 .root {
   display: flex;
@@ -16,26 +15,25 @@
   flex-direction: row;
   align-items: flex-end;
   width: 100%;
-  height: singleProcessingVariables.$s-single-processing-tabs;
+  margin-top: 12px;
 }
 
 .tab {
   cursor: pointer;
-  color: colors.$kobo-gray-55;
+  color: colors.$kobo-gray-600;
   position: relative;
   font-weight: 900;
-  font-size: sizes.$x14;
-  line-height: sizes.$x48;
+  font-size: 14px;
+  line-height: 48px;
   text-transform: uppercase;
-  padding: 0 sizes.$x24;
-  border-radius: sizes.$x6 sizes.$x6 0 0;
+  border-radius: 6px 6px 0 0;
 
   &:hover {
-    color: colors.$kobo-gray-40;
+    color: colors.$kobo-gray-700;
   }
 
   &:active:not(.activeTab) {
-    transform: translateY(#{sizes.$x1});
+    transform: translateY(#{1px});
   }
 
   // We need this for covering the border radius of the white box underneath
@@ -46,27 +44,40 @@
     left: 0%;
     top: 100%;
     width: 100%;
-    height: sizes.$x6;
+    height: 6px;
   }
 
   &.activeTab {
-    color: colors.$kobo-gray-24;
+    color: colors.$kobo-gray-800;
     background-color: colors.$kobo-white;
 
     &::after {
       background-color: inherit;
     }
   }
-
-  &.disabledTab {
-    pointer-events: none;
-    opacity: 0.5;
-  }
 }
 
 .body {
   background-color: colors.$kobo-white;
-  border-radius: sizes.$x6;
+  border-radius: 6px;
   flex: 1;
-  overflow-y: auto;
+}
+
+@include breakpoints.breakpoint(veryNarrow) {
+  .tab {
+    padding: 0 12px;
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@include breakpoints.breakpoint(narrowAndUp) {
+  .tab {
+    padding: 0 24px;
+  }
+
+  .body {
+    // Only add scrolling if layout is multi column
+    overflow-y: auto;
+  }
 }

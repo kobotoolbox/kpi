@@ -8,7 +8,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {getLangString, notify} from 'utils';
-import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {LockingRestrictionName} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
@@ -18,6 +18,8 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
 } from 'js/components/locking/lockingUtils';
+import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -112,21 +114,20 @@ export class TranslationTable extends React.Component {
         },
       },
       {
-        Header: () => {
-          return (
+        Header: () =>
+          (
             <React.Fragment>
-              <bem.FormView__iconButton
+              <Button
+                type='text'
+                size='m'
                 onClick={this.toggleRenameLanguageForm.bind(this)}
-                disabled={!this.canEditLanguages()}
-                className='right-tooltip form-view__icon-button-edit'
-              >
-                {this.state.showLanguageForm && <i className='k-icon k-icon-close' />}
-                {!this.state.showLanguageForm && <i className='k-icon k-icon-edit' />}
-              </bem.FormView__iconButton>
+                isDisabled={!this.canEditLanguages()}
+                startIcon={this.state.showLanguageForm ? 'close' : 'edit'}
+              />
               {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
-          );
-        },
+          )
+        ,
         accessor: 'translation',
         className: 'translation',
         Cell: (cellInfo) => {
@@ -140,6 +141,7 @@ export class TranslationTable extends React.Component {
               }}
               value={this.state.tableData[cellInfo.index].value || ''}
               disabled={cellInfo.original.isLabelLocked}
+              dir='auto'
             />
           );
         },
@@ -226,7 +228,7 @@ export class TranslationTable extends React.Component {
   }
 
   showManageLanguagesModal() {
-    stores.pageState.switchModal({
+    pageState.switchModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
       asset: this.props.asset,
     });
@@ -253,7 +255,7 @@ export class TranslationTable extends React.Component {
       // reload asset on failure
       {
         onFailed: () => {
-          actions.resources.loadAsset({id: this.props.asset.uid});
+          actions.resources.loadAsset({id: this.props.asset.uid}, true);
           notify.error('failed to update translations');
         },
       }
@@ -271,14 +273,14 @@ export class TranslationTable extends React.Component {
       return hasRowRestriction(
         this.props.asset.content,
         rowName,
-        LOCKING_RESTRICTIONS.group_label_edit.name
+        LockingRestrictionName.group_label_edit
       );
     } else {
       if (Object.keys(QUESTION_TYPES).includes(rowType)) {
         return hasRowRestriction(
           this.props.asset.content,
           rowName,
-          LOCKING_RESTRICTIONS.question_label_edit.name
+          LockingRestrictionName.question_label_edit
         );
       } else {
         return false;
@@ -290,7 +292,7 @@ export class TranslationTable extends React.Component {
     return hasRowRestriction(
       this.props.asset.content,
       rowName,
-      LOCKING_RESTRICTIONS.choice_label_edit.name
+      LockingRestrictionName.choice_label_edit
     );
   }
 
@@ -299,7 +301,7 @@ export class TranslationTable extends React.Component {
       this.props.asset?.content &&
       !hasAssetRestriction(
         this.props.asset.content,
-        LOCKING_RESTRICTIONS.language_edit.name
+        LockingRestrictionName.language_edit
       )
     );
   }
@@ -332,21 +334,26 @@ export class TranslationTable extends React.Component {
             nextText={t('Next')}
             minRows={1}
             loadingText={<LoadingSpinner />}
+            // Enables RTL support in table cells
+            getTdProps={() => ({dir: 'auto'})}
           />
         </div>
 
         <bem.Modal__footer>
-          <bem.KoboButton m='whitegray' onClick={this.onBack.bind(this)}>
-            {t('Back')}
-          </bem.KoboButton>
+          <Button
+            type='secondary'
+            size='l'
+            onClick={this.onBack.bind(this)}
+            label={t('Back')}
+          />
 
-          <bem.KoboButton
-            m='blue'
+          <Button
+            type='primary'
+            size='l'
             onClick={this.saveChanges.bind(this)}
-            disabled={this.state.isSaveChangesButtonPending}
-          >
-            {this.state.saveChangesButtonText}
-          </bem.KoboButton>
+            isDisabled={this.state.isSaveChangesButtonPending}
+            label={this.state.saveChangesButtonText}
+          />
         </bem.Modal__footer>
       </bem.FormModal>
     );

@@ -8,19 +8,23 @@ from .base import BaseApiTestCase
 class TranscriptionServiceListApiTestCase(BaseApiTestCase):
 
     def test_can_list_as_authenticated_user(self):
-        response = self.client.get(reverse('transcription_service-list'))
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_list_as_anonymous_user(self):
         self.client.logout()
-        response = self.client.get(reverse('transcription_service-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_with_search(self):
         """
         Search within transcription service names and codes.
         """
-        url = f"{reverse('transcription_service-list')}?q=goo"
+        url = f"{reverse(self._get_endpoint('transcription_service-list'))}?q=goo"
         response = self.client.get(url)
         expected_codes = ['goog']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -33,7 +37,7 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
         """
         Try to search with only 2 characters
         """
-        url = f"{reverse('transcription_service-list')}?q=ms"
+        url = f"{reverse(self._get_endpoint('transcription_service-list'))}?q=ms"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('detail' in response.data)
@@ -43,7 +47,9 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
         """
         Should sort by name ASC
         """
-        response = self.client.get(reverse('transcription_service-list'))
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
         expected_names = ['Google', 'Microsoft']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -55,19 +61,23 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
 class TranslationServiceListApiTestCase(BaseApiTestCase):
 
     def test_can_list_as_authenticated_user(self):
-        response = self.client.get(reverse('translation_service-list'))
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cannot_list_as_anonymous_user(self):
         self.client.logout()
-        response = self.client.get(reverse('translation_service-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_with_search(self):
         """
         Search within translation service names and codes.
         """
-        url = f"{reverse('translation_service-list')}?q=goo"
+        url = f"{reverse(self._get_endpoint('translation_service-list'))}?q=goo"
         response = self.client.get(url)
         expected_codes = ['goog']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -80,7 +90,7 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
         """
         Try to search with only 2 characters
         """
-        url = f"{reverse('translation_service-list')}?q=ms"
+        url = f"{reverse(self._get_endpoint('translation_service-list'))}?q=ms"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('detail' in response.data)
@@ -90,7 +100,9 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
         """
         Should sort by name ASC
         """
-        response = self.client.get(reverse('translation_service-list'))
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
         expected_names = ['Google', 'Microsoft']
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
