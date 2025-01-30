@@ -170,7 +170,7 @@ export const OneTimeAddOnRow = ({
       <td className={styles.price}>
         <div className={styles.oneTime}>
           <KoboSelect3
-            size='m'
+            size={'fit'}
             name='products'
             options={products.map((product) => {
               return {value: product.id, label: product.name};
@@ -186,15 +186,7 @@ export const OneTimeAddOnRow = ({
               onChange={onChangePrice}
               value={selectedPrice.id}
             />
-          ) : (
-            <KoboSelect3
-              size={'fit'}
-              name={t('quantity')}
-              options={quantityOptions}
-              onChange={onChangeQuantity}
-              value={quantity}
-            />
-          )}
+          ) : null}
         </div>
       </td>
       <td className={styles.fullScreen}>
