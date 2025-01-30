@@ -1,6 +1,6 @@
-var _ = require('underscore');
+import _  from 'underscore'
 
-module.exports = (function(){
+export default (function(){
     return function (equalityCriterionPattern, existenceCriterionPattern, criteriaJoinPattern, selectMultiplePattern) {
         function parseCriterion(text) {
             var matches = text.match(existenceCriterionPattern);

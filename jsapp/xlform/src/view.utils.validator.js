@@ -8,49 +8,49 @@
             failureMessage:string - the message passed to the callback when validation fails
             args:array - additional arguments to pass into the validation function
 */
-module.exports = (function(){
+export default (function(){
 
-return (function () {
-    var singleton = {
-            create: function (options) {
-                return new Validator(options);
-            },
-            __validators: {
-                invalidChars: function (value, chars) {
-                    var matcher = new RegExp('[' + chars + ']');
-                    return !matcher.test(value);
+    return (function () {
+        var singleton = {
+                create: function (options) {
+                    return new Validator(options);
                 },
-                unique: function (value, list) {
-                    return _.filter(list, function (item) { return item === value; }).length === 0;
+                __validators: {
+                    invalidChars: function (value, chars) {
+                        var matcher = new RegExp('[' + chars + ']');
+                        return !matcher.test(value);
+                    },
+                    unique: function (value, list) {
+                        return _.filter(list, function (item) { return item === value; }).length === 0;
+                    }
                 }
-            }
+            };
+
+
+        var Validator = function (options) {
+            this.options = options;
         };
 
+        Validator.prototype.validate = function (value) {
+            var validationsLength = this.options.validations.length,
+                validations = this.options.validations;
 
-    var Validator = function (options) {
-        this.options = options;
-    };
+            for (var i = 0; i < validationsLength; i++) {
+                var currentValidation = validations[i];
+                if (!currentValidation.args) {
+                    currentValidation.args = [];
+                }
+                currentValidation.args.unshift(value);
 
-    Validator.prototype.validate = function (value) {
-        var validationsLength = this.options.validations.length,
-            validations = this.options.validations;
-
-        for (var i = 0; i < validationsLength; i++) {
-            var currentValidation = validations[i];
-            if (!currentValidation.args) {
-                currentValidation.args = [];
+                if (!singleton.__validators[currentValidation.name].apply(this, currentValidation.args)) {
+                    return currentValidation.failureMessage;
+                }
             }
-            currentValidation.args.unshift(value);
+            return true;
+        };
 
-            if (!singleton.__validators[currentValidation.name].apply(this, currentValidation.args)) {
-                return currentValidation.failureMessage;
-            }
-        }
-        return true;
-    };
+        return singleton;
 
-    return singleton;
-
-} ());
+    } ());
 
 })();

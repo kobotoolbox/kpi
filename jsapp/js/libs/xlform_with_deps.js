@@ -1,9 +1,15 @@
-var $ = require('jquery');
+import $ from 'jquery';
+import _ from 'underscore';
+import Backbone from 'backbone';
+import BackboneValidation from 'backbone-validation';
+
+import xlform from './xlform';
+
 window.jQuery = $;
 window.$ = $;
-window._ = require('underscore');
-window.Backbone = require('backbone');
+window._ = _;
+window.Backbone = Backbone;
 window.Backbone.$ = $;
-window.BackboneValidation = require('backbone-validation');
+window.BackboneValidation = BackboneValidation;
 
-module.exports = require('./xlform');
+export default xlform;
