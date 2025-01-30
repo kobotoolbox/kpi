@@ -32,7 +32,15 @@ $avatar-size-m: 32px;
 .avatar-size-s {@include avatar-size($avatar-size-s);}
 .avatar-size-m {@include avatar-size($avatar-size-m);}
 
-.ghost {
+.empty {
+  svg {
+    width: 100%;
+    height: 100%;
+    position: absolute; // Needed to avoid a slight shift when the circle is empty
+    left: 0;
+    top: 0;
+  }
+
   svg circle {
     fill: transparent;
     stroke: colors.$kobo-gray-400;
@@ -52,6 +60,7 @@ $avatar-size-m: 32px;
   color: colors.$kobo-white;
   // actual background color is provided by JS, this is just safeguard
   background-color: colors.$kobo-storm;
+  position: relative;
 }
 
 .text {
