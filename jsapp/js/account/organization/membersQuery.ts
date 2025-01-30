@@ -162,3 +162,11 @@ export default function useOrganizationMembersQuery({
     refetchOnWindowFocus: true,
   });
 }
+
+export function useOrganizationMemberDetailQuery(orgId: string, username: string) {
+  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId).replace(':username', username);
+  return useQuery({
+    queryFn: () => fetchGet<OrganizationMember>(apiPath),
+    queryKey: [QueryKeys.organizationMemberDetail, apiPath],
+  });
+}
