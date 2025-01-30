@@ -1,11 +1,9 @@
 // Libraries
 import React, {useState} from 'react';
-
 // Partial components
 import {Modal} from '@mantine/core';
 import Alert from 'js/components/common/alert';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
-
 // Stores, hooks and utilities
 import {MemberInviteStatus, useOrgMemberInviteQuery} from 'js/account/organization/membersInviteQuery';
 // Constants and types
@@ -31,6 +29,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
     content = <LoadingSpinner />;
   } else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
     content = (
+      // TODO: add whole content with button etc.
       <div>
         <p>You have been invited</p>
       </div>
