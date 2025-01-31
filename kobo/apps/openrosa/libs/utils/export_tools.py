@@ -2,7 +2,7 @@
 import json
 import os
 import re
-from datetime import datetime, date, time, timedelta
+from datetime import date, datetime, time, timedelta
 
 from bson import json_util
 from django.conf import settings
@@ -11,32 +11,33 @@ from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.shortcuts import render
 from django.utils.text import slugify
-from openpyxl.utils.datetime import to_excel, time_to_days, timedelta_to_days
+from openpyxl.utils.datetime import time_to_days, timedelta_to_days, to_excel
 from openpyxl.workbook import Workbook
 from pyxform.constants import SELECT_ALL_THAT_APPLY
 from pyxform.question import Question
-from pyxform.section import Section, RepeatingSection
+from pyxform.section import RepeatingSection, Section
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath
 from kobo.apps.openrosa.apps.viewer.models.export import Export
-from kobo.apps.openrosa.libs.utils.viewer_tools import create_attachments_zipfile
 from kobo.apps.openrosa.libs.utils.common_tags import (
-    ID,
-    XFORM_ID_STRING,
-    STATUS,
     ATTACHMENTS,
-    GEOLOCATION,
     DELETEDAT,
-    USERFORM_ID,
+    GEOLOCATION,
+    ID,
     INDEX,
+    NOTES,
     PARENT_INDEX,
     PARENT_TABLE_NAME,
+    STATUS,
     SUBMISSION_TIME,
-    UUID,
     TAGS,
-    NOTES
+    USERFORM_ID,
+    UUID,
+    XFORM_ID_STRING,
 )
+from kobo.apps.openrosa.libs.utils.viewer_tools import create_attachments_zipfile
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -48,7 +49,7 @@ xform_instances = settings.MONGO_DB.instances
 QUESTION_TYPES_TO_EXCLUDE = [
     'note',
 ]
-GEOPOINT_BIND_TYPE = "geopoint"
+GEOPOINT_BIND_TYPE = 'geopoint'
 
 
 def to_str(row, key, encode_dates=False, empty_on_none=True):
@@ -89,34 +90,36 @@ class DictOrganizer:
         if table_name not in obs:
             obs[table_name] = []
         this_index = len(obs[table_name])
-        obs[table_name].append({
-            "_parent_table_name": parent_table_name,
-            "_parent_index": parent_index,
-        })
+        obs[table_name].append(
+            {
+                '_parent_table_name': parent_table_name,
+                '_parent_index': parent_index,
+            }
+        )
         for k, v in d.items():
             if type(v) != dict and type(v) != list:
                 assert k not in obs[table_name][-1]
                 obs[table_name][-1][k] = v
-        obs[table_name][-1]["_index"] = this_index
+        obs[table_name][-1]['_index'] = this_index
 
         for k, v in d.items():
             if type(v) == dict:
                 kwargs = {
-                    "d": v,
-                    "obs": obs,
-                    "table_name": k,
-                    "parent_table_name": table_name,
-                    "parent_index": this_index
+                    'd': v,
+                    'obs': obs,
+                    'table_name': k,
+                    'parent_table_name': table_name,
+                    'parent_index': this_index,
                 }
                 self._build_obs_from_dict(**kwargs)
             if type(v) == list:
                 for i, item in enumerate(v):
                     kwargs = {
-                        "d": item,
-                        "obs": obs,
-                        "table_name": k,
-                        "parent_table_name": table_name,
-                        "parent_index": this_index,
+                        'd': item,
+                        'obs': obs,
+                        'table_name': k,
+                        'parent_table_name': table_name,
+                        'parent_index': this_index,
                     }
                     self._build_obs_from_dict(**kwargs)
         return obs
@@ -126,11 +129,11 @@ class DictOrganizer:
         assert len(d.keys()) == 1
         root_name = list(d)[0]
         kwargs = {
-            "d": d[root_name],
-            "obs": result,
-            "table_name": root_name,
-            "parent_table_name": "",
-            "parent_index": -1,
+            'd': d[root_name],
+            'obs': result,
+            'table_name': root_name,
+            'parent_table_name': '',
+            'parent_index': -1,
         }
         self._build_obs_from_dict(**kwargs)
         return result
@@ -169,10 +172,9 @@ def dict_to_joined_export(data, index, indices, name):
                 if name not in output:
                     output[name] = {}
                 if key in [TAGS]:
-                    output[name][key] = ",".join(val)
+                    output[name][key] = ','.join(val)
                 elif key in [NOTES]:
-                    output[name][key] = "\r\n".join(
-                        [v['note'] for v in val])
+                    output[name][key] = '\r\n'.join([v['note'] for v in val])
                 else:
                     output[name][key] = val
 
@@ -236,8 +238,7 @@ class ExportBuilder:
 
     def set_survey(self, survey):
         # TODO resolve circular import
-        from kobo.apps.openrosa.apps.viewer.models.data_dictionary import\
-            DataDictionary
+        from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 
         def build_sections(
                 current_section, survey_element, sections, select_multiples,
@@ -249,9 +250,7 @@ class ExportBuilder:
                     # if its repeating, build a new section
                     if isinstance(child, RepeatingSection):
                         # section_name in recursive call changes
-                        section = {
-                            'name': child.get_abbreviated_xpath(),
-                            'elements': []}
+                        section = {'name': get_abbreviated_xpath(child), 'elements': []}
                         self.sections.append(section)
                         build_sections(
                             section, child, sections, select_multiples,
@@ -259,20 +258,30 @@ class ExportBuilder:
                     else:
                         # its a group, recurs using the same section
                         build_sections(
-                            current_section, child, sections, select_multiples,
-                            gps_fields, encoded_fields, field_delimiter)
-                elif isinstance(child, Question) and child.bind.get("type")\
-                        not in QUESTION_TYPES_TO_EXCLUDE:
+                            current_section,
+                            child,
+                            sections,
+                            select_multiples,
+                            gps_fields,
+                            encoded_fields,
+                            field_delimiter,
+                        )
+                elif (
+                    isinstance(child, Question)
+                    and child.bind.get('type') not in QUESTION_TYPES_TO_EXCLUDE
+                ):
                     # add to survey_sections
                     if isinstance(child, Question):
-                        child_xpath = child.get_abbreviated_xpath()
-                        current_section['elements'].append({
-                            'title': ExportBuilder.format_field_title(
-                                child.get_abbreviated_xpath(),
-                                field_delimiter),
-                            'xpath': child_xpath,
-                            'type': child.bind.get("type")
-                        })
+                        child_xpath = get_abbreviated_xpath(child)
+                        current_section['elements'].append(
+                            {
+                                'title': ExportBuilder.format_field_title(
+                                    get_abbreviated_xpath(child), field_delimiter
+                                ),
+                                'xpath': child_xpath,
+                                'type': child.bind.get('type'),
+                            }
+                        )
 
                         if MongoHelper.is_attribute_invalid(child_xpath):
                             if current_section_name not in encoded_fields:
@@ -284,7 +293,7 @@ class ExportBuilder:
                     if child.type == SELECT_ALL_THAT_APPLY\
                             and self.SPLIT_SELECT_MULTIPLES:
                         for c in child.children:
-                            _xpath = c.get_abbreviated_xpath()
+                            _xpath = get_abbreviated_xpath(c)
                             _title = ExportBuilder.format_field_title(
                                 _xpath, field_delimiter)
                             choice = {
@@ -297,15 +306,16 @@ class ExportBuilder:
                                 current_section['elements'].append(choice)
                         _append_xpaths_to_section(
                             current_section_name, select_multiples,
-                            child.get_abbreviated_xpath(),
-                            [c.get_abbreviated_xpath()
-                             for c in child.children])
+                            get_abbreviated_xpath(child),
+                            [get_abbreviated_xpath(c) for c in child.children],
+                        )
 
                     # split gps fields within this section
-                    if child.bind.get("type") == GEOPOINT_BIND_TYPE:
+                    if child.bind.get('type') == GEOPOINT_BIND_TYPE:
                         # add columns for geopoint components
                         xpaths = DataDictionary.get_additional_geopoint_xpaths(
-                            child.get_abbreviated_xpath())
+                            get_abbreviated_xpath(child)
+                        )
                         current_section['elements'].extend(
                             [
                                 {
@@ -317,8 +327,11 @@ class ExportBuilder:
                                 for xpath in xpaths
                             ])
                         _append_xpaths_to_section(
-                            current_section_name, gps_fields,
-                            child.get_abbreviated_xpath(), xpaths)
+                            current_section_name,
+                            gps_fields,
+                            get_abbreviated_xpath(child),
+                            xpaths,
+                        )
 
         def _append_xpaths_to_section(current_section_name, field_list, xpath,
                                       xpaths):
@@ -454,7 +467,7 @@ class ExportBuilder:
             # make name the required len
             if len(generated_name) > allowed_name_len:
                 generated_name = generated_name[:allowed_name_len]
-            generated_name = "{0}{1}".format(generated_name, i)
+            generated_name = '{0}{1}'.format(generated_name, i)
             i += 1
         return generated_name
 
@@ -472,7 +485,8 @@ class ExportBuilder:
         for section in self.sections:
             section_name = section['name']
             work_sheet_title = ExportBuilder.get_valid_sheet_name(
-                "_".join(section_name.split("/")), list(work_sheet_titles.values()))
+                '_'.join(section_name.split('/')), list(work_sheet_titles.values())
+            )
             work_sheet_titles[section_name] = work_sheet_title
             work_sheets[section_name] = wb.create_sheet(
                 title=work_sheet_title)
@@ -529,7 +543,9 @@ class ExportBuilder:
 
     def to_flat_csv_export(self, path, data, username, id_string, filter_query):
         # TODO resolve circular import
-        from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import CSVDataFrameBuilder
+        from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import (
+            CSVDataFrameBuilder,
+        )
 
         csv_builder = CSVDataFrameBuilder(
             username,
@@ -572,7 +588,7 @@ def generate_export(export_type, extension, username, id_string,
     export_builder.set_survey(xform.data_dictionary().survey)
 
     prefix = slugify('{}_export__{}__{}'.format(export_type, username, id_string))
-    temp_file = NamedTemporaryFile(prefix=prefix, suffix=("." + extension))
+    temp_file = NamedTemporaryFile(prefix=prefix, suffix=('.' + extension))
 
     # get the export function by export type
     func = getattr(export_builder, export_type_func_map[export_type])
@@ -580,9 +596,8 @@ def generate_export(export_type, extension, username, id_string,
         temp_file.name, records, username, id_string, filter_query)
 
     # generate filename
-    basename = "%s_%s" % (
-        id_string, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-    filename = basename + "." + extension
+    basename = '%s_%s' % (id_string, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+    filename = basename + '.' + extension
 
     # check filename is unique
     while not Export.is_filename_unique(xform, filename):
@@ -654,7 +669,7 @@ def increment_index_in_filename(filename):
     dash and index and increment appropriately
     """
     # check for an index i.e. dash then number then dot extension
-    regex = re.compile(r"(.+?)\-(\d+)(\..+)")
+    regex = re.compile(r'(.+?)\-(\d+)(\..+)')
     match = regex.match(filename)
     if match:
         basename = match.groups()[0]
@@ -664,7 +679,7 @@ def increment_index_in_filename(filename):
         index = 1
         # split filename from ext
         basename, ext = os.path.splitext(filename)
-    new_filename = "%s-%d%s" % (basename, index, ext)
+    new_filename = '%s-%d%s' % (basename, index, ext)
     return new_filename
 
 
@@ -673,9 +688,8 @@ def generate_attachments_zip_export(
         filter_query=None):
     xform = XForm.objects.get(user__username=username, id_string=id_string)
     attachments = Attachment.objects.filter(instance__xform=xform)
-    basename = "%s_%s" % (id_string,
-                          datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-    filename = basename + "." + extension
+    basename = '%s_%s' % (id_string, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+    filename = basename + '.' + extension
     file_path = os.path.join(
         username,
         'exports',
@@ -722,11 +736,11 @@ def generate_kml_export(
         context={'data': kml_export_data(id_string, user)},
     )
 
-    basename = "%s_%s" % (
+    basename = '%s_%s' % (
         id_string,
-        datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
+        datetime.now().strftime('%Y_%m_%d_%H_%M_%S'),
     )
-    filename = basename + "." + extension
+    filename = basename + '.' + extension
     file_path = os.path.join(
         username, 'exports', id_string, export_type, filename
     )
@@ -817,7 +831,7 @@ def _get_absolute_filename(filename: str) -> str:
                 # was created concurrently.
                 pass
         if not os.path.isdir(directory):
-            raise IOError("%s exists and is not a directory." % directory)
+            raise IOError('%s exists and is not a directory.' % directory)
 
         # Store filenames with forward slashes, even on Windows.
         filename = filename.replace('\\', '/')
