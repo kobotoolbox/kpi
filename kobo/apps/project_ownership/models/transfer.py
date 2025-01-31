@@ -337,15 +337,22 @@ class Transfer(AbstractTimeStampedModel):
 
     def _update_project_exclusion_flag(self):
         """
-        Set `is_excluded_from_projects_list` to `True` for assets owned by the
-        sender or invitee joining the organization. These assets should be
-        excluded from the organization owner's `My Projects` list
+        Update `is_excluded_from_projects_list` based on asset ownership
+
+        If the invite is of `OrgMembershipAutoInvite`, set the flag to `True`
+        for assets owned by the sender or invitee joining the organization.
+        These assets should be excluded from the org owner's `My Projects` list.
+
+        If a project is explicitly transferred, it should remain in the
+        `My Projects` list of both the sender and recipient.
         """
-        if isinstance(self.invite, OrgMembershipAutoInvite):
-            real_owner = get_real_owner(self.invite.sender)
-            self.asset.is_excluded_from_projects_list = (
-                real_owner != self.invite.sender
-            )
+        is_excluded = (
+            isinstance(self.invite, OrgMembershipAutoInvite)
+            and get_real_owner(self.invite.sender) != self.invite.sender
+        )
+
+        if self.asset.is_excluded_from_projects_list != is_excluded:
+            self.asset.is_excluded_from_projects_list = is_excluded
             self.asset.save(
                 update_fields=['is_excluded_from_projects_list'],
                 adjust_content=False

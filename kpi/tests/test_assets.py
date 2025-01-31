@@ -19,6 +19,7 @@ from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
+from kobo.apps.project_ownership.models import InviteStatusChoices
 from kobo.apps.project_ownership.models.invite import Invite
 from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
@@ -918,8 +919,15 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.organization = self.someuser.organization
         self.org_owner = self.someuser
         self.external_user = self.bob
+        self.thirduser = User.objects.create_user(
+            username='thirduser', password='thirduser'
+        )
         self.asset_detail_url = lambda uid: reverse(
             self._get_endpoint('asset-detail'),
+            kwargs={'uid': uid}
+        )
+        self.invite_detail_url = lambda uid: reverse(
+            self._get_endpoint('project-ownership-invite-detail'),
             kwargs={'uid': uid}
         )
 
@@ -955,7 +963,24 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         asset.refresh_from_db()
         self.assertTrue(asset.is_excluded_from_projects_list)
 
-        # 3. Create an asset as the organization owner
+        # 3. If the org owner transfers the asset explicitly to another user,
+        # the flag should be False
+        invite = Invite.objects.create(
+            sender=self.org_owner, recipient=self.thirduser
+        )
+        Transfer.objects.create(invite=invite, asset=asset)
+        self.client.force_login(self.thirduser)
+        payload = {
+            'status': InviteStatusChoices.ACCEPTED
+        }
+        response = self.client.patch(
+            self.invite_detail_url(invite.uid), data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        asset.refresh_from_db()
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # 4. Create an asset as the organization owner
         self.client.force_login(self.org_owner)
         response = self.create_asset(
             name='Breakfast',
