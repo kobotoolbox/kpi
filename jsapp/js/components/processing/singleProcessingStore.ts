@@ -19,7 +19,6 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
-import {removeDefaultUuidPrefix} from 'js/components/submissions/submissionUtils';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -37,7 +36,10 @@ import {
   ProcessingTab,
 } from 'js/components/processing/routes.utils';
 import type {KoboSelectOption} from 'js/components/common/koboSelect';
-import {getExponentialDelayTime} from 'jsapp/js/utils';
+import {
+  getExponentialDelayTime,
+  removeDefaultUuidPrefix,
+} from 'jsapp/js/utils';
 import envStore from 'jsapp/js/envStore';
 
 export enum StaticDisplays {

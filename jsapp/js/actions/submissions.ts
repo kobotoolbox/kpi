@@ -4,12 +4,12 @@
 
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'js/utils';
-import {ROOT_URL} from 'js/constants';
 import {
+  notify,
   matchUuid,
   addDefaultUuidPrefix,
-} from 'js/components/submissions/submissionUtils';
+} from 'js/utils';
+import {ROOT_URL} from 'js/constants';
 import type {
   GetSubmissionsOptions,
   PaginatedResponse,

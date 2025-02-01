@@ -34,7 +34,10 @@ import {
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import {formatTimeDateShort} from 'js/utils';
+import {
+  formatTimeDateShort,
+  removeDefaultUuidPrefix,
+} from 'js/utils';
 import type {SurveyFlatPaths} from 'js/assetUtils';
 import {
   getRowName,
@@ -45,7 +48,6 @@ import {
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
-  removeDefaultUuidPrefix,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
