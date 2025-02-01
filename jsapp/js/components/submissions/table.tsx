@@ -45,6 +45,7 @@ import {
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
+  removeDefaultUuidPrefix,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
@@ -970,7 +971,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 q.type === QUESTION_TYPES.audio.id ||
                 q.type === QUESTION_TYPES['background-audio'].id
               ) {
-                const submissionEditId = row.original['meta/rootUuid'] || row.original._uuid;
+                const submissionEditId =
+                  removeDefaultUuidPrefix(row.original['meta/rootUuid'])
+                  || row.original._uuid;
 
                 if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (

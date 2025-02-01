@@ -6,6 +6,10 @@ import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'js/utils';
 import {ROOT_URL} from 'js/constants';
+import {
+  matchUuid,
+  addDefaultUuidPrefix,
+} from 'js/components/submissions/submissionUtils';
 import type {
   GetSubmissionsOptions,
   PaginatedResponse,
@@ -80,7 +84,7 @@ submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid:
   // `meta/rootUuid` remains consistent across edits.
   const query = JSON.stringify({
     '$or': [
-      {'meta/rootUuid': submissionUuid},
+      {'meta/rootUuid': addDefaultUuidPrefix(submissionUuid)},
       {'_uuid': submissionUuid},
     ],
   });
@@ -92,7 +96,7 @@ submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid:
     .done((response: PaginatedResponse<SubmissionResponse>) => {
       // preferentially return a result matching the persistent UUID
       submissionsActions.getSubmissionByUuid.completed(
-        response.results.find((sub) => sub['meta/rootUuid'] === submissionUuid) ||
+        response.results.find((sub) => matchUuid(sub['meta/rootUuid'], submissionUuid)) ||
         response.results[0]
       );
     })

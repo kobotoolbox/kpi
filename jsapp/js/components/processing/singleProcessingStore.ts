@@ -19,6 +19,7 @@ import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import processingActions from 'js/components/processing/processingActions';
 import type {ProcessingDataResponse} from 'js/components/processing/processingActions';
+import {removeDefaultUuidPrefix} from 'js/components/submissions/submissionUtils';
 import type {
   FailResponse,
   SubmissionResponse,
@@ -535,10 +536,10 @@ class SingleProcessingStore extends Reflux.Store {
               if (rowName) {
                 // `meta/rootUuid` is persistent across edits while `_uuid` is not;
                 // use the persistent identifier if present.
-                let uuid = result['meta/rootUuid'];
-                if (uuid === undefined) {
-                  uuid = result['_uuid'];
-                }
+                const uuid = result['meta/rootUuid']
+                  ? removeDefaultUuidPrefix(result['meta/rootUuid'])
+                  : result['_uuid'];
+
                 submissionsEditIds[xpath].push({
                   editId: uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
