@@ -772,3 +772,60 @@ export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true);
   return flatPaths[rowName];
 }
+
+
+// Submission UUID comparison helpers
+
+/**
+ * Add a default 'uuid:' prefix to the provided identifier,
+ * if there's no prefix already.
+ *
+ *  Examples:
+ *    'kobotoolbox.org:123456789' -> unchanged
+ *    'uuid:123456789' -> unchanged
+ *    '123456789' -> 'uuid:123456789'
+ *
+ * 🐍 Equivalent to add_uuid_prefix on the backend.
+ */
+export function addDefaultUuidPrefix(uuid: string) {
+  return uuid.includes(':') ? uuid : `uuid:${uuid}`;
+}
+
+/**
+ * Remove the default 'uuid:' prefix from a provided identifier,
+ * while preserving any custom prefixes (e.g. 'kobotoolbox.org:123456789'),
+ * which are allowed by OpenRosa to reduce the chance of ID collisions.
+ *
+ * 🐍 Equivalent to remove_uuid_prefix on the backend.
+ */
+export function removeDefaultUuidPrefix(uuid: string) {
+  return uuid.replace(/^uuid:/, '');
+}
+
+/**
+ * Compare any two uuid's, accounting for the presence or absence of
+ * the default `'uuid:'` prefix in `meta/instanceId` and `meta/rootUuid`.
+ *
+ * Use this when comparing a `_uuid` with one of those `meta/` fields,
+ * since the meta fields include the `uuid:` prefix but the _uuid field
+ * strips them.
+ *
+ * Usage examples:
+ *
+ *     matchUuid( _uuid, rootUuid )   // ✅ true if equivalent
+ *     matchUuid( _uuid, instanceId ) // ✅ true if equivalent
+ *
+ *     matchUuid( instanceId, rootUuid )  // ✔️ this works too
+ *
+ *     matchUuid( 'some-uuid-that-here-exists',
+ *           'uuid:some-uuid-that-here-exists') // ✔️ match true
+ *
+ *     matchUuid(     'uuid-collision',
+ *        'org.example:uuid-collision') // false (different namespace)
+ */
+export function matchUuid(uuidA: string, uuidB: string) {
+  return (
+    addDefaultUuidPrefix(uuidA) ===
+    addDefaultUuidPrefix(uuidB)
+  );
+}
