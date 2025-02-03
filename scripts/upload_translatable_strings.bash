@@ -8,7 +8,7 @@ echo 'Extracting translatable strings from Django code.'
 (cd ${KOBOFORM_SRC_DIR} && python manage.py makemessages --locale en)
 
 echo 'Extracting translatable strings from client code.'
-(cd ${KOBOFORM_SRC_DIR} && python manage.py makemessages --locale en --domain djangojs --extension es6)
+(cd ${KOBOFORM_SRC_DIR} && python manage.py makemessages --locale en --domain djangojs --extension js)
 
 echo 'Uploading translatable strings to Transifex.'
 (cd ${KOBOFORM_SRC_DIR} && tx push -s)

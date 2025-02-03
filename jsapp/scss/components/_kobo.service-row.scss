@@ -18,6 +18,11 @@ $s-service-row-column-spacing: 10px;
     border-bottom: 1px solid colors.$kobo-gray-300;
   }
 
+  &:hover {
+    // Partially fixes the issue of button tooltips being hidden by the service row
+    z-index: z-indexes.$z-service-row-link + 2;
+  }
+
   &:not(.service-row--header):hover {
     background-color: colors.$kobo-gray-200;
     color: colors.$kobo-gray-800;

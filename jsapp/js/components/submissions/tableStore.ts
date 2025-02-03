@@ -25,7 +25,7 @@ export interface TableStoreData {
 }
 
 /**
- * NOTE: tableStore should be handling all data required by table.es6, but as
+ * NOTE: tableStore should be handling all data required by table.js, but as
  * this would mean a huge refactor (and most probably dropping react-table),
  * we will stick to providing a one way interface for changing things in asset
  * plus some utility functions.

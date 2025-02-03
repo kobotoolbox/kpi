@@ -8,7 +8,7 @@ import {KEY_CODES} from 'jsapp/js/constants';
 import userExistence from 'js/users/userExistence.store';
 
 export default function InviteModal(props: ModalProps) {
-  const inviteQuery = membersQuery;
+  const inviteQuery = useSendMemberInvite();
 
   const [textValue, setTextValue] = useState('');
   const [role, setRole] = useState<string | null>(null);
