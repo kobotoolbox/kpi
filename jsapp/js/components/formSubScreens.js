@@ -10,7 +10,7 @@ import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
-import RESTServices from './RESTServices/RESTServices';
+import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {ROUTES} from 'js/router/routerConstants';
 import {withRouter} from 'js/router/legacy';
