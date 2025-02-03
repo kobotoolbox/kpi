@@ -18,7 +18,7 @@ from kpi.utils.json import LazyJSONSerializable
 class AccountFormsTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = baker.make(settings.AUTH_USER_MODEL)
+        cls.user = baker.make(settings.AUTH_USER_MODEL, email='email@email.com')
         cls.sociallogin = baker.make('socialaccount.SocialAccount', user=cls.user)
 
     def setUp(self):
@@ -297,7 +297,7 @@ class AccountFormsTestCase(TestCase):
         """
         basic_data = {
             'username': 'foo',
-            'email': 'double@foo.bar',
+            'email': kwargs.get('email', 'double@foo.bar'),
             'password1': 'tooxox',
             'password2': 'tooxox',
         }
@@ -317,6 +317,7 @@ class AccountFormsTestCase(TestCase):
             data = basic_data.copy()
             data['organization_type'] = 'government'
             form = form_type(data, **kwargs.get('form_kwargs', {}))
+
             # No other organization fields should be required
             assert form.is_valid()
 
@@ -416,5 +417,5 @@ class AccountFormsTestCase(TestCase):
 
     def test_organization_field_skip_logic_sso_form(self):
         self._organization_field_skip_logic(
-            SocialSignupForm, form_kwargs={'sociallogin': self.sociallogin}
+            SocialSignupForm, form_kwargs={'sociallogin': self.sociallogin}, email=self.sociallogin.user.email
         )
