@@ -135,10 +135,12 @@ export function usePatchMemberInvite(inviteUrl?: string) {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [
-        QueryKeys.organizationMemberInviteDetail,
-        QueryKeys.organizationMembers,
-      ]});
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberInviteDetail],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMembers],
+      });
     },
   });
 }
