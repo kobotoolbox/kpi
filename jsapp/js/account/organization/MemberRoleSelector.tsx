@@ -1,6 +1,6 @@
 import {Select} from 'jsapp/js/components/common/Select';
 import {usePatchOrganizationMember} from './membersQuery';
-import {MemberInviteStatus, usePatchMemberInvite} from './membersInviteQuery';
+import {usePatchMemberInvite} from './membersInviteQuery';
 import {OrganizationUserRole} from './organizationQuery';
 import {LoadingOverlay} from '@mantine/core';
 

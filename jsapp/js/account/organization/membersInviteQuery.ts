@@ -30,7 +30,7 @@ import {type Json} from 'jsapp/js/components/common/common.interfaces';
  * The source of truth of statuses are at `OrganizationInviteStatusChoices` in
  * `kobo/apps/organizations/models.py`. This enum should be kept in sync.
  */
-export enum MemberInviteStatus {
+enum MemberInviteStatus {
   accepted = 'accepted',
   cancelled = 'cancelled',
   complete = 'complete',
