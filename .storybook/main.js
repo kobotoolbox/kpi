@@ -32,7 +32,7 @@ module.exports = {
     config.plugins.push(new webpack.ProvidePlugin({$: 'jquery'}));
     config.module.rules.push({
       resolve: {
-        extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx', '.scss'],
+        extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
         alias: {
           app: path.join(__dirname, '../app'),
           jsapp: path.join(__dirname, '../jsapp'),

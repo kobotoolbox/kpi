@@ -208,7 +208,7 @@
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
     "test": "jest --config ./jsapp/jest/unit.config.ts",
     "test-watch": "jest --config ./jsapp/jest/unit.config.ts --watch",
-    "lint": "eslint 'jsapp/js/**/*.{es6,js,jsx,ts,tsx}' --ext .es6,.js,.jsx,.ts,.tsx",
+    "lint": "eslint 'jsapp/js/**/*.{js,jsx,ts,tsx}' --ext .js,.jsx,.ts,.tsx",
     "lint-coffee": "coffeelint -f ./coffeelint.json jsapp/xlform/src test",
     "lint-styles": "stylelint 'jsapp/**/*.{css,scss}' --ip jsapp/compiled --ip jsapp/fonts",
     "check-types": "tsc -p tsconfig.json --noEmit",
