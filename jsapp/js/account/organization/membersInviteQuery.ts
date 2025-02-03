@@ -65,8 +65,6 @@ interface MemberInviteRequestBase {
 interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[];
-  /** Target role for the invitied users. */
-  role: OrganizationUserRole;
 }
 
 interface MemberInviteUpdate extends MemberInviteRequestBase{
