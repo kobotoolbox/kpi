@@ -13,6 +13,7 @@ export interface EnvironmentResponse {
   support_email: string;
   support_url: string;
   community_url: string;
+  academy_url: string;
   project_metadata_fields: EnvStoreFieldItem[];
   user_metadata_fields: UserMetadataField[];
   sector_choices: string[][];
@@ -44,6 +45,7 @@ export interface EnvironmentResponse {
    */
   terms_of_service__sitewidemessage__exists: boolean;
   open_rosa_server: string;
+  project_history_log_lifespan: number;
 }
 
 /*
@@ -100,6 +102,7 @@ export class EnvStoreData {
   public support_email = '';
   public support_url = '';
   public community_url = '';
+  public academy_url = '';
   public min_retry_time = 4; // seconds
   public max_retry_time: number = 4 * 60; // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = [];
@@ -209,6 +212,7 @@ class EnvStore {
     this.data.support_email = response.support_email;
     this.data.support_url = response.support_url;
     this.data.community_url = response.community_url;
+    this.data.academy_url = response.academy_url;
     this.data.min_retry_time = response.frontend_min_retry_time;
     this.data.max_retry_time = response.frontend_max_retry_time;
     this.data.project_metadata_fields = response.project_metadata_fields;

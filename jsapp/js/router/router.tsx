@@ -23,10 +23,10 @@ const Reports = React.lazy(
   () => import(/* webpackPrefetch: true */ 'js/components/reports/reports')
 );
 const FormLanding = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/formLanding')
+  () => import(/* webpackPrefetch: true */ 'js/components/formLanding/formLanding')
 );
 const FormSummary = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/formSummary')
+  () => import(/* webpackPrefetch: true */ 'js/components/formSummary/formSummary')
 );
 const FormSubScreens = React.lazy(
   () => import(/* webpackPrefetch: true */ 'js/components/formSubScreens')
@@ -52,7 +52,7 @@ export const router = createHashRouter(
         element={<Navigate to={ROUTES.FORMS} replace />}
       />
       <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
-      <Route path={ROUTES.PROJECTS_ROOT}>{projectsRoutes()}</Route>
+      {projectsRoutes()}
       <Route path={ROUTES.LIBRARY}>
         <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />
         <Route

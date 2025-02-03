@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from django.conf import settings
 
@@ -9,8 +9,7 @@ from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
-# use `dict` when Python 3.8 is dropped
-PermissionFilter = Dict[str, Any]
+PermissionFilter = dict[str, Any]
 
 
 def drop_mock_only(func):

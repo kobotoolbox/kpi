@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Union
 from smtplib import SMTPException
 
-from constance import config
+from django.conf import settings
 from django.core.mail import send_mail, EmailMultiAlternatives, get_connection
 from django.template.loader import get_template
 from django.utils.translation import activate, gettext as t
@@ -23,11 +23,13 @@ class EmailMessage:
         language: str = None,
         from_: str = None,
     ):
+        default_language = settings.LANGUAGE_CODE
+
         self.to = to
         if isinstance(to, str):
             self.to = [to]
 
-        self.from_ = config.SUPPORT_EMAIL if not from_ else from_
+        self.from_ = settings.DEFAULT_FROM_EMAIL if not from_ else from_
 
         if language:
             # Localize templates
@@ -52,6 +54,9 @@ class EmailMessage:
                     template_variables
                 )
             )
+
+        if language:
+            activate(default_language)
 
     def to_multi_alternative(self):
         message = EmailMultiAlternatives(

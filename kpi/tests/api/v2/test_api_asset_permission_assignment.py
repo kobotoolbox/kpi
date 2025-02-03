@@ -24,19 +24,17 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
 
 
-class BaseApiAssetPermissionTestCase(
-    PermissionAssignmentTestCaseMixin, KpiTestCase
-):
+class BaseApiAssetPermissionTestCase(PermissionAssignmentTestCaseMixin, KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.admin = User.objects.get(username='admin')
+        self.admin = User.objects.get(username='adminuser')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
 
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         self.asset = self.create_asset('An asset to be shared')
 
     def _grant_perm_as_logged_in_user(self, username, codename):
@@ -344,7 +342,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
         response = self._assign_perms_as_logged_in_user(
-            [('admin', PERM_VIEW_ASSET), ('admin', PERM_CHANGE_ASSET)]
+            [('adminuser', PERM_VIEW_ASSET), ('adminuser', PERM_CHANGE_ASSET)]
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -383,14 +381,14 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
             ),
             sorted(
                 [
-                    ('admin', PERM_VIEW_ASSET),
-                    ('admin', PERM_CHANGE_ASSET),
-                    ('admin', PERM_MANAGE_ASSET),
-                    ('admin', PERM_ADD_SUBMISSIONS),
-                    ('admin', PERM_DELETE_SUBMISSIONS),
-                    ('admin', PERM_VIEW_SUBMISSIONS),
-                    ('admin', PERM_CHANGE_SUBMISSIONS),
-                    ('admin', PERM_VALIDATE_SUBMISSIONS),
+                    ('adminuser', PERM_VIEW_ASSET),
+                    ('adminuser', PERM_CHANGE_ASSET),
+                    ('adminuser', PERM_MANAGE_ASSET),
+                    ('adminuser', PERM_ADD_SUBMISSIONS),
+                    ('adminuser', PERM_DELETE_SUBMISSIONS),
+                    ('adminuser', PERM_VIEW_SUBMISSIONS),
+                    ('adminuser', PERM_CHANGE_SUBMISSIONS),
+                    ('adminuser', PERM_VALIDATE_SUBMISSIONS),
                     ('someuser', PERM_VIEW_ASSET),
                     ('anotheruser', PERM_VIEW_ASSET),
                     ('anotheruser', PERM_CHANGE_ASSET),

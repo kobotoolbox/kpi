@@ -1,31 +1,57 @@
 import React from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
+import type {ComponentStory, ComponentMeta, StoryObj} from '@storybook/react';
 
 import Avatar from './avatar';
 import type {AvatarSize} from './avatar';
 
-const avatarSizes: AvatarSize[] = ['s', 'm', 'l'];
+const avatarSizes: AvatarSize[] = ['s', 'm'];
 
 export default {
   title: 'common/Avatar',
   component: Avatar,
   argTypes: {
-    username: {type: 'string'},
     size: {
       options: avatarSizes,
       control: {type: 'select'},
     },
+    username: {type: 'string'},
     isUsernameVisible: {type: 'boolean'},
+    hasFullName: {
+      type: 'boolean',
+      description:
+        'Allows testing `fullName` being empty string or not existing',
+    },
+    fullName: {type: 'string', if: {arg: 'hasFullName', truthy: true}},
+    hasEmail: {
+      type: 'boolean',
+      description: 'Allows testing `email` being empty string or not existing',
+    },
+    email: {type: 'string', if: {arg: 'hasEmail', truthy: true}},
+    isEmpty: {
+      type: 'boolean',
+    },
   },
 } as ComponentMeta<typeof Avatar>;
 
 const Template: ComponentStory<typeof Avatar> = (args) => <Avatar {...args} />;
 
-export const Primary = Template.bind({});
-Primary.args = {
-  username: 'Leszek',
+export const Simple = Template.bind({});
+Simple.args = {
   size: avatarSizes[0],
+  username: 'leszek',
   isUsernameVisible: true,
+};
+
+export const Full: StoryObj<typeof Avatar> = {
+  render: () => (
+    <Avatar
+      size='m'
+      username='wilhelm_lg_swh'
+      isUsernameVisible
+      fullName='Wilhelm Ludwig Georg zu Sayn-Wittgenstein-Hohenstein'
+      email='wilhelm@swh.de'
+    />
+  ),
 };
 
 // We want to test how the avatar colors look like with some ~random usernames.
@@ -49,11 +75,11 @@ const bulkUsernames = [
 'Sunita', 'Andrea', 'Christine', 'Irina', 'Laura', 'Linda', 'Marina', 'Carmen',
 'Ghulam', 'Vladimir', 'Barbara', 'Angela', 'George', 'Roberto', 'Peng',
 ];
-export const BulkTest = () => (
+export const BulkColorsTest = () => (
   <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
     {bulkUsernames.map((username) => (
       <div key={username}>
-        <Avatar size='m' username={username} isUsernameVisible/>
+        <Avatar size='m' username={username}/>
       </div>
     ))}
   </div>

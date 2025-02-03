@@ -29,6 +29,15 @@ import type {
 import type {ProjectTransferAssetDetail} from 'js/components/permissions/transferProjects/transferProjects.api';
 import type {SortValues} from 'js/components/submissions/tableConstants';
 import type {ValidationStatusName} from 'js/components/submissions/validationStatus.constants';
+import type {AssetLockingProfileDefinition} from 'jsapp/js/components/locking/lockingConstants';
+import {
+  type ExportFormatName,
+  type ExportMultiOptionName,
+  type ExportStatusName,
+  type ExportTypeName,
+} from './components/projectDownloads/exportsConstants';
+import {type LangString} from './utils';
+import type {HookAuthLevelName, HookExportTypeName} from './components/RESTServices/RESTServicesForm';
 
 interface AssetsRequestData {
   q?: string;
@@ -337,28 +346,33 @@ export interface PermissionResponse extends PermissionBase {
 /**
  * A saved export settings instance.
  */
-interface ExportSetting {
+export interface ExportSetting {
   uid: string;
   url: string;
   name: string;
+  data_url_csv: string;
+  data_url_xlsx: string;
   date_modified: string;
   export_settings: ExportSettingSettings;
 }
 
-interface ExportSettingRequest {
+export interface ExportSettingRequest {
   name: string;
   export_settings: ExportSettingSettings;
 }
 
-interface ExportSettingSettings {
-  lang: string;
-  type: string;
+export interface ExportSettingSettings {
+  lang: ExportDataLang;
+  type: ExportTypeName;
   fields: string[];
   group_sep: string;
-  xls_types: boolean;
-  multiple_select: string;
+  multiple_select: ExportMultiOptionName;
+  include_media_url?: boolean;
+  xls_types_as_text?: boolean;
   hierarchy_in_labels: boolean;
   fields_from_all_versions: boolean;
+  /** Only for GeoJSON */
+  flatten?: boolean;
 }
 
 /**
@@ -403,11 +417,6 @@ export interface SurveyChoice {
   $autoname?: string;
 }
 
-interface AssetLockingProfileDefinition {
-  name: string;
-  restrictions: string[]; // TODO make sure it's a type not a string when, see: https://github.com/kobotoolbox/kpi/issues/3904
-}
-
 export interface AssetContentSettings {
   name?: string;
   version?: string;
@@ -416,7 +425,9 @@ export interface AssetContentSettings {
   form_id?: string;
   title?: string;
   'kobo--lock_all'?: boolean;
-  'kobo--locking-profile'?: 'string';
+  /** The name of the locking profile applied to whole form. */
+  'kobo--locking-profile'?: string;
+  default_language?: string;
 }
 
 /**
@@ -432,6 +443,7 @@ export interface AssetContent {
   translated?: string[];
   /** A list of languages. */
   translations?: Array<string | null>;
+  /** A list of all availavble locking profiles */
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[];
 }
 
@@ -441,7 +453,7 @@ interface AssetSummary {
   columns?: string[];
   lock_all?: boolean;
   lock_any?: boolean;
-  languages?: Array<string | null>;
+  languages?: Array<LangString | null>;
   row_count?: number;
   default_translation?: string | null;
   /** To be used in a warning about missing or poorly written question names. */
@@ -509,7 +521,7 @@ interface AdvancedSubmissionSchemaDefinition {
 export interface TableSortBySetting {
   fieldId: string;
   value: SortValues;
-};
+}
 
 /**
  * None of these are actually stored as `null`s, but we use this interface for
@@ -530,7 +542,7 @@ interface AssetTableSettingsObject {
  */
 export interface AssetTableSettings extends AssetTableSettingsObject {
   /** This is the same object as AssetTableSettings */
-  'data-table'?: AssetTableSettingsObject
+  'data-table'?: AssetTableSettingsObject;
 }
 
 export interface AssetSettings {
@@ -587,7 +599,7 @@ export interface AnalysisFormJsonField {
   choices?: Array<{
     uuid: string;
     labels: {[key: string]: string};
-  }>
+  }>;
 }
 
 /**
@@ -600,6 +612,7 @@ export interface AssetResponse extends AssetRequestObject {
   url: string;
   owner: string;
   owner__username: string;
+  owner_label: string;
   date_created: string;
   summary: AssetSummary;
   date_modified: string;
@@ -639,12 +652,7 @@ export interface AssetResponse extends AssetRequestObject {
   };
   deployment__active: boolean;
   deployment__data_download_links?: {
-    xls_legacy?: string;
-    csv_legacy?: string;
-    zip_legacy?: string;
-    kml_legacy?: string;
-    xls?: string;
-    csv?: string;
+    [key in ExportTypeName]: string | undefined;
   };
   deployment__submission_count: number;
   deployment_status: 'archived' | 'deployed' | 'draft';
@@ -696,6 +704,7 @@ export interface ProjectViewAsset {
   date_deployed: string | null;
   owner: string;
   owner__username: string;
+  owner_label: string;
   owner__email: string;
   /** Full name */
   owner__name: string;
@@ -942,7 +951,90 @@ export interface EnketoLinkResponse {
   version_id: string;
   responseJSON?: {
     detail?: string;
-  }
+  };
+}
+
+export interface ExternalServiceHookResponse {
+  url: string;
+  logs_url: string;
+  asset: number;
+  uid: string;
+  name: string;
+  /** URL */
+  endpoint: string;
+  active: boolean;
+  export_type: HookExportTypeName;
+  auth_level: HookAuthLevelName;
+  success_count: number;
+  failed_count: number;
+  pending_count: number;
+  settings: {
+    password?: string;
+    username?: string;
+    custom_headers: {
+      [key: string]: string;
+    };
+  };
+  date_modified: string;
+  email_notification: boolean;
+  subset_fields: string[];
+  payload_template: string;
+}
+
+export interface ExternalServiceLogResponse {
+  url: string;
+  uid: string;
+  submission_id: number;
+  tries: number;
+  /** See `HOOK_LOG_STATUSES` */
+  status: number;
+  stratus_str: string;
+  status_code: number | null;
+  /** This is a SubmissionResponse stringified */
+  message: string;
+  date_modified: string;
+}
+
+export interface RetryExternalServiceLogsResponse {
+  detail: string;
+  pending_uids: string[];
+}
+
+export type ExportDataLang = ExportFormatName | LangString;
+
+/**
+ * TODO: this interface is WIP, so some of the properties might be incomplete or
+ * incorrect. It was created by doing a few exports and comparing responses.
+ */
+export interface ExportDataResponse {
+  url: string;
+  status: ExportStatusName;
+  messages: {
+    error?: string;
+  };
+  uid: string;
+  date_created: string;
+  last_submission_time: string | null;
+  /** URL to download the file. Stops being `null` when report is ready. */
+  result: string | null;
+  data: {
+    lang: ExportDataLang;
+    name: null;
+    type: ExportTypeName;
+    /** List of form row names. */
+    fields: string[];
+    /** Asset URL. */
+    source: string;
+    group_sep: string;
+    multiple_select: ExportMultiOptionName;
+    include_media_url?: boolean;
+    xls_types_as_text?: boolean;
+    hierarchy_in_labels: boolean;
+    /** Is defined when report is ready. */
+    processing_time_seconds?: number;
+    fields_from_all_versions: boolean;
+    flatten?: boolean;
+  };
 }
 
 const $ajax = (o: {}) =>
@@ -1040,14 +1132,14 @@ export const dataInterface: DataInterface = {
    * external services
    */
 
-  getHooks(uid: string): JQuery.jqXHR<any> {
+  getHooks(uid: string): JQuery.jqXHR<PaginatedResponse<ExternalServiceHookResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/`,
       method: 'GET',
     });
   },
 
-  getHook(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  getHook(uid: string, hookUid: string): JQuery.jqXHR<ExternalServiceHookResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/`,
       method: 'GET',
@@ -1088,21 +1180,21 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getHookLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  getHookLogs(uid: string, hookUid: string): JQuery.jqXHR<PaginatedResponse<ExternalServiceLogResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/`,
       method: 'GET',
     });
   },
 
-  getHookLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<any> {
+  getHookLog(uid: string, hookUid: string, lid: string): JQuery.jqXHR<ExternalServiceLogResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/logs/${lid}/`,
       method: 'GET',
     });
   },
 
-  retryExternalServiceLogs(uid: string, hookUid: string): JQuery.jqXHR<any> {
+  retryExternalServiceLogs(uid: string, hookUid: string): JQuery.jqXHR<RetryExternalServiceLogsResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/hooks/${hookUid}/retry/`,
       method: 'PATCH',
@@ -1367,7 +1459,7 @@ export const dataInterface: DataInterface = {
     }
   },
 
-  getAssetExports(assetUid: string): JQuery.jqXHR<any> {
+  getAssetExports(assetUid: string): JQuery.jqXHR<PaginatedResponse<ExportDataResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       data: {
@@ -1382,7 +1474,7 @@ export const dataInterface: DataInterface = {
   createAssetExport(
     assetUid: string,
     data: ExportSettingSettings
-  ): JQuery.jqXHR<any> {
+  ): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
       method: 'POST',
@@ -1392,7 +1484,7 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  getAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<any> {
+  getAssetExport(assetUid: string, exportUid: string): JQuery.jqXHR<ExportDataResponse> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
       method: 'GET',

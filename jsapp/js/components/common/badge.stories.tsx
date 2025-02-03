@@ -9,7 +9,9 @@ const badgeColors: BadgeColor[] = [
   'light-storm',
   'light-amber',
   'light-blue',
+  'light-red',
   'light-teal',
+  'light-green',
 ];
 const badgeSizes: BadgeSize[] = ['s', 'm', 'l'];
 

@@ -50,9 +50,9 @@ class SSOLoginTest(TestCase):
 
     @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
     @responses.activate
-    @patch('allauth.socialaccount.models.SocialLogin.verify_and_unstash_state')
-    def test_keep_django_auth_backend_with_sso(self, mock_verify_and_unstash_state):
-        mock_verify_and_unstash_state.return_value = {'process': 'login'}
+    @patch('allauth.socialaccount.providers.oauth2.views.statekit.unstash_state')
+    def test_keep_django_auth_backend_with_sso(self, mock_unstash_state):
+        mock_unstash_state.return_value = {'process': 'login'}
 
         # Mock `requests` responses to fool django-allauth
         responses.add(
@@ -92,7 +92,7 @@ class SSOLoginTest(TestCase):
         )
 
         # Simulate GET request to SSO provider
-        mock_sso_response = {'code': 'foobar'}
+        mock_sso_response = {'code': 'foobar', 'state': '12345'}
         response = self.client.get(sso_login_url, data=mock_sso_response)
 
         # Ensure user is logged in
@@ -102,5 +102,5 @@ class SSOLoginTest(TestCase):
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         # Ensure there is a record of the login
         audit_log: AuditLog = AuditLog.objects.filter(user=response.wsgi_request.user).first()
-        self.assertEquals(audit_log.action, AuditAction.AUTH)
+        self.assertEqual(audit_log.action, AuditAction.AUTH)
         assert response.wsgi_request.user.backend == settings.AUTHENTICATION_BACKENDS[0]

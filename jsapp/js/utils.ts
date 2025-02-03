@@ -222,8 +222,11 @@ interface LangObject {
   name: string;
 }
 
+/** Alias for string but it always has `<name>(<code>)` format, e.g. "francais (fr)" */
+export type LangString = string;
+
 // langString contains name and code e.g. "English (en)"
-export function getLangAsObject(langString: string): LangObject | undefined {
+export function getLangAsObject(langString: LangString): LangObject | undefined {
   const openingIndex = langString.indexOf('(');
   const closingIndex = langString.indexOf(')');
 
@@ -246,7 +249,7 @@ export function getLangAsObject(langString: string): LangObject | undefined {
   }
 }
 
-export function getLangString(obj: LangObject): string | undefined {
+export function getLangString(obj: LangObject): LangString | undefined {
   if (typeof obj === 'object' && obj.name && obj.code) {
     return `${obj.name} (${obj.code})`;
   } else {

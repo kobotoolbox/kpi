@@ -1,11 +1,10 @@
-# coding: utf-8
 import time
 
-import constance
 import requests
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -14,27 +13,41 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ExportTask, ImportTask
+from kpi.models.import_export_task import ImportTask, SubmissionExportTask
 
 
-@celery_app.task
+@celery_app.task(
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
+)
 def import_in_background(import_task_uid):
     import_task = ImportTask.objects.get(uid=import_task_uid)
     import_task.run()
+    return import_task.uid
 
 
-@celery_app.task
+@celery_app.task(
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
+)
 def export_in_background(export_task_uid):
-    export_task = ExportTask.objects.get(uid=export_task_uid)
+    export_task = SubmissionExportTask.objects.get(uid=export_task_uid)
     export_task.run()
 
 
-@celery_app.task
+@celery_app.task(
+    autoretry_for=(ObjectDoesNotExist,),
+    max_retries=settings.MAX_RETRIES_FOR_IMPORT_EXPORT_TASK,
+    retry_backoff=True,
+)
 def export_task_in_background(
     export_task_uid: str, username: str, export_task_name: str
 ) -> None:
     user = User.objects.get(username=username)
     export_task_class = apps.get_model(export_task_name)
+
     export_task = export_task_class.objects.get(uid=export_task_uid)
     export = export_task.run()
     if export.status == 'complete' and export.result:
@@ -45,10 +58,11 @@ def export_task_in_background(
             'Regards,\n'
             'KoboToolbox'
         )
+        subject = export.default_email_subject
         mail.send_mail(
-            subject='Project View Report Complete',
+            subject=subject,
             message=msg,
-            from_email=constance.config.SUPPORT_EMAIL,
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             fail_silently=False,
         )
@@ -105,8 +119,9 @@ def enketo_flush_cached_preview(server_url, form_id):
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
 def perform_maintenance():
     """
-    Run daily maintenance tasks
+    Run daily maintenance tasks.
     """
+
     remove_unused_markdown_files()
     remove_old_import_tasks()
     remove_old_asset_snapshots()

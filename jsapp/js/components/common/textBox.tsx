@@ -37,7 +37,7 @@ interface TextBoxProps {
   endIcon?: IconName;
   value: string;
   /** Not needed if `readOnly` */
-  onChange?: Function;
+  onChange?: (newValue: string) => void;
   onBlur?: Function;
   onKeyPress?: Function;
   /**
@@ -72,6 +72,7 @@ interface TextBoxProps {
 /**
  * A generic text box component. It relies on parent to handle all the data
  * updates.
+ * * @deprecated Use mantine inputs
  */
 export default function TextBox(props: TextBoxProps) {
   const inputReference: React.MutableRefObject<null | HTMLInputElement> =

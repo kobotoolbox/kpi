@@ -5,6 +5,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
   'url': 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt',
   'owner': 'http://kf.kobo.local/api/v2/users/kobo.json',
   'owner__username': 'kobo',
+  'owner_label': 'kobo',
   'parent': null,
   'settings': {
     'sector': {},
@@ -81,6 +82,8 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
     'csv_legacy': 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/csv/',
     'zip_legacy': 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/zip/',
     'kml_legacy': 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/kml/',
+    'geojson': 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/geojson/',
+    'spss_labels': 'http://kc.kobo.local/kobo/exports/am5q2MmVckuLBXPKsbHjEt/spss/',
     'xls': 'http://kc.kobo.local/kobo/reports/am5q2MmVckuLBXPKsbHjEt/export.xlsx',
     'csv': 'http://kc.kobo.local/kobo/reports/am5q2MmVckuLBXPKsbHjEt/export.csv',
   },
@@ -893,6 +896,7 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
   'url': 'http://kf.kobo.local/api/v2/assets/aRai4qmXVG4eukrzpHXAQC.json',
   'owner': 'http://kf.kobo.local/api/v2/users/kobo.json',
   'owner__username': 'kobo',
+  'owner_label': 'kobo',
   'parent': null,
   'settings': {
     'sector': {},
@@ -974,6 +978,8 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
     'csv_legacy': 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/csv/',
     'zip_legacy': 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/zip/',
     'kml_legacy': 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/kml/',
+    'geojson': 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/geojson/',
+    'spss_labels': 'http://kc.kobo.local/kobo/exports/aRai4qmXVG4eukrzpHXAQC/spss/',
     'xls': 'http://kc.kobo.local/kobo/reports/aRai4qmXVG4eukrzpHXAQC/export.xlsx',
     'csv': 'http://kc.kobo.local/kobo/reports/aRai4qmXVG4eukrzpHXAQC/export.csv',
   },

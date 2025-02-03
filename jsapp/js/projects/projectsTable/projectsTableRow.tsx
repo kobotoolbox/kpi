@@ -12,7 +12,8 @@ import Checkbox from 'js/components/common/checkbox';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
-import assetUtils, {isSelfOwned} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
+import sessionStore from 'js/stores/session';
 
 // Constants and types
 import {ROUTES} from 'js/router/routerConstants';
@@ -55,17 +56,16 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'status':
         return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
       case 'ownerUsername':
-        if (isSelfOwned(props.asset)) {
-          return t('me');
-        } else {
-          return (
-            <Avatar
-              username={props.asset.owner__username}
-              size='s'
-              isUsernameVisible
-            />
-          );
-        }
+        return props.asset.owner_label ===
+          sessionStore.currentAccount.username ? (
+          t('me')
+        ) : (
+          <Avatar
+            username={props.asset.owner_label}
+            size='s'
+            isUsernameVisible
+          />
+        );
       case 'ownerFullName':
         return 'owner__name' in props.asset ? props.asset.owner__name : null;
       case 'ownerEmail':

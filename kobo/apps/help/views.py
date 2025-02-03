@@ -1,8 +1,3 @@
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
 from django.db.models import Q
 from django.utils import timezone
 from private_storage.views import PrivateStorageView

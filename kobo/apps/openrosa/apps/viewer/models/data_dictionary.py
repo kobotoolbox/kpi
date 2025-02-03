@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 import re
 from xml.dom import Node
@@ -65,17 +64,11 @@ class DataDictionary(XForm):
         self.instances_for_export = lambda d: d.instances.all()
         super().__init__(*args, **kwargs)
 
-    def set_uuid_in_xml(self, file_name=None, id_string=None):
+    def set_uuid_in_xml(self):
         """
         Add bind to automatically set UUID node in XML.
         """
-
-        if id_string:
-            root_node = id_string
-        else:
-            if not file_name:
-                file_name = self.file_name()
-            root_node, _ = os.path.splitext(file_name)
+        root_node = self.xform_root_node_name
 
         doc = clean_and_parse_xml(self.xml)
         model_nodes = doc.getElementsByTagName("model")
@@ -98,19 +91,21 @@ class DataDictionary(XForm):
         instance_node = instance_nodes[0]
 
         # get the first child whose id attribute matches our id_string
-        survey_nodes = [node for node in instance_node.childNodes
-                        if node.nodeType == Node.ELEMENT_NODE and
-                        (node.tagName == root_node or
-                         node.attributes.get('id'))]
-
+        survey_nodes = [
+            node
+            for node in instance_node.childNodes
+            if node.nodeType == Node.ELEMENT_NODE
+            and node.tagName == root_node
+        ]
         if len(survey_nodes) != 1:
-            raise Exception(
-                "Multiple survey nodes with the id '{}'".format(root_node))
+            raise Exception(f'Multiple survey nodes `{root_node}`')
 
         survey_node = survey_nodes[0]
-        formhub_nodes = [n for n in survey_node.childNodes
-                         if n.nodeType == Node.ELEMENT_NODE and
-                         n.tagName == "formhub"]
+        formhub_nodes = [
+            n
+            for n in survey_node.childNodes
+            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'formhub'
+        ]
 
         if len(formhub_nodes) > 1:
             raise Exception(
@@ -130,10 +125,9 @@ class DataDictionary(XForm):
         if len(formhub_nodes) == 0:
             # append the calculate bind node
             calculate_node = doc.createElement("bind")
-            calculate_node.setAttribute(
-                "nodeset", "/%s/formhub/uuid" % root_node)
-            calculate_node.setAttribute("type", "string")
-            calculate_node.setAttribute("calculate", "'%s'" % self.uuid)
+            calculate_node.setAttribute('nodeset', f'/{root_node}/formhub/uuid')
+            calculate_node.setAttribute('type', 'string')
+            calculate_node.setAttribute('calculate', f"'{self.uuid}'")
             model_node.appendChild(calculate_node)
 
         self.xml = smart_str(doc.toprettyxml(indent="  ", encoding='utf-8'))
@@ -166,9 +160,9 @@ class DataDictionary(XForm):
                 survey.name = survey.id_string
             self.json = survey.to_json()
             self.xml = survey.to_xml()
-            self._mark_start_time_boolean()
+            self.mark_start_time_boolean()
             set_uuid(self)
-            self.set_uuid_in_xml(id_string=survey.id_string)
+            self.set_uuid_in_xml()
         super().save(*args, **kwargs)
 
     def file_name(self):
@@ -418,7 +412,7 @@ class DataDictionary(XForm):
                 self._expand_geocodes(d, key, e)
             yield d
 
-    def _mark_start_time_boolean(self):
+    def mark_start_time_boolean(self):
         starttime_substring = 'jr:preloadParams="start"'
         if self.xml.find(starttime_substring) != -1:
             self.has_start_time = True

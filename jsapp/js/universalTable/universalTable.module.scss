@@ -11,12 +11,15 @@ $universal-table-border-radius-inner: $universal-table-border-radius - 2px;
 
 $universal-table-resizer-top: 8px;
 
-// TODO see if this needs to be something from `z-indexes` file, or if such
-// local numbers would be ok.
 $z-index-resizer: 2;
+// For sure pinned needs to be over .resizer, so it doesn't appear in
+// weird/funny position when scrolling table horizontally.
 $z-index-pinned: 3;
-$z-index-pinned-header: 4;
-$z-index-resizer-active: 5;
+$z-index-pinned-focused-cell: 4;
+$z-index-pinned-header: 5;
+$z-index-pinned-header-hover: 6;
+$z-index-resizer-active: 7;
+$z-index-spinner: 8;
 
 .universalTableRoot {
   border: 1px solid colors.$kobo-gray-200;
@@ -56,6 +59,9 @@ $z-index-resizer-active: 5;
   // This is needed so that the table takes whole width if there is small amount
   // of columns
   min-width: 100%;
+  // Needed for columns to keep the sizes - without this there is a gap between
+  // pinned columns
+  table-layout: fixed;
 }
 
 .tableCell {
@@ -78,6 +84,7 @@ $z-index-resizer-active: 5;
 }
 
 .spinnerOverlay {
+  z-index: $z-index-spinner;
   position: absolute;
   top: 0;
   right: 0;
@@ -89,33 +96,67 @@ $z-index-resizer-active: 5;
 
 // -----------------------------------------------------------------------------
 // Pinned column styles:
-.tableCell.isPinned,
-.tableHeaderCell.isPinned {
-  position: sticky;
-  // react-table can handle left and right pinning, but we are only interested
-  // in left pinning here
-  left: 0;
-  border-right: 1px solid colors.$kobo-gray-200;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: calc(100% + 1px);
-    top: 0;
-    height: 100%;
-    width: 7px;
-    background: linear-gradient(to right, rgba(0, 0, 0, 6%), transparent);
-  }
-}
-
-.tableCell.isPinned {
-  // For sure it needs to be over .resizer, so it doesn't appear in weird/funny
-  // position when scrolling table horizontally
+.tableCell.isPinnedLeft,
+.tableCell.isPinnedRight {
   z-index: $z-index-pinned;
 }
 
-.tableHeaderCell.isPinned {
+// Needed so any elements inside of the cell (e.g. dropdown) don't open covered
+// by background of cell below. This is IMPERFECT FIX, as when cell loses focus
+// by clicking somewhere else - the background coverding blinks for split second.
+.tableCell.isPinnedLeft:focus-within,
+.tableCell.isPinnedRight:focus-within {
+  z-index: $z-index-pinned-focused-cell;
+}
+
+.tableHeaderCell.isPinnedLeft,
+.tableHeaderCell.isPinnedRight, {
   z-index: $z-index-pinned-header;
+}
+
+.tableHeaderCell.isPinnedLeft:hover,
+.tableHeaderCell.isPinnedRight:hover, {
+  z-index: $z-index-pinned-header-hover;
+}
+
+.tableCell.isPinnedLeft,
+.tableHeaderCell.isPinnedLeft,
+.tableCell.isPinnedRight,
+.tableHeaderCell.isPinnedRight {
+  position: sticky;
+}
+
+// No need for shadows and visual distinction for pinned columns - if there is
+// no horizontal scrollbar
+.hasHorizontalScrollbar {
+  .isLastLeftPinnedColumn,
+  .isFirstRightPinnedColumn {
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 7px;
+    }
+  }
+
+  .isLastLeftPinnedColumn {
+    border-right: 1px solid colors.$kobo-gray-200;
+
+    &::after {
+      left: calc(100% + 1px);
+      background: linear-gradient(to left, transparent, rgba(0 0 0 / 6%));
+    }
+  }
+
+  .isFirstRightPinnedColumn {
+    border-left: 1px solid colors.$kobo-gray-200;
+
+    &::after {
+      right: calc(100% + 1px);
+      background: linear-gradient(to right, transparent, rgba(0 0 0 / 6%));
+    }
+  }
 }
 // -----------------------------------------------------------------------------
 

@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import styles from './plan.module.scss';
-import {postCheckout, postCustomerPortal, useOrganizationQuery} from '../stripe.api';
+import {postCheckout, postCustomerPortal} from '../stripe.api';
 import Button from 'js/components/common/button';
 import classnames from 'classnames';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -18,7 +18,7 @@ import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {FreeTierThresholds} from 'js/envStore';
 import envStore from 'js/envStore';
 import useWhen from 'js/hooks/useWhen.hook';
-import AddOnList from 'js/account/add-ons/addOnList.component';
+import AddOnList from 'jsapp/js/account/addOns/addOnList.component';
 import subscriptionStore from 'js/account/subscriptionStore';
 import {when} from 'mobx';
 import {
@@ -28,7 +28,6 @@ import {
 } from 'js/account/stripe.utils';
 import type {
   Price,
-  Organization,
   Product,
   SubscriptionInfo,
   SinglePricedProduct,
@@ -39,6 +38,7 @@ import {PlanContainer} from 'js/account/plans/planContainer.component';
 import {ProductsContext} from '../useProducts.hook';
 import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
 import {useRefreshApiFetcher} from 'js/hooks/useRefreshApiFetcher.hook';
+import {useOrganizationQuery, type Organization} from 'js/account/organization/organizationQuery';
 
 export interface PlanState {
   subscribedProduct: null | SubscriptionInfo[];
@@ -222,13 +222,6 @@ export default function Plan(props: PlanProps) {
     },
     [searchParams, shouldRevalidate]
   );
-
-  // if the user is not the owner of their org, send them back to the settings page
-  useEffect(() => {
-    if (!orgQuery.data?.is_owner) {
-      navigate(ACCOUNT_ROUTES.ACCOUNT_SETTINGS);
-    }
-  }, [orgQuery.data]);
 
   // Re-fetch data from API and re-enable buttons if displaying from back/forward cache
   useEffect(() => {

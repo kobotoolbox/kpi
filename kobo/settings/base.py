@@ -17,8 +17,9 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
-from kpi.utils.json import LazyJSONSerializable
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.utils.json import LazyJSONSerializable
+
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -106,6 +107,7 @@ INSTALLED_APPS = (
     'allauth.usersessions',
     'hub.HubAppConfig',
     'import_export',
+    'import_export_celery',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -141,7 +143,8 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.apps.api',
     'guardian',
     'kobo.apps.openrosa.libs',
-    'kobo.apps.project_ownership.ProjectOwnershipAppConfig',
+    'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
+    'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
 )
 
 MIDDLEWARE = [
@@ -169,6 +172,7 @@ MIDDLEWARE = [
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
+    'author.middlewares.AuthorDefaultBackendMiddleware',
 ]
 
 
@@ -212,6 +216,12 @@ CONSTANCE_CONFIG = {
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoboToolbox Help Center"',
+    ),
+    'ACADEMY_URL': (
+        env.str(
+            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
+        ),
+        'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
         env.str(
@@ -393,6 +403,11 @@ CONSTANCE_CONFIG = {
         '',
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
+    ),
+    'ORGANIZATION_INVITE_EXPIRY': (
+        14,
+        'Number of days before organization invites expire.',
+        'positive_int',
     ),
     'ASSET_SNAPSHOT_DAYS_RETENTION': (
         30,
@@ -588,15 +603,20 @@ CONSTANCE_CONFIG = {
         ),
         'Email message to sent to admins on failure.',
     ),
-    'USE_TEAM_LABEL': (
-        True,
-        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    'PROJECT_HISTORY_LOG_LIFESPAN': (
+        60,
+        'Length of time days to keep project history logs.',
+        'positive_int',
     ),
     'ACCESS_LOG_LIFESPAN': (
         60,
         'Length of time in days to keep access logs.',
-        'positive_int'
-    )
+        'positive_int',
+    ),
+    'USE_TEAM_LABEL': (
+        True,
+        'Use the term "Team" instead of "Organization" when Stripe is not enabled',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -655,6 +675,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
+        'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
         'EXPOSE_GIT_REV',
@@ -662,6 +683,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'FRONTEND_MAX_RETRY_TIME',
         'USE_TEAM_LABEL',
         'ACCESS_LOG_LIFESPAN',
+        'PROJECT_HISTORY_LOG_LIFESPAN',
+        'ORGANIZATION_INVITE_EXPIRY'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -856,6 +879,8 @@ SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
 
+MAX_RETRIES_FOR_IMPORT_EXPORT_TASK = 10
+
 # Private media file configuration
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
 PRIVATE_STORAGE_AUTH_FUNCTION = \
@@ -907,8 +932,6 @@ if KPI_PREFIX and KPI_PREFIX != '/':
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
-    ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
-    ('chai', os.path.join(BASE_DIR, 'node_modules', 'chai'),),
 )
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
@@ -1190,11 +1213,11 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'trash-bin-garbage-collector': {
         'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     'perform-maintenance': {
-        'task': 'kobo.tasks.perform_maintenance',
+        'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
@@ -1208,22 +1231,28 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
+    # Schedule every 30 minutes
+    'organization-invite-mark-as-expired': {
+        'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
+        'schedule': crontab(minute=30),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     # Schedule every 10 minutes
     'project-ownership-task-scheduler': {
         'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
-        'schedule': crontab(minute=10),
+        'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-stuck-tasks-as-failed': {
         'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
     'project-ownership-mark-as-expired': {
         'task': 'kobo.apps.project_ownership.tasks.mark_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
@@ -1232,11 +1261,24 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every day at midnight UTC
+    'delete-expired-logs': {
+        'task': 'kobo.apps.audit_log.tasks.spawn_logs_cleaning_tasks',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every day at midnight UTC
     'delete-expired-access-logs': {
         'task': 'kobo.apps.audit_log.tasks.spawn_access_log_cleaning_tasks',
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
-    }
+    },
+    # Schedule every hour, every day
+    'long-running-migrations': {
+        'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
+        'schedule': crontab(minute=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
 }
 
 
@@ -1360,14 +1402,24 @@ default_file_storage = env.str(
 )
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     warnings.warn(
-        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, '
+        'update the environment variable.',
         DeprecationWarning,
     )
+
+# ToDo Find out why `private_storage.appconfig.PRIVATE_STORAGE_CLASS`
+#  cannot be imported. Otherwise, some tests are failing.
+# from private_storage.appconfig import (
+#   PRIVATE_STORAGE_CLASS as DEFAULT_PRIVATE_STORAGE_CLASS
+# )
+# PRIVATE_STORAGE_CLASS = DEFAULT_PRIVATE_STORAGE_CLASS
+PRIVATE_STORAGE_CLASS = 'private_storage.storage.files.PrivateFileSystemStorage'
 
 if default_file_storage:
 
     global_default_file_storage = STORAGES['default']['BACKEND']
     default_file_storage = STORAGES['default']['BACKEND'] = default_file_storage
+
     if default_file_storage != global_default_file_storage:
         if default_file_storage.endswith('S3Boto3Storage'):
             # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
@@ -1388,19 +1440,21 @@ if default_file_storage:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-    aws_storage_bucket_name = env.str('AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None))
+    aws_storage_bucket_name = env.str(
+        'AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None)
+    )
     if aws_storage_bucket_name:
         AWS_STORAGE_BUCKET_NAME = aws_storage_bucket_name
         AWS_DEFAULT_ACL = 'private'
         # django-private-storage needs its own S3 configuration
-        PRIVATE_STORAGE_CLASS = \
+        PRIVATE_STORAGE_CLASS = (
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
             # NB.........There's intentionally no 3 here! ^
+        )
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
@@ -1414,6 +1468,8 @@ else:
     KOBOCAT_MEDIA_ROOT = os.environ.get(
         'KOBOCAT_MEDIA_ROOT', MEDIA_ROOT.replace('kpi', 'kobocat')
     )
+
+STORAGES['import_export_celery'] = {'BACKEND': PRIVATE_STORAGE_CLASS}
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
@@ -1582,6 +1638,7 @@ MONGO_DB = mongo_client[mongo_db_name]
 # ⚠️⚠️
 MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
 MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
+
 
 SESSION_ENGINE = 'redis_sessions.session'
 # django-redis-session expects a dictionary with `url`
@@ -1787,7 +1844,7 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/x-zip-compressed'
 ]
 
-ACCESS_LOG_DELETION_BATCH_SIZE = 1000
+LOG_DELETION_BATCH_SIZE = 1000
 
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
@@ -1799,3 +1856,17 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 # in the ObjectPermission table), but the code will still conduct the permission
 # checks as if they were.
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
+
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
+
+# Import/Export Celery
+IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
+
+IMPORT_EXPORT_CELERY_MODELS = {
+    'OrganizationUser': {
+        'app_label': 'organization',
+        'model_name': 'OrganizationUser',
+    },
+}
+
+IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'

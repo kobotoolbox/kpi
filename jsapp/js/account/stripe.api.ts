@@ -4,32 +4,34 @@ import {endpoints} from 'js/api.endpoints';
 import {ACTIVE_STRIPE_STATUSES} from 'js/constants';
 import type {PaginatedResponse} from 'js/dataInterface';
 import envStore from 'js/envStore';
-import {fetchGet, fetchGetUrl, fetchPost} from 'jsapp/js/api';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
 import type {
   AccountLimit,
   ChangePlan,
   Checkout,
-  Organization,
+  OneTimeAddOn,
   PriceMetadata,
   Product,
 } from 'js/account/stripe.types';
 import {Limits} from 'js/account/stripe.types';
 import {getAdjustedQuantityForPrice} from 'js/account/stripe.utils';
-import {useQuery} from '@tanstack/react-query';
-import {QueryKeys} from 'js/query/queryKeys';
-import {FeatureFlag, useFeatureFlag} from '../featureFlags';
-import sessionStore from 'js/stores/session';
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,
-  nlp_seconds_limit: Limits.unlimited,
-  nlp_character_limit: Limits.unlimited,
+  asr_seconds_limit: Limits.unlimited,
+  mt_characters_limit: Limits.unlimited,
   storage_bytes_limit: Limits.unlimited,
 });
 
 export async function getProducts() {
   return fetchGet<PaginatedResponse<Product>>(endpoints.PRODUCTS_URL, {
     errorMessageDisplay: t('There was an error getting the list of plans.'),
+  });
+}
+
+export async function getOneTimeAddOns() {
+  return fetchGet<PaginatedResponse<OneTimeAddOn>>(endpoints.ADD_ONS_URL, {
+    errorMessageDisplay: t('There was an error getting one-time add-ons.'),
   });
 }
 
@@ -49,47 +51,6 @@ export async function changeSubscription(
     ),
   });
 }
-
-export const useOrganizationQuery = () => {
-  const isMmosEnabled = useFeatureFlag(FeatureFlag.mmosEnabled);
-
-  const currentAccount = sessionStore.currentAccount;
-
-  const organizationUrl =
-  'organization' in currentAccount ? currentAccount.organization?.url : null;
-
-  // Using a separated function to fetch the organization data to prevent
-  // feature flag dependencies from being added to the hook
-  const fetchOrganization = async (): Promise<Organization> => {
-    // organizationUrl is a full url with protocol and domain name, so we're using fetchGetUrl
-    // We're asserting the organizationUrl is not null here because the query is disabled if it is
-    const organization = await fetchGetUrl<Organization>(organizationUrl!);
-
-    if (isMmosEnabled) {
-      return organization;
-    }
-
-    // While the project is in development we will force a false return for the is_mmo
-    // to make sure we don't have any implementations appearing for users
-    return {
-      ...organization,
-      is_mmo: false,
-    };
-  };
-
-  // Setting the 'enabled' property so the query won't run until we have the session data
-  // loaded. Account data is needed to fetch the organization data.
-  const isQueryEnabled =
-    !sessionStore.isPending &&
-    sessionStore.isInitialLoadComplete &&
-    !!organizationUrl;
-
-  return useQuery({
-    queryFn: fetchOrganization,
-    queryKey: [QueryKeys.organization],
-    enabled: isQueryEnabled,
-  });
-};
 
 /**
  * Start a checkout session for the given price and organization. Response contains the checkout URL.
@@ -114,7 +75,7 @@ export async function postCheckout(
  */
 export async function postCustomerPortal(
   organizationId: string,
-  priceId: string = '',
+  priceId = '',
   quantity = 1
 ) {
   return fetchPost<Checkout>(
@@ -201,10 +162,10 @@ const getFreeTierLimits = async (limits: AccountLimit) => {
     newLimits['submission_limit'] = thresholds.data;
   }
   if (thresholds.translation_chars) {
-    newLimits['nlp_character_limit'] = thresholds.translation_chars;
+    newLimits['mt_characters_limit'] = thresholds.translation_chars;
   }
   if (thresholds.transcription_minutes) {
-    newLimits['nlp_seconds_limit'] = thresholds.transcription_minutes * 60;
+    newLimits['asr_seconds_limit'] = thresholds.transcription_minutes * 60;
   }
   return newLimits;
 };
@@ -230,6 +191,41 @@ const getRecurringAddOnLimits = (limits: AccountLimit) => {
     newLimits = {...newLimits, ...getLimitsForMetadata(metadata, newLimits)};
   });
   return newLimits;
+};
+
+/**
+ * Add one-time addon limits to already calculated account limits
+ */
+const addRemainingOneTimeAddOnLimits = (
+  limits: AccountLimit,
+  oneTimeAddOns: OneTimeAddOn[]
+) => {
+  // This yields a separate object, so we need to make a copy
+  limits = {...limits};
+  oneTimeAddOns
+    .filter((addon) => addon.is_available)
+    .forEach((addon) => {
+      if (
+        addon.limits_remaining.submission_limit &&
+        limits.submission_limit !== Limits.unlimited
+      ) {
+        limits.submission_limit += addon.limits_remaining.submission_limit;
+      }
+      if (
+        addon.limits_remaining.asr_seconds_limit &&
+        limits.asr_seconds_limit !== Limits.unlimited
+      ) {
+        limits.asr_seconds_limit += addon.limits_remaining.asr_seconds_limit;
+      }
+      if (
+        addon.limits_remaining.mt_characters_limit &&
+        limits.mt_characters_limit !== Limits.unlimited
+      ) {
+        limits.mt_characters_limit +=
+          addon.limits_remaining.mt_characters_limit;
+      }
+    });
+  return limits;
 };
 
 /**
@@ -280,24 +276,33 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
  *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
-export async function getAccountLimits(products: Product[]) {
+export async function getAccountLimits(
+  products: Product[],
+  oneTimeAddOns: OneTimeAddOn[]
+) {
   const {metadata, hasFreeTier} = await getStripeMetadataAndFreeTierStatus(
     products
   );
 
   // initialize to unlimited
-  let limits: AccountLimit = {...DEFAULT_LIMITS};
+  let recurringLimits: AccountLimit = {...DEFAULT_LIMITS};
 
   // apply any limits from the metadata
-  limits = {...limits, ...getLimitsForMetadata(metadata)};
+  recurringLimits = {...recurringLimits, ...getLimitsForMetadata(metadata)};
 
   if (hasFreeTier) {
     // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
-    limits = await getFreeTierLimits(limits);
+    recurringLimits = await getFreeTierLimits(recurringLimits);
 
-    // if the user has active recurring add-ons, use those as the final say on their limits
-    limits = getRecurringAddOnLimits(limits);
+    // if the user has active recurring add-ons, use those as their limits
+    recurringLimits = getRecurringAddOnLimits(recurringLimits);
   }
 
-  return limits;
+  // create separate object with one-time addon limits added to the limits calculated so far
+  const remainingLimits = addRemainingOneTimeAddOnLimits(
+    recurringLimits,
+    oneTimeAddOns
+  );
+
+  return {recurringLimits, remainingLimits};
 }

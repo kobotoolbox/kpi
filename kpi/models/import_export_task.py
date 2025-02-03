@@ -1,4 +1,3 @@
-# coding: utf-8
 import base64
 import datetime
 import os
@@ -9,30 +8,22 @@ from collections import defaultdict
 from io import BytesIO
 from os.path import split, splitext
 from typing import Dict, Generator, List, Optional, Tuple
-
-import dateutil.parser
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import constance
+import dateutil.parser
+import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-from django.db.models import F
+from django.db.models import CharField, F, Value
+from django.db.models.functions import Concat
+from django.db.models.query import QuerySet
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as t
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from werkzeug.http import parse_options_header
-
-import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -43,6 +34,12 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from werkzeug.http import parse_options_header
+
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils import stream_with_extras
 from kpi.constants import (
@@ -51,15 +48,25 @@ from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import XlsFormatException
 from kpi.fields import KpiUidField
 from kpi.models import Asset
+from kpi.utils.data_exports import (
+    ACCESS_LOGS_EXPORT_FIELDS,
+    ASSET_FIELDS,
+    CONFIG,
+    PROJECT_HISTORY_LOGS_EXPORT_FIELDS,
+    SETTINGS,
+    create_data_export,
+    get_q,
+)
 from kpi.utils.log import logging
 from kpi.utils.models import _load_library_content, create_assets, resolve_url_to_asset
-from kpi.utils.project_view_exports import create_project_view_export
+from kpi.utils.project_views import get_region_for_view
 from kpi.utils.rename_xls_sheet import (
     ConflictSheetError,
     NoFromSheetError,
@@ -134,7 +141,7 @@ class ImportExportTask(models.Model):
             # This method must be implemented by a subclass
             self._run_task(msgs)
             self.status = self.COMPLETE
-        except ExportTaskBase.InaccessibleData as e:
+        except SubmissionExportTaskBase.InaccessibleData as e:
             msgs['error_type'] = t('Cannot access data')
             msgs['error'] = str(e)
             self.status = self.ERROR
@@ -291,7 +298,6 @@ class ImportTask(ImportExportTask):
             # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
-
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
                 filename=filename,
@@ -354,7 +360,8 @@ class ImportTask(ImportExportTask):
                             'uid': asset.uid,
                             'kind': 'asset',
                             'owner__username': self.user.username,
-                        })
+                        }
+                    )
 
             if item.parent:
                 collections_to_assign.append([
@@ -444,8 +451,21 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
+                old_name = asset.name
+                # saving sometimes changes the name
                 asset.save()
                 msg_key = 'updated'
+                messages['audit_logs'].append(
+                    {
+                        'asset_uid': asset.uid,
+                        'asset_id': asset.id,
+                        'latest_version_uid': asset.latest_version.uid,
+                        'ip_address': self.data.get('ip_address', None),
+                        'source': self.data.get('source', None),
+                        'old_name': old_name,
+                        'new_name': asset.name,
+                    }
+                )
 
             messages[msg_key].append({
                 'uid': asset.uid,
@@ -469,26 +489,27 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ProjectViewExportTask(ImportExportTask):
-    uid = KpiUidField(uid_prefix='pve')
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+class ExportTaskMixin:
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Report Complete'
+
+    def _get_export_details(self) -> tuple:
+        return self.data.get('type'), self.data.get('view', None)
 
     def _build_export_filename(
-        self, export_type: str, username: str, view: str
+        self, export_type: str, username: str, view: str = None
     ) -> str:
-        time = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
-        return f'{export_type}-{username}-view_{view}-{time}.csv'
+        time = timezone.now().strftime('%Y-%m-%dT%H:%M:%SZ')
+        if view:
+            return f'{export_type}-{username}-view_{view}-{time}.csv'
+        return f'{export_type}-{username}-{time}.csv'
 
-    def _run_task(self, messages: list) -> None:
-        export_type = self.data['type']
-        view = self.data['view']
-
-        filename = self._build_export_filename(
-            export_type, self.user.username, view
-        )
+    def _export_data_to_file(self, messages: list, buff) -> None:
+        export_type, view = self._get_export_details()
+        filename = self._build_export_filename(export_type, self.user.username, view)
         absolute_filepath = self.get_absolute_filepath(filename)
-
-        buff = create_project_view_export(export_type, self.user.username, view)
 
         with self.result.storage.open(absolute_filepath, 'wb') as output_file:
             output_file.write(buff.read().encode())
@@ -502,7 +523,162 @@ class ProjectViewExportTask(ImportExportTask):
         super().delete(*args, **kwargs)
 
 
-class ExportTaskBase(ImportExportTask):
+class AuditLogExportTaskMixin:
+    @staticmethod
+    def filter_remaining_metadata(row, accessed_fields):
+        metadata = row['other_details']
+        if metadata is not None:
+            return {
+                key: value
+                for key, value in metadata.items()
+                if key not in accessed_fields
+            }
+
+    @staticmethod
+    def user_url():
+        return Concat(
+            Value(f'{settings.KOBOFORM_URL}/api/v2/users/'),
+            F('user__username'),
+            output_field=CharField(),
+        )
+
+    common_fields = {
+        'user_url': user_url(),
+        'username': F('user__username'),
+        'source': F('metadata__source'),
+        'ip_address': F('metadata__ip_address'),
+        'other_details': F('metadata'),
+    }
+
+
+class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExportTask):
+    uid = KpiUidField(uid_prefix='ale')
+    get_all_logs = models.BooleanField(default=False)
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Access Log Report Complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        return filtered_queryset.annotate(
+            **self.common_fields,
+            auth_type=F('metadata__auth_type'),
+            initial_superusername=F('metadata__initial_user_username'),
+            initial_superuseruid=F('metadata__initial_user_uid'),
+            authorized_application=F('metadata__authorized_app_name'),
+        ).values(*ACCESS_LOGS_EXPORT_FIELDS)
+
+    def _run_task(self, messages: list) -> None:
+        if self.get_all_logs and not self.user.is_superuser:
+            raise PermissionError('Only superusers can export all access logs.')
+
+        export_type, view = self._get_export_details()
+        config = CONFIG[export_type]
+
+        queryset = config['queryset']()
+        if not self.get_all_logs:
+            queryset = queryset.filter(user__username=self.user.username)
+        data = self.get_data(queryset)
+        accessed_metadata_fields = [
+            'auth_type',
+            'source',
+            'ip_address',
+            'initial_user_username',
+            'initial_user_uid',
+            'authorized_app_name',
+        ]
+        for row in data:
+            row['other_details'] = self.filter_remaining_metadata(
+                row, accessed_metadata_fields
+            )
+        buff = create_data_export(export_type, data)
+        self._export_data_to_file(messages, buff)
+
+
+class ProjectHistoryLogExportTask(
+    ExportTaskMixin, AuditLogExportTaskMixin, ImportExportTask
+):
+    uid = KpiUidField(uid_prefix='phe')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    asset_uid = models.CharField(null=True)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Project activity log export complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        return filtered_queryset.annotate(
+            **self.common_fields,
+            asset_uid=F('metadata__asset_uid'),
+        ).values(*PROJECT_HISTORY_LOGS_EXPORT_FIELDS)
+
+    def _run_task(self, messages: list) -> None:
+        if self.asset_uid is None and not self.user.is_superuser:
+            raise PermissionError(
+                'Only superusers can export all project history logs.'
+            )
+        elif self.asset_uid is not None:
+            survey = Asset.objects.get(uid=self.asset_uid)
+            if not survey.has_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET):
+                raise PermissionError(
+                    'User does not have permission to export logs for this asset.'
+                )
+
+        export_type, view = self._get_export_details()
+        config = CONFIG[export_type]
+
+        queryset = config['queryset']()
+        if self.asset_uid is not None:
+            queryset = queryset.filter(metadata__asset_uid=self.asset_uid)
+        data = self.get_data(queryset)
+        accessed_metadata_fields = [
+            'source',
+            'ip_address',
+            'asset_uid',
+        ]
+        for row in data:
+            row['other_details'] = self.filter_remaining_metadata(
+                row, accessed_metadata_fields
+            )
+        buff = create_data_export(export_type, data)
+        self._export_data_to_file(messages, buff)
+
+
+class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
+    uid = KpiUidField(uid_prefix='pve')
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+
+    @property
+    def default_email_subject(self) -> str:
+        return 'Project View Report Complete'
+
+    def get_data(self, filtered_queryset: QuerySet) -> QuerySet:
+        vals = ASSET_FIELDS + (SETTINGS,)
+        return (
+            filtered_queryset.annotate(
+                owner__name=F('owner__extra_details__data__name'),
+                owner__organization=F('owner__extra_details__data__organization'),
+                form_id=F('_deployment_data__backend_response__formid'),
+            )
+            .values(*vals)
+            .order_by('id')
+        )
+
+    def _run_task(self, messages: list) -> None:
+        export_type, view = self._get_export_details()
+        config = CONFIG[export_type]
+
+        region_for_view = get_region_for_view(view)
+        q = get_q(region_for_view, export_type)
+        queryset = config['queryset'].filter(q)
+
+        data = self.get_data(queryset)
+        buff = create_data_export(export_type, data)
+        self._export_data_to_file(messages, buff)
+
+
+class SubmissionExportTaskBase(ImportExportTask):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -803,6 +979,16 @@ class ExportTaskBase(ImportExportTask):
         else:
             self.save(update_fields=['result', 'last_submission_time'])
 
+    @property
+    def asset(self):
+        source_url = self.data.get('source', False)
+        if not source_url:
+            raise Exception('no source specified for the export')
+        try:
+            return resolve_url_to_asset(source_url)
+        except Asset.DoesNotExist:
+            raise self.InaccessibleData
+
     def delete(self, *args, **kwargs):
         # removing exported file from storage
         self.result.delete(save=False)
@@ -820,13 +1006,7 @@ class ExportTaskBase(ImportExportTask):
         submission_ids = self.data.get('submission_ids', [])
 
         if source is None:
-            source_url = self.data.get('source', False)
-            if not source_url:
-                raise Exception('no source specified for the export')
-            try:
-                source = resolve_url_to_asset(source_url)
-            except Asset.DoesNotExist:
-                raise self.InaccessibleData
+            source = self.asset
 
         source_perms = source.get_perms(self.user)
         if (
@@ -928,7 +1108,7 @@ class ExportTaskBase(ImportExportTask):
             export.delete()
 
 
-class ExportTask(ExportTaskBase):
+class SubmissionExportTask(SubmissionExportTaskBase):
     """
     An asynchronous export task, to be run with Celery
     """
@@ -949,7 +1129,7 @@ class ExportTask(ExportTaskBase):
         self.remove_excess(self.user, source_url)
 
 
-class SynchronousExport(ExportTaskBase):
+class SubmissionSynchronousExport(SubmissionExportTaskBase):
     """
     A synchronous export, with significant limitations on processing time, but
     offered for user convenience

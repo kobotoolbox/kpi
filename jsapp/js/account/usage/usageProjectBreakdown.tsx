@@ -7,7 +7,7 @@ import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
 import type {AssetUsage, AssetWithUsage} from 'js/account/usage/usage.api';
-import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
+import {getOrgAssetUsage} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
@@ -16,7 +16,7 @@ import {convertSecondsToMinutes} from 'jsapp/js/utils';
 import {UsageContext} from './useUsage.hook';
 import Button from 'js/components/common/button';
 import Icon from 'js/components/common/icon';
-import {useOrganizationQuery} from 'js/account/stripe.api';
+import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
 
 type ButtonType = 'back' | 'forward';
 
@@ -35,11 +35,11 @@ const ProjectBreakdown = () => {
   const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
-    async function fetchData() {
-      const data = await getAssetUsageForOrganization(
+    async function fetchData(orgId: string) {
+      const data = await getOrgAssetUsage(
         currentPage,
-        order,
-        orgQuery.data?.id
+        orgId,
+        order
       );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
@@ -57,8 +57,10 @@ const ProjectBreakdown = () => {
       setLoading(false);
     }
 
-    fetchData();
-  }, [currentPage, order]);
+    if (orgQuery.data) {
+      fetchData(orgQuery.data.id);
+    }
+  }, [currentPage, order, orgQuery.data]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -129,18 +131,14 @@ const ProjectBreakdown = () => {
 
   const renderProjectRow = (project: AssetWithUsage) => {
     const periodSubmissions =
-      project[
-        `submission_count_current_${usage.trackingPeriod}`
-      ].toLocaleString();
+      project.submission_count_current_period.toLocaleString();
 
     const periodASRSeconds = convertSecondsToMinutes(
-      project[`nlp_usage_current_${usage.trackingPeriod}`].total_nlp_asr_seconds
+      project.nlp_usage_current_period.total_nlp_asr_seconds
     ).toLocaleString();
 
     const periodMTCharacters =
-      project[
-        `nlp_usage_current_${usage.trackingPeriod}`
-      ].total_nlp_mt_characters.toLocaleString();
+      project.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString();
 
     return (
       <tr key={project.asset}>

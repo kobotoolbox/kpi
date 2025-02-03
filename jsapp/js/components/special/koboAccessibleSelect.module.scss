@@ -16,6 +16,18 @@ $input-color: colors.$kobo-gray-800;
   font-size: 12px;
 }
 
+.m {
+  width: 60%;
+}
+
+.s {
+  width: 8em;
+}
+
+.fit {
+  width: min-content;
+}
+
 // Dropdown trigger.
 // A focusable input that receives keyboard shortcuts and mouse clicks
 .trigger {
@@ -93,7 +105,9 @@ $k-select-menu-padding: 6px;
 // Menu containing a list of options.
 .menu {
   display: none;
-  &[data-expanded='true'] {display: block;}
+  &[data-expanded='true'] {
+    display: block;
+  }
   user-select: none;
 
   position: absolute;

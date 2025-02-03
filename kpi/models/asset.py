@@ -77,8 +77,21 @@ from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
-from kpi.utils.object_permission import get_cached_code_names
+from kpi.utils.object_permission import (
+    get_cached_code_names,
+    post_assign_partial_perm,
+    post_remove_partial_perms,
+)
 from kpi.utils.sluggify import sluggify_label
+
+SEARCH_FIELD_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'owner_username': {'type': 'string'},
+        'organization_name': {'type': 'string'},
+    },
+    'required': ['owner_username', 'organization_name'],
+}
 
 
 class AssetDeploymentStatus(models.TextChoices):
@@ -241,6 +254,7 @@ class Asset(
     )
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    search_field = models.JSONField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -899,6 +913,9 @@ class Asset(
     ):
         is_new = self.pk is None
 
+        if is_new:
+            self._populate_search_field()
+
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this
@@ -1113,6 +1130,11 @@ class Asset(
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_search_field(self, **kwargs):
+        for key, value in kwargs.items():
+            self.search_field[key] = value
+        jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
+
     def update_submission_extra(self, content, user=None):
         submission_uuid = content.get('submission')
         # the view had better have handled this
@@ -1266,6 +1288,13 @@ class Asset(
             'kuid_names': kuids_to_variable_names,
         }
 
+    def _populate_search_field(self):
+        if self.owner:
+            self.update_search_field(
+                owner_username=self.owner.username,
+                organization_name=self.owner.organization.name,
+            )
+
     def _populate_summary(self):
         if self.content is None:
             self.content = {}
@@ -1377,7 +1406,13 @@ class Asset(
             # Because of the unique constraint, there should be only
             # one record that matches this query.
             # We don't look for record existence to avoid extra query.
-            self.asset_partial_permissions.filter(user_id=user.pk).delete()
+            deleted, _ = self.asset_partial_permissions.filter(user_id=user.pk).delete()
+            if deleted > 0:
+                post_remove_partial_perms.send(
+                    sender=self.__class__,
+                    instance=self,
+                    user=user,
+                )
 
         if perm == PERM_PARTIAL_SUBMISSIONS:
 
@@ -1404,6 +1439,12 @@ class Asset(
                 asset_id=self.pk,
                 user_id=user.pk,
                 defaults={'permissions': new_partial_perms})
+            post_assign_partial_perm.send(
+                sender=self.__class__,
+                perms=new_partial_perms,
+                instance=self,
+                user=user,
+            )
 
             # There are no real partial permissions for 'add_submissions' but
             # 'change_submissions' implies it. So if 'add_submissions' is in the

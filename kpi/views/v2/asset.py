@@ -25,6 +25,7 @@ from kpi.constants import (
 from kpi.exceptions import BadAssetTypeException
 from kpi.filters import AssetOrderingFilter, KpiObjectPermissionsFilter, SearchFilter
 from kpi.highlighters import highlight_xform
+from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, UserAssetSubscription
 from kpi.paginators import AssetPagination
@@ -50,7 +51,10 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class AssetViewSet(
-    ObjectPermissionViewSetMixin, NestedViewSetMixin, AuditLoggedModelViewSet
+    AssetViewSetListMixin,
+    ObjectPermissionViewSetMixin,
+    NestedViewSetMixin,
+    AuditLoggedModelViewSet,
 ):
     """
     * Assign an asset to a collection
@@ -559,9 +563,7 @@ class AssetViewSet(
         # content, not previous versions. Previous versions are handled in
         # `kobo.apps.reports.report_data.build_formpack()`
         if self.request.method == 'GET':
-            repair_file_column_content_and_save(
-                asset, include_versions=False
-            )
+            repair_file_column_content_and_save(asset, include_versions=False)
 
         return asset
 
@@ -723,6 +725,18 @@ class AssetViewSet(
             }
 
             context_['children_count_per_asset'] = children_count_per_asset
+
+            # 5) Get organization…
+            if organization := getattr(self.request, 'organization', None):
+                # …from request.
+                # e.g.: /api/v2/organizations/<organization_id>/assets/`
+                context_['organization'] = organization
+            else:
+                # …per asset
+                # e.g.: /api/v2/organizations/assets/`
+                context_['organizations_per_asset'] = (
+                    self.get_organizations_per_asset_ids(asset_ids)
+                )
 
         return context_
 

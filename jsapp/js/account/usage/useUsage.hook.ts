@@ -1,8 +1,8 @@
-import {createContext, useCallback} from 'react';
-import type {Organization, RecurringInterval} from 'js/account/stripe.types';
+import {createContext} from 'react';
+import type {RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {convertSecondsToMinutes, formatRelativeTime} from 'js/utils';
-import {getUsage} from 'js/account/usage/usage.api';
+import {getOrgServiceUsage} from 'js/account/usage/usage.api';
 import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
 export interface UsageState {
@@ -10,9 +10,8 @@ export interface UsageState {
   submissions: number;
   transcriptionMinutes: number;
   translationChars: number;
-  currentMonthStart: string;
-  currentYearStart: string;
-  billingPeriodEnd: string | null;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
   trackingPeriod: RecurringInterval;
   lastUpdated?: String | null;
 }
@@ -22,9 +21,8 @@ const INITIAL_USAGE_STATE: UsageState = Object.freeze({
   submissions: 0,
   transcriptionMinutes: 0,
   translationChars: 0,
-  currentMonthStart: '',
-  currentYearStart: '',
-  billingPeriodEnd: null,
+  currentPeriodStart: '',
+  currentPeriodEnd: '',
   trackingPeriod: 'month',
   lastUpdated: '',
 });
@@ -36,7 +34,7 @@ const loadUsage = async (
     throw Error(t('No organization found'));
   }
   const trackingPeriod = await getSubscriptionInterval();
-  const usage = await getUsage(organizationId);
+  const usage = await getOrgServiceUsage(organizationId);
   if (!usage) {
     throw Error(t("Couldn't get usage data"));
   }
@@ -49,15 +47,14 @@ const loadUsage = async (
   }
   return {
     storage: usage.total_storage_bytes,
-    submissions: usage.total_submission_count[`current_${trackingPeriod}`],
+    submissions: usage.total_submission_count.current_period,
     transcriptionMinutes: convertSecondsToMinutes(
-      usage.total_nlp_usage[`asr_seconds_current_${trackingPeriod}`]
+      usage.total_nlp_usage.asr_seconds_current_period
     ),
     translationChars:
-      usage.total_nlp_usage[`mt_characters_current_${trackingPeriod}`],
-    currentMonthStart: usage.current_month_start,
-    currentYearStart: usage.current_year_start,
-    billingPeriodEnd: usage[`current_${trackingPeriod}_end`],
+      usage.total_nlp_usage.mt_characters_current_period,
+    currentPeriodStart: usage.current_period_start,
+    currentPeriodEnd: usage.current_period_end,
     trackingPeriod,
     lastUpdated,
   };

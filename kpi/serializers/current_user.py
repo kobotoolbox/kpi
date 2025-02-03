@@ -2,9 +2,9 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
-from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -223,20 +223,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                     continue
                 metadata_field['required'] = False
 
-        errors = {}
-        for field in desired_metadata_fields:
-            if not field['required']:
-                continue
-            try:
-                field_value = value[field['name']]
-            except KeyError:
-                # If the field is absent from the request, the old value will
-                # be retained, and no validation needs to take place
-                continue
-            if not field_value:
-                # Use verbatim message from DRF to avoid giving translators
-                # more busy work
-                errors[field['name']] = t('This field may not be blank.')
+        if not (errors := self._validate_organization(value)):
+            for field in desired_metadata_fields:
+                if not field['required']:
+                    continue
+                try:
+                    field_value = value[field['name']]
+                except KeyError:
+                    # If the field is absent from the request, the old value will
+                    # be retained, and no validation needs to take place
+                    continue
+                if not field_value:
+                    # Use verbatim message from DRF to avoid giving translators
+                    # more busy work
+                    errors[field['name']] = t('This field may not be blank.')
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -283,3 +283,15 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 extra_details_obj.save()
 
             return super().update(instance, validated_data)
+
+    def _validate_organization(self, extra_details: dict):
+        user = self.instance
+        if not user.organization.is_mmo:
+            return {}
+
+        errors = {}
+        for field_name in ['organization', 'organization_website', 'organization_type']:
+            if extra_details.get(field_name, False) is not False:
+                errors[field_name] = t('This action is not allowed.')
+
+        return errors

@@ -16,15 +16,15 @@ from rest_framework import serializers
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
-    ASSET_TYPES_WITH_CHILDREN,
     ASSET_TYPE_SURVEY,
+    ASSET_TYPES_WITH_CHILDREN,
     PERM_FROM_KC_ONLY,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
-    remove_applicable_kc_permissions,
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
+    remove_applicable_kc_permissions,
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
@@ -525,6 +525,13 @@ class ObjectPermissionMixin:
             deny=deny,
             inherited=False
         )
+        post_assign_perm.send(
+            sender=self.__class__,
+            instance=self,
+            user=user_obj,
+            codename=codename,
+            deny=deny,
+        )
         # Assign any applicable KC permissions
         if not deny and not skip_kc:
             assign_applicable_kc_permissions(self, user_obj, codename)
@@ -543,12 +550,6 @@ class ObjectPermissionMixin:
 
         self._update_partial_permissions(
             user_obj, perm, partial_perms=partial_perms
-        )
-        post_assign_perm.send(
-            sender=self.__class__,
-            instance=self,
-            user=user_obj,
-            codename=codename,
         )
 
         # Recalculate all descendants
@@ -581,9 +582,7 @@ class ObjectPermissionMixin:
                 'codename', flat=True
             )
         )
-        project_views_perms = get_project_view_user_permissions_for_asset(
-            self, user
-        )
+        project_views_perms = get_project_view_user_permissions_for_asset(self, user)
 
         other_perms = []
         if self.owner and self.owner.organization.is_admin_only(user):
@@ -716,6 +715,7 @@ class ObjectPermissionMixin:
         )
         direct_permissions = all_permissions.filter(inherited=False)
         inherited_permissions = all_permissions.filter(inherited=True)
+        removed_perm_count = direct_permissions.count() + inherited_permissions.count()
         # Resolve implied permissions, e.g. revoking view implies revoking
         # change
         implied_perms = self.get_implied_perms(
@@ -726,11 +726,21 @@ class ObjectPermissionMixin:
                 user_obj, implied_perm, defer_recalc=True)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
+
         if inherited_permissions.exists():
             # Delete inherited permissions
             inherited_permissions.delete()
             # Add a deny permission to block future inheritance
             self.assign_perm(user_obj, perm, deny=True, defer_recalc=True)
+
+        if removed_perm_count > 0:
+            post_remove_perm.send(
+                sender=self.__class__,
+                instance=self,
+                user=user_obj,
+                codename=codename,
+            )
+
         # Remove any applicable KC permissions
         if not skip_kc:
             remove_applicable_kc_permissions(self, user_obj, codename)
@@ -741,13 +751,6 @@ class ObjectPermissionMixin:
             return
 
         self._update_partial_permissions(user_obj, perm, remove=True)
-
-        post_remove_perm.send(
-            sender=self.__class__,
-            instance=self,
-            user=user_obj,
-            codename=codename,
-        )
 
         # Recalculate all descendants
         self.recalculate_descendants_perms()
@@ -968,9 +971,7 @@ class ObjectPermissionMixin:
         if codename__startswith is not None:
             filters['codename__startswith'] = codename__startswith
 
-        permissions = Permission.objects.filter(**filters).values_list(
-            'pk', 'codename'
-        )
+        permissions = Permission.objects.filter(**filters).values_list('pk', 'codename')
 
         return permissions
 

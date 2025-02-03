@@ -143,3 +143,7 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.validated_password
         assert self.user.extra_details.password_date_changed is not None
         assert self.user.extra_details.password_date_changed >= now
+
+    def test_cannot_update_organization_fields_with_mmo(self):
+        self.user.organization.mmo_override = True
+        self.user.organization.save()

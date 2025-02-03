@@ -28,8 +28,10 @@ export const ROOT_URL = (() => {
   );
   let rootPath = '';
   if (rootPathEl === null) {
-    console.error('no kpi-root-path meta tag set. defaulting to ""');
-    rootPath = '';
+    // @ts-expect-error: ℹ️ global 'expect' indicates we're in a unit test
+    if (!globalThis.expect) {
+      console.error('no kpi-root-path meta tag set. defaulting to ""');
+    }
   } else {
     // Strip trailing slashes
     rootPath = rootPathEl.content.replace(/\/*$/, '');
@@ -354,7 +356,7 @@ export const META_QUESTION_TYPES = createEnum([
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
 export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
-  // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
+  // match the ordering of (Python) kpi.models.import_export_task.SubmissionExportTask.COPY_FIELDS
   '_id',
   '_uuid',
   '_submission_time',

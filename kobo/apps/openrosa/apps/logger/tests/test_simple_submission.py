@@ -1,9 +1,10 @@
-# coding: utf-8
+import uuid
+
 from django.test import RequestFactory, TestCase
 from pyxform import SurveyElementBuilder
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import DuplicateInstance
+from kobo.apps.openrosa.apps.logger.exceptions import DuplicateInstanceError
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.libs.utils.logger_tools import (
@@ -32,22 +33,29 @@ class TestSimpleSubmission(TestCase):
         builder = SurveyElementBuilder()
         sss = builder.create_survey_element_from_json(xform.json)
         xform.xml = sss.to_xml()
-        xform._mark_start_time_boolean()
+        xform.mark_start_time_boolean()
         xform.save()
 
     def _submit_at_hour(self, hour):
-        st_xml = '<?xml version=\'1.0\' ?><start_time id="start_time"><st'\
-                 'art_time>2012-01-11T%d:00:00.000+00</start_time></start'\
-                 '_time>' % hour
+        st_xml = (
+            f'<?xml version=\'1.0\' ?><start_time id="start_time">'
+            f'<start_time>2012-01-11T{hour}:00:00.000+00</start_time>'
+            f'<meta><instanceID>'
+            f'uuid:918a1889-389f-4427-b48a-0ba16b7c9b{hour}'
+            f'</instanceID></meta>'
+            f'</start_time>'
+        )
         try:
             create_instance(self.user.username, TempFileProxy(st_xml), [])
-        except DuplicateInstance:
+        except DuplicateInstanceError:
             pass
 
     def _submit_simple_yes(self):
         create_instance(self.user.username, TempFileProxy(
-            '<?xml version=\'1.0\' ?><yes_or_no id="yes_or_no"><yesno>Yes<'
-            '/yesno></yes_or_no>'), [])
+            f'<?xml version=\'1.0\' ?><yes_or_no id="yes_or_no"><yesno>Yes<'
+            f'/yesno>'
+            f'<meta><instanceID>uuid:{str(uuid.uuid4())}</instanceID></meta>'
+            f'</yes_or_no>'), [])
 
     def setUp(self):
         self.user = User.objects.create(username='admin', email='sample@example.com')

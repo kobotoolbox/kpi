@@ -5,16 +5,13 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db.models import F, Sum
@@ -66,12 +63,12 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -144,11 +141,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
-        with kc_transaction_atomic():
-            self._xform = publish_xls_form(xlsx_file, self.asset.owner)
-            self._xform.downloadable = active
-            self._xform.kpi_asset_uid = self.asset.uid
-            self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform = publish_xls_form(xlsx_file, self.asset.owner)
+        self._xform.downloadable = active
+        self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
 
         self.store_data(
             {
@@ -325,7 +321,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         The returned Response should be in XML (expected format by Enketo Express)
         """
         user = request.user
-
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -356,9 +351,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
 
         # Validate write access for users with partial permissions
-        self.validate_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
         )
+
+        if submission_ids:
+            # If `submission_ids` is not empty, it indicates the user has partial
+            # permissions and has successfully passed validation. Therefore, set the
+            # `has_partial_perms` attribute on `request.user` to grant the necessary
+            # permissions when invoking `logger_tool.py::_has_edit_xform_permission()`.
+            user.has_partial_perms = True
 
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
@@ -850,13 +852,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
         asset_uid = self.asset.uid
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-
         try:
+            enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}',
             )
+        except InvalidCacheBackendError:
+            # TODO: This handles the case when the cache is disabled and
+            # get_redis_connection fails, though we may need better error handling here
+            pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
             pass
@@ -991,8 +996,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        # TODO simplify response when KobocatDeploymentBackend
-        #  and MockDeploymentBackend are gone
         try:
             instance = Instance.objects.only('validation_status', 'date_modified').get(
                 pk=submission_id
@@ -1151,7 +1154,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'md5': metadata['file_hash'],
                 'from_kpi': metadata['from_kpi'],
             }
-
         metadata_filenames = metadata_files.keys()
 
         queryset = self._get_metadata_queryset(file_type=file_type)
@@ -1259,19 +1261,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     @contextmanager
     def suspend_submissions(user_ids: list[int]):
         UserProfile.objects.filter(user_id__in=user_ids).update(
-            metadata=UpdateJSONFieldAttributes(
-                'metadata',
-                updates={'submissions_suspended': True},
-            ),
+            submissions_suspended=True
         )
         try:
             yield
         finally:
             UserProfile.objects.filter(user_id__in=user_ids).update(
-                metadata=UpdateJSONFieldAttributes(
-                    'metadata',
-                    updates={'submissions_suspended': False},
-                ),
+                submissions_suspended=False
             )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
@@ -1302,7 +1298,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             attachment_storage_bytes=F('attachment_storage_bytes')
             - self.xform.attachment_storage_bytes
         )
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+        UserProfile.objects.filter(user_id=new_owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
         )
@@ -1352,7 +1348,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         if not file_.is_remote_url:
-            metadata['data_file'] = file_.content
+            # Ensure file has not been read before
+            file_.content.seek(0)
+            file_content = file_.content.read()
+            file_.content.seek(0)
+            metadata['data_file'] = ContentFile(file_content, file_.filename)
 
         MetaData.objects.create(**metadata)
 

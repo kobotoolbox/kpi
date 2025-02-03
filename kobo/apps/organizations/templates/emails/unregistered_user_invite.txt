@@ -1,0 +1,16 @@
+{% load i18n %}
+{% trans "Hello," %}
+
+{% blocktrans %}We’d like to give you a warm welcome to KoboToolbox. You’re invited to join {{ organization_name }} organization as {{recipient_role}} with {{ recipient_username }}. {% endblocktrans %}
+
+{% trans "What joining the organization means for you:" %}
+* {% trans "You will benefit from higher usage limits and additional features, as well as priority user support." %}
+* {% blocktrans %}Any projects owned by your account will be transferred to {{ organization_name }} and all admins in that organization will have access to your projects and data. {% endblocktrans %}
+* {% trans "You will continue to have full management permissions for all projects previously owned by you." %}
+
+{% blocktrans %}It takes less than 2 minutes to create your account to join the organization. Please create your account here: {{ base_url }}/accounts/signup/{% endblocktrans %}
+
+{% trans "Once you have finished creating your account, respond to this invitation using the following link:" %}
+{% blocktrans %}{{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}
+
+- KoboToolbox

@@ -1,8 +1,8 @@
 import React from 'react';
 import {Navigate, Route} from 'react-router-dom';
 import RequireAuth from 'js/router/requireAuth';
-import {ValidateOrgPermissions} from 'js/account/organizations/validateOrgPermissions.component';
-import {OrganizationUserRole} from './stripe.types';
+import {RequireOrgPermissions} from 'js/router/RequireOrgPermissions.component';
+import {OrganizationUserRole} from 'js/account/organization/organizationQuery';
 import {
   ACCOUNT_ROUTES,
   AccountSettings,
@@ -11,11 +11,11 @@ import {
   DataStorage,
   PlansRoute,
   SecurityRoute,
+  MembersRoute,
+  OrganizationSettingsRoute,
 } from 'js/account/routes.constants';
-import {useFeatureFlag, FeatureFlag} from 'js/featureFlags';
 
 export default function routes() {
-  const enableMMORoutes = useFeatureFlag(FeatureFlag.mmosEnabled);
 
   return (
     <>
@@ -36,9 +36,12 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <ValidateOrgPermissions validRoles={[OrganizationUserRole.owner]}>
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <PlansRoute />
-            </ValidateOrgPermissions>
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
@@ -47,9 +50,12 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <ValidateOrgPermissions validRoles={[OrganizationUserRole.owner]}>
+            <RequireOrgPermissions
+              validRoles={[OrganizationUserRole.owner]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
               <AddOnsRoute />
-            </ValidateOrgPermissions>
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
@@ -58,14 +64,15 @@ export default function routes() {
         index
         element={
           <RequireAuth>
-            <ValidateOrgPermissions
+            <RequireOrgPermissions
               validRoles={[
                 OrganizationUserRole.owner,
                 OrganizationUserRole.admin,
               ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
               <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
-            </ValidateOrgPermissions>
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
@@ -73,16 +80,17 @@ export default function routes() {
         path={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
         element={
           <RequireAuth>
-            <ValidateOrgPermissions
+            <RequireOrgPermissions
               validRoles={[
                 OrganizationUserRole.owner,
                 OrganizationUserRole.admin,
               ]}
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
               <DataStorage
                 activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
               />
-            </ValidateOrgPermissions>
+            </RequireOrgPermissions>
           </RequireAuth>
         }
       />
@@ -102,36 +110,36 @@ export default function routes() {
           </RequireAuth>
         }
       />
-      {enableMMORoutes && (
-        <>
-          <Route
-            path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
-            element={
-              <RequireAuth>
-                <ValidateOrgPermissions mmoOnly>
-                  <div>Organization members view to be implemented</div>
-                </ValidateOrgPermissions>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
-            element={
-              <RequireAuth>
-                <ValidateOrgPermissions
-                  validRoles={[
-                    OrganizationUserRole.owner,
-                    OrganizationUserRole.admin,
-                  ]}
-                  mmoOnly
-                >
-                  <div>Organization settings view to be implemented</div>
-                </ValidateOrgPermissions>
-              </RequireAuth>
-            }
-          />
-        </>
-      )}
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              mmoOnly
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <MembersRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={ACCOUNT_ROUTES.ORGANIZATION_SETTINGS}
+        element={
+          <RequireAuth>
+            <RequireOrgPermissions
+              validRoles={[
+                OrganizationUserRole.owner,
+                OrganizationUserRole.admin,
+              ]}
+              mmoOnly
+              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
+            >
+              <OrganizationSettingsRoute />
+            </RequireOrgPermissions>
+          </RequireAuth>
+        }
+      />
     </>
   );
 }

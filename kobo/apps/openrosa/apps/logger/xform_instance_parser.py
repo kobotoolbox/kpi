@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import logging
 import re
 import sys
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from xml.dom import Node
 
 import dateutil.parser
@@ -13,38 +12,14 @@ from defusedxml import minidom
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as t
 
+from kobo.apps.openrosa.apps.logger.exceptions import InstanceEmptyError
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
+from kpi.utils.log import logging
 
 
-class XLSFormError(Exception):
-    pass
-
-
-class DuplicateInstance(Exception):
-    def __str__(self):
-        return t('Duplicate Instance')
-
-
-class InstanceInvalidUserError(Exception):
-    def __str__(self):
-        return t('Could not determine the user.')
-
-
-class InstanceParseError(Exception):
-    def __str__(self):
-        return t('The instance could not be parsed.')
-
-
-class InstanceEmptyError(InstanceParseError):
-    def __str__(self):
-        return t('Empty instance')
-
-
-class InstanceMultipleNodeError(Exception):
-    pass
-
-
-def get_meta_from_xml(xml_str, meta_name):
+def get_meta_node_from_xml(
+    xml_str: str, meta_name: str
+) -> Union[None, tuple[str, minidom.Document]]:
     xml = clean_and_parse_xml(xml_str)
     children = xml.childNodes
     # children ideally contains a single element
@@ -71,22 +46,30 @@ def get_meta_from_xml(xml_str, meta_name):
         return None
 
     uuid_tag = uuid_tags[0]
-    return uuid_tag.firstChild.nodeValue.strip() if uuid_tag.firstChild\
-        else None
+    return uuid_tag, xml
+
+
+def get_meta_from_xml(xml_str: str, meta_name: str) -> str:
+    if node_and_root := get_meta_node_from_xml(xml_str, meta_name):
+        node, _ = node_and_root
+        return node.firstChild.nodeValue.strip() if node.firstChild else None
 
 
 def get_uuid_from_xml(xml):
 
-    def _uuid_only(uuid, regex):
-        matches = regex.match(uuid)
-        if matches and len(matches.groups()) > 0:
-            return matches.groups()[0]
-        return None
+    def _uuid_only(uuid):
+        """
+        Strips the 'uuid:' prefix from the provided identifier if it exists.
+        This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
+        while ensuring only the 'uuid:' prefix is removed. This approach
+        adheres to the OpenRosa spec, allowing custom prefixes to be stored
+        intact in the database to prevent potential ID collisions.
+        """
+        return re.sub(r'^uuid:', '', uuid)
 
     uuid = get_meta_from_xml(xml, 'instanceID')
-    regex = re.compile(r'uuid:(.*)')
     if uuid:
-        return _uuid_only(uuid, regex)
+        return _uuid_only(uuid)
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
@@ -97,8 +80,17 @@ def get_uuid_from_xml(xml):
     survey_node = children[0]
     uuid = survey_node.getAttribute('instanceID')
     if uuid != '':
-        return _uuid_only(uuid, regex)
+        return _uuid_only(uuid)
     return None
+
+
+def get_root_uuid_from_xml(xml):
+    root_uuid = get_meta_from_xml(xml, 'rootUuid')
+    if root_uuid:
+        return root_uuid
+
+    # If no rootUuid, fall back to instanceID
+    return get_uuid_from_xml(xml)
 
 
 def get_submission_date_from_xml(xml) -> Optional[datetime]:
@@ -126,11 +118,26 @@ def get_deprecated_uuid_from_xml(xml):
     return None
 
 
-def clean_and_parse_xml(xml_string: str) -> Node:
+def clean_and_parse_xml(xml_string: str) -> minidom.Document:
     clean_xml_str = xml_string.strip()
     clean_xml_str = re.sub(r'>\s+<', '><', smart_str(clean_xml_str))
     xml_obj = minidom.parseString(clean_xml_str)
     return xml_obj
+
+
+def set_meta(xml_str: str, meta_name: str, new_value: str) -> str:
+
+    if not (node_and_root := get_meta_node_from_xml(xml_str, meta_name)):
+        raise ValueError(f'{meta_name} node not found')
+
+    node, root = node_and_root
+
+    if node.firstChild:
+        node.firstChild.nodeValue = new_value
+
+    xml_output = root.toprettyxml(indent='  ')
+    xml_output = xml_output.replace('<?xml version="1.0" ?>', '').strip()
+    return xml_output
 
 
 def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:
@@ -290,9 +297,9 @@ class XFormInstanceParser:
         try:
             self.parse(xml_str)
         except Exception as e:
-            logger = logging.getLogger('console_logger')
-            logger.error(
-                "Failed to parse instance '%s'" % xml_str, exc_info=True)
+            logging.error(
+                f"Failed to parse instance '{xml_str}'", exc_info=True
+            )
             # `self.parse()` has been wrapped in to try/except but it makes the
             # exception silently ignored.
             # `logger_tool.py::safe_create_instance()` needs the exception
@@ -340,10 +347,9 @@ class XFormInstanceParser:
             try:
                 assert key not in self._attributes
             except AssertionError:
-                logger = logging.getLogger('console_logger')
-                #logger.debug(
-                #    f'Skipping duplicate attribute: {key} with value {value}'
-                #)
+                logging.debug(
+                    f'Skipping duplicate attribute: {key} with value {value}'
+                )
             else:
                 self._attributes[key] = value
 
@@ -374,7 +380,6 @@ def parse_xform_instance(xml_str, data_dictionary):
 def get_xform_media_question_xpaths(
     xform: 'kobo.apps.openrosa.apps.logger.models.XForm',
 ) -> list:
-    logger = logging.getLogger('console_logger')
     parser = XFormInstanceParser(xform.xml, xform.data_dictionary(use_cache=True))
     all_attributes = _get_all_attributes(parser.get_root_node())
     media_field_xpaths = []
@@ -388,7 +393,7 @@ def get_xform_media_question_xpaths(
             try:
                 next_attribute = next(all_attributes)
             except StopIteration:
-                logger.error(
+                logging.error(
                     f'`ref` attribute seems to be missing in {xform.xml}',
                     exc_info=True,
                 )
@@ -398,8 +403,7 @@ def get_xform_media_question_xpaths(
             try:
                 assert next_attribute_key.lower() == 'ref'
             except AssertionError:
-                logger = logging.getLogger('console_logger')
-                logger.error(
+                logging.error(
                     f'`ref` should come after `mediatype:{value}` in {xform.xml}',
                     exc_info=True,
                 )

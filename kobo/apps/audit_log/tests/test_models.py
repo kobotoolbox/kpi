@@ -22,8 +22,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_GROUP_AUTH_TYPE,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED,
+    PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED,
+    PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ImportTask
 from kpi.tests.base_test_case import BaseTestCase
 
 
@@ -79,7 +82,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
             date_created=yesterday,
         )
         self._check_common_fields(log, AccessLogModelTestCase.super_user)
-        self.assertEquals(log.date_created, yesterday)
+        self.assertEqual(log.date_created, yesterday)
         self.assertDictEqual(log.metadata, {'foo': 'bar'})
 
     @patch('kobo.apps.audit_log.models.logging.warning')
@@ -463,7 +466,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='fieldname',
             add_action=AuditAction.CREATE,
@@ -492,7 +495,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'a',
             'field_2': 'b',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -525,7 +528,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'field_1': 'new_field1',
             'field_2': 'new_field2',
         }
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -548,7 +551,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
         # no `initial_data` or `updated_data` present
-        ProjectHistoryLog.create_from_related_request(
+        ProjectHistoryLog._related_request_base(
             request,
             label='label',
             add_action=AuditAction.CREATE,
@@ -556,3 +559,124 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             modify_action=AuditAction.UPDATE,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_create_from_import_task_no_name_change(self):
+        asset = Asset.objects.get(pk=1)
+        task = ImportTask.objects.create(
+            user=User.objects.get(username='someuser'), data={}
+        )
+        task.messages = {
+            'audit_logs': [
+                {
+                    'asset_uid': asset.uid,
+                    'latest_version_uid': 'av12345',
+                    'ip_address': '1.2.3.4',
+                    'source': 'source',
+                    'asset_id': asset.id,
+                    'old_name': asset.name,
+                    'new_name': asset.name,
+                }
+            ]
+        }
+        ProjectHistoryLog.create_from_import_task(task)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.action, AuditAction.REPLACE_FORM)
+        self.assertEqual(log.object_id, asset.id)
+
+        # data from 'messages' should be copied to the log
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            },
+        )
+
+    def test_create_from_import_task_with_name_change(self):
+        asset = Asset.objects.get(pk=1)
+        old_name = asset.name
+        task = ImportTask.objects.create(
+            user=User.objects.get(username='someuser'), data={}
+        )
+        task.messages = {
+            'audit_logs': [
+                {
+                    'asset_uid': asset.uid,
+                    'latest_version_uid': 'av12345',
+                    'ip_address': '1.2.3.4',
+                    'source': 'source',
+                    'asset_id': asset.id,
+                    'old_name': old_name,
+                    'new_name': 'new_name',
+                }
+            ]
+        }
+        ProjectHistoryLog.create_from_import_task(task)
+        self.assertEqual(ProjectHistoryLog.objects.count(), 2)
+        log = ProjectHistoryLog.objects.filter(action=AuditAction.REPLACE_FORM).first()
+        self.assertEqual(log.object_id, asset.id)
+
+        self.assertDictEqual(
+            log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            },
+        )
+        name_log = ProjectHistoryLog.objects.filter(
+            action=AuditAction.UPDATE_NAME
+        ).first()
+        self.assertEqual(log.object_id, asset.id)
+
+        self.assertDictEqual(
+            name_log.metadata,
+            {
+                'ip_address': '1.2.3.4',
+                'asset_uid': asset.uid,
+                'source': 'source',
+                'latest_version_uid': 'av12345',
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'name': {'old': old_name, 'new': 'new_name'},
+            },
+        )
+
+    def test_create_from_unexpected_anonymous_permissions(self):
+        # Normal anonymous permissions tested elsewhere
+        # This test is for if somehow other permissions are assigned
+        factory = RequestFactory()
+        request = factory.post('/')
+        request.user = User.objects.get(username='someuser')
+        request.resolver_match = Mock()
+        request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
+        request.updated_data = {
+            'asset.id': 1,
+        }
+        request.permissions_added = {
+            # these permissions are not allowed for anonymous users,
+            # pretend something went wrong/changed and they were assigned anyway
+            'AnonymousUser': {'discover_asset', 'validate_submissions'}
+        }
+        ProjectHistoryLog._create_from_permissions_request(
+            request,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 1)
+        log = ProjectHistoryLog.objects.first()
+        self.assertEqual(log.object_id, 1)
+        # should create a regular 'MODIFY_USER_PERMISSIONS' log
+        self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
+        permissions = log.metadata['permissions']
+        self.assertEqual(permissions['username'], 'AnonymousUser')
+        self.assertListEqual(
+            permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED], []
+        )
+        self.assertListEqual(
+            sorted(permissions[PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED]),
+            ['discover_asset', 'validate_submissions'],
+        )

@@ -61,7 +61,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='owner'>
-          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner__username)}
+          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner_label)}
         </bem.AssetsTableRow__column>
 
         {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
