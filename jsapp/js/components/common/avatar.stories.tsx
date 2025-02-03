@@ -18,7 +18,8 @@ export default {
     isUsernameVisible: {type: 'boolean'},
     hasFullName: {
       type: 'boolean',
-      description: 'Allows testing `fullName` being empty string or not existing',
+      description:
+        'Allows testing `fullName` being empty string or not existing',
     },
     fullName: {type: 'string', if: {arg: 'hasFullName', truthy: true}},
     hasEmail: {
@@ -26,18 +27,13 @@ export default {
       description: 'Allows testing `email` being empty string or not existing',
     },
     email: {type: 'string', if: {arg: 'hasEmail', truthy: true}},
+    isEmpty: {
+      type: 'boolean',
+    },
   },
 } as ComponentMeta<typeof Avatar>;
 
-const Template: ComponentStory<typeof Avatar> = (args) => (
-  <Avatar
-    size={args.size}
-    username={args.username}
-    isUsernameVisible={args.isUsernameVisible}
-    fullName={args.fullName}
-    email={args.email}
-  />
-);
+const Template: ComponentStory<typeof Avatar> = (args) => <Avatar {...args} />;
 
 export const Simple = Template.bind({});
 Simple.args = {
