@@ -85,8 +85,10 @@ class OrgMembershipInvitePermission(
 
         allowed_roles = [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
         if request.method in ['POST', 'DELETE'] or (
-            request.method == 'PATCH' and
-            request.data.get('status') in ['resent', 'cancelled']
+            request.method == 'PATCH' and (
+                request.data.get('status') in ['resent', 'cancelled']
+                or request.data.get('role')
+            )
         ):
             if user_role in allowed_roles:
                 return True

@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -27,7 +29,8 @@ from .constants import (
     INVITE_MEMBER_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
-    INVITE_NOT_FOUND_ERROR
+    INVITE_NOT_FOUND_ERROR,
+    INVITE_ALREADY_EXISTS_ERROR
 )
 from .tasks import transfer_member_data_ownership_to_org
 
@@ -298,15 +301,21 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return invites
 
     def update(self, instance, validated_data):
-        status = validated_data.get('status')
-        if status == 'accepted':
-            self._handle_invitee_assignment(instance)
-            self.validate_invitation_acceptance(instance)
-            self._update_invitee_organization(instance)
+        status = validated_data.get('status', instance.status)
+        with transaction.atomic():
+            if 'role' in validated_data:
+                # Organization owner or admin can update the role of the invitee
+                instance.invitee_role = validated_data['role']
+                instance.save(update_fields=['invitee_role'])
 
-            # Transfer ownership of invitee's assets to the organization
-            transfer_member_data_ownership_to_org(instance.invitee.id)
-        self._handle_status_update(instance, status)
+            if status == 'accepted':
+                self._handle_invitee_assignment(instance)
+                self.validate_invitation_acceptance(instance)
+                self._update_invitee_organization(instance)
+
+                # Transfer ownership of invitee's assets to the organization
+                transfer_member_data_ownership_to_org(instance.invitee.id)
+            self._handle_status_update(instance, status)
         return instance
 
     def _handle_invitee_assignment(self, instance):
@@ -435,6 +444,18 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         """
         valid_users, external_emails = [], []
         for idx, invitee in enumerate(value):
+            # Check if the invitee is already invited and has not responded yet
+            existing_invites = OrganizationInvitation.objects.filter(
+                Q(invitee__username=invitee) | Q(invitee_identifier=invitee),
+                organization=self.context['request'].user.organization
+            ).exclude(status__in=['declined', 'expired', 'accepted'])
+            if existing_invites:
+                raise serializers.ValidationError(
+                    replace_placeholders(
+                        t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee
+                    )
+                )
+
             try:
                 validate_email(invitee)
                 users = User.objects.filter(email=invitee)
