@@ -42,16 +42,19 @@ export default function MembersRoute() {
     {
       key: 'user__extra_details__name',
       label: t('Name'),
-      cellFormatter: (member: OrganizationMember) => (
-        <Avatar
-          size='m'
-          username={member.user__username}
-          isUsernameVisible
-          email={member.user__email}
-          // We pass `undefined` for the case it's an empty string
-          fullName={member.user__extra_details__name || undefined}
-        />
-      ),
+      cellFormatter: (member: OrganizationMember) => {
+        const isOrgInvite = member.invite?.status === 'pending' || member.invite?.status === 'resent'
+          return (
+            <Avatar
+              size='m'
+              username={member.user__username}
+              isUsernameVisible={!isOrgInvite}
+              email={member.user__email}
+              // We pass `undefined` for the case it's an empty string
+              fullName={isOrgInvite ? undefined : member.user__extra_details__name || undefined}
+            />
+          )
+      },
       size: 360,
     },
     {
@@ -64,7 +67,6 @@ export default function MembersRoute() {
         } else {
           return <Badge color='light-green' size='s' label={t('Active')} />;
         }
-        return null;
       },
     },
     {
@@ -79,6 +81,19 @@ export default function MembersRoute() {
       label: t('Role'),
       size: 140,
       cellFormatter: (member: OrganizationMember) => {
+        if (
+          member.invite?.status === 'pending' ||
+          member.invite?.status === 'resent'
+        ) {
+          return (
+            <MemberRoleSelector
+              username={member.user__username}
+              role={member.invite.invitee_role}
+              currentUserRole={orgQuery.data.request_user_role}
+              inviteUrl={member.invite.url}
+            />
+          );
+        }
         if (
           member.role === OrganizationUserRole.owner ||
           !['owner', 'admin'].includes(orgQuery.data.request_user_role)

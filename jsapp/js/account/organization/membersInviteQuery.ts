@@ -30,7 +30,7 @@ import {type Json} from 'jsapp/js/components/common/common.interfaces';
  * The source of truth of statuses are at `OrganizationInviteStatusChoices` in
  * `kobo/apps/organizations/models.py`. This enum should be kept in sync.
  */
-enum MemberInviteStatus {
+export enum MemberInviteStatus {
   accepted = 'accepted',
   cancelled = 'cancelled',
   complete = 'complete',
@@ -58,11 +58,19 @@ export interface MemberInvite {
   date_modified: string;
 }
 
-interface SendMemberInviteParams {
+interface MemberInviteRequestBase {
+  role: OrganizationUserRole;
+}
+
+interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[];
   /** Target role for the invitied users. */
   role: OrganizationUserRole;
+}
+
+interface MemberInviteUpdate extends MemberInviteRequestBase{
+  status: MemberInviteStatus
 }
 
 /**
@@ -120,11 +128,13 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
  * invalidation).
  */
-export function usePatchMemberInvite(inviteUrl: string) {
+export function usePatchMemberInvite(inviteUrl?: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (newInviteData: Partial<MemberInvite>) => {
-      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
+    mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
+      if (inviteUrl) {
+        fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [
