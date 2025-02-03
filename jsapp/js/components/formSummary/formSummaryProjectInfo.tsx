@@ -3,7 +3,6 @@ import bem from 'js/bem';
 import {
   getCountryDisplayString,
   getSectorDisplayString,
-  isSelfOwned,
 } from 'js/assetUtils';
 import type {
   AssetResponse,
@@ -13,9 +12,10 @@ import type {
 import {dataInterface} from 'js/dataInterface';
 import {handleApiFail} from 'js/api';
 import {formatTime} from 'js/utils';
-import AssetStatusBadge from './common/assetStatusBadge';
-import Avatar from './common/avatar';
+import AssetStatusBadge from 'js/components/common/assetStatusBadge';
+import Avatar from 'js/components/common/avatar';
 import envStore from 'js/envStore';
+import sessionStore from 'js/stores/session';
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse;
@@ -96,8 +96,10 @@ export default function FormSummaryProjectInfo(
           {/* owner */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Owner')}</bem.FormView__label>
-            {isSelfOwned(props.asset) && t('me')}
-            {!isSelfOwned(props.asset) && (
+            {props.asset.owner_label ===
+            sessionStore.currentAccount.username ? (
+              t('me')
+            ) : (
               <Avatar
                 username={props.asset.owner_label}
                 size='s'

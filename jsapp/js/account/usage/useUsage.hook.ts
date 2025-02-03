@@ -2,7 +2,7 @@ import {createContext} from 'react';
 import type {RecurringInterval} from 'js/account/stripe.types';
 import {getSubscriptionInterval} from 'js/account/stripe.api';
 import {convertSecondsToMinutes, formatRelativeTime} from 'js/utils';
-import {getUsage} from 'js/account/usage/usage.api';
+import {getOrgServiceUsage} from 'js/account/usage/usage.api';
 import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
 
 export interface UsageState {
@@ -34,7 +34,7 @@ const loadUsage = async (
     throw Error(t('No organization found'));
   }
   const trackingPeriod = await getSubscriptionInterval();
-  const usage = await getUsage(organizationId);
+  const usage = await getOrgServiceUsage(organizationId);
   if (!usage) {
     throw Error(t("Couldn't get usage data"));
   }

@@ -280,6 +280,13 @@ class OrganizationUser(AbstractOrganizationUser):
         """
         return ', '.join(self.active_subscription_statuses)
 
+    @classmethod
+    def export_resource_classes(cls):
+        from .admin.organization_user import OrgUserResource
+        return {
+            'organization_users': ('Organization users resource', OrgUserResource),
+        }
+
 
 class OrganizationOwner(AbstractOrganizationOwner):
     pass

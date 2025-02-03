@@ -7,7 +7,7 @@ import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import prettyBytes from 'pretty-bytes';
 import type {AssetUsage, AssetWithUsage} from 'js/account/usage/usage.api';
-import {getAssetUsageForOrganization} from 'js/account/usage/usage.api';
+import {getOrgAssetUsage} from 'js/account/usage/usage.api';
 import {USAGE_ASSETS_PER_PAGE} from 'jsapp/js/constants';
 import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader';
 import type {ProjectFieldDefinition} from 'jsapp/js/projects/projectViews/constants';
@@ -35,11 +35,11 @@ const ProjectBreakdown = () => {
   const orgQuery = useOrganizationQuery();
 
   useEffect(() => {
-    async function fetchData() {
-      const data = await getAssetUsageForOrganization(
+    async function fetchData(orgId: string) {
+      const data = await getOrgAssetUsage(
         currentPage,
-        order,
-        orgQuery.data?.id
+        orgId,
+        order
       );
       const updatedResults = data.results.map((projectResult) => {
         const assetParts = projectResult.asset.split('/');
@@ -57,8 +57,10 @@ const ProjectBreakdown = () => {
       setLoading(false);
     }
 
-    fetchData();
-  }, [currentPage, order]);
+    if (orgQuery.data) {
+      fetchData(orgQuery.data.id);
+    }
+  }, [currentPage, order, orgQuery.data]);
 
   if (loading) {
     return <LoadingSpinner />;

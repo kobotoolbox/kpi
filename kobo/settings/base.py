@@ -107,6 +107,7 @@ INSTALLED_APPS = (
     'allauth.usersessions',
     'hub.HubAppConfig',
     'import_export',
+    'import_export_celery',
     'loginas',
     'webpack_loader',
     'django_extensions',
@@ -171,6 +172,7 @@ MIDDLEWARE = [
     'hub.middleware.UsernameInResponseHeaderMiddleware',
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
+    'author.middlewares.AuthorDefaultBackendMiddleware',
 ]
 
 
@@ -214,6 +216,12 @@ CONSTANCE_CONFIG = {
     'SUPPORT_URL': (
         env.str('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
         'URL for "KoboToolbox Help Center"',
+    ),
+    'ACADEMY_URL': (
+        env.str(
+            'KOBO_ACADEMY_URL', 'https://academy.kobotoolbox.org/'
+        ),
+        'URL for "KoboToolbox Community Forum"',
     ),
     'COMMUNITY_URL': (
         env.str(
@@ -667,6 +675,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
+        'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
         'EXPOSE_GIT_REV',
@@ -869,6 +878,8 @@ SYNCHRONOUS_REQUEST_TIME_LIMIT = 120  # seconds
 
 # REMOVE the oldest if a user exceeds this many exports for a particular form
 MAXIMUM_EXPORTS_PER_USER_PER_FORM = 10
+
+MAX_RETRIES_FOR_IMPORT_EXPORT_TASK = 10
 
 # Private media file configuration
 PRIVATE_STORAGE_ROOT = os.path.join(BASE_DIR, 'media')
@@ -1391,14 +1402,24 @@ default_file_storage = env.str(
 )
 if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
     warnings.warn(
-        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, update the environment variable.',
+        'KPI_DEFAULT_FILE_STORAGE is renamed DEFAULT_FILE_STORAGE, '
+        'update the environment variable.',
         DeprecationWarning,
     )
+
+# ToDo Find out why `private_storage.appconfig.PRIVATE_STORAGE_CLASS`
+#  cannot be imported. Otherwise, some tests are failing.
+# from private_storage.appconfig import (
+#   PRIVATE_STORAGE_CLASS as DEFAULT_PRIVATE_STORAGE_CLASS
+# )
+# PRIVATE_STORAGE_CLASS = DEFAULT_PRIVATE_STORAGE_CLASS
+PRIVATE_STORAGE_CLASS = 'private_storage.storage.files.PrivateFileSystemStorage'
 
 if default_file_storage:
 
     global_default_file_storage = STORAGES['default']['BACKEND']
     default_file_storage = STORAGES['default']['BACKEND'] = default_file_storage
+
     if default_file_storage != global_default_file_storage:
         if default_file_storage.endswith('S3Boto3Storage'):
             # To use S3 storage, set this to `kobo.apps.storage_backends.s3boto3.S3Boto3Storage`
@@ -1419,19 +1440,21 @@ if default_file_storage:
                 'AZURE_URL_EXPIRATION_SECS', None
             )
 
-    aws_storage_bucket_name = env.str('AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None))
+    aws_storage_bucket_name = env.str(
+        'AWS_STORAGE_BUCKET_NAME', env.str('KPI_AWS_STORAGE_BUCKET_NAME', None)
+    )
     if aws_storage_bucket_name:
         AWS_STORAGE_BUCKET_NAME = aws_storage_bucket_name
         AWS_DEFAULT_ACL = 'private'
         # django-private-storage needs its own S3 configuration
-        PRIVATE_STORAGE_CLASS = \
+        PRIVATE_STORAGE_CLASS = (
             'private_storage.storage.s3boto3.PrivateS3BotoStorage'
             # NB.........There's intentionally no 3 here! ^
+        )
         AWS_PRIVATE_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
         # Proxy S3 through our application instead of redirecting to bucket
         # URLs with query parameter authentication
         PRIVATE_STORAGE_S3_REVERSE_PROXY = True
-
 
 if 'KOBOCAT_DEFAULT_FILE_STORAGE' in os.environ:
     KOBOCAT_DEFAULT_FILE_STORAGE = os.environ.get('KOBOCAT_DEFAULT_FILE_STORAGE')
@@ -1445,6 +1468,8 @@ else:
     KOBOCAT_MEDIA_ROOT = os.environ.get(
         'KOBOCAT_MEDIA_ROOT', MEDIA_ROOT.replace('kpi', 'kobocat')
     )
+
+STORAGES['import_export_celery'] = {'BACKEND': PRIVATE_STORAGE_CLASS}
 
 # Google Cloud Storage
 # Not fully supported as a generic storage backend
@@ -1833,3 +1858,15 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
 
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
+
+# Import/Export Celery
+IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
+
+IMPORT_EXPORT_CELERY_MODELS = {
+    'OrganizationUser': {
+        'app_label': 'organization',
+        'model_name': 'OrganizationUser',
+    },
+}
+
+IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
