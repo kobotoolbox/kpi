@@ -178,7 +178,7 @@ export const OneTimeAddOnRow = ({
             onChange={(productId) => onChangeProduct(productId as string)}
             value={selectedProduct.id}
           />
-          {displayName === 'File Storage' ? (
+          {displayName === 'File Storage' && (
             <KoboSelect3
               size={'fit'}
               name={t('prices')}
@@ -186,7 +186,7 @@ export const OneTimeAddOnRow = ({
               onChange={onChangePrice}
               value={selectedPrice.id}
             />
-          ) : null}
+          )}
         </div>
       </td>
       <td className={styles.fullScreen}>
