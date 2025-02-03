@@ -2,15 +2,15 @@ import dateutil
 from constance.test import override_config
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import translation
 from django.utils.timezone import now
-from hub.models.sitewide_message import SitewideMessage
 from model_bakery import baker
 from pyquery import PyQuery
 from rest_framework import status
 
+from hub.models.sitewide_message import SitewideMessage
 from kobo.apps.accounts.forms import SignupForm, SocialSignupForm
 from kpi.utils.json import LazyJSONSerializable
 
@@ -19,27 +19,24 @@ class AccountFormsTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = baker.make(settings.AUTH_USER_MODEL)
-        cls.sociallogin = baker.make(
-            "socialaccount.SocialAccount", user=cls.user
-        )
+        cls.sociallogin = baker.make('socialaccount.SocialAccount', user=cls.user)
 
     def setUp(self):
         self.client = Client()
         self.url = reverse('account_signup')
 
-    @override_settings(UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE=True)
-    def test_social_signup_form_not_email_disabled(self):
+    def test_social_signup_form_email_disabled(self):
         form = SocialSignupForm(sociallogin=self.sociallogin)
         pq = PyQuery(str(form))
-        assert (email_input := pq("[name=email]"))
-        assert "readonly" in email_input[0].attrib
+        assert (email_input := pq('[name=email]'))
+        assert 'readonly' in email_input[0].attrib
 
-    @override_settings(UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE=False)
-    def test_social_signup_form_not_email_not_disabled(self):
-        form = SocialSignupForm(sociallogin=self.sociallogin)
-        pq = PyQuery(str(form))
-        assert (email_input := pq("[name=email]"))
-        assert "readonly" not in email_input[0].attrib
+    def test_social_signup_email_must_match(self):
+        form = SocialSignupForm(
+            sociallogin=self.sociallogin,
+            data={'email': 'bad@bad.com', 'name': 'name', 'username': 'uname'},
+        )
+        self.assertEquals(form.errors['email'], 'Email must match SSO server email')
 
     def test_only_configurable_fields_can_be_removed(self):
         with override_config(USER_METADATA_FIELDS='{}'):
