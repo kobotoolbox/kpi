@@ -39,7 +39,7 @@ const commonOptions = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx|es6)$/,
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: [swcLoader],
       },
@@ -94,7 +94,7 @@ const commonOptions = {
     ],
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts', '.tsx', '.scss'],
+    extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
       app: path.join(__dirname, '../app'),
       jsapp: path.join(__dirname, '../jsapp'),

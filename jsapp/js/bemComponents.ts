@@ -86,12 +86,12 @@ bem.TableMeta__bulkOptions = makeBem(bem.TableMeta, 'bulk-options');
 bem.CollectionsWrapper = makeBem(null, 'collections-wrapper');
 
 bem.FormView = makeBem(null, 'form-view');
-// used in header.es6
+// used in header.js
 bem.FormView__title = makeBem(bem.FormView, 'title');
 bem.FormView__name = makeBem(bem.FormView, 'name');
 bem.FormView__description = makeBem(bem.FormView, 'description');
 bem.FormView__subs = makeBem(bem.FormView, 'subs');
-// end used in header.es6
+// end used in header.js
 bem.FormView__sidetabs = makeBem(bem.FormView, 'sidetabs');
 
 bem.FormView__label = makeBem(bem.FormView, 'label');

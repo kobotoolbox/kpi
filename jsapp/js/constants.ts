@@ -229,8 +229,8 @@ type QuestionTypes = {
  *   - isRowSpecialLabelHolder in assetUtils.ts
  *   - renderQuestionTypeIcon in assetUtils.ts
  * 5. If question doesn't hold data, update:
- *   - getDisplayData in bulkEditSubmissionsForm.es6
- *   - getDisplayedColumns in table.es6
+ *   - getDisplayData in bulkEditSubmissionsForm.js
+ *   - getDisplayedColumns in table.js
  * 6. Update renderResponseData in submissionDataTable.tsx
  * 7. Update getSubmissionDisplayData in submissionUtils.ts
  * 8. If it's media type update renderAttachment in submissionDataTable.tsx

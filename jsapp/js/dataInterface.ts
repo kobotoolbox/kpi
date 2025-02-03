@@ -1,6 +1,6 @@
 /**
  * The only file that is making calls to Backend. You shouldn't use it directly,
- * but through proper actions in `jsapp/js/actions.es6`.
+ * but through proper actions in `jsapp/js/actions.js`.
  *
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
@@ -919,7 +919,7 @@ export interface ValidationStatusResponse {
 }
 
 // TODO: this should be moved to some better place, like
-// `…/actions/submissions.es6` after moving it to TypeScript
+// `…/actions/submissions.js` after moving it to TypeScript
 export interface GetSubmissionsOptions {
   uid: string;
   pageSize?: number;
