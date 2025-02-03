@@ -4,12 +4,45 @@ import {Select} from 'jsapp/js/components/common/Select';
 import {useSendMemberInvite} from './membersInviteQuery';
 import {useState} from 'react';
 import {OrganizationUserRole} from './organizationQuery';
+import {KEY_CODES} from 'jsapp/js/constants';
+import userExistence from 'js/users/userExistence.store';
 
 export default function InviteModal(props: ModalProps) {
-  const inviteQuery = useSendMemberInvite();
+  const inviteQuery = membersQuery;
 
-  const [email, setEmail] = useState('');
+  const [textValue, setTextValue] = useState('');
   const [role, setRole] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const onInputKeyPress = (evt: React.KeyboardEvent<HTMLInputElement>) => {
+    if (evt.key === String(KEY_CODES.ENTER)) {
+      evt.currentTarget.blur();
+      evt.preventDefault(); // prevent submitting form
+    }
+  };
+
+  async function handleUsernameOrEmailCheck() {
+    setErrorMessage(null);
+
+    if (textValue === '' || textValue.includes('@')) {
+      return;
+    }
+
+    //TODO: Keep some log of checked usernames in state to prevent unecessary queries
+
+    const checkResult = await userExistence.checkUsername(textValue);
+    if (checkResult === false) {
+      setErrorMessage(t('This username does not exist. Please try again.'));
+    } else {
+      console.log('good');
+    }
+  }
+
+  const handleSendInvite = () => {
+    if (role) {
+      inviteQuery.mutateAsync({invitees: [textValue], role: role as OrganizationUserRole});
+    }
+  };
 
   return (
     <Modal
@@ -27,7 +60,10 @@ export default function InviteModal(props: ModalProps) {
           <TextInput
             flex={3}
             placeholder={t('Enter username or email address')}
-            onChange={(e) => setEmail(e.currentTarget.value)}
+            onChange={(e) => setTextValue(e.currentTarget.value)}
+            onKeyDown={onInputKeyPress}
+            onBlur={handleUsernameOrEmailCheck}
+            error={errorMessage}
           />
           <Select
             flex={2}
@@ -49,10 +85,11 @@ export default function InviteModal(props: ModalProps) {
         <Group w='100%' justify='flex-end'>
           <ButtonNew
             size='lg'
+            disabled={errorMessage ? true : false}
             onClick={() => {
-              console.log('--------email---------', email);
+              console.log('--------email---------', textValue);
               console.log('--------role----------', role);
-              useSendMemberInvite();
+              handleSendInvite();
             }}
           >
             {t('Send invite')}
