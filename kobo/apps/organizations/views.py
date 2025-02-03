@@ -466,13 +466,21 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             # Include invited users who are not yet part of this organization
             invitation_queryset = OrganizationInvitation.objects.filter(
-                organization_id=organization_id, status='pending'
+                organization_id=organization_id,
+                status__in=['pending', 'resent']
             )
+
+            # Get existing user IDs from the queryset
+            existing_user_ids = queryset.values_list('user_id', flat=True)
 
             # Queryset for invited users who have registered
             registered_invitees = OrganizationUser.objects.filter(
                 user_id__in=invitation_queryset.values('invitee_id')
-            ).select_related('user__extra_details').annotate(
+            ).exclude(user_id__in=existing_user_ids)
+
+            registered_invitees = registered_invitees.select_related(
+                'user__extra_details'
+            ).annotate(
                 role=Case(
                     When(Exists(owner_subquery), then=Value('owner')),
                     When(is_admin=True, then=Value('admin')),
