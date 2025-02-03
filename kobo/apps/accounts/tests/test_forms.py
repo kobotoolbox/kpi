@@ -419,5 +419,7 @@ class AccountFormsTestCase(TestCase):
 
     def test_organization_field_skip_logic_sso_form(self):
         self._organization_field_skip_logic(
-            SocialSignupForm, form_kwargs={'sociallogin': self.sociallogin}, email=self.sociallogin.user.email
+            SocialSignupForm,
+            form_kwargs={'sociallogin': self.sociallogin},
+            email=self.sociallogin.user.email,
         )
