@@ -35,7 +35,7 @@ export default function MembersRoute() {
   }
 
   const isInviteOrgMembersEnabled = useFeatureFlag(
-    FeatureFlag.inviteOrgMembers
+    FeatureFlag.orgMemberInvitesEnabled
   );
 
   const columns: Array<UniversalTableColumn<OrganizationMember>> = [
