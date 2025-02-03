@@ -1026,7 +1026,7 @@ export interface ExportDataResponse {
   };
 }
 
-const $ajax = (o: {}) =>
+const $ajax = <T>(o: {}): JQuery.jqXHR<T> =>
   $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
@@ -1419,7 +1419,7 @@ export const dataInterface: DataInterface = {
   },
 
   unsubscribeFromCollection(uid: string) {
-    return $ajax({
+    return $ajax<PaginatedResponse<AssetSubscriptionsResponse>>({
       url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
       data: {
         asset__uid: uid,
@@ -1737,7 +1737,7 @@ export const dataInterface: DataInterface = {
   },
 
   loadNextPageUrl<T>(nextPageUrl: string): JQuery.jqXHR<PaginatedResponse<T>> {
-    return $ajax({
+    return $ajax<PaginatedResponse<T>>({
       url: nextPageUrl,
       method: 'GET',
     });
