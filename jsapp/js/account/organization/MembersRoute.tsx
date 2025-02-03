@@ -8,11 +8,15 @@ import Avatar from 'js/components/common/avatar';
 import Badge from 'jsapp/js/components/common/badge';
 import MemberActionsDropdown from './MemberActionsDropdown';
 import MemberRoleSelector from './MemberRoleSelector';
+import ButtonNew from 'jsapp/js/components/common/ButtonNew';
+import {Divider, Group, Stack, Text, Title, Box} from '@mantine/core';
+import InviteModal from 'js/account/organization/InviteModal';
 
 // Stores, hooks and utilities
 import {formatTime} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
 import useOrganizationMembersQuery from './membersQuery';
+import {useDisclosure} from '@mantine/hooks';
 
 // Constants and types
 import type {OrganizationMember} from './membersQuery';
@@ -20,15 +24,19 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 
 // Styles
 import styles from './membersRoute.module.scss';
+import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
+  const [opened, {open, close}] = useDisclosure(false);
 
   if (!orgQuery.data) {
-    return (
-      <LoadingSpinner />
-    );
+    return <LoadingSpinner />;
   }
+
+  const isInviteOrgMembersEnabled = useFeatureFlag(
+    FeatureFlag.orgMemberInvitesEnabled
+  );
 
   const columns: Array<UniversalTableColumn<OrganizationMember>> = [
     {
@@ -63,7 +71,8 @@ export default function MembersRoute() {
       key: 'date_joined',
       label: t('Date added'),
       size: 140,
-      cellFormatter: (member: OrganizationMember) => formatTime(member.date_joined),
+      cellFormatter: (member: OrganizationMember) =>
+        formatTime(member.date_joined),
     },
     {
       key: 'role',
@@ -140,6 +149,30 @@ export default function MembersRoute() {
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
+
+      {isInviteOrgMembersEnabled &&
+        !(orgQuery.data.request_user_role === 'member') && (
+          <Box>
+            <Divider />
+            <Group w='100%' justify='space-between'>
+              <Stack gap='xs' pt='xs' pb='xs'>
+                {/*TODO: 'Roboto' font is not loading correctly. The styling matches the figma but still looks off.*/}
+                <Title fw={600} order={5}>{t('Invite members')}</Title>
+                <Text>
+                  {t('Invite more people to join your team or change their role permissions below.')}
+                </Text>
+              </Stack>
+
+              <Box>
+                <ButtonNew size='lg' onClick={open}>
+                  {t('Invite members')}
+                </ButtonNew>
+                <InviteModal opened={opened} onClose={close} />
+              </Box>
+            </Group>
+            <Divider mb='md' />
+          </Box>
+        )}
 
       <PaginatedQueryUniversalTable<OrganizationMember>
         queryHook={useOrganizationMembersQuery}
