@@ -4,7 +4,7 @@
  */
 export enum FeatureFlag {
   //exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
-  inviteOrgMembers = 'inviteOrgMembers',
+  orgMemberInvitesEnabled = 'orgMemberInvitesEnabled',
 }
 
 /**
