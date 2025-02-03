@@ -9,6 +9,7 @@ import {AlertThemeKobo} from './Alert';
 import {SelectThemeKobo} from './Select';
 import {LoaderThemeKobo} from './Loader';
 import {ModalThemeKobo} from './Modal';
+import {DividerThemeKobo} from './Divider';
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -114,5 +115,6 @@ export const themeKobo = createTheme({
     Select: SelectThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
+    Divider: DividerThemeKobo,
   },
 });
