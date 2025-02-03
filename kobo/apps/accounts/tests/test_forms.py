@@ -32,9 +32,11 @@ class AccountFormsTestCase(TestCase):
         assert 'readonly' in email_input[0].attrib
 
     def test_social_signup_email_must_match(self):
+        # replace something@email.com with something+bad@email.com
+        bad_email = self.user.email.replace('@', '+bad@')
         form = SocialSignupForm(
             sociallogin=self.sociallogin,
-            data={'email': 'bad@bad.com', 'name': 'name', 'username': 'uname'},
+            data={'email': bad_email, 'name': 'name', 'username': 'uname'},
         )
         self.assertEquals(form.errors['email'], ['Email must match SSO server email'])
 
