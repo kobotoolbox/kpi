@@ -156,7 +156,8 @@ export default function MembersRoute() {
             <Divider />
             <Group w='100%' justify='space-between'>
               <Stack gap='xs' pt='xs' pb='xs'>
-                <Title order={5}>{t('Invite members')}</Title>
+                {/*TODO: 'Roboto' font is not loading correctly. The styling matches the figma but still looks off.*/}
+                <Title fw={600} order={5}>{t('Invite members')}</Title>
                 <Text>
                   {t('Invite more people to join your team or change their role permissions below.')}
                 </Text>
