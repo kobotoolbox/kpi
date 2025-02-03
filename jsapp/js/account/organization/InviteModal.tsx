@@ -15,6 +15,7 @@ export default function InviteModal(props: ModalProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const onInputKeyPress = (evt: React.KeyboardEvent<HTMLInputElement>) => {
+    // TODO: disable send invite button until username is verified
     if (evt.key === String(KEY_CODES.ENTER)) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
@@ -36,11 +37,22 @@ export default function InviteModal(props: ModalProps) {
     } else {
       console.log('good');
     }
+    // TODO: add username and its result into the state for future reference
+    // TODO: only enable the send invite button after it successeds here.
   }
+
+  // TODO: don't enable send invite button until role is selected
 
   const handleSendInvite = () => {
     if (role) {
-      inviteQuery.mutateAsync({invitees: [textValue], role: role as OrganizationUserRole});
+      try {
+        inviteQuery.mutateAsync({
+          invitees: [textValue],
+          role: role as OrganizationUserRole,
+        });
+      } catch (error) {
+        // TODO: handle the error
+      }
     }
   };
 
