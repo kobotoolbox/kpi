@@ -58,9 +58,9 @@ interface RESTServicesFormState {
   assetUid: string;
   hookUid?: string;
   name: string;
-  nameError: string | null;
+  nameError?: string;
   endpoint: string;
-  endpointError: string | null;
+  endpointError?: string;
   type: HookExportTypeName;
   typeOptions: Array<{value: HookExportTypeName; label: string}>;
   isActive: boolean;
@@ -84,9 +84,9 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
       assetUid: props.assetUid,
       hookUid: props.hookUid,
       name: '',
-      nameError: null,
+      nameError: undefined,
       endpoint: '',
-      endpointError: null,
+      endpointError: undefined,
       type: EXPORT_TYPES.json.value,
       typeOptions: [
         EXPORT_TYPES.json,
@@ -186,14 +186,14 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
   handleNameChange(newName: string) {
     this.setState({
       name: newName,
-      nameError: null,
+      nameError: undefined,
     });
   }
 
   handleEndpointChange(newEndpoint: string) {
     this.setState({
       endpoint: newEndpoint,
-      endpointError: null,
+      endpointError: undefined,
     });
   }
 
@@ -411,7 +411,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                 size='m'
                 className='http-header-row-remove'
                 startIcon='trash'
-                onClick={(evt) => {
+                onClick={(evt: React.ChangeEvent<HTMLButtonElement>) => {
                   evt.preventDefault();
                   this.removeCustomHeaderRow(n);
                 }}
@@ -476,7 +476,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                 type='text'
                 placeholder={t('Service Name')}
                 value={this.state.name}
-                errors={this.state.nameError || undefined}
+                errors={this.state.nameError}
                 onChange={this.handleNameChange.bind(this)}
               />
             </bem.FormModal__item>
@@ -487,7 +487,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                 type='text'
                 placeholder={t('https://')}
                 value={this.state.endpoint}
-                errors={this.state.endpointError || undefined}
+                errors={this.state.endpointError}
                 onChange={this.handleEndpointChange.bind(this)}
               />
             </bem.FormModal__item>
