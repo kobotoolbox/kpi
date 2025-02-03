@@ -103,7 +103,7 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
       return;
     }
 
-    dataInterface.loadNextPageUrl<ExternalServiceLogResponse>(this.state.nextPageUrl)
+    (dataInterface.loadNextPageUrl(this.state.nextPageUrl) as JQuery.jqXHR<PaginatedResponse<ExternalServiceLogResponse>>)
       .done((data) => {
         let newLogs: ExternalServiceLogResponse[] = [];
         newLogs = newLogs.concat(this.state.logs, data.results);

@@ -905,7 +905,6 @@ export interface DeploymentResponse {
 
 interface DataInterface {
   patchProfile: (data: AccountRequest) => JQuery.jqXHR<AccountResponse>;
-  loadNextPageUrl: <T>(nextPageUrl: string) => JQuery.jqXHR<PaginatedResponse<T>>;
   [key: string]: Function;
 }
 
@@ -1026,7 +1025,7 @@ export interface ExportDataResponse {
   };
 }
 
-const $ajax = <T>(o: {}): JQuery.jqXHR<T> =>
+const $ajax = (o: {}) =>
   $.ajax(Object.assign({}, {dataType: 'json', method: 'GET'}, o));
 
 export const dataInterface: DataInterface = {
@@ -1419,7 +1418,7 @@ export const dataInterface: DataInterface = {
   },
 
   unsubscribeFromCollection(uid: string) {
-    return $ajax<PaginatedResponse<AssetSubscriptionsResponse>>({
+    return $ajax({
       url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
       data: {
         asset__uid: uid,
@@ -1736,8 +1735,8 @@ export const dataInterface: DataInterface = {
     });
   },
 
-  loadNextPageUrl<T>(nextPageUrl: string): JQuery.jqXHR<PaginatedResponse<T>> {
-    return $ajax<PaginatedResponse<T>>({
+  loadNextPageUrl(nextPageUrl: string): JQuery.jqXHR<any> {
+    return $ajax({
       url: nextPageUrl,
       method: 'GET',
     });
