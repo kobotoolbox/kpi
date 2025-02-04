@@ -52,4 +52,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: "[Run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits[0]) }}](${{ github.event.compare }}) :boom: @**Kalvis Kalniņš** please fix the main and emoji this message to mark it as resolved."
+        content: ":boom: [Run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits[0].message) }}](${{ github.event.compare }})! CC @**Kalvis Kalniņš** please investigate and emoji this message when resolved."
