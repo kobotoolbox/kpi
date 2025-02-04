@@ -31,23 +31,3 @@ jobs:
     needs: changes
     uses: ./.github/workflows/npm-test.yml
     if: needs.changes.outputs.npm-test == 'true'
-
-  # for testing
-  on-failure:
-    runs-on: ubuntu-latest
-    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out') }}
-    needs:
-      - darker
-      - pytest
-      - npm-test
-    steps:
-    - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
-      with:
-        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-        email: "github-actions-bot@chat.kobotoolbox.org"
-        organization-url: "https://chat.kobotoolbox.org"
-        type: "stream"
-        to: "Kobo Dev"
-        topic: "Github Actions (main)"
-        content: "[Run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits) }}](${{ github.event.compare }}) :boom: debug event_name: ${{ toJson(github.event_name) }} debug event: ${{ toJson(github.event) }}"
