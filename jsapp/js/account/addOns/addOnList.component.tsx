@@ -125,13 +125,12 @@ const AddOnList = (props: {
                 <tr className={styles.row} key={oneTimeAddOn.id}>
                   <td className={styles.product}>
                     <span className={styles.productName}>
-                      {t('##name##')
-                        .replace(
-                          '##name##',
-                          oneTimeAddOnProducts.find(
-                            (product) => product.id === oneTimeAddOn.product
-                          )?.name || label
-                        )}
+                      {t('##name##').replace(
+                        '##name##',
+                        oneTimeAddOnProducts.find(
+                          (product) => product.id === oneTimeAddOn.product
+                        )?.name || label
+                      )}
                     </span>
                     <Badge color={color} size={'s'} label={badgeLabel} />
                     <p className={styles.addonDescription}>
@@ -145,11 +144,9 @@ const AddOnList = (props: {
                     {'$##price##'.replace(
                       '##price##',
                       (
-                        (oneTimeAddOn.quantity *
-                          (oneTimeAddOnProducts.find(
-                            (product) => product.id === oneTimeAddOn.product
-                          )?.prices[0].unit_amount || 0)) /
-                        100
+                        (oneTimeAddOnProducts.find(
+                          (product) => product.id === oneTimeAddOn.product
+                        )?.prices[0].unit_amount || 0) / 100
                       ).toFixed(2)
                     )}
                   </td>

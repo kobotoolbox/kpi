@@ -98,7 +98,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 'livemode': False,
                 'features': {
                     'subscription_update': {
-                        'default_allowed_updates': ['quantity'],
+                        'default_allowed_updates': [],
                         'products': [],
                         'prices': [],
                     },

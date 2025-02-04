@@ -54,8 +54,8 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.product.save()
 
-    def _create_payment(self, payment_status='succeeded', refunded=False, quantity=1):
-        payment_total = quantity * 2000
+    def _create_payment(self, payment_status='succeeded', refunded=False):
+        payment_total = 2000
         self.payment_intent = baker.make(
             PaymentIntent,
             customer=self.customer,
@@ -81,7 +81,6 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.charge.metadata = {
             'price_id': self.price.id,
             'organization_id': self.organization.id,
-            'quantity': quantity,
             **(self.product.metadata or {}),
         }
         self.charge.save()
@@ -144,25 +143,6 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 0
 
-    def test_total_limits_reflect_addon_quantity(self):
-        limit = 2000
-        quantity = 9
-        self._create_product(
-            metadata={
-                'product_type': 'addon_onetime',
-                'asr_seconds_limit': limit,
-                'valid_tags': 'all',
-            }
-        )
-        self._create_payment(quantity=quantity)
-        response = self.client.get(self.url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
-        asr_seconds = response.data['results'][0]['total_usage_limits'][
-            'asr_seconds_limit'
-        ]
-        assert asr_seconds == limit * quantity
-
     def test_anonymous_user(self):
         self._create_product()
         self._create_payment()
@@ -181,7 +161,6 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
     @data('characters', 'seconds')
     def test_get_user_totals(self, usage_type):
         limit = 2000
-        quantity = 5
         usage_limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         self._create_product(
             metadata={
@@ -192,19 +171,19 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self._create_payment()
         self._create_payment()
-        self._create_payment(quantity=quantity)
+        self._create_payment()
 
         total_limit, remaining = PlanAddOn.get_organization_totals(
             self.organization, usage_type
         )
-        assert total_limit == limit * (quantity + 2)
-        assert remaining == limit * (quantity + 2)
+        assert total_limit == limit * 3
+        assert remaining == limit * 3
 
         PlanAddOn.deduct_add_ons_for_organization(
-            self.organization, usage_type, limit * quantity
+            self.organization, usage_type, limit
         )
         total_limit, remaining = PlanAddOn.get_organization_totals(
             self.organization, usage_type
         )
-        assert total_limit == limit * (quantity + 2)
+        assert total_limit == limit * 3
         assert remaining == limit * 2
