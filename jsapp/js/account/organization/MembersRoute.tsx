@@ -30,6 +30,10 @@ export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
   const [opened, {open, close}] = useDisclosure(false);
 
+  /**
+ * Checks whether object should be treated as organization member or invitee.
+ * Returns both an invite and member, but one of these will be null depending on status
+ */
   function getMemberOrInviteDetails(obj: OrganizationMemberListItem) {
     const invite =
       obj.invite?.status === 'pending' || obj.invite?.status === 'resent'
