@@ -355,7 +355,8 @@ class Transfer(AbstractTimeStampedModel):
             self.asset.is_excluded_from_projects_list = is_excluded
             self.asset.save(
                 update_fields=['is_excluded_from_projects_list'],
-                adjust_content=False
+                adjust_content=False,
+                create_version=False
             )
 
 
