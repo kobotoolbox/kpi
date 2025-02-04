@@ -40,7 +40,7 @@ const globalConfig = {
   },
   linterOptions: {
     // noInlineConfig: true,
-    reportUnusedDisableDirectives: 'error',
+    reportUnusedDisableDirectives: 'warn', // TODO: set to error, not that many places.
   },
   rules: {
     'arrow-body-style': [1, 'as-needed', {requireReturnForObjectLiteral: true}],
@@ -254,6 +254,12 @@ const biomeConfig = {
     },
   },
   rules: {
+    // new in eslint v8, See https://typescript-eslint.io/blog/announcing-typescript-eslint-v8/#replacement-of-ban-types
+    "@typescript-eslint/no-restricted-types": "off",
+    "@typescript-eslint/no-empty-object-type": "off",
+    "@typescript-eslint/no-unsafe-function-type": "off",
+    "@typescript-eslint/no-wrapper-object-types": "off",
+
     "@mysticatea/eslint-plugin/no-this-in-static": "off", // noThisInStatic (inspired)
     "@next/eslint-plugin-next/google-font-display": "off", // useGoogleFontDisplay
     "@next/eslint-plugin-next/no-document-import-in-page": "off", // noDocumentImportInPage
