@@ -50,4 +50,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: "Sorry for the ping, I'm testing if a @*frontend* is interpreted literally or not."
+        content: "Github Actions [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/${{github.run_id}}] failed at [${{github.event.head_commit}}](${{github.event.compare}}) :boom: @**Kalvis Kalniņš** please fix the main and emoji this message to mark it as resolved."
