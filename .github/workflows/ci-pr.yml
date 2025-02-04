@@ -50,4 +50,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: "Sorry for the ping, I'm testing if a @frontend is interpreted literally or not."
+        content: "Sorry for the ping, I'm testing if a @*frontend* is interpreted literally or not."
