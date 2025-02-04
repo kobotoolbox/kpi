@@ -1,0 +1,2550 @@
+
+
+🔵 Processing locale keys...
+
+🔍 Matches on file: jsapp/js/account/accountFieldsEditor.component.tsx
+  - 'Male'
+  - 'Female'
+  - 'Other'
+  - 'Use this to display your real name to other users'
+  - 'Social'
+  - 'Newsletter'
+
+🔍 Matches on file: jsapp/js/account/accountSettingsRoute.tsx
+  - 'You have unsaved changes. Leave settings without saving?'
+  - 'Updated profile successfully'
+  - 'Save Changes'
+  - 'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.'
+  - 'This privacy feature is now a per-project setting. New projects will require authentication by default.'
+  - 'Learn more about these changes here.'
+
+🔍 Matches on file: jsapp/js/account/accountSidebar.tsx
+  - 'Profile'
+  - 'Security'
+  - 'Usage'
+  - 'Plans'
+  - 'Add-ons'
+  - 'ACCOUNT'
+  - 'Profile'
+  - 'Security'
+  - 'Members'
+  - 'Usage'
+  - 'Plans'
+  - 'Add-ons'
+  - 'Settings'
+
+🔍 Matches on file: jsapp/js/account/addOns/addOnList.component.tsx
+  - 'Added on ##date##'
+  - '##name## x ##quantity##'
+  - 'Added on ##date##'
+  - 'available add-ons'
+  - `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
+              have reached the usage limits included with your plan, increase your limits with add-ons to continue
+              data collection.`
+  - 'your active add-ons'
+  - 'Active'
+  - 'previous add-ons'
+  - 'Inactive'
+
+🔍 Matches on file: jsapp/js/account/addOns/addOns.component.tsx
+  - 'Your plan'
+
+🔍 Matches on file: jsapp/js/account/addOns/oneTimeAddOnRow.component.tsx
+  - 'NLP Package'
+  - 'Increase your transcription minutes and translations characters.'
+  - 'File Storage'
+  - 'Get up to 50GB of media storage on a KoboToolbox public server.'
+  - 'Manage'
+  - 'Buy now'
+  - 'prices'
+  - 'quantity'
+
+🔍 Matches on file: jsapp/js/account/addOns/updateBadge.component.tsx
+  - 'Ends on ##cancel_date##'
+  - 'Renews on ##renewal_date##'
+  - 'Ends on ##end_date##'
+  - 'Starts on ##start_date##'
+
+🔍 Matches on file: jsapp/js/account/organization/InviteModal.tsx
+  - 'Invite memebrs to your team'
+  - 'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+  - 'Enter username or email address'
+  - 'Send invite'
+
+🔍 Matches on file: jsapp/js/account/organization/MemberActionsDropdown.tsx
+  - 'Remove'
+  - 'Leave ##TEAM_OR_ORGANIZATION##'
+
+🔍 Matches on file: jsapp/js/account/organization/MemberRemoveModal.tsx
+  - 'Remove ##username## from this ##TEAM_OR_ORGANIZATION##'
+  - 'Are you sure you want to remove ##username## from this ##TEAM_OR_ORGANIZATION##?'
+  - 'Removing them from this ##TEAM_OR_ORGANIZATION## also means they will immediately lose access to any projects owned by your ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'
+  - 'Remove member'
+  - 'Leave this ##TEAM_OR_ORGANIZATION##'
+  - 'Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?'
+  - 'You will immediately lose access to any projects owned by this ##TEAM_OR_ORGANIZATION##. This action cannot be undone.'
+  - 'Leave ##TEAM_OR_ORGANIZATION##'
+  - 'Cancel'
+
+🔍 Matches on file: jsapp/js/account/organization/MemberRoleSelector.tsx
+  - 'Admin'
+  - 'Member'
+
+🔍 Matches on file: jsapp/js/account/organization/MembersRoute.tsx
+  - 'Name'
+  - 'Status'
+  - 'Active'
+  - 'Date added'
+  - 'Role'
+  - 'Owner'
+  - 'Admin'
+  - 'Member'
+  - 'Unknown'
+  - '2FA'
+  - 'Members'
+  - 'Invite members'
+  - 'Invite more people to join your team or change their role permissions below.'
+  - 'Invite members'
+
+🔍 Matches on file: jsapp/js/account/organization/OrganizationSettingsRoute.tsx
+  - 'To delete this ##TEAM_OR_ORGANIZATION##, please contact the server administrator.'
+  - "To delete this ##TEAM_OR_ORGANIZATION##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##TEAM_OR_ORGANIZATION##'s projects will be converted to projects owned by your personal account."
+  - '##TEAM_OR_ORGANIZATION## details'
+  - '##TEAM_OR_ORGANIZATION## name'
+  - '##TEAM_OR_ORGANIZATION## website'
+  - '##TEAM_OR_ORGANIZATION## type'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/account/organization/membersQuery.ts
+  - 'There was an error getting the list.'
+
+🔍 Matches on file: jsapp/js/account/organization/organization.utils.tsx
+  - 'Teams'
+  - 'teams'
+  - 'Team'
+  - 'team'
+  - 'Organizations'
+  - 'organizations'
+  - 'Organization'
+  - 'organization'
+
+🔍 Matches on file: jsapp/js/account/organization/organizationQuery.ts
+  - 'Non-profit organization'
+  - 'Government institution'
+  - 'Educational organization'
+  - 'A commercial/for-profit company'
+  - 'I am not associated with any organization'
+
+🔍 Matches on file: jsapp/js/account/plans/confirmChangeModal.component.tsx
+  - '##add_on_name## add-on'
+  - 'monthly ##plan_name## plan'
+  - 'yearly ##plan_name## plan'
+  - 'plan'
+  - 'add-on'
+  - 'plan'
+  - 'There was an error processing your plan change. Your previous plan has not been changed. Please try again later.'
+  - 'Changes to your Plan'
+  - 'Processing your transaction…'
+  - 'You are switching to the ##new_product_type##.'
+  - 'Because this plan includes unlimited storage, your storage add-on will be canceled.'
+  - `Your current ##product_type## will remain in effect until ##billing_end_date##.
+                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price##.`
+  - 'Submit'
+  - 'Cancel'
+
+🔍 Matches on file: jsapp/js/account/plans/plan.component.tsx
+  - 'Thanks for your upgrade! We appreciate your continued support. Reach out to billing@kobotoolbox.org if you have any questions about your plan.'
+  - 'Thanks for your upgrade! We appreciate your continued support. If your account is not immediately updated, wait a few minutes and refresh the page.'
+  - 'Collapse full comparison'
+  - 'Display full comparison'
+  - 'show monthly plans'
+  - 'Monthly'
+  - 'show annual plans'
+  - 'Annual'
+  - 'Want more?'
+  - 'Contact us'
+  - 'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our '
+  - 'Enterprise Plan'
+  - 'We also offer custom solutions and private servers for large organizations. '
+  - 'Contact our team'
+  - ' for more information.'
+
+🔍 Matches on file: jsapp/js/account/plans/planButton.component.tsx
+  - 'Upgrade'
+  - 'Manage'
+  - 'Change plan'
+
+🔍 Matches on file: jsapp/js/account/plans/planContainer.component.tsx
+  - 'Your plan'
+  - 'Total Submissions per Month'
+  - '##asr_minutes## minutes of automated transcription /##plan_interval##'
+  - '##mt_characters## characters of machine translation /##plan_interval##'
+
+🔍 Matches on file: jsapp/js/account/plans/useDisplayPrice.hook.tsx
+  - 'Free'
+  - '$##price##'
+  - '$##price## USD/month'
+
+🔍 Matches on file: jsapp/js/account/security/accessLogs/accessLogs.query.ts
+  - 'There was an error getting the list.'
+  - 'An error occurred while exporting the logs'
+
+🔍 Matches on file: jsapp/js/account/security/accessLogs/accessLogsSection.component.tsx
+  - 'Recent account activity'
+  - 'Log out of all devices'
+  - 'Export log data'
+  - 'Source'
+  - 'Data Submissions (##count##)'
+  - 'Last activity'
+  - 'IP Address'
+
+🔍 Matches on file: jsapp/js/account/security/apiToken/apiTokenSection.component.tsx
+  - 'Failed to get API token'
+  - 'API Key'
+
+🔍 Matches on file: jsapp/js/account/security/email/emailSection.component.tsx
+  - 'Email address'
+  - 'Type new email address'
+  - 'Check your email ##UNVERIFIED_EMAIL##. '
+  - 'A verification link has been sent to confirm your ownership. Once confirmed, this address will replace ##UNVERIFIED_EMAIL##'
+  - 'Email was sent again: ##TIMESTAMP##'
+
+🔍 Matches on file: jsapp/js/account/security/mfa/mfaSection.component.tsx
+  - 'Two-factor authentication'
+  - 'Two-factor authentication'
+  - 'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
+  - 'Authenticator app'
+  - 'Reconfigure'
+  - 'Recovery codes'
+  - 'Generate new'
+  - 'Two-factor authentication was deactivated for your account on ##date##'
+  - 'This feature is not available on your current plan. Please visit the '
+  - 'Plans page'
+  - ' to upgrade your account.'
+  - 'Enabled'
+  - 'Disabled'
+
+🔍 Matches on file: jsapp/js/account/security/password/passwordSection.component.tsx
+  - 'Password'
+  - 'forgot password'
+  - 'Update'
+
+🔍 Matches on file: jsapp/js/account/security/password/updatePasswordForm.component.tsx
+  - 'This field is required.'
+  - "Passwords don't match"
+  - 'changed password successfully'
+  - 'failed to change password'
+  - 'Current Password'
+  - 'Forgot Password?'
+  - 'New Password'
+  - 'Verify Password'
+  - 'Save Password'
+
+🔍 Matches on file: jsapp/js/account/security/securityRoute.component.tsx
+  - 'Security'
+
+🔍 Matches on file: jsapp/js/account/security/sso/ssoSection.component.tsx
+  - 'Single-Sign On'
+  - "Connect your KoboToolbox account with your organization's identity provider for single-sign on (SSO). Afterwards, you will only "
+  - 'Already connected'
+  - 'Disable'
+
+🔍 Matches on file: jsapp/js/account/stripe.api.ts
+  - 'There was an error getting the list of plans.'
+  - 'There was an error getting one-time add-ons.'
+  - "We couldn't make the requested change to your plan.\nYour current plan has not been changed."
+
+🔍 Matches on file: jsapp/js/account/stripe.utils.ts
+  - 'There has been an issue, please try again later.'
+  - 'Success! Your subscription will change at the end of the current billing period.'
+  - 'Unlimited'
+  - '##minutes## mins'
+
+🔍 Matches on file: jsapp/js/account/subscriptionStore.ts
+  - 'There was an issue fetching your plan information.'
+
+🔍 Matches on file: jsapp/js/account/usage/oneTimeAddOnUsageModal/oneTimeAddOnList/oneTimeAddOnList.component.tsx
+  - '##REMAINING## remaining'
+
+🔍 Matches on file: jsapp/js/account/usage/oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component.tsx
+  - 'View add-on details'
+  - 'Add-on details'
+  - '##TYPE##'
+  - 'Included with ##PERIOD## plan'
+  - 'From add-ons'
+  - 'Used this ##PERIOD##'
+  - 'Total available'
+  - 'Purchased add-ons'
+
+🔍 Matches on file: jsapp/js/account/usage/usage.api.ts
+  - 'There was an error fetching usage data.'
+  - 'There was an error fetching asset usage data.'
+
+🔍 Matches on file: jsapp/js/account/usage/usage.component.tsx
+  - '##start_date## to ##end_date##'
+  - 'Your usage'
+  - 'Last update: ##LAST_UPDATE_TIME##'
+  - 'Submissions'
+  - 'Storage'
+  - 'per account'
+  - 'Total'
+  - 'Transcription minutes'
+  - 'Translation characters'
+
+🔍 Matches on file: jsapp/js/account/usage/usageContainer.tsx
+  - 'Available'
+  - 'Used this month'
+  - 'Used this year'
+  - 'Balance'
+
+🔍 Matches on file: jsapp/js/account/usage/usageProjectBreakdown.tsx
+  - '##count## Projects'
+  - 'Submissions, transcription minutes, and translation characters reflect usage for the current ##INTERVAL## based on your plan settings.'
+  - 'Submissions (Total)'
+  - 'Submissions'
+  - 'Data storage'
+  - 'Transcript minutes'
+  - 'Translation characters'
+  - 'There are no projects to display.'
+
+🔍 Matches on file: jsapp/js/account/usage/useUsage.hook.ts
+  - 'No organization found'
+  - "Couldn't get usage data"
+
+🔍 Matches on file: jsapp/js/account/usage/yourPlan.component.tsx
+  - '##plan_name## Plan'
+  - 'Started on ##start_date##'
+  - 'Renews on ##renewal_date##'
+  - 'Ends on ##end_date##'
+  - 'Changing usage limits on ##change_date##'
+  - 'Switching to monthly on ##change_date##'
+  - 'Your ##current_plan## plan has been canceled but will remain active until the end of the billing period.'
+  - 'Your ##current_plan## plan will change to the ##next_plan## plan on'
+  - '. You can continue using ##current_plan## plan features until the end of the billing period.'
+  - 'Your ##current_plan## plan will change to include up to ##submission_quantity## submissions/month starting from'
+  - 'Your ##current_plan## plan will change from annual to monthly starting from'
+
+🔍 Matches on file: jsapp/js/actions/dataShareActions.es6
+  - 'Failed to attach to source'
+  - 'Failed to detach from source'
+  - 'Failed to patch source'
+  - 'Failed to retrieve sharing enabled assets'
+  - 'Failed to toggle sharing'
+  - 'Failed to update column filters'
+
+🔍 Matches on file: jsapp/js/actions/exportsActions.es6
+  - 'Failed to create export'
+  - 'Failed to delete export'
+  - 'Failed to update export setting'
+  - 'Failed to create export setting'
+  - 'Failed to delete export setting'
+
+🔍 Matches on file: jsapp/js/actions/library.es6
+  - 'Successfully removed from collection'
+  - 'Successfully moved to collection'
+  - 'Move to collection failed'
+  - 'Failed to get the results'
+
+🔍 Matches on file: jsapp/js/actions/mediaActions.es6
+  - 'Could not upload your media'
+  - 'Something went wrong with getting your media'
+  - 'Successfully deleted media'
+  - 'Failed to delete media!'
+
+🔍 Matches on file: jsapp/js/actions/mfaActions.ts
+  - 'An error occured'
+  - 'An error occured'
+  - 'An error occurred while checking subscription status'
+  - 'Incorrect token or something went wrong'
+  - 'Incorrect token or something went wrong'
+  - 'Incorrect token or something went wrong'
+
+🔍 Matches on file: jsapp/js/actions/submissions.ts
+  - 'Failed to get submissions uuids.'
+  - 'Failed to get submission.'
+  - 'Failed to update submissions.'
+  - 'Failed to update submissions.'
+  - 'Failed to update some submissions values.'
+  - 'Failed to update submissions values.'
+  - 'submissions deleted'
+  - 'failed to delete submissions'
+  - 'Failed to delete submissions.'
+
+🔍 Matches on file: jsapp/js/actions.es6
+  - 'Failed to update permissions'
+  - 'Failed to remove permissions'
+  - 'Failed to update permissions'
+  - 'successfully updated'
+  - 'please check your connection and try again.'
+  - 'if this problem persists, contact help@kobotoolbox.org'
+  - 'your form id was not valid:'
+  - 'if this problem persists, contact help@kobotoolbox.org'
+  - 'your form cannot be deployed because it contains errors:'
+  - 'unable to deploy'
+  - 'Project unarchived successfully'
+  - 'Project archived successfully'
+  - 'Unable to delete asset!'
+  - 'Error details:'
+  - 'Could not create project!'
+  - 'changed password successfully'
+  - 'failed to change password'
+  - 'failed to load API token'
+  - 'submission deleted'
+  - 'failed to delete submission'
+  - 'Successfully duplicated submission'
+  - 'Failed to duplicate submission'
+  - 'REST Service added successfully'
+  - 'Failed adding REST Service'
+  - 'REST Service updated successfully'
+  - 'Failed saving REST Service'
+  - 'REST Service deleted permanently'
+  - 'Could not delete REST Service'
+  - 'Submission retry requested successfully'
+  - 'Submission retry request failed'
+  - 'Retrying all submissions failed'
+
+🔍 Matches on file: jsapp/js/alertify.ts
+  - 'Delete?'
+  - 'Delete'
+  - 'This action is not reversible'
+  - 'Cancel'
+
+🔍 Matches on file: jsapp/js/api.ts
+  - 'An error occurred'
+  - 'Your connection is offline'
+
+🔍 Matches on file: jsapp/js/assetQuickActions.tsx
+  - '##ASSET_TYPE## deleted permanently'
+  - 'You are about to permanently delete this item from your library.'
+  - 'You are about to permanently delete this draft.'
+  - 'You are about to permanently delete this form.'
+  - 'All data gathered for this form will be deleted.'
+  - 'The form associated with this project will be deleted.'
+  - 'I understand that if I delete this project I will not be able to recover it.'
+  - 'Delete'
+  - 'Delete'
+  - 'Cancel'
+  - 'Archive Project'
+  - 'Are you sure you want to archive this project?'
+  - 'Your form will not accept submissions while it is archived.'
+  - 'Archive'
+  - 'Cancel'
+  - 'Unarchive Project'
+  - 'Are you sure you want to unarchive this project?'
+  - 'Unarchive'
+  - 'Cancel'
+  - 'Clone of'
+  - 'Clone'
+  - 'Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.'
+  - 'Ok'
+  - 'Cancel'
+  - 'Cloning...'
+  - 'cloned ##ASSET_TYPE## created'
+  - 'Create'
+  - 'Cancel'
+  - 'Please wait…'
+  - 'Failed to create new asset!'
+  - 'Create new template from this project'
+  - 'Enter the name of the new template.'
+  - 'Create new project from this template'
+  - 'Enter the name of the new project.'
+  - 'Remove shared form'
+  - 'Are you sure you want to remove this shared form?'
+  - 'Remove'
+  - 'Cancel'
+  - 'deploying to kobocat...'
+  - 'deployed form'
+  - 'Overwrite existing deployment'
+  - 'This form has already been deployed. Are you sure you want overwrite the existing deployment?'
+  - 'This action cannot be undone.'
+  - 'Ok'
+  - 'Cancel'
+  - 'Deploying...'
+  - 'redeployed form'
+
+🔍 Matches on file: jsapp/js/assetUtils.ts
+  - 'me'
+  - 'untitled'
+  - 'Unlabelled'
+  - 'Background audio'
+  - 'Name, organization and sector are required to make collection public.'
+  - 'Empty collection is not allowed to be made public.'
+  - 'Only collections are allowed to be made public!'
+
+🔍 Matches on file: jsapp/js/components/RESTServices/RESTServiceLogs.es6
+  - 'Could not load REST Service'
+  - 'Could not load REST Service logs'
+  - 'Could not load REST Service logs'
+  - 'Submission Failure Detail (##id##)'
+  - 'Back to REST Services'
+  - 'Load more'
+  - 'There are no logs yet'
+  - 'Submission'
+  - 'Status'
+  - 'Retry all submissions'
+  - 'Date'
+  - 'Success'
+  - 'Pending'
+  - 'Pending (##count##×)'
+  - 'Failed'
+  - 'Retry submission'
+  - 'More info'
+
+🔍 Matches on file: jsapp/js/components/RESTServices/RESTServicesForm.es6
+  - 'JSON'
+  - 'XML'
+  - 'No Authorization'
+  - 'Basic Authorization'
+  - 'Could not load REST Service'
+  - 'Name required'
+  - 'URL required'
+  - 'Please enter both name and url of your service.'
+  - 'Custom HTTP Headers'
+  - 'Name'
+  - 'Value'
+  - 'Add header'
+  - 'Add field(s)'
+  - 'Select fields subset'
+  - 'Name'
+  - 'Service Name'
+  - 'Endpoint URL'
+  - 'https://'
+  - 'Enabled'
+  - 'Receive emails notifications'
+  - 'Type'
+  - 'Security'
+  - 'Username'
+  - 'Password'
+  - 'Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)'
+  - 'Add Custom Wrapper'
+  - 'Save'
+  - 'Create'
+
+🔍 Matches on file: jsapp/js/components/RESTServices/RESTServicesList.es6
+  - 'Could not load REST Services'
+  - 'Are you sure you want to delete ##target?'
+  - 'You are about to delete ##target. This action cannot be undone.'
+  - 'Confirm'
+  - 'Cancel'
+  - 'Register a New Service'
+  - "This project doesn't have any REST Services yet!"
+  - 'You can use REST Services to automatically post submissions to a third-party application.'
+  - 'Learn more'
+  - 'REST Services: ##number##'
+  - 'Need help?'
+  - 'Service Name'
+  - 'Success'
+  - 'Pending'
+  - 'Failed'
+  - 'Edit'
+  - 'Delete'
+
+🔍 Matches on file: jsapp/js/components/RESTServices.es6
+  - 'Untitled'
+
+🔍 Matches on file: jsapp/js/components/activity/activity.constants.ts
+  - 'add media attachment'
+  - '##username## added a media attachment'
+  - 'add submission'
+  - '##username## added a submission'
+  - 'enable anonymous submissions'
+  - '##username## enabled anonymous submissions'
+  - 'archive project'
+  - '##username## archived project'
+  - 'clone permissions'
+  - '##username## cloned permissions from another project'
+  - 'connect project data'
+  - '##username## connected project data with another project'
+  - 'remove media attachment'
+  - '##username## removed a media attachment'
+  - 'delete a REST service'
+  - '##username## deleted a REST service'
+  - 'delete a submission'
+  - '##username## deleted a submission'
+  - 'deploy project'
+  - '##username## deployed project'
+  - 'disable data sharing'
+  - '##username## disabled data sharing'
+  - 'disable anonymous submissions'
+  - '##username## disallowed anonymous submissions'
+  - 'disconnect project'
+  - '##username## disconnected project from another project'
+  - 'enable data sharing'
+  - '##username## enabled data sharing'
+  - 'export data'
+  - '##username## exported data'
+  - 'change imported fields'
+  - '##username## changed imported fields from another project'
+  - 'modify a REST service'
+  - '##username## modified a REST service'
+  - 'modify data sharing'
+  - '##username## modified data sharing'
+  - 'edit submission'
+  - '##username## edited a submission'
+  - 'update permissions'
+  - '##username## updated permissions of ##username2##'
+  - 'redeploy project'
+  - '##username## redeployed project'
+  - 'register a new REST service'
+  - '##username## registered a new REST service'
+  - 'upload new form'
+  - '##username## uploaded a new form'
+  - 'share data publicly'
+  - '##username## shared data publicly'
+  - 'make project public'
+  - '##username## made the project publicly accessible'
+  - 'transfer project ownership'
+  - '##username## transferred project ownership to ##username2##'
+  - 'unarchive project'
+  - '##username## unarchived project'
+  - 'disable sharing data publicly'
+  - '##username## disabled sharing data publicly'
+  - 'disable making project public'
+  - '##username## disabled making project publicly accessible'
+  - 'edit form'
+  - '##username## edited the form in the form builder'
+  - 'change name'
+  - '##username## changed project name'
+  - 'update settings'
+  - '##username## updated project settings'
+  - 'modify qualitative analysis questions'
+  - '##username## modified qualitative analysis questions'
+
+🔍 Matches on file: jsapp/js/components/activity/activityLogs.query.ts
+  - 'There was an error getting activity logs.'
+  - 'There was an error getting the filter options.'
+  - 'An error occurred while exporting the logs'
+
+🔍 Matches on file: jsapp/js/components/activity/formActivity.tsx
+  - 'Event description'
+  - 'See details'
+  - 'Date'
+  - 'Recent project activity'
+  - 'Filter by'
+  - 'Export all data'
+
+🔍 Matches on file: jsapp/js/components/anonymousSubmission.component.tsx
+  - 'Allow submissions to this form without a username and password'
+  - 'Allow anonymous submissions for this project. Previously, this was an account-wide setting. Click the icon to learn more.'
+
+🔍 Matches on file: jsapp/js/components/assetsTable/assetActionButtons.tsx
+  - 'More actions'
+  - 'Deploy'
+  - 'Replace form'
+  - 'Manage translations'
+  - 'Create template'
+  - 'Download'
+  - 'Remove from collection'
+  - 'Move to'
+  - 'Unarchive'
+  - 'Archive'
+  - 'Delete'
+  - 'Subscribe'
+  - 'Unsubscribe'
+  - 'Edit in Form Builder'
+  - 'Modify details'
+  - 'Edit Tags'
+  - 'Share'
+  - 'Clone'
+  - 'Create project'
+  - 'View containing Collection'
+
+🔍 Matches on file: jsapp/js/components/assetsTable/assetsTable.tsx
+  - 'Questions'
+  - 'Previous'
+  - 'Next'
+  - '##count## items'
+  - 'Toggle fullscreen'
+  - 'There are no assets to display.'
+
+🔍 Matches on file: jsapp/js/components/assetsTable/assetsTableConstants.ts
+  - 'Type'
+  - 'Last Modified'
+  - 'Name'
+  - 'Items'
+  - 'Owner'
+  - 'Subscribers'
+  - 'Languages'
+  - 'Primary Sector'
+
+🔍 Matches on file: jsapp/js/components/bigModal/bigModal.es6
+  - 'Success!'
+  - 'Submission Record'
+  - 'Submission Record'
+  - 'of'
+  - 'Submission Record'
+  - 'Submission Record'
+  - 'of'
+  - 'Sharing Permissions'
+  - 'Uploading XLS file'
+  - 'Uploading: '
+  - 'Create Library Item'
+  - 'Template details'
+  - 'Collection details'
+  - 'Edit tags'
+  - 'Upload file'
+  - 'Form Preview'
+  - 'Edit REST Service'
+  - 'New REST Service'
+  - 'Table display options'
+  - 'Manage Languages'
+  - 'Translations Table'
+  - 'Manage Form Encryption'
+  - 'Uploading XLS file'
+  - 'Uploading: '
+  - 'Close'
+  - 'Cancel'
+  - 'Close Translations Table?'
+  - 'You will lose all unsaved changes.'
+
+🔍 Matches on file: jsapp/js/components/bigModal/mfaModals.tsx
+  - 'Incorrect token'
+  - 'Could not generate secret key'
+  - 'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. '
+  - 'Scan QR code and enter the ##number##-digit token from the application'
+  - 'After scanning the QR code image, the authenticator app will display a ##number##-digit code that you can enter below.'
+  - 'No QR code?'
+  - 'Enter key manually'
+  - 'Next'
+  - 'The following recovery codes will help you access your account in case your authenticator app fails. These codes are unique and will not be stored in your Kobo account. '
+  - 'Download codes'
+  - 'I saved my codes'
+  - 'Enter this key into your authenticator app to generate a ##number##-digit token'
+  - 'Once your authenticator app is set up, generate a ##number##-digit token and enter it in the field below.'
+  - 'Take me back to QR code'
+  - 'Next'
+  - 'Please enter your ##number##-digit authenticator token to regenerate your backup codes.'
+  - 'Please enter your ##number##-digit authenticator token to deactivate two-factor authentication.'
+  - 'Problems with your token?'
+  - 'Next'
+  - 'Please note that generating new recovery codes will invalidate any previously generated codes.'
+  - 'Please note that in order to reconfigure two-factor authentication (2FA), the previous set up will first be deleted. Tokens or recovery codes from the previous set up will not be valid anymore.'
+  - "Once your current 2FA has been deactivated, you'll be prompted to configure it again. If you cannot complete the process, 2FA will remain disabled for your account. "
+  - 'Next'
+  - 'Issues with the token'
+  - 'Back'
+  - 'OK'
+
+🔍 Matches on file: jsapp/js/components/common/assetName.tsx
+  - 'and one other question'
+  - 'and ## other questions'
+
+🔍 Matches on file: jsapp/js/components/common/assetStatusBadge.tsx
+  - 'archived'
+  - 'deployed'
+  - 'draft'
+
+🔍 Matches on file: jsapp/js/components/common/audioPlayer.tsx
+  - 'Could not load media file'
+
+🔍 Matches on file: jsapp/js/components/common/koboSelect.tsx
+  - 'Select…'
+  - 'No options found'
+
+🔍 Matches on file: jsapp/js/components/common/koboTagsInput.tsx
+  - 'Type and confirm with ENTER'
+
+🔍 Matches on file: jsapp/js/components/common/loadingSpinner.tsx
+  - 'loading…'
+
+🔍 Matches on file: jsapp/js/components/common/miniAudioPlayer.tsx
+  - 'Could not load media file'
+
+🔍 Matches on file: jsapp/js/components/common/modal.tsx
+  - 'DONE'
+
+🔍 Matches on file: jsapp/js/components/common/wrappedSelect.tsx
+  - 'Select…'
+
+🔍 Matches on file: jsapp/js/components/dataAttachments/connectProjects.es6
+  - 'Please check file name'
+  - 'No project selected'
+  - 'Field is empty'
+  - 'Privacy Notice'
+  - 'This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.'
+  - 'Acknowledge and continue'
+  - 'Cancel'
+  - 'Select a different project to import data from'
+  - 'No projects to connect'
+  - 'Data sharing enabled'
+  - 'Select specific questions to share'
+  - 'Select any questions you want to share in the right side table'
+  - 'Updating shared questions'
+  - 'Data sharing disabled'
+  - 'Give a unique name to the import'
+  - 'Import'
+  - 'Imported'
+  - 'Loading imported projects'
+  - 'No data imported'
+  - 'Share data with other project forms'
+  - 'Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments'
+  - 'here'
+  - 'Import other project data'
+  - 'Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments'
+  - 'here'
+
+🔍 Matches on file: jsapp/js/components/dataAttachments/dataAttachmentColumnsForm.es6
+  - 'Import data from ##SOURCE_NAME##'
+  - 'You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.'
+  - 'Select below the questions you want to import'
+  - 'Select all'
+  - '|'
+  - 'Deselect all'
+  - 'Loading imported questions'
+  - 'Updating imported questions'
+  - 'Accept'
+
+🔍 Matches on file: jsapp/js/components/drawer.es6
+  - 'new'
+  - 'Projects'
+  - 'Library'
+  - 'Source'
+
+🔍 Matches on file: jsapp/js/components/exportToEmailButton/exportToEmailButton.component.tsx
+  - 'Exporting data'
+  - "Your export request is currently being processed. Once the export is complete, you'll receive an email with all the details."
+
+🔍 Matches on file: jsapp/js/components/formGallery/formGallery.component.tsx
+  - 'All questions'
+  - 'Image Gallery'
+  - 'Toggle fullscreen'
+  - 'From'
+  - 'Between'
+  - 'and'
+  - 'Load more'
+
+🔍 Matches on file: jsapp/js/components/formLanding/formLanding.js
+  - 'undeployed'
+  - 'Last Modified'
+  - 'questions'
+  - 'redeploy'
+  - 'deploy'
+  - 'unarchive'
+  - 'Form history'
+  - 'Version'
+  - 'Last Modified'
+  - 'Clone'
+  - 'Deployed'
+  - 'Clone this version as a new project'
+  - 'Hide full history'
+  - 'Show full history'
+  - 'Load more'
+  - 'Collect data'
+  - 'Install'
+  - 'on your Android device.'
+  - 'Click on'
+  - 'to open settings.'
+  - 'Enter the server URL'
+  - 'and your username and password'
+  - 'Open "Get Blank Form" and select this project. '
+  - 'Open "Enter Data."'
+  - 'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+  - 'Download KoboCollect'
+  - "Try reloading the page, if problem doesn't go away, contact support."
+  - 'Link missing'
+  - 'Copied to clipboard'
+  - 'Copy'
+  - 'Copied to clipboard'
+  - 'Copy'
+  - 'Open'
+  - 'Edit in Form Builder'
+  - 'Editing capabilities not granted, you can only view this form'
+  - 'Preview'
+  - 'Replace form'
+  - 'More actions'
+  - 'Download'
+  - 'Share this project'
+  - 'Remove shared project'
+  - 'Clone this project'
+  - 'Create template'
+  - 'Manage translations'
+  - 'Manage Encryption'
+  - 'Languages:'
+  - 'This project has no languages defined yet'
+  - 'Unnamed language'
+  - 'Manage translations'
+  - 'Untitled'
+  - 'Current version'
+  - 'Archived version'
+  - 'Draft version'
+  - 'If you want to make these changes public, you must deploy this form.'
+
+🔍 Matches on file: jsapp/js/components/formNotFound.js
+  - 'path not found / recognized'
+
+🔍 Matches on file: jsapp/js/components/formSubScreens.js
+  - 'Untitled'
+  - 'Untitled'
+
+🔍 Matches on file: jsapp/js/components/formSummary/formSummary.js
+  - 'Collect data'
+  - 'Share project'
+  - 'Edit form'
+  - 'Preview form'
+  - 'Data'
+  - 'Team members'
+  - 'Untitled'
+  - 'Submissions'
+  - 'Quick Links'
+
+🔍 Matches on file: jsapp/js/components/formSummary/formSummaryProjectInfo.tsx
+  - 'Project information'
+  - 'Description'
+  - 'Status'
+  - 'Questions'
+  - 'Owner'
+  - 'me'
+  - 'Last modified'
+  - 'Last deployed'
+  - 'Latest submission'
+  - 'Sector'
+  - 'Countries'
+  - 'Languages'
+  - 'Operational purpose of data'
+  - 'Collects personally identifiable information'
+
+🔍 Matches on file: jsapp/js/components/formViewSideTabs.es6
+  - 'Table'
+  - 'Reports'
+  - 'Gallery'
+  - 'Downloads'
+  - 'Map'
+  - 'General'
+  - 'Media'
+  - 'Sharing'
+  - 'Connect Projects'
+  - 'REST Services'
+  - 'Activity'
+
+🔍 Matches on file: jsapp/js/components/formXform.js
+  - 'XForm is loading'
+
+🔍 Matches on file: jsapp/js/components/header/accountMenu.tsx
+  - 'Please refresh the page'
+  - 'Account Settings'
+  - 'Terms of Service'
+  - 'Privacy Policy'
+  - 'Language'
+  - 'Logout'
+
+🔍 Matches on file: jsapp/js/components/header/headerTitleEditor.tsx
+  - 'Please enter a title for your ##type##'
+  - 'untitled ##type##'
+  - 'untitled collection'
+  - 'project title'
+
+🔍 Matches on file: jsapp/js/components/header/mainHeader.component.tsx
+  - 'Log In'
+  - 'Search My Library'
+  - 'Search Public Collections'
+  - 'Search…'
+
+🔍 Matches on file: jsapp/js/components/header/searchBox.tsx
+  - 'Search…'
+
+🔍 Matches on file: jsapp/js/components/languages/languageSelector.tsx
+  - 'original'
+  - 'translation'
+  - 'Search for a language'
+  - "Sorry, didn't find any language…"
+  - 'I cannot find my language'
+  - 'Please select the language'
+
+🔍 Matches on file: jsapp/js/components/library/assetBreadcrumbs.tsx
+  - 'Parent Collection'
+
+🔍 Matches on file: jsapp/js/components/library/assetContentSummary.tsx
+  - 'This ##asset_type## is empty.'
+  - 'Show less'
+  - 'Show more'
+
+🔍 Matches on file: jsapp/js/components/library/assetInfoBox.tsx
+  - 'Failed to get owner data.'
+  - 'Date Created'
+  - 'Last Modified'
+  - 'Owner'
+  - 'Description'
+  - 'Tags'
+  - 'Items'
+  - 'Questions'
+  - 'Organization'
+  - 'Sector'
+  - 'Country'
+  - 'Languages'
+  - 'Hide full details'
+  - 'Show full details'
+
+🔍 Matches on file: jsapp/js/components/library/assetPublicButton.tsx
+  - 'Failed to change asset public status.'
+  - 'Make public'
+  - 'Make private'
+
+🔍 Matches on file: jsapp/js/components/library/assetRoute.tsx
+  - 'Subscribed'
+  - 'Quick look'
+
+🔍 Matches on file: jsapp/js/components/library/libraryConstants.ts
+  - 'Projects'
+  - 'My Library'
+  - 'Public Collections'
+
+🔍 Matches on file: jsapp/js/components/library/librarySidebar.tsx
+  - 'new'
+  - 'My Library'
+  - 'Public Collections'
+
+🔍 Matches on file: jsapp/js/components/library/myLibraryRoute.tsx
+  - 'Your search returned no results.'
+  - "Let's get started by creating your first library question, block, template or collection. Click the New button to create it."
+  - 'Advanced users: You can also drag and drop XLSForms here and they will be uploaded and converted to library items.'
+  - 'My Library'
+  - 'Drop files to upload'
+
+🔍 Matches on file: jsapp/js/components/library/publicCollectionsRoute.tsx
+  - 'Public Collections'
+
+🔍 Matches on file: jsapp/js/components/list.es6
+  - 'Search...'
+  - 'Tags are loading...'
+  - 'Search Tags'
+  - 'No results found'
+  - 'Select Collection Name'
+  - 'Collections are loading...'
+  - 'assets found'
+  - 'expand details'
+
+🔍 Matches on file: jsapp/js/components/locking/formLockedMessage.tsx
+  - 'This is a fully locked template. Go to question settings to see specific restrictions.'
+  - 'This is a partially locked template. Go to question settings to see specific restrictions. Expand this notification to see form level restrictions.'
+  - 'This form was created using a fully locked template. This means no edits were permitted by the template creator.'
+  - 'This form was created using a partially locked template. Go to question settings to see specific restrictions. Expand this notification to see form level restrictions.'
+  - 'see more'
+  - 'Locked functionalities'
+  - 'Unlocked functionalities'
+
+🔍 Matches on file: jsapp/js/components/locking/lockingConstants.ts
+  - 'Add choice to question'
+  - 'Remove choice from question'
+  - 'Edit choice labels'
+  - 'Change choice order'
+  - 'Edit choice values'
+  - 'Delete question'
+  - 'Edit question labels'
+  - 'Edit question settings'
+  - 'Edit skip logic'
+  - 'Edit validation'
+  - 'Delete entire group'
+  - 'Edit group labels'
+  - 'Add question to group'
+  - 'Remove question from group'
+  - 'Change question order within group'
+  - 'Edit group settings'
+  - 'Edit skip logic'
+  - 'Split group'
+  - 'Change form appearance'
+  - 'Change form meta questions'
+  - 'Replace whole form'
+  - 'Add group'
+  - 'Add question'
+  - 'Change question order'
+  - 'Change languages'
+
+🔍 Matches on file: jsapp/js/components/map/map.es6
+  - 'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.'
+  - 'Error: could not load data.'
+  - 'Error: could not load data.'
+  - 'Disaggregate by survey responses'
+  - 'Disaggregated using:'
+  - 'No "geopoint" responses have been received'
+  - 'The map does not show data because this form does not have a "geopoint" field.'
+  - 'Toggle Fullscreen'
+  - 'Show as points'
+  - 'Toggle layers'
+  - 'Map display settings'
+  - 'Show as heatmap'
+  - 'Language'
+  - 'Default'
+  - '-- See all data --'
+  - 'untranslated: '
+  - 'Question label not set'
+  - 'The map does not show data because this form does not have a "geopoint" field.'
+  - 'No "geopoint" responses have been received'
+  - 'Reset'
+  - 'not set'
+  - 'Legend'
+  - 'Map Settings'
+
+🔍 Matches on file: jsapp/js/components/map/mapSettings.es6
+  - 'Marker Colors'
+  - 'Query Limit'
+  - 'Geopoint question'
+  - 'Overlays'
+  - 'Best for qualitative data'
+  - 'Best for sequential data'
+  - 'Best for diverging data'
+  - 'Please add a name for your layer file.'
+  - 'Upload error: ##error_message##.'
+  - 'Upload error: not a valid map overlay format.'
+  - 'Delete File'
+  - 'Are you sure you want to delete this file? '
+  - 'Delete'
+  - 'Cancel'
+  - 'Choose the Geopoint question you would like to display on the map:'
+  - 'Uploaded layers'
+  - 'Delete layer'
+  - 'Use the form below to upload files with map data in one of these formats: CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for display on the map.'
+  - 'Layer name'
+  - 'Upload'
+  - 'Choose the color set for the disaggregated map markers.'
+  - 'By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.'
+  - 'Reset'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/metadataEditor.es6
+  - 'Audit settings'
+  - 'Background audio'
+  - 'Enter audit settings here'
+  - 'This functionality is available in '
+  - 'Collect version 1.30 and above'
+  - 'This survey will be recorded'
+  - 'Enable audio recording in the background'
+  - 'Audio quality'
+
+🔍 Matches on file: jsapp/js/components/modalForms/assetTagsForm.es6
+  - 'Failed to update tags'
+  - 'Update'
+
+🔍 Matches on file: jsapp/js/components/modalForms/bulkEditSubmissionsForm.es6
+  - 'n/d'
+  - 'Multiple responses'
+  - 'Displaying multiple submissions (##count## selected of ##total##)'
+  - 'Editing "##question##" for ##count## submissions'
+  - 'in the help article'
+  - 'Type to filter'
+  - 'Type to filter'
+  - 'Required'
+  - 'Editing responses from repeat group questions is not possible yet.'
+  - 'Edit'
+  - 'You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions'
+  - 'Updated responses'
+  - 'Type'
+  - 'Question'
+  - 'Response'
+  - 'Action'
+  - 'Discard Changes'
+  - 'Confirm & close'
+  - 'You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions'
+  - 'Back'
+  - 'Save'
+  - 'Type new response for selected submissions'
+  - 'Select'
+  - 'Response value'
+  - 'Frequency'
+  - 'Percentage'
+  - 'Action'
+
+🔍 Matches on file: jsapp/js/components/modalForms/encryptForm.es6
+  - 'Submission URL'
+  - 'Public key'
+  - 'Set encryption'
+  - 'Learn more about encrypting forms'
+  - 'Remove encryption'
+
+🔍 Matches on file: jsapp/js/components/modalForms/formMedia.es6
+  - 'URL is empty!'
+  - 'You must redeploy this form to see media changes.'
+  - 'Attach files'
+  - 'Learn more about form media'
+  - 'Drag and drop files here'
+  - 'or'
+  - 'click here to browse'
+  - 'Uploading file…'
+  - 'You can also add files using a URL'
+  - 'Paste URL here'
+  - 'Add'
+  - 'Attached files'
+  - 'loading media'
+  - 'No files uploaded yet'
+
+🔍 Matches on file: jsapp/js/components/modalForms/languageForm.es6
+  - 'Name must be unique!'
+  - 'Code must be unique!'
+  - 'Default language name'
+  - 'Language name'
+  - 'Default language code'
+  - 'Language code'
+  - 'Update'
+  - 'Set'
+  - 'Add'
+
+🔍 Matches on file: jsapp/js/components/modalForms/libraryAssetForm.es6
+  - '##type## ##name## created'
+  - 'Failed to create ##type##'
+  - 'Failed to update ##type##'
+  - 'Saving…'
+  - 'Save'
+  - 'Creating…'
+  - 'Create'
+  - 'Name'
+  - 'Enter title of ##type## here'
+  - 'Description'
+  - 'Enter short description here'
+  - 'Organization'
+  - 'Primary Sector'
+  - 'Country'
+  - 'Tags'
+
+🔍 Matches on file: jsapp/js/components/modalForms/libraryNewItemForm.es6
+  - 'Question Block'
+  - 'Template'
+  - 'Upload'
+  - 'Collection'
+
+🔍 Matches on file: jsapp/js/components/modalForms/libraryUploadForm.es6
+  - 'Import an XLSForm from your computer.'
+  - ' Drag and drop the XLSForm file here or click to browse'
+  - 'Upload as template'
+  - 'Note that this will be ignored when uploading a collection file.'
+  - 'Learn more'
+  - 'Uploading file…'
+  - 'Upload'
+
+🔍 Matches on file: jsapp/js/components/modalForms/modalHelpers.es6
+  - 'Back'
+
+🔍 Matches on file: jsapp/js/components/modalForms/projectSettings.es6
+  - 'Import'
+  - 'Next'
+  - 'Create project'
+  - 'Replace form'
+  - 'Project settings'
+  - 'Choose a source'
+  - 'Choose template'
+  - 'Upload XLSForm'
+  - 'Import XLSForm'
+  - 'Project details'
+  - 'Import'
+  - 'Choose'
+  - 'Import'
+  - 'Error: asset could not be created.'
+  - 'Error: new project could not be created.'
+  - 'Please wait…'
+  - 'Retrieving form, please wait...'
+  - 'Failed to reload project after import!'
+  - 'Import Failed!'
+  - 'Could not initialize XLSForm import!'
+  - 'Failed to reload project after upload!'
+  - 'Import Failed!'
+  - 'Could not import XLSForm!'
+  - 'Some fields contain errors!'
+  - 'Project Name'
+  - '##count## characters left'
+  - 'Use a template'
+  - 'Choose one of the options below to continue. You will be prompted to enter name and other details in further steps.'
+  - 'Build from scratch'
+  - 'Upload an XLSForm'
+  - 'Import an XLSForm via URL'
+  - 'Import an XLSForm from your computer.'
+  - ' Drag and drop the XLSForm file here or click to browse'
+  - 'Uploading file…'
+  - 'Enter a valid XLSForm URL in the field below.'
+  - 'Having issues? See this help article.'
+  - 'URL'
+  - 'Save Changes'
+  - 'Please enter a title for your project!'
+  - 'Enter title of project here'
+  - 'Please enter a description for your project'
+  - 'Enter short description here'
+  - 'Please choose a sector'
+  - 'Please select at least one country'
+  - 'Please specify the operational purpose of your project'
+  - 'Yes'
+  - 'No'
+  - 'Please indicate whether or not your project collects personally identifiable information'
+  - 'Please wait…'
+  - 'Create project'
+  - 'Save'
+  - 'Unarchive Project'
+  - 'Archive Project'
+  - 'Archive project to stop accepting submissions.'
+  - 'Unarchive project to resume accepting submissions.'
+  - 'Delete Project and Data'
+  - 'Delete Project'
+  - 'Back'
+  - "Form replacing is not available due to form's Locking Profile restrictions."
+
+🔍 Matches on file: jsapp/js/components/modalForms/translationSettings.es6
+  - 'Delete language?'
+  - 'Are you sure you want to delete this language? This action is not reversible.'
+  - 'Delete'
+  - 'Cancel'
+  - 'Translation index mismatch. Cannot delete language.'
+  - 'Change default language?'
+  - 'Are you sure you would like to set ##lang## as the default language for this form?'
+  - 'Confirm'
+  - 'Cancel'
+  - 'There is nothing to translate in this form.'
+  - 'Here you can add more languages to your project, and translate the strings in each of them.'
+  - 'For the language code field, we suggest using the'
+  - 'official language code'
+  - '(e.g. "English (en)" or "Rohingya (rhg)").'
+  - 'Read more.'
+  - 'Please name your default language before adding languages and translations.'
+  - 'Current languages'
+  - 'You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.'
+  - 'default'
+  - 'Make default'
+  - 'Edit language'
+  - 'Update translations'
+  - 'Delete language'
+  - 'Add language'
+  - 'Add a new language'
+
+🔍 Matches on file: jsapp/js/components/modalForms/translationTable.es6
+  - 'Save Changes'
+  - '* Save Changes'
+  - 'Saving…'
+  - 'updated text'
+  - 'translation'
+  - 'Original string'
+  - 'Go back?'
+  - 'You will lose all unsaved changes.'
+  - 'Confirm'
+  - 'Cancel'
+  - 'Prev'
+  - 'Next'
+  - 'Back'
+
+🔍 Matches on file: jsapp/js/components/newFeatureDialog.component.tsx
+  - 'New feature'
+  - 'Learn more'
+
+🔍 Matches on file: jsapp/js/components/passwordStrength.component.tsx
+  - 'Use a few words, avoid common phrases'
+  - 'No need for symbols, digits, or uppercase letters'
+  - 'Add another word or two. Uncommon words are better.'
+  - 'Straight rows of keys are easy to guess'
+  - 'Short keyboard patterns are easy to guess'
+  - 'Use a longer keyboard pattern with more turns'
+  - 'Repeats like "aaa" are easy to guess'
+  - 'Repeats like "abcabcabc" are only slightly harder to guess than "abc"'
+  - 'Avoid repeated words and characters'
+  - 'Sequences like abc or 6543 are easy to guess'
+  - 'Avoid sequences'
+  - 'Recent years are easy to guess'
+  - 'Avoid recent years'
+  - 'Avoid years that are associated with you'
+  - 'Dates are often easy to guess'
+  - 'Avoid dates and years that are associated with you'
+  - 'This is a top-10 common password'
+  - 'This is a top-100 common password'
+  - 'This is a very common password'
+  - 'This is similar to a commonly used password'
+  - 'A word by itself is easy to guess'
+  - 'Names and surnames by themselves are easy to guess'
+  - 'Common names and surnames are easy to guess'
+  - "Capitalization doesn't help very much"
+  - 'All-uppercase is almost as easy to guess as all-lowercase'
+  - "Reversed words aren't much harder to guess"
+  - "Predictable substitutions like '@' instead of 'a' don't help very much"
+  - 'Password strength'
+
+🔍 Matches on file: jsapp/js/components/permissions/copyTeamPermissions.component.tsx
+  - 'permissions were copied successfully'
+  - 'You are about to copy permissions from ##source to ##target. This action cannot be undone.'
+  - 'Are you sure you want to copy permissions?'
+  - 'Proceed'
+  - 'Cancel'
+  - 'Unlabelled'
+  - 'Copy team from another project'
+  - 'This will overwrite any existing sharing settings defined in this project.'
+  - 'Select source project…'
+  - 'copy'
+
+🔍 Matches on file: jsapp/js/components/permissions/permConstants.ts
+  - 'View form'
+  - 'Edit form'
+  - 'Manage project'
+  - 'Add submissions'
+  - 'View submissions'
+  - 'View submissions only from specific users'
+  - 'View submissions based on a condition'
+  - 'Edit submissions'
+  - 'Edit submissions only from specific users'
+  - 'Edit submissions based on a condition'
+  - 'Validate submissions'
+  - 'Validate submissions only from specific users'
+  - 'Validate submissions based on a condition'
+  - 'Delete submissions'
+  - 'Delete submissions only from specific users'
+  - 'Delete submissions based on a condition'
+  - 'Act on submissions only from specific users'
+  - 'Act on submissions based on a condition'
+  - 'Act on submissions based on multiple conditions'
+
+🔍 Matches on file: jsapp/js/components/permissions/publicShareSettings.component.tsx
+  - 'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+  - 'Share publicly by link'
+  - 'Anyone can view this form'
+  - 'Anyone can view submissions made to this form'
+  - 'Shareable link'
+
+🔍 Matches on file: jsapp/js/components/permissions/sharingForm.component.tsx
+  - 'Anyone can see this blank form and add submissions to it '
+  - 'Who has access'
+  - 'Add user'
+  - 'Waiting for all projects to load…'
+
+🔍 Matches on file: jsapp/js/components/permissions/transferProjects/projectTransferInviteBanner.tsx
+  - 'You have declined the request of transfer ownership for ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## will receive a notification that the transfer was incomplete.'
+  - '##CURRENT_OWNER_NAME## will remain the project owner.'
+  - 'You have accepted project ownership from ##CURRENT_OWNER_NAME## for ##PROJECT_NAME##. This process can take up to a few minutes to complete.'
+
+🔍 Matches on file: jsapp/js/components/permissions/transferProjects/transferProjects.api.ts
+  - 'Failed to cancel transfer. The transfer may be declined or accepted already. Please check your email.'
+  - 'Failed to accept invite.'
+  - 'Failed to decline invite'
+  - 'Invite has been cancelled or expired'
+  - 'Invite is invaild.'
+
+🔍 Matches on file: jsapp/js/components/permissions/transferProjects/transferProjects.component.tsx
+  - 'Cannot transfer a project to the same account.'
+  - 'User not found. Please try again.'
+  - 'Please enter a user name.'
+  - 'Transfer project ownership'
+  - 'Your transfer request is pending until ##username## has accepted or declined it.'
+  - 'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
+  - 'Learn more →'
+  - 'Cancel transfer'
+  - 'Transfer'
+  - 'Transfer ownership'
+  - 'This action will transfer ownership of ##username## to another user'
+  - 'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
+  - 'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
+  - 'You will be the owner of the project until the transfer is accepted.'
+  - 'Once the transfer is accepted, you will not be able to undo this action.'
+  - 'Learn more'
+  - 'To complete the transfer, enter the username of the new project owner'
+  - 'Enter username here'
+  - 'Cancel'
+  - 'Transfer project'
+
+🔍 Matches on file: jsapp/js/components/permissions/transferProjects/transferProjectsInvite.component.tsx
+  - 'Project transfer declined'
+  - 'You have declined the request of transfer ownership for ##PROJECT_NAME##.'
+  - 'When you accept the ownership transfer of project ##PROJECT_NAME##, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits.'
+  - 'Once you accept, the transfer might take a few minutes to complete.'
+  - 'Current owner'
+  - 'Current owner'
+  - 'Note: The previous owner has permissions to manage the project. You can change user permissions in the project sharing settings.'
+  - 'Decline'
+  - 'Accept'
+
+🔍 Matches on file: jsapp/js/components/permissions/userAssetPermsEditor.component.tsx
+  - 'Enter usernames separated by comma'
+  - 'User not found:'
+  - 'equals'
+  - 'Reset changes'
+  - 'username'
+  - 'Grant permissions'
+  - 'Update permissions'
+
+🔍 Matches on file: jsapp/js/components/permissions/userPermissionRow.component.tsx
+  - 'Remove permissions?'
+  - 'This action will remove all permissions for user ##username##'
+  - 'Remove'
+  - 'Cancel'
+  - 'is owner'
+  - 'Pending owner'
+
+🔍 Matches on file: jsapp/js/components/permissions/utils.ts
+  - '##permission_label## (##username_list##)'
+  - '##permission_label## (##username_list## and 1 other)'
+  - '##permission_label## (##username_list## and '
+
+🔍 Matches on file: jsapp/js/components/permissions/validatePermissions.ts
+  - 'The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/analysisContentEmpty.component.tsx
+  - 'Please note that any qualitative question created for this record will generate a new column in the data table, making the question available for all other records.'
+  - 'There are no qualitative analysis questions yet.'
+  - 'Click the "Add question" button to get started'
+  - 'There are no qualitative analysis questions yet.'
+  - 'Only those with full editing rights can create questions'
+  - 'Contact the project owner for more information'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/analysisHeader.component.tsx
+  - 'Add question'
+  - 'Automated analysis'
+  - 'Unsaved changes'
+  - 'Saving…'
+  - 'Saved'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/analysisTab.component.tsx
+  - 'Failed to load analysis questions'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/constants.ts
+  - 'Tags'
+  - 'Text'
+  - 'Number'
+  - 'Single choice'
+  - 'Multiple choice'
+  - 'Note'
+  - 'Keyword search'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/editors/analysisQuestionEditor.component.tsx
+  - 'Question label cannot be empty'
+  - 'Some required fields are missing'
+  - 'Type question'
+  - 'Save'
+  - 'Cancel'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/editors/keywordSearchFieldsEditor.component.tsx
+  - 'Look for'
+  - 'help'
+  - 'Type keywords'
+  - 'Search this transcript/translation:'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/editors/selectXFieldsEditor.component.tsx
+  - 'Type option name'
+  - 'Add new option'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/list/analysisQuestionRow.component.tsx
+  - 'Unknown question type ##type_name##'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/responseForms/commonHeader.component.tsx
+  - 'Delete this question?'
+  - 'Cancel'
+  - 'Delete'
+  - 'Are you sure you want to delete this question? This action cannot be undone.'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/responseForms/integerResponseForm.component.tsx
+  - 'Type your answer'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/responseForms/keywordSearchResponseForm.component.tsx
+  - '…keyword search in progress'
+  - 'Apply search'
+  - '##number## instances'
+  - 'of the keywords'
+  - 'from'
+
+🔍 Matches on file: jsapp/js/components/processing/analysis/responseForms/textResponseForm.component.tsx
+  - 'Type your answer'
+
+🔍 Matches on file: jsapp/js/components/processing/nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component.tsx
+  - 'Upgrade to continue using this feature'
+  - 'You have reached the ##LIMIT## limit for this ##PERIOD##.'
+  - 'Please consider our plans or add-ons to continue using this feature.'
+  - 'You can monitor your usage'
+  - 'here'
+  - 'Go back'
+  - 'Upgrade now'
+
+🔍 Matches on file: jsapp/js/components/processing/processingActions.ts
+  - 'Asset seems to not have the processing feature enabled!'
+  - 'Failed to get processing data.'
+  - 'Failed to set transcript.'
+  - 'Failed to delete transcript.'
+  - 'Failed to set transcript.'
+  - 'Failed to delete translation.'
+
+🔍 Matches on file: jsapp/js/components/processing/sidebar/processingSidebar.tsx
+  - 'Use the button above to select the information to be displayed in this area'
+
+🔍 Matches on file: jsapp/js/components/processing/sidebar/sidebarDisplaySettings.tsx
+  - 'Original transcript'
+  - 'Submission data'
+  - 'Original file (Audio)'
+  - 'Display settings'
+  - 'Customize display settings'
+  - 'Select the information you want to display in the side menu to support your analysis.'
+  - 'Display labels or XML values?'
+  - 'Select the submission data to display.'
+  - 'Translation'
+  - 'Reset'
+  - 'Apply selection'
+
+🔍 Matches on file: jsapp/js/components/processing/singleProcessingContent.tsx
+  - 'Transcript'
+  - 'Translations'
+  - 'Analysis'
+
+🔍 Matches on file: jsapp/js/components/processing/singleProcessingHeader.tsx
+  - 'Item'
+  - 'of ##total_count##'
+  - 'DONE'
+
+🔍 Matches on file: jsapp/js/components/processing/singleProcessingRoute.tsx
+  - 'There is no data for this question for the current submission'
+
+🔍 Matches on file: jsapp/js/components/processing/singleProcessingStore.ts
+  - 'Something went wrong'
+  - 'Discard unsaved changes?'
+  - 'Discard'
+  - 'Discard unsaved changes?'
+  - 'Discard'
+  - 'source file'
+  - 'XML values'
+  - 'Labels'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/stepBegin.component.tsx
+  - 'This ##type## does not have a transcript yet'
+  - 'begin'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/stepConfig.component.tsx
+  - 'Please select the original language of the ##type##'
+  - 'back'
+  - 'manual'
+  - 'transcribe'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/stepConfigAuto.component.tsx
+  - 'Automatic transcription in progress'
+  - 'Estimated time for completion: ##estimate##'
+  - 'Automatic transcription of audio file from'
+  - 'Transcription provider'
+  - 'Automated transcription is provided by Google Cloud Platform. By '
+  - 'cancel'
+  - 'create transcript'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/stepEditor.component.tsx
+  - 'Back'
+  - 'Discard'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/stepViewer.component.tsx
+  - 'Delete transcript?'
+  - 'Edit'
+  - 'Delete'
+
+🔍 Matches on file: jsapp/js/components/processing/transcript/transcript.utils.ts
+  - 'less than a minute'
+  - 'about 1 minute'
+  - 'about 2 minutes'
+  - 'about ##number## minutes'
+
+🔍 Matches on file: jsapp/js/components/processing/translations/stepBegin.component.tsx
+  - 'This transcript does not have any translations yet'
+  - 'begin'
+
+🔍 Matches on file: jsapp/js/components/processing/translations/stepConfig.component.tsx
+  - 'Please select the language you want to translate to'
+  - 'back'
+  - 'manual'
+  - 'translate'
+
+🔍 Matches on file: jsapp/js/components/processing/translations/stepConfigAuto.component.tsx
+  - 'Automatic translation in progress'
+  - 'Estimated time for completion: ##estimate##'
+  - 'less than a minute'
+  - 'Automatic translation of transcript to'
+  - 'Translation provider'
+  - 'Automated translation is provided by Google Cloud Platform. By using '
+  - 'cancel'
+  - 'create translation'
+
+🔍 Matches on file: jsapp/js/components/processing/translations/stepEditor.component.tsx
+  - 'Back'
+  - 'Discard'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/processing/translations/stepSingleViewer.component.tsx
+  - 'Delete translation?'
+  - 'new translation'
+  - 'new'
+  - 'Edit'
+  - 'Delete'
+
+🔍 Matches on file: jsapp/js/components/processing/transxAutomaticButton.tsx
+  - 'automatic'
+
+🔍 Matches on file: jsapp/js/components/processing/transxDate.component.tsx
+  - 'last modified ##date##'
+  - 'created ##date##'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/AnonymousExports.tsx
+  - 'Export'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/ExportTypeSelector.tsx
+  - 'Select export type'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/LegacyExports.tsx
+  - 'This export format will not be supported in the future. Please consider using one of the other export types available.'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/ProjectDownloads.tsx
+  - 'Untitled'
+  - 'Downloads'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/ProjectExportsCreator.tsx
+  - 'Latest unsaved settings'
+  - 'Delete export settings?'
+  - 'Are you sure you want to delete this settings? This action is not reversible.'
+  - 'Delete'
+  - 'Cancel'
+  - 'None'
+  - 'Include fields from all ##count## versions'
+  - 'Export ##SELECT_MANY## questions as…'
+  - 'Select Many'
+  - 'Select…'
+  - 'Include groups in headers'
+  - 'Group separator'
+  - 'Flatten GeoJSON'
+  - 'Store date and number responses as text'
+  - 'Include media URLs'
+  - 'Save selection as…'
+  - 'Name your export settings'
+  - 'Select questions to be exported'
+  - 'Select all'
+  - 'Deselect all'
+  - 'Group separator'
+  - 'Value and header format'
+  - 'Advanced options'
+  - 'Apply saved export settings'
+  - 'No export settings selected'
+  - 'Export'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/ProjectExportsList.tsx
+  - 'Delete export?'
+  - 'Are you sure you want to delete this export? This action is not reversible.'
+  - 'Delete'
+  - 'Cancel'
+  - 'Yes'
+  - 'No'
+  - 'Unknown'
+  - 'Download'
+  - 'Export Failed'
+  - 'Processing…'
+  - 'Exports'
+  - 'Type'
+  - 'Created'
+  - 'Language'
+  - 'Include Groups'
+  - 'Multiple Versions'
+
+🔍 Matches on file: jsapp/js/components/projectDownloads/exportsConstants.ts
+  - 'CSV (legacy)'
+  - 'CSV'
+  - 'GeoJSON'
+  - 'GPS coordinates (KML)'
+  - 'SPSS Labels'
+  - 'XLS (legacy)'
+  - 'XLS'
+  - 'Media Attachments (ZIP)'
+  - 'Labels'
+  - 'XML values and headers'
+  - 'Separate columns'
+  - 'Single column'
+  - 'Single and separate columns'
+
+🔍 Matches on file: jsapp/js/components/reports/customReportEditor.component.tsx
+  - 'Untitled Report'
+  - 'Include the following questions:'
+  - 'Delete'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/reports/reportStyleSettings.component.tsx
+  - 'No grouping'
+  - 'Unnamed language'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/reports/reportStyleSettingsSingleQuestion.component.tsx
+  - 'Reset'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/reports/reportTable.component.tsx
+  - 'Mean'
+  - 'Median'
+  - 'Mode'
+  - 'Standard deviation'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'N/A'
+  - 'Value'
+  - 'Frequency'
+  - 'Percentage'
+
+🔍 Matches on file: jsapp/js/components/reports/reportViewItem.component.tsx
+  - 'Type: '
+  - '. '
+  - '#1 out of #2 respondents answered this question. '
+  - '(# were without data.)'
+  - 'Override Graph Style'
+
+🔍 Matches on file: jsapp/js/components/reports/reports.tsx
+  - 'Could not load grouped results via "##". Will attempt to load the ungrouped report.'
+  - 'Could not refresh report.'
+  - 'Untitled report'
+  - 'Default Report'
+  - 'Create New Report'
+  - 'Edit Report Questions'
+  - 'Configure Report Style'
+  - 'Print'
+  - 'Toggle fullscreen'
+  - 'This report cannot be loaded.'
+  - 'An error occurred'
+  - 'Untitled'
+  - 'This report has no data.'
+  - 'Try changing Report Style to "No grouping".'
+  - 'Reports'
+  - 'For performance reasons, this report only includes the first ## questions.'
+  - 'Show all (##)'
+  - 'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.'
+  - 'Edit Report Style'
+  - 'Custom Report'
+  - 'Question Style'
+
+🔍 Matches on file: jsapp/js/components/reports/reports.utils.ts
+  - 'untitled'
+  - 'Unlabeled'
+
+🔍 Matches on file: jsapp/js/components/reports/reportsConstants.ts
+  - 'Vertical'
+  - 'Horizontal'
+  - 'Line'
+  - 'Scatter'
+  - 'Bubble'
+  - 'Pie'
+  - 'Donut'
+  - 'Area'
+  - 'Polar area'
+  - 'Radar'
+
+🔍 Matches on file: jsapp/js/components/reports/reportsModalTabs.component.tsx
+  - 'Chart Type'
+  - 'Colors'
+  - 'Group By'
+  - 'Translation'
+
+🔍 Matches on file: jsapp/js/components/sectionNotFound.js
+  - 'Section not found'
+
+🔍 Matches on file: jsapp/js/components/special/koboAccessibleSelect.tsx
+  - 'Select…'
+
+🔍 Matches on file: jsapp/js/components/submissions/audioCell.tsx
+  - 'Open'
+
+🔍 Matches on file: jsapp/js/components/submissions/columnsHideDropdown.tsx
+  - 'hide fields'
+
+🔍 Matches on file: jsapp/js/components/submissions/columnsHideForm.tsx
+  - 'These settings affects the experience for all project users.'
+  - 'Find a field'
+  - 'No results'
+  - 'Reset'
+  - 'Apply'
+
+🔍 Matches on file: jsapp/js/components/submissions/mediaCell.tsx
+  - 'Submission ##submissionIndex## of ##submissionTotal##'
+  - 'download'
+
+🔍 Matches on file: jsapp/js/components/submissions/submissionDataList.tsx
+  - 'N/A'
+
+🔍 Matches on file: jsapp/js/components/submissions/submissionDataTable.tsx
+  - 'Type'
+  - 'Question'
+  - 'Response'
+  - 'Point'
+  - 'latitude (x.y °):'
+  - 'longitude (x.y °):'
+  - 'altitude (m):'
+  - 'accuracy (m):'
+  - 'Open'
+  - 'start'
+  - 'end'
+  - 'today'
+  - 'username'
+  - 'device ID'
+  - 'phone number'
+  - 'audit'
+  - '__version__'
+  - '_id'
+  - 'instanceID'
+  - 'Submitted by'
+
+🔍 Matches on file: jsapp/js/components/submissions/submissionModal.tsx
+  - 'Unnamed language'
+  - 'The submission could not be found. It may have been deleted. Submission ID: ##id##'
+  - 'Error: could not load data.'
+  - 'Delete submission?'
+  - 'Are you sure you want to delete this submission?'
+  - 'This action cannot be undone'
+  - 'Delete'
+  - 'Cancel'
+  - 'Language'
+  - 'Validation status:'
+  - 'Duplicate created'
+  - 'A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.'
+  - 'Source submission uuid:'
+  - 'Discard'
+  - 'Discard duplicated submission'
+  - 'Click on the button below to load the most recent data for this submission. '
+  - 'Refresh submission'
+  - 'Previous'
+  - 'Next'
+  - 'Display XML names'
+  - 'View'
+  - 'Duplicate'
+  - 'Print'
+  - 'Delete submission'
+  - 'Edit'
+  - 'Unknown error'
+  - 'Background audio recording'
+  - 'N/A'
+
+🔍 Matches on file: jsapp/js/components/submissions/submissionUtils.ts
+  - 'Could not find ##fileName##'
+
+🔍 Matches on file: jsapp/js/components/submissions/table.tsx
+  - 'This project has no submitted data. Please collect some and try again.'
+  - 'Error: could not load data.'
+  - 'results'
+  - 'Open'
+  - 'Edit'
+  - 'Validation'
+  - 'Show All'
+  - 'Search'
+  - 'Toggle fullscreen'
+  - 'Display options'
+  - 'Prev'
+  - 'Next'
+  - 'Your filters returned no submissions.'
+  - 'Page'
+  - 'of'
+  - 'rows'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableBulkCheckbox.tsx
+  - 'Select all results (##count##)'
+  - 'Select visible results (##count##)'
+  - 'None'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableBulkOptions.tsx
+  - 'Update status of selected submissions'
+  - 'You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.'
+  - 'Update Validation Status'
+  - 'Cancel'
+  - 'You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.'
+  - 'Delete selected submissions'
+  - 'Delete selected'
+  - 'Cancel'
+  - '##count## selected'
+  - 'Change status'
+  - 'Set status: ##status##'
+  - 'Edit'
+  - 'Delete'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableColumnSortDropdown.tsx
+  - 'Sort A→Z'
+  - 'Sort Z→A'
+  - 'Hide field'
+  - 'Unfreeze field'
+  - 'Freeze field'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableMediaPreview.es6
+  - 'Unsupported media type: ##QUESTION_TYPE##'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableSettings.es6
+  - 'There was an error, table settings could not be saved.'
+  - 'XML Values'
+  - 'Labels'
+  - 'Display labels or XML values?'
+  - 'Show group names in table headers'
+  - 'Show HXL tags'
+  - 'Reset'
+  - 'Save'
+
+🔍 Matches on file: jsapp/js/components/submissions/tableUtils.ts
+  - 'transcript'
+  - 'translation'
+  - 'Background audio'
+  - 'Multi-select checkboxes column'
+  - 'Validation'
+
+🔍 Matches on file: jsapp/js/components/submissions/textModalCell.component.tsx
+  - 'N/A'
+  - 'Submission ##submissionIndex## of ##submissionTotal##'
+
+🔍 Matches on file: jsapp/js/components/submissions/validationStatus.constants.ts
+  - 'Show All'
+  - 'Not approved'
+  - 'Approved'
+  - 'On hold'
+
+🔍 Matches on file: jsapp/js/components/support/helpBubble.tsx
+  - 'Help Resources'
+  - 'Help Center'
+  - 'Find answers in our extensive library of user support articles and tutorials.'
+  - 'Community Forum'
+  - 'Connect with thousands of KoboToolbox users, ask questions, and share ideas.'
+  - 'KoboToolbox Academy'
+  - 'Enroll in an online self-paced course designed by Kobo staff experts.'
+  - 'Notifications'
+  - 'Help'
+
+🔍 Matches on file: jsapp/js/components/templatesList.es6
+  - 'You have no templates. Go to Library and create some.'
+  - 'Template name'
+  - 'Owner'
+  - 'Last modified'
+  - 'Questions'
+
+🔍 Matches on file: jsapp/js/components/usageLimits/overLimitBanner.component.tsx
+  - 'monthly submissions'
+  - 'yearly submissions'
+  - 'monthly machine translation'
+  - 'yearly machine translation'
+  - 'monthly automated transcription'
+  - 'yearly automated transcription'
+  - 'storage'
+  - 'Your team is approaching the ##LIMITS## limit.'
+  - 'Your organization is approaching the ##LIMITS## limit.'
+  - 'You are approaching the ##LIMITS## limit.'
+  - 'Your team has reached the ##LIMITS## limit.'
+  - 'Your organization has reached the ##LIMITS## limit.'
+  - 'You have reached the ##LIMITS## limit.'
+  - 'Purchase additional submissions add-ons to continue collecting and submitting data.'
+  - 'Please purchase an add-on to increase your submission limits.'
+  - "Once the limit has been reached, you won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions."
+  - "You won't be able to collect or submit any new data until the ##TEAM_OR_ORGANIZATION## owner has purchased additional submissions."
+  - "Once the limit has been reached, you won't be able to collect or submit any new data until you upgrade your plan or purchase an add-on."
+  - 'Please upgrade your plan or purchase an add-on to increase your usage limits.'
+  - 'Learn more'
+  - 'Monitor usage'
+  - 'monitor usage'
+  - 'Upgrade now'
+  - 'upgrade now'
+
+🔍 Matches on file: jsapp/js/components/usageLimits/overLimitModal.component.tsx
+  - 'Your team has reached the following limits included with your current plan:'
+  - 'Your organization has reached the following limits included with your current plan:'
+  - 'You have reached the following limits included with your current plan:'
+  - 'Dear ##ACCOUNT_NAME##,'
+  - 'Please upgrade your plan as soon as possible or [contact us](##CONTACT_LINK##) to speak with our team.'
+  - 'You can [review your usage in account settings](##USAGE_LINK##).'
+  - 'You have reached your plan limit'
+  - 'remind me later'
+  - 'upgrade now'
+
+🔍 Matches on file: jsapp/js/constants.ts
+  - 'Default - single page'
+  - 'Grid theme'
+  - 'Grid theme with headings in ALL CAPS'
+  - 'Multiple pages'
+  - 'Grid theme + Multiple pages'
+  - 'Grid theme + Multiple pages + headings in ALL CAPS'
+  - 'question'
+  - 'block'
+  - 'template'
+  - 'project'
+  - 'collection'
+  - 'map layer'
+  - 'form media'
+  - 'Acknowledge'
+  - 'Audio'
+  - 'Background Audio'
+  - 'Barcode / QR Code'
+  - 'Calculate'
+  - 'Date'
+  - 'Date & time'
+  - 'Decimal'
+  - 'External XML'
+  - 'File'
+  - 'Point'
+  - 'Area'
+  - 'Line'
+  - 'Hidden'
+  - 'Photo'
+  - 'Number'
+  - 'Question Matrix'
+  - 'Note'
+  - 'Range'
+  - 'Ranking'
+  - 'Rating'
+  - 'Select Many'
+  - 'Select Many from File'
+  - 'Select One'
+  - 'Select One from File'
+  - 'Text'
+  - 'Time'
+  - 'Video'
+  - 'Deployed'
+  - 'Draft'
+  - 'Archived'
+  - 'Online-Offline (multiple submission)'
+  - 'This allows online and offline submissions and is the best option for collecting data in the field.'
+  - 'Online-Only (multiple submissions)'
+  - 'This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'
+  - 'Online-Only (single submission)'
+  - 'This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'
+  - 'Online-only (once per respondent)'
+  - 'This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'
+  - 'Embeddable web form code'
+  - 'Use this html5 code snippet to integrate your form on your own website using smaller margins.'
+  - 'View only'
+  - 'Use this version for testing, getting feedback. Does not allow submitting data.'
+  - 'Android application'
+  - 'Use this option to collect data in the field with your Android device.'
+
+🔍 Matches on file: jsapp/js/dropzone.utils.tsx
+  - 'Import failed'
+  - 'Your upload is being processed. This may take a few moments.'
+  - 'Your upload is taking longer than usual. Please get back in few minutes.'
+  - 'Import Failed!'
+  - 'Failed to create import.'
+  - 'XLS Import completed'
+  - '## files'
+  - 'Failed to create import.'
+  - 'Your uploads are being processed. This may take a few moments. You will need to refresh the page to see them on the list.'
+  - 'Upload error: could not recognize Excel file.'
+  - 'Uploaded file name: '
+  - 'Could not recognize the dropped item(s).'
+
+🔍 Matches on file: jsapp/js/editorMixins/assetNavigator.es6
+  - 'loading'
+  - 'no search results found'
+  - 'block of ___ questions'
+  - 'search library'
+
+🔍 Matches on file: jsapp/js/editorMixins/cascadeMixin.es6
+  - 'Paste your formatted table from excel in the box below.'
+  - 'Paste your formatted table from excel in the box below.'
+  - 'add cascade with # questions'
+  - 'Paste your formatted table from excel in the box below.'
+  - 'OK'
+  - 'Learn more about importing cascading lists from Excel'
+  - 'DONE'
+
+🔍 Matches on file: jsapp/js/editorMixins/editableForm.es6
+  - 'You have unsaved changes. Leave form without saving?'
+  - 'Unknown Enketo preview error'
+  - 'Your changes could not be saved, likely because of a lost internet connection.'
+  - 'Keep this window open and try saving again while using a better connection.'
+  - 'Error saving form'
+  - 'Dismiss'
+  - 'create'
+  - 'save'
+  - 'retry'
+  - 'save'
+  - 'Yes, leave form'
+  - 'Cancel'
+  - 'Return to list'
+  - 'Preview form'
+  - 'Expand / collapse questions'
+  - 'Create group with selected questions'
+  - 'Grouping disabled. Please select at least one question.'
+  - 'Insert cascading select'
+  - 'Insert cascading select'
+  - 'Add from Library'
+  - 'Insert cascading select'
+  - 'Layout & Settings'
+  - 'Layout'
+  - 'background recording'
+  - 'This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in '
+  - 'Collect version 1.30 and above'
+  - 'help'
+  - 'Form style'
+  - 'Read more about form styles'
+  - 'Select the form style that you would like to use. This will only affect web forms.'
+  - 'Select the form style. This will only affect the Enketo preview, and it will not be saved with the question or block.'
+  - 'Metadata'
+  - 'Search Library'
+  - 'Error loading survey:'
+  - 'Partially locked ##type##'
+  - 'Fully locked ##type##'
+  - 'Read more about Locking'
+  - 'Untitled'
+  - 'Form Preview'
+  - 'Error generating preview'
+  - 'Import Cascading Select Questions'
+
+🔍 Matches on file: jsapp/js/enketoHandler.tsx
+  - 'Could not open window for "##url##"'
+  - 'There was an error loading Enketo.'
+
+🔍 Matches on file: jsapp/js/formbuild/containers/KoboMatrix.es6
+  - 'Select One'
+  - 'Select Many'
+  - 'Text'
+  - 'Number'
+  - 'Change column type?'
+  - 'Are you sure you want to change the type? This action is irreversible, your existing option choices will be erased.'
+  - 'Change type'
+  - 'Cancel'
+  - 'Option 1'
+  - 'Option 1'
+  - 'Option 2'
+  - 'Option 2'
+  - 'Row'
+  - 'Row'
+  - 'Column'
+  - 'Column'
+  - 'Delete row?'
+  - 'Are you sure you want to delete this row? This action cannot be undone.'
+  - 'Delete'
+  - 'Cancel'
+  - 'Delete column?'
+  - 'Are you sure you want to delete this column? This action cannot be undone.'
+  - 'Delete'
+  - 'Cancel'
+  - 'Response Type'
+  - 'Label'
+  - 'Data Column Suffix'
+  - 'Required'
+  - 'Label'
+  - 'Data Column Name'
+  - 'Delete column'
+  - 'Label'
+  - 'Data Column Prefix'
+  - 'Delete row'
+
+🔍 Matches on file: jsapp/js/global.d.ts
+  - `setting`
+
+🔍 Matches on file: jsapp/js/i18nMissingStrings.es6
+  - 'Add another condition'
+  - 'Previous responses should match all of these conditions'
+  - 'Previous responses should match any of these conditions'
+  - 'Click to add another response...'
+  - 'AUTOMATIC'
+  - 'Skip Logic'
+  - 'Question Options'
+  - 'Validation Criteria'
+  - 'Response Type'
+  - 'A constraint message to be read in case of error:'
+  - 'Row could not be displayed:'
+  - 'This question could not be imported. Please re-create it manually. Please contact us at help@kobotoolbox.org so we can fix this bug!'
+  - 'Add Question'
+  - 'or'
+  - 'Import XLS'
+  - 'This question will only be displayed if the following conditions apply'
+  - 'Save and Exit'
+  - 'Show All Responses'
+  - 'Question Library'
+  - 'Form ID'
+  - 'Unique form name'
+  - 'Web form style (Optional)'
+  - 'This allows using different Enketo styles, e.g. \'theme-grid\''
+  - 'Multiple pages + Grid theme'
+  - 'Version (Optional)'
+  - 'A version ID of the form'
+  - 'Hidden meta questions to include in your form to help with analysis'
+  - 'Meta questions for collecting with cell phones'
+  - 'This form is currently empty.'
+  - 'You can add questions, notes, prompts, or other fields by clicking on the \'+\' sign below.'
+  - 'Vertical'
+  - 'Donut'
+  - 'Area'
+  - 'Horizontal'
+  - 'Pie'
+  - 'Line'
+  - 'Draft'
+  - 'Value:'
+  - 'Items cannot be selected more than once'
+  - 'Manually enter your validation logic in XLSForm code'
+  - 'Settings'
+  - 'Delete Question'
+  - 'Duplicate Question'
+  - 'Add Question to Library'
+  - 'Text'
+  - 'Number'
+  - 'Decimal'
+  - 'Date'
+  - 'Time'
+  - 'Date & time'
+  - 'GPS'
+  - 'Photo'
+  - 'Audio'
+  - 'Video'
+  - 'Note'
+  - 'Barcode'
+  - 'Acknowledge'
+  - 'Calculate'
+  - 'Matrix / Rating'
+  - 'Ranking'
+  - 'Are you sure you want to split apart this group?'
+  - 'You can\'t display nested groups on the same screen - the setting has been removed from the parent group'
+  - 'Enter your question'
+  - 'Select question from list'
+  - 'Question hint'
+  - 'Error Message'
+  - 'Data column name'
+  - 'Default response'
+  - 'Repeat'
+  - 'Repeat this group if necessary'
+  - 'Mandatory response'
+  - 'Appearance (advanced)'
+  - 'Show all questions in this group on the same screen'
+  - 'Please check your connection and try again.'
+  - 'The server encountered an error while trying to deploy the project. If this problem persists, please contact <a href="mailto:help@kobotoolbox.org">help@kobotoolbox.org</a>.'
+  - 'The form id was not valid.'
+  - 'failed to change password'
+  - 'Tags are loading...'
+  - 'library'
+  - 'Collection'
+  - 'collection loading...'
+  - 'new collection inside "___"'
+  - 'new question inside "___"'
+  - 'new block inside "___"'
+  - 'upload into "___"'
+  - 'Are you sure you want to delete this collection?'
+  - 'This action cannot be undone.'
+  - 'Add a condition'
+  - 'Manually enter your skip logic in XLSForm code'
+  - 'response value'
+  - 'Are you sure you want to delete this question?'
+  - 'Select One'
+  - 'Select Many'
+  - 'Unable to deploy'
+  - 'profile'
+  - 'logout'
+  - 'log in'
+  - 'Link to share'
+  - 'Invite people and specify access rights'
+  - 'Your username, bio, and links appear on your public profile'
+  - 'Download form as'
+  - 'add to library'
+  - 'Allow others to access your project.'
+  - 'Shared with '
+  - 'Share the sector and country with developers'
+  - 'Leave Beta'
+  - 'Form'
+  - 'Data'
+  - 'Reports'
+  - 'Settings'
+  - 'Undeployed draft'
+  - 'Scheduled server maintenance'
+  - 'Project description'
+  - 'none'
+  - 'report type'
+  - 'create'
+  - 'save'
+  - 'form name'
+  - 'Ask support about this error'
+  - 'Collections'
+  - 'collection not loaded'
+  - 'collection name'
+  - 'No assets to display'
+  - 'Form Overview'
+  - 'Edit in Form Builder'
+  - 'make new collection: "{label}"'
+  - 'owner'
+  - 'viewer'
+  - 'viewers'
+  - 'editor'
+  - 'editors'
+  - 'status'
+  - 'public'
+  - 'private'
+  - 'revisions'
+  - 'created'
+  - 'modified'
+  - 'no language information'
+  - 'no translations'
+  - 'languages'
+  - 'Collecting Data with Web Forms'
+  - 'Learn more'
+  - 'Choose an option'
+  - 'Collecting Data with Android App'
+  - 'preview'
+  - 'clone'
+  - 'new form name'
+  - 'You are about to permanently delete this ___. Are you sure you want to continue?'
+  - 'Current Version'
+  - 'Modified Date'
+  - '(deployed)'
+  - '(archived)'
+  - '(undeployed draft)'
+  - 'Previous Versions'
+  - 'collections'
+  - 'my forms'
+  - 'shared with me'
+  - 'error loading data'
+  - 'results loaded'
+  - 'Warning! You are about to delete this collection with all its questions and blocks. Are you sure you want to continue?'
+  - 'new name?'
+  - 'Delete Project'
+  - 'More Actions'
+  - 'Archived'
+
+🔍 Matches on file: jsapp/js/mixins.tsx
+  - 'copied to clipboard'
+  - 'Clone of'
+  - 'Clone'
+  - 'Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.'
+  - 'Ok'
+  - 'Cancel'
+  - '## files'
+  - 'XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'
+  - 'XLS Import completed'
+  - 'Your upload is being processed. This may take a few moments.'
+  - 'Your upload is queued for processing. This may take a few moments.'
+  - 'Import Failed!'
+  - 'Import Failed!'
+  - 'Import Failed!'
+  - 'Failed to create import.'
+  - 'Upload error: could not recognize Excel file.'
+  - 'Uploaded file name: '
+  - 'Could not recognize the dropped item(s).'
+
+🔍 Matches on file: jsapp/js/models/surveyScope.es6
+  - 'question has been added to the library'
+  - 'group has been added to the library as a block'
+
+🔍 Matches on file: jsapp/js/project/projectTopTabs.component.tsx
+  - 'Summary'
+  - 'Form'
+  - 'Data'
+  - 'Settings'
+
+🔍 Matches on file: jsapp/js/project/submissionsCountGraph.component.tsx
+  - 'Today'
+  - 'Past 7 days'
+  - 'Past 31 days'
+  - 'Past 3 months'
+  - 'Past 12 months'
+  - 'No chart data available for current period.'
+  - 'Total'
+
+🔍 Matches on file: jsapp/js/projects/projectViews/constants.ts
+  - 'My Projects'
+  - '##organization name## Projects'
+  - 'Is'
+  - 'Is not'
+  - 'Contains'
+  - 'Does not contain'
+  - 'Starts with'
+  - 'Ends with'
+  - 'Is empty'
+  - 'Is empty'
+  - 'Is not empty'
+  - 'Is not empty'
+  - 'Project name'
+  - 'Description'
+  - 'Status'
+  - 'Owner'
+  - 'Owner name'
+  - 'Owner email'
+  - 'Owner organization'
+  - 'Date modified'
+  - 'Date deployed'
+  - 'Sector'
+  - 'Countries'
+  - 'Languages'
+  - 'Submissions'
+
+🔍 Matches on file: jsapp/js/projects/projectViews/projectsFieldsSelector.tsx
+  - 'fields'
+  - 'Reset'
+  - 'Apply'
+
+🔍 Matches on file: jsapp/js/projects/projectViews/projectsFilter.tsx
+  - 'filter'
+  - 'There are no filters, you can add one below'
+  - 'Add filter'
+  - 'Reset'
+  - 'Apply'
+
+🔍 Matches on file: jsapp/js/projects/projectViews/projectsFilterEditor.tsx
+  - 'Filter by'
+  - 'Select field'
+  - 'Condition'
+  - 'Select condition'
+  - 'Value'
+  - 'Enter value'
+  - 'Country'
+
+🔍 Matches on file: jsapp/js/projects/projectViews/viewSwitcher.tsx
+  - 'Organization'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/bulkActions/bulkDeletePrompt.tsx
+  - 'Delete ##count## projects'
+  - 'You are about to permanently delete ##count## projects'
+  - 'All data gathered for these projects will be deleted'
+  - 'Forms associated with these projects will be deleted'
+  - 'I understand that if I delete these projects I will not be able to recover them'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/projectBulkActions.tsx
+  - 'Delete projects'
+  - 'Delete ##count## projects'
+  - 'Archive/Unarchive'
+  - 'Share projects'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/projectQuickActions.tsx
+  - 'Archive project'
+  - 'Unarchive project'
+  - 'Draft project selected'
+  - 'Share project'
+  - 'Delete 1 project'
+  - 'Delete project'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/projectQuickActionsEmpty.tsx
+  - 'No project selected'
+  - 'Archive/Unarchive'
+  - 'Share project'
+  - 'Delete'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/projectsTable.tsx
+  - 'There are no projects to display.'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/projectsTableRow.tsx
+  - 'me'
+
+🔍 Matches on file: jsapp/js/projects/projectsTable/sortableProjectColumnHeader.tsx
+  - 'Default sort'
+  - 'Sort A→Z'
+  - 'Sort Z→A'
+  - 'Hide field'
+
+🔍 Matches on file: jsapp/js/projects/universalProjectsRoute.tsx
+  - "Export is being generated, you will receive an email when it's done"
+  - "We couldn't create the export, please try again later or contact support"
+  - 'Drop files to upload'
+  - 'Export all data'
+
+🔍 Matches on file: jsapp/js/protector/protectorConstants.ts
+  - 'Do you want to leave without saving?'
+
+🔍 Matches on file: jsapp/js/router/accessDenied.tsx
+  - `Please [contact the support team] if you think it's an error.`
+  - `Please try logging in using the header button or [contact the support team] if you think it's an error.`
+  - `Access Denied`
+  - `You don't have access to this page.`
+  - `Either you don't have access to this page or this page simply doesn't exist.`
+  - `Something went wrong`
+  - `We're sorry, but there was an unexpected error while trying to serve this page.`
+  - `Please try again later, or [contact the support team] if this happens repeatedly.`
+  - 'Additional details:'
+
+🔍 Matches on file: jsapp/js/router/invalidatedPassword.component.tsx
+  - 'Temporary Access Restriction: Password Update Required'
+  - 'You must update your password before proceeding. Please do so promptly to ensure the security of your data.'
+  - 'Update password'
+
+🔍 Matches on file: jsapp/js/stores.es6
+  - 'Your query is too short'
+  - 'failed to list assets'
+
+🔍 Matches on file: jsapp/js/textUtils.ts
+  - '##field_label## (required)'
+
+🔍 Matches on file: jsapp/js/tos/tosForm.component.tsx
+  - 'TOS Update Message not found'
+  - 'Please make sure the following details are filled out correctly:'
+  - "I agree, let's go"
+  - "I don't agree, log me out"
+
+🔍 Matches on file: jsapp/js/universalTable/universalTable.component.tsx
+  - 'Page ##current_page## of ##total_pages##'
+  - '##number## rows'
+
+
+▶️  Keys found: 2063
+▶️  Unique keys: 1616
+✅ Generated file with all keys: all_keys.json
+
+
