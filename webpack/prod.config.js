@@ -29,7 +29,7 @@ const prodConfig = WebpackCommon({
     ],
   },
   entry: {
-    app: './jsapp/js/main.js',
+    app: './jsapp/js/main.js-asdf',
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),
