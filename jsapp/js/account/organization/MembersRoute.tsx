@@ -13,13 +13,13 @@ import {Divider, Group, Stack, Text, Title, Box} from '@mantine/core';
 import InviteModal from 'js/account/organization/InviteModal';
 
 // Stores, hooks and utilities
-import {formatTime} from 'js/utils';
+import {formatDate} from 'js/utils';
 import {OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
 import useOrganizationMembersQuery from './membersQuery';
 import {useDisclosure} from '@mantine/hooks';
 
 // Constants and types
-import type {OrganizationMember} from './membersQuery';
+import type {OrganizationMember, OrganizationMemberListItem} from './membersQuery';
 import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
 
 // Styles
@@ -30,6 +30,15 @@ export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
   const [opened, {open, close}] = useDisclosure(false);
 
+  function getMemberOrInviteDetails(obj: OrganizationMemberListItem) {
+    const invite =
+      obj.invite?.status === 'pending' || obj.invite?.status === 'resent'
+        ? obj.invite
+        : null;
+    const member = invite ? null : {...obj} as OrganizationMember
+    return {invite, member}
+  }
+
   if (!orgQuery.data) {
     return <LoadingSpinner />;
   }
@@ -38,20 +47,20 @@ export default function MembersRoute() {
     FeatureFlag.orgMemberInvitesEnabled
   );
 
-  const columns: Array<UniversalTableColumn<OrganizationMember>> = [
+  const columns: Array<UniversalTableColumn<OrganizationMemberListItem>> = [
     {
       key: 'user__extra_details__name',
       label: t('Name'),
-      cellFormatter: (member: OrganizationMember) => {
-        const isOrgInvite = member.invite?.status === 'pending' || member.invite?.status === 'resent'
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
           return (
             <Avatar
               size='m'
-              username={member.user__username}
-              isUsernameVisible={!isOrgInvite}
-              email={member.user__email}
+              username={member ? member.user__username : invite!.invitee}
+              isUsernameVisible
+              email={member ? member.user__email : undefined}
               // We pass `undefined` for the case it's an empty string
-              fullName={isOrgInvite ? undefined : member.user__extra_details__name || undefined}
+              fullName={invite ? undefined : member?.user__extra_details__name || undefined}
             />
           )
       },
@@ -61,9 +70,10 @@ export default function MembersRoute() {
       key: 'invite',
       label: t('Status'),
       size: 120,
-      cellFormatter: (member: OrganizationMember) => {
-        if (member.invite?.status) {
-          return member.invite.status;
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
+        if (invite) {
+          return <Badge color='light-blue' size='s' label={t('Invited')} />;
         } else {
           return <Badge color='light-green' size='s' label={t('Active')} />;
         }
@@ -73,34 +83,34 @@ export default function MembersRoute() {
       key: 'date_joined',
       label: t('Date added'),
       size: 140,
-      cellFormatter: (member: OrganizationMember) =>
-        formatTime(member.date_joined),
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
+        return invite ? formatDate(invite.date_created) : formatDate(member!.date_joined)
+      },
     },
     {
       key: 'role',
       label: t('Role'),
       size: 140,
-      cellFormatter: (member: OrganizationMember) => {
-        if (
-          member.invite?.status === 'pending' ||
-          member.invite?.status === 'resent'
-        ) {
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
+        if (invite) {
           return (
             <MemberRoleSelector
-              username={member.user__username}
-              role={member.invite.invitee_role}
+              username={invite.invitee}
+              role={invite.invitee_role}
               currentUserRole={orgQuery.data.request_user_role}
-              inviteUrl={member.invite.url}
+              inviteUrl={invite.url}
             />
           );
         }
         if (
-          member.role === OrganizationUserRole.owner ||
+          member!.role === OrganizationUserRole.owner ||
           !['owner', 'admin'].includes(orgQuery.data.request_user_role)
         ) {
           // If the member is the Owner or
           // If the user is not an owner or admin, we don't show the selector
-          switch (member.role) {
+          switch (member!.role) {
             case OrganizationUserRole.owner:
               return t('Owner');
             case OrganizationUserRole.admin:
@@ -113,8 +123,8 @@ export default function MembersRoute() {
         }
         return (
           <MemberRoleSelector
-            username={member.user__username}
-            role={member.role}
+            username={member!.user__username}
+            role={member!.role}
             currentUserRole={orgQuery.data.request_user_role}
           />
         );
@@ -124,11 +134,15 @@ export default function MembersRoute() {
       key: 'user__has_mfa_enabled',
       label: t('2FA'),
       size: 90,
-      cellFormatter: (member: OrganizationMember) => {
-        if (member.user__has_mfa_enabled) {
-          return <Badge size='s' color='light-blue' icon='check' />;
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
+        if (member) {
+          if (member.user__has_mfa_enabled) {
+            return <Badge size='s' color='light-blue' icon='check' />;
+          }
+          return <Badge size='s' color='light-storm' icon='minus' />;
         }
-        return <Badge size='s' color='light-storm' icon='minus' />;
+        return
       },
     },
   ];
@@ -143,15 +157,16 @@ export default function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      cellFormatter: (member: OrganizationMember) => {
+      cellFormatter: (obj: OrganizationMemberListItem) => {
+        const {invite, member} = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
-        if (member.role === OrganizationUserRole.owner) {
+        if (member?.role === OrganizationUserRole.owner) {
           return null;
         }
 
         return (
           <MemberActionsDropdown
-            targetUsername={member.user__username}
+            targetUsername={member?.user__username ?? invite!.invitee}
             currentUserRole={orgQuery.data.request_user_role}
           />
         );
@@ -189,7 +204,7 @@ export default function MembersRoute() {
           </Box>
         )}
 
-      <PaginatedQueryUniversalTable<OrganizationMember>
+      <PaginatedQueryUniversalTable<OrganizationMemberListItem>
         queryHook={useOrganizationMembersQuery}
         columns={columns}
       />
