@@ -50,4 +50,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: "[Run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits) }}](${{ github.event.compare }}) :boom: debug event_name: ${{ toJson(github.event_name) }} debug event: ${{ toJson(github.event) }}
+        content: "[Run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits) }}](${{ github.event.compare }}) :boom: debug event_name: ${{ toJson(github.event_name) }} debug event: ${{ toJson(github.event) }}"
