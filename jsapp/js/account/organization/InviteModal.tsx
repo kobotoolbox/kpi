@@ -1,62 +1,57 @@
-import {Group, Modal, Stack, Text, TextInput, ModalProps} from '@mantine/core';
+import {Group, Modal, Stack, Text, TextInput, ModalProps, Loader} from '@mantine/core';
 import ButtonNew from 'jsapp/js/components/common/ButtonNew';
 import {Select} from 'jsapp/js/components/common/Select';
 import {useSendMemberInvite} from './membersInviteQuery';
 import {useState} from 'react';
 import {OrganizationUserRole} from './organizationQuery';
-import {KEY_CODES} from 'jsapp/js/constants';
 import userExistence from 'js/users/userExistence.store';
+import {useField} from '@mantine/form';
+import {notify} from 'alertifyjs';
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite();
 
-  const [textValue, setTextValue] = useState('');
   const [role, setRole] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const onInputKeyPress = (evt: React.KeyboardEvent<HTMLInputElement>) => {
-    // TODO: disable send invite button until username is verified
-    setTextValue(evt.currentTarget.value);
-    if (evt.key === String(KEY_CODES.ENTER)) {
-      evt.currentTarget.blur();
-      evt.preventDefault(); // prevent submitting form
-    }
-  };
-
-  async function handleUsernameOrEmailCheck() {
-    setErrorMessage(null);
-
-    if (textValue === '' || textValue.includes('@')) {
-      return;
+  async function handleUsernameOrEmailCheck(value: string) {
+    if (value === '' || value.includes('@')) {
+      return null;
     }
 
-    //TODO: Keep some log of checked usernames in state to prevent unecessary queries
-
-    const checkResult = await userExistence.checkUsername(textValue);
+    const checkResult = await userExistence.checkUsername(value);
     if (checkResult === false) {
-      setErrorMessage(t('This username does not exist. Please try again.'));
+      return t('This username does not exist. Please try again.');
     } else {
-      console.log('good');
+      return null;
     }
-    // TODO: add username and its result into the state for future reference
-    // TODO: only enable the send invite button after it successeds here.
   }
 
-  // TODO: don't enable send invite button until role is selected
+  const userOrEmail = useField({
+    initialValue: '',
 
-  const handleSendInvite = () => {
+    validate: handleUsernameOrEmailCheck,
+    validateOnBlur: true,
+  });
+
+  const handleSendInvite = async () => {
     if (role) {
       try {
-        inviteQuery.mutateAsync({
-          invitees: [textValue],
+        await inviteQuery
+        .mutateAsync({
+          invitees: [userOrEmail.getValue()],
           role: role as OrganizationUserRole,
-        });
+        })
       } catch (error) {
-          console.log('bad query: ', error);
-        // TODO: handle the error
+        notify(t('Failed to send invite'), 'error');
       }
     }
   };
+
+  const isValidated =
+    role !== null &&
+    userOrEmail.isDirty() &&
+    !userOrEmail.isValidating &&
+    !userOrEmail.error;
 
   return (
     <Modal
@@ -75,9 +70,9 @@ export default function InviteModal(props: ModalProps) {
           <TextInput
             flex={3}
             placeholder={t('Enter username or email address')}
-            onKeyDown={onInputKeyPress}
-            onBlur={handleUsernameOrEmailCheck}
-            error={errorMessage}
+            readOnly={userOrEmail.isValidating}
+            rightSection={userOrEmail.isValidating && <Loader />}
+            {...userOrEmail.getInputProps()}
           />
           <Select
             flex={2}
@@ -99,12 +94,8 @@ export default function InviteModal(props: ModalProps) {
         <Group w='100%' justify='flex-end'>
           <ButtonNew
             size='lg'
-            disabled={errorMessage !== null && role === null}
-            onClick={() => {
-              console.log('--------email---------', textValue);
-              console.log('--------role----------', role);
-              handleSendInvite();
-            }}
+            disabled={!isValidated}
+            onClick={handleSendInvite}
           >
             {t('Send invite')}
           </ButtonNew>
