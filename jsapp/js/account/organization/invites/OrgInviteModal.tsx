@@ -5,7 +5,11 @@ import Alert from 'js/components/common/alert';
 import {Modal, Button, Stack, Text, Group} from '@mantine/core';
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 // Stores, hooks and utilities
-import {MemberInviteStatus, useOrgMemberInviteQuery, usePatchMemberInvite} from 'js/account/organization/membersInviteQuery';
+import {
+  MemberInviteStatus,
+  useOrgMemberInviteQuery,
+  usePatchMemberInvite
+} from 'js/account/organization/membersInviteQuery';
 import {getSimpleMMOLabel} from 'js/account/organization/organization.utils';
 import envStore from 'jsapp/js/envStore';
 import subscriptionStore from 'jsapp/js/account/subscriptionStore';
@@ -14,9 +18,8 @@ import {notify} from 'jsapp/js/utils';
 import {endpoints} from 'jsapp/js/api.endpoints';
 
 /**
- * Displays a modal to a user that got an invitation for joining an organization.
- * There is a possibility to accept or decline it. Parent component is responsible
- * for knowing if this is needed to be displayed.
+ * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
+ * decline it. Parent component is responsible for knowing if this is needed to be displayed.
  *
  * Note: this is for a user that is NOT a part of an organization (and thus has no access to it).
  */
@@ -82,8 +85,8 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
       <Stack>
         <Text>
           {t(
-            'When you accept this invitation, all of the submissions, data storage, and transcription and translation ' +
-            'usage for all projects will be transferred to the ##TEAM_OR_ORGANIZATION##.'
+            'When you accept this invitation, all of the submissions, data storage, and transcription and ' +
+            'translation usage for all projects will be transferred to the ##TEAM_OR_ORGANIZATION##.'
           ).replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
         </Text>
 
@@ -112,11 +115,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
   // Case 4: got the invite, its status is something else, we display error message
   else if (orgMemberInviteQuery.data?.status) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
-    content = (
-      <Alert type='error'>
-        {t('This invitation is no longer available for a response')}
-      </Alert>
-    );
+    content = <Alert type='error'>{t('This invitation is no longer available for a response')}</Alert>;
   }
   // In any other case we simply display nothing (instead of empty modal)
   else {

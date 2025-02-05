@@ -2,7 +2,8 @@ import {useLocation} from 'react-router-dom';
 import OrgInviteModal from './OrgInviteModal';
 
 /**
- * This is a wrapper for conditionally rendering the OrgInviteModal component.
+ * This is a wrapper for conditionally rendering the OrgInviteModal component. It simply looks for particular pair of
+ * search parameters.
  */
 export default function OrgInviteModalWrapper() {
   // Get values from URL params

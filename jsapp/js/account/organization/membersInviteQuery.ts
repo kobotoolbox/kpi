@@ -72,11 +72,10 @@ export function useSendMemberInvite() {
   const queryClient = useQueryClient();
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
+  const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!);
   return useMutation({
-    mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!);
-      fetchPost<OrganizationMember>(apiPath, payload);
-    },
+    mutationFn: async (payload: SendMemberInviteParams & Json) =>
+      fetchPost<OrganizationMember>(apiPath, payload),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
     },
@@ -90,9 +89,7 @@ export function useSendMemberInvite() {
 export function useRemoveMemberInvite() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (inviteUrl: string) => {
-      fetchDeleteUrl<OrganizationMember>(inviteUrl);
-    },
+    mutationFn: async (inviteUrl: string) => fetchDeleteUrl<OrganizationMember>(inviteUrl),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
     },
@@ -122,9 +119,8 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
 export function usePatchMemberInvite(inviteUrl: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (newInviteData: Partial<MemberInvite>) => {
-      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
-    },
+    mutationFn: async (newInviteData: Partial<MemberInvite>) =>
+      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData),
     onSettled: () => {
       queryClient.invalidateQueries({queryKey: [
         QueryKeys.organizationMemberInviteDetail,
