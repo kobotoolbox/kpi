@@ -66,6 +66,7 @@ class ValidateSubmissionTest(APITestCase):
 
         validate(package, schema)
         rr = self.client.post(schema['url'], package, format='json')
+        breakpoint()
 
         package['q1']['transcript'] = {'value': 'they said goodbye'}
         validate(package, schema)

@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.shortcuts import get_object_or_404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from rest_framework.exceptions import PermissionDenied
@@ -89,6 +90,8 @@ class AdvancedSubmissionView(APIView):
             validate(posted_data, schema)
         except SchemaValidationError as err:
             raise APIValidationError({'error': err})
+        # ensure the submission exists
+        get_object_or_404(Instance, uuid=posted_data['submission'])
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 
