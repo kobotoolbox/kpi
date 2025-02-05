@@ -14,6 +14,7 @@ from kobo.apps.audit_log.audit_log_metadata_schemas import (
 )
 from kobo.apps.audit_log.utils import SubmissionUpdate
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
     get_human_readable_client_user_agent,
@@ -400,6 +401,7 @@ class ProjectHistoryLog(AuditLog):
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
+            'advanced-submission-post': cls._create_from_nlp_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -642,6 +644,28 @@ class ProjectHistoryLog(AuditLog):
                 )
             )
         ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def _create_from_nlp_request(cls, request):
+        s_uuid = request._data['submission']
+        # have to fetch the instance here because we don't have access to it
+        # anywhere else in the request
+        instance = Instance.objects.get(uuid=s_uuid)
+        username = (
+            instance.user.username if instance.user is not None else 'AnonymousUser'
+        )
+        ProjectHistoryLog.objects.create(
+            user=request.user,
+            object_id=request.asset.id,
+            action=AuditAction.MODIFY_QA_DATA,
+            metadata={
+                'asset_uid': request.asset.uid,
+                'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'ip_address': get_client_ip(request),
+                'source': get_human_readable_client_user_agent(request),
+                'submission': {'submitted_by': username},
+            },
+        )
 
     @classmethod
     def _create_from_ownership_transfer(cls, request):
