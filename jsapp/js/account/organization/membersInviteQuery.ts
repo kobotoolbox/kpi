@@ -44,6 +44,7 @@ export interface MemberInvite {
   url: string;
   /** Url of a user that have sent the invite. */
   invited_by: string;
+  organization_name: string;
   status: MemberInviteStatus;
   /** Username of user being invited. */
   invitee: string;
@@ -128,6 +129,7 @@ export function usePatchMemberInvite(inviteUrl: string) {
       queryClient.invalidateQueries({queryKey: [
         QueryKeys.organizationMemberInviteDetail,
         QueryKeys.organizationMembers,
+        QueryKeys.organizationMemberDetail,
       ]});
     },
   });

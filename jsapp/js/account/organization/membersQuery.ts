@@ -163,10 +163,19 @@ export default function useOrganizationMembersQuery({
   });
 }
 
-export function useOrganizationMemberDetailQuery(orgId: string, username: string) {
-  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId).replace(':username', username);
+export function useOrganizationMemberDetailQuery(
+  username: string,
+  notifyAboutError: boolean = true
+) {
+  const orgQuery = useOrganizationQuery();
+  const orgId = orgQuery.data?.id;
+  // `orgId!` because it's ensured to be there in `enabled` property :ok:
+  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId!).replace(':username', username);
   return useQuery({
-    queryFn: () => fetchGet<OrganizationMember>(apiPath),
+    queryFn: () => fetchGet<OrganizationMember>(apiPath, {notifyAboutError}),
     queryKey: [QueryKeys.organizationMemberDetail, apiPath],
+    enabled: !!orgId,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }
