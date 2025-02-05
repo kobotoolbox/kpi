@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset

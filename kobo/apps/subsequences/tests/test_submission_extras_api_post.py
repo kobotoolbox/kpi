@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 from unittest.mock import Mock, patch
 
@@ -28,7 +29,6 @@ from kpi.constants import (
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
-
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
 
@@ -45,6 +45,19 @@ class ValidateSubmissionTest(APITestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset_uid = self.asset.uid
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
+
+        uuid_ = uuid.uuid4()
+        self.submission_uuid = str(uuid_)
+
+        # add a submission
+        submission_data = {
+            'q1': 'answer',
+            '_uuid': self.submission_uuid,
+            '_submitted_by': 'someuser',
+        }
+
+        self.asset.deployment.mock_submissions([submission_data])
+
         self.client.force_login(user)
 
     def set_asset_advanced_features(self, features):
@@ -56,7 +69,7 @@ class ValidateSubmissionTest(APITestCase):
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
               'transcript': {
                 'value': 'they said hello',
@@ -66,7 +79,6 @@ class ValidateSubmissionTest(APITestCase):
 
         validate(package, schema)
         rr = self.client.post(schema['url'], package, format='json')
-        breakpoint()
 
         package['q1']['transcript'] = {'value': 'they said goodbye'}
         validate(package, schema)
@@ -137,7 +149,7 @@ class ValidateSubmissionTest(APITestCase):
         original_transcript = 'they said hello'
         original_translation = 'T H E Y   S A I D   H E L L O'
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
                 'transcript': {
                     'value': original_transcript,
@@ -193,7 +205,7 @@ class ValidateSubmissionTest(APITestCase):
         extras = list(self.asset.submission_extras.all())
         assert len(extras) == 1
         extras = extras[0]
-        assert extras.submission_uuid == 'abc123-def456'
+        assert extras.submission_uuid == self.submission_uuid
         assert (
             extras.content['q1']['transcript']['value'] == original_transcript
         )
@@ -213,7 +225,7 @@ class ValidateSubmissionTest(APITestCase):
         extras = list(self.asset.submission_extras.all())
         assert len(extras) == 1
         extras = extras[0]
-        assert extras.submission_uuid == 'abc123-def456'
+        assert extras.submission_uuid == self.submission_uuid
         assert (
             extras.content['q1']['transcript']['value'] == modified_transcript
         )
@@ -382,7 +394,7 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
                 'transcript': {
                     'value': 'they said hello',
