@@ -10,6 +10,8 @@ export const SelectThemeKobo = Select.extend({
     comboboxProps: {
       offset: 0,
       dropdownPadding: 0,
+      // needed in order to display correctly in a modal
+      zIndex: 5000,
     },
   },
 });
