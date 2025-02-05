@@ -145,11 +145,9 @@ const AddOnList = (props: {
                     {'$##price##'.replace(
                       '##price##',
                       (
-                        (oneTimeAddOn.quantity *
-                          (oneTimeAddOnProducts.find(
-                            (product) => product.id === oneTimeAddOn.product
-                          )?.prices[0].unit_amount || 0)) /
-                        100
+                        (oneTimeAddOnProducts.find(
+                          (product) => product.id === oneTimeAddOn.product
+                        )?.prices[0].unit_amount || 0) / 100
                       ).toFixed(2)
                     )}
                   </td>

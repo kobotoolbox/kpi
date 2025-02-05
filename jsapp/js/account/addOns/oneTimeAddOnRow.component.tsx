@@ -20,16 +20,6 @@ interface OneTimeAddOnRowProps {
   organization: Organization;
 }
 
-const MAX_ONE_TIME_ADDON_PURCHASE_QUANTITY = 10;
-
-const quantityOptions = Array.from(
-  {length: MAX_ONE_TIME_ADDON_PURCHASE_QUANTITY},
-  (_, zeroBasedIndex) => {
-    const index = (zeroBasedIndex + 1).toString();
-    return {value: index, label: index};
-  }
-);
-
 export const OneTimeAddOnRow = ({
   products,
   isBusy,
@@ -39,11 +29,10 @@ export const OneTimeAddOnRow = ({
   organization,
 }: OneTimeAddOnRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0]);
-  const [quantity, setQuantity] = useState('1');
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(
     selectedProduct.prices[0]
   );
-  const displayPrice = useDisplayPrice(selectedPrice, parseInt(quantity));
+  const displayPrice = useDisplayPrice(selectedPrice);
   const priceOptions = useMemo(
     () =>
       selectedProduct.prices.map((price) => {
@@ -98,12 +87,6 @@ export const OneTimeAddOnRow = ({
     }
   };
 
-  const onChangeQuantity = (quantity: string | null) => {
-    if (quantity) {
-      setQuantity(quantity);
-    }
-  };
-
   // TODO: Merge functionality of onClickBuy and onClickManage so we can unduplicate
   // the billing button in priceTableCells
   const onClickBuy = () => {
@@ -112,7 +95,7 @@ export const OneTimeAddOnRow = ({
     }
     setIsBusy(true);
     if (selectedPrice) {
-      postCheckout(selectedPrice.id, organization.id, parseInt(quantity))
+      postCheckout(selectedPrice.id, organization.id)
         .then((response) => window.location.assign(response.url))
         .catch(() => setIsBusy(false));
     }
