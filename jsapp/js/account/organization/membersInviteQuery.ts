@@ -76,7 +76,6 @@ export function useSendMemberInvite() {
   const orgId = orgQuery.data?.id;
   return useMutation({
     mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      debugger;
       const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!);
       fetchPost<OrganizationMember>(apiPath, payload);
     },

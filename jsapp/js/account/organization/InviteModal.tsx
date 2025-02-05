@@ -16,6 +16,7 @@ export default function InviteModal(props: ModalProps) {
 
   const onInputKeyPress = (evt: React.KeyboardEvent<HTMLInputElement>) => {
     // TODO: disable send invite button until username is verified
+    setTextValue(evt.currentTarget.value);
     if (evt.key === String(KEY_CODES.ENTER)) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
@@ -51,6 +52,7 @@ export default function InviteModal(props: ModalProps) {
           role: role as OrganizationUserRole,
         });
       } catch (error) {
+          console.log('bad query: ', error);
         // TODO: handle the error
       }
     }
@@ -61,6 +63,7 @@ export default function InviteModal(props: ModalProps) {
       opened={props.opened}
       onClose={props.onClose}
       title={t('Invite memebrs to your team')}
+      size={'lg'}
     >
       <Stack>
         <Text>
@@ -68,11 +71,10 @@ export default function InviteModal(props: ModalProps) {
             'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
           )}
         </Text>
-        <Group w='100%' gap='xs'>
+        <Group align={'flex-start'} w='100%' gap='xs'>
           <TextInput
             flex={3}
             placeholder={t('Enter username or email address')}
-            onChange={(e) => setTextValue(e.currentTarget.value)}
             onKeyDown={onInputKeyPress}
             onBlur={handleUsernameOrEmailCheck}
             error={errorMessage}
@@ -97,7 +99,7 @@ export default function InviteModal(props: ModalProps) {
         <Group w='100%' justify='flex-end'>
           <ButtonNew
             size='lg'
-            disabled={errorMessage ? true : false}
+            disabled={errorMessage !== null && role === null}
             onClick={() => {
               console.log('--------email---------', textValue);
               console.log('--------role----------', role);
