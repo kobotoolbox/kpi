@@ -126,12 +126,12 @@ const AddOnList = (props: {
                   <td className={styles.product}>
                     <span className={styles.productName}>
                       {t('##name##')
-                          .replace(
-                            '##name##',
-                            oneTimeAddOnProducts.find(
-                              (product) => product.id === oneTimeAddOn.product
-                            )?.name || label
-                          )}
+                        .replace(
+                          '##name##',
+                          oneTimeAddOnProducts.find(
+                            (product) => product.id === oneTimeAddOn.product
+                          )?.name || label
+                        )}
                     </span>
                     <Badge color={color} size={'s'} label={badgeLabel} />
                     <p className={styles.addonDescription}>
