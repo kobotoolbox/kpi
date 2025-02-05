@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 default=kobo.apps.stripe.utils.get_default_add_on_limits,
                 help_text=(
                     "The amount of each of the add-on's individual limits "
-                    "left to use."
+                    'left to use.'
                 ),
             ),
         ),
@@ -32,10 +32,10 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 default=kobo.apps.stripe.utils.get_default_add_on_limits,
                 help_text=(
-                    "The historical usage limits when the add-on was purchased.\n"
-                    "Possible keys:\n"
-                    "\"submission_limit\", \"asr_seconds_limit\", "
-                    "and/or \"mt_characters_limit\""
+                    'The historical usage limits when the add-on was purchased.\n'
+                    'Possible keys:\n'
+                    '\"submission_limit\", \"asr_seconds_limit\", '
+                    'and/or \"mt_characters_limit\"'
                 ),
 
             ),
