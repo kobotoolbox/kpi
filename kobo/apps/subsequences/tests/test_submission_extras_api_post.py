@@ -64,6 +64,29 @@ class ValidateSubmissionTest(APITestCase):
         self.asset.advanced_features = features
         self.asset.save()
 
+    def test_get_submission_with_nonexistent_instance_404s(self):
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        base_url = resp.json()['advanced_submission_schema']['url']
+        url = f'{base_url}?submission=bad-uuid'
+        rr = self.client.get(url)
+        assert rr.status_code == 404
+
+    def test_post_submission_extra_with_nonexistent_instance_404s(self):
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        schema = resp.json()['advanced_submission_schema']
+        package = {
+            'submission': 'bad-uuid',
+            'q1': {
+                'transcript': {
+                    'value': 'they said hello',
+                }
+            },
+        }
+        rr = self.client.post(schema['url'], package, format='json')
+        assert rr.status_code == 404
+
     def test_asset_post_submission_extra_with_transcript(self):
         self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
         resp = self.client.get(self.asset_url)
