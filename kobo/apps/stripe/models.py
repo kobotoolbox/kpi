@@ -2,9 +2,8 @@ from typing import List
 
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, IntegerField, Sum
+from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.dispatch import receiver
