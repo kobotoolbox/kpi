@@ -82,6 +82,7 @@ class AdvancedSubmissionView(APIView):
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
+        get_object_or_404(Instance, uuid=s_uuid)
         return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
