@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@894d285b1d2955b2990500427158e845af32259d#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@cc9aaf63679e9b1780dddcfc803eab367de3021e#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -349,10 +349,6 @@ openpyxl==3.1.3
     #   pyxform
 pandas==2.0.3
     # via -r dependencies/pip/requirements.in
-path==16.10.0
-    # via path-py
-path-py==12.5.0
-    # via formpack
 pillow==10.3.0
     # via django-markdownx
 prometheus-client==0.20.0
@@ -415,7 +411,7 @@ pytz==2024.1
     # via
     #   flower
     #   pandas
-pyxform==2.2.0
+pyxform==3.0.0
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack

@@ -314,7 +314,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 self._update_invitee_organization(instance)
 
                 # Transfer ownership of invitee's assets to the organization
-                transfer_member_data_ownership_to_org(instance.invitee.id)
+                transfer_member_data_ownership_to_org.delay(instance.invitee.id)
             self._handle_status_update(instance, status)
         return instance
 

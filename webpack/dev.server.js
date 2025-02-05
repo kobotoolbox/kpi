@@ -26,7 +26,7 @@ let devConfig = WebpackCommon({
     },
   },
   entry: {
-    app: ['./jsapp/js/main.es6'],
+    app: ['./jsapp/js/main.js'],
   },
   output: {
     library: 'KPI',
