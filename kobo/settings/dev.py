@@ -28,6 +28,3 @@ CALCULATED_HASH_CACHE_EXPIRATION = 5
 # with option `--print-sql`
 SHELL_PLUS_PRINT_SQL_TRUNCATE = None
 RUNSERVER_PLUS_PRINT_SQL_TRUNCATE = None
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
