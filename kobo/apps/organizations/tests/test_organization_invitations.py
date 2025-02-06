@@ -103,7 +103,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_201_CREATED),
         ('admin', status.HTTP_201_CREATED),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
     def test_user_cannot_send_invitation_twice(
