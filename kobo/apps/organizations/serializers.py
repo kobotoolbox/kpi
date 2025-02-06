@@ -412,32 +412,40 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
     def validate_status(self, value):
 
-        if not self.instance and not value:
-            raise serializers.ValidationError('Status cannot be empty')
-
-        if value not in OrganizationInviteStatusChoices.values:
-            raise serializers.ValidationError('Status value is wrong')
-
-        if value in [
-            OrganizationInviteStatusChoices.EXPIRED,
-            OrganizationInviteStatusChoices.PENDING,
-        ]:
+        if value in OrganizationInviteStatusChoices.get_calculated_choices():
             raise serializers.ValidationError(
                 f'`{value}` is reserved and cannot be set'
             )
 
-        if self.instance:
+        if not self.instance:
+            if not value:
+                raise serializers.ValidationError('This field cannot be empty')
+
+            if (
+                value in OrganizationInviteStatusChoices.get_admin_choices()
+                or value in OrganizationInviteStatusChoices.get_member_choices()
+            ):
+                raise serializers.ValidationError(
+                    f'`{value}` cannot be set a newly created invitation'
+                )
+
+        else:
             request = self.context['request']
             user = get_database_user(request.user)
             organization = self.instance.invited_by.organization
 
-            if value in [
-                OrganizationInviteStatusChoices.CANCELLED,
-                OrganizationInviteStatusChoices.RESENT,
-            ] and not organization.is_admin(user):
+            if (
+                value in OrganizationInviteStatusChoices.get_admin_choices()
+                and not organization.is_admin(user)
+            ):
                 raise serializers.ValidationError(
                     'You have not enough permissions to perform this action'
                 )
+
+            # if value equals 'resent', all the validations have been already
+            # performed to ensure, only an admin can call this.
+            if value == OrganizationInviteStatusChoices.RESENT:
+                value = OrganizationInviteStatusChoices.PENDING
 
         return value
 

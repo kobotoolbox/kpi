@@ -12,7 +12,11 @@ from kobo.apps.organizations.constants import (
     INVITE_MEMBER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
 )
-from kobo.apps.organizations.models import OrganizationInvitation, Organization
+from kobo.apps.organizations.models import (
+    Organization,
+    OrganizationInvitation,
+    OrganizationInviteStatusChoices,
+)
 from kobo.apps.organizations.tasks import mark_organization_invite_as_expired
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
@@ -117,11 +121,14 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self.client.patch(
-            self.detail_url(invitation.guid), data={'status': 'resent'}
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.RESENT},
         )
         self.assertEqual(response.status_code, expected_status)
         if response.status_code == status.HTTP_200_OK:
-            self.assertEqual(response.data['status'], 'resent')
+            self.assertEqual(
+                response.data['status'], OrganizationInviteStatusChoices.PENDING
+            )
             self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
 
     @data(
@@ -142,11 +149,15 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self.client.patch(
-            self.detail_url(invitation.guid), data={'status': 'cancelled'}
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.CANCELLED},
         )
         self.assertEqual(response.status_code, expected_status)
         if response.status_code == status.HTTP_200_OK:
-            self.assertEqual(response.data['status'], 'cancelled')
+            self.assertEqual(
+                response.data['status'],
+                OrganizationInviteStatusChoices.CANCELLED,
+            )
 
     def test_list_invitations(self):
         """
@@ -182,10 +193,14 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self._update_invite(
-            self.external_user, invitation.guid, 'accepted'
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'accepted')
+        self.assertEqual(
+            response.data['status'], OrganizationInviteStatusChoices.ACCEPTED
+        )
 
         bob_asset = Asset.objects.get(uid=create_asset_response.data['uid'])
         self.assertEqual(bob_asset.owner, self.owner_user)
@@ -202,10 +217,14 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self._update_invite(
-            self.external_user, invitation.guid, 'declined'
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.DECLINED,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'declined')
+        self.assertEqual(
+            response.data['status'], OrganizationInviteStatusChoices.DECLINED
+        )
 
         bob_asset = Asset.objects.get(uid=create_asset_response.data['uid'])
         self.assertEqual(bob_asset.owner, self.external_user)
@@ -226,10 +245,12 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee_identifier=self.new_user.email
         )
         response = self._update_invite(
-            self.new_user, invitation.guid, 'accepted'
+            self.new_user, invitation.guid, OrganizationInviteStatusChoices.ACCEPTED
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'accepted')
+        self.assertEqual(
+            response.data['status'], OrganizationInviteStatusChoices.ACCEPTED
+        )
         self.assertEqual(mail.outbox[2].to[0], invitation.invited_by.email)
 
     @data(
@@ -252,10 +273,14 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self._update_invite(
-            self.external_user, invitation.guid, 'accepted'
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'accepted')
+        self.assertEqual(
+            response.data['status'], OrganizationInviteStatusChoices.ACCEPTED
+        )
         self.assertEqual(response.data['invitee_role'], role)
         self.assertEqual(
             self.organization.get_user_role(self.external_user), role
@@ -314,14 +339,20 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self._update_invite(
-            self.external_user, invitation.guid, 'accepted'
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'accepted')
+        self.assertEqual(
+            response.data['status'], OrganizationInviteStatusChoices.ACCEPTED
+        )
 
         # Attempt to accept the invitation again
         response = self._update_invite(
-            self.external_user, invitation.guid, 'accepted'
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
@@ -361,7 +392,9 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee=self.another_owner_user
         )
         response = self._update_invite(
-            self.another_owner_user, invitation.guid, 'accepted'
+            self.another_owner_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
@@ -378,7 +411,9 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee=self.another_admin_user
         )
         response = self._update_invite(
-            self.another_admin_user, invitation.guid, 'accepted'
+            self.another_admin_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
@@ -404,7 +439,9 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee=self.external_user
         )
         response = self._update_invite(
-            self.new_user, invitation.guid, 'accepted'
+            self.new_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -426,6 +463,8 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             invitee_identifier='unregistereduser@example.com'
         )
         response = self._update_invite(
-            self.new_user, invitation.guid, 'accepted'
+            self.new_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
