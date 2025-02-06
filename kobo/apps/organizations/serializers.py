@@ -419,7 +419,35 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return {'users': valid_users, 'emails': external_emails}
 
     def validate_status(self, value):
-        pass
+
+        if not self.instance and not value:
+            raise serializers.ValidationError('Status cannot be empty')
+
+        if value not in OrganizationInviteStatusChoices.values:
+            raise serializers.ValidationError('Status value is wrong')
+
+        if value in [
+            OrganizationInviteStatusChoices.EXPIRED,
+            OrganizationInviteStatusChoices.PENDING,
+        ]:
+            raise serializers.ValidationError(
+                f'`{value}` is reserved and cannot be set'
+            )
+
+        if self.instance:
+            request = self.context['request']
+            user = get_database_user(request.user)
+            organization = self.instance.invited_by.organization
+
+            if value in [
+                OrganizationInviteStatusChoices.CANCELLED,
+                OrganizationInviteStatusChoices.RESENT,
+            ] and not organization.is_admin(user):
+                raise serializers.ValidationError(
+                    'You have not enough permissions to perform this action'
+                )
+
+        return value
 
     @void_cache_for_request(keys=('organization',))
     def _update_invitee_organization(self, instance):

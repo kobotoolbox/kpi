@@ -103,12 +103,12 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
     def test_user_can_resend_invitation(self, user_role, expected_status):
         """
-        Test that only organization owner or admin can resend an invitation
+        Test that only the organization owner or admins can resend an invitation
         """
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
@@ -128,7 +128,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
     def test_user_can_cancel_invitation(self, user_role, expected_status):
