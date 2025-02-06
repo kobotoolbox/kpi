@@ -1,5 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
-import {useWindowEvent} from './useWindowEvent';
+import {useEffect, useState} from 'react';
 
 /**
  * A hook for generating a key for `localStorage`/`sessionStorage` that includes encrypted username.

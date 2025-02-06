@@ -8,7 +8,7 @@ import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
 import {
   MemberInviteStatus,
   useOrgMemberInviteQuery,
-  usePatchMemberInvite
+  usePatchMemberInvite,
 } from 'js/account/organization/membersInviteQuery';
 import {getSimpleMMOLabel} from 'js/account/organization/organization.utils';
 import envStore from 'jsapp/js/envStore';
@@ -30,7 +30,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
 
   const [isModalOpen, setIsModalOpen] = useState(true);
   const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId);
-  const patchMemberInvite = usePatchMemberInvite(inviteUrl)
+  const patchMemberInvite = usePatchMemberInvite(inviteUrl);
 
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0]);
 
@@ -66,7 +66,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
   }
   // Case 2: failed to get the invite
   else if (orgMemberInviteQuery.isError) {
-    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
+    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName);
     content = (
       <Alert type='error'>
         {
@@ -80,7 +80,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
   // Case 3: got the invite, its status is pending, so we display form
   else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##')
-      .replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
+      .replace('##TEAM_OR_ORGANIZATION_NAME##', orgName);
     content = (
       <Stack>
         <Text>
@@ -114,7 +114,7 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
   }
   // Case 4: got the invite, its status is something else, we display error message
   else if (orgMemberInviteQuery.data?.status) {
-    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
+    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName);
     content = <Alert type='error'>{t('This invitation is no longer available for a response')}</Alert>;
   }
   // In any other case we simply display nothing (instead of empty modal)
@@ -131,4 +131,4 @@ export default function OrgInviteModal(props: {orgId: string; inviteId: string})
       {content}
     </Modal>
   );
-};
+}

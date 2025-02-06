@@ -165,7 +165,7 @@ export default function useOrganizationMembersQuery({
 
 export function useOrganizationMemberDetailQuery(
   username: string,
-  notifyAboutError: boolean = true
+  notifyAboutError = true
 ) {
   const orgQuery = useOrganizationQuery();
   const orgId = orgQuery.data?.id;
@@ -173,7 +173,7 @@ export function useOrganizationMemberDetailQuery(
   const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId!).replace(':username', username);
   return useQuery({
     queryFn: () => fetchGet<OrganizationMember>(apiPath, {notifyAboutError}),
-    queryKey: [QueryKeys.organizationMemberDetail, apiPath],
+    queryKey: [QueryKeys.organizationMemberDetail, apiPath, notifyAboutError],
     enabled: !!orgId,
     retry: false,
     refetchOnWindowFocus: false,

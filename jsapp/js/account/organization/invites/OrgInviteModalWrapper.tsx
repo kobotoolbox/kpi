@@ -18,4 +18,4 @@ export default function OrgInviteModalWrapper() {
   }
 
   return <OrgInviteModal orgId={orgId} inviteId={inviteId}/>;
-};
+}

@@ -3,7 +3,7 @@ import Icon from 'js/components/common/icon';
 import sessionStore from 'js/stores/session';
 import styles from './newFeatureDialog.module.scss';
 import cx from 'classnames';
-import { useSafeUsernameStorageKey } from '../hooks/useSafeUsernameStorageKey';
+import {useSafeUsernameStorageKey} from '../hooks/useSafeUsernameStorageKey';
 
 interface NewFeatureDialogProps {
   children: React.ReactNode;
