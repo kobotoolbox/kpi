@@ -3,6 +3,7 @@ from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -16,7 +17,6 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from .constants import ORG_OWNER_ROLE, ORG_ADMIN_ROLE
 from ..accounts.mfa.models import MfaMethod
 from .models import (
     Organization,
@@ -29,12 +29,14 @@ from .permissions import (
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipInvitePermission,
+    OrgMembershipCreateOrDeleteInvitePermission,
 )
 from .serializers import (
     OrganizationSerializer,
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer
 )
+from .renderers import OnlyGetBrowsableAPIRenderer
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -654,9 +656,9 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
 
     """
     serializer_class = OrgMembershipInviteSerializer
-    permission_classes = [OrgMembershipInvitePermission]
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
+    renderer_classes = [JSONRenderer, OnlyGetBrowsableAPIRenderer, ]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -672,20 +674,15 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
 
-        # Reuse user_role set by the permission class to avoid redundant queries
-        user_role = getattr(self, 'user_role', None)
-
         query_filter = {'organization_id': organization_id}
-        if user_role not in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]:
-            query_filter['invitee'] = self.request.user
-
         base_queryset = OrganizationInvitation.objects.select_related(
             'invitee', 'invited_by', 'organization'
         )
         queryset = base_queryset.filter(**query_filter)
-        if not queryset.exists():
-            # Fetch invite by email for unregistered users
-            query_filter.pop('invitee', None)
-            query_filter['invitee_identifier'] = self.request.user.email
-            queryset = base_queryset.filter(**query_filter)
         return queryset
+
+    def get_permissions(self):
+        if self.action in ['list', 'create', 'destroy']:
+            return [OrgMembershipCreateOrDeleteInvitePermission()]
+
+        return [OrgMembershipInvitePermission()]

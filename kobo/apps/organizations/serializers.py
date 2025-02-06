@@ -24,6 +24,8 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
+    ORG_ADMIN_ROLE,
+    ORG_MEMBER_ROLE,
     ORG_EXTERNAL_ROLE,
     INVITE_OWNER_ERROR,
     INVITE_MEMBER_ERROR,
@@ -119,11 +121,11 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if role := validated_data.get('role', None):
-            validated_data['is_admin'] = role == 'admin'
+            validated_data['is_admin'] = role == ORG_ADMIN_ROLE
         return super().update(instance, validated_data)
 
     def validate_role(self, role):
-        if role not in ['admin', 'member']:
+        if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise serializers.ValidationError(
                 {'role': t("Invalid role. Only 'admin' or 'member' are allowed")}
             )
@@ -235,7 +237,9 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
     )
     invited_by = serializers.SerializerMethodField()
     role = serializers.ChoiceField(
-        choices=['admin', 'member'], default='member', write_only=True
+        choices=[ORG_ADMIN_ROLE, ORG_MEMBER_ROLE],
+        default=ORG_MEMBER_ROLE,
+        write_only=True,
     )
     url = serializers.SerializerMethodField()
 
@@ -299,66 +303,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             invite.send_invite_email()
 
         return invites
-
-    def update(self, instance, validated_data):
-        status = validated_data.get('status', instance.status)
-        with transaction.atomic():
-            if 'role' in validated_data:
-                # Organization owner or admin can update the role of the invitee
-                instance.invitee_role = validated_data['role']
-                instance.save(update_fields=['invitee_role'])
-
-            if status == 'accepted':
-                self._handle_invitee_assignment(instance)
-                self.validate_invitation_acceptance(instance)
-                self._update_invitee_organization(instance)
-
-                # Transfer ownership of invitee's assets to the organization
-                transfer_member_data_ownership_to_org.delay(instance.invitee.id)
-            self._handle_status_update(instance, status)
-        return instance
-
-    def _handle_invitee_assignment(self, instance):
-        """
-        Assigns the invitee to the invite after the external user registers
-        and accepts the invite
-        """
-        invitee_identifier = instance.invitee_identifier
-        if invitee_identifier and not instance.invitee:
-            try:
-                instance.invitee = User.objects.get(email=invitee_identifier)
-                instance.save(update_fields=['invitee'])
-            except User.DoesNotExist:
-                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
-
-    def _handle_status_update(self, instance, status):
-        instance.status = getattr(
-            OrganizationInviteStatusChoices, status.upper()
-        )
-        instance.save(update_fields=['status'])
-        self._send_status_email(instance, status)
-
-    def _send_status_email(self, instance, status):
-        status_map = {
-            'accepted': instance.send_acceptance_email,
-            'declined': instance.send_refusal_email,
-            'resent': instance.send_invite_email
-        }
-
-        email_func = status_map.get(status)
-        if email_func:
-            email_func()
-
-    @void_cache_for_request(keys=('organization',))
-    def _update_invitee_organization(self, instance):
-        """
-        Update the organization of the invitee after accepting the invitation
-        """
-        org_user = OrganizationUser.objects.get(user=instance.invitee)
-        Organization.objects.filter(organization_users=org_user).delete()
-        org_user.organization = instance.invited_by.organization
-        org_user.is_admin = instance.invitee_role == 'admin'
-        org_user.save()
 
     def get_invited_by(self, invite):
         return reverse(
@@ -480,3 +424,88 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                         USER_DOES_NOT_EXIST_ERROR.format(invitee=invitee)
                     )
         return {'users': valid_users, 'emails': external_emails}
+
+    def validate_status(self, value):
+
+        if not self.instance and not value:
+            raise serializers.ValidationError('Status cannot be empty')
+
+        if value not in OrganizationInviteStatusChoices.values:
+            raise serializers.ValidationError('Status value is wrong')
+
+        if value in [
+            OrganizationInviteStatusChoices.EXPIRED,
+            OrganizationInviteStatusChoices.PENDING,
+        ]:
+            raise serializers.ValidationError(
+                f'`{value}` is reserved and cannot be set'
+            )
+
+        if self.instance:
+            request = self.context['request']
+            user = get_database_user(request.user)
+            organization = self.instance.invited_by.organization
+
+            if value in [
+                OrganizationInviteStatusChoices.CANCELLED,
+                OrganizationInviteStatusChoices.RESENT,
+            ] and not organization.is_admin(user):
+                raise serializers.ValidationError(
+                    'You have not enough permissions to perform this action'
+                )
+
+        return value
+
+    def update(self, instance, validated_data):
+        status = validated_data.get('status')
+        if status == 'accepted':
+            self._handle_invitee_assignment(instance)
+            self.validate_invitation_acceptance(instance)
+            self._update_invitee_organization(instance)
+
+            # Transfer ownership of invitee's assets to the organization
+            transfer_member_data_ownership_to_org(instance.invitee.id)
+        self._handle_status_update(instance, status)
+        return instance
+
+    def _handle_invitee_assignment(self, instance):
+        """
+        Assigns the invitee to the invite after the external user registers
+        and accepts the invite
+        """
+        invitee_identifier = instance.invitee_identifier
+        if invitee_identifier and not instance.invitee:
+            try:
+                instance.invitee = User.objects.get(email=invitee_identifier)
+                instance.save(update_fields=['invitee'])
+            except User.DoesNotExist:
+                raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
+
+    def _handle_status_update(self, instance, status):
+        instance.status = getattr(
+            OrganizationInviteStatusChoices, status.upper()
+        )
+        instance.save(update_fields=['status'])
+        self._send_status_email(instance, status)
+
+    def _send_status_email(self, instance, status):
+        status_map = {
+            'accepted': instance.send_acceptance_email,
+            'declined': instance.send_refusal_email,
+            'resent': instance.send_invite_email
+        }
+
+        email_func = status_map.get(status)
+        if email_func:
+            email_func()
+
+    @void_cache_for_request(keys=('organization',))
+    def _update_invitee_organization(self, instance):
+        """
+        Update the organization of the invitee after accepting the invitation
+        """
+        org_user = OrganizationUser.objects.get(user=instance.invitee)
+        Organization.objects.filter(organization_users=org_user).delete()
+        org_user.organization = instance.invited_by.organization
+        org_user.is_admin = instance.invitee_role == ORG_ADMIN_ROLE
+        org_user.save()

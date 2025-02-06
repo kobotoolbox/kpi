@@ -22,8 +22,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
 
 
-@ddt
-class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
+class BaseOrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
     fixtures = ['test_data']
     URL_NAMESPACE = URL_NAMESPACE
 
@@ -64,6 +63,10 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         self.client.force_login(user)
         return self.client.patch(self.detail_url(guid), data={'status': status})
 
+
+@ddt
+class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
+
     @data(
         ('owner', status.HTTP_201_CREATED),
         ('admin', status.HTTP_201_CREATED),
@@ -71,7 +74,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
-    def test_owner_can_send_invitation(self, user_role, expected_status):
+    def test_user_can_send_invitation(self, user_role, expected_status):
         """
         Test that only organization owner or admin can create invitations
         """
@@ -122,12 +125,12 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
-    def test_owner_can_resend_invitation(self, user_role, expected_status):
+    def test_user_can_resend_invitation(self, user_role, expected_status):
         """
-        Test that only organization owner or admin can resend an existing invitation
+        Test that only the organization owner or admins can resend an invitation
         """
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
@@ -147,10 +150,10 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
-    def test_owner_can_cancel_invitation(self, user_role, expected_status):
+    def test_user_can_cancel_invitation(self, user_role, expected_status):
         """
         Test that only organization owner or admin can cancel an invitation
         """
@@ -357,9 +360,7 @@ class OrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
         )
 
 
-class OrganizationInviteValidationTestCase(OrganizationInviteTestCase):
-    fixtures = ['test_data']
-    URL_NAMESPACE = URL_NAMESPACE
+class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
 
     def test_invitee_cannot_accept_invitation_twice(self):
         """
