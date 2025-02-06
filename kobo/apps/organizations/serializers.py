@@ -22,6 +22,8 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
+    ORG_ADMIN_ROLE,
+    ORG_MEMBER_ROLE,
     ORG_EXTERNAL_ROLE,
     INVITE_OWNER_ERROR,
     INVITE_MEMBER_ERROR,
@@ -116,11 +118,11 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if role := validated_data.get('role', None):
-            validated_data['is_admin'] = role == 'admin'
+            validated_data['is_admin'] = role == ORG_ADMIN_ROLE
         return super().update(instance, validated_data)
 
     def validate_role(self, role):
-        if role not in ['admin', 'member']:
+        if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise serializers.ValidationError(
                 {'role': t("Invalid role. Only 'admin' or 'member' are allowed")}
             )
@@ -232,7 +234,9 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
     )
     invited_by = serializers.SerializerMethodField()
     role = serializers.ChoiceField(
-        choices=['admin', 'member'], default='member', write_only=True
+        choices=[ORG_ADMIN_ROLE, ORG_MEMBER_ROLE],
+        default=ORG_MEMBER_ROLE,
+        write_only=True,
     )
     url = serializers.SerializerMethodField()
 
@@ -330,18 +334,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         else:
             representation['invitee'] = None
         return representation
-
-    def update(self, instance, validated_data):
-        status = validated_data.get('status')
-        if status == 'accepted':
-            self._handle_invitee_assignment(instance)
-            self.validate_invitation_acceptance(instance)
-            self._update_invitee_organization(instance)
-
-            # Transfer ownership of invitee's assets to the organization
-            transfer_member_data_ownership_to_org(instance.invitee.id)
-        self._handle_status_update(instance, status)
-        return instance
 
     def validate_invitation_acceptance(self, instance):
         """
@@ -449,16 +441,17 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
         return value
 
-    @void_cache_for_request(keys=('organization',))
-    def _update_invitee_organization(self, instance):
-        """
-        Update the organization of the invitee after accepting the invitation
-        """
-        org_user = OrganizationUser.objects.get(user=instance.invitee)
-        Organization.objects.filter(organization_users=org_user).delete()
-        org_user.organization = instance.invited_by.organization
-        org_user.is_admin = instance.invitee_role == 'admin'
-        org_user.save()
+    def update(self, instance, validated_data):
+        status = validated_data.get('status')
+        if status == 'accepted':
+            self._handle_invitee_assignment(instance)
+            self.validate_invitation_acceptance(instance)
+            self._update_invitee_organization(instance)
+
+            # Transfer ownership of invitee's assets to the organization
+            transfer_member_data_ownership_to_org(instance.invitee.id)
+        self._handle_status_update(instance, status)
+        return instance
 
     def _handle_invitee_assignment(self, instance):
         """
@@ -490,3 +483,14 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         email_func = status_map.get(status)
         if email_func:
             email_func()
+
+    @void_cache_for_request(keys=('organization',))
+    def _update_invitee_organization(self, instance):
+        """
+        Update the organization of the invitee after accepting the invitation
+        """
+        org_user = OrganizationUser.objects.get(user=instance.invitee)
+        Organization.objects.filter(organization_users=org_user).delete()
+        org_user.organization = instance.invited_by.organization
+        org_user.is_admin = instance.invitee_role == ORG_ADMIN_ROLE
+        org_user.save()
