@@ -131,7 +131,7 @@ export function usePatchMemberInvite(inviteUrl?: string) {
   return useMutation({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
+        return await fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
       }
     },
     onSettled: () => {
