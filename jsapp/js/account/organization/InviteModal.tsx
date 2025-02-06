@@ -6,7 +6,7 @@ import {useState} from 'react';
 import {OrganizationUserRole} from './organizationQuery';
 import userExistence from 'js/users/userExistence.store';
 import {useField} from '@mantine/form';
-import {notify} from 'alertifyjs';
+import {notify} from 'js/utils';
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite();
@@ -33,17 +33,16 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   });
 
-  const handleSendInvite = async () => {
+  const handleSendInvite = () => {
     if (role) {
-      try {
-        await inviteQuery
+      inviteQuery
         .mutateAsync({
           invitees: [userOrEmail.getValue()],
           role: role as OrganizationUserRole,
         })
-      } catch (error) {
-        notify(t('Failed to send invite'), 'error');
-      }
+        .catch(() => {
+          notify(t('Failed to send invite'), 'error');
+        });
     }
   };
 
