@@ -425,6 +425,30 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     )
         return {'users': valid_users, 'emails': external_emails}
 
+    def validate_role(self, value):
+
+        if not self.instance and not value:
+            raise serializers.ValidationError('Role cannot be empty')
+
+        if value not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
+            raise serializers.ValidationError('Role value is wrong')
+
+        if self.instance:
+            request = self.context['request']
+            user = get_database_user(request.user)
+            organization = self.instance.invited_by.organization
+
+            if not organization.is_admin(user):
+                raise serializers.ValidationError(
+                    'You have not enough permissions to perform this action'
+                )
+
+            if self.instance.status == InviteStatusChoices.ACCEPTED:
+                raise serializers.ValidationError(
+                    'Role cannot be changed after acceptance'
+                )
+        return value
+
     def validate_status(self, value):
 
         if not self.instance and not value:
@@ -457,15 +481,21 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        status = validated_data.get('status')
-        if status == 'accepted':
-            self._handle_invitee_assignment(instance)
-            self.validate_invitation_acceptance(instance)
-            self._update_invitee_organization(instance)
+        status = validated_data.get('status', instance.status)
+        with transaction.atomic():
+            if 'role' in validated_data:
+                # Organization owner or admin can update the role of the invitee
+                instance.invitee_role = validated_data['role']
+                instance.save(update_fields=['invitee_role'])
 
-            # Transfer ownership of invitee's assets to the organization
-            transfer_member_data_ownership_to_org(instance.invitee.id)
-        self._handle_status_update(instance, status)
+            if status == OrganizationInviteStatusChoices.ACCEPTED:
+                self._handle_invitee_assignment(instance)
+                self.validate_invitation_acceptance(instance)
+                self._update_invitee_organization(instance)
+
+                # Transfer ownership of invitee's assets to the organization
+                transfer_member_data_ownership_to_org.delay(instance.invitee.id)
+            self._handle_status_update(instance, status)
         return instance
 
     def _handle_invitee_assignment(self, instance):

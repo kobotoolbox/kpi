@@ -106,7 +106,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('external', status.HTTP_404_NOT_FOUND)
     )
     @unpack
-    def test_owner_or_admin_cannot_send_invitation_twice(
+    def test_user_cannot_send_invitation_twice(
         self, user_role, expected_status
     ):
         """
@@ -130,7 +130,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
     @unpack
     def test_user_can_resend_invitation(self, user_role, expected_status):
         """
-        Test that only the organization owner or admins can resend an invitation
+        Test that only the org owner or admins can resend an existing invitation
         """
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
@@ -307,10 +307,10 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
+        ('external', status.HTTP_400_BAD_REQUEST)
     )
     @unpack
-    def test_owner_or_admin_can_update_invitee_role(
+    def test_user_can_update_invitee_role(
         self, user_role, expected_status
     ):
         """
@@ -339,6 +339,13 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data['status'], 'accepted')
             self.assertTrue(self.organization.is_admin(self.external_user))
+
+            # Attempt to change the role after accepting the invitation
+            self.client.force_login(user)
+            response = self.client.patch(
+                self.detail_url(invitation.guid), data={'role': 'member'}
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @override_config(ORGANIZATION_INVITE_EXPIRY=0)
     def test_sender_receives_expired_notification(self):
