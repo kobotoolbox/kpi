@@ -25,6 +25,8 @@ import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.
 // Styles
 import styles from './membersRoute.module.scss';
 import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
+import ActionIcon from 'jsapp/js/components/common/ActionIcon';
+import InviteeActionsDropdown from './InviteeActionsDropdown';
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery();
@@ -169,12 +171,26 @@ export default function MembersRoute() {
           return null;
         }
 
-        return (
-          <MemberActionsDropdown
-            targetUsername={member?.user__username ?? invite!.invitee}
-            currentUserRole={orgQuery.data.request_user_role}
-          />
+        const target = (
+          <ActionIcon variant='transparent' size='md' iconName='more' />
         );
+
+        if (member) {
+          return (
+            <MemberActionsDropdown
+              target={target}
+              targetUsername={member?.user__username ?? invite!.invitee}
+              currentUserRole={orgQuery.data.request_user_role}
+            />
+          );
+        } else if (invite) {
+          return (
+            <InviteeActionsDropdown target={target} invite={invite} />
+          );
+        }
+
+        return null;
+
       },
     });
   }

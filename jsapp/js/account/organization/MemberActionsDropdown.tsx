@@ -1,8 +1,8 @@
 // Libraries
+import type {ReactNode} from 'react';
 import {useState} from 'react';
 
 // Partial components
-import ActionIcon from 'jsapp/js/components/common/ActionIcon';
 import MemberRemoveModal from './MemberRemoveModal';
 import {Menu} from '@mantine/core';
 
@@ -20,6 +20,7 @@ import router from 'jsapp/js/router/router';
 import {ROUTES} from 'jsapp/js/router/routerConstants';
 
 interface MemberActionsDropdownProps {
+  target: ReactNode;
   targetUsername: string;
   /**
    * The role of the currently logged in user, i.e. the role of the user that
@@ -32,6 +33,7 @@ interface MemberActionsDropdownProps {
  * A dropdown with all actions that can be taken towards an organization member.
  */
 export default function MemberActionsDropdown({
+  target,
   targetUsername,
   currentUserRole,
 }: MemberActionsDropdownProps) {
@@ -88,10 +90,8 @@ export default function MemberActionsDropdown({
         />
       }
 
-      <Menu width={100} offset={0}>
-        <Menu.Target>
-          <ActionIcon variant='transparent' size='md' iconName='more' />
-        </Menu.Target>
+      <Menu offset={0} position='bottom-end'>
+        <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
           <Menu.Item
