@@ -18,7 +18,7 @@ export interface PageStateStoreState {
 // TODO:
 // This is some old weird store that is responsible for two things:
 // 1. toggling mobile menu - should be moved to some other place
-// 2. handling modal from `bigModal.es6` - should be moved somewhere near the modal files
+// 2. handling modal from `bigModal.js` - should be moved somewhere near the modal files
 class PageStateStore extends Reflux.Store {
   state: PageStateStoreState = {
     assetNavExpanded: false,

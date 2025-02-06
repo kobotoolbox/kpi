@@ -91,13 +91,13 @@ _registration.scss                  @magicznyleszek @p2edwards
 ################
 #### Infrastructure section
 
-/docker/                            @bufke @jnm @noliveleger
-/scripts/                           @bufke @jnm @noliveleger
+/docker/                            @olive-KTB @jnm @noliveleger
+/scripts/                           @olive-KTB @jnm @noliveleger
 /scripts/*.js                       @magicznyleszek @p2edwards
-/.github/                           @bufke @jnm @noliveleger @magicznyleszek
-/.github/workflows/npm-test.yml     @bufke @jnm @noliveleger @magicznyleszek @p2edwards
-/.gitlab-ci.yml                     @bufke
-/Dockerfile                         @bufke @jnm @noliveleger
+/.github/                           @olive-KTB @jnm @noliveleger @magicznyleszek
+/.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
+/.gitlab-ci.yml                     @olive-KTB
+/Dockerfile                         @olive-KTB @jnm @noliveleger
 
 
 
