@@ -131,8 +131,14 @@ export function usePatchMemberInvite(inviteUrl?: string) {
   return useMutation({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return await fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
-      }
+        return await fetchPatchUrl<OrganizationMember>(
+          inviteUrl,
+          newInviteData,
+          {
+            errorMessageDisplay: t('There was an error updating this invitation.'),
+          }
+        );
+      } else return;
     },
     onSettled: () => {
       queryClient.invalidateQueries({
