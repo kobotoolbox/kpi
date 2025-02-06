@@ -60,7 +60,7 @@
   min-width: 100px;
   min-height: 100px;
   border-radius: 6px;
-  background-color: colors.$kobo-gray-92;
+  background-color: colors.$kobo-gray-300;
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
