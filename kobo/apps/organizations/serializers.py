@@ -236,6 +236,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         required=True
     )
     invited_by = serializers.SerializerMethodField()
+    organization_name = serializers.ReadOnlyField(source='organization.name')
     role = serializers.ChoiceField(
         choices=[ORG_ADMIN_ROLE, ORG_MEMBER_ROLE],
         default=ORG_MEMBER_ROLE,
@@ -252,6 +253,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             'status',
             'role',
             'invitee_role',
+            'organization_name',
             'created',
             'modified'
         ]
