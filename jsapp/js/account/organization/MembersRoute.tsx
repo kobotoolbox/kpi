@@ -65,6 +65,7 @@ export default function MembersRoute() {
               email={member ? member.user__email : undefined}
               // We pass `undefined` for the case it's an empty string
               fullName={invite ? undefined : member?.user__extra_details__name || undefined}
+              isEmpty={!member}
             />
           )
       },
