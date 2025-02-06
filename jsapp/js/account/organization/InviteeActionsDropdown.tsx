@@ -33,11 +33,11 @@ export default function InviteeActionsDropdown({
     // console.log(invite)
     try {
       await removeInviteMutation.mutateAsync(invite.url);
-      close();
       notify(t('Invitation removed'), 'success');
     } catch (e) {
-      close();
       notify(t('An error occurred while removing the invitation'), 'error');
+    } finally {
+      close();
     }
   };
 
