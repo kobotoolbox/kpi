@@ -426,13 +426,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return {'users': valid_users, 'emails': external_emails}
 
     def validate_role(self, value):
-
-        if not self.instance and not value:
-            raise serializers.ValidationError('Role cannot be empty')
-
-        if value not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
-            raise serializers.ValidationError('Role value is wrong')
-
         if self.instance:
             request = self.context['request']
             user = get_database_user(request.user)
@@ -481,21 +474,24 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        status = validated_data.get('status', instance.status)
         with transaction.atomic():
             if 'role' in validated_data:
                 # Organization owner or admin can update the role of the invitee
                 instance.invitee_role = validated_data['role']
                 instance.save(update_fields=['invitee_role'])
 
-            if status == OrganizationInviteStatusChoices.ACCEPTED:
-                self._handle_invitee_assignment(instance)
-                self.validate_invitation_acceptance(instance)
-                self._update_invitee_organization(instance)
+            if 'status' in validated_data:
+                status = validated_data.get('status')
+                if status == OrganizationInviteStatusChoices.ACCEPTED:
+                    self._handle_invitee_assignment(instance)
+                    self.validate_invitation_acceptance(instance)
+                    self._update_invitee_organization(instance)
 
-                # Transfer ownership of invitee's assets to the organization
-                transfer_member_data_ownership_to_org.delay(instance.invitee.id)
-            self._handle_status_update(instance, status)
+                    # Transfer ownership of invitee's assets to the organization
+                    transfer_member_data_ownership_to_org.delay(
+                        instance.invitee.id
+                    )
+                self._handle_status_update(instance, status)
         return instance
 
     def _handle_invitee_assignment(self, instance):
