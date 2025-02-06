@@ -3,7 +3,11 @@ import {useDisclosure} from '@mantine/hooks';
 import ButtonNew from 'jsapp/js/components/common/ButtonNew';
 import type {ReactNode} from 'react';
 import type {MemberInvite} from './membersInviteQuery';
-import {usePatchMemberInvite, useRemoveMemberInvite} from './membersInviteQuery';
+import {
+  MemberInviteStatus,
+  usePatchMemberInvite,
+  useRemoveMemberInvite,
+} from './membersInviteQuery';
 import {notify} from 'alertifyjs';
 
 /**
@@ -22,7 +26,12 @@ export default function InviteeActionsDropdown({
   const removeInviteMutation = useRemoveMemberInvite();
 
   const handleResendInvitationAction = async () => {
-    await patchInviteMutation.mutateAsync(invite);
+    try {
+      await patchInviteMutation.mutateAsync({status: MemberInviteStatus.resent});
+      notify(t('The invitation was resent'), 'success');
+    } catch (e) {
+      notify(t('An error occurred while resending the invitation'), 'error');
+    }
   };
 
   const handleRemoveInvitationAction = () => {
@@ -66,6 +75,7 @@ export default function InviteeActionsDropdown({
         </Stack>
       </Modal>
 
+      <LoadingOverlay visible={patchInviteMutation.isPending} />
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
 
