@@ -146,6 +146,15 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
+        # Update invitation like it was created 10 minutes ago to test
+        # two resent PATCH requests in a row.
+        fake_date_created = timezone.now() - timedelta(
+            minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER + 1
+        )
+        OrganizationInvitation.objects.filter(id=invitation.pk).update(
+            created=fake_date_created, modified=fake_date_created
+        )
+
         response = self.client.patch(
             self.detail_url(invitation.guid),
             data={'status': OrganizationInviteStatusChoices.RESENT},
