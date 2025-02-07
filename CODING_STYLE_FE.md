@@ -37,7 +37,7 @@ Manual Linting Rules
 
 ### Naming is hard
 
-- singular for objects (`user`), plural for arrays/maps/etc (`users`), suffix for primitives (`userName`)
+- singular for objects (`user`), plural for arrays/maps/etc (`users`), suffix for primitives (`userName`).
 - don’t use Systems Hungarian (e.g. `strExample`), because let’s don’t duplicate intellisense. Except for boolean type, because it reads nice, e.g. `isExample`, `hasExample`, etc.
 - use [Hungarian Notation](https://www.joelonsoftware.com/2005/05/11/making-wrong-code-look-wrong/) where appropriate (indicate *kind* of the type). Examples: `input` and `inputSanitized` or other way around `inputRaw` and `input`, your choice.
 - boilerplate snippets:
@@ -71,10 +71,10 @@ Main principle is, keep related code close for modularity. Organize by feature/u
                         #         in the same folder stay next to them.
   ```
 - organize files by concerns and name it by that. Keep one concern per file. Don't shy away from small but focused files.
-     -   one React component per file and name it the same — `Example.tsx` or `Example/index.tsx`.
-     -   one React hook per file and name it the same — `useExample.tsx` or `useExample/index.tsx`.
-     -   for anything big and/or complex enough, have a seperate file and name it the same.
-     -   it's ok to co-locate in the same file several similar variations of the same, as well accompanying constants, helpers, type-guards and other utils.
+     - one React component per file and name it the same — `Example.tsx` or `Example/index.tsx`.
+     - one React hook per file and name it the same — `useExample.tsx` or `useExample/index.tsx`.
+     - for anything big and/or complex enough, have a seperate file and name it the same.
+     - it's ok to co-locate in the same file several similar variations of the same, as well accompanying constants, helpers, type-guards and other utils.
 - every folder has a meaningful `index.tsx` files, except `common`, `components`, and `hooks` folders. Index file contains and/or re-exports what consumers outside of folder imports (kinda as folder's API).
 - Include type of file in filename only for tests and storybook. Such as:
     - `{index,Foo}.tsx`
