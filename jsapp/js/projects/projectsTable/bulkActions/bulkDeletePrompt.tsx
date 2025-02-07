@@ -7,7 +7,7 @@ import Checkbox from 'js/components/common/checkbox'
 
 // Stores, hooks and utilities
 import { fetchPost, handleApiFail } from 'js/api'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import customViewStore from 'js/projects/customViewStore'
 import { searches } from 'js/searches'
 

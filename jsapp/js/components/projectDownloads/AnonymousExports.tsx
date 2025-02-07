@@ -8,7 +8,7 @@ import Button from 'js/components/common/button'
 
 // Stores, hooks and utilities
 import { actions } from 'js/actions'
-import { downloadUrl } from 'js/utils'
+import { downloadUrl } from 'utils'
 import { getContextualDefaultExportFormat } from 'js/components/projectDownloads/exportsUtils'
 import exportsStore from 'js/components/projectDownloads/exportsStore'
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher'
@@ -19,7 +19,7 @@ import {
   DEFAULT_EXPORT_SETTINGS,
   type ExportTypeDefinition,
 } from 'js/components/projectDownloads/exportsConstants'
-import type { AssetResponse, ExportDataResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse, ExportDataResponse } from 'js/dataInterface'
 
 interface AnonymousExportsProps {
   asset: AssetResponse

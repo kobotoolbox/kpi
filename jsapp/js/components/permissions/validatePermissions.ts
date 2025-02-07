@@ -1,5 +1,5 @@
 import permConfig from 'js/components/permissions/permConfig'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import { replaceSupportEmail } from 'js/textUtils'
 import type { PermissionResponse } from 'js/dataInterface'
 import union from 'lodash.union'

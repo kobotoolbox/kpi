@@ -6,7 +6,7 @@ import { withRouter } from './legacy'
 import { userCan, userCanPartially } from 'js/components/permissions/utils'
 import assetStore from 'js/assetStore'
 import type { PermissionCodename } from 'js/components/permissions/permConstants'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
+import type { WithRouterProps } from 'js/router/legacy'
 import type { AssetResponse, FailResponse } from 'js/dataInterface'
 import { decodeURLParamWithSlash } from 'js/components/processing/routes.utils'
 

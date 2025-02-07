@@ -12,7 +12,7 @@ import type {
   ProjectViewAsset,
   SubmissionResponse,
 } from 'js/dataInterface'
-import { isSelfOwned } from 'jsapp/js/assetUtils'
+import { isSelfOwned } from 'js/assetUtils'
 import type {
   PermissionCodename,
   CheckboxNameAll,

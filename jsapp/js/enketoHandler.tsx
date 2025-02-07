@@ -2,7 +2,7 @@ import React from 'react'
 import { EnketoActions } from 'js/constants'
 import { dataInterface } from 'js/dataInterface'
 import type { EnketoLinkResponse } from 'js/dataInterface'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 
 /**
  * For handling Enketo in DRY way.

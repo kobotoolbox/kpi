@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
 import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
 // Stores, hooks and utilities
 import {
   MemberInviteStatus,
@@ -11,12 +11,12 @@ import {
   usePatchMemberInvite,
 } from 'js/account/organization/membersInviteQuery'
 import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
-import envStore from 'jsapp/js/envStore'
-import subscriptionStore from 'jsapp/js/account/subscriptionStore'
-import { notify } from 'jsapp/js/utils'
-import { useSession } from 'jsapp/js/stores/useSession'
+import envStore from 'js/envStore'
+import subscriptionStore from 'js/account/subscriptionStore'
+import { notify } from 'utils'
+import { useSession } from 'js/stores/useSession'
 // Constants and types
-import { endpoints } from 'jsapp/js/api.endpoints'
+import { endpoints } from 'js/api.endpoints'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or

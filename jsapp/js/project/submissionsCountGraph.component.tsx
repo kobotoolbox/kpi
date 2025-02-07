@@ -5,7 +5,7 @@ import Chart from 'chart.js/auto'
 import type { ChartConfiguration } from 'chart.js/auto'
 import type { FailResponse } from 'js/dataInterface'
 import { fetchGet, handleApiFail } from 'js/api'
-import { formatDate } from 'js/utils'
+import { formatDate } from 'utils'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import styles from './submissionsCountGraph.module.scss'
 

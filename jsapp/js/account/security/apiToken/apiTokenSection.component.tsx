@@ -8,7 +8,7 @@ import Button from 'js/components/common/button'
 
 // Utils
 import { dataInterface } from 'js/dataInterface'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 
 // Styles
 import styles from './apiTokenSection.module.scss'

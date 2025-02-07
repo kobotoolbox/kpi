@@ -3,9 +3,9 @@ import type { FailResponse, LabelValuePair, PaginatedResponse } from 'js/dataInt
 import { AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS } from './activity.constants'
 import type { AuditActions, ActivityLogsItem } from './activity.constants'
 import { QueryKeys } from 'js/query/queryKeys'
-import { fetchGet, fetchPost } from 'jsapp/js/api'
-import { endpoints } from 'jsapp/js/api.endpoints'
-import type { PaginatedQueryHookParams } from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component'
+import { fetchGet, fetchPost } from 'js/api'
+import { endpoints } from 'js/api.endpoints'
+import type { PaginatedQueryHookParams } from 'js/universalTable/paginatedQueryUniversalTable.component'
 
 /**
  * Fetches the activity logs from the server.

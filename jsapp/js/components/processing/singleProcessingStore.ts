@@ -36,8 +36,8 @@ import {
   ProcessingTab,
 } from 'js/components/processing/routes.utils'
 import type { KoboSelectOption } from 'js/components/common/koboSelect'
-import { getExponentialDelayTime, removeDefaultUuidPrefix } from 'jsapp/js/utils'
-import envStore from 'jsapp/js/envStore'
+import { getExponentialDelayTime, removeDefaultUuidPrefix } from 'utils'
+import envStore from 'js/envStore'
 
 export enum StaticDisplays {
   Data = 'Data',

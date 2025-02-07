@@ -4,8 +4,8 @@ import cx from 'classnames'
 
 // Partial components
 import Icon from 'js/components/common/icon'
-import Button from 'jsapp/js/components/common/button'
-import KoboDropdown from 'jsapp/js/components/common/koboDropdown'
+import Button from 'js/components/common/button'
+import KoboDropdown from 'js/components/common/koboDropdown'
 
 // Constants and types
 import type { ProjectsTableOrder } from './projectsTable'

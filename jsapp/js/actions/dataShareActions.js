@@ -6,7 +6,7 @@ import Reflux from 'reflux'
 import alertify from 'alertifyjs'
 import { dataInterface } from 'js/dataInterface'
 import { MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
-import { getAssetUIDFromUrl, truncateFile, truncateString, notify } from 'js/utils'
+import { getAssetUIDFromUrl, truncateFile, truncateString, notify } from 'utils'
 
 const dataShareActions = Reflux.createActions({
   attachToSource: { children: ['started', 'completed', 'failed'] },

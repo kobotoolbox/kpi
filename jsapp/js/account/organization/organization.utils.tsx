@@ -1,5 +1,5 @@
-import type { SubscriptionInfo } from 'jsapp/js/account/stripe.types'
-import type { EnvStoreData } from 'jsapp/js/envStore'
+import type { SubscriptionInfo } from 'js/account/stripe.types'
+import type { EnvStoreData } from 'js/envStore'
 
 /** Only use this directly for complex cases/strings (for example, possessive case).
  * Otherwise, use getSimpleMMOLabel.

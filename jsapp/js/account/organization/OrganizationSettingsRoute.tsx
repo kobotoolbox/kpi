@@ -2,11 +2,11 @@
 import { useState, useEffect } from 'react'
 
 // Partial components
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
-import InlineMessage from 'jsapp/js/components/common/inlineMessage'
-import Button from 'jsapp/js/components/common/button'
-import TextBox from 'jsapp/js/components/common/textBox'
-import KoboSelect from 'jsapp/js/components/common/koboSelect'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
+import InlineMessage from 'js/components/common/inlineMessage'
+import Button from 'js/components/common/button'
+import TextBox from 'js/components/common/textBox'
+import KoboSelect from 'js/components/common/koboSelect'
 
 // Stores, hooks and utilities
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
@@ -20,7 +20,7 @@ import envStore from 'js/envStore'
 import { getSimpleMMOLabel } from './organization.utils'
 
 // Constants and types
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'jsapp/js/account/organization/organizationQuery'
+import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'js/account/organization/organizationQuery'
 
 // Styles
 import styles from 'js/account/organization/organizationSettingsRoute.module.scss'

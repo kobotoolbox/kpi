@@ -10,7 +10,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner'
 import envStore from 'js/envStore'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
 
-import { truncateString, truncateUrl, notify } from 'js/utils'
+import { truncateString, truncateUrl, notify } from 'utils'
 import './formMedia.scss'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'

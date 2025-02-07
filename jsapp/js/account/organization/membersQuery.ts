@@ -6,14 +6,14 @@ import { fetchGet, fetchPatch, fetchDelete } from 'js/api'
 import { useOrganizationQuery, type OrganizationUserRole } from './organizationQuery'
 
 // Constants and types
-import type { Nullable } from 'jsapp/js/constants'
+import type { Nullable } from 'js/constants'
 import { endpoints } from 'js/api.endpoints'
 import type { PaginatedResponse } from 'js/dataInterface'
 import { QueryKeys } from 'js/query/queryKeys'
-import type { PaginatedQueryHookParams } from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component'
+import type { PaginatedQueryHookParams } from 'js/universalTable/paginatedQueryUniversalTable.component'
 import type { MemberInvite } from './membersInviteQuery'
-import type { Json } from 'jsapp/js/components/common/common.interfaces'
-import { useSession } from 'jsapp/js/stores/useSession'
+import type { Json } from 'js/components/common/common.interfaces'
+import { useSession } from 'js/stores/useSession'
 
 export interface OrganizationMember {
   /**

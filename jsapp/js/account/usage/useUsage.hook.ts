@@ -1,7 +1,7 @@
 import { createContext } from 'react'
 import type { RecurringInterval } from 'js/account/stripe.types'
 import { getSubscriptionInterval } from 'js/account/stripe.api'
-import { convertSecondsToMinutes, formatRelativeTime } from 'js/utils'
+import { convertSecondsToMinutes, formatRelativeTime } from 'utils'
 import { getOrgServiceUsage } from 'js/account/usage/usage.api'
 import { useApiFetcher, withApiFetcher } from 'js/hooks/useApiFetcher.hook'
 

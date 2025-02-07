@@ -19,7 +19,7 @@ import {
   ChangePlanStatus,
 } from 'js/account/stripe.types'
 import subscriptionStore from 'js/account/subscriptionStore'
-import { convertUnixTimestampToUtc, notify } from 'js/utils'
+import { convertUnixTimestampToUtc, notify } from 'utils'
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`

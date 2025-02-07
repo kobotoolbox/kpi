@@ -10,7 +10,7 @@ import type { Price, PriceWithProduct, Product, SubscriptionInfo } from 'js/acco
 import { ChangePlanStatus } from 'js/account/stripe.types'
 import { changeSubscription } from 'js/account/stripe.api'
 import { isAddonProduct, processChangePlanResponse } from 'js/account/stripe.utils'
-import { formatDate, notify } from 'js/utils'
+import { formatDate, notify } from 'utils'
 import styles from './confirmChangeModal.module.scss'
 import BillingButton from 'js/account/plans/billingButton.component'
 import { useDisplayPrice } from 'js/account/plans/useDisplayPrice.hook'

@@ -4,11 +4,11 @@ import { observer } from 'mobx-react-lite'
 import cx from 'classnames'
 
 // Partial components
-import Button from 'jsapp/js/components/common/button'
+import Button from 'js/components/common/button'
 
 // Stores and utils
 import sessionStore from 'js/stores/session'
-import envStore, { type SocialApp } from 'jsapp/js/envStore'
+import envStore, { type SocialApp } from 'js/envStore'
 import { deleteSocialAccount } from './sso.api'
 
 // Styles

@@ -11,7 +11,7 @@ import AssetStatusBadge from 'js/components/common/assetStatusBadge'
 import Checkbox from 'js/components/common/checkbox'
 
 // Stores, hooks and utilities
-import { formatTime } from 'js/utils'
+import { formatTime } from 'utils'
 import assetUtils from 'js/assetUtils'
 import sessionStore from 'js/stores/session'
 

@@ -8,7 +8,7 @@ import Icon from 'js/components/common/icon'
 import { useNavigate } from 'react-router-dom'
 import styles from './nlpUsageLimitBlockModal.module.scss'
 import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
-import { RecurringInterval, UsageLimitTypes } from 'jsapp/js/account/stripe.types'
+import { RecurringInterval, UsageLimitTypes } from 'js/account/stripe.types'
 
 interface NlpUsageLimitBlockModalProps {
   isModalOpen: boolean

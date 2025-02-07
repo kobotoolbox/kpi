@@ -2,7 +2,7 @@ import React from 'react'
 import bem from 'js/bem'
 import { ASSET_TYPES } from 'js/constants'
 import { isAssetLocked, isAssetAllLocked, getFormFeatures } from 'js/components/locking/lockingUtils'
-import type { AssetResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse } from 'js/dataInterface'
 
 interface FormLockedMessageProps {
   asset: AssetResponse

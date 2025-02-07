@@ -4,11 +4,11 @@ import React from 'react'
 // Partial components
 import Button from 'js/components/common/button'
 import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component'
-import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component'
+import ExportToEmailButton from 'js/components/exportToEmailButton/exportToEmailButton.component'
 
 // Utilities
 import useAccessLogsQuery, { startAccessLogsExport, type AccessLog } from './accessLogs.query'
-import { formatTime } from 'js/utils'
+import { formatTime } from 'utils'
 import sessionStore from 'js/stores/session'
 
 // Styles

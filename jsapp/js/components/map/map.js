@@ -22,7 +22,7 @@ import pageState from 'js/pageState.store'
 
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUESTION_TYPES, QUERY_LIMIT_DEFAULT } from 'js/constants'
 
-import { notify, checkLatLng } from 'js/utils'
+import { notify, checkLatLng } from 'utils'
 import { getSurveyFlatPaths } from 'js/assetUtils'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import CenteredMessage from 'js/components/common/centeredMessage.component'

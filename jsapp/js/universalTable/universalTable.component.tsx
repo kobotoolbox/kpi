@@ -12,7 +12,7 @@ import {
   type TableOptions,
   type ColumnPinningPosition,
 } from '@tanstack/react-table'
-import { useViewportSize } from 'jsapp/js/hooks/useViewportSize'
+import { useViewportSize } from 'js/hooks/useViewportSize'
 
 // Partial components
 import LoadingSpinner from 'js/components/common/loadingSpinner'
@@ -20,7 +20,7 @@ import Button from 'js/components/common/button'
 import KoboSelect from 'js/components/common/koboSelect'
 
 // Utilities
-import { generateUuid } from 'js/utils'
+import { generateUuid } from 'utils'
 
 // Styles
 import styles from './universalTable.module.scss'

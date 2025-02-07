@@ -1,10 +1,10 @@
 import { Modal, Stack, Group, Text, Menu, LoadingOverlay } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import ButtonNew from 'jsapp/js/components/common/ButtonNew'
+import ButtonNew from 'js/components/common/ButtonNew'
 import type { ReactNode } from 'react'
 import type { MemberInvite } from './membersInviteQuery'
 import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.

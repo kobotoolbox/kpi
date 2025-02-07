@@ -14,8 +14,8 @@ import type { MfaUserMethodsResponse, MfaActivatedResponse } from 'js/actions/mf
 import mfaActions from 'js/actions/mfaActions'
 
 // Constants and utils
-import { MODAL_TYPES } from 'jsapp/js/constants'
-import { formatTime, formatDate } from 'js/utils'
+import { MODAL_TYPES } from 'js/constants'
+import { formatTime, formatDate } from 'utils'
 
 // Stores
 import envStore from 'js/envStore'

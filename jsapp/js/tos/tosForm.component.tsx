@@ -9,7 +9,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner'
 import { getInitialAccountFieldsValues, getProfilePatchData } from 'js/account/account.utils'
 import AccountFieldsEditor from 'js/account/accountFieldsEditor.component'
 import type { AccountFieldsValues, AccountFieldsErrors } from 'js/account/account.constants'
-import { currentLang, notify } from 'js/utils'
+import { currentLang, notify } from 'utils'
 import { useSession } from '../stores/useSession'
 
 /** A slug for the `sitewide_messages` endpoint */

@@ -3,7 +3,7 @@ import React from 'react'
 
 // Partial components
 import { NavLink } from 'react-router-dom'
-import Button from 'jsapp/js/components/common/button'
+import Button from 'js/components/common/button'
 
 // Constants
 import { PATHS } from 'js/router/routerConstants'

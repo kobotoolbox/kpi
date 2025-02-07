@@ -7,7 +7,7 @@ import Button from 'js/components/common/button'
 import TextBox from 'js/components/common/textBox'
 import type { MfaActivatedResponse, MfaBackupCodesResponse } from 'js/actions/mfaActions'
 import mfaActions from 'js/actions/mfaActions'
-import { currentLang } from 'js/utils'
+import { currentLang } from 'utils'
 import envStore from 'js/envStore'
 import './mfaModals.scss'
 

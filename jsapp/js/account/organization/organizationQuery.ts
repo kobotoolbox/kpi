@@ -3,13 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 // Stores, hooks and utilities
-import { fetchGetUrl, fetchPatch } from 'jsapp/js/api'
-import { useSession } from 'jsapp/js/stores/useSession'
+import { fetchGetUrl, fetchPatch } from 'js/api'
+import { useSession } from 'js/stores/useSession'
 
 // Constants and types
 import type { FailResponse } from 'js/dataInterface'
 import { QueryKeys } from 'js/query/queryKeys'
-import { queryClient } from 'jsapp/js/query/queryClient'
+import { queryClient } from 'js/query/queryClient'
 
 // Comes from `kobo/apps/accounts/forms.py`
 export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none'

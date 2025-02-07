@@ -3,7 +3,7 @@ import autoBind from 'react-autobind'
 import bem from 'js/bem'
 import TextBox from 'js/components/common/textBox'
 import Button from 'js/components/common/button'
-import { getLangAsObject } from 'js/utils'
+import { getLangAsObject } from 'utils'
 import { toTitleCase } from 'js/textUtils'
 
 /*

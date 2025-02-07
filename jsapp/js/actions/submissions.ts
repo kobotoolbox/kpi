@@ -4,7 +4,7 @@
 
 import Reflux from 'reflux'
 import { dataInterface } from 'js/dataInterface'
-import { notify, matchUuid, addDefaultUuidPrefix } from 'js/utils'
+import { notify, matchUuid, addDefaultUuidPrefix } from 'utils'
 import { ROOT_URL } from 'js/constants'
 import type {
   GetSubmissionsOptions,

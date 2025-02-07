@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
 // Stores, hooks and utilities
-import { useOrganizationMemberDetailQuery } from 'jsapp/js/account/organization/membersQuery'
-import { useSafeUsernameStorageKey } from 'jsapp/js/hooks/useSafeUsernameStorageKey'
+import { useOrganizationMemberDetailQuery } from 'js/account/organization/membersQuery'
+import { useSafeUsernameStorageKey } from 'js/hooks/useSafeUsernameStorageKey'
 // Constants and types
 import { type Organization } from 'js/account/organization/organizationQuery'
 import { MemberInviteStatus } from 'js/account/organization/membersInviteQuery'

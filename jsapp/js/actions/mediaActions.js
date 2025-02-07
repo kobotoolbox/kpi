@@ -4,7 +4,7 @@
 
 import Reflux from 'reflux'
 import { dataInterface } from 'js/dataInterface'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 
 const FORM_MEDIA_FILE_TYPE = 'form_media'
 

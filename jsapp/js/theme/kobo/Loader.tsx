@@ -1,6 +1,6 @@
 import type { MantineLoaderComponent } from '@mantine/core'
 import { Box, Loader } from '@mantine/core'
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
 import { forwardRef } from 'react'
 
 const KoboLoaderRegular: MantineLoaderComponent = forwardRef(({ ...others }, ref) => (

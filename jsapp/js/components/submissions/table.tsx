@@ -34,7 +34,7 @@ import {
 } from 'js/constants'
 import type { AnyRowTypeName } from 'js/constants'
 import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from 'js/utils'
+import { formatTimeDateShort, removeDefaultUuidPrefix } from 'utils'
 import type { SurveyFlatPaths } from 'js/assetUtils'
 import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from 'js/assetUtils'
 import {

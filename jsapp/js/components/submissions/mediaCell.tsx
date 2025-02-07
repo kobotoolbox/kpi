@@ -4,7 +4,7 @@ import bem, { makeBem } from 'js/bem'
 import { MODAL_TYPES, QUESTION_TYPES } from 'js/constants'
 import type { AnyRowTypeName } from 'js/constants'
 import Button from 'js/components/common/button'
-import { truncateString } from 'js/utils'
+import { truncateString } from 'utils'
 // import {hashHistory} from 'react-router';
 import type { SubmissionAttachment } from 'js/dataInterface'
 import './mediaCell.scss'

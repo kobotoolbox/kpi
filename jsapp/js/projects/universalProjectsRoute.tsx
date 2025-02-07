@@ -21,11 +21,11 @@ import OrgInviteAcceptedBanner from 'js/account/organization/invites/OrgInviteAc
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore'
-import { validFileTypes, notify } from 'js/utils'
+import { validFileTypes, notify } from 'utils'
 import { dropImportXLSForms } from 'js/dropzone.utils'
 import { handleApiFail, fetchPostUrl } from 'js/api'
 import projectViewsStore from './projectViews/projectViewsStore'
-import { useSession } from 'jsapp/js/stores/useSession'
+import { useSession } from 'js/stores/useSession'
 import { useOrganizationQuery } from '../account/organization/organizationQuery'
 
 // Constants and types

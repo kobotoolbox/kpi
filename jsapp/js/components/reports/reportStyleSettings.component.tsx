@@ -16,7 +16,7 @@ import ReportsModalTabs, {
 // Utilities
 import bem from 'js/bem'
 import { actions } from 'js/actions'
-import { handleApiFail } from 'jsapp/js/api'
+import { handleApiFail } from 'js/api'
 
 // Types & constants
 import type { FailResponse, LabelValuePair } from 'js/dataInterface'

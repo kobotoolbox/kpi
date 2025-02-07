@@ -11,9 +11,9 @@ import Button from 'js/components/common/button'
 import pageState from 'js/pageState.store'
 import { actions } from 'js/actions'
 import { dataInterface } from 'js/dataInterface'
-import { formatTime, notify } from 'js/utils'
-import assetStore from 'jsapp/js/assetStore'
-import { getRouteAssetUid } from 'jsapp/js/router/routerUtils'
+import { formatTime, notify } from 'utils'
+import assetStore from 'js/assetStore'
+import { getRouteAssetUid } from 'js/router/routerUtils'
 
 // Constants and types
 import type {

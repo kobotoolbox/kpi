@@ -21,8 +21,8 @@ import { isAnyLibraryItemRoute, getRouteAssetUid, isAnyFormRoute } from 'js/rout
 import managedCollectionsStore from 'js/components/library/managedCollectionsStore'
 import type { ManagedCollectionsStoreData } from 'js/components/library/managedCollectionsStore'
 import './assetActionButtons.scss'
-import { withRouter } from 'jsapp/js/router/legacy'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
+import { withRouter } from 'js/router/legacy'
+import type { WithRouterProps } from 'js/router/legacy'
 import {
   archiveAsset,
   deleteAsset,
@@ -35,7 +35,7 @@ import {
   modifyAssetTags,
   manageAssetLanguages,
   manageAssetSettings,
-} from 'jsapp/js/assetQuickActions'
+} from 'js/assetQuickActions'
 import { userCan } from 'js/components/permissions/utils'
 import { Link } from 'react-router-dom'
 import Button from 'js/components/common/button'

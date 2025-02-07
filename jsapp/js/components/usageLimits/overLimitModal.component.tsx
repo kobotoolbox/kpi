@@ -9,9 +9,9 @@ import sessionStore from 'js/stores/session'
 import { useNavigate } from 'react-router-dom'
 import styles from './overLimitModal.module.scss'
 import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
-import envStore from 'jsapp/js/envStore'
+import envStore from 'js/envStore'
 import Markdown from 'react-markdown'
-import { useOrganizationQuery } from 'jsapp/js/account/organization/organizationQuery'
+import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
 
 interface OverLimitModalProps {
   show: boolean

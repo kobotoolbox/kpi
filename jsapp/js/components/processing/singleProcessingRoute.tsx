@@ -8,9 +8,9 @@ import SingleProcessingHeader from 'js/components/processing/singleProcessingHea
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import ProcessingSidebar from 'js/components/processing/sidebar/processingSidebar'
-import { UNSAVED_CHANGES_WARNING } from 'jsapp/js/protector/protectorConstants'
+import { UNSAVED_CHANGES_WARNING } from 'js/protector/protectorConstants'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
+import type { WithRouterProps } from 'js/router/legacy'
 import styles from './singleProcessingRoute.module.scss'
 import CenteredMessage from 'js/components/common/centeredMessage.component'
 

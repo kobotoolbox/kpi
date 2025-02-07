@@ -2,7 +2,7 @@
 import { ROOT_URL } from './constants'
 import type { Json } from './components/common/common.interfaces'
 import type { FailResponse } from 'js/dataInterface'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import * as Sentry from '@sentry/react'
 
 /**

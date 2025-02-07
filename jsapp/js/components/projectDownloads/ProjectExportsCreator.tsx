@@ -15,7 +15,7 @@ import Button from 'js/components/common/button'
 
 // Stores, hooks and utilities
 import { actions } from 'js/actions'
-import { formatTimeDate } from 'js/utils'
+import { formatTimeDate } from 'utils'
 import {
   type ExportFormatOption,
   getContextualDefaultExportFormat,
@@ -43,7 +43,7 @@ import type {
   ExportSettingSettings,
   PaginatedResponse,
   AssetResponse,
-} from 'jsapp/js/dataInterface'
+} from 'js/dataInterface'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 

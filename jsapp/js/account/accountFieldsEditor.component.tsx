@@ -7,7 +7,7 @@ import styles from './accountFieldsEditor.module.scss'
 import cx from 'classnames'
 import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect'
 import type { UserFieldName, AccountFieldsValues, AccountFieldsErrors } from './account.constants'
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'jsapp/js/account/organization/organizationQuery'
+import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'js/account/organization/organizationQuery'
 
 const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES).map((typeName) => {
   return {

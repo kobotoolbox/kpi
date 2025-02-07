@@ -9,12 +9,12 @@ import type { EmailResponse } from './emailSection.api'
 import { useOrganizationQuery } from '../../organization/organizationQuery'
 
 // Partial components
-import Button from 'jsapp/js/components/common/button'
-import TextBox from 'jsapp/js/components/common/textBox'
-import Icon from 'jsapp/js/components/common/icon'
+import Button from 'js/components/common/button'
+import TextBox from 'js/components/common/textBox'
+import Icon from 'js/components/common/icon'
 
 // Utils
-import { formatTime, notify } from 'js/utils'
+import { formatTime, notify } from 'utils'
 
 // Styles
 import styles from './emailSection.module.scss'

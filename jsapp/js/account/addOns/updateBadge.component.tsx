@@ -1,6 +1,6 @@
 import { BaseProduct, Price, SubscriptionChangeType, SubscriptionInfo } from 'js/account/stripe.types'
 import Badge, { BadgeColor } from 'js/components/common/badge'
-import { formatDate } from 'js/utils'
+import { formatDate } from 'utils'
 import React from 'react'
 
 interface UpdateBadgeProps {

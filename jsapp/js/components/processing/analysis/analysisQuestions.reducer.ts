@@ -1,4 +1,4 @@
-import { generateUuid, moveArrayElementToIndex } from 'jsapp/js/utils'
+import { generateUuid, moveArrayElementToIndex } from 'utils'
 import type { AnalysisQuestionInternal } from './constants'
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
 import { applyUpdateResponseToInternalQuestions, updateSingleQuestionPreservingResponse } from './utils'

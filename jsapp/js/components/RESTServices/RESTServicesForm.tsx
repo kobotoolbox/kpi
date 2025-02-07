@@ -11,7 +11,7 @@ import Radio from 'js/components/common/radio'
 import TextBox from 'js/components/common/textBox'
 import { KEY_CODES } from 'js/constants'
 import envStore from 'js/envStore'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import pageState from 'js/pageState.store'
 import Button from 'js/components/common/button'
 

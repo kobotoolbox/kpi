@@ -11,7 +11,7 @@ import { Text, Flex } from '@mantine/core'
 
 // Stores, hooks and utilities
 import { actions } from 'js/actions'
-import { formatTime } from 'js/utils'
+import { formatTime } from 'utils'
 import { getLanguageIndex } from 'js/assetUtils'
 import exportsStore from 'js/components/projectDownloads/exportsStore'
 import ExportFetcher from 'js/components/projectDownloads/exportFetcher'
@@ -25,7 +25,7 @@ import {
   ExportStatusName,
   type ExportTypeDefinition,
 } from 'js/components/projectDownloads/exportsConstants'
-import type { ExportDataResponse, AssetResponse, PaginatedResponse, ExportDataLang } from 'jsapp/js/dataInterface'
+import type { ExportDataResponse, AssetResponse, PaginatedResponse, ExportDataLang } from 'js/dataInterface'
 
 interface ProjectExportsListProps {
   asset: AssetResponse

@@ -2,13 +2,13 @@ import { useState, useReducer, useContext, useEffect } from 'react'
 import { SubscriptionInfo, UsageLimitTypes } from 'js/account/stripe.types'
 import { getAccountLimits } from 'js/account/stripe.api'
 import { USAGE_WARNING_RATIO } from 'js/constants'
-import { convertSecondsToMinutes } from 'jsapp/js/utils'
+import { convertSecondsToMinutes } from 'utils'
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
 import { when } from 'mobx'
 import subscriptionStore from 'js/account/subscriptionStore'
 import { UsageContext } from 'js/account/usage/useUsage.hook'
-import { ProductsContext } from 'jsapp/js/account/useProducts.hook'
-import { OneTimeAddOnsContext } from 'jsapp/js/account/useOneTimeAddonList.hook'
+import { ProductsContext } from 'js/account/useProducts.hook'
+import { OneTimeAddOnsContext } from 'js/account/useOneTimeAddonList.hook'
 
 interface SubscribedState {
   subscribedProduct: null | SubscriptionInfo

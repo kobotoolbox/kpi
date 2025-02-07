@@ -12,7 +12,7 @@ import {
   secondsToTranscriptionEstimate,
 } from 'js/components/processing/transcript/transcript.utils'
 import assetStore from 'js/assetStore'
-import { getAudioDuration } from 'js/utils'
+import { getAudioDuration } from 'utils'
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'

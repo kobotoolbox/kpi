@@ -2,10 +2,10 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl, FetchDataOptions } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
-import { endpoints } from 'jsapp/js/api.endpoints'
-import type { FailResponse, PaginatedResponse } from 'jsapp/js/dataInterface'
+import { endpoints } from 'js/api.endpoints'
+import type { FailResponse, PaginatedResponse } from 'js/dataInterface'
 import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
-import type { Json } from 'jsapp/js/components/common/common.interfaces'
+import type { Json } from 'js/components/common/common.interfaces'
 
 /*
  * NOTE: `invites` - `membersQuery` holds a list of members, each containing

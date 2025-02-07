@@ -5,7 +5,7 @@ import styles from './keywordSearchResponseForm.module.scss'
 import Button from 'js/components/common/button'
 import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from 'js/components/processing/analysis/utils'
-import Badge from 'jsapp/js/components/common/badge'
+import Badge from 'js/components/common/badge'
 
 interface KeywordSearchResponseFormProps {
   uuid: string

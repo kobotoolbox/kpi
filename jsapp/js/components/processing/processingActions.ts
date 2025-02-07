@@ -6,7 +6,7 @@
  */
 
 import Reflux from 'reflux'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from 'js/actions'
 import { getAssetAdvancedFeatures, getAssetProcessingUrl } from 'js/assetUtils'

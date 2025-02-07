@@ -3,7 +3,7 @@ import bem from 'js/bem'
 import { actions } from 'js/actions'
 import assetUtils from 'js/assetUtils'
 import { ASSET_TYPES } from 'js/constants'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import Button from 'js/components/common/button'
 import type { AssetResponse } from 'js/dataInterface'
 

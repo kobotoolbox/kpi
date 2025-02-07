@@ -5,7 +5,7 @@ import { Cookies } from 'react-cookie'
 import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
 import { UsageContext } from 'js/account/usage/useUsage.hook'
 import { useExceedingLimits } from 'js/components/usageLimits/useExceedingLimits.hook'
-import { OrganizationUserRole, useOrganizationQuery } from 'jsapp/js/account/organization/organizationQuery'
+import { OrganizationUserRole, useOrganizationQuery } from 'js/account/organization/organizationQuery'
 
 const cookies = new Cookies()
 

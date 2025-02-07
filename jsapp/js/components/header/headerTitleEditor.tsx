@@ -1,12 +1,12 @@
 import React from 'react'
 import autoBind from 'react-autobind'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import bem from 'js/bem'
 import assetStore from 'js/assetStore'
 import { actions } from 'js/actions'
 import { removeInvalidChars, getAssetDisplayName } from 'js/assetUtils'
 import { KEY_CODES, NAME_MAX_LENGTH, ASSET_TYPES } from 'js/constants'
-import type { AssetResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse } from 'js/dataInterface'
 
 interface HeaderTitleEditorProps {
   asset: AssetResponse

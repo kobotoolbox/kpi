@@ -10,12 +10,12 @@ import Button from 'js/components/common/button'
 // Stores, hooks and utilities
 import { actions } from '../../actions'
 import envStore from 'js/envStore'
-import { notify, escapeHtml } from 'js/utils'
+import { notify, escapeHtml } from 'utils'
 import pageState from 'js/pageState.store'
 
 // Constants and types
 import { MODAL_TYPES } from '../../constants'
-import type { ExternalServiceHookResponse, PaginatedResponse } from 'jsapp/js/dataInterface'
+import type { ExternalServiceHookResponse, PaginatedResponse } from 'js/dataInterface'
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html'
 

@@ -21,7 +21,7 @@ import { dataInterface } from 'js/dataInterface'
 import { actions } from 'js/actions'
 import bem from 'js/bem'
 import { stores } from 'js/stores'
-import { txtid, notify, launchPrinting } from 'js/utils'
+import { txtid, notify, launchPrinting } from 'utils'
 import { userCan } from 'js/components/permissions/utils'
 import { getDataWithResponses } from './reports.utils'
 
@@ -34,7 +34,7 @@ import {
   type ReportsPaginatedResponse,
   type ReportsResponse,
 } from './reportsConstants'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
+import type { WithRouterProps } from 'js/router/legacy'
 import type { AssetResponse, SurveyRow, FailResponse } from 'js/dataInterface'
 
 // Styles

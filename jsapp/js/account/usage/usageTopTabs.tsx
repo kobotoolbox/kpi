@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Tabs from 'jsapp/js/components/common/tabs'
+import Tabs from 'js/components/common/tabs'
 import ProjectBreakdown from './usageProjectBreakdown'
 import { useNavigate } from 'react-router-dom'
 import Usage from './usage.component'

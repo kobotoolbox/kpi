@@ -15,7 +15,7 @@ import {
   type ExportTypeDefinition,
   type ExportTypeName,
 } from 'js/components/projectDownloads/exportsConstants'
-import { type AssetResponse } from 'jsapp/js/dataInterface'
+import { type AssetResponse } from 'js/dataInterface'
 
 interface LegacyExportsProps {
   asset: AssetResponse

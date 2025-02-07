@@ -17,7 +17,7 @@ import submissionsActions from './actions/submissions'
 import formMediaActions from './actions/mediaActions'
 import exportsActions from './actions/exportsActions'
 import dataShareActions from './actions/dataShareActions'
-import { notify } from 'js/utils'
+import { notify } from 'utils'
 import { replaceSupportEmail } from 'js/textUtils'
 import * as Sentry from '@sentry/react'
 

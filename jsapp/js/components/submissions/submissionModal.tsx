@@ -6,7 +6,7 @@ import { dataInterface } from 'js/dataInterface'
 import { actions } from 'js/actions'
 import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { launchPrinting } from 'js/utils'
+import { launchPrinting } from 'utils'
 import pageState from 'js/pageState.store'
 import { MODAL_TYPES, QuestionTypeName, EnketoActions } from 'js/constants'
 import {

@@ -22,7 +22,7 @@ import type {
 import type { ProjectTransferAssetDetail } from 'js/components/permissions/transferProjects/transferProjects.api'
 import type { SortValues } from 'js/components/submissions/tableConstants'
 import type { ValidationStatusName } from 'js/components/submissions/validationStatus.constants'
-import type { AssetLockingProfileDefinition } from 'jsapp/js/components/locking/lockingConstants'
+import type { AssetLockingProfileDefinition } from 'js/components/locking/lockingConstants'
 import {
   type ExportFormatName,
   type ExportMultiOptionName,

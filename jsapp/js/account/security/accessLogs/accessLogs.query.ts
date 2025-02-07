@@ -3,7 +3,7 @@ import { endpoints } from 'js/api.endpoints'
 import type { FailResponse, PaginatedResponse } from 'js/dataInterface'
 import { fetchGet, fetchPost } from 'js/api'
 import { QueryKeys } from 'js/query/queryKeys'
-import type { PaginatedQueryHookParams } from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component'
+import type { PaginatedQueryHookParams } from 'js/universalTable/paginatedQueryUniversalTable.component'
 
 export interface AccessLog {
   /** User URL */

@@ -12,7 +12,7 @@ import { getReportRowTranslatedLabel } from './reports.utils'
 import { QUESTION_TYPES } from 'js/constants'
 import type { ReportsState } from './reports'
 import type { ReportStyle, ReportsResponse } from './reportsConstants'
-import type { AssetResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse } from 'js/dataInterface'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void

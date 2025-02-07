@@ -7,7 +7,7 @@ import TextBox from 'js/components/common/textBox'
 import KoboSelect from 'js/components/common/koboSelect'
 
 // Stores and utilities
-import { generateUuid } from 'js/utils'
+import { generateUuid } from 'utils'
 import { isFilterConditionValueRequired } from './utils'
 import envStore from 'js/envStore'
 

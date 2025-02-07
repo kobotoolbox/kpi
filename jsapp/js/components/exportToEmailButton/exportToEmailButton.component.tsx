@@ -1,8 +1,8 @@
 import Button from '../common/button'
 import KoboPrompt from '../modals/koboPrompt'
 import { useState } from 'react'
-import { handleApiFail } from 'jsapp/js/api'
-import type { FailResponse } from 'jsapp/js/dataInterface'
+import { handleApiFail } from 'js/api'
+import type { FailResponse } from 'js/dataInterface'
 
 const MessageModal = ({ onClose }: { onClose: () => void }) => (
   <KoboPrompt

@@ -14,7 +14,7 @@ import sessionStore from 'js/stores/session'
 import exportsStore from 'js/components/projectDownloads/exportsStore'
 
 // Constants and types
-import type { AssetResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse } from 'js/dataInterface'
 import type { ExportTypeDefinition } from './exportsConstants'
 
 interface ProjectDownloadsProps {

@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { addons } from '@storybook/preview-api'
 import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
-import { themeKobo } from 'jsapp/js/theme'
+import { themeKobo } from 'js/theme'
 
 const channel = addons.getChannel()
 

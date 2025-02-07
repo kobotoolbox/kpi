@@ -13,7 +13,7 @@ import type {
   ValidationStatusOptionName,
 } from 'js/components/submissions/validationStatus.constants'
 import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { renderCheckbox } from 'js/utils'
+import { renderCheckbox } from 'utils'
 import { userCan, userCanPartially } from 'js/components/permissions/utils'
 import { buildFilterQuery } from './tableUtils'
 import type { AssetResponse, SubmissionResponse, BulkSubmissionsRequest } from 'js/dataInterface'
