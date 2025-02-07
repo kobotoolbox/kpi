@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 from ddt import ddt, data, unpack
 from constance.test import override_config
+from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import status
 
@@ -130,6 +134,73 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
                 response.data['status'], OrganizationInviteStatusChoices.PENDING
             )
             self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
+
+    def test_admin_cannot_resend_invitation_several_times_in_a_row(self):
+        """
+        Test that only the organization owner or admins can resend an invitation
+        """
+        self._create_invite(self.owner_user)
+        user = self.admin_user
+        self.client.force_login(user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.external_user
+        )
+
+        # Update invitation like it was created 10 minutes ago to test
+        # two resent PATCH requests in a row.
+        fake_date_created = timezone.now() - timedelta(
+            minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER + 1
+        )
+        OrganizationInvitation.objects.filter(id=invitation.pk).update(
+            created=fake_date_created, modified=fake_date_created
+        )
+
+        # The first request should be ok
+        response = self.client.patch(
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.RESENT},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # The second request should be blocked
+        response = self.client.patch(
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.RESENT},
+        )
+        self.assertContains(
+            response,
+            'Invitation was resent too quickly',
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_admin_cannot_resend_invitation_if_not_pending(self):
+        """
+        Test that only the organization owner or admins can resend an invitation
+        """
+        self._create_invite(self.owner_user)
+        user = self.admin_user
+        self.client.force_login(user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.external_user
+        )
+
+        # First cancel the invitation
+        response = self.client.patch(
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.CANCELLED},
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        # Try to resend it
+        response = self.client.patch(
+            self.detail_url(invitation.guid),
+            data={'status': OrganizationInviteStatusChoices.RESENT},
+        )
+        self.assertContains(
+            response,
+            'Invitation cannot be resent',
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     @data(
         ('owner', status.HTTP_200_OK),

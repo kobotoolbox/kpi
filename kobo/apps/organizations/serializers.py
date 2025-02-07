@@ -1,6 +1,10 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -445,6 +449,23 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             # if value equals 'resent', all the validations have been already
             # performed to ensure, only an admin can call this.
             if value == OrganizationInviteStatusChoices.RESENT:
+                if self.instance.status != OrganizationInviteStatusChoices.PENDING:
+                    raise serializers.ValidationError(
+                        'Invitation cannot be resent'
+                    )
+
+                retry_after = self.instance.modified + timedelta(
+                    minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER
+                )
+                now = timezone.now()
+                if retry_after > now:
+                    remaining_delta = retry_after - now
+                    remaining_minutes = int(remaining_delta.total_seconds() / 60)
+                    raise serializers.ValidationError(
+                        f'Invitation was resent too quickly, '
+                        f'wait for {remaining_minutes} minutes before retrying'
+                    )
+
                 value = OrganizationInviteStatusChoices.PENDING
 
         return value
@@ -475,10 +496,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
 
     def _handle_status_update(self, instance, status):
-        instance.status = getattr(
-            OrganizationInviteStatusChoices, status.upper()
-        )
-        instance.save(update_fields=['status'])
+        instance.status = OrganizationInviteStatusChoices[status.upper()]
+        instance.save(update_fields=['status', 'modified'])
         self._send_status_email(instance, status)
 
     def _send_status_email(self, instance, status):
