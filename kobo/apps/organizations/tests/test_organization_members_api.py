@@ -69,6 +69,9 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, expected_status)
 
+        if response.status_code != status.HTTP_200_OK:
+            return
+
         # Expected user count (owner, admin, member and invitees)
         expected_users = 5
         expected_invite_keys = {
@@ -77,14 +80,27 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         }
 
         # Check if the invite data is present for invitees
-        if response.status_code == status.HTTP_200_OK:
-            self.assertEqual(len(response.data.get('results')), expected_users)
-            for result in response.data.get('results'):
-                self.assertIn('invite', result)
-                if result['invite']:
-                    # Check if the invite contains exactly the expected keys
-                    self.assertEqual(
-                        set(result['invite'].keys()), expected_invite_keys
+        self.assertEqual(len(response.data.get('results')), expected_users)
+
+        for result in response.data.get('results'):
+            self.assertIn('invite', result)
+            if result['invite']:
+                # Check if the invite contains exactly the expected keys
+                self.assertEqual(
+                    set(result['invite'].keys()), expected_invite_keys
+                )
+
+                # Ensure the details are not revealed for unregistered invitees
+                if result['invite']['invitee'] in [
+                    'registered_invitee', 'unregistered_invitee@test.com'
+                ]:
+                    self.assertEqual(result['user__username'], None)
+                    self.assertEqual(result['user__has_mfa_enabled'], None)
+                    self.assertEqual(result['role'], None)
+                else:
+                    self.assertIn(
+                        result['user__username'],
+                        ['someuser', 'anotheruser', 'alice']
                     )
 
     @data(
