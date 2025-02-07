@@ -77,11 +77,11 @@ Main principle is, keep related code close for modularity. Organize by feature/u
      - it's ok to co-locate in the same file several similar variations of the same, as well accompanying constants, helpers, type-guards and other utils.
 - every folder has a meaningful `index.tsx` files, except `common`, `components`, and `hooks` folders. Index file contains and/or re-exports what consumers outside of folder imports (kinda as folder's API).
 - Include type of file in filename only for tests and storybook. Such as:
-    - `{index,Foo}.tsx`
-    - `{index,Foo}.stories.tsx`
-    - `{index,Foo}.{spec,test}.tsx`
-    - `useFoo.tsx?`
-    - `useFoo.{spec,test}.tsx`
+    - `{index,Example}.tsx?`
+    - `{index,Example}.stories.tsx`
+    - `{index,Example}.{spec,test}.tsx?`
+    - `useExample.tsx?`
+    - `useExample.{spec,test}.tsx?`
 
 
 ### React specific
