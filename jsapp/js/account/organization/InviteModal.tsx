@@ -1,4 +1,5 @@
-import {Group, Modal, Stack, Text, TextInput, ModalProps, Loader} from '@mantine/core';
+import type {ModalProps} from '@mantine/core';
+import {Group, Modal, Stack, Text, TextInput, Loader} from '@mantine/core';
 import ButtonNew from 'jsapp/js/components/common/ButtonNew';
 import {Select} from 'jsapp/js/components/common/Select';
 import {useSendMemberInvite} from './membersInviteQuery';
