@@ -58,7 +58,7 @@ export default function InviteModal(props: ModalProps) {
       opened={props.opened}
       onClose={props.onClose}
       title={t('Invite members to your team')}
-      size={'lg'}
+      size='lg'
     >
       <Stack>
         <Text>
