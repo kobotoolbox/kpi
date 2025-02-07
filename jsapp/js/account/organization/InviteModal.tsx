@@ -29,7 +29,6 @@ export default function InviteModal(props: ModalProps) {
 
   const userOrEmail = useField({
     initialValue: '',
-
     validate: handleUsernameOrEmailCheck,
     validateOnBlur: true,
   });
