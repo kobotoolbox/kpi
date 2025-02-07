@@ -335,7 +335,8 @@ class AccessLogViewSet(AuditLogViewSet):
     filter_backends = (AccessLogPermissionsFilter,)
     serializer_class = AccessLogSerializer
 
-COMMON_PROJECT_HISTORY_LOG_DOCSTRING = '''
+
+COMMON_PROJECT_HISTORY_LOG_DOCSTRING = """
     Results from this endpoint can be filtered by a Boolean query
     specified in the `q` parameter.
 
@@ -353,7 +354,19 @@ COMMON_PROJECT_HISTORY_LOG_DOCSTRING = '''
 
         c. user__is_superuser
 
-    4. action
+    4. metadata__*
+
+        b. metadata__source
+
+        c. metadata__ip_address
+
+        d. metadata__asset_uid
+
+        e. metadata__log_subtype
+
+        * available subtypes: "project", "permission"
+
+    5. action
 
         available actions:
 
@@ -390,21 +403,6 @@ COMMON_PROJECT_HISTORY_LOG_DOCSTRING = '''
     >        update-name
     >        update-settings
     >        update-qa
-
-    4. metadata__*
-
-        b. metadata__source
-
-        c. metadata__ip_address
-
-        d. metadata__asset_uid
-
-        e. metadata__log_subtype
-
-           available subtypes:
-
-                project
-                permission
 
     **Filterable fields by action:**
 
@@ -519,83 +517,94 @@ COMMON_PROJECT_HISTORY_LOG_DOCSTRING = '''
         a. metadata__settings__description__old
 
         b. metadata__settings__description__new
-'''
+"""
 
-class AllProjectHistoryLogViewSet(AuditLogViewSet):
-    __doc__ = """
+
+def generate_ph_view_set_logstring(description, path, example_path, all):
+    return f"""
     Project history logs
 
-    Lists all project history logs for all projects. Only available to superusers.
+    {description}
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-history-logs/
+    <b>GET</b> {path}
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/project-history-logs/
+    >       curl -X GET https://[kpi-url]{example_path}
 
     > Response 200
 
-    >       {
+    >       {{
     >           "count": 10,
     >           "next": null,
     >           "previous": null,
     >           "results": [
-    >                {
+    >                {{
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u12345",
     >                    "username": "admin",
     >                    "action": "modify-user-permissions"
-    >                    "metadata": {
+    >                    "metadata": {{
     >                        "source": "Firefox (Ubuntu)",
     >                        "ip_address": "172.18.0.6",
     >                        "asset_uid": "a678910",
     >                        "log_subtype": "permissions",
     >                        "permissions":
-    >                            {
+    >                            {{
     >                                "username": "user1",
     >                                "added": ["add_submissions", "view_submissions"],
     >                                "removed": ["change_asset"],
-    >                            }
-    >                    },
+    >                            }}
+    >                    }},
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
+    >                }},
+    >                {{
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u56789",
     >                    "username": "someuser",
     >                    "action": "update-settings",
-    >                    "metadata": {
+    >                    "metadata": {{
     >                        "source": "Firefox (Ubuntu)",
     >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a111213",
+    >                        "asset_uid": {"a111213" if all else "a678910"},
     >                        "log_subtype": "project",
     >                        "settings":
-    >                            {
+    >                            {{
     >                                "description":
-    >                                    {
+    >                                    {{
     >                                        "old": "old_description",
     >                                        "new": "new_description",
-    >                                    }
+    >                                    }}
     >                                "countries":
-    >                                    {
+    >                                    {{
     >                                        "added": ["USA"],
     >                                        "removed": ["ALB"],
-    >                                    }
-    >                            }
-    >                     },
+    >                                    }}
+    >                            }}
+    >                     }},
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
+    >                }},
     >                ...
     >           ]
-    >       }
+    >       }}
 
-
+    {COMMON_PROJECT_HISTORY_LOG_DOCSTRING}
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/project-history-logs/?offset=100&limit=50
-    """ + COMMON_PROJECT_HISTORY_LOG_DOCSTRING
+    >      curl -X GET https://[kpi-url]{example_path}?offset=100&limit=50
+
+    """
+
+
+class AllProjectHistoryLogViewSet(AuditLogViewSet):
+    __doc__ = generate_ph_view_set_logstring(
+        'Lists all project history logs for all projects. Only available to superusers.',
+        '/api/v2/project-history/logs',
+        '/api/v2/project-history/logs',
+        True,
+    )
 
     queryset = ProjectHistoryLog.objects.all().order_by('-date_created')
     serializer_class = ProjectHistoryLogSerializer
@@ -639,105 +648,12 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
-    __doc__ = """
-    Project history logs
-
-    Lists all project history logs for a single project. Only available to
-    those with 'manage_asset' permissions.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/
-
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "action": "modify-user-permissions"
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a678910",
-    >                        "log_subtype": "permissions",
-    >                        "permissions":
-    >                            {
-    >                                "username": "user1",
-    >                                "added": ["add_submissions", "view_submissions"],
-    >                                "removed": ["change_asset"],
-    >                            }
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u56789",
-    >                    "username": "someuser",
-    >                    "action": "update-settings",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a111213",
-    >                        "log_subtype": "project",
-    >                        "settings":
-    >                            {
-    >                                "description":
-    >                                    {
-    >                                        "old": "old_description",
-    >                                        "new": "new_description",
-    >                                    }
-    >                                "countries":
-    >                                    {
-    >                                        "added": ["USA"],
-    >                                        "removed": ["ALB"],
-    >                                    }
-    >                            }
-    >                     },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-""" + COMMON_PROJECT_HISTORY_LOG_DOCSTRING + """
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/assets/ap732ywWxc/history/?offset=100&limit=50
-
-    ### Actions
-
-    Retrieves distinct actions performed on the asset.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/actions
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/axpCMM5zWS6kWpHv9Vg/history/actions
-
-    > Response 200
-
-    >   {
-    >       "actions": [
-    >           "update-name",
-    >           "update-content",
-    >           "deploy",
-    >           ...
-    >       ]
-    >   }
-
-    """
+    __doc__ = generate_ph_view_set_logstring(
+        "Lists all project history logs for a single project. Only available to those with 'manage_asset' permissions.",
+        "/api/v2/assets/<code>{asset_uid}</code>/history/",
+        "/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/",
+        False,
+    )
 
     serializer_class = ProjectHistoryLogSerializer
     model = ProjectHistoryLog
