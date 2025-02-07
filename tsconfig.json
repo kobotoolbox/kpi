@@ -5,6 +5,7 @@
     "paths": {
       "jsapp/*": ["./*"],
       "js/*": ["js/*"],
+      "utils/*": ["js/utils/*"],
       "scss/*": ["scss/*"],
       "test/*": ["test/*"]
     },
