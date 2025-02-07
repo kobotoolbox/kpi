@@ -52,7 +52,7 @@ export default function AttachmentActionsDropdown(
     attachmentTypeName = t('video recording');
   } else if (props.questionType === QuestionTypeName.image) {
     attachmentTypeName = t('image');
-  } else if (props.questionType === MetaQuestionTypeName['background-audio']) {
+  } else if (props.questionType === QuestionTypeName['background-audio']) {
     attachmentTypeName = t('background audio recording');
   }
 
@@ -110,14 +110,7 @@ export default function AttachmentActionsDropdown(
         name={uniqueDropdownName}
         placement='down-right'
         hideOnMenuClick
-        triggerContent={
-          <Button
-            type='bare'
-            color='dark-blue'
-            size='s'
-            startIcon='more'
-          />
-        }
+        triggerContent={<Button type='text' size='s' startIcon='more' />}
         menuContent={
           <bem.KoboSelect__menu>
             <bem.KoboSelect__option onClick={requestDownloadFile}>
@@ -151,16 +144,14 @@ export default function AttachmentActionsDropdown(
 
         <KoboModalFooter>
           <Button
-            type='frame'
-            color='dark-blue'
+            type='secondary'
             size='l'
             onClick={toggleDeleteModal}
             label={t('Cancel')}
           />
 
           <Button
-            type='full'
-            color='dark-red'
+            type='danger'
             size='l'
             onClick={confirmDelete}
             label={t('Delete')}

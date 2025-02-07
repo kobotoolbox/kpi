@@ -20,11 +20,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
-import type {
-  AnyRowTypeName,
-  QuestionTypeName,
-  MetaQuestionTypeName,
-} from 'js/constants';
+import type {AnyRowTypeName, MetaQuestionTypeName} from 'js/constants';
 import './submissionDataTable.scss';
 import type {
   AssetResponse,
@@ -35,7 +31,6 @@ import AudioPlayer from 'js/components/common/audioPlayer';
 import {goToProcessing} from 'js/components/processing/routes.utils';
 import AttachmentActionsDropdown from './attachmentActionsDropdown.component';
 import DeletedAttachment from './deletedAttachment.component';
-import {PROCESSING_QUESTION_TYPES} from 'js/components/processing/processingUtils';
 import SimpleTable from 'js/components/common/SimpleTable';
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table');
