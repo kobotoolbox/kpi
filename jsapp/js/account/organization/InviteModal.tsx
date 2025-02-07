@@ -75,7 +75,7 @@ export default function InviteModal(props: ModalProps) {
           />
           <Select
             flex={2}
-            placeholder={'Role'}
+            placeholder='Role'
             data={[
               {
                 value: OrganizationUserRole.admin,
