@@ -38,7 +38,7 @@ Manual Linting Rules
 ### Naming is hard
 
 - singular for objects (`user`), plural for arrays/maps/etc (`users`), suffix for primitives (`userName`).
-- don’t use Systems Hungarian (e.g. `strExample`), because let’s don’t duplicate intellisense. Except for boolean type, because it reads nice, e.g. `isExample`, `hasExample`, etc.
+- don't use Systems Hungarian (e.g. `strExample`), because let's don't duplicate intellisense. Except for boolean type, because it reads nice, e.g. `isExample`, `hasExample`, etc.
 - use [Hungarian Notation](https://www.joelonsoftware.com/2005/05/11/making-wrong-code-look-wrong/) where appropriate (indicate *kind* of the type). Examples: `input` and `inputSanitized` or other way around `inputRaw` and `input`, your choice.
 - boilerplate snippets:
   - `const exampleQuery = useExampleQuery()` for react query hook usage.
@@ -86,7 +86,7 @@ Main principle is, keep related code close for modularity. Organize by feature/u
 
 ### React specific
 
-- use Typescript, don’t use Javascript.
+- use Typescript, don't use Javascript.
 - use React functional components and hooks instead of classes and HOCs.
-- for response caching use `react-query`, don’t reinvent cache using state.
+- for response caching use `react-query`, don't reinvent cache using state.
 
