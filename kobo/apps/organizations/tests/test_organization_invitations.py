@@ -15,6 +15,8 @@ from kobo.apps.organizations.constants import (
     INVITE_OWNER_ERROR,
     INVITE_MEMBER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
+    ORG_ADMIN_ROLE,
+    ORG_MEMBER_ROLE,
 )
 from kobo.apps.organizations.models import (
     Organization,
@@ -425,30 +427,35 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
-        self.assertTrue(invitation.invitee_role, 'member')
+        self.assertTrue(invitation.invitee_role, ORG_MEMBER_ROLE)
         user = getattr(self, f'{user_role}_user')
         self.client.force_login(user)
         response = self.client.patch(
-            self.detail_url(invitation.guid), data={'role': 'admin'}
+            self.detail_url(invitation.guid), data={'role': ORG_ADMIN_ROLE}
         )
         self.assertEqual(response.status_code, expected_status)
         if response.status_code == status.HTTP_200_OK:
-            self.assertEqual(response.data['invitee_role'], 'admin')
-            self.assertTrue(invitation.invitee_role, 'admin')
+            self.assertEqual(response.data['invitee_role'], ORG_ADMIN_ROLE)
+            self.assertTrue(invitation.invitee_role, ORG_ADMIN_ROLE)
 
             # Accept the invitation
             self.client.force_login(self.external_user)
             response = self._update_invite(
-                self.external_user, invitation.guid, 'accepted'
+                self.external_user,
+                invitation.guid,
+                OrganizationInviteStatusChoices.ACCEPTED,
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(response.data['status'], 'accepted')
+            self.assertEqual(
+                response.data['status'],
+                OrganizationInviteStatusChoices.ACCEPTED,
+            )
             self.assertTrue(self.organization.is_admin(self.external_user))
 
             # Attempt to change the role after accepting the invitation
             self.client.force_login(user)
             response = self.client.patch(
-                self.detail_url(invitation.guid), data={'role': 'member'}
+                self.detail_url(invitation.guid), data={'role': ORG_MEMBER_ROLE}
             )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
