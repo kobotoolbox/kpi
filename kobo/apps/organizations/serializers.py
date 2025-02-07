@@ -456,9 +456,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             )
 
         if not self.instance:
-            if not value:
-                raise serializers.ValidationError('This field cannot be empty')
-
             if (
                 value in OrganizationInviteStatusChoices.get_admin_choices()
                 or value in OrganizationInviteStatusChoices.get_member_choices()
