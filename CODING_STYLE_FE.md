@@ -53,26 +53,26 @@ Main principle is, keep related code close for modularity. Organize by feature/u
   ```bash
   /
     jsapp/
-      common/         # <-- (4) reused non-react-stuff globally go here.
-      components/     # <-- (4) reused components globally go here.
-      hooks/          # <-- (4) reused hooks globally go here.
+      common/           # <-- (4) reused non-react-stuff globally go here.
+      components/       # <-- (4) reused components globally go here.
+      hooks/            # <-- (4) reused hooks globally go here.
       BigFeat/
-        common/       # <-- (3) reused non-react-stuff within feature go here.
-        components/   # <-- (3) reused components within feature go here.
-        hooks/        # <-- (3) reused hooks within sub-feature go here.
+        common/         # <-- (3) reused non-react-stuff within feature go here.
+        components/     # <-- (3) reused components within feature go here.
+        hooks/          # <-- (3) reused hooks within sub-feature go here.
         index.tsx
         BigFeatTable/
-          common/     # <-- (2) reused non-react-stuff within component goes here.
-          components/ # <-- (2) reused components within component goes here.
-          hooks/      # <-- (2) reused hooks within component goes here.
-          index.tsx   # <-- (1) small helpers or interfaces are co-located inside
-                      #         component or hook files, and are not exported.
-          useAsdf.ts  # <-- (1) files specific only to other file(s)
-                      #         in the same folder stay next to them.
+          common/       # <-- (2) reused non-react-stuff within component goes here.
+          components/   # <-- (2) reused components within component goes here.
+          hooks/        # <-- (2) reused hooks within component goes here.
+          index.tsx     # <-- (1) small helpers or interfaces are co-located inside
+                        #         component or hook files, and are not exported.
+          useExample.ts # <-- (1) files specific only to other file(s)
+                        #         in the same folder stay next to them.
   ```
 - organize files by concerns and name it by that. Keep one concern per file. Don't shy away from small but focused files.
-     -   one React component per file and name it the same — `Asdf.tsx` or `Asdf/index.tsx`.
-     -   one React hook per file and name it the same — `useAsdf.tsx` or `useAsdf/index.tsx`.
+     -   one React component per file and name it the same — `Example.tsx` or `Example/index.tsx`.
+     -   one React hook per file and name it the same — `useExample.tsx` or `useExample/index.tsx`.
      -   for anything big and/or complex enough, have a seperate file and name it the same.
      -   it's ok to co-locate in the same file several similar variations of the same, as well accompanying constants, helpers, type-guards and other utils.
 - every folder has a meaningful `index.tsx` files, except `common`, `components`, and `hooks` folders. Index file contains and/or re-exports what consumers outside of folder imports (kinda as folder's API).
