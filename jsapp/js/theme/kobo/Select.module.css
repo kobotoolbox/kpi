@@ -7,6 +7,11 @@
   }
 }
 
+/* Hides caret in FF */
+.input[readonly] {
+  caret-color: transparent;
+}
+
 .dropdown {
   border-color: var(--mantine-color-gray-6);
 }

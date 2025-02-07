@@ -14,6 +14,7 @@ import {
 } from './organizationQuery';
 
 // Constants and types
+import type { Nullable } from 'jsapp/js/constants';
 import {endpoints} from 'js/api.endpoints';
 import type {PaginatedResponse} from 'js/dataInterface';
 import {QueryKeys} from 'js/query/queryKeys';
@@ -40,8 +41,12 @@ export interface OrganizationMember {
   user__is_active: boolean;
   /** yyyy-mm-dd HH:MM:SS */
   date_joined: string;
-  invite?: MemberInvite;
 }
+
+export interface OrganizationMemberListItem
+  extends Nullable<OrganizationMember> {
+    invite?: MemberInvite;
+  }
 
 function getMemberEndpoint(orgId: string, username: string) {
   return endpoints.ORGANIZATION_MEMBER_URL.replace(
@@ -130,7 +135,7 @@ async function getOrganizationMembers(
     orgId
   );
 
-  return fetchGet<PaginatedResponse<OrganizationMember>>(
+  return fetchGet<PaginatedResponse<OrganizationMemberListItem>>(
     apiUrl + '?' + params,
     {
       errorMessageDisplay: t('There was an error getting the list.'),
