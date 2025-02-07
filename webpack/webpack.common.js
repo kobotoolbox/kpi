@@ -96,12 +96,12 @@ const commonOptions = {
   resolve: {
     extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
-      app: path.join(__dirname, '..', 'app'),
-      jsapp: path.join(__dirname, '..', 'jsapp'),
-      js: path.join(__dirname, '..', 'jsapp', 'js'),
-      scss: path.join(__dirname, '..', 'jsapp', 'scss'),
-      utils: path.join(__dirname, '..', 'jsapp', 'js', 'utils'),
-      test: path.join(__dirname, '..', 'test'),
+      app: path.join(__dirname, '../app'),
+      jsapp: path.join(__dirname, '../jsapp'),
+      js: path.join(__dirname, '../jsapp/js'),
+      scss: path.join(__dirname, '../jsapp/scss'),
+      utils: path.join(__dirname, '../jsapp/js/utils'),
+      test: path.join(__dirname, '../test'),
     },
     // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423
     fallback: {
