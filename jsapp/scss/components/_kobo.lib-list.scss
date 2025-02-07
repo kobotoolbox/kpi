@@ -14,8 +14,6 @@
 .lib-list--done {
   .lib-list__item {
     cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
   }
 }
 
@@ -27,15 +25,13 @@
   background-color: colors.$kobo-white;
 
   &.sortable-active {
-    &:after {
+    &::after {
       content: 'importing...';
     }
   }
 
   &.ui-sortable-helper {
     cursor: grabbing;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
   }
 
   &.ui-sortable-helper {

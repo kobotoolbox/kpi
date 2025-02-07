@@ -22,10 +22,11 @@
   body .mdl-layout__content {
     // Fixes Firefox one-page print bug
     display: block;
-    margin-left: 0px;
+    margin-left: 0;
   }
 
-  .k-drawer, .mdl-layout__header {
+  .k-drawer,
+ .mdl-layout__header {
     display: none;
   }
 
@@ -38,12 +39,13 @@
   }
 
   .report-view__chart {
-    padding-left: 0px;
-    padding-right: 0px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  a[href]:after, abbr[title]:after {
-    content: "";
+  a[href]::after,
+ abbr[title]::after {
+    content: '';
   }
 
   .form-view__row {

@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
-import Icon from 'js/components/common/icon';
-import Button from 'js/components/common/button';
-import UpdatePasswordForm from 'js/account/security/password/updatePasswordForm.component';
-import styles from './invalidatedPassword.module.scss';
-import BasicLayout from './basicLayout.component';
+import React, { useState } from 'react'
+import Icon from 'js/components/common/icon'
+import Button from 'js/components/common/button'
+import UpdatePasswordForm from 'js/account/security/password/updatePasswordForm.component'
+import styles from './invalidatedPassword.module.scss'
+import BasicLayout from './basicLayout.component'
 
 /**
  * This is a route blocker component to be used for accounts marked by admin
@@ -11,10 +11,10 @@ import BasicLayout from './basicLayout.component';
  * route - to block users from using the app befor taking action.
  */
 export default function InvalidatedPassword() {
-  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false)
 
   function onSuccess() {
-    window.location.reload();
+    window.location.reload()
   }
 
   return (
@@ -27,7 +27,7 @@ export default function InvalidatedPassword() {
 
         <p className={styles.message}>
           {t(
-            'You must update your password before proceeding. Please do so promptly to ensure the security of your data.'
+            'You must update your password before proceeding. Please do so promptly to ensure the security of your data.',
           )}
         </p>
 
@@ -45,5 +45,5 @@ export default function InvalidatedPassword() {
         </footer>
       </div>
     </BasicLayout>
-  );
+  )
 }

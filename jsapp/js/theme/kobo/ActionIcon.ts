@@ -1,5 +1,5 @@
-import {rem, ActionIcon} from '@mantine/core';
-import classes from './ActionIcon.module.css';
+import { rem, ActionIcon } from '@mantine/core'
+import classes from './ActionIcon.module.css'
 
 export const ActionIconThemeKobo = ActionIcon.extend({
   classNames: classes,
@@ -33,6 +33,6 @@ export const ActionIconThemeKobo = ActionIcon.extend({
           '--ai-hover': theme.colors.red[8],
         }),
       },
-    };
+    }
   },
-});
+})

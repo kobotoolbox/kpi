@@ -1,14 +1,5 @@
-import {
-  Button,
-  Card,
-  Center,
-  LoadingOverlay,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core';
-import type {Meta, StoryObj} from '@storybook/react';
+import { Button, Card, Center, LoadingOverlay, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
+import type { Meta, StoryObj } from '@storybook/react'
 
 /**
  * Mantine [LoadingOverlay](https://mantine.dev/core/loading-overlay/) component stories.
@@ -42,9 +33,9 @@ const meta: Meta<typeof LoadingOverlay> = {
       control: 'boolean',
     },
   },
-};
+}
 
-type Story = StoryObj<typeof LoadingOverlay>;
+type Story = StoryObj<typeof LoadingOverlay>
 
 /**
  * LoadingOverlay component visible
@@ -53,7 +44,7 @@ export const Visible: Story = {
   args: {
     visible: true,
   },
-};
+}
 
 /**
  * LoadingOverlay component not visible
@@ -62,7 +53,7 @@ export const NotVisible: Story = {
   args: {
     visible: false,
   },
-};
+}
 
 /**
  * Using 'big' variant
@@ -70,8 +61,8 @@ export const NotVisible: Story = {
 export const Big: Story = {
   args: {
     visible: true,
-    loaderProps: {type: 'big'},
+    loaderProps: { type: 'big' },
   },
-};
+}
 
-export default meta;
+export default meta

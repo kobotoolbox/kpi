@@ -4,12 +4,12 @@ import {
   ADDITIONAL_SUBMISSION_PROPS,
   QuestionTypeName,
   MiscRowTypeName,
-} from 'js/constants';
-import type {AnyRowTypeName} from 'js/constants';
+} from 'js/constants'
+import type { AnyRowTypeName } from 'js/constants'
 
-export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
+export const SUBMISSION_ACTIONS_ID = '__SubmissionActions'
 
-export const VALIDATION_STATUS_ID_PROP = '_validation_status.uid';
+export const VALIDATION_STATUS_ID_PROP = '_validation_status.uid'
 
 // Columns that will be ALWAYS excluded from the view
 export const EXCLUDED_COLUMNS = [
@@ -27,7 +27,7 @@ export const EXCLUDED_COLUMNS = [
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status',
-];
+]
 
 export enum SortValues {
   ASCENDING = 'ASCENDING',
@@ -35,7 +35,7 @@ export enum SortValues {
 }
 
 // This is the setting object name from `asset.settings`
-export const DATA_TABLE_SETTING = 'data-table';
+export const DATA_TABLE_SETTING = 'data-table'
 // These are all possible settings of the above
 export const DATA_TABLE_SETTINGS = Object.freeze({
   SELECTED_COLUMNS: 'selected-columns',
@@ -44,27 +44,27 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   TRANSLATION: 'translation-index',
   SHOW_HXL: 'show-hxl-tags',
   SORT_BY: 'sort-by',
-});
+})
 
 export const TABLE_MEDIA_TYPES = createEnum([
   QuestionTypeName.image,
   QuestionTypeName.audio,
   QuestionTypeName.video,
   QuestionTypeName['background-audio'],
-]);
+])
 
-export const DEFAULT_DATA_CELL_WIDTH = 140;
+export const DEFAULT_DATA_CELL_WIDTH = 140
 
-export const CELLS_WIDTH_OVERRIDES: {[key: string]: number} = {};
-CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125;
-CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110;
-CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110;
-CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100;
-CELLS_WIDTH_OVERRIDES[QuestionTypeName.image] = 110;
-CELLS_WIDTH_OVERRIDES[QuestionTypeName.audio] = 170;
-CELLS_WIDTH_OVERRIDES[QuestionTypeName.video] = 110;
-CELLS_WIDTH_OVERRIDES[QuestionTypeName['background-audio']] = 170;
-Object.freeze(CELLS_WIDTH_OVERRIDES);
+export const CELLS_WIDTH_OVERRIDES: { [key: string]: number } = {}
+CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125
+CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110
+CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110
+CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.image] = 110
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.audio] = 170
+CELLS_WIDTH_OVERRIDES[QuestionTypeName.video] = 110
+CELLS_WIDTH_OVERRIDES[QuestionTypeName['background-audio']] = 170
+Object.freeze(CELLS_WIDTH_OVERRIDES)
 
 /**
  * For these question types the UI will display a dropdown filter in Data Table
@@ -73,7 +73,7 @@ Object.freeze(CELLS_WIDTH_OVERRIDES);
 export const DROPDOWN_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.select_multiple,
   QuestionTypeName.select_one,
-];
+]
 
 /**
  * For these question types the UI will display a text filter in Data Table for
@@ -104,7 +104,7 @@ export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   META_QUESTION_TYPES.today,
   MiscRowTypeName.score__row,
   MiscRowTypeName.rank__level,
-];
+]
 
 /**
  * For these question ids the UI will display a text filter in Data Table for
@@ -117,7 +117,7 @@ export const TEXT_FILTER_QUESTION_IDS = [
   ADDITIONAL_SUBMISSION_PROPS._uuid,
   ADDITIONAL_SUBMISSION_PROPS._submission_time,
   ADDITIONAL_SUBMISSION_PROPS._submitted_by,
-];
+]
 
 /**
  * These are question types that will be filtered by the exact filter value
@@ -135,4 +135,4 @@ export const FILTER_EXACT_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.score,
   QuestionTypeName.select_one,
   QuestionTypeName.select_one_from_file,
-];
+]
