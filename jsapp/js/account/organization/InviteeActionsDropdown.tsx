@@ -25,21 +25,26 @@ export default function InviteeActionsDropdown({
   const patchInviteMutation = usePatchMemberInvite(invite.url);
   const removeInviteMutation = useRemoveMemberInvite();
 
-  const handleResendInvitationAction = async () => {
+  const resendInvitation = async () => {
     try {
       await patchInviteMutation.mutateAsync({status: MemberInviteStatus.resent});
       notify(t('The invitation was resent'), 'success');
-    } catch (e) {
+    } catch (e: any) {
+      if(e.responseText) {
+        const responseData = JSON.parse(e.responseText);
+        console.log(e.responseText, responseData);
+        notify(responseData.status.join(' '), 'error');
+        return;
+      }
       notify(t('An error occurred while resending the invitation'), 'error');
     }
   };
 
-  const handleRemoveInvitationAction = () => {
+  const showRemovalConfirmation = () => {
     open();
   };
 
-  const handleRemoveInvitation = async () => {
-    // console.log(invite)
+  const removeInvitation = async () => {
     try {
       await removeInviteMutation.mutateAsync(invite.url);
       notify(t('Invitation removed'), 'success');
@@ -66,7 +71,7 @@ export default function InviteeActionsDropdown({
             </ButtonNew>
             <ButtonNew
               size='md'
-              onClick={handleRemoveInvitation}
+              onClick={removeInvitation}
               variant='danger'
             >
               {t('Remove invitation')}
@@ -80,11 +85,11 @@ export default function InviteeActionsDropdown({
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item onClick={handleResendInvitationAction}>
+          <Menu.Item onClick={resendInvitation}>
             {t('Resend invitation')}
           </Menu.Item>
           <Menu.Divider />
-          <Menu.Item variant='danger' onClick={handleRemoveInvitationAction}>
+          <Menu.Item variant='danger' onClick={showRemovalConfirmation}>
             {t('Remove invitation')}
           </Menu.Item>
         </Menu.Dropdown>
