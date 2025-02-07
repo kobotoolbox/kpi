@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.shortcuts import get_object_or_404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from rest_framework.exceptions import PermissionDenied
@@ -7,6 +8,7 @@ from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
 from kpi.models import Asset
@@ -80,6 +82,8 @@ class AdvancedSubmissionView(APIView):
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
+        if s_uuid is not None:
+            get_object_or_404(Instance, uuid=s_uuid)
         return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
@@ -89,6 +93,8 @@ class AdvancedSubmissionView(APIView):
             validate(posted_data, schema)
         except SchemaValidationError as err:
             raise APIValidationError({'error': err})
+        # ensure the submission exists
+        get_object_or_404(Instance, uuid=posted_data['submission'])
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 

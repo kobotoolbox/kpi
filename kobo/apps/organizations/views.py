@@ -1,4 +1,4 @@
-from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When, Q
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
@@ -468,32 +468,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             # Include invited users who are not yet part of this organization
             invitation_queryset = OrganizationInvitation.objects.filter(
-                organization_id=organization_id, status='pending'
+                organization_id=organization_id,
+                status__in=['pending', 'resent']
             )
 
-            # Queryset for invited users who have registered
-            registered_invitees = OrganizationUser.objects.filter(
-                user_id__in=invitation_queryset.values('invitee_id')
-            ).select_related('user__extra_details').annotate(
-                role=Case(
-                    When(Exists(owner_subquery), then=Value('owner')),
-                    When(is_admin=True, then=Value('admin')),
-                    default=Value('member'),
-                    output_field=CharField()
-                ),
-                has_mfa_enabled=Exists(mfa_subquery)
+            # Get existing user IDs from the queryset
+            members_user_ids = queryset.values_list('user_id', flat=True)
+            invitees = invitation_queryset.filter(
+                Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             )
-
-            # Queryset for invited users who have not yet registered
-            unregistered_invitees = invitation_queryset.filter(
-                invitee_id__isnull=True
-            )
-
-            queryset = (
-                list(queryset) +
-                list(registered_invitees) +
-                list(unregistered_invitees)
-            )
+            queryset = list(queryset) + list(invitees)
         return queryset
 
 
@@ -598,6 +582,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     ### Update Organization Invite
 
     * Update an organization invite to accept, decline, cancel, expire, or resend.
+    * Update the role of the invitee to `admin` or `member`. Only the owner or admin can update the role.
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
@@ -607,11 +592,22 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >
     >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
 
+    > Payload (Update Status)
+
+    >       {
+    >           "status": "accepted"
+    >       }
+
+    > Payload (Update Role - Only owner or admin can update role)
+
+    >       {
+    >           "role": "admin"
+    >       }
+
     > Response 200
 
     >       {
-    >           "url": "http://kf.kobo.local/api/v2/organizations/
-                org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >           "url": "http://kf.kobo.local/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",  # noqa
     >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >           "status": "accepted",
     >           "invitee_role": "member",

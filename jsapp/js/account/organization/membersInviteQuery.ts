@@ -58,11 +58,17 @@ export interface MemberInvite {
   date_modified: string;
 }
 
-interface SendMemberInviteParams {
+interface MemberInviteRequestBase {
+  role: OrganizationUserRole;
+}
+
+interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[];
-  /** Target role for the invitied users. */
-  role: OrganizationUserRole;
+}
+
+interface MemberInviteUpdate extends MemberInviteRequestBase{
+  status: MemberInviteStatus
 }
 
 /**
@@ -120,17 +126,27 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
  * invalidation).
  */
-export function usePatchMemberInvite(inviteUrl: string) {
+export function usePatchMemberInvite(inviteUrl?: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (newInviteData: Partial<MemberInvite>) => {
-      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData);
+    mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
+      if (inviteUrl) {
+        return fetchPatchUrl<OrganizationMember>(
+          inviteUrl,
+          newInviteData,
+          {
+            errorMessageDisplay: t('There was an error updating this invitation.'),
+          }
+        );
+      } else return null;
     },
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [
-        QueryKeys.organizationMemberInviteDetail,
-        QueryKeys.organizationMembers,
-      ]});
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberInviteDetail],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMembers],
+      });
     },
   });
 }

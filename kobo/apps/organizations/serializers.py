@@ -1,6 +1,12 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -29,7 +35,8 @@ from .constants import (
     INVITE_MEMBER_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
-    INVITE_NOT_FOUND_ERROR
+    INVITE_NOT_FOUND_ERROR,
+    INVITE_ALREADY_EXISTS_ERROR
 )
 from .tasks import transfer_member_data_ownership_to_org
 
@@ -233,6 +240,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         required=True
     )
     invited_by = serializers.SerializerMethodField()
+    organization_name = serializers.ReadOnlyField(source='organization.name')
     role = serializers.ChoiceField(
         choices=[ORG_ADMIN_ROLE, ORG_MEMBER_ROLE],
         default=ORG_MEMBER_ROLE,
@@ -249,6 +257,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             'status',
             'role',
             'invitee_role',
+            'organization_name',
             'created',
             'modified'
         ]
@@ -385,6 +394,18 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         """
         valid_users, external_emails = [], []
         for idx, invitee in enumerate(value):
+            # Check if the invitee is already invited and has not responded yet
+            existing_invites = OrganizationInvitation.objects.filter(
+                Q(invitee__username=invitee) | Q(invitee_identifier=invitee),
+                organization=self.context['request'].user.organization
+            ).exclude(status__in=['declined', 'expired', 'accepted'])
+            if existing_invites:
+                raise serializers.ValidationError(
+                    replace_placeholders(
+                        t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee
+                    )
+                )
+
             try:
                 validate_email(invitee)
                 users = User.objects.filter(email=invitee)
@@ -410,47 +431,95 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     )
         return {'users': valid_users, 'emails': external_emails}
 
-    def validate_status(self, value):
-
-        if not self.instance and not value:
-            raise serializers.ValidationError('Status cannot be empty')
-
-        if value not in OrganizationInviteStatusChoices.values:
-            raise serializers.ValidationError('Status value is wrong')
-
-        if value in [
-            OrganizationInviteStatusChoices.EXPIRED,
-            OrganizationInviteStatusChoices.PENDING,
-        ]:
-            raise serializers.ValidationError(
-                f'`{value}` is reserved and cannot be set'
-            )
-
+    def validate_role(self, value):
         if self.instance:
             request = self.context['request']
             user = get_database_user(request.user)
             organization = self.instance.invited_by.organization
 
-            if value in [
-                OrganizationInviteStatusChoices.CANCELLED,
-                OrganizationInviteStatusChoices.RESENT,
-            ] and not organization.is_admin(user):
+            if not organization.is_admin(user):
                 raise serializers.ValidationError(
                     'You have not enough permissions to perform this action'
                 )
 
+            if self.instance.status == InviteStatusChoices.ACCEPTED:
+                raise serializers.ValidationError(
+                    'Role cannot be changed after acceptance'
+                )
+        return value
+
+    def validate_status(self, value):
+
+        if value in OrganizationInviteStatusChoices.get_calculated_choices():
+            raise serializers.ValidationError(
+                f'`{value}` is reserved and cannot be set'
+            )
+
+        if not self.instance:
+            if (
+                value in OrganizationInviteStatusChoices.get_admin_choices()
+                or value in OrganizationInviteStatusChoices.get_member_choices()
+            ):
+                raise serializers.ValidationError(
+                    f'`{value}` cannot be set a newly created invitation'
+                )
+
+        else:
+            request = self.context['request']
+            user = get_database_user(request.user)
+            organization = self.instance.invited_by.organization
+
+            if (
+                value in OrganizationInviteStatusChoices.get_admin_choices()
+                and not organization.is_admin(user)
+            ):
+                raise serializers.ValidationError(
+                    'You have not enough permissions to perform this action'
+                )
+
+            # if value equals 'resent', all the validations have been already
+            # performed to ensure, only an admin can call this.
+            if value == OrganizationInviteStatusChoices.RESENT:
+                if self.instance.status != OrganizationInviteStatusChoices.PENDING:
+                    raise serializers.ValidationError(
+                        'Invitation cannot be resent'
+                    )
+
+                retry_after = self.instance.modified + timedelta(
+                    minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER
+                )
+                now = timezone.now()
+                if retry_after > now:
+                    remaining_delta = retry_after - now
+                    remaining_minutes = int(remaining_delta.total_seconds() / 60)
+                    raise serializers.ValidationError(
+                        f'Invitation was resent too quickly, '
+                        f'wait for {remaining_minutes} minutes before retrying'
+                    )
+
+                value = OrganizationInviteStatusChoices.PENDING
+
         return value
 
     def update(self, instance, validated_data):
-        status = validated_data.get('status')
-        if status == 'accepted':
-            self._handle_invitee_assignment(instance)
-            self.validate_invitation_acceptance(instance)
-            self._update_invitee_organization(instance)
+        with transaction.atomic():
+            if 'role' in validated_data:
+                # Organization owner or admin can update the role of the invitee
+                instance.invitee_role = validated_data['role']
+                instance.save(update_fields=['invitee_role'])
 
-            # Transfer ownership of invitee's assets to the organization
-            transfer_member_data_ownership_to_org(instance.invitee.id)
-        self._handle_status_update(instance, status)
+            if 'status' in validated_data:
+                status = validated_data.get('status')
+                if status == OrganizationInviteStatusChoices.ACCEPTED:
+                    self._handle_invitee_assignment(instance)
+                    self.validate_invitation_acceptance(instance)
+                    self._update_invitee_organization(instance)
+
+                    # Transfer ownership of invitee's assets to the organization
+                    transfer_member_data_ownership_to_org.delay(
+                        instance.invitee.id
+                    )
+                self._handle_status_update(instance, status)
         return instance
 
     def _handle_invitee_assignment(self, instance):
@@ -467,10 +536,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
 
     def _handle_status_update(self, instance, status):
-        instance.status = getattr(
-            OrganizationInviteStatusChoices, status.upper()
-        )
-        instance.save(update_fields=['status'])
+        instance.status = OrganizationInviteStatusChoices[status.upper()]
+        instance.save(update_fields=['status', 'modified'])
         self._send_status_email(instance, status)
 
     def _send_status_email(self, instance, status):

@@ -9,6 +9,13 @@ interface IEnum {
 }
 
 /**
+ * Make all fields of a type or interface nullable
+ */
+export type Nullable<T> = {
+  [P in keyof T]: T[P] | null;
+};
+
+/**
  * An enum creator function. Will create a frozen object of `foo: "foo"` pairs.
  * Will make sure the returned values are unique.
  */
