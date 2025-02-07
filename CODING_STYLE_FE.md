@@ -45,11 +45,6 @@ Manual Linting Rules
   - `import cx from 'classnames';` for classnames import
 
 
-
-[^1]: example TS/JSDoc magic to deprecate dependencies:
-
-
-
 ### Code colocation
 
 Main principle is, keep related code close for modularity. Organize by feature/usage/concept, not type (images at images, etc.). Sanity check question: if requirements would change, what parts of code would likely be changed or deleted together as a bundle?
