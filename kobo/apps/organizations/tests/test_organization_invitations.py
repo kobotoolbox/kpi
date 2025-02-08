@@ -151,7 +151,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         # Update invitation like it was created 10 minutes ago to test
         # two resent PATCH requests in a row.
         fake_date_created = timezone.now() - timedelta(
-            minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER + 1
+            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 60
         )
         OrganizationInvitation.objects.filter(id=invitation.pk).update(
             created=fake_date_created, modified=fake_date_created
@@ -182,7 +182,7 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         # Update invitation like it was created 10 minutes ago to test
         # two resent PATCH requests in a row.
         fake_date_created = timezone.now() - timedelta(
-            minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER + 1
+            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 60
         )
         OrganizationInvitation.objects.filter(id=invitation.pk).update(
             created=fake_date_created, modified=fake_date_created
@@ -203,8 +203,9 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.assertContains(
             response,
             'Invitation was resent too quickly',
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         )
+        assert 'Retry-After' in response.headers
 
     def test_admin_cannot_resend_invitation_if_not_pending(self):
         """
