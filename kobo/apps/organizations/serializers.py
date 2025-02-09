@@ -23,10 +23,10 @@ from kobo.apps.organizations.models import (
 )
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import InviteStatusChoices
+from kpi.exceptions import RetryAfterAPIException
 from kpi.utils.cache import void_cache_for_request
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.placeholders import replace_placeholders
-
 from .constants import (
     ORG_ADMIN_ROLE,
     ORG_MEMBER_ROLE,
@@ -486,15 +486,16 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     )
 
                 retry_after = self.instance.modified + timedelta(
-                    minutes=settings.ORG_INVITATION_RESENT_RESET_AFTER
+                    seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
                 )
                 now = timezone.now()
                 if retry_after > now:
                     remaining_delta = retry_after - now
-                    remaining_minutes = int(remaining_delta.total_seconds() / 60)
-                    raise serializers.ValidationError(
+                    remaining_seconds = int(remaining_delta.total_seconds())
+                    raise RetryAfterAPIException(
                         f'Invitation was resent too quickly, '
-                        f'wait for {remaining_minutes} minutes before retrying'
+                        f'wait for {remaining_seconds} seconds before retrying',
+                        retry_after=remaining_seconds,
                     )
 
                 value = OrganizationInviteStatusChoices.PENDING
