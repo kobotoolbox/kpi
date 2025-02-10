@@ -1,8 +1,8 @@
-import React from 'react';
-import Button from 'js/components/common/button';
-import styles from './projectActions.module.scss';
+import React from 'react'
+import Button from 'js/components/common/button'
+import styles from './projectActions.module.scss'
 
-const NO_PROJECT_SELECTED = t('No project selected');
+const NO_PROJECT_SELECTED = t('No project selected')
 
 /**
  * Inactive Quick Actions buttons. Show these when zero projects are selected
@@ -41,5 +41,5 @@ export default function ProjectQuickActionsEmpty() {
         tooltipPosition='right'
       />
     </div>
-  );
+  )
 }

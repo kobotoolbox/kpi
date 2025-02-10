@@ -1,11 +1,18 @@
-import {IconName} from 'jsapp/fonts/k-icons';
+import { IconName } from 'jsapp/fonts/k-icons'
 
 /**
  * A list of all shareable constants for the application.
  */
 
 interface IEnum {
-  [val: string]: string;
+  [val: string]: string
+}
+
+/**
+ * Make all fields of a type or interface nullable
+ */
+export type Nullable<T> = {
+  [P in keyof T]: T[P] | null
 }
 
 /**
@@ -13,42 +20,40 @@ interface IEnum {
  * Will make sure the returned values are unique.
  */
 export function createEnum(values: string[]): IEnum {
-  const newEnum: IEnum = {};
+  const newEnum: IEnum = {}
   new Set(values).forEach((value) => {
-    newEnum[value] = value;
-  });
-  return Object.freeze(newEnum);
+    newEnum[value] = value
+  })
+  return Object.freeze(newEnum)
 }
 
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
-  let rootPathEl = document.head.querySelector<HTMLMetaElement>(
-    'meta[name=kpi-root-path]'
-  );
-  let rootPath = '';
+  let rootPathEl = document.head.querySelector<HTMLMetaElement>('meta[name=kpi-root-path]')
+  let rootPath = ''
   if (rootPathEl === null) {
     // @ts-expect-error: ℹ️ global 'expect' indicates we're in a unit test
     if (!globalThis.expect) {
-      console.error('no kpi-root-path meta tag set. defaulting to ""');
+      console.error('no kpi-root-path meta tag set. defaulting to ""')
     }
   } else {
     // Strip trailing slashes
-    rootPath = rootPathEl.content.replace(/\/*$/, '');
+    rootPath = rootPathEl.content.replace(/\/*$/, '')
   }
-  return `${window.location.protocol}//${window.location.host}${rootPath}`;
-})();
+  return `${window.location.protocol}//${window.location.host}${rootPath}`
+})()
 
 export enum EnketoActions {
   edit = 'edit',
-  view = 'view'
+  view = 'view',
 }
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0,
-};
+}
 
 export const KEY_CODES = Object.freeze({
   TAB: 9,
@@ -56,7 +61,7 @@ export const KEY_CODES = Object.freeze({
   ESC: 27,
   SPACE: 32,
   NBSP: 160, // non-breakable space
-});
+})
 
 export enum KeyNames {
   Enter = 'Enter',
@@ -85,26 +90,26 @@ export const MODAL_TYPES = {
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
-};
+}
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
-});
+})
 
 export const update_states = {
   UNSAVED_CHANGES: -1,
   UP_TO_DATE: true,
   PENDING_UPDATE: false,
   SAVE_FAILED: 'SAVE_FAILED',
-};
+}
 
 export const AVAILABLE_FORM_STYLES = [
-  {value: '', label: t('Default - single page')},
-  {value: 'theme-grid no-text-transform', label: t('Grid theme')},
-  {value: 'theme-grid', label: t('Grid theme with headings in ALL CAPS')},
-  {value: 'pages', label: t('Multiple pages')},
+  { value: '', label: t('Default - single page') },
+  { value: 'theme-grid no-text-transform', label: t('Grid theme') },
+  { value: 'theme-grid', label: t('Grid theme with headings in ALL CAPS') },
+  { value: 'pages', label: t('Multiple pages') },
   {
     value: 'theme-grid pages no-text-transform',
     label: t('Grid theme + Multiple pages'),
@@ -113,7 +118,7 @@ export const AVAILABLE_FORM_STYLES = [
     value: 'theme-grid pages',
     label: t('Grid theme + Multiple pages + headings in ALL CAPS'),
   },
-];
+]
 
 /**
  * All possible asset types.
@@ -127,13 +132,13 @@ export enum AssetTypeName {
 }
 
 interface AssetTypeDefinition {
-  id: AssetTypeName;
-  label: string;
+  id: AssetTypeName
+  label: string
 }
 
 type AssetTypes = {
-  [P in AssetTypeName]: AssetTypeDefinition;
-};
+  [P in AssetTypeName]: AssetTypeDefinition
+}
 
 export const ASSET_TYPES: AssetTypes = {
   question: {
@@ -156,12 +161,12 @@ export const ASSET_TYPES: AssetTypes = {
     id: AssetTypeName.collection,
     label: t('collection'),
   },
-};
+}
 
-export type AssetFileType = 'map_layer' | 'form_media';
+export type AssetFileType = 'map_layer' | 'form_media'
 
 export const ASSET_FILE_TYPES: {
-  [id in AssetFileType]: {id: AssetFileType; label: string};
+  [id in AssetFileType]: { id: AssetFileType; label: string }
 } = {
   map_layer: {
     id: 'map_layer',
@@ -171,9 +176,9 @@ export const ASSET_FILE_TYPES: {
     id: 'form_media',
     label: t('form media'),
   },
-};
+}
 
-export const USAGE_ASSETS_PER_PAGE = 8;
+export const USAGE_ASSETS_PER_PAGE = 8
 
 /**
  * These are the types of survey rows that users can create in FormBuilder and
@@ -211,14 +216,14 @@ export enum QuestionTypeName {
 }
 
 interface QuestionTypeDefinition {
-  label: string;
-  icon: IconName;
-  id: QuestionTypeName;
+  label: string
+  icon: IconName
+  id: QuestionTypeName
 }
 
 type QuestionTypes = {
-  [P in QuestionTypeName]: QuestionTypeDefinition;
-};
+  [P in QuestionTypeName]: QuestionTypeDefinition
+}
 
 /*
  * When adding new question type please remember to update those places:
@@ -229,8 +234,8 @@ type QuestionTypes = {
  *   - isRowSpecialLabelHolder in assetUtils.ts
  *   - renderQuestionTypeIcon in assetUtils.ts
  * 5. If question doesn't hold data, update:
- *   - getDisplayData in bulkEditSubmissionsForm.es6
- *   - getDisplayedColumns in table.es6
+ *   - getDisplayData in bulkEditSubmissionsForm.js
+ *   - getDisplayedColumns in table.js
  * 6. Update renderResponseData in submissionDataTable.tsx
  * 7. Update getSubmissionDisplayData in submissionUtils.ts
  * 8. If it's media type update renderAttachment in submissionDataTable.tsx
@@ -245,7 +250,7 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     icon: 'qt-acknowledge',
     id: QuestionTypeName.acknowledge,
   },
-  audio: {label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio},
+  audio: { label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio },
   'background-audio': {
     label: t('Background Audio'),
     icon: 'qt-background-audio',
@@ -261,7 +266,7 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     icon: 'qt-calculate',
     id: QuestionTypeName.calculate,
   },
-  date: {label: t('Date'), icon: 'qt-date', id: QuestionTypeName.date},
+  date: { label: t('Date'), icon: 'qt-date', id: QuestionTypeName.date },
   datetime: {
     label: t('Date & time'),
     icon: 'qt-date-time',
@@ -277,16 +282,16 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     icon: 'qt-external-xml',
     id: QuestionTypeName['xml-external'],
   },
-  file: {label: t('File'), icon: 'qt-file', id: QuestionTypeName.file},
+  file: { label: t('File'), icon: 'qt-file', id: QuestionTypeName.file },
   geopoint: {
     label: t('Point'),
     icon: 'qt-point',
     id: QuestionTypeName.geopoint,
   },
-  geoshape: {label: t('Area'), icon: 'qt-area', id: QuestionTypeName.geoshape},
-  geotrace: {label: t('Line'), icon: 'qt-line', id: QuestionTypeName.geotrace},
-  hidden: {label: t('Hidden'), icon: 'qt-hidden', id: QuestionTypeName.hidden},
-  image: {label: t('Photo'), icon: 'qt-photo', id: QuestionTypeName.image},
+  geoshape: { label: t('Area'), icon: 'qt-area', id: QuestionTypeName.geoshape },
+  geotrace: { label: t('Line'), icon: 'qt-line', id: QuestionTypeName.geotrace },
+  hidden: { label: t('Hidden'), icon: 'qt-hidden', id: QuestionTypeName.hidden },
+  image: { label: t('Photo'), icon: 'qt-photo', id: QuestionTypeName.image },
   integer: {
     label: t('Number'),
     icon: 'qt-number',
@@ -297,10 +302,10 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     icon: 'qt-question-matrix',
     id: QuestionTypeName.kobomatrix,
   },
-  note: {label: t('Note'), icon: 'qt-note', id: QuestionTypeName.note},
-  range: {label: t('Range'), icon: 'qt-range', id: QuestionTypeName.range},
-  rank: {label: t('Ranking'), icon: 'qt-ranking', id: QuestionTypeName.rank},
-  score: {label: t('Rating'), icon: 'qt-rating', id: QuestionTypeName.score},
+  note: { label: t('Note'), icon: 'qt-note', id: QuestionTypeName.note },
+  range: { label: t('Range'), icon: 'qt-range', id: QuestionTypeName.range },
+  rank: { label: t('Ranking'), icon: 'qt-ranking', id: QuestionTypeName.rank },
+  score: { label: t('Rating'), icon: 'qt-rating', id: QuestionTypeName.score },
   select_multiple: {
     label: t('Select Many'),
     icon: 'qt-select-many',
@@ -321,10 +326,10 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     icon: 'qt-select-one-from-file',
     id: QuestionTypeName.select_one_from_file,
   },
-  text: {label: t('Text'), icon: 'qt-text', id: QuestionTypeName.text},
-  time: {label: t('Time'), icon: 'qt-time', id: QuestionTypeName.time},
-  video: {label: t('Video'), icon: 'qt-video', id: QuestionTypeName.video},
-});
+  text: { label: t('Text'), icon: 'qt-text', id: QuestionTypeName.text },
+  time: { label: t('Time'), icon: 'qt-time', id: QuestionTypeName.time },
+  video: { label: t('Video'), icon: 'qt-video', id: QuestionTypeName.video },
+})
 
 /**
  * These are the types of survey rows that users can create in FormBuilder (as
@@ -350,7 +355,7 @@ export const META_QUESTION_TYPES = createEnum([
   MetaQuestionTypeName.phonenumber,
   MetaQuestionTypeName.audit,
   MetaQuestionTypeName['start-geopoint'],
-]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
+]) as { [P in MetaQuestionTypeName]: MetaQuestionTypeName }
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
@@ -367,11 +372,11 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_tags',
   '_index',
   '__version__',
-]);
+])
 
-export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails';
+export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails'
 
-export const NAME_MAX_LENGTH = 255;
+export const NAME_MAX_LENGTH = 255
 
 /**
  * for Backend calls, see their definitions at `kpi/filters.py`
@@ -386,15 +391,9 @@ export const COMMON_QUERIES = Object.freeze({
   qb: '(asset_type:question OR asset_type:block)',
   qbt: '(asset_type:question OR asset_type:block OR asset_type:template)',
   qbtc: '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)',
-});
+})
 
-export const ACCESS_TYPES = createEnum([
-  'owned',
-  'shared',
-  'public',
-  'subscribed',
-  'superuser',
-]);
+export const ACCESS_TYPES = createEnum(['owned', 'shared', 'public', 'subscribed', 'superuser'])
 
 /**
  * These are the types of survey rows that mark the beginning of a group. They
@@ -414,7 +413,7 @@ export const GROUP_TYPES_BEGIN = createEnum([
   GroupTypeBeginName.begin_rank,
   GroupTypeBeginName.begin_kobomatrix,
   GroupTypeBeginName.begin_repeat,
-]) as {[P in GroupTypeBeginName]: GroupTypeBeginName};
+]) as { [P in GroupTypeBeginName]: GroupTypeBeginName }
 
 /**
  * These are the types of survey rows that mark the ending of a group. They
@@ -428,13 +427,9 @@ export enum GroupTypeEndName {
   end_repeat = 'end_repeat',
 }
 
-export const GROUP_TYPES_END = createEnum([
-  'end_group',
-  'end_score',
-  'end_rank',
-  'end_kobomatrix',
-  'end_repeat',
-]) as {[P in GroupTypeEndName]: GroupTypeEndName};
+export const GROUP_TYPES_END = createEnum(['end_group', 'end_score', 'end_rank', 'end_kobomatrix', 'end_repeat']) as {
+  [P in GroupTypeEndName]: GroupTypeEndName
+}
 
 /**
  * These are some special types of survey rows.
@@ -445,10 +440,10 @@ export enum MiscRowTypeName {
 }
 
 // a custom question type for score
-export const SCORE_ROW_TYPE = MiscRowTypeName.score__row;
+export const SCORE_ROW_TYPE = MiscRowTypeName.score__row
 
 // a custom question type for rank
-export const RANK_LEVEL_TYPE = MiscRowTypeName.rank__level;
+export const RANK_LEVEL_TYPE = MiscRowTypeName.rank__level
 
 export const ANY_ROW_TYPE_NAMES = {
   ...QuestionTypeName,
@@ -456,7 +451,7 @@ export const ANY_ROW_TYPE_NAMES = {
   ...GroupTypeBeginName,
   ...GroupTypeEndName,
   ...MiscRowTypeName,
-};
+}
 /**
  * These are all possible types of asset survey rows.
  */
@@ -465,32 +460,32 @@ export type AnyRowTypeName =
   | MetaQuestionTypeName
   | GroupTypeBeginName
   | GroupTypeEndName
-  | MiscRowTypeName;
+  | MiscRowTypeName
 
 export const CHOICE_LISTS = Object.freeze({
   SELECT: 'select_from_list_name',
   MATRIX: 'kobo--matrix_list',
   SCORE: 'kobo--score-choices',
   RANK: 'kobo--rank-items',
-});
+})
 
 export const MATRIX_PAIR_PROPS = {
   inSurvey: CHOICE_LISTS.MATRIX,
   inChoices: 'list_name',
-};
+}
 
 export const DEPLOYMENT_CATEGORIES = Object.freeze({
-  Deployed: {id: 'Deployed', label: t('Deployed')},
-  Draft: {id: 'Draft', label: t('Draft')},
-  Archived: {id: 'Archived', label: t('Archived')},
-});
+  Deployed: { id: 'Deployed', label: t('Deployed') },
+  Draft: { id: 'Draft', label: t('Draft') },
+  Archived: { id: 'Archived', label: t('Archived') },
+})
 
-export const QUERY_LIMIT_DEFAULT = 5000;
+export const QUERY_LIMIT_DEFAULT = 5000
 
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,
   connect_projects: 30,
-});
+})
 
 export enum CollectionMethodName {
   offline_url = 'offline_url',
@@ -503,16 +498,16 @@ export enum CollectionMethodName {
 }
 
 interface CollectionMethodDefinition {
-  id: CollectionMethodName;
-  label: string;
-  desc: string;
+  id: CollectionMethodName
+  label: string
+  desc: string
   /** This is being used with android application Kobo Collect option */
-  url?: string;
+  url?: string
 }
 
 type CollectionMethods = {
-  [P in CollectionMethodName]: CollectionMethodDefinition;
-};
+  [P in CollectionMethodName]: CollectionMethodDefinition
+}
 
 export const COLLECTION_METHODS: CollectionMethods = Object.freeze({
   offline_url: {
@@ -523,17 +518,23 @@ export const COLLECTION_METHODS: CollectionMethods = Object.freeze({
   url: {
     id: CollectionMethodName.url,
     label: t('Online-Only (multiple submissions)'),
-    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
+    desc: t(
+      'This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.',
+    ),
   },
   single_url: {
     id: CollectionMethodName.single_url,
     label: t('Online-Only (single submission)'),
-    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
+    desc: t(
+      'This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.',
+    ),
   },
   single_once_url: {
     id: CollectionMethodName.single_once_url,
     label: t('Online-only (once per respondent)'),
-    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
+    desc: t(
+      'This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.',
+    ),
   },
   iframe_url: {
     id: CollectionMethodName.iframe_url,
@@ -551,7 +552,7 @@ export const COLLECTION_METHODS: CollectionMethods = Object.freeze({
     desc: t('Use this option to collect data in the field with your Android device.'),
     url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
   },
-});
+})
 
 export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
   value: {
@@ -560,13 +561,13 @@ export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
   parameters: {
     id: 'parameters',
   },
-});
+})
 
 export const FUNCTION_TYPE = Object.freeze({
   function: {
     id: 'function',
   },
-});
+})
 
 export const FUSE_OPTIONS = {
   isCaseSensitive: false,
@@ -576,25 +577,21 @@ export const FUSE_OPTIONS = {
   ignoreFieldNorm: true,
   threshold: 0.2,
   ignoreLocation: true,
-};
+}
 
 export const DND_TYPES = {
   ANALYSIS_QUESTION: 'qualitative-analysis-question-row',
-};
+}
 /*
   Stripe Subscription statuses that are shown as active in the UI.
   Subscriptions with a status in this array will show an option to 'Manage'.
 */
-export const ACTIVE_STRIPE_STATUSES = Object.freeze([
-  'active',
-  'past_due',
-  'trialing',
-]);
+export const ACTIVE_STRIPE_STATUSES = Object.freeze(['active', 'past_due', 'trialing'])
 
 /*
   The ratio of current usage / usage limit at which we display soft 'warning' messages on the frontend
 */
-export const USAGE_WARNING_RATIO = 0.8;
+export const USAGE_WARNING_RATIO = 0.8
 
 // NOTE: The default export is mainly for tests
 const constants = {
@@ -624,10 +621,10 @@ const constants = {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
   USAGE_WARNING_RATIO,
-};
+}
 
-export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
+export const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html'
 
-export const XML_VALUES_OPTION_VALUE = 'xml_values';
+export const XML_VALUES_OPTION_VALUE = 'xml_values'
 
-export default constants;
+export default constants

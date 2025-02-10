@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -335,75 +336,75 @@ class AccessLogViewSet(AuditLogViewSet):
     serializer_class = AccessLogSerializer
 
 
-class AllProjectHistoryLogViewSet(AuditLogViewSet):
-    """
+def generate_ph_view_set_logstring(description, path, example_path, all):
+    return f"""
     Project history logs
 
-    Lists all project history logs for all projects. Only available to superusers.
+    {description}
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/project-history-logs/
+    <b>GET</b> {path}
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi-url]/project-history-logs/
+    >       curl -X GET https://[kpi-url]{example_path}
 
     > Response 200
 
-    >       {
+    >       {{
     >           "count": 10,
     >           "next": null,
     >           "previous": null,
     >           "results": [
-    >                {
+    >                {{
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u12345",
     >                    "username": "admin",
     >                    "action": "modify-user-permissions"
-    >                    "metadata": {
+    >                    "metadata": {{
     >                        "source": "Firefox (Ubuntu)",
     >                        "ip_address": "172.18.0.6",
     >                        "asset_uid": "a678910",
     >                        "log_subtype": "permissions",
     >                        "permissions":
-    >                            {
+    >                            {{
     >                                "username": "user1",
     >                                "added": ["add_submissions", "view_submissions"],
     >                                "removed": ["change_asset"],
-    >                            }
-    >                    },
+    >                            }}
+    >                    }},
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
+    >                }},
+    >                {{
     >                    "user": "http://localhost/api/v2/users/admin/",
     >                    "user_uid": "u56789",
     >                    "username": "someuser",
     >                    "action": "update-settings",
-    >                    "metadata": {
+    >                    "metadata": {{
     >                        "source": "Firefox (Ubuntu)",
     >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a111213",
+    >                        "asset_uid": {"a111213" if all else "a678910"},
     >                        "log_subtype": "project",
     >                        "settings":
-    >                            {
+    >                            {{
     >                                "description":
-    >                                    {
+    >                                    {{
     >                                        "old": "old_description",
     >                                        "new": "new_description",
-    >                                    }
+    >                                    }}
     >                                "countries":
-    >                                    {
+    >                                    {{
     >                                        "added": ["USA"],
     >                                        "removed": ["ALB"],
-    >                                    }
-    >                            }
-    >                     },
+    >                                    }}
+    >                            }}
+    >                     }},
     >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
+    >                }},
     >                ...
     >           ]
-    >       }
+    >       }}
 
     Results from this endpoint can be filtered by a Boolean query
     specified in the `q` parameter.
@@ -422,7 +423,19 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
         c. user__is_superuser
 
-    4. action
+    4. metadata__*
+
+        b. metadata__source
+
+        c. metadata__ip_address
+
+        d. metadata__asset_uid
+
+        e. metadata__log_subtype
+
+        * available subtypes: "project", "permission"
+
+    5. action
 
         available actions:
 
@@ -459,21 +472,6 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     >        update-name
     >        update-settings
     >        update-qa
-
-    4. metadata__*
-
-        b. metadata__source
-
-        c. metadata__ip_address
-
-        d. metadata__asset_uid
-
-        e. metadata__log_subtype
-
-           available subtypes:
-
-                project
-                permission
 
     **Filterable fields by action:**
 
@@ -590,8 +588,18 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         b. metadata__settings__description__new
 
     This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/project-history-logs/?offset=100&limit=50
+    >      curl -X GET https://[kpi-url]{example_path}?offset=100&limit=50
+
     """
+
+
+class AllProjectHistoryLogViewSet(AuditLogViewSet):
+    __doc__ = generate_ph_view_set_logstring(
+        'List all project history logs for all projects. Only available to superusers.',
+        '/api/v2/project-history-logs',
+        '/api/v2/project-history-logs',
+        True,
+    )
 
     queryset = ProjectHistoryLog.objects.all().order_by('-date_created')
     serializer_class = ProjectHistoryLogSerializer
@@ -618,12 +626,14 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
                 'type': 'project_history_logs_export',
             },
         )
-
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.ProjectHistoryLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.ProjectHistoryLogExportTask',
+            )
         )
+
         return Response(
             {f'status: {export_task.status}'},
             status=status.HTTP_202_ACCEPTED,
@@ -633,264 +643,15 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
-    """
-    Project history logs
-
-    Lists all project history logs for a single project. Only available to
-    those with 'manage_asset' permissions.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/history/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/
-
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "action": "modify-user-permissions"
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a678910",
-    >                        "log_subtype": "permissions",
-    >                        "permissions":
-    >                            {
-    >                                "username": "user1",
-    >                                "added": ["add_submissions", "view_submissions"],
-    >                                "removed": ["change_asset"],
-    >                            }
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u56789",
-    >                    "username": "someuser",
-    >                    "action": "update-settings",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "ip_address": "172.18.0.6",
-    >                        "asset_uid": "a111213",
-    >                        "log_subtype": "project",
-    >                        "settings":
-    >                            {
-    >                                "description":
-    >                                    {
-    >                                        "old": "old_description",
-    >                                        "new": "new_description",
-    >                                    }
-    >                                "countries":
-    >                                    {
-    >                                        "added": ["USA"],
-    >                                        "removed": ["ALB"],
-    >                                    }
-    >                            }
-    >                     },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    Results from this endpoint can be filtered by a Boolean query
-    specified in the `q` parameter.
-
-    **Filterable fields for all project history logs:**
-
-    1. date_created
-
-    2. user_uid
-
-    3. user__*
-
-        a. user__username
-
-        b. user__email
-
-        c. user__is_superuser
-
-    4. action
-
-        available actions:
-
-    >        add-media
-    >        add-submission
-    >        allow-anonymous-submissions
-    >        archive
-    >        clone-permissions
-    >        connect-project
-    >        delete-media
-    >        delete-service
-    >        delete-submission
-    >        deploy
-    >        disable-sharing
-    >        disallow-anonymous-submissions
-    >        disconnect-project
-    >        enable-sharing
-    >        export
-    >        modify-imported-fields
-    >        modify-service
-    >        modify-sharing
-    >        modify-submission
-    >        modify-user-permissions
-    >        redeploy
-    >        register-service
-    >        replace-form
-    >        share-data-publicly
-    >        share-form-publicly
-    >        transfer
-    >        unarchive
-    >        unshare-data-publicly
-    >        unshare-form-publicly
-    >        update-content
-    >        update-name
-    >        update-settings
-    >        update-qa
-
-    4. metadata__*
-
-        b. metadata__source (browser/OS)
-
-        c. metadata__ip_address
-
-        d. metadata__asset_uid
-
-        e. metadata__log_subtype
-
-           available subtypes:
-
-                project
-                permission
-
-    **Filterable fields by action:**
-
-    * add-media
-
-        a. metadata__asset-file__uid
-
-        b. metadata__asset-file__filename
-
-    * add-submission
-
-        a. metadata__submission__submitted_by
-
-    * archive
-
-        a. metadata__latest_version_uid
-
-    * clone-permissions
-
-        a. metadata__cloned_from
-
-    * connect-project
-
-        a. metadata__paired-data__source_uid
-
-        b. metadata__paired-data__source_name
-
-    * delete-media
-
-        a. metadata__asset-file__uid
-
-        b. metadata__asset-file__filename
-
-    * delete-service
-
-        a. metadata__hook__uid
-
-        b. metadata__hook__endpoint
-
-        c. metadata__hook__active
-
-    * delete-submission
-
-        a. metadata__submission__submitted_by
-
-    * deploy
-
-        a. metadata__latest_version_uid
-
-        b. metadata__latest_deployed_version_uid
-
-    * disconnect-project
-
-        a. metadata__paired-data__source_uid
-
-        b. metadata__paired-data__source_name
-
-    * modify-imported-fields
-
-        a. metadata__paired-data__source_uid
-
-        b. metadata__paired-data__source_name
-
-    * modify-service
-
-        a. metadata__hook__uid
-
-        b. metadata__hook__endpoint
-
-        c. metadata__hook__active
-
-    * modify-submission
-
-        a. metadata__submission__submitted_by
-
-        b. metadata__submission__status (only present if changed)
-
-    * modify-user-permissions
-
-        a. metadata__permissions__username
-
-    * redeploy
-
-        a. metadata__latest_version_uid
-
-        b. metadata__latest_deployed_version_uid
-
-    * register-service
-
-        a. metadata__hook__uid
-
-        b. metadata__hook__endpoint
-
-        c. metadata__hook__active
-
-    * transfer
-
-        a. metadata__username
-
-    * unarchive
-
-        a. metadata__latest_version_uid
-
-    * update-name
-
-        a. metadata__name__old
-
-        b. metadata__name__new
-
-    * update-settings
-
-        a. metadata__settings__description__old
-
-        b. metadata__settings__description__new
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/assets/ap732ywWxc/history/?offset=100&limit=50
-
+    __doc__ = (
+        generate_ph_view_set_logstring(
+            'Lists all project history logs for a single project. Only available to'
+            " those with 'manage_asset' permissions.",
+            '/api/v2/assets/<code>{asset_uid}</code>/history/',
+            '/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/history/',
+            False,
+        )
+        + """
     ### Actions
 
     Retrieves distinct actions performed on the asset.
@@ -904,16 +665,16 @@ class ProjectHistoryLogViewSet(
 
     > Response 200
 
-    >   {
-    >       "actions": [
-    >           "update-name",
-    >           "update-content",
-    >           "deploy",
-    >           ...
-    >       ]
-    >   }
-
+    >       {
+    >           "actions": [
+    >               "update-name",
+    >               "update-content",
+    >               "deploy",
+    >               ...
+    >           ]
+    >       }
     """
+    )
 
     serializer_class = ProjectHistoryLogSerializer
     model = ProjectHistoryLog
@@ -961,10 +722,12 @@ class ProjectHistoryLogViewSet(
             },
         )
 
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.ProjectHistoryLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.ProjectHistoryLogExportTask',
+            )
         )
         return Response(
             {f'status: {export_task.status}'},
@@ -985,12 +748,14 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
                 'type': 'access_logs_export',
             },
         )
-
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.AccessLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.AccessLogExportTask',
+            )
         )
+
         return Response(
             {f'status: {export_task.status}'},
             status=status.HTTP_202_ACCEPTED,

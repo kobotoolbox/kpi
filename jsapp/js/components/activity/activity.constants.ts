@@ -4,29 +4,32 @@
  */
 export enum AuditActions {
   'add-media' = 'add-media',
+  'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
-  'archive' = 'archive',
+  archive = 'archive',
   'clone-permissions' = 'clone-permissions',
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
   'delete-service' = 'delete-service',
-  'deploy' = 'deploy',
+  'delete-submission' = 'delete-submission',
+  deploy = 'deploy',
   'disable-sharing' = 'disable-sharing',
   'disallow-anonymous-submissions' = 'disallow-anonymous-submissions',
   'disconnect-project' = 'disconnect-project',
   'enable-sharing' = 'enable-sharing',
-  'export' = 'export',
+  export = 'export',
   'modify-imported-fields' = 'modify-imported-fields',
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
+  'modify-submission' = 'modify-submission',
   'modify-user-permissions' = 'modify-user-permissions',
-  'redeploy' = 'redeploy',
+  redeploy = 'redeploy',
   'register-service' = 'register-service',
   'replace-form' = 'replace-form',
   'share-data-publicly' = 'share-data-publicly',
   'share-form-publicly' = 'share-form-publicly',
-  'transfer' = 'transfer',
-  'unarchive' = 'unarchive',
+  transfer = 'transfer',
+  unarchive = 'unarchive',
   'unshare-data-publicly' = 'unshare-data-publicly',
   'unshare-form-publicly' = 'unshare-form-publicly',
   'update-content' = 'update-content',
@@ -37,12 +40,12 @@ export enum AuditActions {
 
 type AuditActionTypes = {
   [P in AuditActions]: {
-    name: AuditActions;
-    label: string;
-    message: string;
-    order: number;
-  };
-};
+    name: AuditActions
+    label: string
+    message: string
+    order: number
+  }
+}
 
 export const AUDIT_ACTION_TYPES: AuditActionTypes = {
   'add-media': {
@@ -51,13 +54,19 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('add media attachment'),
     message: t('##username## added a media attachment'),
   },
+  'add-submission': {
+    order: 30,
+    name: AuditActions['add-submission'],
+    label: t('add submission'),
+    message: t('##username## added a submission'),
+  },
   'allow-anonymous-submissions': {
     order: 16,
     name: AuditActions['allow-anonymous-submissions'],
     label: t('enable anonymous submissions'),
     message: t('##username## enabled anonymous submissions'),
   },
-  'archive': {
+  archive: {
     order: 4,
     name: AuditActions['archive'],
     label: t('archive project'),
@@ -87,7 +96,13 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('delete a REST service'),
     message: t('##username## deleted a REST service'),
   },
-  'deploy': {
+  'delete-submission': {
+    order: 32,
+    name: AuditActions['delete-submission'],
+    label: t('delete a submission'),
+    message: t('##username## deleted a submission'),
+  },
+  deploy: {
     order: 2,
     name: AuditActions['deploy'],
     label: t('deploy project'),
@@ -117,7 +132,7 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('enable data sharing'),
     message: t('##username## enabled data sharing'),
   },
-  'export': {
+  export: {
     order: 9,
     name: AuditActions['export'],
     label: t('export data'),
@@ -141,13 +156,19 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('modify data sharing'),
     message: t('##username## modified data sharing'),
   },
+  'modify-submission': {
+    order: 31,
+    name: AuditActions['modify-submission'],
+    label: t('edit submission'),
+    message: t('##username## edited a submission'),
+  },
   'modify-user-permissions': {
     order: 12,
     name: AuditActions['modify-user-permissions'],
     label: t('update permissions'),
     message: t('##username## updated permissions of ##username2##'),
   },
-  'redeploy': {
+  redeploy: {
     order: 3,
     name: AuditActions['redeploy'],
     label: t('redeploy project'),
@@ -177,13 +198,13 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('make project public'),
     message: t('##username## made the project publicly accessible'),
   },
-  'transfer': {
+  transfer: {
     order: 20,
     name: AuditActions['transfer'],
     label: t('transfer project ownership'),
     message: t('##username## transferred project ownership to ##username2##'),
   },
-  'unarchive': {
+  unarchive: {
     order: 5,
     name: AuditActions['unarchive'],
     label: t('unarchive project'),
@@ -225,9 +246,11 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     label: t('modify qualitative analysis questions'),
     message: t('##username## modified qualitative analysis questions'),
   },
-};
+}
 
-export const FALLBACK_MESSAGE = '##username## did action ##action##';
+export const FALLBACK_MESSAGE = '##username## did action ##action##'
+
+export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
 /**
  * All possible log item types.
@@ -249,28 +272,28 @@ export enum AuditSubTypes {
 
 export interface ActivityLogsItem {
   /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
-  user: string;
-  user_uid: string;
-  username: string;
+  user: string
+  user_uid: string
+  username: string
   /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
-  date_created: string;
-  action: AuditActions;
-  log_type: AuditTypes;
+  date_created: string
+  action: AuditActions
+  log_type: AuditTypes
   metadata: {
     /** E.g. "Firefox (Ubuntu)" */
-    source: string;
-    asset_uid: string;
+    source: string
+    asset_uid: string
     /** E.g. "71.235.120.86" */
-    ip_address: string;
-    log_subtype: AuditSubTypes;
-    old_name?: string;
-    new_name?: string;
-    latest_deployed_version_id?: string;
-    latest_version_id?: string;
-    version_uid?: string;
-    username?: string;
+    ip_address: string
+    log_subtype: AuditSubTypes
+    old_name?: string
+    new_name?: string
+    latest_deployed_version_id?: string
+    latest_version_id?: string
+    version_uid?: string
+    username?: string
     permissions?: {
-      username: string;
-    };
-  };
+      username: string
+    }
+  }
 }

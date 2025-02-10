@@ -8,10 +8,10 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
+from import_export_celery.admin_actions import create_export_job_action
 from organizations.base_admin import BaseOrganizationUserAdmin
 
 from kobo.apps.kobo_auth.shortcuts import User
-
 from ..forms import OrgUserAdminForm
 from ..models import Organization, OrganizationUser
 from ..tasks import transfer_member_data_ownership_to_org
@@ -117,6 +117,15 @@ class OrgUserResource(resources.ModelResource):
         column_name='user',
         widget=ForeignKeyWidget(User, field='username'),
     )
+    organization = Field(
+        attribute='organization',
+        column_name='organization',
+        widget=ForeignKeyWidget(Organization, field='name'),
+    )
+    organization_id = Field(
+        attribute='organization_id',
+        column_name='organization_id',
+    )
 
     class Meta:
         model = OrganizationUser
@@ -161,10 +170,14 @@ class OrgUserResource(resources.ModelResource):
 @admin.register(OrganizationUser)
 class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
     resource_classes = [OrgUserResource]
-    search_fields = ('user__username',)
+    search_fields = ('user__username', 'organization__name', 'organization__id')
     autocomplete_fields = ['user', 'organization']
     form = OrgUserAdminForm
     view_on_site = False
+
+    actions = (
+        create_export_job_action,
+    )
 
     def has_add_permission(self, request):
         return False

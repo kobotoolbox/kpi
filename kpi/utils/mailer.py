@@ -23,6 +23,8 @@ class EmailMessage:
         language: str = None,
         from_: str = None,
     ):
+        default_language = settings.LANGUAGE_CODE
+
         self.to = to
         if isinstance(to, str):
             self.to = [to]
@@ -52,6 +54,9 @@ class EmailMessage:
                     template_variables
                 )
             )
+
+        if language:
+            activate(default_language)
 
     def to_multi_alternative(self):
         message = EmailMultiAlternatives(
