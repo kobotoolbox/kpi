@@ -122,11 +122,9 @@ export function usePatchMemberInvite(inviteUrl: string) {
     mutationFn: async (newInviteData: Partial<MemberInvite>) =>
       fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData),
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [
-        QueryKeys.organizationMemberInviteDetail,
-        QueryKeys.organizationMembers,
-        QueryKeys.organizationMemberDetail,
-      ]});
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMemberInviteDetail]});
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMemberDetail]});
     },
   });
 }
