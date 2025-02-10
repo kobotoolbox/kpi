@@ -506,5 +506,5 @@ export function getExponentialDelayTime(
  * Pattern we are checking is `<anything>@<something>.<whatever>`
  */
 export function checkEmailPattern(email: string) {
-  return /[^@]+@[^@]+\.[^@]+/.test(email);
+  return /[^@]+@[^@]+\.[^@]+/.test(email)
 }

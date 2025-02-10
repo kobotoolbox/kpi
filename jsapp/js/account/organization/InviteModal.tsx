@@ -1,29 +1,29 @@
-import type {ModalProps} from '@mantine/core';
-import {Group, Modal, Stack, Text, TextInput, Loader} from '@mantine/core';
-import ButtonNew from 'jsapp/js/components/common/ButtonNew';
-import {Select} from 'jsapp/js/components/common/Select';
-import {useSendMemberInvite} from './membersInviteQuery';
-import {useState} from 'react';
-import {OrganizationUserRole} from './organizationQuery';
-import userExistence from 'js/users/userExistence.store';
-import {useField} from '@mantine/form';
-import {checkEmailPattern, notify} from 'js/utils';
+import type { ModalProps } from '@mantine/core'
+import { Group, Modal, Stack, Text, TextInput, Loader } from '@mantine/core'
+import ButtonNew from 'jsapp/js/components/common/ButtonNew'
+import { Select } from 'jsapp/js/components/common/Select'
+import { useSendMemberInvite } from './membersInviteQuery'
+import { useState } from 'react'
+import { OrganizationUserRole } from './organizationQuery'
+import userExistence from 'js/users/userExistence.store'
+import { useField } from '@mantine/form'
+import { checkEmailPattern, notify } from 'js/utils'
 
 export default function InviteModal(props: ModalProps) {
-  const inviteQuery = useSendMemberInvite();
+  const inviteQuery = useSendMemberInvite()
 
-  const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null)
 
   async function handleUsernameOrEmailCheck(value: string) {
     if (value === '' || checkEmailPattern(value)) {
-      return null;
+      return null
     }
 
-    const checkResult = await userExistence.checkUsername(value);
+    const checkResult = await userExistence.checkUsername(value)
     if (checkResult === false) {
-      return t('This username does not exist. Please try again.');
+      return t('This username does not exist. Please try again.')
     } else {
-      return null;
+      return null
     }
   }
 
@@ -31,7 +31,7 @@ export default function InviteModal(props: ModalProps) {
     initialValue: '',
     validate: handleUsernameOrEmailCheck,
     validateOnBlur: true,
-  });
+  })
 
   const handleSendInvite = () => {
     if (role) {
@@ -41,32 +41,24 @@ export default function InviteModal(props: ModalProps) {
           role: role as OrganizationUserRole,
         })
         .then(() => {
-          userOrEmail.reset();
-          setRole(null);
+          userOrEmail.reset()
+          setRole(null)
+          props.onClose()
         })
         .catch(() => {
-          notify(t('Failed to send invite'), 'error');
-        });
+          notify(t('Failed to send invite'), 'error')
+        })
     }
-  };
+  }
 
-  const isValidated =
-    role !== null &&
-    userOrEmail.isDirty() &&
-    !userOrEmail.isValidating &&
-    !userOrEmail.error;
+  const isValidated = role !== null && userOrEmail.isDirty() && !userOrEmail.isValidating && !userOrEmail.error
 
   return (
-    <Modal
-      opened={props.opened}
-      onClose={props.onClose}
-      title={t('Invite a member to your team')}
-      size='lg'
-    >
+    <Modal opened={props.opened} onClose={props.onClose} title={t('Invite a member to your team')} size='lg'>
       <Stack>
         <Text>
           {t(
-            'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.'
+            'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.',
           )}
         </Text>
         <Group align={'flex-start'} w='100%' gap='xs'>
@@ -95,11 +87,7 @@ export default function InviteModal(props: ModalProps) {
           />
         </Group>
         <Group w='100%' justify='flex-end'>
-          <ButtonNew
-            size='lg'
-            disabled={!isValidated}
-            onClick={handleSendInvite}
-          >
+          <ButtonNew size='lg' disabled={!isValidated} onClick={handleSendInvite}>
             {t('Send invite')}
           </ButtonNew>
         </Group>
