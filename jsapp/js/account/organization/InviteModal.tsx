@@ -33,10 +33,6 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   });
 
-  const roleField = useField({
-    initialValue: null,
-  });
-
   const handleSendInvite = () => {
     if (role) {
       inviteQuery
@@ -94,8 +90,9 @@ export default function InviteModal(props: ModalProps) {
                 label: t('Member'),
               },
             ]}
-            value={role.getValue()}
-            onChange={role.setValue}
+            value={role}
+            onChange={setRole}
+            clearable
           />
         </Group>
         <Group w='100%' justify='flex-end'>
@@ -106,11 +103,6 @@ export default function InviteModal(props: ModalProps) {
           >
             {t('Send invite')}
           </ButtonNew>
-
-          <ButtonNew
-            size='lg'
-            onClick={() => {setRole(null); console.log('-----------', role);}}
-          />
         </Group>
       </Stack>
     </Modal>
