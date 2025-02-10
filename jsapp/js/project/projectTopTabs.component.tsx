@@ -1,43 +1,40 @@
-import classnames from 'classnames';
-import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {ROUTES} from 'js/router/routerConstants';
-import {userCan, userCanPartially} from 'js/components/permissions/utils';
+import classnames from 'classnames'
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from 'js/router/routerConstants'
+import { userCan, userCanPartially } from 'js/components/permissions/utils'
 import {
   getRouteAssetUid,
   isAnyFormDataRoute,
   isFormLandingRoute,
   isAnyFormSettingsRoute,
   isFormSummaryRoute,
-} from 'js/router/routerUtils';
-import assetStore from 'js/assetStore';
-import sessionStore from 'js/stores/session';
-import type {AssetResponse} from 'js/dataInterface';
-import styles from './projectTopTabs.module.scss';
+} from 'js/router/routerUtils'
+import assetStore from 'js/assetStore'
+import sessionStore from 'js/stores/session'
+import type { AssetResponse } from 'js/dataInterface'
+import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {
   // First check if uid is available
-  const assetUid = getRouteAssetUid();
+  const assetUid = getRouteAssetUid()
   if (assetUid === null) {
-    return null;
+    return null
   }
 
   // Setup navigation
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const [asset, setAsset] = useState<AssetResponse | undefined>(undefined);
+  const [asset, setAsset] = useState<AssetResponse | undefined>(undefined)
 
   useEffect(() => {
-    assetStore.whenLoaded(assetUid, setAsset);
-  }, []);
+    assetStore.whenLoaded(assetUid, setAsset)
+  }, [])
 
-  const isDataTabEnabled =
-    (userCan('view_submissions', asset) ||
-      userCanPartially('view_submissions', asset));
+  const isDataTabEnabled = userCan('view_submissions', asset) || userCanPartially('view_submissions', asset)
 
   const isSettingsTabEnabled =
-    sessionStore.isLoggedIn &&
-    (userCan('change_asset', asset) || userCan('change_metadata_asset', asset));
+    sessionStore.isLoggedIn && (userCan('change_asset', asset) || userCan('change_metadata_asset', asset))
 
   return (
     // TODO: this list needs to be keyboard-navigable. To make it so, we need
@@ -45,9 +42,7 @@ export default function ProjectTopTabs() {
     <nav className={styles.root}>
       <ul className={styles.tabs}>
         <li
-          onClick={() =>
-            navigate(ROUTES.FORM_SUMMARY.replace(':uid', assetUid))
-          }
+          onClick={() => navigate(ROUTES.FORM_SUMMARY.replace(':uid', assetUid))}
           className={classnames({
             [styles.tab]: true,
             [styles.disabled]: !sessionStore.isLoggedIn,
@@ -58,9 +53,7 @@ export default function ProjectTopTabs() {
         </li>
 
         <li
-          onClick={() =>
-            navigate(ROUTES.FORM_LANDING.replace(':uid', assetUid))
-          }
+          onClick={() => navigate(ROUTES.FORM_LANDING.replace(':uid', assetUid))}
           className={classnames({
             [styles.tab]: true,
             [styles.active]: isFormLandingRoute(assetUid),
@@ -81,9 +74,7 @@ export default function ProjectTopTabs() {
         </li>
 
         <li
-          onClick={() =>
-            navigate(ROUTES.FORM_SETTINGS.replace(':uid', assetUid))
-          }
+          onClick={() => navigate(ROUTES.FORM_SETTINGS.replace(':uid', assetUid))}
           className={classnames({
             [styles.tab]: true,
             [styles.disabled]: !isSettingsTabEnabled,
@@ -94,5 +85,5 @@ export default function ProjectTopTabs() {
         </li>
       </ul>
     </nav>
-  );
+  )
 }

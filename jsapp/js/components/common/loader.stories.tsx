@@ -1,5 +1,5 @@
-import {Center, Loader} from '@mantine/core';
-import type {Meta, StoryObj} from '@storybook/react';
+import { Center, Loader } from '@mantine/core'
+import type { Meta, StoryObj } from '@storybook/react'
 
 /**
  * Mantine [Loader](https://mantine.dev/core/loader/) component stories.
@@ -21,9 +21,9 @@ const meta: Meta<typeof Loader> = {
       control: 'radio',
     },
   },
-};
+}
 
-type Story = StoryObj<typeof Loader>;
+type Story = StoryObj<typeof Loader>
 
 /**
  * Regular variant
@@ -32,7 +32,7 @@ export const Regular: Story = {
   args: {
     type: 'regular',
   },
-};
+}
 
 /**
  * Big variant
@@ -41,6 +41,6 @@ export const Big: Story = {
   args: {
     type: 'big',
   },
-};
+}
 
-export default meta;
+export default meta

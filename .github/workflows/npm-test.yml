@@ -53,17 +53,21 @@ jobs:
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
 
+      # Check for Biome formatting errors
+      - name: Check Biome formatting
+        run: npm run lint:biome
+
+      # Check for TypeScript errors
+      - name: Check TypeScript
+        run: npm run lint:types
+
       # Check that the full build succeeds
       - name: Build Prod
         run: SKIP_TS_CHECK=true npm run build
 
-      # Check for TypeScript errors
-      - name: Check TypeScript
-        run: npm run check-types
-
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
-        run: npm run lint -- --quiet
+        run: npm run lint:eslint -- --quiet
 
       # Run the Unit test suite (formbuilder and helpers)
       - name: Run unit tests and xlform tests

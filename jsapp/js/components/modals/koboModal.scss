@@ -68,9 +68,11 @@ $kobo-modal-header-icon-margin: 10px;
   &.kobo-modal__header--red {
     background-color: color.change(colors.$kobo-mid-red, $alpha: 0.1);
   }
+
   &.kobo-modal__header--grey {
     background-color: colors.$kobo-gray-100;
   }
+
   &.kobo-modal__header--white {
     background-color: colors.$kobo-white;
   }

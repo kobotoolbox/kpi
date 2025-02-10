@@ -1,8 +1,9 @@
-from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When, Q
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -16,7 +17,6 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from .constants import ORG_OWNER_ROLE, ORG_ADMIN_ROLE
 from ..accounts.mfa.models import MfaMethod
 from .models import (
     Organization,
@@ -29,12 +29,14 @@ from .permissions import (
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipInvitePermission,
+    OrgMembershipCreateOrDeleteInvitePermission,
 )
 from .serializers import (
     OrganizationSerializer,
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer
 )
+from .renderers import OnlyGetBrowsableAPIRenderer
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -466,32 +468,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             # Include invited users who are not yet part of this organization
             invitation_queryset = OrganizationInvitation.objects.filter(
-                organization_id=organization_id, status='pending'
+                organization_id=organization_id,
+                status__in=['pending', 'resent']
             )
 
-            # Queryset for invited users who have registered
-            registered_invitees = OrganizationUser.objects.filter(
-                user_id__in=invitation_queryset.values('invitee_id')
-            ).select_related('user__extra_details').annotate(
-                role=Case(
-                    When(Exists(owner_subquery), then=Value('owner')),
-                    When(is_admin=True, then=Value('admin')),
-                    default=Value('member'),
-                    output_field=CharField()
-                ),
-                has_mfa_enabled=Exists(mfa_subquery)
+            # Get existing user IDs from the queryset
+            members_user_ids = queryset.values_list('user_id', flat=True)
+            invitees = invitation_queryset.filter(
+                Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             )
-
-            # Queryset for invited users who have not yet registered
-            unregistered_invitees = invitation_queryset.filter(
-                invitee_id__isnull=True
-            )
-
-            queryset = (
-                list(queryset) +
-                list(registered_invitees) +
-                list(unregistered_invitees)
-            )
+            queryset = list(queryset) + list(invitees)
         return queryset
 
 
@@ -596,6 +582,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     ### Update Organization Invite
 
     * Update an organization invite to accept, decline, cancel, expire, or resend.
+    * Update the role of the invitee to `admin` or `member`. Only the owner or admin can update the role.
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/organizations/{organization_id}/invites/{invite_guid}/
@@ -605,11 +592,22 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     >
     >       curl -X PATCH https://[kpi]/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/  # noqa
 
+    > Payload (Update Status)
+
+    >       {
+    >           "status": "accepted"
+    >       }
+
+    > Payload (Update Role - Only owner or admin can update role)
+
+    >       {
+    >           "role": "admin"
+    >       }
+
     > Response 200
 
     >       {
-    >           "url": "http://kf.kobo.local/api/v2/organizations/
-                org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",
+    >           "url": "http://kf.kobo.local/api/v2/organizations/org_12345/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/",  # noqa
     >           "invited_by": "http://kf.kobo.local/api/v2/users/raj_patel/",
     >           "status": "accepted",
     >           "invitee_role": "member",
@@ -634,9 +632,9 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
 
     """
     serializer_class = OrgMembershipInviteSerializer
-    permission_classes = [OrgMembershipInvitePermission]
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
+    renderer_classes = [JSONRenderer, OnlyGetBrowsableAPIRenderer, ]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -652,20 +650,15 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
 
-        # Reuse user_role set by the permission class to avoid redundant queries
-        user_role = getattr(self, 'user_role', None)
-
         query_filter = {'organization_id': organization_id}
-        if user_role not in [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]:
-            query_filter['invitee'] = self.request.user
-
         base_queryset = OrganizationInvitation.objects.select_related(
             'invitee', 'invited_by', 'organization'
         )
         queryset = base_queryset.filter(**query_filter)
-        if not queryset.exists():
-            # Fetch invite by email for unregistered users
-            query_filter.pop('invitee', None)
-            query_filter['invitee_identifier'] = self.request.user.email
-            queryset = base_queryset.filter(**query_filter)
         return queryset
+
+    def get_permissions(self):
+        if self.action in ['list', 'create', 'destroy']:
+            return [OrgMembershipCreateOrDeleteInvitePermission()]
+
+        return [OrgMembershipInvitePermission()]

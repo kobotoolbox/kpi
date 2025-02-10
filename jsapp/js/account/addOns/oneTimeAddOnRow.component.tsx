@@ -1,23 +1,20 @@
-import styles from 'js/account/addOns/addOnList.module.scss';
-import React, {useMemo, useState} from 'react';
-import type {
-  Product,
-  SubscriptionInfo,
-} from 'js/account/stripe.types';
-import KoboSelect3 from 'js/components/special/koboAccessibleSelect';
-import BillingButton from 'js/account/plans/billingButton.component';
-import {postCheckout, postCustomerPortal} from 'js/account/stripe.api';
-import {useDisplayPrice} from 'js/account/plans/useDisplayPrice.hook';
-import {isChangeScheduled} from 'js/account/stripe.utils';
-import type {Organization} from 'js/account/organization/organizationQuery';
+import styles from 'js/account/addOns/addOnList.module.scss'
+import React, { useMemo, useState } from 'react'
+import type { Product, SubscriptionInfo } from 'js/account/stripe.types'
+import KoboSelect3 from 'js/components/special/koboAccessibleSelect'
+import BillingButton from 'js/account/plans/billingButton.component'
+import { postCheckout, postCustomerPortal } from 'js/account/stripe.api'
+import { useDisplayPrice } from 'js/account/plans/useDisplayPrice.hook'
+import { isChangeScheduled } from 'js/account/stripe.utils'
+import type { Organization } from 'js/account/organization/organizationQuery'
 
 interface OneTimeAddOnRowProps {
-  products: Product[];
-  isBusy: boolean;
-  setIsBusy: (value: boolean) => void;
-  activeSubscriptions: SubscriptionInfo[];
-  subscribedAddOns: SubscriptionInfo[];
-  organization: Organization;
+  products: Product[]
+  isBusy: boolean
+  setIsBusy: (value: boolean) => void
+  activeSubscriptions: SubscriptionInfo[]
+  subscribedAddOns: SubscriptionInfo[]
+  organization: Organization
 }
 
 export const OneTimeAddOnRow = ({
@@ -28,95 +25,80 @@ export const OneTimeAddOnRow = ({
   subscribedAddOns,
   organization,
 }: OneTimeAddOnRowProps) => {
-  const [selectedProduct, setSelectedProduct] = useState(products[0]);
-  const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(
-    selectedProduct.prices[0]
-  );
-  const displayPrice = useDisplayPrice(selectedPrice);
+  const [selectedProduct, setSelectedProduct] = useState(products[0])
+  const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
+  const displayPrice = useDisplayPrice(selectedPrice)
   const priceOptions = useMemo(
     () =>
       selectedProduct.prices.map((price) => {
-        return {value: price.id, label: price.recurring?.interval || 'me'};
+        return { value: price.id, label: price.recurring?.interval || 'me' }
       }),
-    [selectedProduct]
-  );
+    [selectedProduct],
+  )
 
-  let displayName;
-  let description;
+  let displayName
+  let description
 
-  if (
-    selectedProduct.metadata.asr_seconds_limit ||
-    selectedProduct.metadata.mt_characters_limit
-  ) {
-    displayName = t('NLP Package');
-    description = t(
-      'Increase your transcription minutes and translations characters.'
-    );
+  if (selectedProduct.metadata.asr_seconds_limit || selectedProduct.metadata.mt_characters_limit) {
+    displayName = t('NLP Package')
+    description = t('Increase your transcription minutes and translations characters.')
   } else if (selectedProduct.metadata.storage_bytes_limit) {
-    displayName = t('File Storage');
-    description = t(
-      'Get up to 50GB of media storage on a KoboToolbox public server.'
-    );
+    displayName = t('File Storage')
+    description = t('Get up to 50GB of media storage on a KoboToolbox public server.')
   }
 
   const isSubscribedAddOnPrice = useMemo(
     () =>
       isChangeScheduled(selectedPrice, activeSubscriptions) ||
-      subscribedAddOns.some(
-        (subscription) => subscription.items[0].price.id === selectedPrice.id
-      ),
-    [subscribedAddOns, selectedPrice]
-  );
+      subscribedAddOns.some((subscription) => subscription.items[0].price.id === selectedPrice.id),
+    [subscribedAddOns, selectedPrice],
+  )
 
   const onChangeProduct = (productId: string) => {
-    const product = products.find((product) => product.id === productId);
+    const product = products.find((product) => product.id === productId)
     if (product) {
-      setSelectedProduct(product);
-      setSelectedPrice(product.prices[0]);
+      setSelectedProduct(product)
+      setSelectedPrice(product.prices[0])
     }
-  };
+  }
 
   const onChangePrice = (inputPrice: string | null) => {
     if (inputPrice) {
-      const priceObject = selectedProduct.prices.find(
-        (price) => inputPrice === price.id
-      );
+      const priceObject = selectedProduct.prices.find((price) => inputPrice === price.id)
       if (priceObject) {
-        setSelectedPrice(priceObject);
+        setSelectedPrice(priceObject)
       }
     }
-  };
+  }
 
   // TODO: Merge functionality of onClickBuy and onClickManage so we can unduplicate
   // the billing button in priceTableCells
   const onClickBuy = () => {
     if (isBusy || !selectedPrice) {
-      return;
+      return
     }
-    setIsBusy(true);
+    setIsBusy(true)
     if (selectedPrice) {
       postCheckout(selectedPrice.id, organization.id)
         .then((response) => window.location.assign(response.url))
-        .catch(() => setIsBusy(false));
+        .catch(() => setIsBusy(false))
     }
-  };
+  }
 
   const onClickManage = () => {
     if (isBusy || !selectedPrice) {
-      return;
+      return
     }
-    setIsBusy(true);
+    setIsBusy(true)
     postCustomerPortal(organization.id)
       .then((response) => window.location.assign(response.url))
-      .catch(() => setIsBusy(false));
-  };
+      .catch(() => setIsBusy(false))
+  }
 
   const priceTableCells = (
     <>
       <div className={styles.oneTimePrice}>
-        {selectedPrice.recurring?.interval === 'year'
-          ? selectedPrice.human_readable_price
-          : displayPrice}
+        {selectedPrice.recurring?.interval === 'year' ? selectedPrice.human_readable_price : displayPrice}
       </div>
       <div className={styles.buy}>
         {isSubscribedAddOnPrice && (
@@ -139,16 +121,14 @@ export const OneTimeAddOnRow = ({
         )}
       </div>
     </>
-  );
+  )
 
   return (
     <tr className={styles.row}>
       <td className={styles.productName}>
         {displayName}
         {description && <p className={styles.description}>{description}</p>}
-        <div className={styles.mobileView}>
-          {priceTableCells}
-        </div>
+        <div className={styles.mobileView}>{priceTableCells}</div>
       </td>
       <td className={styles.price}>
         <div className={styles.oneTime}>
@@ -156,7 +136,7 @@ export const OneTimeAddOnRow = ({
             size={'fit'}
             name='products'
             options={products.map((product) => {
-              return {value: product.id, label: product.name};
+              return { value: product.id, label: product.name }
             })}
             onChange={(productId) => onChangeProduct(productId as string)}
             value={selectedProduct.id}
@@ -172,9 +152,7 @@ export const OneTimeAddOnRow = ({
           )}
         </div>
       </td>
-      <td className={styles.fullScreen}>
-        {priceTableCells}
-      </td>
+      <td className={styles.fullScreen}>{priceTableCells}</td>
     </tr>
-  );
-};
+  )
+}
