@@ -119,7 +119,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
-        method(
+        request = method(
             url,
             data=request_data,
             format='json',
@@ -1816,7 +1816,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ),
             request_data={
                 'submission': submission_uuid,
-                'settings_fixture_q1': {
+                'q1': {
                     'qual': [
                         {
                             'type': 'qual_text',

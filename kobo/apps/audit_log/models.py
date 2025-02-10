@@ -401,7 +401,7 @@ class ProjectHistoryLog(AuditLog):
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
-            'advanced-submission-post': cls._create_from_nlp_request,
+            'advanced-submission-post': cls._create_from_submission_extra_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -646,7 +646,7 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def _create_from_nlp_request(cls, request):
+    def _create_from_submission_extra_request(cls, request):
         s_uuid = request._data['submission']
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
@@ -657,6 +657,7 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.create(
             user=request.user,
             object_id=request.asset.id,
+            # transcriptions, translations, and QA answers all count as "qa data"
             action=AuditAction.MODIFY_QA_DATA,
             metadata={
                 'asset_uid': request.asset.uid,
