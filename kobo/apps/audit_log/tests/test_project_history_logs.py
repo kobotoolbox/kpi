@@ -119,7 +119,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
-        request = method(
+        method(
             url,
             data=request_data,
             format='json',
