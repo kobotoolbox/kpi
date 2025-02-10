@@ -23,13 +23,20 @@ export default function InviteeActionsDropdown({
 
   const resendInvitation = async () => {
     try {
-      await patchInviteMutation.mutateAsync({ status: MemberInviteStatus.resent })
+      await patchInviteMutation.mutateAsync({
+        status: MemberInviteStatus.resent,
+      })
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
-      if (e.responseText) {
-        const responseData = JSON.parse(e.responseText)
-        console.log(e.responseText, responseData)
-        notify(responseData.status.join(' '), 'error')
+      if (e.status === 429 && e.headers?.get('Retry-After')) {
+        const minutes = Math.ceil(parseInt(e.headers.get('Retry-After')) / 60)
+        notify(
+          t('Invitation resent too quickly, wait for ##MINUTES## minutes before retrying').replace(
+            '##MINUTES##',
+            minutes.toString(),
+          ),
+          'error',
+        )
         return
       }
       notify(t('An error occurred while resending the invitation'), 'error')
