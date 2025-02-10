@@ -1,13 +1,13 @@
-const BundleTracker = require('webpack-bundle-tracker');
-const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
-const fs = require('fs');
-const lodash = require('lodash');
-const path = require('path');
-const webpack = require('webpack');
+const BundleTracker = require('webpack-bundle-tracker')
+const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin')
+const fs = require('fs')
+const lodash = require('lodash')
+const path = require('path')
+const webpack = require('webpack')
 
-const outputPath = path.resolve(__dirname, '../jsapp/compiled/');
+const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
-fs.mkdirSync(outputPath, {recursive: true});
+fs.mkdirSync(outputPath, { recursive: true })
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -20,7 +20,7 @@ const postCssLoader = {
       plugins: ['autoprefixer'],
     },
   },
-};
+}
 
 const swcLoader = {
   loader: require.resolve('swc-loader'),
@@ -28,11 +28,11 @@ const swcLoader = {
     jsc: {
       transform: {
         react: {
-          refresh: true
-        }
-      }
-    }
-  }
+          refresh: true,
+        },
+      },
+    },
+  },
 }
 
 const commonOptions = {
@@ -48,9 +48,7 @@ const commonOptions = {
         exclude: /node_modules/,
         // Find TypeScript errors on CI and local builds
         // Allow skipping to save resources.
-        use: !process.env.SKIP_TS_CHECK
-          ? [swcLoader, 'ts-loader']
-          : [swcLoader],
+        use: !process.env.SKIP_TS_CHECK ? [swcLoader, 'ts-loader'] : [swcLoader],
       },
       {
         test: /\.css$/,
@@ -110,24 +108,20 @@ const commonOptions = {
     },
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: 'webpack-stats.json'}),
+    new BundleTracker({ path: __dirname, filename: 'webpack-stats.json' }),
     new ExtractTranslationKeysPlugin({
       functionName: 't',
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
-    new webpack.ProvidePlugin({$: 'jquery'}),
+    new webpack.ProvidePlugin({ $: 'jquery' }),
   ],
-};
+}
 
 module.exports = function (options) {
-  options = lodash.mergeWith(
-    commonOptions,
-    options || {},
-    (objValue, srcValue) => {
-      if (lodash.isArray(objValue)) {
-        return objValue.concat(srcValue);
-      }
+  options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
+    if (lodash.isArray(objValue)) {
+      return objValue.concat(srcValue)
     }
-  );
-  return options;
-};
+  })
+  return options
+}

@@ -44,7 +44,7 @@ Additional class names:
     }
 
     &::before {
-      content: "";
+      content: '';
       border-bottom: 5px solid colors.$kobo-gray-700;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;

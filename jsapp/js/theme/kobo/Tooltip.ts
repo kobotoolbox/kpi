@@ -1,8 +1,8 @@
-import {Tooltip} from '@mantine/core';
+import { Tooltip } from '@mantine/core'
 
 export const TooltipThemeKobo = Tooltip.extend({
   defaultProps: {
-    offset: {mainAxis: -4},
+    offset: { mainAxis: -4 },
     position: 'bottom',
     withArrow: true,
     arrowSize: 8,
@@ -15,7 +15,6 @@ export const TooltipThemeKobo = Tooltip.extend({
         '--tooltip-color': 'var(--mantine-color-white)',
         '--tooltip-radius': theme.radius.xs,
       },
-    };
+    }
   },
-
-});
+})

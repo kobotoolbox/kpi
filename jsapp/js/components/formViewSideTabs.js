@@ -1,16 +1,16 @@
-import React from 'react';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
-import bem from 'js/bem';
-import assetStore from 'js/assetStore';
-import {NavLink} from 'react-router-dom';
-import mixins from '../mixins';
-import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import {ROUTES} from 'js/router/routerConstants';
-import {withRouter} from 'js/router/legacy';
-import {userCan} from 'js/components/permissions/utils';
-import {checkFeatureFlag, FeatureFlag} from 'js/featureFlags';
+import React from 'react'
+import reactMixin from 'react-mixin'
+import autoBind from 'react-autobind'
+import Reflux from 'reflux'
+import bem from 'js/bem'
+import assetStore from 'js/assetStore'
+import { NavLink } from 'react-router-dom'
+import mixins from '../mixins'
+import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+import { ROUTES } from 'js/router/routerConstants'
+import { withRouter } from 'js/router/legacy'
+import { userCan } from 'js/components/permissions/utils'
+import { checkFeatureFlag, FeatureFlag } from 'js/featureFlags'
 
 export function getFormDataTabs(assetUid) {
   return [
@@ -39,142 +39,111 @@ export function getFormDataTabs(assetUid) {
       icon: 'k-icon k-icon-map-view',
       path: ROUTES.FORM_MAP.replace(':uid', assetUid),
     },
-  ];
+  ]
 }
 
 class FormViewSideTabs extends Reflux.Component {
   constructor(props) {
-    super(props);
-    this.state = {};
-    this.unlisteners = [];
-    autoBind(this);
+    super(props)
+    this.state = {}
+    this.unlisteners = []
+    autoBind(this)
   }
 
   componentDidMount() {
     // On initial load use the possibly stored asset.
-    this.setState({asset: assetStore.getAsset(this.currentAssetID())});
-    this.unlisteners.push(assetStore.listen(this.assetLoad, this));
+    this.setState({ asset: assetStore.getAsset(this.currentAssetID()) })
+    this.unlisteners.push(assetStore.listen(this.assetLoad, this))
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   assetLoad(data) {
-    var asset = data[this.currentAssetID()];
-    this.setState(Object.assign({asset: asset}));
+    var asset = data[this.currentAssetID()]
+    this.setState(Object.assign({ asset: asset }))
   }
 
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
-      this.props.router.navigate(
-        ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid)
-      );
+      this.props.router.navigate(ROUTES.FORM_RESET.replace(':uid', this.state.asset.uid))
 
-      var path = evt.target.getAttribute('data-path');
+      var path = evt.target.getAttribute('data-path')
       window.setTimeout(() => {
-        this.props.router.navigate(path);
-      }, 50);
+        this.props.router.navigate(path)
+      }, 50)
 
-      evt.preventDefault();
+      evt.preventDefault()
     }
   }
 
   renderFormSideTabs() {
-    var sideTabs = [];
+    var sideTabs = []
 
     if (
       this.state.asset &&
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.asset.uid))
     ) {
-      sideTabs = getFormDataTabs(this.state.asset.uid);
+      sideTabs = getFormDataTabs(this.state.asset.uid)
     }
 
-    if (
-      this.state.asset &&
-      this.isActiveRoute(ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid))
-    ) {
-      sideTabs = [];
+    if (this.state.asset && this.isActiveRoute(ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid))) {
+      sideTabs = []
 
       sideTabs.push({
         label: t('General'),
         icon: 'k-icon k-icon-settings',
         path: ROUTES.FORM_SETTINGS.replace(':uid', this.state.asset.uid),
-      });
+      })
 
-      if (
-        userCan(
-          PERMISSIONS_CODENAMES.change_asset,
-          this.state.asset
-        )
-      ) {
+      if (userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)) {
         sideTabs.push({
           label: t('Media'),
           icon: 'k-icon k-icon-gallery',
           path: ROUTES.FORM_MEDIA.replace(':uid', this.state.asset.uid),
-        });
+        })
       }
 
-      if (
-        userCan(
-          PERMISSIONS_CODENAMES.manage_asset,
-          this.state.asset
-        )
-      ) {
+      if (userCan(PERMISSIONS_CODENAMES.manage_asset, this.state.asset)) {
         sideTabs.push({
           label: t('Sharing'),
           icon: 'k-icon k-icon-user-share',
           path: ROUTES.FORM_SHARING.replace(':uid', this.state.asset.uid),
-        });
+        })
       }
 
-      if (
-        userCan(
-          PERMISSIONS_CODENAMES.manage_asset,
-          this.state.asset
-        )
-      ) {
+      if (userCan(PERMISSIONS_CODENAMES.manage_asset, this.state.asset)) {
         sideTabs.push({
           label: t('Connect Projects'),
           icon: 'k-icon k-icon-attach',
           path: ROUTES.FORM_RECORDS.replace(':uid', this.state.asset.uid),
-        });
+        })
       }
 
       if (
-        (
-          this.state.asset.deployment__active ||
+        (this.state.asset.deployment__active ||
           // REST services should be visible for archived forms but not drafts
-          this.state.asset.deployed_versions.count > 0
-        ) &&
-        userCan(
-          PERMISSIONS_CODENAMES.view_submissions,
-          this.state.asset
-        ) &&
-        userCan(
-          PERMISSIONS_CODENAMES.change_asset,
-          this.state.asset
-        )
+          this.state.asset.deployed_versions.count > 0) &&
+        userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
+        userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
       ) {
         sideTabs.push({
           label: t('REST Services'),
           icon: 'k-icon k-icon-data-sync',
           path: ROUTES.FORM_REST.replace(':uid', this.state.asset.uid),
-        });
+        })
       }
 
-      if (
-        userCan(
-          PERMISSIONS_CODENAMES.manage_asset,
-          this.state.asset
-        )
-      ) {
+      if (userCan(PERMISSIONS_CODENAMES.manage_asset, this.state.asset)) {
         sideTabs.push({
           label: t('Activity'),
           icon: 'k-icon k-icon-document',
           path: ROUTES.FORM_ACTIVITY.replace(':uid', this.state.asset.uid),
-        });
+        })
       }
     }
 
@@ -182,9 +151,9 @@ class FormViewSideTabs extends Reflux.Component {
       return (
         <bem.FormView__sidetabs>
           {sideTabs.map((item, ind) => {
-            let className = 'form-view__tab';
+            let className = 'form-view__tab'
             if (item.isDisabled) {
-              className += ' form-view__tab--disabled';
+              className += ' form-view__tab--disabled'
             }
             return (
               <NavLink
@@ -196,28 +165,26 @@ class FormViewSideTabs extends Reflux.Component {
                 end
               >
                 <i className={`k-icon ${item.icon}`} />
-                <span className='form-view__tab-name'>
-                  {item.label}
-                </span>
+                <span className='form-view__tab-name'>{item.label}</span>
               </NavLink>
-            );
+            )
           })}
         </bem.FormView__sidetabs>
-      );
+      )
     }
 
-    return false;
+    return false
   }
 
   render() {
     if (!this.props.show) {
-      return false;
+      return false
     }
-    return this.renderFormSideTabs();
+    return this.renderFormSideTabs()
   }
 }
 
-reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin);
-reactMixin(FormViewSideTabs.prototype, mixins.contextRouter);
+reactMixin(FormViewSideTabs.prototype, Reflux.ListenerMixin)
+reactMixin(FormViewSideTabs.prototype, mixins.contextRouter)
 
-export default withRouter(FormViewSideTabs);
+export default withRouter(FormViewSideTabs)
