@@ -114,5 +114,5 @@ export default function InviteModal(props: ModalProps) {
         </Group>
       </Stack>
     </Modal>
-  );
+  )
 }

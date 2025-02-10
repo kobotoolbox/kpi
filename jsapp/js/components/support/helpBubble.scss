@@ -16,12 +16,12 @@ $s-help-bubble-row-spacing: 20px;
 // allows popups to take more space on bigger screens
 .help-bubble--list-with-header,
 .help-bubble--single-message {
-  @media screen and (max-height: 499px) {
+  @media screen and (height <= 499px) {
     .help-bubble__popup {height: 200px;}
     .help-bubble__popup.help-bubble__popup--has-more-content {height: 300px;}
   }
 
-  @media screen and (min-height: 500px) {
+  @media screen and (height >= 500px) {
     .help-bubble__popup {min-height: 200px;}
     .help-bubble__popup.help-bubble__popup--has-more-content {min-height: 300px;}
   }

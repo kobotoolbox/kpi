@@ -19,7 +19,7 @@ $plan-badge-height: 38px;
 }
 
 .accountPlan.showAddOns {
-  padding: 15px 0 0 0;
+  padding: 15px 0 0;
 }
 
 .wait {
@@ -33,7 +33,7 @@ $plan-badge-height: 38px;
 }
 
 .unauthorized {
-  opacity: 50%;
+  opacity: 0.5;
 }
 
 .allPlans {
@@ -60,7 +60,7 @@ $plan-badge-height: 38px;
   display: none;
   appearance: none;
 
-  &[aria-disabled=true] + label {
+  &[aria-disabled='true'] + label {
     pointer-events: none;
   }
 }
@@ -81,12 +81,12 @@ $plan-badge-height: 38px;
   color: colors.$kobo-white;
   border-radius: 4px;
 
-  &:after {
+  &::after {
     background-color: colors.$kobo-blue;
     padding: 8px 12px;
   }
 
-  &:before {
+  &::before {
     width: 20px;
     height: 20px;
     color: colors.$kobo-light-storm;
@@ -117,7 +117,7 @@ $plan-badge-height: 38px;
   font-size: 24px;
   line-height: 32px;
   margin: 0;
-  padding: 0 0 12px 0;
+  padding: 0 0 12px;
 }
 
 .priceTitle {
@@ -243,7 +243,7 @@ a.enterpriseLink {
   }
 }
 
-.scrollToTopButton{
+.scrollToTopButton {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -254,7 +254,7 @@ a.enterpriseLink {
 	color: colors.$kobo-white;
 	border: none;
 	cursor: pointer;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 20%);
 }
 
 .maximizedCards {

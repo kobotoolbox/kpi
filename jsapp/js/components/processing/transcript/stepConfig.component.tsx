@@ -1,95 +1,81 @@
-import React, {useContext, useMemo, useState} from 'react';
-import cx from 'classnames';
-import clonedeep from 'lodash.clonedeep';
-import Button from 'js/components/common/button';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import LanguageSelector, {
-  resetAllLanguageSelectors,
-} from 'js/components/languages/languageSelector';
-import type {
-  DetailedLanguage,
-  ListLanguage,
-} from 'js/components/languages/languagesStore';
-import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton';
-import envStore from 'js/envStore';
-import bodyStyles from 'js/components/processing/processingBody.module.scss';
-import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component';
-import {UsageLimitTypes} from 'js/account/stripe.types';
-import {UsageContext} from 'js/account/usage/useUsage.hook';
-import {useExceedingLimits} from 'js/components/usageLimits/useExceedingLimits.hook';
+import React, { useContext, useMemo, useState } from 'react'
+import cx from 'classnames'
+import clonedeep from 'lodash.clonedeep'
+import Button from 'js/components/common/button'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import LanguageSelector, { resetAllLanguageSelectors } from 'js/components/languages/languageSelector'
+import type { DetailedLanguage, ListLanguage } from 'js/components/languages/languagesStore'
+import TransxAutomaticButton from 'js/components/processing/transxAutomaticButton'
+import envStore from 'js/envStore'
+import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component'
+import { UsageLimitTypes } from 'js/account/stripe.types'
+import { UsageContext } from 'js/account/usage/useUsage.hook'
+import { useExceedingLimits } from 'js/components/usageLimits/useExceedingLimits.hook'
 
 export default function StepConfig() {
-  const [usage] = useContext(UsageContext);
-  const limits = useExceedingLimits();
-  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] =
-    useState<boolean>(false);
-  const isOverLimit = useMemo(() => {
-    return limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION);
-  }, [limits.exceedList]);
+  const [usage] = useContext(UsageContext)
+  const limits = useExceedingLimits()
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const isOverLimit = useMemo(() => limits.exceedList.includes(UsageLimitTypes.TRANSCRIPTION), [limits.exceedList])
 
   function dismissLimitBlockModal() {
-    setIsLimitBlockModalOpen(false);
+    setIsLimitBlockModalOpen(false)
   }
   /** Changes the draft value, preserving the other draft properties. */
   function setDraftValue(newVal: string | undefined) {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
-    newDraft.value = newVal;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
+    newDraft.value = newVal
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   /** Changes the draft language, preserving the other draft properties. */
   function onLanguageChange(newVal: DetailedLanguage | ListLanguage | null) {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
-    newDraft.languageCode = newVal?.code;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
+    newDraft.languageCode = newVal?.code
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   function back() {
-    const draft = singleProcessingStore.getTranscriptDraft();
-    if (
-      draft !== undefined &&
-      draft?.languageCode === undefined &&
-      draft?.value === undefined
-    ) {
-      singleProcessingStore.safelyDeleteTranscriptDraft();
+    const draft = singleProcessingStore.getTranscriptDraft()
+    if (draft !== undefined && draft?.languageCode === undefined && draft?.value === undefined) {
+      singleProcessingStore.safelyDeleteTranscriptDraft()
     }
 
     if (draft?.languageCode !== undefined && draft?.value === undefined) {
-      singleProcessingStore.setTranslationDraft({});
-      resetAllLanguageSelectors();
+      singleProcessingStore.setTranslationDraft({})
+      resetAllLanguageSelectors()
     }
   }
 
   function selectModeManual() {
     // Initialize draft value.
-    setDraftValue('');
+    setDraftValue('')
   }
 
   function selectModeAuto() {
-    const newDraft =
-      clonedeep(singleProcessingStore.getTranscriptDraft()) || {};
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
     // The `null` value tells us that no region was selected yet, but we are
     // interested in regions right now - i.e. when this property exists (is
     // defined) we show the automatic service configuration step.
-    newDraft.regionCode = null;
-    singleProcessingStore.setTranscriptDraft(newDraft);
+    newDraft.regionCode = null
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   function onAutomaticButtonClick() {
     if (isOverLimit) {
-      setIsLimitBlockModalOpen(true);
+      setIsLimitBlockModalOpen(true)
     } else {
-      selectModeAuto();
+      selectModeAuto()
     }
   }
 
-  const draft = singleProcessingStore.getTranscriptDraft();
-  const languageSelectorTitle = t(
-    'Please select the original language of the ##type##'
-  ).replace('##type##', singleProcessingStore.getProcessedFileLabel());
-  const isAutoEnabled = envStore.data.asr_mt_features_enabled;
+  const draft = singleProcessingStore.getTranscriptDraft()
+  const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
+    '##type##',
+    singleProcessingStore.getProcessedFileLabel(),
+  )
+  const isAutoEnabled = envStore.data.asr_mt_features_enabled
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
@@ -115,10 +101,7 @@ export default function StepConfig() {
             size='m'
             label={isAutoEnabled ? t('manual') : t('transcribe')}
             onClick={selectModeManual}
-            isDisabled={
-              draft?.languageCode === undefined ||
-              singleProcessingStore.data.isFetchingData
-            }
+            isDisabled={draft?.languageCode === undefined || singleProcessingStore.data.isFetchingData}
           />
 
           <TransxAutomaticButton
@@ -135,5 +118,5 @@ export default function StepConfig() {
         </div>
       </footer>
     </div>
-  );
+  )
 }

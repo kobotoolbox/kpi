@@ -1,5 +1,5 @@
 @use 'scss/colors';
-@use "scss/mixins";
+@use 'scss/mixins';
 
 .language-selector {
   background: colors.$kobo-white;
@@ -115,6 +115,7 @@
     opacity: 1;
     color: colors.$kobo-gray-600;
   }
+
   &:focus {
     outline: none;
   }
@@ -122,7 +123,7 @@
 
 .language-selector__clear-selected-language,
 .language-selector__clear-search-box {
-  @include mixins.buttonReset();
+  @include mixins.buttonReset;
   margin-right: 12px;
   color: colors.$kobo-gray-400;
 
