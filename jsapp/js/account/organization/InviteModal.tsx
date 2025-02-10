@@ -51,10 +51,16 @@ export default function InviteModal(props: ModalProps) {
     }
   }
 
+  const handleClose = () => {
+    userOrEmail.reset()
+    setRole(null)
+    props.onClose()
+  }
+
   const isValidated = role !== null && userOrEmail.isDirty() && !userOrEmail.isValidating && !userOrEmail.error
 
   return (
-    <Modal opened={props.opened} onClose={props.onClose} title={t('Invite a member to your team')} size='lg'>
+    <Modal opened={props.opened} onClose={handleClose} title={t('Invite a member to your team')} size='lg'>
       <Stack>
         <Text>
           {t(
