@@ -44,6 +44,9 @@
     "enabled": false // TODO: depends on standardized `#jsapp/*` internal TS alias imports for import distance calculation.
   },
   "linter": {
-    "enabled": false // TODO: for later.
+    "enabled": false, // TODO: for later.
+    "rules": {
+      "recommended": false // Workaround: see https://github.com/biomejs/biome-vscode/issues/491#issuecomment-2643675948
+    }
   }
 }
