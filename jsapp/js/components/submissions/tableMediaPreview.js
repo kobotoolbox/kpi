@@ -1,17 +1,17 @@
-import autoBind from 'react-autobind';
-import React from 'react';
+import autoBind from 'react-autobind'
+import React from 'react'
 
-import bem, {makeBem} from 'js/bem';
-import AudioPlayer from 'js/components/common/audioPlayer';
-import KoboImage from 'js/components/common/koboImage';
-import {QUESTION_TYPES} from 'js/constants';
-import './tableMediaPreview.scss';
+import bem, { makeBem } from 'js/bem'
+import AudioPlayer from 'js/components/common/audioPlayer'
+import KoboImage from 'js/components/common/koboImage'
+import { QUESTION_TYPES } from 'js/constants'
+import './tableMediaPreview.scss'
 
-bem.TableMediaPreview = makeBem(null, 'table-media-preview');
-bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'div');
-bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', 'div');
-bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', 'video');
-bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div');
+bem.TableMediaPreview = makeBem(null, 'table-media-preview')
+bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'div')
+bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', 'div')
+bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', 'video')
+bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div')
 
 /**
  * Backend stored media attachment
@@ -33,13 +33,13 @@ bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div');
  */
 class TableMediaPreview extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = {
       isLoading: false,
-    };
+    }
 
-    autoBind(this);
+    autoBind(this)
   }
 
   renderPreviewByType() {
@@ -47,44 +47,28 @@ class TableMediaPreview extends React.Component {
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image>
-            <KoboImage src={this.props.mediaAttachment?.download_medium_url}/>
+            <KoboImage src={this.props.mediaAttachment?.download_medium_url} />
           </bem.TableMediaPreview__image>
-        );
+        )
       case QUESTION_TYPES.audio.id:
       case QUESTION_TYPES['background-audio'].id:
         return (
           <bem.TableMediaPreview__audio>
             <i className='k-icon k-icon-file-audio' />
 
-            <AudioPlayer 
-              mediaURL={this.props.mediaAttachment?.download_url}
-              data-cy='audioPlayer'
-            />
+            <AudioPlayer mediaURL={this.props.mediaAttachment?.download_url} data-cy='audioPlayer' />
           </bem.TableMediaPreview__audio>
-        );
+        )
       case QUESTION_TYPES.video.id:
-        return (
-          <bem.TableMediaPreview__video
-            src={this.props.mediaAttachment?.download_url}
-            controls
-            autoPlay
-          />
-        );
+        return <bem.TableMediaPreview__video src={this.props.mediaAttachment?.download_url} controls autoPlay />
       case QUESTION_TYPES.text.id:
-        return (
-          <bem.TableMediaPreview__text>
-            {this.props.mediaName}
-          </bem.TableMediaPreview__text>
-        );
+        return <bem.TableMediaPreview__text>{this.props.mediaName}</bem.TableMediaPreview__text>
       default:
         return (
           <label>
-            {t('Unsupported media type: ##QUESTION_TYPE##').replace(
-              '##QUESTION_TYPE##',
-              this.props.questionType
-            )}
+            {t('Unsupported media type: ##QUESTION_TYPE##').replace('##QUESTION_TYPE##', this.props.questionType)}
           </label>
-        );
+        )
     }
   }
 
@@ -94,8 +78,8 @@ class TableMediaPreview extends React.Component {
         {typeof this.props.mediaAttachment === 'string' && this.props.mediaAttachment}
         {typeof this.props.mediaAttachment === 'object' && this.props.questionType && this.renderPreviewByType()}
       </bem.TableMediaPreview>
-    );
+    )
   }
 }
 
-export default TableMediaPreview;
+export default TableMediaPreview

@@ -1,31 +1,24 @@
-import React from 'react';
-import autoBind from 'react-autobind';
-import clonedeep from 'lodash.clonedeep';
-import Fuse from 'fuse.js';
-import {
-  getSurveyFlatPaths,
-  getFlatQuestionsList,
-  renderQuestionTypeIcon,
-} from 'js/assetUtils';
-import {
-  QuestionTypeName,
-  FUSE_OPTIONS,
-} from 'js/constants';
-import bem from 'js/bem';
-import {actions} from 'js/actions';
-import TextBox from 'js/components/common/textBox';
-import Button from 'js/components/common/button';
-import SimpleTable from 'js/components/common/SimpleTable';
-import {Text} from '@mantine/core';
-import envStore from 'js/envStore';
+import React from 'react'
+import autoBind from 'react-autobind'
+import clonedeep from 'lodash.clonedeep'
+import Fuse from 'fuse.js'
+import { getSurveyFlatPaths, getFlatQuestionsList, renderQuestionTypeIcon } from 'js/assetUtils'
+import { QuestionTypeName, FUSE_OPTIONS } from 'js/constants'
+import bem from 'js/bem'
+import { actions } from 'js/actions'
+import TextBox from 'js/components/common/textBox'
+import Button from 'js/components/common/button'
+import SimpleTable from 'js/components/common/SimpleTable'
+import { Text } from '@mantine/core'
+import envStore from 'js/envStore'
 
 // we need a text to display when we need to say "this question has no answer"
-const EMPTY_VALUE_LABEL = t('n/d');
+const EMPTY_VALUE_LABEL = t('n/d')
 // we need an override value that would mean "no answer" and that would be
 // different than "no override answer" (de facto `undefined`)
-const EMPTY_VALUE = null;
-const MULTIPLE_VALUES_LABEL = t('Multiple responses');
-const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html';
+const EMPTY_VALUE = null
+const MULTIPLE_VALUES_LABEL = t('Multiple responses')
+const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html'
 
 /** These types are not compatible with bulk editing. */
 const EXCLUDED_TYPES = [
@@ -34,7 +27,7 @@ const EXCLUDED_TYPES = [
   QuestionTypeName.video,
   QuestionTypeName.image,
   QuestionTypeName.file,
-];
+]
 
 /**
  * The content of the BULK_EDIT_SUBMISSIONS modal
@@ -48,7 +41,7 @@ const EXCLUDED_TYPES = [
  */
 class BulkEditSubmissionsForm extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       isPending: false,
       // overrides keys are question names and values are edited values
@@ -60,127 +53,122 @@ class BulkEditSubmissionsForm extends React.Component {
       // values for searching the list of questions
       filterByName: '',
       filterByValue: '',
-    };
-    this.unlisteners = [];
-    autoBind(this);
+    }
+    this.unlisteners = []
+    autoBind(this)
   }
 
   componentDidMount() {
     this.unlisteners.push(
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkPatchValuesCompleted),
-      actions.submissions.bulkPatchValues.failed.listen(this.onBulkPatchValuesFailed)
-    );
-    this.setModalTitleToList();
+      actions.submissions.bulkPatchValues.failed.listen(this.onBulkPatchValuesFailed),
+    )
+    this.setModalTitleToList()
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   onBulkPatchValuesCompleted() {
-    this.setState({isPending: false});
-    this.props.onModalClose();
+    this.setState({ isPending: false })
+    this.props.onModalClose()
   }
 
   onBulkPatchValuesFailed() {
-    this.setState({isPending: false});
+    this.setState({ isPending: false })
   }
 
   setModalTitleToList() {
     this.props.onSetModalTitle(
       t('Displaying multiple submissions (##count## selected of ##total##)')
         .replace('##count##', this.props.selectedSubmissions.length)
-        .replace('##total##', this.props.totalSubmissions)
-    );
+        .replace('##total##', this.props.totalSubmissions),
+    )
   }
 
   setModalTitleToSingleQuestion(questionName) {
     this.props.onSetModalTitle(
       t('Editing "##question##" for ##count## submissions')
         .replace('##question##', questionName)
-        .replace('##count##', this.props.selectedSubmissions.length)
-    );
+        .replace('##count##', this.props.selectedSubmissions.length),
+    )
   }
 
   onRowOverrideChange(questionName, value) {
     if (questionName === this.state.selectedQuestion.name) {
       if (value === undefined) {
-        this.setState({selectedQuestionOverride: EMPTY_VALUE});
+        this.setState({ selectedQuestionOverride: EMPTY_VALUE })
       } else {
-        this.setState({selectedQuestionOverride: value});
+        this.setState({ selectedQuestionOverride: value })
       }
     }
   }
 
   onSubmit(evt) {
-    evt.preventDefault();
+    evt.preventDefault()
     // BE endpoint requires question names with paths
     // and we will gladly give them what they want
-    const overridesWithPaths = {};
-    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    const overridesWithPaths = {}
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
     Object.keys(this.state.overrides).forEach((questionName) => {
-      overridesWithPaths[flatPaths[questionName]] = this.state.overrides[questionName];
-    });
+      overridesWithPaths[flatPaths[questionName]] = this.state.overrides[questionName]
+    })
 
-    this.setState({isPending: true});
-    actions.submissions.bulkPatchValues(
-      this.props.asset.uid,
-      this.props.selectedSubmissions,
-      overridesWithPaths,
-    );
+    this.setState({ isPending: true })
+    actions.submissions.bulkPatchValues(this.props.asset.uid, this.props.selectedSubmissions, overridesWithPaths)
   }
 
   onReset() {
-    this.setState({overrides: {}});
+    this.setState({ overrides: {} })
   }
 
   onFilterByNameChange(newFilter) {
-    this.setState({filterByName: newFilter});
+    this.setState({ filterByName: newFilter })
   }
 
   onFilterByValueChange(newFilter) {
-    this.setState({filterByValue: newFilter});
+    this.setState({ filterByValue: newFilter })
   }
 
   selectQuestion(question) {
     this.setState({
       selectedQuestion: question,
       selectedQuestionOverride: this.state.overrides[question.name],
-    });
-    this.setModalTitleToSingleQuestion(question.label);
+    })
+    this.setModalTitleToSingleQuestion(question.label)
   }
 
   goBackToList() {
     this.setState({
       selectedQuestion: null,
       selectedQuestionOverride: null,
-    });
-    this.setModalTitleToList();
+    })
+    this.setModalTitleToList()
   }
 
   saveOverride() {
-    const newOverrides = clonedeep(this.state.overrides);
+    const newOverrides = clonedeep(this.state.overrides)
     if (
       this.state.selectedQuestionOverride === EMPTY_VALUE ||
-      (
-        typeof this.state.selectedQuestionOverride === 'string' &&
-        this.state.selectedQuestionOverride.length >= 1
-      )
+      (typeof this.state.selectedQuestionOverride === 'string' && this.state.selectedQuestionOverride.length >= 1)
     ) {
-      newOverrides[this.state.selectedQuestion.name] = this.state.selectedQuestionOverride;
+      newOverrides[this.state.selectedQuestion.name] = this.state.selectedQuestionOverride
     } else {
-      delete newOverrides[this.state.selectedQuestion.name];
+      delete newOverrides[this.state.selectedQuestion.name]
     }
-    this.setState({overrides: newOverrides});
-    this.goBackToList();
+    this.setState({ overrides: newOverrides })
+    this.goBackToList()
   }
 
   /**
    * @returns {object[]} a list of question objects with all responses included
    */
   getDisplayData() {
-    let questions = getFlatQuestionsList(this.props.asset.content.survey);
-    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    let questions = getFlatQuestionsList(this.props.asset.content.survey)
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
 
     questions = questions.filter((question) => {
       // let's hide rows that don't carry any submission data
@@ -189,42 +177,39 @@ class BulkEditSubmissionsForm extends React.Component {
         question.type === QuestionTypeName.note ||
         question.type === QuestionTypeName.hidden
       ) {
-        return false;
+        return false
       }
 
       // build selected data for question
-      question.selectedData = [];
-      const questionPath = flatPaths[question.name];
+      question.selectedData = []
+      const questionPath = flatPaths[question.name]
       this.props.data.forEach((submissionData) => {
         if (this.props.selectedSubmissions.includes(String(submissionData._id))) {
           question.selectedData.push({
             sid: submissionData._id,
             value: submissionData[questionPath],
-          });
+          })
         }
-      });
-      return true;
-    });
-    return questions;
+      })
+      return true
+    })
+    return questions
   }
 
   renderSupportUrlLink() {
     if (envStore.isReady && envStore.data.support_url) {
       return (
-        <a
-          href={envStore.data.support_url + HELP_ARTICLE_URL}
-          target='_blank'
-        >
+        <a href={envStore.data.support_url + HELP_ARTICLE_URL} target='_blank'>
           {t('in the help article')}
         </a>
-      );
+      )
     } else {
-      return null;
+      return null
     }
   }
 
   isEditDisabled(questionType) {
-    return EXCLUDED_TYPES.includes(questionType);
+    return EXCLUDED_TYPES.includes(questionType)
   }
 
   /**
@@ -237,29 +222,37 @@ class BulkEditSubmissionsForm extends React.Component {
   renderRowDataValues(questionName, rowData) {
     // if there is an override value, let's display it (for override "no answer"
     // we display a label)
-    const overrideValue = this.state.overrides[questionName];
+    const overrideValue = this.state.overrides[questionName]
     if (typeof overrideValue !== 'undefined') {
       if (overrideValue === null) {
-        return (<React.Fragment><i className='blue-response-dot'/> {EMPTY_VALUE_LABEL}</React.Fragment>);
+        return (
+          <React.Fragment>
+            <i className='blue-response-dot' /> {EMPTY_VALUE_LABEL}
+          </React.Fragment>
+        )
       } else {
-        return (<React.Fragment><i className='blue-response-dot'/> {overrideValue}</React.Fragment>);
+        return (
+          <React.Fragment>
+            <i className='blue-response-dot' /> {overrideValue}
+          </React.Fragment>
+        )
       }
     }
 
-    const uniqueValues = new Set();
+    const uniqueValues = new Set()
     rowData.forEach((item) => {
       if (item.value) {
-        uniqueValues.add(item.value);
+        uniqueValues.add(item.value)
       } else {
-        uniqueValues.add(EMPTY_VALUE_LABEL);
+        uniqueValues.add(EMPTY_VALUE_LABEL)
       }
-    });
-    const uniqueValuesArray = Array.from(uniqueValues);
+    })
+    const uniqueValuesArray = Array.from(uniqueValues)
     if (uniqueValuesArray.length === 1) {
       // if all rows have same value, we display it
-      return uniqueValuesArray[0];
+      return uniqueValuesArray[0]
     } else {
-      return (<em>{MULTIPLE_VALUES_LABEL}</em>);
+      return <em>{MULTIPLE_VALUES_LABEL}</em>
     }
   }
 
@@ -279,22 +272,20 @@ class BulkEditSubmissionsForm extends React.Component {
         placeholder={t('Type to filter')}
       />,
       '',
-    ];
+    ]
   }
 
   getRows(data) {
     return data.map((questionData) => {
-      let question = questionData;
+      let question = questionData
       if (typeof questionData.refIndex !== 'undefined') {
-        question = questionData.item;
+        question = questionData.item
       }
 
       return [
         renderQuestionTypeIcon(question.type),
         <>
-          {question.parents.length > 0 &&
-            <small>{question.parents.join(' / ') + ' /'}</small>
-          }
+          {question.parents.length > 0 && <small>{question.parents.join(' / ') + ' /'}</small>}
 
           <div>
             {question.isRequired && <strong title={t('Required')}>*&nbsp;</strong>}
@@ -302,12 +293,10 @@ class BulkEditSubmissionsForm extends React.Component {
           </div>
         </>,
         <>
-          {question.hasRepeatParent &&
+          {question.hasRepeatParent && (
             <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
-          }
-          {!question.hasRepeatParent &&
-            this.renderRowDataValues(question.name, question.selectedData)
-          }
+          )}
+          {!question.hasRepeatParent && this.renderRowDataValues(question.name, question.selectedData)}
         </>,
         <Text key='action-button' ta='right'>
           <Button
@@ -315,7 +304,7 @@ class BulkEditSubmissionsForm extends React.Component {
             size='m'
             onClick={() => {
               if (!this.isEditDisabled(question.type)) {
-                this.selectQuestion(question);
+                this.selectQuestion(question)
               }
             }}
             isDisabled={
@@ -327,33 +316,36 @@ class BulkEditSubmissionsForm extends React.Component {
             label={t('Edit')}
           />
         </Text>,
-      ];
-    });
+      ]
+    })
   }
 
   renderList() {
-    const displayData = this.getDisplayData();
+    const displayData = this.getDisplayData()
 
-    let finalData = displayData;
-    let fuse = null;
+    let finalData = displayData
+    let fuse = null
 
     if (this.state.filterByName !== '') {
-      fuse = new Fuse(finalData, {...FUSE_OPTIONS, keys: ['label']});
-      finalData = fuse.search(this.state.filterByName);
+      fuse = new Fuse(finalData, { ...FUSE_OPTIONS, keys: ['label'] })
+      finalData = fuse.search(this.state.filterByName)
     }
     if (this.state.filterByValue !== '') {
-      fuse = new Fuse(finalData, {...FUSE_OPTIONS, keys: ['selectedData.value']});
-      finalData = fuse.search(this.state.filterByValue);
+      fuse = new Fuse(finalData, { ...FUSE_OPTIONS, keys: ['selectedData.value'] })
+      finalData = fuse.search(this.state.filterByValue)
     }
 
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} {this.renderSupportUrlLink()}.
+          {t(
+            'You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions',
+          )}{' '}
+          {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>
-          <i className='blue-response-dot'/>
+          <i className='blue-response-dot' />
           {t('Updated responses')}
         </bem.FormModal__item>
 
@@ -362,7 +354,9 @@ class BulkEditSubmissionsForm extends React.Component {
             t('Type'),
             t('Question'),
             t('Response'),
-            <Text key='action-button' ta='right'>{t('Action')}</Text>,
+            <Text key='action-button' ta='right'>
+              {t('Action')}
+            </Text>,
           ]}
           body={[this.getFiltersRow(), ...this.getRows(finalData)]}
           minWidth={600}
@@ -387,14 +381,17 @@ class BulkEditSubmissionsForm extends React.Component {
           />
         </bem.Modal__footer>
       </React.Fragment>
-    );
+    )
   }
 
   renderSelectedQuestion() {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions')} {this.renderSupportUrlLink()}.
+          {t(
+            'You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions',
+          )}{' '}
+          {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>
@@ -415,24 +412,19 @@ class BulkEditSubmissionsForm extends React.Component {
             className='footer-back-button'
           />
 
-          <Button
-            type='primary'
-            size='l'
-            onClick={this.saveOverride.bind(this)}
-            label={t('Save')}
-          />
+          <Button type='primary' size='l' onClick={this.saveOverride.bind(this)} label={t('Save')} />
         </bem.Modal__footer>
       </React.Fragment>
-    );
+    )
   }
 
   render() {
     return (
       <bem.FormModal__form m='bulk-edit-submissions'>
-        {this.state.selectedQuestion === null && this.renderList() }
-        {this.state.selectedQuestion !== null && this.renderSelectedQuestion() }
+        {this.state.selectedQuestion === null && this.renderList()}
+        {this.state.selectedQuestion !== null && this.renderSelectedQuestion()}
       </bem.FormModal__form>
-    );
+    )
   }
 }
 
@@ -448,29 +440,29 @@ class BulkEditSubmissionsForm extends React.Component {
  */
 class BulkEditRowForm extends React.Component {
   constructor(props) {
-    super(props);
-    autoBind(this);
+    super(props)
+    autoBind(this)
   }
 
   onChange(newValue, evt) {
     if (evt) {
-      evt.preventDefault();
+      evt.preventDefault()
     }
-    this.props.onChange(this.props.question.name, newValue);
+    this.props.onChange(this.props.question.name, newValue)
   }
 
   /**
    * Placeholder can be either a helpful instruction or an empty override value
    */
   getPlaceholderValue() {
-    let placeholderValue = t('Type new response for selected submissions');
+    let placeholderValue = t('Type new response for selected submissions')
     if (this.props.overrideData === EMPTY_VALUE) {
       // user selected a "no answer" as a new override value for submissions
       // we don't want this EMPTY_VALUE_LABEL to be an editable value, so we
       // display it as a placeholder
-      placeholderValue = EMPTY_VALUE_LABEL;
+      placeholderValue = EMPTY_VALUE_LABEL
     }
-    return placeholderValue;
+    return placeholderValue
   }
 
   /**
@@ -480,62 +472,55 @@ class BulkEditRowForm extends React.Component {
    * [1] {number} - the total count for this unique response
    */
   getUniqueResponses() {
-    let uniqueResponses = new Map();
+    let uniqueResponses = new Map()
     this.props.originalData.forEach((item) => {
       if (uniqueResponses.has(item.value)) {
-        uniqueResponses.set(item.value, uniqueResponses.get(item.value) + 1);
+        uniqueResponses.set(item.value, uniqueResponses.get(item.value) + 1)
       } else {
-        uniqueResponses.set(item.value, 1);
+        uniqueResponses.set(item.value, 1)
       }
-    });
+    })
     // sort by popularity
-    uniqueResponses = new Map([...uniqueResponses.entries()].sort((a, b) => {return b[1] - a[1];}));
-    return uniqueResponses;
+    uniqueResponses = new Map([...uniqueResponses.entries()].sort((a, b) => b[1] - a[1]))
+    return uniqueResponses
   }
 
   getRows() {
     return Array.from(this.getUniqueResponses()).map((data) => {
-      const count = data[1];
-      const response = data[0];
+      const count = data[1]
+      const response = data[0]
 
-      let responseLabel = response;
-      let responseValue = response;
+      let responseLabel = response
+      let responseValue = response
       if (response === undefined) {
-        responseLabel = EMPTY_VALUE_LABEL;
-        responseValue = EMPTY_VALUE;
+        responseLabel = EMPTY_VALUE_LABEL
+        responseValue = EMPTY_VALUE
       }
 
-      const percentage = (count / this.props.originalData.length * 100).toFixed(2);
+      const percentage = ((count / this.props.originalData.length) * 100).toFixed(2)
 
       return [
         responseLabel,
         count,
         percentage,
         <Text key='action-button' ta='right'>
-          <Button
-            type='secondary'
-            size='m'
-            onClick={this.onChange.bind(this, responseValue)}
-            label={t('Select')}
-          />
+          <Button type='secondary' size='m' onClick={this.onChange.bind(this, responseValue)} label={t('Select')} />
         </Text>,
-      ];
-    });
+      ]
+    })
   }
 
   render() {
-    let inputValue = '';
+    let inputValue = ''
     if (typeof this.props.overrideData === 'string') {
       // there is already a non empty override value
-      inputValue = this.props.overrideData;
+      inputValue = this.props.overrideData
     }
 
     return (
       <React.Fragment>
         <bem.FormView__cell m={['columns', 'columns-top']} dir='auto'>
-          <bem.FormView__cell m='column-icon'>
-            {renderQuestionTypeIcon(this.props.question.type)}
-          </bem.FormView__cell>
+          <bem.FormView__cell m='column-icon'>{renderQuestionTypeIcon(this.props.question.type)}</bem.FormView__cell>
 
           <bem.FormView__cell m='column-1'>
             <h2>{this.props.question.label}</h2>
@@ -556,14 +541,16 @@ class BulkEditRowForm extends React.Component {
             t('Response value'),
             t('Frequency'),
             t('Percentage'),
-            <Text key='action-button' ta='right'>{t('Action')}</Text>,
+            <Text key='action-button' ta='right'>
+              {t('Action')}
+            </Text>,
           ]}
           body={this.getRows()}
           minWidth={600}
         />
       </React.Fragment>
-    );
+    )
   }
 }
 
-export default BulkEditSubmissionsForm;
+export default BulkEditSubmissionsForm

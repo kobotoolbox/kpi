@@ -6,8 +6,6 @@
  * ========================================================================== */
 
 * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -23,7 +21,12 @@ body {
   margin: 0;
 }
 
-html, body, input, textarea, select, button {
+html,
+ body,
+ input,
+ textarea,
+ select,
+ button {
   font-family: $font;
   font-size: variables.$base-font-size;
   font-weight: 400;
@@ -39,7 +42,10 @@ p {
   margin-bottom: 16px;
 }
 
-h3, h4, h5, h6 {
+h3,
+ h4,
+ h5,
+ h6 {
   font-weight: 400;
 }
 

@@ -1,29 +1,25 @@
-import React, {useMemo, useState} from 'react';
-import type {
-  LimitAmount,
-  OneTimeAddOn,
-  RecurringInterval,
-} from 'js/account/stripe.types';
-import Icon from 'js/components/common/icon';
-import styles from 'js/account/usage/usageContainer.module.scss';
-import {USAGE_WARNING_RATIO} from 'js/constants';
-import {Limits, USAGE_TYPE} from 'js/account/stripe.types';
-import {useLimitDisplay} from '../stripe.utils';
-import cx from 'classnames';
-import subscriptionStore from 'js/account/subscriptionStore';
-import Badge from 'js/components/common/badge';
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
-import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component';
+import React, { useMemo, useState } from 'react'
+import type { LimitAmount, OneTimeAddOn, RecurringInterval } from 'js/account/stripe.types'
+import Icon from 'js/components/common/icon'
+import styles from 'js/account/usage/usageContainer.module.scss'
+import { USAGE_WARNING_RATIO } from 'js/constants'
+import { Limits, USAGE_TYPE } from 'js/account/stripe.types'
+import { useLimitDisplay } from '../stripe.utils'
+import cx from 'classnames'
+import subscriptionStore from 'js/account/subscriptionStore'
+import Badge from 'js/components/common/badge'
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
+import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component'
 
 interface UsageContainerProps {
-  usage: number;
-  remainingLimit: LimitAmount;
-  recurringLimit: LimitAmount;
-  oneTimeAddOns: OneTimeAddOn[];
-  hasAddOnsLayout: boolean;
-  period: RecurringInterval;
-  label?: string;
-  type: USAGE_TYPE;
+  usage: number
+  remainingLimit: LimitAmount
+  recurringLimit: LimitAmount
+  oneTimeAddOns: OneTimeAddOn[]
+  hasAddOnsLayout: boolean
+  period: RecurringInterval
+  label?: string
+  type: USAGE_TYPE
 }
 
 const UsageContainer = ({
@@ -36,27 +32,21 @@ const UsageContainer = ({
   type,
   label = undefined,
 }: UsageContainerProps) => {
-  const [isStripeEnabled, setIsStripeEnabled] = useState(false);
-  const [subscriptions] = useState(() => subscriptionStore);
-  const hasRecurringAddOn = useMemo(
-    () => subscriptions.addOnsResponse.length > 0,
-    [subscriptions.addOnsResponse]
-  );
+  const [isStripeEnabled, setIsStripeEnabled] = useState(false)
+  const [subscriptions] = useState(() => subscriptionStore)
+  const hasRecurringAddOn = useMemo(() => subscriptions.addOnsResponse.length > 0, [subscriptions.addOnsResponse])
 
-  const displayOneTimeAddons = useMemo(
-    () => oneTimeAddOns.length > 0,
-    [oneTimeAddOns]
-  );
+  const displayOneTimeAddons = useMemo(() => oneTimeAddOns.length > 0, [oneTimeAddOns])
 
-  const {limitDisplay} = useLimitDisplay();
+  const { limitDisplay } = useLimitDisplay()
 
-  useWhenStripeIsEnabled(() => setIsStripeEnabled(true), []);
-  let limitRatio = 0;
+  useWhenStripeIsEnabled(() => setIsStripeEnabled(true), [])
+  let limitRatio = 0
   if (remainingLimit !== Limits.unlimited && remainingLimit) {
-    limitRatio = usage / remainingLimit;
+    limitRatio = usage / remainingLimit
   }
-  const isOverLimit = limitRatio >= 1;
-  const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO;
+  const isOverLimit = limitRatio >= 1
+  const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO
 
   return (
     <ul
@@ -67,16 +57,11 @@ const UsageContainer = ({
       {isStripeEnabled && (
         <li>
           <label>{t('Available')}</label>
-          <data value={remainingLimit}>
-            {limitDisplay(type, remainingLimit)}
-          </data>
+          <data value={remainingLimit}>{limitDisplay(type, remainingLimit)}</data>
         </li>
       )}
       <li>
-        <label>
-          {label ||
-            (period === 'month' ? t('Used this month') : t('Used this year'))}
-        </label>
+        <label>{label || (period === 'month' ? t('Used this month') : t('Used this year'))}</label>
         <data>{limitDisplay(type, usage)}</data>
       </li>
       {isStripeEnabled && (
@@ -101,11 +86,7 @@ const UsageContainer = ({
           <Badge
             color={'light-blue'}
             size={'m'}
-            label={
-              <strong>
-                {subscriptions.addOnsResponse[0].items?.[0].price.product.name}
-              </strong>
-            }
+            label={<strong>{subscriptions.addOnsResponse[0].items?.[0].price.product.name}</strong>}
           />
         </li>
       )}
@@ -122,7 +103,7 @@ const UsageContainer = ({
         />
       )}
     </ul>
-  );
-};
+  )
+}
 
-export default UsageContainer;
+export default UsageContainer

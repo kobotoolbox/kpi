@@ -87,6 +87,7 @@ $input-color: colors.$kobo-gray-800;
 
   &[aria-expanded='true'] {
     border-color: colors.$kobo-blue;
+
     :global .k-icon {
       color: colors.$kobo-blue;
     }
@@ -107,6 +108,7 @@ $k-select-menu-padding: 6px;
 // Menu containing a list of options.
 .menu {
   display: none;
+
   &[data-expanded='true'] {
     display: block;
   }
@@ -158,6 +160,7 @@ $k-select-menu-padding: 6px;
   font-size: 12px;
   line-height: textBox.$label-leading;
   margin-bottom: textBox.$label-margin;
+
   &.label.label { // selector specificity-fighting with kobo bem
     color: colors.$kobo-gray-800;
   }
