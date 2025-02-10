@@ -129,7 +129,7 @@ export default function useOrganizationMembersQuery({ limit, offset }: Paginated
   const orgId = orgQuery.data?.id
 
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers, limit, offset, orgId],
+    queryKey: [QueryKeys.organizationMembers],
     // `orgId!` because it's ensured to be there in `enabled` property :ok:
     queryFn: () => getOrganizationMembers(limit, offset, orgId!),
     placeholderData: keepPreviousData,

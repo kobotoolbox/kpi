@@ -22,15 +22,16 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
     if (newRole) {
       const role = newRole as OrganizationUserRole
       if (!inviteUrl) {
-        patchMember.mutateAsync({ role })
+        patchMember.mutateAsync({ role });
+      } else {
+        patchInvite.mutateAsync({ role });
       }
-      patchInvite.mutateAsync({ role })
     }
   }
 
   return (
     <>
-      <LoadingOverlay visible={patchMember.isPending} />
+      <LoadingOverlay visible={patchMember.isPending || patchInvite.isPending} />
       <Select
         size='sm'
         data={[
