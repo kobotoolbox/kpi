@@ -45,8 +45,12 @@ export default function InviteModal(props: ModalProps) {
           setRole(null)
           props.onClose()
         })
-        .catch(() => {
-          notify(t('Failed to send invite'), 'error')
+        .catch((error) => {
+          if (error.responseText && JSON.parse(error.responseText)?.invitees) {
+            notify(JSON.parse(error.responseText)?.invitees.join(), 'error')
+          } else {
+            notify(t('Failed to send invite'), 'error')
+          }
         })
     }
   }
