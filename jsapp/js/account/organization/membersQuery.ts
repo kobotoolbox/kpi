@@ -148,7 +148,7 @@ export function useOrganizationMemberDetailQuery(username: string, notifyAboutEr
   // `orgId!` because it's ensured to be there in `enabled` property :ok:
   const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId!).replace(':username', username)
   return useQuery({
-    queryFn: () => fetchGet<OrganizationMember>(apiPath, { notifyAboutError }),
+    queryFn: () => fetchGet<OrganizationMemberListItem>(apiPath, { notifyAboutError }),
     queryKey: [QueryKeys.organizationMemberDetail, apiPath, notifyAboutError],
     enabled: !!orgId,
     retry: false,
