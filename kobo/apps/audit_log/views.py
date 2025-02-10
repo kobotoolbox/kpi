@@ -596,8 +596,8 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
     __doc__ = generate_ph_view_set_logstring(
         'List all project history logs for all projects. Only available to superusers.',
-        '/api/v2/project-history/logs',
-        '/api/v2/project-history/logs',
+        '/api/v2/project-history-logs',
+        '/api/v2/project-history-logs',
         True,
     )
 
