@@ -4,8 +4,8 @@ import { type OrganizationUserRole, useOrganizationQuery } from './organizationQ
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
 import type { FailResponse } from 'jsapp/js/dataInterface'
-import { type OrganizationMember } from './membersQuery'
-import { type Json } from 'jsapp/js/components/common/common.interfaces'
+import type { OrganizationMember } from './membersQuery'
+import type { Json } from 'jsapp/js/components/common/common.interfaces'
 
 /*
  * NOTE: `invites` - `membersQuery` holds a list of members, each containing
@@ -52,11 +52,19 @@ export interface MemberInvite {
   date_modified: string
 }
 
-interface SendMemberInviteParams {
+interface MemberInviteRequestBase {
+  role: OrganizationUserRole
+}
+
+interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[]
   /** Target role for the invitied users. */
   role: OrganizationUserRole
+}
+
+interface MemberInviteUpdate extends MemberInviteRequestBase {
+  status: MemberInviteStatus
 }
 
 /**
@@ -102,7 +110,6 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
   return useQuery<MemberInvite, FailResponse>({
     queryFn: () => fetchGet<MemberInvite>(apiPath),
     queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath],
-    retry: false, // if it's not there it's not there
   })
 }
 
@@ -112,15 +119,26 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
  * invalidation).
  */
-export function usePatchMemberInvite(inviteUrl: string) {
+export function usePatchMemberInvite(inviteUrl?: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (newInviteData: Partial<MemberInvite>) =>
-      fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData),
+    mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
+      if (inviteUrl) {
+        return fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData, {
+          errorMessageDisplay: t('There was an error updating this invitation.'),
+        })
+      } else return null
+    },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberInviteDetail] })
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMemberDetail] })
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberInviteDetail],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMembers],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberDetail],
+      })
     },
   })
 }

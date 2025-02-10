@@ -1,45 +1,43 @@
-import React from 'react';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
-import {actions} from 'js/actions';
-import assetStore from 'js/assetStore';
-import bem from 'js/bem';
+import React from 'react'
+import reactMixin from 'react-mixin'
+import autoBind from 'react-autobind'
+import Reflux from 'reflux'
+import { actions } from 'js/actions'
+import assetStore from 'js/assetStore'
+import bem from 'js/bem'
 
 export default class FormJson extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = {assetContent: false};
-    autoBind(this);
+    super(props)
+    this.state = { assetContent: false }
+    autoBind(this)
   }
 
   componentDidMount() {
-    this.listenTo(assetStore, this.assetStoreTriggered);
-    const uid = this.props.params.assetid || this.props.params.uid;
-    actions.resources.loadAsset({id: uid});
+    this.listenTo(assetStore, this.assetStoreTriggered)
+    const uid = this.props.params.assetid || this.props.params.uid
+    actions.resources.loadAsset({ id: uid })
   }
 
   assetStoreTriggered(response) {
-    const { content } = Object.values(response)[0];
-    this.setState({assetContent: content});
+    const { content } = Object.values(response)[0]
+    this.setState({ assetContent: content })
   }
 
   render() {
-    let content = null;
+    let content = null
     if (this.state.assetContent) {
-      content = JSON.stringify(this.state.assetContent, null, 4);
+      content = JSON.stringify(this.state.assetContent, null, 4)
     }
 
     return (
       <bem.FormView m='ui-panel'>
         <pre>
-          <code>
-            {content}
-          </code>
+          <code>{content}</code>
         </pre>
       </bem.FormView>
-    );
+    )
   }
 }
 
-reactMixin(FormJson.prototype, Reflux.ListenerMixin);
+reactMixin(FormJson.prototype, Reflux.ListenerMixin)

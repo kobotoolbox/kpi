@@ -6,6 +6,7 @@ import { fetchGet, fetchPatch, fetchDelete } from 'js/api'
 import { useOrganizationQuery, type OrganizationUserRole } from './organizationQuery'
 
 // Constants and types
+import type { Nullable } from 'jsapp/js/constants'
 import { endpoints } from 'js/api.endpoints'
 import type { PaginatedResponse } from 'js/dataInterface'
 import { QueryKeys } from 'js/query/queryKeys'
@@ -32,6 +33,9 @@ export interface OrganizationMember {
   user__is_active: boolean
   /** yyyy-mm-dd HH:MM:SS */
   date_joined: string
+}
+
+export interface OrganizationMemberListItem extends Nullable<OrganizationMember> {
   invite?: MemberInvite
 }
 
@@ -111,7 +115,7 @@ async function getOrganizationMembers(limit: number, offset: number, orgId: stri
 
   const apiUrl = endpoints.ORGANIZATION_MEMBERS_URL.replace(':organization_id', orgId)
 
-  return fetchGet<PaginatedResponse<OrganizationMember>>(apiUrl + '?' + params, {
+  return fetchGet<PaginatedResponse<OrganizationMemberListItem>>(apiUrl + '?' + params, {
     errorMessageDisplay: t('There was an error getting the list.'),
   })
 }
