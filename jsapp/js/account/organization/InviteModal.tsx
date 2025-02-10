@@ -92,7 +92,6 @@ export default function InviteModal(props: ModalProps) {
             ]}
             value={role}
             onChange={setRole}
-            clearable
           />
         </Group>
         <Group w='100%' justify='flex-end'>
