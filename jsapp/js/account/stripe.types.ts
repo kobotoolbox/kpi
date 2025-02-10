@@ -203,14 +203,14 @@ export type ChangePlan =
     }
 
 export interface OneTimeAddOn {
-  id: string;
-  created: string;
-  is_available: boolean;
-  usage_limits: Partial<OneTimeUsageLimits>;
-  total_usage_limits: Partial<OneTimeUsageLimits>;
-  limits_remaining: Partial<OneTimeUsageLimits>;
-  organization: string;
-  product: string;
+  id: string
+  created: string
+  is_available: boolean
+  usage_limits: Partial<OneTimeUsageLimits>
+  total_usage_limits: Partial<OneTimeUsageLimits>
+  limits_remaining: Partial<OneTimeUsageLimits>
+  organization: string
+  product: string
 }
 
 export interface OneTimeUsageLimits {
