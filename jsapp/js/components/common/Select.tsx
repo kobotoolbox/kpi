@@ -2,7 +2,7 @@ import type { SelectProps, ComboboxItem } from '@mantine/core'
 import { CloseButton, Group, Select as MantineSelect } from '@mantine/core'
 import type { IconSize } from './icon'
 import Icon from './icon'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 declare module '@mantine/core/lib/components/Select' {
   /** @deprecated use Kobo implementation instead. (deprecating a new interface because can't augment variables) */
@@ -30,6 +30,10 @@ export const Select = (props: SelectProps) => {
     setValue(null)
     props.onClear?.()
   }
+
+  useEffect(() => {
+    setValue(props.value || null)
+  }, [props.value])
 
   const iconSize = typeof props.size === 'string' ? iconSizeMap[props.size] : 's'
 
