@@ -11,6 +11,7 @@ import six
 from defusedxml import minidom
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as t
+from pyxform.survey_element import SurveyElement
 
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceEmptyError
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
@@ -315,7 +316,7 @@ class XFormInstanceParser:
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
         repeats = [
-            e.get_abbreviated_xpath()
+            get_abbreviated_xpath(e)
             for e in self.dd.get_survey_elements_of_type('repeat')
         ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
@@ -420,3 +421,25 @@ def get_xform_media_question_xpaths(
             media_field_xpaths.append(next_attribute_value[1:])
 
     return media_field_xpaths
+
+
+def get_abbreviated_xpath(element: SurveyElement) -> str:
+    """
+    Construct the xpath of an element, leaving out the root element.
+
+    If the element itself is the root element, just return the element name.
+    """
+    def is_flat(elem):
+        # can't use elem.get('flat', False) here because SurveyElement overrides
+        # __getitem__ and it doesn't work with defaults
+        return hasattr(elem, 'flat') and elem.get('flat')
+
+    lineage = [
+        parent[0] for parent in element.iter_ancestors() if not is_flat(parent[0])
+    ]
+    lineage.reverse()
+    lineage.append(element)
+    if len(lineage) > 1:
+        return '/'.join([n.name for n in lineage[1:]])
+    else:
+        return lineage[0].name
