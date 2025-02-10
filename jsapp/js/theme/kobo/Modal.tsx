@@ -1,6 +1,6 @@
-import {Modal} from '@mantine/core';
-import Icon from 'jsapp/js/components/common/icon';
-import classes from './Modal.module.css';
+import { Modal } from '@mantine/core'
+import Icon from 'jsapp/js/components/common/icon'
+import classes from './Modal.module.css'
 
 export const ModalThemeKobo = Modal.extend({
   defaultProps: {
@@ -16,4 +16,4 @@ export const ModalThemeKobo = Modal.extend({
     padding: 'lg',
   },
   classNames: classes,
-});
+})
