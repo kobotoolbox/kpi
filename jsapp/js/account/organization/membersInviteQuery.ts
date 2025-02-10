@@ -3,8 +3,8 @@ import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
-import type {FailResponse, PaginatedResponse} from 'jsapp/js/dataInterface';
-import type {OrganizationMember, OrganizationMemberListItem} from './membersQuery';
+import type { FailResponse, PaginatedResponse } from 'jsapp/js/dataInterface'
+import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
 import type { Json } from 'jsapp/js/components/common/common.interfaces'
 
 /*
@@ -136,49 +136,40 @@ export function usePatchMemberInvite(inviteUrl?: string) {
       } else return null
     },
     onMutate: (inviteUpdate) => {
-      let previousMembersQuery:
-        | PaginatedResponse<OrganizationMemberListItem>
-        | undefined = undefined;
+      let previousMembersQuery: PaginatedResponse<OrganizationMemberListItem> | undefined = undefined
       // For invitee role updates, we optimistically update relevant member
       // in the organization members list
       if (inviteUpdate.role) {
         queryClient.cancelQueries({
           queryKey: [QueryKeys.organizationMembers],
-        });
-        previousMembersQuery = queryClient.getQueryData([
-          QueryKeys.organizationMembers,
-        ]);
+        })
+        previousMembersQuery = queryClient.getQueryData([QueryKeys.organizationMembers])
         if (previousMembersQuery) {
-          const updatedMembersQuery = previousMembersQuery.results.map(
-            (member) => {
-              if (member.invite?.url === inviteUrl) {
-                const updatedInvite = {
-                  ...member.invite,
-                  invitee_role: inviteUpdate.role,
-                };
-                const updatedMember = {
-                  ...member,
-                  invite: updatedInvite,
-                };
-                return updatedMember;
+          const updatedMembersQuery = previousMembersQuery.results.map((member) => {
+            if (member.invite?.url === inviteUrl) {
+              const updatedInvite = {
+                ...member.invite,
+                invitee_role: inviteUpdate.role,
               }
-              return member;
+              const updatedMember = {
+                ...member,
+                invite: updatedInvite,
+              }
+              return updatedMember
             }
-          );
+            return member
+          })
           const newData = {
             ...previousMembersQuery,
             results: updatedMembersQuery,
-          };
-          queryClient.setQueryData([QueryKeys.organizationMembers], newData);
+          }
+          queryClient.setQueryData([QueryKeys.organizationMembers], newData)
         }
       }
-      return { previousMembersQuery };
+      return { previousMembersQuery }
     },
     onError: (_err, _inviteUpdate, context) => {
-      queryClient.setQueryData(
-        [QueryKeys.organizationMembers],
-        context?.previousMembersQuery
-      );
+      queryClient.setQueryData([QueryKeys.organizationMembers], context?.previousMembersQuery)
     },
     onSettled: () => {
       queryClient.invalidateQueries({

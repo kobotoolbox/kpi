@@ -60,6 +60,37 @@ export function usePatchOrganizationMember(username: string) {
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
       fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
+    onMutate: (memberUpdate) => {
+      let previousMembersQuery: PaginatedResponse<OrganizationMemberListItem> | undefined = undefined
+      // For member role updates, we optimistically update the organization members list
+      if (memberUpdate.role) {
+        queryClient.cancelQueries({
+          queryKey: [QueryKeys.organizationMembers],
+        })
+        previousMembersQuery = queryClient.getQueryData([QueryKeys.organizationMembers])
+        if (previousMembersQuery) {
+          const updatedMembersQuery = previousMembersQuery.results.map((member) => {
+            if (member.user__username === username) {
+              const updatedMember = {
+                ...member,
+                role: memberUpdate.role,
+              }
+              return updatedMember
+            }
+            return member
+          })
+          const newData = {
+            ...previousMembersQuery,
+            results: updatedMembersQuery,
+          }
+          queryClient.setQueryData([QueryKeys.organizationMembers], newData)
+        }
+      }
+      return { previousMembersQuery }
+    },
+    onError: (_err, _memberUpdate, context) => {
+      queryClient.setQueryData([QueryKeys.organizationMembers], context?.previousMembersQuery)
+    },
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
       // directly, see: https://github.com/TanStack/query/discussions/2468)
