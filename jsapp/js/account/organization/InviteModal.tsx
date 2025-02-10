@@ -12,7 +12,7 @@ import {checkEmailPattern, notify} from 'js/utils';
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite();
 
-  //const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   async function handleUsernameOrEmailCheck(value: string) {
     if (value === '' || checkEmailPattern(value)) {
@@ -33,7 +33,7 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   });
 
-  const role = useField({
+  const roleField = useField({
     initialValue: null,
   });
 
