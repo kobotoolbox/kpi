@@ -7,15 +7,15 @@ import {useState} from 'react';
 import {OrganizationUserRole} from './organizationQuery';
 import userExistence from 'js/users/userExistence.store';
 import {useField} from '@mantine/form';
-import {notify} from 'js/utils';
+import {checkEmailPattern, notify} from 'js/utils';
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite();
 
-  const [role, setRole] = useState<string | null>(null);
+  //const [role, setRole] = useState<string | null>(null);
 
   async function handleUsernameOrEmailCheck(value: string) {
-    if (value === '' || value.includes('@')) {
+    if (value === '' || checkEmailPattern(value)) {
       return null;
     }
 
@@ -33,12 +33,20 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   });
 
+  const role = useField({
+    initialValue: null,
+  });
+
   const handleSendInvite = () => {
     if (role) {
       inviteQuery
         .mutateAsync({
           invitees: [userOrEmail.getValue()],
           role: role as OrganizationUserRole,
+        })
+        .then(() => {
+          userOrEmail.reset();
+          setRole(null);
         })
         .catch(() => {
           notify(t('Failed to send invite'), 'error');
@@ -86,8 +94,8 @@ export default function InviteModal(props: ModalProps) {
                 label: t('Member'),
               },
             ]}
-            value={role}
-            onChange={setRole}
+            value={role.getValue()}
+            onChange={role.setValue}
           />
         </Group>
         <Group w='100%' justify='flex-end'>
@@ -98,6 +106,11 @@ export default function InviteModal(props: ModalProps) {
           >
             {t('Send invite')}
           </ButtonNew>
+
+          <ButtonNew
+            size='lg'
+            onClick={() => {setRole(null); console.log('-----------', role);}}
+          />
         </Group>
       </Stack>
     </Modal>
