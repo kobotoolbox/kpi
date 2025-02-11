@@ -10,10 +10,12 @@ from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
 from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
     GEOLOCATION,
     ID,
+    META_ROOT_UUID,
     MONGO_STRFTIME,
     NOTES,
     SUBMISSION_TIME,
@@ -285,6 +287,7 @@ class ParsedInstance(models.Model):
 
         data = {
             UUID: self.instance.uuid,
+            META_ROOT_UUID: add_uuid_prefix(self.instance.root_uuid),
             ID: self.instance.id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
             self.STATUS: self.instance.status,

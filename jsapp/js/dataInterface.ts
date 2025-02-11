@@ -215,6 +215,7 @@ export interface SubmissionResponse {
   end?: string;
   'formhub/uuid': string;
   'meta/instanceID': string;
+  'meta/rootUuid': string;
   phonenumber?: string;
   start?: string;
   today?: string;

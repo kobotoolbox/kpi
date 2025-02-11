@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0061_add_search_field_to_asset'),
+        ('kpi', '0062_increase_asset_snapshot_submission_uuid'),
     ]
 
     operations = [
