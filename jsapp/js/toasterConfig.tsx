@@ -1,5 +1,5 @@
-import React from 'react';
-import {Toaster} from 'react-hot-toast';
+import React from 'react'
+import { Toaster } from 'react-hot-toast'
 
 export default function ToasterConfig() {
   // Default position of all notifications, page specific ones can be overwritten
@@ -36,5 +36,5 @@ export default function ToasterConfig() {
         duration: 5000, // 5 seconds
       }}
     />
-  );
+  )
 }

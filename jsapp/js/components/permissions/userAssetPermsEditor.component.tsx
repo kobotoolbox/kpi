@@ -1,119 +1,110 @@
-import React from 'react';
-import clonedeep from 'lodash.clonedeep';
-import cx from 'classnames';
-import Checkbox from 'js/components/common/checkbox';
-import TextBox from 'js/components/common/textBox';
-import Button from 'js/components/common/button';
-import AriaText from 'js/components/common/ariaText';
-import {actions} from 'js/actions';
-import bem from 'js/bem';
-import {parseFormData, buildFormData} from './permParser';
-import {notify} from 'js/utils';
-import {buildUserUrl, ANON_USERNAME} from 'js/users/utils';
-import {KEY_CODES} from 'js/constants';
-import {
-  CHECKBOX_DISABLED_SUFFIX,
-  CHECKBOX_NAMES,
-  CHECKBOX_PERM_PAIRS,
-  CHECKBOX_LABELS,
-} from './permConstants';
+import React from 'react'
+import clonedeep from 'lodash.clonedeep'
+import cx from 'classnames'
+import Checkbox from 'js/components/common/checkbox'
+import TextBox from 'js/components/common/textBox'
+import Button from 'js/components/common/button'
+import AriaText from 'js/components/common/ariaText'
+import { actions } from 'js/actions'
+import bem from 'js/bem'
+import { parseFormData, buildFormData } from './permParser'
+import { notify } from 'js/utils'
+import { buildUserUrl, ANON_USERNAME } from 'js/users/utils'
+import { KEY_CODES } from 'js/constants'
+import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS, CHECKBOX_LABELS } from './permConstants'
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByUsers,
   CheckboxNamePartialByResponses,
   PartialByUsersListName,
   PermissionCodename,
-} from './permConstants';
-import type {AssignablePermsMap} from './sharingForm.component';
-import type {PermissionBase, PermissionResponse} from 'js/dataInterface';
-import userExistence from 'js/users/userExistence.store';
-import {
-  getPartialByUsersListName,
-  getPartialByResponsesQuestionName,
-  getPartialByResponsesValueName,
-} from './utils';
-import {getSurveyFlatPaths} from 'js/assetUtils';
-import assetStore from 'js/assetStore';
-import KoboSelect from 'js/components/common/koboSelect';
-import type {KoboSelectOption} from 'js/components/common/koboSelect';
+} from './permConstants'
+import type { AssignablePermsMap } from './sharingForm.component'
+import type { PermissionBase, PermissionResponse } from 'js/dataInterface'
+import userExistence from 'js/users/userExistence.store'
+import { getPartialByUsersListName, getPartialByResponsesQuestionName, getPartialByResponsesValueName } from './utils'
+import { getSurveyFlatPaths } from 'js/assetUtils'
+import assetStore from 'js/assetStore'
+import KoboSelect from 'js/components/common/koboSelect'
+import type { KoboSelectOption } from 'js/components/common/koboSelect'
 import {
   applyValidityRules,
   isAssignable,
   isPartialByUsersValid,
   isPartialByResponsesValid,
   getFormData,
-} from './userAssetPermsEditor.utils';
-import styles from './userAssetPermsEditor.module.scss';
+} from './userAssetPermsEditor.utils'
+import styles from './userAssetPermsEditor.module.scss'
 
-const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
-const USERNAMES_SEPARATOR = ',';
+const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
+const USERNAMES_SEPARATOR = ','
 
 interface UserAssetPermsEditorProps {
-  assetUid: string;
+  assetUid: string
   /** Permissions user username (could be empty for new) */
-  username?: string;
+  username?: string
   /** list of permissions (could be empty for new) */
-  permissions?: PermissionResponse[];
-  assignablePerms: AssignablePermsMap;
+  permissions?: PermissionResponse[]
+  assignablePerms: AssignablePermsMap
   /** List of permissions with exclusion of the asset owner permissions */
-  nonOwnerPerms: PermissionBase[];
+  nonOwnerPerms: PermissionBase[]
   /** Callback to be run when submit ends (success or failure) */
-  onSubmitEnd: (isSuccess: boolean) => void;
+  onSubmitEnd: (isSuccess: boolean) => void
 }
 
 /** Note that this bares a lot of similarities with `PermsFormData` interface */
 export interface UserAssetPermsEditorState {
-  isSubmitPending: boolean;
+  isSubmitPending: boolean
   // We need both `isEditingUsername` and `isCheckingUsername` to block sending
   // permissions to Back end, when we're not sure if user exists.
-  isEditingUsername: boolean;
-  isCheckingUsername: boolean;
+  isEditingUsername: boolean
+  isCheckingUsername: boolean
   // Properties for configuring the permission in the form:
-  username: string;
-  formView: boolean;
-  formViewDisabled: boolean;
-  formEdit: boolean;
-  formEditDisabled: boolean;
-  formManage: boolean;
-  formManageDisabled: boolean;
-  submissionsView: boolean;
-  submissionsViewDisabled: boolean;
-  submissionsViewPartialByUsers: boolean;
-  submissionsViewPartialByUsersDisabled: boolean;
-  submissionsViewPartialByUsersList: string[];
-  submissionsViewPartialByResponses: boolean;
-  submissionsViewPartialByResponsesDisabled: boolean;
-  submissionsViewPartialByResponsesQuestion: string | null;
-  submissionsViewPartialByResponsesValue: string;
-  submissionsAdd: boolean;
-  submissionsAddDisabled: boolean;
-  submissionsEdit: boolean;
-  submissionsEditDisabled: boolean;
-  submissionsEditPartialByUsers: boolean;
-  submissionsEditPartialByUsersDisabled: boolean;
-  submissionsEditPartialByUsersList: string[];
-  submissionsEditPartialByResponses: boolean;
-  submissionsEditPartialByResponsesDisabled: boolean;
-  submissionsEditPartialByResponsesQuestion: string | null;
-  submissionsEditPartialByResponsesValue: string;
-  submissionsValidate: boolean;
-  submissionsValidateDisabled: boolean;
-  submissionsValidatePartialByUsers: boolean;
-  submissionsValidatePartialByUsersDisabled: boolean;
-  submissionsValidatePartialByUsersList: string[];
-  submissionsValidatePartialByResponses: boolean;
-  submissionsValidatePartialByResponsesDisabled: boolean;
-  submissionsValidatePartialByResponsesQuestion: string | null;
-  submissionsValidatePartialByResponsesValue: string;
-  submissionsDelete: boolean;
-  submissionsDeleteDisabled: boolean;
-  submissionsDeletePartialByUsers: boolean;
-  submissionsDeletePartialByUsersDisabled: boolean;
-  submissionsDeletePartialByUsersList: string[];
-  submissionsDeletePartialByResponses: boolean;
-  submissionsDeletePartialByResponsesDisabled: boolean;
-  submissionsDeletePartialByResponsesQuestion: string | null;
-  submissionsDeletePartialByResponsesValue: string;
+  username: string
+  formView: boolean
+  formViewDisabled: boolean
+  formEdit: boolean
+  formEditDisabled: boolean
+  formManage: boolean
+  formManageDisabled: boolean
+  submissionsView: boolean
+  submissionsViewDisabled: boolean
+  submissionsViewPartialByUsers: boolean
+  submissionsViewPartialByUsersDisabled: boolean
+  submissionsViewPartialByUsersList: string[]
+  submissionsViewPartialByResponses: boolean
+  submissionsViewPartialByResponsesDisabled: boolean
+  submissionsViewPartialByResponsesQuestion: string | null
+  submissionsViewPartialByResponsesValue: string
+  submissionsAdd: boolean
+  submissionsAddDisabled: boolean
+  submissionsEdit: boolean
+  submissionsEditDisabled: boolean
+  submissionsEditPartialByUsers: boolean
+  submissionsEditPartialByUsersDisabled: boolean
+  submissionsEditPartialByUsersList: string[]
+  submissionsEditPartialByResponses: boolean
+  submissionsEditPartialByResponsesDisabled: boolean
+  submissionsEditPartialByResponsesQuestion: string | null
+  submissionsEditPartialByResponsesValue: string
+  submissionsValidate: boolean
+  submissionsValidateDisabled: boolean
+  submissionsValidatePartialByUsers: boolean
+  submissionsValidatePartialByUsersDisabled: boolean
+  submissionsValidatePartialByUsersList: string[]
+  submissionsValidatePartialByResponses: boolean
+  submissionsValidatePartialByResponsesDisabled: boolean
+  submissionsValidatePartialByResponsesQuestion: string | null
+  submissionsValidatePartialByResponsesValue: string
+  submissionsDelete: boolean
+  submissionsDeleteDisabled: boolean
+  submissionsDeletePartialByUsers: boolean
+  submissionsDeletePartialByUsersDisabled: boolean
+  submissionsDeletePartialByUsersList: string[]
+  submissionsDeletePartialByResponses: boolean
+  submissionsDeletePartialByResponsesDisabled: boolean
+  submissionsDeletePartialByResponsesQuestion: string | null
+  submissionsDeletePartialByResponsesValue: string
 }
 
 /**
@@ -124,7 +115,7 @@ export default class UserAssetPermsEditor extends React.Component<
   UserAssetPermsEditorState
 > {
   constructor(props: UserAssetPermsEditorProps) {
-    super(props);
+    super(props)
 
     this.state = {
       // inner workings
@@ -177,9 +168,9 @@ export default class UserAssetPermsEditor extends React.Component<
       submissionsDeletePartialByResponsesDisabled: false,
       submissionsDeletePartialByResponsesQuestion: null,
       submissionsDeletePartialByResponsesValue: '',
-    };
+    }
 
-    this.applyPropsData();
+    this.applyPropsData()
   }
 
   /**
@@ -189,9 +180,9 @@ export default class UserAssetPermsEditor extends React.Component<
    * TODO: think about a better caching mechanism, probably added inside
    * the `userExistence` store.
    */
-  checkedUsernames: Map<string, boolean> = new Map();
+  checkedUsernames: Map<string, boolean> = new Map()
 
-  private unlisteners: Function[] = [];
+  private unlisteners: Function[] = []
 
   /**
    * Fills up form with provided user name and permissions (if applicable)
@@ -199,52 +190,42 @@ export default class UserAssetPermsEditor extends React.Component<
   applyPropsData() {
     // Build form data from given existing permissions (e.g. when this component
     // is being used to edit existing permissions)
-    const formData = buildFormData(
-      this.props.permissions || [],
-      this.props.username
-    );
+    const formData = buildFormData(this.props.permissions || [], this.props.username)
 
     // Merge built form data with existing state (with defaults) and then apply
     // validity rules (handles disabling and checking/unchecking properties
     // based on implied/contradictory rules from `permConfig`).
-    this.state = applyValidityRules(Object.assign(this.state, formData));
+    this.state = applyValidityRules(Object.assign(this.state, formData))
   }
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.permissions.bulkSetAssetPermissions.completed.listen(
-        this.onBulkSetAssetPermissionCompleted.bind(this)
-      ),
-      actions.permissions.bulkSetAssetPermissions.failed.listen(
-        this.onBulkSetAssetPermissionFailed.bind(this)
-      )
-    );
+      actions.permissions.bulkSetAssetPermissions.completed.listen(this.onBulkSetAssetPermissionCompleted.bind(this)),
+      actions.permissions.bulkSetAssetPermissions.failed.listen(this.onBulkSetAssetPermissionFailed.bind(this)),
+    )
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {
-      clb();
-    });
+      clb()
+    })
   }
 
   onBulkSetAssetPermissionCompleted() {
-    this.setState({isSubmitPending: false}, () => {
-      this.notifyParentAboutSubmitEnd(true);
-    });
+    this.setState({ isSubmitPending: false }, () => {
+      this.notifyParentAboutSubmitEnd(true)
+    })
   }
 
   onBulkSetAssetPermissionFailed() {
-    this.setState({isSubmitPending: false}, () => {
-      this.notifyParentAboutSubmitEnd(false);
-    });
+    this.setState({ isSubmitPending: false }, () => {
+      this.notifyParentAboutSubmitEnd(false)
+    })
   }
 
   notifyParentAboutSubmitEnd(isSuccess: boolean) {
-    if (
-      !this.state.isSubmitPending &&
-      typeof this.props.onSubmitEnd === 'function'
-    ) {
-      this.props.onSubmitEnd(isSuccess);
+    if (!this.state.isSubmitPending && typeof this.props.onSubmitEnd === 'function') {
+      this.props.onSubmitEnd(isSuccess)
     }
   }
 
@@ -253,9 +234,9 @@ export default class UserAssetPermsEditor extends React.Component<
    * being up to date regardless which one changed.
    */
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
-    let output = clonedeep(this.state);
-    output = Object.assign(output, {[checkboxName]: isChecked});
-    this.setState(applyValidityRules(output));
+    let output = clonedeep(this.state)
+    output = Object.assign(output, { [checkboxName]: isChecked })
+    this.setState(applyValidityRules(output))
   }
 
   /**
@@ -266,59 +247,53 @@ export default class UserAssetPermsEditor extends React.Component<
     this.setState({
       username: username,
       isEditingUsername: true,
-    });
+    })
   }
 
   /**
    * Checks if username exist on the Back end, and clears input if doesn't.
    */
   async onUsernameChangeEnd() {
-    this.setState({isEditingUsername: false});
+    this.setState({ isEditingUsername: false })
 
-    const usernameToCheck = this.state.username;
+    const usernameToCheck = this.state.username
 
     // We don't check empty string.
     if (usernameToCheck === '') {
-      return;
+      return
     }
 
     // If we have previously checked, and user does exist, we do nothing :).
-    if (
-      this.checkedUsernames.has(usernameToCheck) &&
-      this.checkedUsernames.get(usernameToCheck) === true
-    ) {
-      return;
+    if (this.checkedUsernames.has(usernameToCheck) && this.checkedUsernames.get(usernameToCheck) === true) {
+      return
     }
 
     // If we have previously checked, and user doesn't exist, we notify and
     // clear input
-    if (
-      this.checkedUsernames.has(usernameToCheck) &&
-      this.checkedUsernames.get(usernameToCheck) === false
-    ) {
-      this.notifyUnknownUser(usernameToCheck);
-      this.setState({username: ''});
+    if (this.checkedUsernames.has(usernameToCheck) && this.checkedUsernames.get(usernameToCheck) === false) {
+      this.notifyUnknownUser(usernameToCheck)
+      this.setState({ username: '' })
     }
 
     // If we didn't check for user, we do it here (and cache result).
-    this.setState({isCheckingUsername: true});
-    const checkResult = await userExistence.checkUsername(usernameToCheck);
-    this.checkedUsernames.set(usernameToCheck, checkResult);
+    this.setState({ isCheckingUsername: true })
+    const checkResult = await userExistence.checkUsername(usernameToCheck)
+    this.checkedUsernames.set(usernameToCheck, checkResult)
     if (checkResult === false) {
       // Notify about unknown user - but only if there is internet connection,
       // so that we don't display a scary "User not found" notification
       // untruthfuly.
       if (navigator.onLine) {
-        this.notifyUnknownUser(usernameToCheck);
+        this.notifyUnknownUser(usernameToCheck)
       }
-      this.setState({username: ''});
+      this.setState({ username: '' })
     }
 
-    this.setState({isCheckingUsername: false});
+    this.setState({ isCheckingUsername: false })
   }
 
   notifyUnknownUser(username: string) {
-    notify(`${t('User not found:')} ${username}`, 'warning');
+    notify(`${t('User not found:')} ${username}`, 'warning')
   }
 
   /**
@@ -327,8 +302,8 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   onInputKeyPress(key: string, evt: React.KeyboardEvent<HTMLInputElement>) {
     if (key === String(KEY_CODES.ENTER)) {
-      evt.currentTarget.blur();
-      evt.preventDefault(); // prevent submitting form
+      evt.currentTarget.blur()
+      evt.preventDefault() // prevent submitting form
     }
   }
 
@@ -336,26 +311,26 @@ export default class UserAssetPermsEditor extends React.Component<
    * Generic function for updating partial users text input
    */
   onPartialUsersChange(prop: PartialByUsersListName, users: string) {
-    let output = clonedeep(this.state);
+    let output = clonedeep(this.state)
     output = Object.assign(output, {
       [prop]: users.split(USERNAMES_SEPARATOR).map((user) => user.trim()),
-    });
-    this.setState(output);
+    })
+    this.setState(output)
   }
 
   // We make a proxy here to avoid passing `assignablePerms` props each time
   isAssignable(permCodename: PermissionCodename) {
-    return isAssignable(permCodename, this.props.assignablePerms);
+    return isAssignable(permCodename, this.props.assignablePerms)
   }
 
   /**
    * Blocks submitting non-ready form.
    */
   isSubmitEnabled() {
-    let isAnyCheckboxChecked = false;
+    let isAnyCheckboxChecked = false
     for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
       if (this.state[checkboxName] === true) {
-        isAnyCheckboxChecked = true;
+        isAnyCheckboxChecked = true
       }
     }
 
@@ -365,58 +340,41 @@ export default class UserAssetPermsEditor extends React.Component<
       isPartialByUsersValid('submissionsEditPartialByUsers', this.state) &&
       isPartialByUsersValid('submissionsDeletePartialByUsers', this.state) &&
       isPartialByUsersValid('submissionsValidatePartialByUsers', this.state) &&
-      isPartialByResponsesValid(
-        'submissionsViewPartialByResponses',
-        this.state
-      ) &&
-      isPartialByResponsesValid(
-        'submissionsEditPartialByResponses',
-        this.state
-      ) &&
-      isPartialByResponsesValid(
-        'submissionsDeletePartialByResponses',
-        this.state
-      ) &&
-      isPartialByResponsesValid(
-        'submissionsValidatePartialByResponses',
-        this.state
-      ) &&
+      isPartialByResponsesValid('submissionsViewPartialByResponses', this.state) &&
+      isPartialByResponsesValid('submissionsEditPartialByResponses', this.state) &&
+      isPartialByResponsesValid('submissionsDeletePartialByResponses', this.state) &&
+      isPartialByResponsesValid('submissionsValidatePartialByResponses', this.state) &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       !this.state.isCheckingUsername &&
       this.state.username.length > 0 &&
       // we don't allow manual setting anonymous user permissions through UI
       this.state.username !== ANON_USERNAME
-    );
+    )
   }
 
   onSubmit(evt: React.FormEvent<HTMLFormElement>) {
-    evt.preventDefault();
+    evt.preventDefault()
 
     if (!this.isSubmitEnabled()) {
-      return;
+      return
     }
 
-    const formData = getFormData(this.state, this.props.assignablePerms);
+    const formData = getFormData(this.state, this.props.assignablePerms)
 
-    const parsedPerms = parseFormData(formData);
+    const parsedPerms = parseFormData(formData)
 
     if (parsedPerms.length > 0) {
       // bulk endpoint needs all other users permissions to be passed
-      const otherUserPerms = this.props.nonOwnerPerms.filter(
-        (perm) => perm.user !== buildUserUrl(formData.username)
-      );
-      this.setState({isSubmitPending: true});
-      actions.permissions.bulkSetAssetPermissions(
-        this.props.assetUid,
-        otherUserPerms.concat(parsedPerms)
-      );
+      const otherUserPerms = this.props.nonOwnerPerms.filter((perm) => perm.user !== buildUserUrl(formData.username))
+      this.setState({ isSubmitPending: true })
+      actions.permissions.bulkSetAssetPermissions(this.props.assetUid, otherUserPerms.concat(parsedPerms))
     } else {
       // if nothing changes but user submits, just notify parent we're good
-      this.notifyParentAboutSubmitEnd(true);
+      this.notifyParentAboutSubmitEnd(true)
     }
 
-    return false;
+    return false
   }
 
   /**
@@ -425,9 +383,8 @@ export default class UserAssetPermsEditor extends React.Component<
   renderCheckbox(checkboxName: CheckboxNameAll) {
     // We need to trick TypeScript here, because we don't want to refactor too
     // much code to make it perfect
-    const disabledPropName = (checkboxName +
-      CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState;
-    const isDisabled = Boolean(this.state[disabledPropName]);
+    const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
+    const isDisabled = Boolean(this.state[disabledPropName])
     return (
       <Checkbox
         checked={this.state[checkboxName]}
@@ -435,7 +392,7 @@ export default class UserAssetPermsEditor extends React.Component<
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
         label={CHECKBOX_LABELS[checkboxName]}
       />
-    );
+    )
   }
 
   /**
@@ -445,7 +402,7 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   renderPartialByUsersRow(checkboxName: CheckboxNamePartialByUsers) {
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
-      const listName = getPartialByUsersListName(checkboxName);
+      const listName = getPartialByUsersListName(checkboxName)
       return (
         <div className={styles.subRow}>
           {this.renderCheckbox(checkboxName)}
@@ -456,36 +413,30 @@ export default class UserAssetPermsEditor extends React.Component<
               placeholder={PARTIAL_PLACEHOLDER}
               value={this.state[listName].join(USERNAMES_SEPARATOR)}
               onChange={this.onPartialUsersChange.bind(this, listName)}
-              errors={
-                this.state[checkboxName] && this.state[listName].length === 0
-              }
+              errors={this.state[checkboxName] && this.state[listName].length === 0}
               onKeyPress={this.onInputKeyPress.bind(this)}
             />
           )}
         </div>
-      );
+      )
     } else {
-      return null;
+      return null
     }
   }
 
   getQuestionNameSelectOptions(): KoboSelectOption[] {
-    const output: KoboSelectOption[] = [];
-    const foundAsset = assetStore.getAsset(this.props.assetUid);
+    const output: KoboSelectOption[] = []
+    const foundAsset = assetStore.getAsset(this.props.assetUid)
     if (foundAsset?.content?.survey) {
-      const flatPaths = getSurveyFlatPaths(
-        foundAsset.content?.survey,
-        false,
-        true
-      );
+      const flatPaths = getSurveyFlatPaths(foundAsset.content?.survey, false, true)
       for (const [, path] of Object.entries(flatPaths)) {
         output.push({
           value: path,
           label: path,
-        });
+        })
       }
     }
-    return output;
+    return output
   }
 
   /**
@@ -495,8 +446,8 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   renderPartialByResponsesRow(checkboxName: CheckboxNamePartialByResponses) {
     if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
-      const questionProp = getPartialByResponsesQuestionName(checkboxName);
-      const valueProp = getPartialByResponsesValueName(checkboxName);
+      const questionProp = getPartialByResponsesQuestionName(checkboxName)
+      const valueProp = getPartialByResponsesValueName(checkboxName)
 
       return (
         <div className={styles.subRow}>
@@ -514,20 +465,17 @@ export default class UserAssetPermsEditor extends React.Component<
                   selectedOption={this.state[questionProp]}
                   onChange={(newSelectedOption: string | null) => {
                     // Update state object in non mutable way
-                    let output = clonedeep(this.state);
+                    let output = clonedeep(this.state)
                     output = Object.assign(output, {
                       [questionProp]: newSelectedOption,
-                    });
-                    this.setState(output);
+                    })
+                    this.setState(output)
                   }}
                 />
               </span>
 
               {/* We display an equals character between elements here :) */}
-              <AriaText
-                uiText='='
-                screenReaderText={t('equals')}
-              />
+              <AriaText uiText='=' screenReaderText={t('equals')} />
 
               <span className={styles.valueInputWrapper}>
                 <TextBox
@@ -535,11 +483,11 @@ export default class UserAssetPermsEditor extends React.Component<
                   size='m'
                   onChange={(newVal: string) => {
                     // Update state object in non mutable way
-                    let output = clonedeep(this.state);
+                    let output = clonedeep(this.state)
                     output = Object.assign(output, {
                       [valueProp]: newVal,
-                    });
-                    this.setState(output);
+                    })
+                    this.setState(output)
                   }}
                 />
               </span>
@@ -550,37 +498,33 @@ export default class UserAssetPermsEditor extends React.Component<
                 label={t('Reset changes')}
                 onClick={() => {
                   // Update state object in non mutable way
-                  let output = clonedeep(this.state);
+                  let output = clonedeep(this.state)
                   output = Object.assign(output, {
                     [questionProp]: null,
                     [valueProp]: '',
-                  });
-                  this.setState(output);
+                  })
+                  this.setState(output)
                 }}
               />
             </div>
           )}
         </div>
-      );
+      )
     } else {
-      return null;
+      return null
     }
   }
 
   render() {
-    const isNew = typeof this.props.username === 'undefined';
+    const isNew = typeof this.props.username === 'undefined'
 
-    const formModifiers = [];
+    const formModifiers = []
     if (this.state.isSubmitPending) {
-      formModifiers.push('pending');
+      formModifiers.push('pending')
     }
 
     return (
-      <bem.FormModal__form
-        m={formModifiers}
-        className='user-permissions-editor'
-        onSubmit={this.onSubmit.bind(this)}
-      >
+      <bem.FormModal__form m={formModifiers} className='user-permissions-editor' onSubmit={this.onSubmit.bind(this)}>
         {isNew && (
           // don't display username editor when editing existing user
           <div className={cx([styles.row, styles.rowUsername])}>
@@ -601,39 +545,25 @@ export default class UserAssetPermsEditor extends React.Component<
 
           {this.isAssignable('change_asset') && this.renderCheckbox('formEdit')}
 
-          {this.isAssignable('view_submissions') &&
-            this.renderCheckbox('submissionsView')}
+          {this.isAssignable('view_submissions') && this.renderCheckbox('submissionsView')}
           {this.renderPartialByUsersRow('submissionsViewPartialByUsers')}
-          {this.renderPartialByResponsesRow(
-            'submissionsViewPartialByResponses'
-          )}
+          {this.renderPartialByResponsesRow('submissionsViewPartialByResponses')}
 
-          {this.isAssignable('add_submissions') &&
-            this.renderCheckbox('submissionsAdd')}
+          {this.isAssignable('add_submissions') && this.renderCheckbox('submissionsAdd')}
 
-          {this.isAssignable('change_submissions') &&
-            this.renderCheckbox('submissionsEdit')}
+          {this.isAssignable('change_submissions') && this.renderCheckbox('submissionsEdit')}
           {this.renderPartialByUsersRow('submissionsEditPartialByUsers')}
-          {this.renderPartialByResponsesRow(
-            'submissionsEditPartialByResponses'
-          )}
+          {this.renderPartialByResponsesRow('submissionsEditPartialByResponses')}
 
-          {this.isAssignable('validate_submissions') &&
-            this.renderCheckbox('submissionsValidate')}
+          {this.isAssignable('validate_submissions') && this.renderCheckbox('submissionsValidate')}
           {this.renderPartialByUsersRow('submissionsValidatePartialByUsers')}
-          {this.renderPartialByResponsesRow(
-            'submissionsValidatePartialByResponses'
-          )}
+          {this.renderPartialByResponsesRow('submissionsValidatePartialByResponses')}
 
-          {this.isAssignable('delete_submissions') &&
-            this.renderCheckbox('submissionsDelete')}
+          {this.isAssignable('delete_submissions') && this.renderCheckbox('submissionsDelete')}
           {this.renderPartialByUsersRow('submissionsDeletePartialByUsers')}
-          {this.renderPartialByResponsesRow(
-            'submissionsDeletePartialByResponses'
-          )}
+          {this.renderPartialByResponsesRow('submissionsDeletePartialByResponses')}
 
-          {this.isAssignable('manage_asset') &&
-            this.renderCheckbox('formManage')}
+          {this.isAssignable('manage_asset') && this.renderCheckbox('formManage')}
         </div>
 
         <div className={styles.row}>
@@ -648,6 +578,6 @@ export default class UserAssetPermsEditor extends React.Component<
           />
         </div>
       </bem.FormModal__form>
-    );
+    )
   }
 }

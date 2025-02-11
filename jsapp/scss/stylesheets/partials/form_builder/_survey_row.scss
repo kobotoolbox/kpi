@@ -48,24 +48,28 @@
 }
 
 // a quick fix for the issue regarding adding matrix
-.survey__row--score, .survey__row--rank {
+.survey__row--score,
+ .survey__row--rank {
   .card__buttons__button--add {
     display: none;
   }
 }
 
-.score_preview, .rank_preview {
+.score_preview,
+ .rank_preview {
   background-color: colors.$kobo-white;
   margin-left: -16px;
 }
 
-/*table.score_preview__table*/
+/* table.score_preview__table */
 .score_preview__table {
   width: 100%;
   border-collapse: separate;
 }
 
-.rankcell__delete, .scorecell__delete, .scorerow__delete {
+.rankcell__delete,
+ .scorecell__delete,
+ .scorerow__delete {
   border: 0 none;
   background-color: transparent;
   float: right;
@@ -110,7 +114,8 @@ tr:first-child .scorelabel {
   border-right-color: colors.$kobo-gray-300;
 }
 
-.scorelabel, .scorecell__radio {
+.scorelabel,
+ .scorecell__radio {
   border-bottom: 1px dotted colors.$kobo-gray-300;
   padding: 4px 6px;
 }
@@ -122,7 +127,8 @@ tr:first-child .scorelabel {
 }
 
 tr:last-child {
-  .scorelabel, .scorecell__radio {
+  .scorelabel,
+ .scorecell__radio {
     border-bottom-width: 1px;
     border-bottom-style: solid;
     border-bottom-color: $scorebordercolor;
@@ -162,20 +168,24 @@ tr .scorecell__radio:hover {
   width: 60%;
 }
 
-.rank__levels, .rank__rows {
+.rank__levels,
+ .rank__rows {
   float: left;
   background-color: rgba(colors.$kobo-white, 0.5);
   padding: 4px 20px 18px 2px;
   margin: 0;
 }
 
-.rank_items__constraint_wrap, .rank_items__item, .rank_items__level {
+.rank_items__constraint_wrap,
+ .rank_items__item,
+ .rank_items__level {
   padding: 5px 8px;
-  margin: 0 0 4px 0;
+  margin: 0 0 4px;
   line-height: 12px;
 }
 
-.rank_items__constraint_message, .rank_items__constraint_explanation {
+.rank_items__constraint_message,
+ .rank_items__constraint_explanation {
   margin: 0;
 }
 
@@ -185,7 +195,8 @@ tr .scorecell__radio:hover {
   text-decoration: underline;
 }
 
-.rank_items__level__label, .rank_items__item__label {
+.rank_items__level__label,
+ .rank_items__item__label {
   div {
     display: inline;
   }
@@ -195,7 +206,8 @@ tr .scorecell__radio:hover {
   }
 }
 
-.rank_items__item, .rank_items__level {
+.rank_items__item,
+ .rank_items__level {
   border: 1px solid;
   border-color: colors.$kobo-gray-500;
   border-radius: 4px;
@@ -206,12 +218,12 @@ tr .scorecell__radio:hover {
   color: colors.$kobo-gray-800;
   font-style: italic;
 
-  &:before {
+  &::before {
     content: '✓';
   }
 
   &.rank_items__constraint_message--prelim {
-    &:before {
+    &::before {
       content: '';
     }
 
@@ -238,14 +250,15 @@ tr .scorecell__radio:hover {
 }
 
 .scorecell__name {
-  margin: 0 0 -1px 0;
+  margin: 0 0 -1px;
   background-color: colors.$kobo-gray-200;
   color: colors.$kobo-gray-700;
   line-height: 15px;
   font-size: 9px;
 }
 
-.scorecell__name, .scorelabel__name {
+.scorecell__name,
+ .scorelabel__name {
   display: block;
   border-bottom: 1px dotted colors.$kobo-gray-300;
 
@@ -254,15 +267,18 @@ tr .scorecell__radio:hover {
   }
 }
 
-.scorelabel__name, .rank__rows .rank_items__name {
-  &:before, &:after {
+.scorelabel__name,
+ .rank__rows .rank_items__name {
+  &::before,
+ &::after {
     line-height: 20px;
     margin: 0 3px;
   }
 }
 
-.scorelabel__name--automatic, .scorecell__name--automatic {
-  &:before {
+.scorelabel__name--automatic,
+ .scorecell__name--automatic {
+  &::before {
     content: 'AUTOMATIC';
     font-size: 10px;
   }
@@ -282,12 +298,12 @@ tr .scorecell__radio:hover {
 
 .rank_items__name--automatic {
   &:focus {
-    &:before {
+    &::before {
       content: '';
     }
   }
 
-  &:before {
+  &::before {
     content: 'AUTOMATIC';
   }
 }
@@ -303,7 +319,9 @@ tr .scorecell__radio:hover {
   font-size: 12px;
 }
 
-.scorecell__name, .scorelabel__name, .rank_items__name {
+.scorecell__name,
+ .scorelabel__name,
+ .rank_items__name {
   font-size: 90%;
   color: colors.$kobo-gray-700;
 

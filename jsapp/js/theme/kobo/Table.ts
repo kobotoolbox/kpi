@@ -1,4 +1,4 @@
-import {Table} from '@mantine/core';
+import { Table } from '@mantine/core'
 
 export const TableThemeKobo = Table.extend({
   defaultProps: {
@@ -13,6 +13,6 @@ export const TableThemeKobo = Table.extend({
       table: {
         '--table-border-color': theme.colors.gray[7],
       },
-    };
+    }
   },
-});
+})

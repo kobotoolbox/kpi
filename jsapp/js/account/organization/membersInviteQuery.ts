@@ -1,15 +1,11 @@
-import {
-  useQuery,
-  useQueryClient,
-  useMutation,
-} from '@tanstack/react-query';
-import {fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl} from 'js/api';
-import {type OrganizationUserRole, useOrganizationQuery} from './organizationQuery';
-import {QueryKeys} from 'js/query/queryKeys';
-import {endpoints} from 'jsapp/js/api.endpoints';
-import type {FailResponse} from 'jsapp/js/dataInterface';
-import {type OrganizationMember} from './membersQuery';
-import {type Json} from 'jsapp/js/components/common/common.interfaces';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
+import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
+import { QueryKeys } from 'js/query/queryKeys'
+import { endpoints } from 'jsapp/js/api.endpoints'
+import type { FailResponse } from 'jsapp/js/dataInterface'
+import type { OrganizationMember } from './membersQuery'
+import type { Json } from 'jsapp/js/components/common/common.interfaces'
 
 /*
  * NOTE: `invites` - `membersQuery` holds a list of members, each containing
@@ -30,7 +26,7 @@ import {type Json} from 'jsapp/js/components/common/common.interfaces';
  * The source of truth of statuses are at `OrganizationInviteStatusChoices` in
  * `kobo/apps/organizations/models.py`. This enum should be kept in sync.
  */
-enum MemberInviteStatus {
+export enum MemberInviteStatus {
   accepted = 'accepted',
   cancelled = 'cancelled',
   complete = 'complete',
@@ -44,30 +40,34 @@ enum MemberInviteStatus {
 
 export interface MemberInvite {
   /** This is `endpoints.ORG_INVITE_URL`. */
-  url: string;
+  url: string
   /** Url of a user that have sent the invite. */
-  invited_by: string;
-  status: MemberInviteStatus;
+  invited_by: string
+  status: MemberInviteStatus
   /** Username of user being invited. */
-  invitee: string;
+  invitee: string
   /** Target role of user being invited. */
-  invitee_role: OrganizationUserRole;
+  invitee_role: OrganizationUserRole
   /** Date format `yyyy-mm-dd HH:MM:SS`. */
-  date_created: string;
+  date_created: string
   /** Date format: `yyyy-mm-dd HH:MM:SS`. */
-  date_modified: string;
+  date_modified: string
 }
 
 interface MemberInviteRequestBase {
-  role: OrganizationUserRole;
+  role: OrganizationUserRole
 }
 
 interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
-  invitees: string[];
+  invitees: string[]
 }
 
-interface MemberInviteUpdate extends MemberInviteRequestBase{
+interface MemberInviteUpdate extends MemberInviteRequestBase {
+  status: MemberInviteStatus
+}
+
+interface MemberInviteUpdate extends MemberInviteRequestBase {
   status: MemberInviteStatus
 }
 
@@ -77,18 +77,18 @@ interface MemberInviteUpdate extends MemberInviteRequestBase{
  * invalidation).
  */
 export function useSendMemberInvite() {
-  const queryClient = useQueryClient();
-  const orgQuery = useOrganizationQuery();
-  const orgId = orgQuery.data?.id;
+  const queryClient = useQueryClient()
+  const orgQuery = useOrganizationQuery()
+  const orgId = orgQuery.data?.id
   return useMutation({
     mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!);
-      fetchPost<OrganizationMember>(apiPath, payload);
+      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
+      return fetchPost<OrganizationMember>(apiPath, payload)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
-  });
+  })
 }
 
 /**
@@ -96,29 +96,28 @@ export function useSendMemberInvite() {
  * `membersQuery` will refetch data (by invalidation).
  */
 export function useRemoveMemberInvite() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (inviteUrl: string) => {
-      fetchDeleteUrl<OrganizationMember>(inviteUrl);
-    },
+    mutationFn: async (inviteUrl: string) => fetchDeleteUrl<OrganizationMember>(inviteUrl),
     onSettled: () => {
-      queryClient.invalidateQueries({queryKey: [QueryKeys.organizationMembers]});
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
-  });
+  })
 }
 
 /**
  * A hook that gives you a single organization member invite.
  */
 export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
-  const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL
-    .replace(':organization_id', orgId!)
-    .replace(':invite_id', inviteId);
+  const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', orgId!).replace(
+    ':invite_id',
+    inviteId,
+  )
   return useQuery<MemberInvite, FailResponse>({
     queryFn: () => fetchGet<MemberInvite>(apiPath),
     queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath],
-  });
-};
+  })
+}
 
 /**
  * Mutation hook that allows patching existing invite. Use it to change
@@ -127,26 +126,22 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * invalidation).
  */
 export function usePatchMemberInvite(inviteUrl?: string) {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return fetchPatchUrl<OrganizationMember>(
-          inviteUrl,
-          newInviteData,
-          {
-            errorMessageDisplay: t('There was an error updating this invitation.'),
-          }
-        );
-      } else return null;
+        return fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData, {
+          errorMessageDisplay: t('There was an error updating this invitation.'),
+        })
+      } else return null
     },
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.organizationMemberInviteDetail],
-      });
+      })
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.organizationMembers],
-      });
+      })
     },
-  });
+  })
 }
