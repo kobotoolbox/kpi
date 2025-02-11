@@ -7,6 +7,10 @@
   }
 }
 
+.input:focus-visible:not([data-error]) {
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
+
 /* Hides caret in FF */
 .input[readonly] {
   caret-color: transparent;

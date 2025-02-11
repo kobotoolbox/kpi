@@ -36,7 +36,7 @@ import {
   ProcessingTab,
 } from 'js/components/processing/routes.utils'
 import type { KoboSelectOption } from 'js/components/common/koboSelect'
-import { getExponentialDelayTime } from 'jsapp/js/utils'
+import { getExponentialDelayTime, removeDefaultUuidPrefix } from 'jsapp/js/utils'
 import envStore from 'jsapp/js/envStore'
 
 export enum StaticDisplays {
@@ -471,10 +471,10 @@ class SingleProcessingStore extends Reflux.Store {
               if (rowName) {
                 // `meta/rootUuid` is persistent across edits while `_uuid` is not;
                 // use the persistent identifier if present.
-                let uuid = result['meta/rootUuid']
-                if (uuid === undefined) {
-                  uuid = result['_uuid']
-                }
+                const uuid = result['meta/rootUuid']
+                  ? removeDefaultUuidPrefix(result['meta/rootUuid'])
+                  : result['_uuid']
+
                 submissionsEditIds[xpath].push({
                   editId: uuid,
                   hasResponse: Object.keys(result).includes(flatPaths[rowName]),
