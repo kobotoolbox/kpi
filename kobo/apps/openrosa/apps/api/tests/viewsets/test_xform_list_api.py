@@ -77,6 +77,19 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(XForm.objects.filter(require_auth=False).count(), 1)
 
+    def test_anonymous_xform_list_excludes_forms_of_inactive_users(self):
+        request = self.factory.get('/')
+        response = self.view(request, username=self.user.username)
+        assert response.status_code == 200
+        assert response.data[0]['formID'] == 'transportation_2011_07_25'
+
+        self.user.is_active = False
+        self.user.save()
+        request = self.factory.get('/')
+        response = self.view(request, username=self.user.username)
+        assert response.status_code == 200
+        assert response.data == []
+
     def test_get_xform_list_as_anonymous_user(self):
 
         request = self.factory.get('/')
@@ -208,6 +221,29 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
     """
     Tests should point to `https://kc/*`
     """
+
+    def test_authenticated_xform_list_excludes_forms_of_inactive_users(self):
+        request = self.factory.get('/')
+        response = self.view(request)
+        alice_data = {
+            'username': 'alice',
+            'password1': 'alicealice',
+            'password2': 'alicealice',
+            'email': 'alice@localhost.com',
+        }
+        alice_profile = self._create_user_profile(alice_data)
+        assign_perm(CAN_ADD_SUBMISSIONS, alice_profile.user, self.xform)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(request)
+        assert response.status_code == 200
+        assert response.data[0]['formID'] == 'transportation_2011_07_25'
+
+        self.user.is_active = False
+        self.user.save()
+        response = self.view(request)
+        assert response.status_code == 200
+        assert response.data == []
 
     def test_head_xform_list(self):
         request = self.factory.head('/')
