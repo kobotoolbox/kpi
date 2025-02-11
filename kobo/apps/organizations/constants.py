@@ -27,3 +27,6 @@ USER_DOES_NOT_EXIST_ERROR = (
 INVITE_ALREADY_EXISTS_ERROR = (
     'An active invitation already exists for ##invitee##'
 )
+INVITEE_ALREADY_IN_ORGANIZATION_ERROR = (
+    'User is already a member of this organization.'
+)

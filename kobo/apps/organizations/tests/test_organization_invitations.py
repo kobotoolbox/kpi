@@ -110,28 +110,6 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
                 )
 
     @data(
-        ('owner', status.HTTP_201_CREATED),
-        ('admin', status.HTTP_201_CREATED),
-        ('member', status.HTTP_403_FORBIDDEN),
-        ('external', status.HTTP_404_NOT_FOUND)
-    )
-    @unpack
-    def test_user_cannot_send_invitation_twice(
-        self, user_role, expected_status
-    ):
-        """
-        Test that owner or admin cannot send a new invitation to the same user
-        if there is already an active invitation
-        """
-        user = getattr(self, f'{user_role}_user')
-        response = self._create_invite(user)
-        self.assertEqual(response.status_code, expected_status)
-        if response.status_code == status.HTTP_201_CREATED:
-            # Attempt to create a new invitation
-            response = self._create_invite(user)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @data(
         ('owner', status.HTTP_200_OK),
         ('admin', status.HTTP_200_OK),
         ('member', status.HTTP_403_FORBIDDEN),
@@ -622,3 +600,147 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             OrganizationInviteStatusChoices.ACCEPTED,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_admin_cannot_reinvite_active_or_accepted_username(self):
+        """
+        Ensure that an admin cannot send a new invitation to a username if an
+        active invitation already exists or has been accepted
+        """
+        self.client.force_login(self.owner_user)
+
+        # Send first invitation
+        response = self.client.post(self.list_url, data={'invitees': ['bob']})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Attempt to send a duplicate invitation
+        response = self.client.post(self.list_url, data={'invitees': ['bob']})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(
+            response,
+            'An active invitation already exists',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+        # Accept the invitation
+        self.client.force_login(self.external_user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.external_user
+        )
+        response = self._update_invite(
+            self.external_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Attempt to send a new invitation after acceptance
+        self.client.force_login(self.owner_user)
+        response = self.client.post(self.list_url, data={'invitees': ['bob']})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(
+            response,
+            'User is already a member of this organization.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_admin_can_reinvite_accepted_email(self):
+        """
+        Ensure that an admin can send a new invitation to an email address
+        after the initial invitation is accepted
+        """
+        self.client.force_login(self.owner_user)
+
+        # Send first invitation
+        email_invitee = 'unregistereduser@example.com'
+        response = self.client.post(
+            self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Attempt to send a duplicate invitation
+        response = self.client.post(
+            self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(
+            response,
+            'An active invitation already exists',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+        # Accept the invitation
+        self.new_user = User.objects.create_user(
+            username='new_user', email=email_invitee
+        )
+        self.client.force_login(self.new_user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee_identifier=self.new_user.email
+        )
+        response = self._update_invite(
+            self.new_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Attempt to send a new invitation after acceptance
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_admin_can_invite_multiple_users_with_same_email(self):
+        """
+        Ensure that an organization admin can send invitations to an email
+        associated with multiple usernames, allowing the user to choose
+        which account to accept the invitation with
+        """
+        email_invitee = 'unregistereduser@example.com'
+
+        first_account = User.objects.create_user(
+            username='first_user', email=email_invitee
+        )
+        second_account = User.objects.create_user(
+            username='second_user', email=email_invitee
+        )
+
+        # Send the first invitation
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # First user accepts the invitation
+        self.client.force_login(first_account)
+        invitation = OrganizationInvitation.objects.get(
+            invitee_identifier=first_account.email
+        )
+        response = self._update_invite(
+            first_account,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invitee'], first_account.username)
+
+        # Send a new invitation for the same email
+        self.client.force_login(self.owner_user)
+        response = self.client.post(
+            self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Second user accepts the invitation
+        self.client.force_login(second_account)
+        invitation = OrganizationInvitation.objects.filter(
+            invitee_identifier=second_account.email
+        ).last()
+        response = self._update_invite(
+            second_account,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invitee'], second_account.username)
