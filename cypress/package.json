@@ -8,6 +8,6 @@
   },
   "contributors": ["Ben Alexander (https://github.com/wetbadger)"],
   "devDependencies": {
-    "cypress": "^8.7.0"
+    "cypress": "^14.0.2"
   }
 }
