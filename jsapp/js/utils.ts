@@ -523,7 +523,7 @@ export function checkEmailPattern(email: string) {
  * 🐍 Equivalent to add_uuid_prefix on the backend.
  */
 export function addDefaultUuidPrefix(uuid: string) {
-  return uuid.includes(':') ? uuid : `uuid:${uuid}`;
+  return uuid.includes(':') ? uuid : `uuid:${uuid}`
 }
 
 /**
@@ -534,7 +534,7 @@ export function addDefaultUuidPrefix(uuid: string) {
  * 🐍 Equivalent to remove_uuid_prefix on the backend.
  */
 export function removeDefaultUuidPrefix(uuid: string) {
-  return uuid.replace(/^uuid:/, '');
+  return uuid.replace(/^uuid:/, '')
 }
 
 /**
@@ -559,8 +559,5 @@ export function removeDefaultUuidPrefix(uuid: string) {
  *        'org.example:uuid-collision') // false (different namespace)
  */
 export function matchUuid(uuidA: string, uuidB: string) {
-  return (
-    addDefaultUuidPrefix(uuidA) ===
-    addDefaultUuidPrefix(uuidB)
-  );
+  return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
 }
