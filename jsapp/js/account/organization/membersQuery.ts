@@ -1,5 +1,5 @@
 // Libraries
-import { useQuery, useQueryClient, useMutation, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation, keepPreviousData, QueryKey } from '@tanstack/react-query'
 
 // Stores, hooks and utilities
 import { fetchGet, fetchPatch, fetchDelete } from 'js/api'
@@ -60,36 +60,22 @@ export function usePatchOrganizationMember(username: string) {
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
       fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
-    onMutate: (memberUpdate) => {
-      let previousMembersQuery: PaginatedResponse<OrganizationMemberListItem> | undefined = undefined
-      // For member role updates, we optimistically update the organization members list
-      if (memberUpdate.role) {
-        queryClient.cancelQueries({
-          queryKey: [QueryKeys.organizationMembers],
-        })
-        previousMembersQuery = queryClient.getQueryData([QueryKeys.organizationMembers])
-        if (previousMembersQuery) {
-          const updatedMembersQuery = previousMembersQuery.results.map((member) => {
-            if (member.user__username === username) {
-              const updatedMember = {
-                ...member,
-                role: memberUpdate.role,
-              }
-              return updatedMember
-            }
-            return member
-          })
-          const newData = {
-            ...previousMembersQuery,
-            results: updatedMembersQuery,
-          }
-          queryClient.setQueryData([QueryKeys.organizationMembers], newData)
-        }
+    onMutate: async (mutationData) => {
+      if (mutationData.role) {
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.user__username === username),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.user__username === username)
+
+        item.role = mutationData.role
+        queryClient.setQueryData(queryKey, queryData)
       }
-      return { previousMembersQuery }
-    },
-    onError: (_err, _memberUpdate, context) => {
-      queryClient.setQueryData([QueryKeys.organizationMembers], context?.previousMembersQuery)
     },
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
@@ -160,7 +146,7 @@ export default function useOrganizationMembersQuery({ limit, offset }: Paginated
   const orgId = orgQuery.data?.id
 
   return useQuery({
-    queryKey: [QueryKeys.organizationMembers],
+    queryKey: [QueryKeys.organizationMembers, limit, offset, orgId!],
     // `orgId!` because it's ensured to be there in `enabled` property :ok:
     queryFn: () => getOrganizationMembers(limit, offset, orgId!),
     placeholderData: keepPreviousData,

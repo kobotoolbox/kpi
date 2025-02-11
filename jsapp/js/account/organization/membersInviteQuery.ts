@@ -135,41 +135,22 @@ export function usePatchMemberInvite(inviteUrl?: string) {
         })
       } else return null
     },
-    onMutate: (inviteUpdate) => {
-      let previousMembersQuery: PaginatedResponse<OrganizationMemberListItem> | undefined = undefined
-      // For invitee role updates, we optimistically update relevant member
-      // in the organization members list
-      if (inviteUpdate.role) {
-        queryClient.cancelQueries({
-          queryKey: [QueryKeys.organizationMembers],
-        })
-        previousMembersQuery = queryClient.getQueryData([QueryKeys.organizationMembers])
-        if (previousMembersQuery) {
-          const updatedMembersQuery = previousMembersQuery.results.map((member) => {
-            if (member.invite?.url === inviteUrl) {
-              const updatedInvite = {
-                ...member.invite,
-                invitee_role: inviteUpdate.role,
-              }
-              const updatedMember = {
-                ...member,
-                invite: updatedInvite,
-              }
-              return updatedMember
-            }
-            return member
-          })
-          const newData = {
-            ...previousMembersQuery,
-            results: updatedMembersQuery,
-          }
-          queryClient.setQueryData([QueryKeys.organizationMembers], newData)
-        }
+    onMutate: async (mutationData) => {
+      if (mutationData.role) {
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl)
+
+        item.invite.invitee_role = mutationData.role
+        queryClient.setQueryData(queryKey, queryData)
       }
-      return { previousMembersQuery }
-    },
-    onError: (_err, _inviteUpdate, context) => {
-      queryClient.setQueryData([QueryKeys.organizationMembers], context?.previousMembersQuery)
     },
     onSettled: () => {
       queryClient.invalidateQueries({
