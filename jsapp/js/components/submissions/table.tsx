@@ -34,7 +34,7 @@ import {
 } from 'js/constants'
 import type { AnyRowTypeName } from 'js/constants'
 import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { formatTimeDateShort } from 'js/utils'
+import { formatTimeDateShort, removeDefaultUuidPrefix } from 'js/utils'
 import type { SurveyFlatPaths } from 'js/assetUtils'
 import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from 'js/assetUtils'
 import {
@@ -838,7 +838,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               }
 
               if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
-                const submissionEditId = row.original['meta/rootUuid'] || row.original._uuid
+                const submissionEditId = removeDefaultUuidPrefix(row.original['meta/rootUuid']) || row.original._uuid
 
                 if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (

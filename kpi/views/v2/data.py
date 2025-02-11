@@ -1,4 +1,3 @@
-# coding: utf-8
 import copy
 import json
 import re
@@ -19,6 +18,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -715,18 +715,6 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
-        if 'meta/rootUuid' in submission_json:
-            # this submission has been edited at least one time
-            original_submission_uuid = submission_json['meta/rootUuid']
-        else:
-            # never been edited
-
-            # Note: KoboCAT will accept a submission whose XML lacks
-            # `<meta><instanceID>`, even though that violates the OpenRosa
-            # spec. KoboCAT then automatically generates a UUID for the
-            # submission, but that UUID is added neither to the XML nor to
-            # `meta/instanceID` in the JSON representation
-            original_submission_uuid = 'uuid:' + submission_json['_uuid']
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be
@@ -774,7 +762,7 @@ class DataViewSet(
             regenerate=True,
             root_node_name=xml_root_node_name,
             version_uid=version_uid,
-            submission_uuid=original_submission_uuid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
         )
 
         data = {

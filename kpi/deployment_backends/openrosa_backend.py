@@ -35,6 +35,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -403,10 +404,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         """
         submission_id = None
         submission_uuid = None
+
         try:
             submission_id = int(submission_id_or_uuid)
         except ValueError:
             submission_uuid = submission_id_or_uuid
+
         if submission_uuid:
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
@@ -416,17 +419,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     user,
                     query={
                         '$or': [
-                            {'meta/rootUuid': submission_uuid},
+                            {'meta/rootUuid': add_uuid_prefix(submission_uuid)},
                             {'_uuid': submission_uuid},
                         ]
                     },
                     fields=['_id', 'meta/rootUuid', '_uuid'],
                 )
             )
+
             if not candidates:
                 raise SubmissionNotFoundException
             for submission in candidates:
-                if submission.get('meta/rootUuid') == submission_uuid:
+                if submission.get('meta/rootUuid') == add_uuid_prefix(submission_uuid):
                     submission_id = submission['_id']
                     break
             else:
@@ -1400,7 +1404,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
-            self._rewrite_json_attachment_urls(
+            self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
             )
