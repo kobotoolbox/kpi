@@ -76,7 +76,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
             attachment.media_file.move(target_folder)
-            attachment.save(updated_fields=['media_file'])
+            attachment.save(update_fields=['media_file'])
 
             heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
 
