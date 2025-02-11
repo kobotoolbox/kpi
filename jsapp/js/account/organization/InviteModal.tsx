@@ -61,7 +61,7 @@ export default function InviteModal(props: ModalProps) {
     props.onClose()
   }
 
-  const isValidated = role !== null && userOrEmail.isDirty() && !userOrEmail.isValidating && !userOrEmail.error
+  const isValidated = !!role && userOrEmail.isDirty() && !userOrEmail.isValidating && !userOrEmail.error
 
   return (
     <Modal opened={props.opened} onClose={handleClose} title={t('Invite a member to your team')} size='lg'>
