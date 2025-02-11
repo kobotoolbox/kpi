@@ -141,3 +141,17 @@ export default function useOrganizationMembersQuery({ limit, offset }: Paginated
     refetchOnWindowFocus: true,
   })
 }
+
+export function useOrganizationMemberDetailQuery(username: string, notifyAboutError = true) {
+  const orgQuery = useOrganizationQuery()
+  const orgId = orgQuery.data?.id
+  // `orgId!` because it's ensured to be there in `enabled` property :ok:
+  const apiPath = endpoints.ORGANIZATION_MEMBER_URL.replace(':organization_id', orgId!).replace(':username', username)
+  return useQuery({
+    queryFn: () => fetchGet<OrganizationMemberListItem>(apiPath, { notifyAboutError }),
+    queryKey: [QueryKeys.organizationMemberDetail, apiPath, notifyAboutError],
+    enabled: !!orgId,
+    retry: false,
+    refetchOnWindowFocus: false,
+  })
+}

@@ -29,11 +29,8 @@ import type { Json } from 'jsapp/js/components/common/common.interfaces'
 export enum MemberInviteStatus {
   accepted = 'accepted',
   cancelled = 'cancelled',
-  complete = 'complete',
   declined = 'declined',
   expired = 'expired',
-  failed = 'failed',
-  in_progress = 'in_progress',
   pending = 'pending',
   resent = 'resent',
 }
@@ -43,6 +40,7 @@ export interface MemberInvite {
   url: string
   /** Url of a user that have sent the invite. */
   invited_by: string
+  organization_name: string
   status: MemberInviteStatus
   /** Username of user being invited. */
   invitee: string
@@ -61,10 +59,8 @@ interface MemberInviteRequestBase {
 interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[]
-}
-
-interface MemberInviteUpdate extends MemberInviteRequestBase {
-  status: MemberInviteStatus
+  /** Target role for the invitied users. */
+  role: OrganizationUserRole
 }
 
 interface MemberInviteUpdate extends MemberInviteRequestBase {
@@ -80,11 +76,9 @@ export function useSendMemberInvite() {
   const queryClient = useQueryClient()
   const orgQuery = useOrganizationQuery()
   const orgId = orgQuery.data?.id
+  const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
   return useMutation({
-    mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
-      return fetchPost<OrganizationMember>(apiPath, payload)
-    },
+    mutationFn: async (payload: SendMemberInviteParams & Json) => fetchPost<OrganizationMember>(apiPath, payload),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
@@ -141,6 +135,9 @@ export function usePatchMemberInvite(inviteUrl?: string) {
       })
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.organizationMembers],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberDetail],
       })
     },
   })

@@ -16,6 +16,8 @@ import LimitNotifications from 'js/components/usageLimits/limitNotifications.com
 import Icon from 'js/components/common/icon'
 import ProjectOwnershipTransferModalWithBanner from 'js/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner'
 import Button from 'js/components/common/button'
+import OrgInviteModalWrapper from 'js/account/organization/invites/OrgInviteModalWrapper'
+import OrgInviteAcceptedBanner from 'js/account/organization/invites/OrgInviteAcceptedBanner'
 
 // Stores, hooks and utilities
 import customViewStore from './customViewStore'
@@ -23,6 +25,7 @@ import { validFileTypes, notify } from 'js/utils'
 import { dropImportXLSForms } from 'js/dropzone.utils'
 import { handleApiFail, fetchPostUrl } from 'js/api'
 import projectViewsStore from './projectViews/projectViewsStore'
+import { useSession } from 'jsapp/js/stores/useSession'
 
 // Constants and types
 import type { ProjectsFilterDefinition, ProjectFieldName } from './projectViews/constants'
@@ -52,6 +55,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   const [projectViews] = useState(projectViewsStore)
   const [customView] = useState(customViewStore)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
+  const session = useSession()
 
   useEffect(() => {
     customView.setUp(props.viewUid, props.baseUrl, props.defaultVisibleFields, props.includeTypeFilter)
@@ -114,6 +118,10 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
       <section className={styles.root}>
         <ProjectOwnershipTransferModalWithBanner />
+
+        <OrgInviteModalWrapper />
+
+        {session.currentLoggedAccount && <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} />}
 
         <LimitNotifications useModal />
 
