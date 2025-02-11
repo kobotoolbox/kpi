@@ -408,8 +408,8 @@ class TransferStatus(AbstractTimeStampedModel):
                 transfer_id=transfer_id, status_type=status_type
             )
             transfer_status.status = status
-            transfer_status.error = error
             transfer_status.date_modified = timezone.now()
+            transfer_status.error = cls._add_error(transfer_status, error)
             transfer_status.save(
                 update_fields=['status', 'error', 'date_modified']
             )
@@ -432,3 +432,16 @@ class TransferStatus(AbstractTimeStampedModel):
 
         if success:
             self.transfer.status = TransferStatusChoices.SUCCESS
+
+    @classmethod
+    def _add_error(cls, transfer_status, error):
+        if not error:
+            return transfer_status.error
+
+        log_date = transfer_status.date_modified.strftime('%Y-%m-%d %H:%M:%S')
+        error_message = f'[{log_date}] - {error}'
+        return (
+            f'{error_message}\n{transfer_status.error}'
+            if transfer_status.error
+            else error_message
+        )
