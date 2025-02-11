@@ -1228,7 +1228,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         pk = self.backend_response['formid']
         xform = (
-            XForm.objects.filter(pk=pk)
+            XForm.all_objects.filter(pk=pk)
             .only(
                 'user__username',
                 'id_string',

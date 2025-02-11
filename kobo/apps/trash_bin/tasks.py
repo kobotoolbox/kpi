@@ -1,11 +1,13 @@
 import logging
+from datetime import timedelta
 
 from celery.signals import task_failure, task_retry
+from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
-from django.utils.timezone import now
+from django.utils import timezone
 from django_celery_beat.models import (
     ClockedSchedule,
     PeriodicTask,
@@ -45,12 +47,12 @@ from .utils import (
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
-def empty_account(account_trash_id: int):
+def empty_account(account_trash_id: int, force: bool = False):
     with transaction.atomic():
         account_trash = AccountTrash.objects.select_for_update().get(
             pk=account_trash_id
         )
-        if account_trash.status == TrashStatus.IN_PROGRESS:
+        if not force and account_trash.status == TrashStatus.IN_PROGRESS:
             logging.warning(
                 f'User {account_trash.user.username} deletion is already '
                 f'in progress'
@@ -123,7 +125,7 @@ def empty_account(account_trash_id: int):
                 # Retain removal date information
                 extra_details = placeholder_user.extra_details
                 extra_details.date_removal_requested = date_removal_requested
-                extra_details.date_removed = now()
+                extra_details.date_removed = timezone.now()
                 extra_details.save(
                     update_fields=['date_removal_requested', 'date_removed']
                 )
@@ -184,12 +186,12 @@ def empty_account(account_trash_id: int):
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
-def empty_project(project_trash_id: int):
+def empty_project(project_trash_id: int, force: bool = False):
     with transaction.atomic():
         project_trash = ProjectTrash.objects.select_for_update().get(
             pk=project_trash_id
         )
-        if project_trash.status == TrashStatus.IN_PROGRESS:
+        if not force and project_trash.status == TrashStatus.IN_PROGRESS:
             logging.warning(
                 f'Project {project_trash.asset.name} deletion is already '
                 f'in progress'
@@ -289,3 +291,32 @@ def garbage_collector():
                     clocked__isnull=False
                 ).values_list('clocked_id', flat=True),
             ).delete()
+
+
+@celery_app.task
+def task_restarter():
+    """
+    This task restarts previous tasks which have been stopped accidentally,
+    e.g.: docker container/k8s pod restart or OOM killed.
+    """
+    stuck_threshold = timezone.now() - timedelta(
+        seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+    )
+
+    stuck_account_ids = AccountTrash.objects.values_list(
+        'pk', flat=True
+    ).filter(
+        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+        date_modified__lte=stuck_threshold,
+    )
+    for stuck_account_id in stuck_account_ids:
+        empty_account.delay(stuck_account_id, force=True)
+
+    stuck_project_ids = ProjectTrash.objects.values_list(
+        'pk', flat=True
+    ).filter(
+        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+        date_modified__lte=stuck_threshold,
+    )
+    for stuck_project_id in stuck_project_ids:
+        empty_project.delay(stuck_project_id, force=True)
