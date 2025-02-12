@@ -169,6 +169,7 @@ const fetchData = async <T>(
     const failResponse: FailResponse = {
       status: response.status,
       statusText: response.statusText,
+      headers: response.headers,
     }
 
     if (contentType && contentType.indexOf('application/json') !== -1) {

@@ -132,6 +132,7 @@ export interface FailResponse {
   responseText?: string
   status: number
   statusText: string
+  headers?: Headers
 }
 
 /** Have a list of errors for different fields. */
