@@ -144,6 +144,10 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         """
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
+
+        # Get mail count before resending the invitation
+        initial_mail_count = len(mail.outbox)
+
         self.client.force_login(user)
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
@@ -166,7 +170,15 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             self.assertEqual(
                 response.data['status'], OrganizationInviteStatusChoices.PENDING
             )
-            self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
+
+            # Verify an additional email has been sent
+            self.assertEqual(len(mail.outbox), initial_mail_count + 1)
+            resent_email = mail.outbox[-1]
+            self.assertEqual(resent_email.to[0], invitation.invitee.email)
+            self.assertIn(
+                f"You're invited to join {self.organization.name} organization",
+                resent_email.subject
+            )
 
     def test_admin_cannot_resend_invitation_several_times_in_a_row(self):
         """
