@@ -3,8 +3,8 @@ import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
-import type { FailResponse } from 'jsapp/js/dataInterface'
-import type { OrganizationMember } from './membersQuery'
+import type { FailResponse, PaginatedResponse } from 'jsapp/js/dataInterface'
+import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
 import type { Json } from 'jsapp/js/components/common/common.interfaces'
 
 /*
@@ -124,10 +124,27 @@ export function usePatchMemberInvite(inviteUrl?: string) {
   return useMutation({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData, {
+        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, {
           errorMessageDisplay: t('There was an error updating this invitation.'),
         })
       } else return null
+    },
+    onMutate: async (mutationData) => {
+      if (mutationData.role) {
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl)
+
+        item.invite.invitee_role = mutationData.role
+        queryClient.setQueryData(queryKey, queryData)
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({

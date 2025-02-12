@@ -1,5 +1,5 @@
 // Libraries
-import { useQuery, useQueryClient, useMutation, keepPreviousData } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation, keepPreviousData, QueryKey } from '@tanstack/react-query'
 
 // Stores, hooks and utilities
 import { fetchGet, fetchPatch, fetchDelete } from 'js/api'
@@ -60,6 +60,23 @@ export function usePatchOrganizationMember(username: string) {
       // Plus all the organization-related UI (that would use this hook) is
       // accessible only to logged in users.
       fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
+    onMutate: async (mutationData) => {
+      if (mutationData.role) {
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.user__username === username),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.user__username === username)
+
+        item.role = mutationData.role
+        queryClient.setQueryData(queryKey, queryData)
+      }
+    },
     onSettled: () => {
       // We invalidate query, so it will refetch (instead of refetching it
       // directly, see: https://github.com/TanStack/query/discussions/2468)
