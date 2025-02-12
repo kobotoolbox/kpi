@@ -39,7 +39,7 @@ export default function InviteeActionsDropdown({
         )
         return
       }
-      notify(t('An error occurred while resending the invitation'), 'error')
+      // Generic error handling is done in the api client
     }
   }
 
