@@ -2,7 +2,7 @@
 from django.conf import settings
 from more_itertools import chunked
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
 
 

@@ -2,7 +2,6 @@ import logging
 from datetime import timedelta
 
 from celery.signals import task_failure, task_retry
-from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
