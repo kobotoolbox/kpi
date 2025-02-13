@@ -118,15 +118,19 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * the status of the invite (e.g. decline invite). It ensures that both
  * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
  * invalidation).
+ *
+ * If you want to handle errors in your component, use `displayErrorNotification`.
  */
-export function usePatchMemberInvite(inviteUrl?: string) {
+export function usePatchMemberInvite(inviteUrl?: string, displayErrorNotification = true) {
   const queryClient = useQueryClient()
-  return useMutation({
+  let fetchOptions = {}
+  if (displayErrorNotification) {
+    fetchOptions = {errorMessageDisplay: t('There was an error updating this invitation.')}
+  }
+  return useMutation<MemberInvite | null, Error & FailResponse, Partial<MemberInviteUpdate>>({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, {
-          errorMessageDisplay: t('There was an error updating this invitation.'),
-        })
+        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, fetchOptions)
       } else return null
     },
     onMutate: async (mutationData) => {
