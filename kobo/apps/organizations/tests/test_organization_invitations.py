@@ -28,6 +28,7 @@ from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
 from kpi.models import Asset
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
 
@@ -144,6 +145,10 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         """
         self._create_invite(self.owner_user)
         user = getattr(self, f'{user_role}_user')
+
+        # Get mail count before resending the invitation
+        initial_mail_count = len(mail.outbox)
+
         self.client.force_login(user)
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
@@ -166,7 +171,15 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
             self.assertEqual(
                 response.data['status'], OrganizationInviteStatusChoices.PENDING
             )
-            self.assertEqual(mail.outbox[0].to[0], invitation.invitee.email)
+
+            # Verify an additional email has been sent
+            self.assertEqual(len(mail.outbox), initial_mail_count + 1)
+            resent_email = mail.outbox[-1]
+            self.assertEqual(resent_email.to[0], invitation.invitee.email)
+            self.assertIn(
+                f"You're invited to join {self.organization.name} organization",
+                resent_email.subject
+            )
 
     def test_admin_cannot_resend_invitation_several_times_in_a_row(self):
         """
@@ -297,11 +310,12 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
-        response = self._update_invite(
-            self.external_user,
-            invitation.guid,
-            OrganizationInviteStatusChoices.ACCEPTED,
-        )
+        with immediate_on_commit():
+            response = self._update_invite(
+                self.external_user,
+                invitation.guid,
+                OrganizationInviteStatusChoices.ACCEPTED,
+            )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data['status'], OrganizationInviteStatusChoices.ACCEPTED

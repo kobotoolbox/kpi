@@ -96,23 +96,13 @@ export default function MembersRoute() {
       size: 140,
       cellFormatter: (obj: OrganizationMemberListItem) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
-        if (invite) {
-          return (
-            <MemberRoleSelector
-              username={invite.invitee}
-              role={invite.invitee_role}
-              currentUserRole={orgQuery.data.request_user_role}
-              inviteUrl={invite.url}
-            />
-          )
-        }
         if (
-          member!.role === OrganizationUserRole.owner ||
+          member?.role === OrganizationUserRole.owner ||
           !['owner', 'admin'].includes(orgQuery.data.request_user_role)
         ) {
           // If the member is the Owner or
           // If the user is not an owner or admin, we don't show the selector
-          switch (member!.role) {
+          switch (member?.role || invite?.invitee_role) {
             case OrganizationUserRole.owner:
               return t('Owner')
             case OrganizationUserRole.admin:
@@ -122,6 +112,16 @@ export default function MembersRoute() {
             default:
               return t('Unknown')
           }
+        }
+        if (invite) {
+          return (
+            <MemberRoleSelector
+              username={invite.invitee}
+              role={invite.invitee_role}
+              currentUserRole={orgQuery.data.request_user_role}
+              inviteUrl={invite.url}
+            />
+          )
         }
         return (
           <MemberRoleSelector

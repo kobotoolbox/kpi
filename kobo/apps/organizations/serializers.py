@@ -498,11 +498,12 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                         retry_after=remaining_seconds,
                     )
 
-                value = OrganizationInviteStatusChoices.PENDING
-
         return value
 
     def update(self, instance, validated_data):
+
+        transfer_data = False
+
         with transaction.atomic():
             if 'role' in validated_data:
                 # Organization owner or admin can update the role of the invitee
@@ -515,12 +516,18 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     self._handle_invitee_assignment(instance)
                     self.validate_invitation_acceptance(instance)
                     self._update_invitee_organization(instance)
+                    transfer_data = True
 
-                    # Transfer ownership of invitee's assets to the organization
-                    transfer_member_data_ownership_to_org.delay(
-                        instance.invitee.id
-                    )
                 self._handle_status_update(instance, status)
+
+        if transfer_data:
+            # Transfer ownership of invitee's assets to the organization
+            transaction.on_commit(
+                lambda: transfer_member_data_ownership_to_org.delay(
+                    instance.invitee.id
+                )
+            )
+
         return instance
 
     def _handle_invitee_assignment(self, instance):
@@ -537,15 +544,21 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
 
     def _handle_status_update(self, instance, status):
-        instance.status = OrganizationInviteStatusChoices[status.upper()]
+        if status == OrganizationInviteStatusChoices.RESENT:
+            instance.status = OrganizationInviteStatusChoices.PENDING
+        else:
+            instance.status = OrganizationInviteStatusChoices[status.upper()]
         instance.save(update_fields=['status', 'modified'])
         self._send_status_email(instance, status)
 
     def _send_status_email(self, instance, status):
         status_map = {
-            'accepted': instance.send_acceptance_email,
-            'declined': instance.send_refusal_email,
-            'resent': instance.send_invite_email
+            OrganizationInviteStatusChoices.ACCEPTED:
+                instance.send_acceptance_email,
+            OrganizationInviteStatusChoices.DECLINED:
+                instance.send_refusal_email,
+            OrganizationInviteStatusChoices.RESENT:
+                instance.send_invite_email,
         }
 
         email_func = status_map.get(status)
