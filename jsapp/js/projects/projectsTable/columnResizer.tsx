@@ -1,5 +1,5 @@
-import React, { memo, useState, useEffect, useRef } from 'react'
-import type { ProjectFieldName } from '../projectViews/constants'
+import React, {memo, useState, useEffect, useRef} from 'react';
+import type {ProjectFieldName} from '../projectViews/constants';
 
 /**
  * Creates and updates styles for column widths based on drag events on resize handles.
@@ -42,8 +42,8 @@ import type { ProjectFieldName } from '../projectViews/constants'
  * }
  */
 type ColumnWidths = {
-  [key in ProjectFieldName]?: number
-}
+  [key in ProjectFieldName]?: number;
+};
 
 /**
  * The minimum resizing width for a given column.
@@ -53,13 +53,13 @@ type ColumnWidths = {
  * Can be hardcoded per-field.
  */
 function minColWidth(fieldname: ProjectFieldName) {
-  const defaultMinimumWidth = 108
+  const defaultMinimumWidth = 108;
   const minimums: ColumnWidths = {
     countries: 116,
     dateModified: 144,
     dateDeployed: 144,
-  }
-  return minimums[fieldname] || defaultMinimumWidth
+  };
+  return minimums[fieldname] || defaultMinimumWidth;
 }
 /**
  * The maximum resizing width for a given column.
@@ -69,15 +69,18 @@ function minColWidth(fieldname: ProjectFieldName) {
  * Can be hardcoded per-field.
  */
 function maxColWidth(fieldname: ProjectFieldName) {
-  const defaultMaximumWidth = 800
-  const maximums: ColumnWidths = {}
-  return maximums[fieldname] || defaultMaximumWidth
+  const defaultMaximumWidth = 800;
+  const maximums: ColumnWidths = {};
+  return maximums[fieldname] || defaultMaximumWidth;
 }
 /**
  * A helper to clamp between the minimum and maximum allowed resizing widths.
  */
 function clampedColumnWidth(fieldname: ProjectFieldName, width: number) {
-  return Math.min(Math.max(width, minColWidth(fieldname)), maxColWidth(fieldname))
+  return Math.min(
+    Math.max(width, minColWidth(fieldname)),
+    maxColWidth(fieldname)
+  );
 }
 
 /**
@@ -90,7 +93,7 @@ function clampedColumnWidth(fieldname: ProjectFieldName, width: number) {
  * Instead, we let the browser parse and apply these CSS rules,
  * which is pretty efficient.
  */
-function ColumnWidthsStyle(props: { columnWidths: ColumnWidths }) {
+function ColumnWidthsStyle(props: {columnWidths: ColumnWidths}) {
   return (
     <style>
       {(Object.keys(props.columnWidths) as ProjectFieldName[]).map(
@@ -100,10 +103,10 @@ function ColumnWidthsStyle(props: { columnWidths: ColumnWidths }) {
           width: ${props.columnWidths[column]}px !important;
           max-width: ${props.columnWidths[column]}px !important;
         }
-        `,
+        `
       )}
     </style>
-  )
+  );
 }
 /**
  * Render a dynamic style tag during drag interaction, to…
@@ -114,8 +117,8 @@ function ColumnWidthsStyle(props: { columnWidths: ColumnWidths }) {
  * …even if the pointer strays from the resize handle.
  */
 const DraggingStyle = memo(function DraggingStyle(props: {
-  isDragging: boolean
-  draggingFieldname: string
+  isDragging: boolean;
+  draggingFieldname: string;
 }) {
   return (
     <style>
@@ -130,8 +133,8 @@ const DraggingStyle = memo(function DraggingStyle(props: {
         transition: opacity 0.5s;
       }`}
     </style>
-  )
-})
+  );
+});
 /**
  * <ColumnResizer/>
  *
@@ -141,25 +144,25 @@ const DraggingStyle = memo(function DraggingStyle(props: {
 export default function ColumnResizer() {
   // State, triggers re-rendering in style tags
   /** Column Widths, used by <ColumnWidthsStyle/> */
-  const [columnWidths, setColumnWidths] = useState({} as ColumnWidths)
+  const [columnWidths, setColumnWidths] = useState({} as ColumnWidths);
   /** isDragging, used by <DraggingStyle/> */
-  const [isDragging, setIsDragging] = useState(false)
+  const [isDragging, setIsDragging] = useState(false);
 
   // Refs, for use by event handlers. They won't trigger re-renders.
   /** Bool: Have we started dragging a resize handle? */
-  const isDraggingRef = useRef(false)
+  const isDraggingRef = useRef(false);
   /** The field name of the column being resized. */
-  const draggingColumnRef = useRef('' as ProjectFieldName)
+  const draggingColumnRef = useRef('' as ProjectFieldName);
   /** The pageX when we started interacting with the resize handler */
-  const dragStartXRef = useRef(-1)
+  const dragStartXRef = useRef(-1);
   /** The width of the header cell when we initially touched its resize handler */
-  const dragStartWidthRef = useRef(-1)
+  const dragStartWidthRef = useRef(-1);
   /** The pageX at the previous mousedown/mousemove.
       Used for de-duping mousemove */
-  const dragPrevXRef = useRef(0)
+  const dragPrevXRef = useRef(0);
   /** The column width we used in the previous mousedown/mousemove.
       Used for de-duping style re-renders. */
-  const dragPrevWidthRef = useRef(0)
+  const dragPrevWidthRef = useRef(0);
 
   // This handler is separated out from the others as a small optimization.
   /**
@@ -173,30 +176,30 @@ export default function ColumnResizer() {
     //  - Not dragging (shouldn't happen, but check just in case)
     //  - Same X as before (column width can't change)
     if (!isDraggingRef.current || dragPrevXRef.current === e.pageX) {
-      return
+      return;
     }
 
     const newWidth = clampedColumnWidth(
       draggingColumnRef.current,
       // Calculate desired width based on initial positions and current x
-      dragStartWidthRef.current + (e.pageX - dragStartXRef.current),
-    )
+      dragStartWidthRef.current + (e.pageX - dragStartXRef.current)
+    );
     // Update state for re-render only if the width is new after clamp
     if (newWidth !== dragPrevWidthRef.current) {
       setColumnWidths((prevColumnWidths) => {
         return {
           ...prevColumnWidths,
           [draggingColumnRef.current]: newWidth,
-        }
-      })
+        };
+      });
     }
     // Set variables for de-duping
-    dragPrevXRef.current = e.pageX // to skip event early if same x
-    dragPrevWidthRef.current = newWidth // to skip state update if same width
+    dragPrevXRef.current = e.pageX; // to skip event early if same x
+    dragPrevWidthRef.current = newWidth; // to skip state update if same width
 
-    return
+    return;
     // }
-  })
+  });
 
   /**
    * A consolidated function for pointerdown, pointerup, and contextmenu.
@@ -206,7 +209,7 @@ export default function ColumnResizer() {
   const handlerRef = useRef((e: Event) => {
     // TypeScript guard
     if (!(e instanceof PointerEvent)) {
-      return
+      return;
     }
 
     // Pointer Down
@@ -216,24 +219,25 @@ export default function ColumnResizer() {
       e.button === 0 // Only on left (primary) mouse button
     ) {
       // Detect resize handle with [data-resize-fieldname={fieldname}]
-      const fieldname = (e.target as HTMLElement).dataset.resizeFieldname as ProjectFieldName
+      const fieldname = (e.target as HTMLElement).dataset
+        .resizeFieldname as ProjectFieldName;
       if (fieldname) {
-        setIsDragging(true)
-        isDraggingRef.current = true
-        draggingColumnRef.current = fieldname
-        dragStartXRef.current = e.pageX
-        dragPrevXRef.current = e.pageX
+        setIsDragging(true);
+        isDraggingRef.current = true;
+        draggingColumnRef.current = fieldname;
+        dragStartXRef.current = e.pageX;
+        dragPrevXRef.current = e.pageX;
 
         // Capture the current width of the resizer's parent element, a
         // header cell, same width as all the row cells below it.
-        const parent = (e.target as HTMLElement).parentElement
+        const parent = (e.target as HTMLElement).parentElement;
         if (parent) {
-          dragStartWidthRef.current = parent.offsetWidth
+          dragStartWidthRef.current = parent.offsetWidth;
           // box-sizing: border-box makes this very easy
         }
-        document.body.addEventListener('pointermove', moveHandlerRef.current)
+        document.body.addEventListener('pointermove', moveHandlerRef.current);
       }
-      return
+      return;
     }
 
     // Mouseup (or contextmenu)
@@ -250,38 +254,41 @@ export default function ColumnResizer() {
       //     'px'
       //   );
       // }
-      isDraggingRef.current = false
-      setIsDragging(false)
-      document.body.removeEventListener('pointermove', moveHandlerRef.current)
-      return
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      document.body.removeEventListener('pointermove', moveHandlerRef.current);
+      return;
     }
-  })
+  });
 
   // List of events we register immediately.
   // pointermove not included - we toggle this when drag starts/ends
-  const eventTypes = ['pointerdown', 'pointerup', 'contextmenu']
+  const eventTypes = ['pointerdown', 'pointerup', 'contextmenu'];
 
   // Mount/Unmount effect: Attach/remove handlers on the body
   useEffect(() => {
     // Mount! Add handlers on body
     eventTypes.forEach((eventType) => {
-      document.body.addEventListener(eventType, handlerRef.current)
-    })
+      document.body.addEventListener(eventType, handlerRef.current);
+    });
 
     // Unmount! Remove handlers on body
     return () => {
       eventTypes.forEach((eventType) => {
-        document.body.removeEventListener(eventType, handlerRef.current)
-      })
+        document.body.removeEventListener(eventType, handlerRef.current);
+      });
       // Remove pointermove, in case we unmount during a drag event
-      document.body.removeEventListener('pointermove', moveHandlerRef.current)
-    }
-  }, [])
+      document.body.removeEventListener('pointermove', moveHandlerRef.current);
+    };
+  }, []);
 
   return (
     <>
       <ColumnWidthsStyle columnWidths={columnWidths} />
-      <DraggingStyle isDragging={isDragging} draggingFieldname={draggingColumnRef.current} />
+      <DraggingStyle
+        isDragging={isDragging}
+        draggingFieldname={draggingColumnRef.current}
+      />
     </>
-  )
+  );
 }

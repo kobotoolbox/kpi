@@ -1,11 +1,11 @@
-import React from 'react'
-import autoBind from 'react-autobind'
-import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils'
-import MultiCheckbox from 'js/components/common/multiCheckbox'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
+import React from 'react';
+import autoBind from 'react-autobind';
+import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
+import bem from 'js/bem';
+import {actions} from 'js/actions';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Button from 'js/components/common/button';
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
@@ -30,14 +30,14 @@ import Button from 'js/components/common/button'
  */
 class DataAttachmentColumnsForm extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       isInitalised: false,
       isLoading: false,
       columnsToDisplay: [],
-    }
-    autoBind(this)
-    this.unlisteners = []
+    };
+    autoBind(this);
+    this.unlisteners = [];
   }
 
   componentDidMount() {
@@ -47,110 +47,138 @@ class DataAttachmentColumnsForm extends React.Component {
     // TODO: See if we can simplify this to only call this if props does not
     // have any connected questions
     // See: https://github.com/kobotoolbox/kpi/issues/3912
-    actions.resources.loadAsset({ id: this.props.source.uid }, true)
+    actions.resources.loadAsset({id: this.props.source.uid}, true);
 
     this.unlisteners.push(
-      actions.dataShare.attachToSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.attachToSource.completed.listen(this.onAttachToSourceCompleted),
-      actions.dataShare.attachToSource.failed.listen(this.stopLoading),
-      actions.dataShare.patchSource.started.listen(this.markComponentAsLoading),
-      actions.dataShare.patchSource.completed.listen(this.onPatchSourceCompleted),
-      actions.dataShare.patchSource.failed.listen(this.stopLoading),
-      actions.resources.loadAsset.completed.listen(this.onLoadAssetContentCompleted),
-      actions.resources.loadAsset.failed.listen(this.stopLoading),
-    )
-    this.setModalTitle()
+      actions.dataShare.attachToSource.started.listen(
+        this.markComponentAsLoading
+      ),
+      actions.dataShare.attachToSource.completed.listen(
+        this.onAttachToSourceCompleted
+      ),
+      actions.dataShare.attachToSource.failed.listen(
+        this.stopLoading
+      ),
+      actions.dataShare.patchSource.started.listen(
+        this.markComponentAsLoading
+      ),
+      actions.dataShare.patchSource.completed.listen(
+        this.onPatchSourceCompleted
+      ),
+      actions.dataShare.patchSource.failed.listen(
+        this.stopLoading
+      ),
+      actions.resources.loadAsset.completed.listen(
+        this.onLoadAssetContentCompleted
+      ),
+      actions.resources.loadAsset.failed.listen(
+        this.stopLoading
+      ),
+    );
+    this.setModalTitle();
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   setModalTitle() {
-    this.props.onSetModalTitle(t('Import data from ##SOURCE_NAME##').replace('##SOURCE_NAME##', this.props.source.name))
+    this.props.onSetModalTitle(
+      t('Import data from ##SOURCE_NAME##')
+        .replace('##SOURCE_NAME##', this.props.source.name)
+    );
   }
 
   onAttachToSourceCompleted() {
-    this.props.onModalClose()
+    this.props.onModalClose();
   }
   onBulkSelect(evt) {
-    evt.preventDefault()
+    evt.preventDefault();
 
     let newList = this.state.columnsToDisplay.map((item) => {
-      return { label: item.label, checked: true }
-    })
-    this.setState({ columnsToDisplay: newList })
+      return {label: item.label, checked: true}
+    });
+    this.setState({columnsToDisplay: newList})
   }
   onBulkDeselect(evt) {
-    evt.preventDefault()
+    evt.preventDefault();
 
     let newList = this.state.columnsToDisplay.map((item) => {
-      return { label: item.label, checked: false }
-    })
-    this.setState({ columnsToDisplay: newList })
+      return {label: item.label, checked: false}
+    });
+    this.setState({columnsToDisplay: newList})
   }
   onLoadAssetContentCompleted(response) {
-    if (response.data_sharing?.fields?.length > 0) {
+    if (
+      response.data_sharing?.fields?.length > 0
+    ) {
       this.setState({
         isInitialised: true,
-        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.data_sharing.fields),
-      })
+        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
+          this.props.fields,
+          response.data_sharing.fields,
+        ),
+      });
     } else {
       // empty `fields` implies all source questions are exposed
       this.setState({
         isInitialised: true,
-        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.content.survey),
-      })
+        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
+          this.props.fields,
+          response.content.survey,
+        ),
+      });
     }
   }
   onPatchSourceCompleted(response) {
     this.setState({
       isLoading: false,
-      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(this.props.fields, response.fields),
-    })
-    this.props.onModalClose()
+      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
+        this.props.fields,
+        response.fields,
+      ),
+    });
+    this.props.onModalClose();
   }
   // Actions take care of the error handling for this modal
   stopLoading() {
-    this.setState({ isLoading: false })
+    this.setState({isLoading: false});
   }
 
   onColumnSelected(newList) {
-    this.setState({ columnsToDisplay: newList })
+    this.setState({columnsToDisplay: newList});
   }
 
   onSubmit(evt) {
-    evt.preventDefault()
+    evt.preventDefault();
 
-    const fields = []
-    let data = ''
+    const fields = [];
+    let data = '';
 
     this.state.columnsToDisplay.forEach((item) => {
       if (item.checked) {
-        fields.push(item.label)
+        fields.push(item.label);
       }
-    })
+    });
 
     if (this.props.attachmentUrl) {
       data = {
         fields: fields,
         filename: this.props.filename,
-      }
-      actions.dataShare.patchSource(this.props.attachmentUrl, data)
+      };
+      actions.dataShare.patchSource(this.props.attachmentUrl, data);
     } else {
       data = {
         source: this.props.source.url,
         fields: fields,
         filename: this.props.filename,
-      }
-      actions.dataShare.attachToSource(this.props.asset.uid, data)
+      };
+      actions.dataShare.attachToSource(this.props.asset.uid, data);
     }
   }
 
   markComponentAsLoading() {
-    this.setState({ isLoading: true })
+    this.setState({isLoading: true});
   }
 
   render() {
@@ -160,25 +188,39 @@ class DataAttachmentColumnsForm extends React.Component {
       <bem.FormModal__form m='data-attachment-columns'>
         <div className='header'>
           <span className='modal-description'>
-            {t(
-              'You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.',
-            ).replace('##SOURCE_NAME##', this.props.source.name)}
+            {t('You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.').replace('##SOURCE_NAME##', this.props.source.name)}
           </span>
 
           <div className='bulk-options'>
-            <span className='bulk-options__description'>{t('Select below the questions you want to import')}</span>
+            <span className='bulk-options__description'>
+              {t('Select below the questions you want to import')}
+            </span>
 
             <div className='bulk-options__buttons'>
-              <Button type='secondary' size='s' onClick={this.onBulkSelect.bind(this)} label={t('Select all')} />
+              <Button
+                type='secondary'
+                size='s'
+                onClick={this.onBulkSelect.bind(this)}
+                label={t('Select all')}
+              />
 
-              <span>{t('|')}</span>
+              <span>
+                {t('|')}
+              </span>
 
-              <Button type='secondary' size='s' onClick={this.onBulkDeselect.bind(this)} label={t('Deselect all')} />
+              <Button
+                type='secondary'
+                size='s'
+                onClick={this.onBulkDeselect.bind(this)}
+                label={t('Deselect all')}
+              />
             </div>
           </div>
         </div>
 
-        {!this.state.isInitialised && <LoadingSpinner message={t('Loading imported questions')} />}
+        {!this.state.isInitialised &&
+          <LoadingSpinner message={t('Loading imported questions')}/>
+        }
 
         <MultiCheckbox
           type='frame'
@@ -188,7 +230,9 @@ class DataAttachmentColumnsForm extends React.Component {
           className='data-attachment-columns-multicheckbox'
         />
 
-        {this.state.isLoading && <LoadingSpinner message={t('Updating imported questions')} />}
+        {this.state.isLoading &&
+          <LoadingSpinner message={t('Updating imported questions')}/>
+        }
 
         <footer className='modal__footer'>
           <Button
@@ -201,9 +245,10 @@ class DataAttachmentColumnsForm extends React.Component {
             className='data-attachment-modal-footer-button'
           />
         </footer>
+
       </bem.FormModal__form>
-    )
+    );
   }
 }
 
-export default DataAttachmentColumnsForm
+export default DataAttachmentColumnsForm;

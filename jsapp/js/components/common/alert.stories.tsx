@@ -1,10 +1,10 @@
-import Alert from './alert'
+import Alert from './alert';
 
-export default { title: 'common/Alert' }
+export default {title: 'common/Alert'};
 
 export function Demo() {
   const message =
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam'
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam';
   return (
     <div>
       <Alert type='default'>{message}</Alert>
@@ -24,5 +24,5 @@ export function Demo() {
         {message}
       </Alert>
     </div>
-  )
+  );
 }

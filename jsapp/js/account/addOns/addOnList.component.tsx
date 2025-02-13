@@ -1,42 +1,57 @@
-import React, { useContext, useEffect, useState } from 'react'
-import useWhen from 'js/hooks/useWhen.hook'
-import subscriptionStore from 'js/account/subscriptionStore'
-import type { Price, Product, SubscriptionInfo, OneTimeAddOn } from 'js/account/stripe.types'
-import { isAddonProduct } from 'js/account/stripe.utils'
-import styles from './addOnList.module.scss'
-import { OneTimeAddOnRow } from 'jsapp/js/account/addOns/oneTimeAddOnRow.component'
-import type { BadgeColor } from 'jsapp/js/components/common/badge'
-import Badge from 'jsapp/js/components/common/badge'
-import { formatDate } from 'js/utils'
-import { OneTimeAddOnsContext } from 'jsapp/js/account/useOneTimeAddonList.hook'
-import type { Organization } from 'js/account/organization/organizationQuery'
+import React, {useContext, useEffect, useState} from 'react';
+import useWhen from 'js/hooks/useWhen.hook';
+import subscriptionStore from 'js/account/subscriptionStore';
+import type {
+  Price,
+  Product,
+  SubscriptionInfo,
+  OneTimeAddOn,
+} from 'js/account/stripe.types';
+import {isAddonProduct} from 'js/account/stripe.utils';
+import styles from './addOnList.module.scss';
+import {OneTimeAddOnRow} from 'jsapp/js/account/addOns/oneTimeAddOnRow.component';
+import type {BadgeColor} from 'jsapp/js/components/common/badge';
+import Badge from 'jsapp/js/components/common/badge';
+import {formatDate} from 'js/utils';
+import {OneTimeAddOnsContext} from 'jsapp/js/account/useOneTimeAddonList.hook';
+import type {Organization} from 'js/account/organization/organizationQuery';
 
 /**
  * A table of add-on products along with dropdowns to purchase them.
  */
 const AddOnList = (props: {
-  products: Product[]
-  organization: Organization | null
-  isBusy: boolean
-  setIsBusy: (value: boolean) => void
-  onClickBuy: (price: Price) => void
+  products: Product[];
+  organization: Organization | null;
+  isBusy: boolean;
+  setIsBusy: (value: boolean) => void;
+  onClickBuy: (price: Price) => void;
 }) => {
-  const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>([])
-  const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>([])
-  const [activeSubscriptions, setActiveSubscriptions] = useState<SubscriptionInfo[]>([])
-  const [addOnProducts, setAddOnProducts] = useState<Product[]>([])
-  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
-  const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
-  const oneTimeAddOnProducts = addOnProducts.filter((product) => product.metadata.product_type === 'addon_onetime')
-  const recurringAddOnProducts = addOnProducts.filter((product) => product.metadata.product_type === 'addon')
-  const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length
+  const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>(
+    []
+  );
+  const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>(
+    []
+  );
+  const [activeSubscriptions, setActiveSubscriptions] = useState<
+    SubscriptionInfo[]
+  >([]);
+  const [addOnProducts, setAddOnProducts] = useState<Product[]>([]);
+  const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext);
+  const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns;
+  const oneTimeAddOnProducts = addOnProducts.filter(
+    (product) => product.metadata.product_type === 'addon_onetime'
+  );
+  const recurringAddOnProducts = addOnProducts.filter(
+    (product) => product.metadata.product_type === 'addon'
+  );
+  const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length;
 
   /**
    * Extract the add-on products and prices from the list of all products
    */
   useEffect(() => {
     if (!props.products) {
-      return
+      return;
     }
     const addonProducts = props.products
       .filter((product) => isAddonProduct(product))
@@ -44,23 +59,23 @@ const AddOnList = (props: {
         return {
           ...product,
           prices: product.prices.filter((price) => price.active),
-        }
-      })
-    setAddOnProducts(addonProducts)
-  }, [props.products])
+        };
+      });
+    setAddOnProducts(addonProducts);
+  }, [props.products]);
 
   useWhen(
     () => subscriptionStore.isInitialised,
     () => {
-      setSubscribedAddOns(subscriptionStore.addOnsResponse)
-      setSubscribedPlans(subscriptionStore.planResponse)
-      setActiveSubscriptions(subscriptionStore.activeSubscriptions)
+      setSubscribedAddOns(subscriptionStore.addOnsResponse);
+      setSubscribedPlans(subscriptionStore.planResponse);
+      setActiveSubscriptions(subscriptionStore.activeSubscriptions);
     },
-    [],
-  )
+    []
+  );
 
   if (!addOnProducts.length || !props.organization) {
-    return null
+    return null;
   }
 
   function ActivePreviousAddons(
@@ -70,7 +85,7 @@ const AddOnList = (props: {
     available: boolean,
     label: string,
     badgeLabel: string,
-    color: BadgeColor,
+    color: BadgeColor
   ) {
     return (
       <table className={styles.table}>
@@ -83,19 +98,26 @@ const AddOnList = (props: {
               return (
                 <tr className={styles.row} key={product.id}>
                   <td className={styles.product}>
-                    <span className={styles.productName}>{product.items[0].price.product.name}</span>
+                    <span className={styles.productName}>
+                      {product.items[0].price.product.name}
+                    </span>
                     <Badge color={color} size={'s'} label={badgeLabel} />
                     <p className={styles.description}>
-                      {t('Added on ##date##').replace('##date##', formatDate(product.created))}
+                      {t('Added on ##date##').replace(
+                        '##date##',
+                        formatDate(product.created)
+                      )}
                     </p>
                   </td>
                   <td className={styles.activePrice}>
-                    {product.items[0].price.human_readable_price.replace('USD/month', '').replace('USD/year', '')}
+                    {product.items[0].price.human_readable_price
+                      .replace('USD/month', '')
+                      .replace('USD/year', '')}
                   </td>
                 </tr>
-              )
+              );
             }
-            return null
+            return null;
           })}
           {oneTimeAddOns.map((oneTimeAddOn: OneTimeAddOn) => {
             if (oneTimeAddOn.is_available === available) {
@@ -106,13 +128,21 @@ const AddOnList = (props: {
                       {t('##name## x ##quantity##')
                         .replace(
                           '##name##',
-                          oneTimeAddOnProducts.find((product) => product.id === oneTimeAddOn.product)?.name || label,
+                          oneTimeAddOnProducts.find(
+                            (product) => product.id === oneTimeAddOn.product
+                          )?.name || label
                         )
-                        .replace('##quantity##', oneTimeAddOn.quantity.toString())}
+                        .replace(
+                          '##quantity##',
+                          oneTimeAddOn.quantity.toString()
+                        )}
                     </span>
                     <Badge color={color} size={'s'} label={badgeLabel} />
                     <p className={styles.addonDescription}>
-                      {t('Added on ##date##').replace('##date##', formatDate(oneTimeAddOn.created))}
+                      {t('Added on ##date##').replace(
+                        '##date##',
+                        formatDate(oneTimeAddOn.created)
+                      )}
                     </p>
                   </td>
                   <td className={styles.activePrice}>
@@ -120,20 +150,21 @@ const AddOnList = (props: {
                       '##price##',
                       (
                         (oneTimeAddOn.quantity *
-                          (oneTimeAddOnProducts.find((product) => product.id === oneTimeAddOn.product)?.prices[0]
-                            .unit_amount || 0)) /
+                          (oneTimeAddOnProducts.find(
+                            (product) => product.id === oneTimeAddOn.product
+                          )?.prices[0].unit_amount || 0)) /
                         100
-                      ).toFixed(2),
+                      ).toFixed(2)
                     )}
                   </td>
                 </tr>
-              )
+              );
             }
-            return null
+            return null;
           })}
         </tbody>
       </table>
-    )
+    );
   }
   return (
     <>
@@ -144,7 +175,7 @@ const AddOnList = (props: {
             {t(
               `Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or
               have reached the usage limits included with your plan, increase your limits with add-ons to continue
-              data collection.`,
+              data collection.`
             )}
           </p>
         </caption>
@@ -174,7 +205,9 @@ const AddOnList = (props: {
         </tbody>
       </table>
       {subscribedAddOns.some((product) => product.status === 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => oneTimeAddOns.is_available)
+      oneTimeAddOnSubscriptions.some(
+        (oneTimeAddOns) => oneTimeAddOns.is_available
+      )
         ? ActivePreviousAddons(
             subscribedAddOns,
             oneTimeAddOnSubscriptions,
@@ -182,12 +215,14 @@ const AddOnList = (props: {
             true,
             t('your active add-ons'),
             t('Active'),
-            'light-teal',
+            'light-teal'
           )
         : null}
 
       {subscribedAddOns.some((product) => product.status !== 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => !oneTimeAddOns.is_available)
+      oneTimeAddOnSubscriptions.some(
+        (oneTimeAddOns) => !oneTimeAddOns.is_available
+      )
         ? ActivePreviousAddons(
             subscribedAddOns,
             oneTimeAddOnSubscriptions,
@@ -195,11 +230,11 @@ const AddOnList = (props: {
             false,
             t('previous add-ons'),
             t('Inactive'),
-            'light-storm',
+            'light-storm'
           )
         : null}
     </>
-  )
-}
+  );
+};
 
-export default AddOnList
+export default AddOnList;

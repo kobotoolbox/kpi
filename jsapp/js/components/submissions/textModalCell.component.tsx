@@ -1,9 +1,9 @@
-import React, { useState } from 'react'
-import styles from './textModalCell.module.scss'
-import Button from 'js/components/common/button'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalContent from 'js/components/modals/koboModalContent'
+import React, {useState} from 'react';
+import styles from './textModalCell.module.scss';
+import Button from 'js/components/common/button';
+import KoboModal from 'js/components/modals/koboModal';
+import KoboModalHeader from 'js/components/modals/koboModalHeader';
+import KoboModalContent from 'js/components/modals/koboModalContent';
 
 interface TextModalCellProps {
   /**
@@ -11,32 +11,34 @@ interface TextModalCellProps {
    * If empty string is passed, empty cell will be rendered and no modal.
    * If `null` is passed, "not available" will be rendered and no modal.
    */
-  text: string | null
-  columnName: string
-  submissionIndex: number
-  submissionTotal: number
+  text: string | null;
+  columnName: string;
+  submissionIndex: number;
+  submissionTotal: number;
 }
 
 /**
  * Displays given text (with fallback to "not available") and a way to open it
  * in a modal - useful to read a long text in full.
  */
-export default function TextModalCell(props: TextModalCellProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+export default function TextModalCell(
+  props: TextModalCellProps
+) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // If there is no actual content, we display sweet short "not availabe"
   // without all the modal code
   if (!props.text) {
-    let textToDisplay = props.text
+    let textToDisplay = props.text;
     if (props.text === null) {
-      textToDisplay = t('N/A')
+      textToDisplay = t('N/A');
     }
 
     return (
       <div className={styles.cell}>
         <span className={styles.textContent}>{textToDisplay}</span>
       </div>
-    )
+    );
   }
 
   return (
@@ -53,7 +55,11 @@ export default function TextModalCell(props: TextModalCellProps) {
         />
       </div>
 
-      <KoboModal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} isDismissableByDefaultMeans>
+      <KoboModal
+        isOpen={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+        isDismissableByDefaultMeans
+      >
         <KoboModalHeader onRequestCloseByX={() => setIsModalOpen(false)}>
           <div className={styles.modalHeaderText}>
             <span>
@@ -67,11 +73,9 @@ export default function TextModalCell(props: TextModalCellProps) {
         </KoboModalHeader>
 
         <KoboModalContent>
-          <div className={styles.modalContent} dir='auto'>
-            {props.text}
-          </div>
+          <div className={styles.modalContent} dir='auto'>{props.text}</div>
         </KoboModalContent>
       </KoboModal>
     </>
-  )
+  );
 }

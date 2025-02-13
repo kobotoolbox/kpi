@@ -1,24 +1,27 @@
-import { Select } from 'jsapp/js/components/common/Select'
-import { usePatchOrganizationMember } from './membersQuery'
-import { OrganizationUserRole } from './organizationQuery'
-import { LoadingOverlay } from '@mantine/core'
+import {Select} from 'jsapp/js/components/common/Select';
+import {usePatchOrganizationMember} from './membersQuery';
+import {OrganizationUserRole} from './organizationQuery';
+import {LoadingOverlay} from '@mantine/core';
 
 interface MemberRoleSelectorProps {
-  username: string
+  username: string;
   /** The role of the `username` user - the one we are modifying here. */
-  role: OrganizationUserRole
+  role: OrganizationUserRole;
   /** The role of the currently logged in user. */
-  currentUserRole: OrganizationUserRole
+  currentUserRole: OrganizationUserRole;
 }
 
-export default function MemberRoleSelector({ username, role }: MemberRoleSelectorProps) {
-  const patchMember = usePatchOrganizationMember(username)
+export default function MemberRoleSelector({
+  username,
+  role,
+}: MemberRoleSelectorProps) {
+  const patchMember = usePatchOrganizationMember(username);
 
   const handleRoleChange = (newRole: string | null) => {
     if (newRole) {
-      patchMember.mutateAsync({ role: newRole as OrganizationUserRole })
+      patchMember.mutateAsync({role: newRole as OrganizationUserRole});
     }
-  }
+  };
 
   return (
     <>
@@ -39,5 +42,5 @@ export default function MemberRoleSelector({ username, role }: MemberRoleSelecto
         onChange={handleRoleChange}
       />
     </>
-  )
+  );
 }

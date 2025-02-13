@@ -1,1 +1,1 @@
-export { themeKobo } from './kobo'
+export {themeKobo} from './kobo';

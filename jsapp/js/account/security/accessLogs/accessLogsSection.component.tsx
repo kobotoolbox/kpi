@@ -1,28 +1,33 @@
 // Libraries
-import React from 'react'
+import React from 'react';
 
 // Partial components
-import Button from 'js/components/common/button'
-import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component'
-import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component'
+import Button from 'js/components/common/button';
+import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component';
+import ExportToEmailButton from 'jsapp/js/components/exportToEmailButton/exportToEmailButton.component';
 
 // Utilities
-import useAccessLogsQuery, { startAccessLogsExport, type AccessLog } from './accessLogs.query'
-import { formatTime } from 'js/utils'
-import sessionStore from 'js/stores/session'
+import useAccessLogsQuery, {
+  startAccessLogsExport,
+  type AccessLog,
+} from './accessLogs.query';
+import {formatTime} from 'js/utils';
+import sessionStore from 'js/stores/session';
 
 // Styles
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from 'js/account/security/securityRoute.module.scss';
 
 export default function AccessLogsSection() {
   function logOutAllSessions() {
-    sessionStore.logOutAll()
+    sessionStore.logOutAll();
   }
 
   return (
     <>
       <header className={securityStyles.securityHeader}>
-        <h2 className={securityStyles.securityHeaderText}>{t('Recent account activity')}</h2>
+        <h2 className={securityStyles.securityHeaderText}>
+          {t('Recent account activity')}
+        </h2>
         <div className={securityStyles.securityHeaderActions}>
           <Button
             type='text'
@@ -32,7 +37,10 @@ export default function AccessLogsSection() {
             startIcon='logout'
           />
         </div>
-        <ExportToEmailButton label={t('Export log data')} exportFunction={startAccessLogsExport} />
+        <ExportToEmailButton
+          label={t('Export log data')}
+          exportFunction={startAccessLogsExport}
+        />
       </header>
 
       <PaginatedQueryUniversalTable<AccessLog>
@@ -45,9 +53,9 @@ export default function AccessLogsSection() {
             label: t('Source'),
             cellFormatter: (log: AccessLog) => {
               if (log.metadata.auth_type === 'submission-group') {
-                return t('Data Submissions (##count##)').replace('##count##', String(log.count))
+                return t('Data Submissions (##count##)').replace('##count##', String(log.count));
               } else {
-                return log.metadata.source
+                return log.metadata.source;
               }
             },
           },
@@ -56,9 +64,9 @@ export default function AccessLogsSection() {
             label: t('Last activity'),
             cellFormatter: (log: AccessLog) => formatTime(log.date_created),
           },
-          { key: 'metadata.ip_address', label: t('IP Address') },
+          {key: 'metadata.ip_address', label: t('IP Address')},
         ]}
       />
     </>
-  )
+  );
 }

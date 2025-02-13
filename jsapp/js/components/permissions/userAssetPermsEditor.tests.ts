@@ -3,10 +3,10 @@ import {
   isPartialByUsersValid,
   isPartialByResponsesValid,
   getFormData,
-} from './userAssetPermsEditor.utils'
-import permConfig from './permConfig'
-import { endpoints } from './permParser.mocks'
-import constants from 'js/constants'
+} from './userAssetPermsEditor.utils';
+import permConfig from './permConfig';
+import {endpoints} from './permParser.mocks';
+import constants from 'js/constants';
 
 /**
  * This is `UserAssetPermsEditorState` with all possible properties having falsy
@@ -61,14 +61,14 @@ const EMPTY_EDITOR_STATE = {
   submissionsDeletePartialByResponsesDisabled: false,
   submissionsDeletePartialByResponsesQuestion: null,
   submissionsDeletePartialByResponsesValue: '',
-}
+};
 
 describe('userAssetPermsEditor utils tests', () => {
   beforeEach(() => {
     // bootstraping
-    permConfig.setPermissions(endpoints.permissions.results)
-    constants.ROOT_URL = ''
-  })
+    permConfig.setPermissions(endpoints.permissions.results);
+    constants.ROOT_URL = '';
+  });
 
   describe('applyValidityRules', () => {
     it('should check and disable all implied checkboxes', () => {
@@ -79,7 +79,7 @@ describe('userAssetPermsEditor utils tests', () => {
       const outcome = applyValidityRules({
         ...EMPTY_EDITOR_STATE,
         formManage: true,
-      })
+      });
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
         formView: true,
@@ -106,8 +106,8 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDeleteDisabled: true,
         submissionsDeletePartialByUsersDisabled: true,
         submissionsDeletePartialByResponsesDisabled: true,
-      })
-    })
+      });
+    });
 
     it('should cleanup partial properties of unchecked checkbox', () => {
       const outcome = applyValidityRules({
@@ -117,7 +117,7 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsViewPartialByResponses: false,
         submissionsViewPartialByResponsesQuestion: 'Where_are_you_from',
         submissionsViewPartialByResponsesValue: 'North',
-      })
+      });
 
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
@@ -126,15 +126,15 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsViewPartialByResponses: false,
         submissionsViewPartialByResponsesQuestion: null,
         submissionsViewPartialByResponsesValue: '',
-      })
-    })
+      });
+    });
 
     it('should disable and uncheck "parent" checkbox if its partial counterpart is checked', () => {
       const outcome = applyValidityRules({
         ...EMPTY_EDITOR_STATE,
         submissionsViewPartialByUsers: true,
         submissionsViewPartialByUsersList: ['joe', 'josh'],
-      })
+      });
 
       chai.expect(outcome).to.deep.equal({
         ...EMPTY_EDITOR_STATE,
@@ -152,9 +152,9 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDeleteDisabled: true,
         formManage: false,
         formManageDisabled: true,
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('isPartialByUsersValid', () => {
     it('should be true for all required data filled out', () => {
@@ -162,19 +162,27 @@ describe('userAssetPermsEditor utils tests', () => {
         ...EMPTY_EDITOR_STATE,
         submissionsEditPartialByUsers: true,
         submissionsEditPartialByUsersList: ['karen'],
-      }
-      chai.expect(isPartialByUsersValid('submissionsEditPartialByUsers', stateObj)).to.equal(true)
-    })
+      };
+      chai
+        .expect(
+          isPartialByUsersValid('submissionsEditPartialByUsers', stateObj)
+        )
+        .to.equal(true);
+    });
 
     it('should be false for missing users list and checked checkbox', () => {
       const stateObj = {
         ...EMPTY_EDITOR_STATE,
         submissionsEditPartialByUsers: true,
         submissionsEditPartialByUsersList: [],
-      }
-      chai.expect(isPartialByUsersValid('submissionsEditPartialByUsers', stateObj)).to.equal(false)
-    })
-  })
+      };
+      chai
+        .expect(
+          isPartialByUsersValid('submissionsEditPartialByUsers', stateObj)
+        )
+        .to.equal(false);
+    });
+  });
 
   describe('isPartialByResponsesValid', () => {
     it('should be true for all required data filled out', () => {
@@ -183,9 +191,16 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDeletePartialByResponses: true,
         submissionsDeletePartialByResponsesQuestion: 'Where_are_you_from',
         submissionsDeletePartialByResponsesValue: 'North',
-      }
-      chai.expect(isPartialByResponsesValid('submissionsDeletePartialByResponses', stateObj)).to.equal(true)
-    })
+      };
+      chai
+        .expect(
+          isPartialByResponsesValid(
+            'submissionsDeletePartialByResponses',
+            stateObj
+          )
+        )
+        .to.equal(true);
+    });
 
     it('should be false for missing question name', () => {
       const stateObj = {
@@ -193,9 +208,16 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDeletePartialByResponses: true,
         submissionsDeletePartialByResponsesQuestion: null,
         submissionsDeletePartialByResponsesValue: 'North',
-      }
-      chai.expect(isPartialByResponsesValid('submissionsDeletePartialByResponses', stateObj)).to.equal(false)
-    })
+      };
+      chai
+        .expect(
+          isPartialByResponsesValid(
+            'submissionsDeletePartialByResponses',
+            stateObj
+          )
+        )
+        .to.equal(false);
+    });
 
     it('should be true for empty value', () => {
       const stateObj = {
@@ -203,10 +225,17 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsDeletePartialByResponses: true,
         submissionsDeletePartialByResponsesQuestion: 'Where_are_you_from',
         submissionsDeletePartialByResponsesValue: '',
-      }
-      chai.expect(isPartialByResponsesValid('submissionsDeletePartialByResponses', stateObj)).to.equal(true)
-    })
-  })
+      };
+      chai
+        .expect(
+          isPartialByResponsesValid(
+            'submissionsDeletePartialByResponses',
+            stateObj
+          )
+        )
+        .to.equal(true);
+    });
+  });
 
   describe('getFormData', () => {
     it('should remove unassignable permissions from output', () => {
@@ -217,18 +246,18 @@ describe('userAssetPermsEditor utils tests', () => {
         submissionsView: true,
         submissionsValidate: true,
         submissionsDelete: true,
-      }
+      };
 
       const testAssignablePerms = new Map([
         ['/api/v2/permissions/add_submissions/', 'Add submissions'],
         ['/api/v2/permissions/view_submissions/', 'View submissions'],
-      ])
+      ]);
 
       chai.expect(getFormData(stateObj, testAssignablePerms)).to.deep.equal({
         username: 'zefir',
         submissionsAdd: true,
         submissionsView: true,
-      })
-    })
-  })
-})
+      });
+    });
+  });
+});

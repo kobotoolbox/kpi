@@ -1,7 +1,7 @@
-import React from 'react'
-import type { Meta, StoryObj } from '@storybook/react'
-import { IconNames } from 'jsapp/fonts/k-icons'
-import ActionIcon, { type ActionIconProps } from './ActionIcon'
+import React from 'react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {IconNames} from 'jsapp/fonts/k-icons';
+import ActionIcon, {type ActionIconProps} from './ActionIcon';
 
 const actionIconVariants: Array<ActionIconProps['variant']> = [
   'filled',
@@ -11,9 +11,13 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
   'danger',
   'danger-secondary',
   'transparent',
-]
+];
 
-const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
+const actionIconSizes: Array<ActionIconProps['size']> = [
+  'sm',
+  'md',
+  'lg',
+];
 
 export default {
   title: 'common/Action Icon',
@@ -32,14 +36,14 @@ export default {
     iconName: {
       description: 'Icon',
       options: Object.keys(IconNames),
-      control: { type: 'select' },
+      control: {type: 'select'},
     },
-    disabled: { control: 'boolean' },
-    loading: { control: 'boolean' },
+    disabled: {control: 'boolean'},
+    loading: {control: 'boolean'},
   },
-} as Meta<typeof ActionIcon>
+} as Meta<typeof ActionIcon>;
 
-type Story = StoryObj<typeof ActionIcon>
+type Story = StoryObj<typeof ActionIcon>;
 
 export const Filled: Story = {
   args: {
@@ -47,7 +51,7 @@ export const Filled: Story = {
     size: 'md',
     iconName: 'edit',
   },
-}
+};
 
 export const Light: Story = {
   args: {
@@ -55,7 +59,7 @@ export const Light: Story = {
     size: 'md',
     iconName: 'edit',
   },
-}
+};
 
 export const Transparent: Story = {
   args: {
@@ -63,7 +67,7 @@ export const Transparent: Story = {
     size: 'md',
     iconName: 'more',
   },
-}
+};
 
 export const Danger: Story = {
   args: {
@@ -71,7 +75,7 @@ export const Danger: Story = {
     size: 'md',
     iconName: 'trash',
   },
-}
+};
 
 export const DangerSecondary: Story = {
   args: {
@@ -79,7 +83,7 @@ export const DangerSecondary: Story = {
     size: 'lg',
     iconName: 'trash',
   },
-}
+};
 
 export const AllIconStyles = () => (
   <div
@@ -98,15 +102,15 @@ export const AllIconStyles = () => (
           variant,
           size: size,
           iconName: 'more',
-        }
+        };
         return (
           <>
             <ActionIcon {...actionIconProps} />
             <ActionIcon {...actionIconProps} loading />
             <ActionIcon {...actionIconProps} disabled />
           </>
-        )
-      }),
+        );
+      })
     )}
   </div>
-)
+);

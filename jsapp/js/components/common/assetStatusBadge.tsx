@@ -1,8 +1,8 @@
-import React from 'react'
-import Badge from 'js/components/common/badge'
+import React from 'react';
+import Badge from 'js/components/common/badge';
 
 interface AssetStatusBadgeProps {
-  deploymentStatus?: string
+  deploymentStatus?: string;
 }
 
 /**
@@ -10,11 +10,33 @@ interface AssetStatusBadgeProps {
  * the project is draft, deployed, or archived.
  */
 export default function AssetStatusBadge(props: AssetStatusBadgeProps) {
+
   if (props.deploymentStatus === 'archived') {
-    return <Badge color='light-amber' size='s' icon='project-archived' label={t('archived')} />
+    return (
+      <Badge
+        color='light-amber'
+        size='s'
+        icon='project-archived'
+        label={t('archived')}
+      />
+    );
   } else if (props.deploymentStatus === 'deployed') {
-    return <Badge color='light-blue' size='s' icon='project-deployed' label={t('deployed')} />
+    return (
+      <Badge
+        color='light-blue'
+        size='s'
+        icon='project-deployed'
+        label={t('deployed')}
+      />
+    );
   } else {
-    return <Badge color='light-teal' size='s' icon='project-draft' label={t('draft')} />
+    return (
+      <Badge
+        color='light-teal'
+        size='s'
+        icon='project-draft'
+        label={t('draft')}
+      />
+    );
   }
 }

@@ -1,18 +1,18 @@
-import { makeAutoObservable } from 'mobx'
+import {makeAutoObservable} from 'mobx';
 
 interface SearchBoxStoreData {
   /** Context ensures that observers will not be triggered unnecessarily. */
-  context?: string
+  context?: string;
   /**
    * Keeps the date of last update to the store. We use it to be able to react
    * in a more forceful way to store changes.
    */
-  lastContextUpdateDate?: number
+  lastContextUpdateDate?: number;
   /**
    * Intentionally left unset by default, so reactions are being called when
    * the app is initialized.
    */
-  searchPhrase?: string
+  searchPhrase?: string;
 }
 
 /**
@@ -27,16 +27,16 @@ interface SearchBoxStoreData {
  * ensure `SearchBox` component is present and you observe the store changes.
  */
 class SearchBoxStore {
-  data: SearchBoxStoreData = {}
+  data: SearchBoxStoreData = {};
 
   constructor() {
-    makeAutoObservable(this)
+    makeAutoObservable(this);
   }
 
   /** This method is for the SearchBox component. */
   public setSearchPhrase(newVal: string) {
     if ((this.data.searchPhrase ?? '').trim() !== newVal.trim()) {
-      this.data.searchPhrase = newVal
+      this.data.searchPhrase = newVal;
     }
   }
 
@@ -46,11 +46,11 @@ class SearchBoxStore {
    * unique context id.
    */
   public setContext(newContext: string) {
-    this.data.context = newContext
-    this.data.lastContextUpdateDate = Date.now()
+    this.data.context = newContext;
+    this.data.lastContextUpdateDate = Date.now();
     // Changing context resets the search phrase
-    this.data.searchPhrase = ''
+    this.data.searchPhrase = '';
   }
 }
 
-export default new SearchBoxStore()
+export default new SearchBoxStore();

@@ -6,7 +6,7 @@
       "jsapp/*": ["./*"],
       "js/*": ["js/*"],
       "scss/*": ["scss/*"],
-      "test/*": ["test/*"]
+      "test/*": ["test/*"],
     },
     "target": "es2017",
     "module": "es2020",
@@ -27,10 +27,13 @@
     "allowJs": true,
     "outDir": "out",
     "jsx": "react-jsx",
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    "plugins": [{ "name": "typescript-plugin-css-modules"}]
   },
   "ts-node": {
     "swc": true
   },
-  "include": ["jsapp/**/*.ts", "jsapp/**/*.tsx"]
+  "include": [
+    "jsapp/**/*.ts",
+    "jsapp/**/*.tsx"
+  ]
 }

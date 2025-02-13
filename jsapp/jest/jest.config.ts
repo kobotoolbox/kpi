@@ -1,4 +1,4 @@
-import type { Config } from 'jest'
+import type {Config} from 'jest';
 
 const config: Config = {
   verbose: true,
@@ -9,7 +9,7 @@ const config: Config = {
     '\\.(css|scss)$': 'identity-obj-proxy',
   },
   setupFilesAfterEnv: ['<rootDir>/setupJestTest.ts'],
-  transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
-}
+  transform: {'^.+\\.(t|j)sx?$': '@swc/jest'},
+};
 
-export default config
+export default config;

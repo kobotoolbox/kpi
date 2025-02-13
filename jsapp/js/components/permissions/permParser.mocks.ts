@@ -1,4 +1,8 @@
-import type { PermissionsConfigResponse, PaginatedResponse, PermissionResponse } from 'js/dataInterface'
+import type {
+  PermissionsConfigResponse,
+  PaginatedResponse,
+  PermissionResponse,
+} from 'js/dataInterface';
 
 /**
  * Mock permissions endpoints responses for tests.
@@ -40,7 +44,10 @@ const permissions: PermissionsConfigResponse = {
     {
       url: '/api/v2/permissions/delete_submissions/',
       codename: 'delete_submissions',
-      implied: ['/api/v2/permissions/view_asset/', '/api/v2/permissions/view_submissions/'],
+      implied: [
+        '/api/v2/permissions/view_asset/',
+        '/api/v2/permissions/view_submissions/',
+      ],
       contradictory: ['/api/v2/permissions/partial_submissions/'],
       name: 'Can delete submitted data for asset',
     },
@@ -83,7 +90,10 @@ const permissions: PermissionsConfigResponse = {
     {
       url: '/api/v2/permissions/validate_submissions/',
       codename: 'validate_submissions',
-      implied: ['/api/v2/permissions/view_asset/', '/api/v2/permissions/view_submissions/'],
+      implied: [
+        '/api/v2/permissions/view_asset/',
+        '/api/v2/permissions/view_submissions/',
+      ],
       contradictory: ['/api/v2/permissions/partial_submissions/'],
       name: 'Can validate submitted data asset',
     },
@@ -102,7 +112,7 @@ const permissions: PermissionsConfigResponse = {
       name: 'Can view submitted data for asset',
     },
   ],
-}
+};
 
 // /api/v2/assets/<uid>/permission-assignments/
 const assetWithAnonymousUser: PaginatedResponse<PermissionResponse> = {
@@ -153,7 +163,7 @@ const assetWithAnonymousUser: PaginatedResponse<PermissionResponse> = {
       label: 'View asset',
     },
   ],
-}
+};
 
 // /api/v2/assets/<uid>/permission-assignments/
 const assetWithMultipleUsers: PaginatedResponse<PermissionResponse> = {
@@ -222,7 +232,7 @@ const assetWithMultipleUsers: PaginatedResponse<PermissionResponse> = {
       label: 'View asset',
     },
   ],
-}
+};
 
 // /api/v2/assets/<uid>/permission-assignments/
 const assetWithPartial: PaginatedResponse<PermissionResponse> = {
@@ -280,16 +290,16 @@ const assetWithPartial: PaginatedResponse<PermissionResponse> = {
       partial_permissions: [
         {
           url: '/api/v2/permissions/view_submissions/',
-          filters: [{ _submitted_by: { $in: ['john', 'olivier'] } }],
+          filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
         },
         {
           url: '/api/v2/permissions/change_submissions/',
-          filters: [{ Where_are_you_from: 'Poland' }],
+          filters: [{Where_are_you_from: 'Poland'}],
         },
       ],
     },
   ],
-}
+};
 
 // /api/v2/assets/<uid>/permission-assignments/
 const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
@@ -315,23 +325,26 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
           filters: [
             {
               Where_are_you_from: 'Poland',
-              _submitted_by: { $in: ['dave', 'krzysztof'] },
+              _submitted_by: {$in: ['dave', 'krzysztof']},
             },
           ],
         },
         {
           url: '/api/v2/permissions/change_submissions/',
-          filters: [{ Your_color: 'blue' }],
+          filters: [{Your_color: 'blue'}],
         },
         {
           url: '/api/v2/permissions/delete_submissions/',
-          filters: [{ _submitted_by: { $in: ['kate', 'joshua'] } }],
+          filters: [{_submitted_by: {$in: ['kate', 'joshua']}}],
         },
         // This permission is the OR one, which is not supported by Front-end
         // code and should be treated as AND
         {
           url: '/api/v2/permissions/validate_submissions/',
-          filters: [{ What_is_your_fav_animal: 'Racoon' }, { _submitted_by: 'zachary' }],
+          filters: [
+            {What_is_your_fav_animal: 'Racoon'},
+            {_submitted_by: 'zachary'},
+          ],
         },
       ],
       label: {
@@ -349,7 +362,7 @@ const assetWithMultiplePartial: PaginatedResponse<PermissionResponse> = {
       label: 'View form',
     },
   ],
-}
+};
 
 export const endpoints = {
   permissions,
@@ -357,4 +370,4 @@ export const endpoints = {
   assetWithMultipleUsers,
   assetWithPartial,
   assetWithMultiplePartial,
-}
+};

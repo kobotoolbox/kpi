@@ -1,8 +1,8 @@
-import React from 'react'
-import styles from './addOns.module.scss'
-import LimitNotifications from 'js/components/usageLimits/limitNotifications.component'
-import { YourPlan } from 'js/account/usage/yourPlan.component'
-import Plan from '../plans/plan.component'
+import React from 'react';
+import styles from './addOns.module.scss';
+import LimitNotifications from 'js/components/usageLimits/limitNotifications.component';
+import {YourPlan} from 'js/account/usage/yourPlan.component';
+import Plan from '../plans/plan.component';
 
 export default function addOns() {
   return (
@@ -14,5 +14,5 @@ export default function addOns() {
       <YourPlan />
       <Plan showAddOns={true} />
     </div>
-  )
+  );
 }

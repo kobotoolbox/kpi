@@ -1,58 +1,67 @@
-import React, { useContext, useState } from 'react'
-import CommonHeader from './commonHeader.component'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
+import React, {useContext, useState} from 'react';
+import CommonHeader from './commonHeader.component';
+import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
-} from 'js/components/processing/analysis/utils'
-import Radio from 'js/components/common/radio'
-import type { RadioOption } from 'js/components/common/radio'
-import commonStyles from './common.module.scss'
-import classNames from 'classnames'
-import styles from './selectOneResponseForm.module.scss'
+} from 'js/components/processing/analysis/utils';
+import Radio from 'js/components/common/radio';
+import type {RadioOption} from 'js/components/common/radio';
+import commonStyles from './common.module.scss';
+import classNames from 'classnames';
+import styles from './selectOneResponseForm.module.scss';
 
 interface SelectOneResponseFormProps {
-  uuid: string
-  canEdit: boolean
+  uuid: string;
+  canEdit: boolean;
 }
 
 /**
  * Displays a common header and radio input with all available choices.
  */
-export default function SelectOneResponseForm(props: SelectOneResponseFormProps) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
+export default function SelectOneResponseForm(
+  props: SelectOneResponseFormProps
+) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext);
   if (!analysisQuestions) {
-    return null
+    return null;
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(props.uuid, analysisQuestions.state);
   if (!question) {
-    return null
+    return null;
   }
 
   // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type)
+  const qaDefinition = getQuestionTypeDefinition(question.type);
   if (!qaDefinition) {
-    return null
+    return null;
   }
 
   // This will either be an existing response or an empty string
-  const initialResponse = typeof question.response === 'string' ? question.response : ''
+  const initialResponse =
+    typeof question.response === 'string' ? question.response : '';
 
-  const [response, setResponse] = useState<string>(initialResponse)
+  const [response, setResponse] = useState<string>(initialResponse);
 
   function onRadioChange(newResponse: string) {
     if (!analysisQuestions || !question) {
-      return
+      return;
     }
 
     // Update local state
-    setResponse(newResponse)
+    setResponse(newResponse);
 
     // Update endpoint and reducer
-    updateResponseAndReducer(analysisQuestions.dispatch, question.xpath, props.uuid, question.type, newResponse)
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.xpath,
+      props.uuid,
+      question.type,
+      newResponse
+    );
   }
 
   function getOptions(): RadioOption[] {
@@ -66,18 +75,20 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
             return {
               value: choice.uuid,
               label: choice.labels._default,
-            }
+            };
           })
-      )
+      );
     }
-    return []
+    return [];
   }
 
   return (
     <>
       <CommonHeader uuid={props.uuid} />
 
-      <section className={classNames([commonStyles.content, styles.radioWrapper])}>
+      <section
+        className={classNames([commonStyles.content, styles.radioWrapper])}
+      >
         <Radio
           options={getOptions()}
           name={question.labels._default}
@@ -88,5 +99,5 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
         />
       </section>
     </>
-  )
+  );
 }

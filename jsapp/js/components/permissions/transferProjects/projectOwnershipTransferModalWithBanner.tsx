@@ -1,16 +1,19 @@
 // Libraries
-import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import React, {useState, useEffect} from 'react';
+import {useSearchParams} from 'react-router-dom';
 
 // Partial components
-import TransferProjectsInvite from './transferProjectsInvite.component'
-import ProjectTransferInviteBanner from './projectTransferInviteBanner'
+import TransferProjectsInvite from './transferProjectsInvite.component';
+import ProjectTransferInviteBanner from './projectTransferInviteBanner';
 
 // Stores, hooks and utilities
-import { isInviteForLoggedInUser, type TransferStatuses } from './transferProjects.api'
+import {
+  isInviteForLoggedInUser,
+  type TransferStatuses,
+} from './transferProjects.api';
 
 // Constants and types
-import type { TransferInviteState } from './projectTransferInviteBanner'
+import type {TransferInviteState} from './projectTransferInviteBanner';
 
 /**
  * This is a glue component that displays a modal from `TransferProjectsInvite`
@@ -24,48 +27,49 @@ export default function ProjectOwnershipTransferModalWithBanner() {
     status: null,
     name: '',
     currentOwner: '',
-  })
-  const [isBannerVisible, setIsBannerVisible] = useState(true)
-  const [searchParams] = useSearchParams()
+  });
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const inviteParams = searchParams.get('invite')
+    const inviteParams = searchParams.get('invite');
     if (inviteParams) {
       isInviteForLoggedInUser(inviteParams).then((data) => {
-        setInvite({ ...invite, valid: data, uid: inviteParams })
-      })
+        setInvite({...invite, valid: data, uid: inviteParams});
+      });
     } else {
-      setInvite({ ...invite, valid: false, uid: '' })
+      setInvite({...invite, valid: false, uid: ''});
     }
-  }, [searchParams])
+  }, [searchParams]);
 
   const setInviteDetail = (
     newStatus: TransferStatuses.Accepted | TransferStatuses.Declined,
     name: string,
-    currentOwner: string,
+    currentOwner: string
   ) => {
     setInvite({
       ...invite,
       status: newStatus,
       name: name,
       currentOwner: currentOwner,
-    })
-  }
+    });
+  };
 
   return (
     <>
-      {isBannerVisible && (
+      {isBannerVisible &&
         <ProjectTransferInviteBanner
           invite={invite}
-          onRequestClose={() => {
-            setIsBannerVisible(false)
-          }}
+          onRequestClose={() => {setIsBannerVisible(false);}}
         />
-      )}
+      }
 
       {invite.valid && invite.uid !== '' && (
-        <TransferProjectsInvite setInvite={setInviteDetail} inviteUid={invite.uid} />
+        <TransferProjectsInvite
+          setInvite={setInviteDetail}
+          inviteUid={invite.uid}
+        />
       )}
     </>
-  )
+  );
 }

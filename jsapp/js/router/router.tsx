@@ -1,32 +1,56 @@
-import React, { Suspense } from 'react'
-import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
-import App from 'js/app'
-import { ROUTES, PROJECTS_ROUTES } from './routerConstants'
-import accountRoutes from 'js/account/routes'
-import projectsRoutes from 'js/projects/routes'
-import RequireAuth from './requireAuth'
-import { FormPage, LibraryAssetEditor } from 'js/components/formEditors'
-import MyLibraryRoute from 'js/components/library/myLibraryRoute'
-import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute'
-import AssetRoute from 'js/components/library/assetRoute'
-import processingRoutes from 'js/components/processing/routes'
-import PermProtectedRoute from 'js/router/permProtectedRoute'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { injectRouter } from './legacy'
+import React, {Suspense} from 'react';
+import {
+  Navigate,
+  Route,
+  createHashRouter,
+  createRoutesFromElements,
+} from 'react-router-dom';
+import App from 'js/app';
+import {ROUTES, PROJECTS_ROUTES} from './routerConstants';
+import accountRoutes from 'js/account/routes';
+import projectsRoutes from 'js/projects/routes';
+import RequireAuth from './requireAuth';
+import {FormPage, LibraryAssetEditor} from 'js/components/formEditors';
+import MyLibraryRoute from 'js/components/library/myLibraryRoute';
+import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
+import AssetRoute from 'js/components/library/assetRoute';
+import processingRoutes from 'js/components/processing/routes';
+import PermProtectedRoute from 'js/router/permProtectedRoute';
+import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
+import {injectRouter} from './legacy';
 
-const Reports = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/reports/reports'))
-const FormLanding = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formLanding/formLanding'))
-const FormSummary = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formSummary/formSummary'))
-const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formSubScreens'))
-const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formXform'))
-const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formJson'))
-const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/sectionNotFound'))
-const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/formNotFound'))
+const Reports = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/reports/reports')
+);
+const FormLanding = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formLanding/formLanding')
+);
+const FormSummary = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formSummary/formSummary')
+);
+const FormSubScreens = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formSubScreens')
+);
+const FormXform = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formXform')
+);
+const FormJson = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formJson')
+);
+const SectionNotFound = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/sectionNotFound')
+);
+const FormNotFound = React.lazy(
+  () => import(/* webpackPrefetch: true */ 'js/components/formNotFound')
+);
 
 export const router = createHashRouter(
   createRoutesFromElements(
     <Route path={ROUTES.ROOT} element={<App />}>
-      <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
+      <Route
+        path={ROUTES.ROOT}
+        element={<Navigate to={ROUTES.FORMS} replace />}
+      />
       <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
       {projectsRoutes()}
       <Route path={ROUTES.LIBRARY}>
@@ -234,7 +258,10 @@ export const router = createHashRouter(
               element={
                 <PermProtectedRoute
                   protectedComponent={FormSubScreens}
-                  requiredPermissions={[PERMISSIONS_CODENAMES.change_asset, PERMISSIONS_CODENAMES.view_submissions]}
+                  requiredPermissions={[
+                    PERMISSIONS_CODENAMES.change_asset,
+                    PERMISSIONS_CODENAMES.view_submissions,
+                  ]}
                   requireAll
                 />
               }
@@ -324,10 +351,10 @@ export const router = createHashRouter(
           </Suspense>
         }
       />
-    </Route>,
-  ),
-)
+    </Route>
+  )
+);
 
-injectRouter(router)
+injectRouter(router);
 
-export default router
+export default router;

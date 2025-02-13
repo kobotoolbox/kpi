@@ -10,15 +10,17 @@ Cypress.Commands.add('login', (account, name) => {
 })
 
 // Makes this case insensitive by default
-Cypress.Commands.overwrite('contains', (originalFn, subject, filter, text, options = {}) => {
-  // determine if a filter argument was passed
-  if (typeof text === 'object') {
-    options = text
-    text = filter
-    filter = undefined
+Cypress.Commands.overwrite('contains',
+  (originalFn, subject, filter, text, options = {}) => {
+    // determine if a filter argument was passed
+    if (typeof text === 'object') {
+      options = text
+      text = filter
+      filter = undefined
+    }
+
+    options.matchCase ??= false
+
+    return originalFn(subject, filter, text, options)
   }
-
-  options.matchCase ??= false
-
-  return originalFn(subject, filter, text, options)
-})
+)

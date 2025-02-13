@@ -1,6 +1,6 @@
-import React from 'react'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+import React from 'react';
+import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 export function renderBackButton(isDisabled = false) {
   if (pageState.hasPreviousModal()) {
@@ -12,8 +12,8 @@ export function renderBackButton(isDisabled = false) {
         isDisabled={isDisabled}
         label={t('Back')}
       />
-    )
+    );
   } else {
-    return null
+    return null;
   }
 }

@@ -1,7 +1,7 @@
-import sessionStore from './session'
-import { useEffect, useState } from 'react'
-import { reaction } from 'mobx'
-import type { AccountResponse } from '../dataInterface'
+import sessionStore from './session';
+import {useEffect, useState} from 'react';
+import {reaction} from 'mobx';
+import type {AccountResponse} from '../dataInterface';
 
 /**
  * Hook to use the session store in functional components.
@@ -13,9 +13,10 @@ import type { AccountResponse } from '../dataInterface'
  * In the future we should update this hook to use react-query and drop the usage of mob-x
  */
 export const useSession = () => {
-  const [currentLoggedAccount, setCurrentLoggedAccount] = useState<AccountResponse>()
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(true)
-  const [isPending, setIsPending] = useState<boolean>(false)
+  const [currentLoggedAccount, setCurrentLoggedAccount] =
+    useState<AccountResponse>();
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
+  const [isPending, setIsPending] = useState<boolean>(false);
 
   useEffect(() => {
     // We need to setup a reaction for every observable we want to track
@@ -24,27 +25,27 @@ export const useSession = () => {
       () => sessionStore.currentAccount,
       (currentAccount) => {
         if (sessionStore.isLoggedIn) {
-          setCurrentLoggedAccount(currentAccount as AccountResponse)
-          setIsAnonymous(false)
-          setIsPending(sessionStore.isPending)
+          setCurrentLoggedAccount(currentAccount as AccountResponse);
+          setIsAnonymous(false);
+          setIsPending(sessionStore.isPending);
         }
       },
-      { fireImmediately: true },
-    )
+      {fireImmediately: true}
+    );
 
     const isPendingReactionDisposer = reaction(
       () => sessionStore.isPending,
       () => {
-        setIsPending(sessionStore.isPending)
+          setIsPending(sessionStore.isPending);
       },
-      { fireImmediately: true },
-    )
+      {fireImmediately: true}
+    );
 
     return () => {
-      currentAccountReactionDisposer()
-      isPendingReactionDisposer()
-    }
-  }, [])
+      currentAccountReactionDisposer();
+      isPendingReactionDisposer();
+    };
+  }, []);
 
   return {
     currentLoggedAccount,
@@ -53,5 +54,5 @@ export const useSession = () => {
     logOut: sessionStore.logOut.bind(sessionStore),
     logOutAll: sessionStore.logOutAll.bind(sessionStore),
     refreshAccount: sessionStore.refreshAccount.bind(sessionStore),
-  }
-}
+  };
+};

@@ -14,11 +14,11 @@ const s = {
 
   underline: '\u001b[4m', // underline
   nounderline: '\u001b[24m', // end underline
-}
+};
 
 // Example: npm run hint watch
 //                       ^ argv[2]
-const hintName = process.argv[2]
+const hintName = process.argv[2];
 const hints = {
   // Hints for npm scripts
   watch: `
@@ -31,17 +31,17 @@ const hints = {
   SKIP_TS_CHECK: `${s.red}
      Skipping TypeScript check (${s.magenta}SKIP_TS_CHECK${s.red})
   ${s.normal}`,
-}
-const hint = hints[hintName]
+};
+const hint = hints[hintName];
 if (hint) {
-  console.warn(`${s.blue}${hint}${s.normal}`)
+  console.warn(`${s.blue}${hint}${s.normal}`);
 }
 
 // Provide an auxiliary hint.
-const tsCheckAffects = ['build', 'watch', 'test', 'test-autobuild']
+const tsCheckAffects = ['build', 'watch', 'test', 'test-autobuild'];
 if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
   //            bright red                           default
-  console.warn('\u001b[91m' + hints.SKIP_TS_CHECK + '\u001b[0m')
+  console.warn('\u001b[91m' + hints.SKIP_TS_CHECK + '\u001b[0m');
 }
 
 /*
@@ -57,40 +57,43 @@ if (process.env.SKIP_TS_CHECK && tsCheckAffects.includes(hintName)) {
   Show on preinstall. Since it's easy to miss there, also show it on other
   run scripts such as 'watch'.
 */
-const ok_node = 'v20.17.0'
-const ok_npm = '10.8.2'
+const ok_node = 'v20.17.0';
+const ok_npm = '10.8.2';
 
 if (process.version !== ok_node) {
-  const blu = '\u001b[94m' // bright blue
-  const yel = '\u001b[93m' // bright yellow
-  const red = '\u001b[91m' // bright red
-  const nrm = '\u001b[0m' // reset to "normal"
+  const blu = '\u001b[94m'; // bright blue
+  const yel = '\u001b[93m'; // bright yellow
+  const red = '\u001b[91m'; // bright red
+  const nrm = '\u001b[0m'; // reset to "normal"
 
   console.warn(`${blu}
-  --------------------------------------------------------------`)
+  --------------------------------------------------------------`);
 
   console.warn(`${nrm}
     Are you running a supported version of Node and npm?
     ${nrm}
-      node ${yel}${ok_node}${nrm},  ${yel}npm@${ok_npm}${nrm}  supported`)
+      node ${yel}${ok_node}${nrm},  ${yel}npm@${ok_npm}${nrm}  supported`);
 
   // Let's be more helpful by running `npm --version` instead of making
   // you do it.
-  let detectedNpm = '?'
+  let detectedNpm = '?';
   try {
-    detectedNpm = require('child_process').execSync('npm --version').toString().trim()
+    detectedNpm = require('child_process')
+      .execSync('npm --version')
+      .toString()
+      .trim();
   } catch (error) {
-    console.warn(error.message)
-    console.warn(error.stderr.toString())
-    process.exit()
+    console.warn(error.message);
+    console.warn(error.stderr.toString());
+    process.exit();
   }
-  const wrongNpm = detectedNpm !== ok_npm
-  const wrongNode = process.version !== ok_node
+  const wrongNpm = detectedNpm !== ok_npm;
+  const wrongNode = process.version !== ok_node;
   console.warn(
     `      node ${wrongNode ? yel : ''}${process.version}${nrm},  ${
       wrongNpm ? red : ''
-    }npm@${detectedNpm}${nrm}  detected`,
-  )
+    }npm@${detectedNpm}${nrm}  detected`
+  );
 
   // Things might actually work OK on a mismatched Node version,
   // but running the wrong npm version when installing packages is
@@ -106,7 +109,7 @@ if (process.version !== ok_node) {
          \`nvm use\` or \`fnm use\`
 
       or \`npm install -g npm@${ok_npm}\`
-          to change npm for your current Node`)
+          to change npm for your current Node`);
 
     console.warn(`${yel}
     If you've run \`npm install\` with a different npm version,${nrm}
@@ -115,7 +118,7 @@ if (process.version !== ok_node) {
       (1) Don't commit these changes to package-lock.json
       (2) You may want to reset these changes and run
           \`npm install\` again with ${ok_npm}
-    `)
+    `);
 
     // If you switch between Node projects and see this message often,
     // consider configuring `fnm` to change your Node version on `cd`.
@@ -124,5 +127,5 @@ if (process.version !== ok_node) {
 
   console.warn(`${blu}
   --------------------------------------------------------------
-  `)
+  `);
 }

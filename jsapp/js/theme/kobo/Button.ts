@@ -1,12 +1,12 @@
-import type { ButtonVariant } from '@mantine/core'
-import { Button, rem } from '@mantine/core'
-import classes from './Button.module.css'
+import type {ButtonVariant} from '@mantine/core';
+import {Button, rem} from '@mantine/core';
+import classes from './Button.module.css';
 
-type ButtonVariantCustom = Extract<ButtonVariant, 'filled' | 'light' | 'transparent'> | 'danger' | 'danger-secondary'
+type ButtonVariantCustom = Extract<ButtonVariant, 'filled' | 'light' | 'transparent'> | 'danger' | 'danger-secondary';
 
 declare module '@mantine/core' {
   export interface ButtonProps {
-    variant?: ButtonVariantCustom
+    variant?: ButtonVariantCustom;
     // size?: ... // Can override ButtonFactory subset of ButtonProps only. TODO: Figure out how to forbid unused sizes.
   }
 }
@@ -50,7 +50,9 @@ export const ButtonThemeKobo = Button.extend({
           '--button-bg': theme.colors.red[9],
           '--button-hover': theme.colors.red[8],
         }),
+
       },
-    }
+    };
   },
-})
+
+});

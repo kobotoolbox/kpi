@@ -1,15 +1,15 @@
-import { Table, type MantineStyleProps, type TableData } from '@mantine/core'
-import styles from './SimpleTable.module.scss'
+import {Table, type MantineStyleProps, type TableData} from '@mantine/core';
+import styles from './SimpleTable.module.scss';
 
 interface SimpleTableProps extends MantineStyleProps {
-  head: TableData['head']
-  body: TableData['body']
+  head: TableData['head'];
+  body: TableData['body'];
   /**
    * Passing minimum width enables contextual horizontal scrollbar (i.e. without
    * it the table will never display scrollbar - regardless of how small
    * the screen is).
    */
-  minWidth?: number
+  minWidth?: number;
 }
 
 /**
@@ -17,7 +17,9 @@ interface SimpleTableProps extends MantineStyleProps {
  * headings, column data, and has optional minimum width. You can pass all
  * standard Mantine style props down to the inner `Table`.
  */
-export default function SimpleTable({ head, body, minWidth, ...styleProps }: SimpleTableProps) {
+export default function SimpleTable(
+  {head, body, minWidth, ...styleProps}: SimpleTableProps
+) {
   const table = (
     <Table
       {...styleProps}
@@ -27,19 +29,19 @@ export default function SimpleTable({ head, body, minWidth, ...styleProps }: Sim
         th: styles.SimpleTableTh,
         td: styles.SimpleTableTd,
       }}
-      data={{ head: head, body: body }}
+      data={{head: head, body: body}}
       horizontalSpacing='sm'
       verticalSpacing='sm'
     />
-  )
+  );
 
   if (minWidth) {
     return (
       <Table.ScrollContainer minWidth={minWidth} type='native'>
         {table}
       </Table.ScrollContainer>
-    )
+    );
   }
 
-  return table
+  return table;
 }

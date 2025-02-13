@@ -1,6 +1,6 @@
-import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
-import KoboSelect from 'js/components/common/koboSelect'
+import React from 'react';
+import type {ComponentStory, ComponentMeta} from '@storybook/react';
+import KoboSelect from 'js/components/common/koboSelect';
 
 export default {
   title: 'commonDeprecated/KoboSelect',
@@ -13,7 +13,7 @@ export default {
   args: {
     demoOptionsWithIcons: false,
   },
-} as ComponentMeta<typeof KoboSelect>
+} as ComponentMeta<typeof KoboSelect>;
 
 const Template: ComponentStory<typeof KoboSelect> = (args: any) => {
   const options = [
@@ -32,11 +32,11 @@ const Template: ComponentStory<typeof KoboSelect> = (args: any) => {
       label: 'The last one here with a very long label',
       icon: args.demoOptionsWithIcons ? 'globe-alt' : undefined,
     },
-  ]
-  return <KoboSelect {...args} options={options} />
-}
+  ];
+  return <KoboSelect {...args} options={options} />;
+};
 
-export const Primary = Template.bind({})
+export const Primary = Template.bind({});
 Primary.args = {
   type: 'blue',
   size: 'm',
@@ -44,4 +44,4 @@ Primary.args = {
   isSearchable: true,
   isDisabled: false,
   isPending: false,
-}
+};

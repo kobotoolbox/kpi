@@ -1,39 +1,44 @@
 // Libraries
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import {useMutation, useQuery} from '@tanstack/react-query';
+import {useEffect} from 'react';
 
 // Stores, hooks and utilities
-import { fetchGetUrl, fetchPatch } from 'jsapp/js/api'
-import { useSession } from 'jsapp/js/stores/useSession'
+import {fetchGetUrl, fetchPatch} from 'jsapp/js/api';
+import {useSession} from 'jsapp/js/stores/useSession';
 
 // Constants and types
-import type { FailResponse } from 'js/dataInterface'
-import { QueryKeys } from 'js/query/queryKeys'
-import { queryClient } from 'jsapp/js/query/queryClient'
+import type {FailResponse} from 'js/dataInterface';
+import {QueryKeys} from 'js/query/queryKeys';
+import {queryClient} from 'jsapp/js/query/queryClient';
 
 // Comes from `kobo/apps/accounts/forms.py`
-export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none'
+export type OrganizationTypeName =
+  | 'non-profit'
+  | 'government'
+  | 'educational'
+  | 'commercial'
+  | 'none';
 
 export const ORGANIZATION_TYPES: {
-  [P in OrganizationTypeName]: { name: OrganizationTypeName; label: string }
+  [P in OrganizationTypeName]: {name: OrganizationTypeName; label: string};
 } = {
-  'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
-  government: { name: 'government', label: t('Government institution') },
-  educational: { name: 'educational', label: t('Educational organization') },
-  commercial: { name: 'commercial', label: t('A commercial/for-profit company') },
-  none: { name: 'none', label: t('I am not associated with any organization') },
-}
+  'non-profit': {name: 'non-profit', label: t('Non-profit organization')},
+  government: {name: 'government', label: t('Government institution')},
+  educational: {name: 'educational', label: t('Educational organization')},
+  commercial: {name: 'commercial', label: t('A commercial/for-profit company')},
+  none: {name: 'none', label: t('I am not associated with any organization')},
+};
 
 export interface Organization {
-  id: string
-  name: string
-  website: string
-  organization_type: OrganizationTypeName
-  created: string
-  modified: string
-  is_owner: boolean
-  is_mmo: boolean
-  request_user_role: OrganizationUserRole
+  id: string;
+  name: string;
+  website: string;
+  organization_type: OrganizationTypeName;
+  created: string;
+  modified: string;
+  is_owner: boolean;
+  is_mmo: boolean;
+  request_user_role: OrganizationUserRole;
 }
 
 /**
@@ -51,8 +56,8 @@ export enum OrganizationUserRole {
  * refetch data (are invalidated).
  */
 export function usePatchOrganization() {
-  const session = useSession()
-  const organizationUrl = session.currentLoggedAccount?.organization?.url
+  const session = useSession();
+  const organizationUrl = session.currentLoggedAccount?.organization?.url;
 
   return useMutation({
     mutationFn: async (data: Partial<Organization>) =>
@@ -60,15 +65,15 @@ export function usePatchOrganization() {
       // the parent query (`useOrganizationQuery`) wouldn't be enabled without
       // it. Plus all the organization-related UI is accessible only to
       // logged in users.
-      fetchPatch<Organization>(organizationUrl!, data, { prependRootUrl: false }),
+      fetchPatch<Organization>(organizationUrl!, data, {prependRootUrl: false}),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.organization] })
+      queryClient.invalidateQueries({queryKey: [QueryKeys.organization]});
     },
-  })
+  });
 }
 
 interface OrganizationQueryParams {
-  shouldForceInvalidation?: boolean
+  shouldForceInvalidation?: boolean;
 }
 
 /**
@@ -83,12 +88,12 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.organization],
         refetchType: 'none',
-      })
+      });
     }
-  }, [params?.shouldForceInvalidation])
+  }, [params?.shouldForceInvalidation]);
 
-  const session = useSession()
-  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined
+  const session = useSession();
+  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined;
 
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
@@ -100,7 +105,7 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
     queryFn: () => fetchGetUrl<Organization>(organizationUrl!),
     queryKey: [QueryKeys.organization, organizationUrl],
     enabled: !!organizationUrl,
-  })
+  });
 
   // `organizationUrl` must exist, unless it's changed (e.g. user added/removed
   // from organization).
@@ -109,9 +114,9 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   // DEBT: don't retry the failing url 3-4 times before switching to the new url.
   useEffect(() => {
     if (query.error?.status === 404) {
-      session.refreshAccount()
+      session.refreshAccount();
     }
-  }, [query.error?.status])
+  }, [query.error?.status]);
 
-  return query
-}
+  return query;
+};

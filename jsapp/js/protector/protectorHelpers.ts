@@ -1,4 +1,4 @@
-import { UNSAVED_CHANGES_WARNING } from 'js/protector/protectorConstants'
+import {UNSAVED_CHANGES_WARNING} from 'js/protector/protectorConstants'
 
 /**
  * This is a companion piece of code for workProtector that allows to safeguard

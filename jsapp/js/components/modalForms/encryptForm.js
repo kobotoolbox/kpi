@@ -1,24 +1,24 @@
-import autoBind from 'react-autobind'
-import React from 'react'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
-import TextBox from 'js/components/common/textBox'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { MODAL_TYPES } from 'js/constants'
-import { stores } from 'js/stores'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+import autoBind from 'react-autobind';
+import React from 'react';
+import reactMixin from 'react-mixin';
+import Reflux from 'reflux';
+import TextBox from 'js/components/common/textBox';
+import assetStore from 'js/assetStore';
+import {actions} from 'js/actions';
+import bem from 'js/bem';
+import {MODAL_TYPES} from 'js/constants';
+import {stores} from 'js/stores';
+import pageState from 'js/pageState.store';
+import Button from 'js/components/common/button';
 
 class EncryptForm extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
 
-    let submissionURL, publicKey
+    let submissionURL, publicKey;
     if (props.asset) {
-      submissionURL = props.asset.content.settings.submission_url
-      publicKey = props.asset.content.settings.public_key
+      submissionURL = props.asset.content.settings.submission_url;
+      publicKey = props.asset.content.settings.public_key;
     }
 
     this.state = {
@@ -27,20 +27,20 @@ class EncryptForm extends React.Component {
       submissionURL: submissionURL || '',
       publicKey: publicKey || '',
       clearEncryption: false,
-      isPending: false,
-    }
+      isPending: false
+    };
 
-    autoBind(this)
+    autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(assetStore, this.onAssetsChange)
+    this.listenTo(assetStore, this.onAssetsChange);
 
     if (!this.state.asset && this.state.assetUid) {
       if (assetStore.data[this.state.assetUid]) {
-        this.onAssetChange(assetStore.data[this.state.assetUid])
+        this.onAssetChange(assetStore.data[this.state.assetUid]);
       } else {
-        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange)
+        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
       }
     }
   }
@@ -50,69 +50,72 @@ class EncryptForm extends React.Component {
       asset: asset,
       isPending: false,
       submissionURL: asset.content.settings.submission_url,
-      publicKey: asset.content.settings.public_key,
-    })
+      publicKey: asset.content.settings.public_key
+    });
 
     pageState.showModal({
       type: MODAL_TYPES.ENCRYPT_FORM,
-      asset: asset,
-    })
+      asset: asset
+    });
   }
 
   onAssetsChange(assetsList) {
-    let uid
+    let uid;
     if (this.state.asset) {
-      uid = this.state.asset.uid
+      uid = this.state.asset.uid;
     } else if (this.state.assetUid) {
-      uid = this.state.assetUid
+      uid = this.state.assetUid;
     }
 
     if (assetsList.uid !== null) {
-      this.onAssetChange(assetsList[uid])
+      this.onAssetChange(assetsList[uid]);
     }
   }
 
   updateAsset(content) {
-    actions.resources.updateAsset(this.props.asset.uid, { content: JSON.stringify(content) })
+    actions.resources.updateAsset(
+      this.props.asset.uid,
+      {content: JSON.stringify(content)}
+    );
   }
   onSubmit(evt) {
-    evt.preventDefault()
+    evt.preventDefault();
 
-    this.setState({ isPending: true })
-    var content = this.state.asset.content
-    content.settings.submission_url = this.state.submissionURL
-    content.settings.public_key = this.state.publicKey
-    this.updateAsset(content)
+    this.setState({isPending: true})
+    var content = this.state.asset.content;
+    content.settings.submission_url = this.state.submissionURL;
+    content.settings.public_key = this.state.publicKey;
+    this.updateAsset(content);
   }
   onRemove(evt) {
-    evt.preventDefault()
-    this.setState({ clearEncryption: true })
+    evt.preventDefault();
+    this.setState({clearEncryption: true});
 
-    this.setState({ isPending: true })
+    this.setState({isPending: true})
     var content = this.state.asset.content
-    content.settings.submission_url = ''
-    content.settings.public_key = ''
-    this.updateAsset(content)
+    content.settings.submission_url = '';
+    content.settings.public_key = '';
+    this.updateAsset(content);
   }
 
-  onSubmissionURLChange(newSubmissionURL) {
+  onSubmissionURLChange (newSubmissionURL) {
     this.setState({
       submissionURL: newSubmissionURL,
-      clearEncryption: false,
-    })
+      clearEncryption: false
+    });
   }
-  onPublicKeyChange(newPublicKey) {
+  onPublicKeyChange (newPublicKey) {
     this.setState({
       publicKey: newPublicKey,
-      clearEncryption: false,
-    })
+      clearEncryption: false
+    });
   }
 
   openEncryptionHelp() {
-    window.open('https://support.kobotoolbox.org/encrypting_forms.html', '_blank')
+    window.open('https://support.kobotoolbox.org/encrypting_forms.html', '_blank');
   }
 
-  render() {
+  render () {
     return (
       <bem.FormView__form m='add-language-fields'>
         <bem.FormView__cell m='encrypt-url'>
@@ -164,10 +167,10 @@ class EncryptForm extends React.Component {
           />
         </bem.FormView__cell>
       </bem.FormView__form>
-    )
+      );
   }
 }
 
-reactMixin(EncryptForm.prototype, Reflux.ListenerMixin)
+reactMixin(EncryptForm.prototype, Reflux.ListenerMixin);
 
-export default EncryptForm
+export default EncryptForm;

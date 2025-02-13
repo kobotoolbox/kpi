@@ -1,5 +1,5 @@
-import type { Config } from 'jest'
-import { defaults } from 'jest-config'
+import type {Config} from 'jest';
+import {defaults} from 'jest-config';
 
 // Config to run ☕ unit tests using the Jest runner
 //
@@ -14,17 +14,17 @@ const config: Config = {
 
   // Where to find tests. <rootDir> = 'kpi/jsapp/jest'
   roots: [
-    '<rootDir>/../js/', // unit tests    🛠️ 'jsapp/js/**/*.tests.ts'
+    '<rootDir>/../js/',      // unit tests    🛠️ 'jsapp/js/**/*.tests.ts'
     '<rootDir>/../../test/', // xlform/coffee ☕ 'test/**/*.tests.coffee'
   ],
 
   // Where to resolve module imports
   moduleNameMapper: {
     // ℹ️ same aliases as in webpack.common.js (module.resolve.alias)
-    '^jsapp/(.+)$': '<rootDir>/../$1', // 📁 'jsapp/*'
-    '^js/(.*)$': '<rootDir>/../js/$1', // 📁 'js/*'
-    '^test/(.*)$': '<rootDir>/../../test/$1', // 📁 'test/*'
-    '^utils$': '<rootDir>/../js/utils', // 📄 'utils'
+    '^jsapp/(.+)$': '<rootDir>/../$1',         // 📁 'jsapp/*'
+    '^js/(.*)$':    '<rootDir>/../js/$1',      // 📁 'js/*'
+    '^test/(.*)$':  '<rootDir>/../../test/$1', // 📁 'test/*'
+    '^utils$':      '<rootDir>/../js/utils',   // 📄 'utils'
     // 🎨 mock all CSS modules imported (styles.root = 'root')
     '\\.(css|scss)$': 'identity-obj-proxy',
   },
@@ -41,7 +41,7 @@ const config: Config = {
   // Exclude these files, even if they contain tests
   testPathIgnorePatterns: [
     'test/xlform/integration.tests.coffee$', // 📄 skipped in `ee98aebe631b`
-    ...defaults.testPathIgnorePatterns, // 📦 exclude '/node_modules/'
+    ...defaults.testPathIgnorePatterns,      // 📦 exclude '/node_modules/'
   ],
 
   // Set up test environment
@@ -52,7 +52,7 @@ const config: Config = {
 
   // Appearance options (for console output)
   verbose: true,
-  displayName: { name: 'UNIT', color: 'black' },
-}
+  displayName: {name: 'UNIT', color: 'black'},
+};
 
-export default config
+export default config;

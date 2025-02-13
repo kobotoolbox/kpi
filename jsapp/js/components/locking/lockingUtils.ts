@@ -1,5 +1,5 @@
-import { getRowName } from 'js/assetUtils'
-import { AssetTypeName } from 'js/constants'
+import {getRowName} from 'js/assetUtils';
+import {AssetTypeName} from 'js/constants';
 import {
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
@@ -12,8 +12,8 @@ import {
   type AssetLockingProfileDefinition,
   type IndexedAssetLockingProfileDefinition,
   type LockingRestrictionDefinition,
-} from './lockingConstants'
-import type { AssetContent } from 'js/dataInterface'
+} from './lockingConstants';
+import type {AssetContent} from 'js/dataInterface';
 
 /**
  * Should be used with QUESTION_RESTRICTIONS or GROUP_RESTRICTIONS
@@ -21,42 +21,45 @@ import type { AssetContent } from 'js/dataInterface'
 export function hasRowRestriction(
   assetContent: AssetContent,
   rowName: string,
-  restrictionName: LockingRestrictionName,
+  restrictionName: LockingRestrictionName
 ): boolean {
   // case 1
   // if lock_all is enabled, then all rows have all restrictions from lock all list
   if (isAssetAllLocked(assetContent)) {
-    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName)
+    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
   // case 2
   // check if row's locking profile definition has the searched restriction
-  const foundProfile = getRowLockingProfile(assetContent, rowName)
+  const foundProfile = getRowLockingProfile(assetContent, rowName);
   if (foundProfile) {
-    return foundProfile.restrictions.includes(restrictionName)
+    return foundProfile.restrictions.includes(restrictionName);
   }
 
   // default
-  return false
+  return false;
 }
 
 /** Checks whether an asset has given restriction. */
-export function hasAssetRestriction(assetContent: AssetContent, restrictionName: LockingRestrictionName) {
+export function hasAssetRestriction(
+  assetContent: AssetContent,
+  restrictionName: LockingRestrictionName
+) {
   // case 1
   // if lock_all is enabled, then form has all restrictions from lock all list
   if (isAssetAllLocked(assetContent)) {
-    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName)
+    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
   // case 2
   // check if asset's locking profile definition has the searched restriction
-  const foundProfile = getAssetLockingProfile(assetContent)
+  const foundProfile = getAssetLockingProfile(assetContent);
   if (foundProfile) {
-    return foundProfile.restrictions.includes(restrictionName)
+    return foundProfile.restrictions.includes(restrictionName);
   }
 
   // default
-  return false
+  return false;
 }
 
 /**
@@ -65,24 +68,20 @@ export function hasAssetRestriction(assetContent: AssetContent, restrictionName:
  */
 export function getLockingProfile(
   assetContent: AssetContent,
-  profileName: string,
+  profileName: string
 ): null | IndexedAssetLockingProfileDefinition {
-  const lockingProfiles = assetContent?.[LOCKING_PROFILES_PROP_NAME]
-  if (!lockingProfiles || !Array.isArray(lockingProfiles)) {
-    return null
-  }
-  const lockingProfileIndex = lockingProfiles.findIndex((profile) => profile.name === profileName)
-  if (lockingProfileIndex === -1) {
-    return null
-  }
-  const lockingProfile = lockingProfiles[lockingProfileIndex]
+  const lockingProfiles = assetContent?.[LOCKING_PROFILES_PROP_NAME];
+  if (!lockingProfiles || !Array.isArray(lockingProfiles)) {return null;}
+  const lockingProfileIndex = lockingProfiles.findIndex((profile) => profile.name === profileName);
+  if (lockingProfileIndex === -1) {return null;}
+  const lockingProfile = lockingProfiles[lockingProfileIndex];
 
   // we make a copy of profile definition to add index to it
   return {
     index: lockingProfileIndex,
     name: lockingProfile.name,
     restrictions: lockingProfile.restrictions,
-  }
+  };
 }
 
 /**
@@ -90,21 +89,26 @@ export function getLockingProfile(
  * a profile or what's it's name.
  * Returns `null` if not found.
  */
-export function getRowLockingProfile(assetContent: AssetContent, rowName: string) {
+export function getRowLockingProfile(
+  assetContent: AssetContent,
+  rowName: string
+) {
   if (!assetContent?.survey) {
-    return null
+    return null;
   }
 
-  const foundRow = assetContent.survey.find((row) => getRowName(row) === rowName)
+  const foundRow = assetContent.survey.find((row) =>
+    getRowName(row) === rowName
+  );
   if (
     foundRow &&
     typeof foundRow[LOCKING_PROFILE_PROP_NAME] === 'string' &&
     foundRow[LOCKING_PROFILE_PROP_NAME].length >= 1
   ) {
-    return getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME])
+    return getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]);
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -119,10 +123,10 @@ export function getAssetLockingProfile(assetContent: AssetContent) {
     typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
     assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1
   ) {
-    return getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME])
+    return getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]);
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -132,7 +136,10 @@ export function getAssetLockingProfile(assetContent: AssetContent) {
  * doesn't have a definition for. If asset has `lock_all` this will also be true.
  */
 export function isRowLocked(assetContent: AssetContent, rowName: string) {
-  return isAssetAllLocked(assetContent) || Boolean(getRowLockingProfile(assetContent, rowName))
+  return (
+    isAssetAllLocked(assetContent) ||
+    Boolean(getRowLockingProfile(assetContent, rowName))
+  );
 }
 
 /**
@@ -140,7 +147,10 @@ export function isRowLocked(assetContent: AssetContent, rowName: string) {
  * a definition).
  */
 export function isAssetLocked(assetContent: AssetContent) {
-  return isAssetAllLocked(assetContent) || Boolean(getAssetLockingProfile(assetContent))
+  return (
+    isAssetAllLocked(assetContent) ||
+    Boolean(getAssetLockingProfile(assetContent))
+  );
 }
 
 /**
@@ -149,9 +159,14 @@ export function isAssetLocked(assetContent: AssetContent) {
  */
 export function hasAssetAnyLocking(assetContent: AssetContent) {
   // at least one row has locking profile that is defined in asset
-  const foundLockedRow = assetContent?.survey?.find((row) => isRowLocked(assetContent, getRowName(row)))
+  const foundLockedRow = assetContent?.survey?.find((row) =>
+    isRowLocked(assetContent, getRowName(row))
+  );
 
-  return isAssetLocked(assetContent) || Boolean(foundLockedRow)
+  return (
+    isAssetLocked(assetContent) ||
+    Boolean(foundLockedRow)
+  );
 }
 
 /**
@@ -162,9 +177,9 @@ export function hasAssetAnyLocking(assetContent: AssetContent) {
 export function isAssetAllLocked(assetContent: AssetContent) {
   return Boolean(
     assetContent?.settings &&
-      LOCK_ALL_PROP_NAME in assetContent.settings &&
-      assetContent.settings[LOCK_ALL_PROP_NAME] === true,
-  )
+    LOCK_ALL_PROP_NAME in assetContent.settings &&
+    assetContent.settings[LOCK_ALL_PROP_NAME] === true
+  );
 }
 
 /**
@@ -172,39 +187,53 @@ export function isAssetAllLocked(assetContent: AssetContent) {
  * elements locked (e.g. disabled or hidden) when it's being locked.
  */
 export function isAssetLockable(assetType: AssetTypeName) {
-  return assetType === AssetTypeName.survey || assetType === AssetTypeName.template
+  return assetType === AssetTypeName.survey || assetType === AssetTypeName.template;
 }
 
 /**
  * Returns a list of enabled/disabled restrictions for given question.
  * Returns `null` if question or profile not found.
  */
-export function getQuestionFeatures(assetContent: AssetContent, rowName: string) {
+export function getQuestionFeatures(
+  assetContent: AssetContent,
+  rowName: string
+) {
   // if question does not exist then return null
-  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName)
+  const foundRow = assetContent.survey?.find((row) =>
+    getRowName(row) === rowName
+  );
   if (!foundRow) {
-    return null
+    return null;
   }
 
   return _getFeatures(
     QUESTION_RESTRICTIONS,
     getRowLockingProfile(assetContent, rowName),
-    isAssetAllLocked(assetContent),
-  )
+    isAssetAllLocked(assetContent)
+  );
 }
 
 /**
  * Returns a list of enabled/disabled restrictions for given group.
  * Returns `null` if group or profile not found.
  */
-export function getGroupFeatures(assetContent: AssetContent, rowName: string) {
+export function getGroupFeatures(
+  assetContent: AssetContent,
+  rowName: string
+) {
   // if question does not exist then return null
-  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName)
+  const foundRow = assetContent.survey?.find((row) =>
+    getRowName(row) === rowName
+  );
   if (!foundRow) {
-    return null
+    return null;
   }
 
-  return _getFeatures(GROUP_RESTRICTIONS, getRowLockingProfile(assetContent, rowName), isAssetAllLocked(assetContent))
+  return _getFeatures(
+    GROUP_RESTRICTIONS,
+    getRowLockingProfile(assetContent, rowName),
+    isAssetAllLocked(assetContent)
+  );
 }
 
 /**
@@ -212,12 +241,16 @@ export function getGroupFeatures(assetContent: AssetContent, rowName: string) {
  * Returns `null` if profile not found.
  */
 export function getFormFeatures(assetContent: AssetContent) {
-  return _getFeatures(FORM_RESTRICTIONS, getAssetLockingProfile(assetContent), isAssetAllLocked(assetContent))
+  return _getFeatures(
+    FORM_RESTRICTIONS,
+    getAssetLockingProfile(assetContent),
+    isAssetAllLocked(assetContent)
+  );
 }
 
 interface LockingCansCants {
-  cans: LockingRestrictionDefinition[]
-  cants: LockingRestrictionDefinition[]
+  cans: LockingRestrictionDefinition[];
+  cants: LockingRestrictionDefinition[];
 }
 
 /**
@@ -229,20 +262,20 @@ interface LockingCansCants {
 function _getFeatures(
   sourceList: LockingRestrictionDefinition[],
   profile: AssetLockingProfileDefinition | null,
-  isAllLocked: boolean,
+  isAllLocked: boolean
 ): LockingCansCants {
   const outcome: LockingCansCants = {
     cans: [],
     cants: [],
-  }
+  };
 
   sourceList.forEach((restriction) => {
     if (isAllLocked || profile?.restrictions.includes(restriction.name)) {
-      outcome.cants.push(restriction)
+      outcome.cants.push(restriction);
     } else {
-      outcome.cans.push(restriction)
+      outcome.cans.push(restriction);
     }
-  })
+  });
 
-  return outcome
+  return outcome;
 }

@@ -1,22 +1,22 @@
-import Reflux from 'reflux'
-import type { PermissionDefinition } from 'js/dataInterface'
-import type { PermissionCodename } from './permConstants'
+import Reflux from 'reflux';
+import type {PermissionDefinition} from 'js/dataInterface';
+import type {PermissionCodename} from './permConstants';
 
 class PermConfigStore extends Reflux.Store {
-  permissions: PermissionDefinition[] = []
+  permissions: PermissionDefinition[] = [];
 
   public setPermissions(permissions: PermissionDefinition[]) {
-    this.permissions = permissions
+    this.permissions = permissions;
   }
 
   public getPermissionByCodename(wantedCodename: PermissionCodename) {
-    this.verifyReady()
-    return this.permissions.find((perm) => perm.codename === wantedCodename)
+    this.verifyReady();
+    return this.permissions.find((perm) => perm.codename === wantedCodename);
   }
 
   public getPermission(wantedUrl: string) {
-    this.verifyReady()
-    return this.permissions.find((perm) => perm.url === wantedUrl)
+    this.verifyReady();
+    return this.permissions.find((perm) => perm.url === wantedUrl);
   }
 
   /**
@@ -25,12 +25,14 @@ class PermConfigStore extends Reflux.Store {
    */
   private verifyReady() {
     if (!this.isReady()) {
-      throw new Error('Permission config is not ready or failed to initialize!')
+      throw new Error(
+        'Permission config is not ready or failed to initialize!'
+      );
     }
   }
 
   public isReady() {
-    return Array.isArray(this.permissions) && this.permissions.length !== 0
+    return Array.isArray(this.permissions) && this.permissions.length !== 0;
   }
 }
 
@@ -39,6 +41,6 @@ class PermConfigStore extends Reflux.Store {
  * `actions.permissions.getConfig()` and then manually setting results here,
  * otherwise expect `verifyReady` to throw
  */
-const permConfig = new PermConfigStore()
+const permConfig = new PermConfigStore();
 
-export default permConfig
+export default permConfig;

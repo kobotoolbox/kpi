@@ -1,29 +1,25 @@
 // Libraries
-import { useState, useEffect } from 'react'
+import {useState, useEffect} from 'react';
 
 // Partial components
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
-import InlineMessage from 'jsapp/js/components/common/inlineMessage'
-import Button from 'jsapp/js/components/common/button'
-import TextBox from 'jsapp/js/components/common/textBox'
-import KoboSelect from 'jsapp/js/components/common/koboSelect'
+import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner';
+import InlineMessage from 'jsapp/js/components/common/inlineMessage';
+import Button from 'jsapp/js/components/common/button';
+import TextBox from 'jsapp/js/components/common/textBox';
+import KoboSelect from 'jsapp/js/components/common/koboSelect';
 
 // Stores, hooks and utilities
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
-import {
-  OrganizationUserRole,
-  useOrganizationQuery,
-  usePatchOrganization,
-} from 'js/account/organization/organizationQuery'
-import subscriptionStore from 'js/account/subscriptionStore'
-import envStore from 'js/envStore'
-import { getSimpleMMOLabel } from './organization.utils'
+import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook';
+import {OrganizationUserRole, useOrganizationQuery, usePatchOrganization} from 'js/account/organization/organizationQuery';
+import subscriptionStore from 'js/account/subscriptionStore';
+import envStore from 'js/envStore';
+import {getSimpleMMOLabel} from './organization.utils';
 
 // Constants and types
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'jsapp/js/account/organization/organizationQuery'
+import {ORGANIZATION_TYPES, type OrganizationTypeName} from 'jsapp/js/account/organization/organizationQuery';
 
 // Styles
-import styles from 'js/account/organization/organizationSettingsRoute.module.scss'
+import styles from 'js/account/organization/organizationSettingsRoute.module.scss';
 
 /**
  * Renders few fields with organization related settings, like name or website
@@ -31,67 +27,71 @@ import styles from 'js/account/organization/organizationSettingsRoute.module.scs
  * they can edit available fields.
  */
 export default function OrganizationSettingsRoute() {
-  const orgQuery = useOrganizationQuery({ shouldForceInvalidation: true })
+  const orgQuery = useOrganizationQuery({shouldForceInvalidation: true});
 
-  const [subscriptions] = useState(() => subscriptionStore)
-  const [isStripeEnabled, setIsStripeEnabled] = useState(false)
-  const patchOrganization = usePatchOrganization()
+  const [subscriptions] = useState(() => subscriptionStore);
+  const [isStripeEnabled, setIsStripeEnabled] = useState(false);
+  const patchOrganization = usePatchOrganization();
 
   // All displayed fields
-  const [name, setName] = useState<string>('')
-  const [website, setWebsite] = useState<string>('')
-  const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null)
+  const [name, setName] = useState<string>('');
+  const [website, setWebsite] = useState<string>('');
+  const [orgType, setOrgType] = useState<OrganizationTypeName | null>(null);
 
   // We are invalidating the org query data when this component loads,
   // so we want to wait for a fetch fresh before setting the form data
   useEffect(() => {
     if (orgQuery.data && orgQuery.isFetchedAfterMount) {
-      setName(orgQuery.data.name)
-      setWebsite(orgQuery.data.website)
-      setOrgType(orgQuery.data.organization_type)
+      setName(orgQuery.data.name);
+      setWebsite(orgQuery.data.website);
+      setOrgType(orgQuery.data.organization_type);
     }
-  }, [orgQuery.data, orgQuery.isFetchedAfterMount])
+  }, [orgQuery.data, orgQuery.isFetchedAfterMount]);
 
   useWhenStripeIsEnabled(() => {
-    setIsStripeEnabled(true)
-  }, [])
+    setIsStripeEnabled(true);
+  }, []);
 
-  const isUserAdminOrOwner =
+  const isUserAdminOrOwner = (
     orgQuery.data?.request_user_role &&
-    [OrganizationUserRole.admin, OrganizationUserRole.owner].includes(orgQuery.data?.request_user_role)
+    [OrganizationUserRole.admin, OrganizationUserRole.owner]
+      .includes(orgQuery.data?.request_user_role)
+  );
 
   function handleSave(e: React.FormEvent) {
-    e.preventDefault()
-    patchOrganization.mutateAsync({ name, website })
+    e.preventDefault();
+    patchOrganization.mutateAsync({name, website});
   }
 
   function handleChangeName(newName: string) {
-    setName(newName)
+    setName(newName);
   }
 
   function handleChangeWebsite(newWebsite: string) {
-    setWebsite(newWebsite)
+    setWebsite(newWebsite);
   }
 
-  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0], false, true)
-  const mmoLabelLowercase = mmoLabel.toLowerCase()
+  const mmoLabel = getSimpleMMOLabel(
+    envStore.data,
+    subscriptionStore.activeSubscriptions[0],
+    false,
+    true
+  );
+  const mmoLabelLowercase = mmoLabel.toLowerCase();
 
   if (orgQuery.isLoading || !orgQuery.isFetchedAfterMount) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
-  let deletionMessage = t(
-    'To delete this ##TEAM_OR_ORGANIZATION##, please contact the server administrator.',
-  ).replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase)
+  let deletionMessage = t('To delete this ##TEAM_OR_ORGANIZATION##, please contact the server administrator.')
+    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase);
   if (isStripeEnabled) {
-    deletionMessage = t(
-      "To delete this ##TEAM_OR_ORGANIZATION##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##TEAM_OR_ORGANIZATION##'s projects will be converted to projects owned by your personal account.",
-    )
-      .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase)
-      .replace('##plan name##', subscriptions.planName)
+    deletionMessage = t("To delete this ##TEAM_OR_ORGANIZATION##, you need to cancel your current ##plan name## plan. At the end of the plan period your ##TEAM_OR_ORGANIZATION##'s projects will be converted to projects owned by your personal account.")
+    .replaceAll('##TEAM_OR_ORGANIZATION##', mmoLabelLowercase)
+    .replace('##plan name##', subscriptions.planName);
   }
 
-  const currentTypeLabel = orgType === null ? '' : ORGANIZATION_TYPES[orgType]?.label
+  const currentTypeLabel = orgType === null ? '' : ORGANIZATION_TYPES[orgType]?.label;
 
   return (
     <form className={styles.orgSettingsRoot} onSubmit={handleSave}>
@@ -149,12 +149,10 @@ export default function OrganizationSettingsRoute() {
             size='l'
             isDisabled // always disabled
             label={t('##TEAM_OR_ORGANIZATION## type').replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
-            options={[
-              {
-                value: 'orgType',
-                label: currentTypeLabel,
-              },
-            ]}
+            options={[{
+              value: 'orgType',
+              label: currentTypeLabel,
+            }]}
             selectedOption='orgType'
             onChange={() => null}
           />
@@ -174,5 +172,5 @@ export default function OrganizationSettingsRoute() {
 
       <InlineMessage type='default' message={deletionMessage} />
     </form>
-  )
+  );
 }

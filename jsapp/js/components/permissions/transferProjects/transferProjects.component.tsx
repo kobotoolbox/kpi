@@ -1,30 +1,34 @@
-import React, { useState } from 'react'
-import Button from 'js/components/common/button'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalFooter from 'js/components/modals/koboModalFooter'
-import TextBox from 'js/components/common/textBox'
-import InlineMessage from 'js/components/common/inlineMessage'
-import { cancelInvite, sendInvite, TransferStatuses } from './transferProjects.api'
-import type { AssetResponse } from 'js/dataInterface'
-import sessionStore from 'js/stores/session'
-import envStore from 'js/envStore'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from 'js/constants'
+import React, {useState} from 'react';
+import Button from 'js/components/common/button';
+import KoboModal from 'js/components/modals/koboModal';
+import KoboModalHeader from 'js/components/modals/koboModalHeader';
+import KoboModalFooter from 'js/components/modals/koboModalFooter';
+import TextBox from 'js/components/common/textBox';
+import InlineMessage from 'js/components/common/inlineMessage';
+import {
+  cancelInvite,
+  sendInvite,
+  TransferStatuses,
+} from './transferProjects.api';
+import type {AssetResponse} from 'js/dataInterface';
+import sessionStore from 'js/stores/session';
+import envStore from 'js/envStore';
+import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
 
-import styles from './transferProjects.module.scss'
+import styles from './transferProjects.module.scss';
 
 interface TransferProjectsProps {
-  asset: AssetResponse
+  asset: AssetResponse;
 }
 
 interface TransferProjectsState {
-  isModalOpen: boolean
-  invitedUserName: string | null
-  usernameInput: string
-  usernameError: boolean | string
-  inviteStatus: TransferStatuses | null
-  inviteUrl: string | null
-  submitPending: boolean
+  isModalOpen: boolean;
+  invitedUserName: string | null;
+  usernameInput: string;
+  usernameError: boolean | string;
+  inviteStatus: TransferStatuses | null;
+  inviteUrl: string | null;
+  submitPending: boolean;
 }
 
 /**
@@ -34,42 +38,48 @@ interface TransferProjectsState {
 export default function TransferProjects(props: TransferProjectsProps) {
   const [transfer, setTransfer] = useState<TransferProjectsState>({
     isModalOpen: false,
-    invitedUserName: props.asset.project_ownership ? props.asset.project_ownership.recipient : null,
+    invitedUserName: props.asset.project_ownership
+      ? props.asset.project_ownership.recipient
+      : null,
     usernameInput: '',
     usernameError: false,
-    inviteStatus: props.asset.project_ownership ? props.asset.project_ownership.status : null,
-    inviteUrl: props.asset.project_ownership ? props.asset.project_ownership.invite : null,
+    inviteStatus: props.asset.project_ownership
+      ? props.asset.project_ownership.status
+      : null,
+    inviteUrl: props.asset.project_ownership
+      ? props.asset.project_ownership.invite
+      : null,
     submitPending: false,
-  })
+  });
 
   const updateUsername = (newUsername: string) => {
     setTransfer({
       ...transfer,
       usernameInput: newUsername,
       usernameError: false,
-    })
-  }
+    });
+  };
 
   const toggleModal = () => {
     setTransfer({
       ...transfer,
       isModalOpen: !transfer.isModalOpen,
       usernameInput: '',
-    })
-  }
+    });
+  };
 
   function submitInvite(username: string) {
     if (username === sessionStore.currentAccount.username) {
       setTransfer({
         ...transfer,
         usernameError: t('Cannot transfer a project to the same account.'),
-      })
+      });
 
-      return
+      return;
     }
 
     if (username !== '') {
-      setTransfer({ ...transfer, usernameError: false, submitPending: true })
+      setTransfer({...transfer, usernameError: false, submitPending: true});
       sendInvite(username, props.asset.uid)
         .then((data) => {
           if (data) {
@@ -81,7 +91,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               isModalOpen: false,
               usernameInput: '',
               submitPending: false,
-            })
+            });
           }
         })
         .catch((err) => {
@@ -89,13 +99,13 @@ export default function TransferProjects(props: TransferProjectsProps) {
             setTransfer({
               ...transfer,
               usernameError: t('User not found. Please try again.'),
-            })
+            });
           }
 
-          setTransfer({ ...transfer, submitPending: false })
-        })
+          setTransfer({...transfer, submitPending: false});
+        });
     } else {
-      setTransfer({ ...transfer, usernameError: t('Please enter a user name.') })
+      setTransfer({...transfer, usernameError: t('Please enter a user name.')});
     }
   }
 
@@ -107,9 +117,9 @@ export default function TransferProjects(props: TransferProjectsProps) {
             ...transfer,
             inviteStatus: data.status,
             invitedUserName: null,
-          })
+          });
         }
-      })
+      });
     }
   }
 
@@ -124,20 +134,28 @@ export default function TransferProjects(props: TransferProjectsProps) {
                 <div
                   dangerouslySetInnerHTML={{
                     __html: t(
-                      'Your transfer request is pending until ##username## has accepted or declined it.',
+                      'Your transfer request is pending until ##username## has accepted or declined it.'
                     ).replace(
                       '##username##',
-                      `<strong>${transfer.invitedUserName ? transfer.invitedUserName : ''}</strong>`,
+                      `<strong>${
+                        transfer.invitedUserName ? transfer.invitedUserName : ''
+                      }</strong>`
                     ),
                   }}
                 />
               ) : (
                 <span>
                   {t(
-                    'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.',
+                    'Transfer ownership of this project to another user. All submissions, data storage, and transcription and translation usage for this project will be transferred to the new project owner.'
                   )}
                   &nbsp;
-                  <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
+                  <a
+                    href={
+                      envStore.data.support_url +
+                      HELP_ARTICLE_ANON_SUBMISSIONS_URL
+                    }
+                    target='_blank'
+                  >
                     {t('Learn more →')}
                   </a>
                 </span>
@@ -168,7 +186,11 @@ export default function TransferProjects(props: TransferProjectsProps) {
           )}
         </div>
 
-        <KoboModal isOpen={transfer.isModalOpen} onRequestClose={toggleModal} size='medium'>
+        <KoboModal
+          isOpen={transfer.isModalOpen}
+          onRequestClose={toggleModal}
+          size='medium'
+        >
           <KoboModalHeader onRequestCloseByX={toggleModal} headerColor='white'>
             {t('Transfer ownership')}
           </KoboModalHeader>
@@ -177,40 +199,44 @@ export default function TransferProjects(props: TransferProjectsProps) {
           <form autoComplete='off' className={styles.form}>
             <section className={styles.modalBody}>
               <p>
-                {t('This action will transfer ownership of ##username## to another user').replace(
-                  '##username##',
-                  props.asset.name,
+                {t(
+                  'This action will transfer ownership of ##username## to another user'
+                ).replace('##username##', props.asset.name)}
+              </p>
+              <p>
+                {t(
+                  'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.'
                 )}
               </p>
               <p>
                 {t(
-                  'When you transfer ownership of the project to another user, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to the new project owner.',
-                )}
-              </p>
-              <p>
-                {t(
-                  'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.',
+                  'The new project owner will receive an email request to accept the transfer. You will be notified when the transfer is accepted or declined.'
                 )}
               </p>
 
               <InlineMessage
                 type='error'
                 icon='warning'
-                message={
+                message={(
                   <div>
                     {t('You will be the owner of the project until the transfer is accepted.')}
                     <br />
-                    <strong>{t('Once the transfer is accepted, you will not be able to undo this action.')}</strong>
+                    <strong>
+                      {t('Once the transfer is accepted, you will not be able to undo this action.')}
+                    </strong>
                     &nbsp;
-                    <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
+                    <a
+                      href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
+                      target='_blank'
+                    >
                       {t('Learn more')}
                     </a>
                   </div>
-                }
+                )}
               />
 
               {/* Unused element to prevent firefox autocomplete suggestions on username field */}
-              <input type='text' style={{ display: 'none' }} />
+              <input type='text' style={{display: 'none'}} />
               <div>
                 <TextBox
                   label={t('To complete the transfer, enter the username of the new project owner')}
@@ -225,12 +251,17 @@ export default function TransferProjects(props: TransferProjectsProps) {
             </section>
 
             <KoboModalFooter alignment='end'>
-              <Button label={t('Cancel')} onClick={toggleModal} type='secondary' size='m' />
+              <Button
+                label={t('Cancel')}
+                onClick={toggleModal}
+                type='secondary'
+                size='m'
+              />
               <Button
                 label={t('Transfer project')}
                 onClick={(evt: React.FormEvent<HTMLFormElement>) => {
-                  evt.preventDefault()
-                  submitInvite(transfer.usernameInput)
+                  evt.preventDefault();
+                  submitInvite(transfer.usernameInput);
                 }}
                 isPending={transfer.submitPending}
                 type='primary'
@@ -241,8 +272,8 @@ export default function TransferProjects(props: TransferProjectsProps) {
           </form>
         </KoboModal>
       </div>
-    )
+    );
   } else {
-    return null
+    return null;
   }
 }

@@ -1,15 +1,15 @@
-import React from 'react'
+import React from 'react';
 
-export type TooltipAlignment = 'right' | 'left' | 'center'
+export type TooltipAlignment = 'right' | 'left' | 'center';
 
 export interface TooltipProps {
   /** Content of the tooltip */
-  text: string
+  text: string;
   /** Accessible label for screen readers */
-  ariaLabel: string
+  ariaLabel: string;
   /** Position of the tooltip (centered as default) */
-  alignment?: TooltipAlignment
-  children?: React.ReactNode
+  alignment?: TooltipAlignment;
+  children?: React.ReactNode;
 }
 
 /**
@@ -18,9 +18,18 @@ export interface TooltipProps {
  * component, that provides styling but not other functionaltiy such as
  * allowing tooltips to work on disabled buttons.
  */
-const Tooltip: React.FC<TooltipProps> = ({ text, ariaLabel, alignment, children }) => (
-  <span data-tip={text} className={`${alignment || 'center'}-tooltip`} aria-label={ariaLabel}>
+const Tooltip: React.FC<TooltipProps> = ({
+  text,
+  ariaLabel,
+  alignment,
+  children,
+}) => (
+  <span
+    data-tip={text}
+    className={`${alignment || 'center'}-tooltip`}
+    aria-label={ariaLabel}
+  >
     {children}
   </span>
-)
-export default Tooltip
+);
+export default Tooltip;

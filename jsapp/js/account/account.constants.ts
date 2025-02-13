@@ -3,25 +3,25 @@
  * to add new fields, please updated this interface first :)
  */
 export interface AccountFieldsValues {
-  name: string
-  organization: string
-  organization_website: string
-  organization_type: string
-  sector: string
-  gender: string
-  bio: string
-  city: string
-  country: string
-  require_auth: boolean
-  twitter: string
-  linkedin: string
-  instagram: string
-  newsletter_subscription: boolean
+  name: string;
+  organization: string;
+  organization_website: string;
+  organization_type: string;
+  sector: string;
+  gender: string;
+  bio: string;
+  city: string;
+  country: string;
+  require_auth: boolean;
+  twitter: string;
+  linkedin: string;
+  instagram: string;
+  newsletter_subscription: boolean;
 }
 
-export type AccountFieldsErrors = { [name in UserFieldName]?: string }
+export type AccountFieldsErrors = {[name in UserFieldName]?: string};
 
-export type UserFieldName = keyof AccountFieldsValues
+export type UserFieldName = keyof AccountFieldsValues;
 
 export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   name: 'name',
@@ -38,4 +38,4 @@ export const USER_FIELD_NAMES: Record<UserFieldName, UserFieldName> = {
   linkedin: 'linkedin',
   instagram: 'instagram',
   newsletter_subscription: 'newsletter_subscription',
-}
+};

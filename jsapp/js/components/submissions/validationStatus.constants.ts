@@ -19,11 +19,11 @@ export enum ValidationStatusAdditionalName {
 /**
  * These are all names of all options for `ValidationStatusDropdown`.
  */
-export type ValidationStatusOptionName = ValidationStatusName | ValidationStatusAdditionalName
+export type ValidationStatusOptionName = ValidationStatusName | ValidationStatusAdditionalName;
 
 export interface ValidationStatusOption {
-  value: ValidationStatusOptionName
-  label: string
+  value: ValidationStatusOptionName;
+  label: string;
 }
 
 /**
@@ -33,12 +33,12 @@ export interface ValidationStatusOption {
 export const VALIDATION_STATUS_SHOW_ALL_OPTION: ValidationStatusOption = {
   value: ValidationStatusAdditionalName.show_all,
   label: t('Show All'),
-}
+};
 
 export const VALIDATION_STATUS_NO_OPTION: ValidationStatusOption = {
   value: ValidationStatusAdditionalName.no_status,
   label: '-',
-}
+};
 
 /** List of options for `ValidationStatusDropdown` */
 export const VALIDATION_STATUS_OPTIONS: ValidationStatusOption[] = [
@@ -55,9 +55,12 @@ export const VALIDATION_STATUS_OPTIONS: ValidationStatusOption[] = [
     value: ValidationStatusName.validation_status_on_hold,
     label: t('On hold'),
   },
-]
+];
 
 /**
  * List of options for `ValidationStatusDropdown`, including the additional one.
  */
-export const VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL = [VALIDATION_STATUS_SHOW_ALL_OPTION, ...VALIDATION_STATUS_OPTIONS]
+export const VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL = [
+  VALIDATION_STATUS_SHOW_ALL_OPTION,
+  ...VALIDATION_STATUS_OPTIONS
+];

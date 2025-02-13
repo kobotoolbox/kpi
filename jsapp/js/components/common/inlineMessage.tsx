@@ -1,19 +1,19 @@
-import React from 'react'
-import cx from 'classnames'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import Icon from 'js/components/common/icon'
-import './inlineMessage.scss'
+import React from 'react';
+import cx from 'classnames';
+import type {IconName} from 'jsapp/fonts/k-icons';
+import Icon from 'js/components/common/icon';
+import './inlineMessage.scss';
 
 /** Influences the background color and the icon color */
-export type InlineMessageType = 'default' | 'error' | 'success' | 'warning' | 'info'
+export type InlineMessageType = 'default' | 'error' | 'success' | 'warning' | 'info';
 
 interface InlineMessageProps {
-  type: InlineMessageType
-  message: React.ReactNode
-  icon?: IconName
+  type: InlineMessageType;
+  message: React.ReactNode;
+  icon?: IconName;
   /** Additional class names. */
-  className?: string
-  'data-cy'?: string
+  className?: string;
+  'data-cy'?: string;
 }
 
 /**
@@ -22,12 +22,21 @@ interface InlineMessageProps {
  */
 export default function InlineMessage(props: InlineMessageProps) {
   return (
-    <figure className={cx(['k-inline-message', `k-inline-message--type-${props.type}`, props.className])}>
-      {props.icon && <Icon name={props.icon} size='m' />}
+    <figure className={cx([
+      'k-inline-message',
+      `k-inline-message--type-${props.type}`,
+      props.className,
+    ])}>
+      {props.icon &&
+        <Icon name={props.icon} size='m'/>
+      }
 
-      <p className='k-inline-message__message' data-cy={props['data-cy']}>
+      <p
+        className='k-inline-message__message'
+        data-cy={props['data-cy']}
+      >
         {props.message}
       </p>
     </figure>
-  )
+  );
 }

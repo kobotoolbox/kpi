@@ -1,8 +1,8 @@
-import React from 'react'
-import styles from './analysisContentEmpty.module.scss'
-import { hasManagePermissionsToCurrentAsset } from './utils'
-import InlineMessage from 'js/components/common/inlineMessage'
-import Icon from 'js/components/common/icon'
+import React from 'react';
+import styles from './analysisContentEmpty.module.scss';
+import {hasManagePermissionsToCurrentAsset} from './utils';
+import InlineMessage from 'js/components/common/inlineMessage';
+import Icon from 'js/components/common/icon';
 
 /** To be displayed when there are no questions defined yet. */
 export default function AnalysisContentEmpty() {
@@ -13,7 +13,7 @@ export default function AnalysisContentEmpty() {
           icon='alert'
           type='warning'
           message={t(
-            'Please note that any qualitative question created for this record will generate a new column in the data table, making the question available for all other records.',
+            'Please note that any qualitative question created for this record will generate a new column in the data table, making the question available for all other records.'
           )}
         />
 
@@ -21,7 +21,7 @@ export default function AnalysisContentEmpty() {
 
         <p>{t('Click the "Add question" button to get started')}</p>
       </div>
-    )
+    );
   } else {
     return (
       <div className={styles.root}>
@@ -32,10 +32,12 @@ export default function AnalysisContentEmpty() {
         </p>
 
         <p>
-          <strong>{t('Only those with full editing rights can create questions')}</strong>
+          <strong>
+            {t('Only those with full editing rights can create questions')}
+          </strong>
         </p>
         <p>{t('Contact the project owner for more information')}</p>
       </div>
-    )
+    );
   }
 }
