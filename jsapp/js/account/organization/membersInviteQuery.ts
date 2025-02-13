@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
+import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl, FetchDataOptions } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
@@ -123,9 +123,11 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  */
 export function usePatchMemberInvite(inviteUrl?: string, displayErrorNotification = true) {
   const queryClient = useQueryClient()
-  let fetchOptions = {}
+  const fetchOptions: FetchDataOptions = {}
   if (displayErrorNotification) {
-    fetchOptions = {errorMessageDisplay: t('There was an error updating this invitation.')}
+    fetchOptions.errorMessageDisplay = t('There was an error updating this invitation.')
+  } else {
+    fetchOptions.notifyAboutError = false
   }
   return useMutation<MemberInvite | null, Error & FailResponse, Partial<MemberInviteUpdate>>({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
