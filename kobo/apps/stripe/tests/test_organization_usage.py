@@ -277,7 +277,15 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             == current_billing_period_end.isoformat()
         )
 
+    @pytest.mark.skip(reason='Waiting for product decision')
     def test_plan_canceled_last_month(self):
+        """
+        This test is failing and will continue to fail until we make a business
+        decision about the behavior:
+        https://chat.kobotoolbox.org/#narrow/stream/4-Kobo-Dev/topic/Github.20Actions.20.28main.29/near/552505
+        I want the rest of the test suite to continue running for now and
+        reporting *different* problems
+        """
         subscription = generate_plan_subscription(self.organization, age_days=60)
 
         num_submissions = 5

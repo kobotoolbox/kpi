@@ -703,6 +703,8 @@ export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
 /**
  * In given submission data, it finds provided attachment, sets its `is_deleted`
  * flag to `true` and then returns the updated submission data.
+ *
+ * TODO: verify if this is needed for something useful, or just for mocking
  */
 export function markAttachmentAsDeleted(
   submissionData: SubmissionResponse,

@@ -1238,14 +1238,14 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 10 minutes
-    'project-ownership-task-scheduler': {
-        'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
+    'project-ownership-task-restarter': {
+        'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
-    'project-ownership-mark-stuck-tasks-as-failed': {
-        'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
+    'project-ownership-mark-as-failed': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_as_failed',
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
@@ -1866,3 +1866,5 @@ IMPORT_EXPORT_CELERY_MODELS = {
 }
 
 IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
+
+ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds

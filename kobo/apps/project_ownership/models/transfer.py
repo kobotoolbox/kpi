@@ -129,6 +129,8 @@ class Transfer(AbstractTimeStampedModel):
                     self.statuses.filter(status_type__in=status_types).update(
                         status=TransferStatusChoices.SUCCESS
                     )
+                    # Update `is_excluded_from_projects_list` flag
+                    self._update_project_exclusion_flag()
             else:
                 _rewrite_mongo = True
                 with transaction.atomic():
@@ -147,6 +149,8 @@ class Transfer(AbstractTimeStampedModel):
 
                         self._sent_in_app_messages()
 
+                    # Update `is_excluded_from_projects_list` flag
+                    self._update_project_exclusion_flag()
             # Do not delegate anything to Celery before the transaction has
             # been validated. Otherwise, Celery could fetch outdated data.
             transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
@@ -331,6 +335,30 @@ class Transfer(AbstractTimeStampedModel):
             self.invite.status = invite.status
             self.invite.date_modified = invite.date_modified
 
+    def _update_project_exclusion_flag(self):
+        """
+        Update `is_excluded_from_projects_list` based on asset ownership
+
+        If the invite is of `OrgMembershipAutoInvite`, set the flag to `True`
+        for assets owned by the sender or invitee joining the organization.
+        These assets should be excluded from the org owner's `My Projects` list.
+
+        If a project is explicitly transferred, it should remain in the
+        `My Projects` list of both the sender and recipient.
+        """
+        is_excluded = (
+            isinstance(self.invite, OrgMembershipAutoInvite)
+            and get_real_owner(self.invite.sender) != self.invite.sender
+        )
+
+        if self.asset.is_excluded_from_projects_list != is_excluded:
+            self.asset.is_excluded_from_projects_list = is_excluded
+            self.asset.save(
+                update_fields=['is_excluded_from_projects_list'],
+                adjust_content=False,
+                create_version=False
+            )
+
 
 class TransferStatus(AbstractTimeStampedModel):
 
@@ -380,8 +408,8 @@ class TransferStatus(AbstractTimeStampedModel):
                 transfer_id=transfer_id, status_type=status_type
             )
             transfer_status.status = status
-            transfer_status.error = error
             transfer_status.date_modified = timezone.now()
+            transfer_status.error = cls._add_error(transfer_status, error)
             transfer_status.save(
                 update_fields=['status', 'error', 'date_modified']
             )
@@ -404,3 +432,16 @@ class TransferStatus(AbstractTimeStampedModel):
 
         if success:
             self.transfer.status = TransferStatusChoices.SUCCESS
+
+    @classmethod
+    def _add_error(cls, transfer_status, error):
+        if not error:
+            return transfer_status.error
+
+        log_date = transfer_status.date_modified.strftime('%Y-%m-%d %H:%M:%S')
+        error_message = f'[{log_date}] - {error}'
+        return (
+            f'{error_message}\n{transfer_status.error}'
+            if transfer_status.error
+            else error_message
+        )

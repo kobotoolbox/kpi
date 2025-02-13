@@ -22,4 +22,4 @@ export const endpoints = {
   ACCESS_LOGS_URL: '/api/v2/access-logs/me',
   ACCESS_LOGS_EXPORT_URL: '/api/v2/access-logs/me/export/',
   LOGOUT_ALL: '/logout-all/',
-} as const;
+} as const

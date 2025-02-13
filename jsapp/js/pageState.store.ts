@@ -61,7 +61,7 @@ class PageStateStore extends Reflux.Store {
    */
   switchModal(params: PageStateModalParams) {
     this.hideModal()
-    // HACK setState's second parameter callback doesn't exist in Reflux.Store,
+    // HACK: setState's second parameter callback doesn't exist in Reflux.Store,
     // so we can't use it here
     window.setTimeout(() => {
       this.showModal(params)

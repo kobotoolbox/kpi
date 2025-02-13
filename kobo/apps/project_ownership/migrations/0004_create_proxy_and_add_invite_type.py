@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             'project_ownership',
-            '0002_alter_invite_date_created_alter_invite_date_modified_and_more',
+            '0003_remove_old_task',
         ),
     ]
 
