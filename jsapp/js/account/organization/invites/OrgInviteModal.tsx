@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
-import { Modal, Button, Stack, Text, Group } from '@mantine/core'
+import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
 // Stores, hooks and utilities
 import {
@@ -168,6 +168,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
       }}
       title={title}
     >
+      {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+      <FocusTrap.InitialFocus />
       {content}
     </Modal>
   )
