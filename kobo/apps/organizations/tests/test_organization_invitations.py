@@ -28,6 +28,7 @@ from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
 from kpi.models import Asset
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
 
@@ -309,11 +310,12 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         invitation = OrganizationInvitation.objects.get(
             invitee=self.external_user
         )
-        response = self._update_invite(
-            self.external_user,
-            invitation.guid,
-            OrganizationInviteStatusChoices.ACCEPTED,
-        )
+        with immediate_on_commit():
+            response = self._update_invite(
+                self.external_user,
+                invitation.guid,
+                OrganizationInviteStatusChoices.ACCEPTED,
+            )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data['status'], OrganizationInviteStatusChoices.ACCEPTED

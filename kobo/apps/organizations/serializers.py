@@ -501,6 +501,9 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
+
+        transfer_data = False
+
         with transaction.atomic():
             if 'role' in validated_data:
                 # Organization owner or admin can update the role of the invitee
@@ -513,12 +516,18 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                     self._handle_invitee_assignment(instance)
                     self.validate_invitation_acceptance(instance)
                     self._update_invitee_organization(instance)
+                    transfer_data = True
 
-                    # Transfer ownership of invitee's assets to the organization
-                    transfer_member_data_ownership_to_org.delay(
-                        instance.invitee.id
-                    )
                 self._handle_status_update(instance, status)
+
+        if transfer_data:
+            # Transfer ownership of invitee's assets to the organization
+            transaction.on_commit(
+                lambda: transfer_member_data_ownership_to_org.delay(
+                    instance.invitee.id
+                )
+            )
+
         return instance
 
     def _handle_invitee_assignment(self, instance):
