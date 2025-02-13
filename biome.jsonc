@@ -1,15 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "ignore": [
-      "node_modules/**",
-      "jsapp/compiled/**",
-      "*.css",
-      "*.min.js",
-      "*-min.js",
-      "bootstrap*.js",
-      "jquery*.js"
-    ]
+    "ignore": ["node_modules/**", "jsapp/compiled/**", "*.css", "*.min.js", "*-min.js", "bootstrap*.js", "jquery*.js"]
   },
   "vcs": {
     "enabled": true,

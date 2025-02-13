@@ -1,122 +1,95 @@
 // Libraries
-import React from 'react';
-import {Link} from 'react-router-dom';
-import cx from 'classnames';
+import React from 'react'
+import { Link } from 'react-router-dom'
+import cx from 'classnames'
 
 // Partial components
-import Badge from 'js/components/common/badge';
-import Avatar from 'js/components/common/avatar';
-import AssetName from 'js/components/common/assetName';
-import AssetStatusBadge from 'js/components/common/assetStatusBadge';
-import Checkbox from 'js/components/common/checkbox';
+import Badge from 'js/components/common/badge'
+import Avatar from 'js/components/common/avatar'
+import AssetName from 'js/components/common/assetName'
+import AssetStatusBadge from 'js/components/common/assetStatusBadge'
+import Checkbox from 'js/components/common/checkbox'
 
 // Stores, hooks and utilities
-import {formatTime} from 'js/utils';
-import assetUtils from 'js/assetUtils';
-import sessionStore from 'js/stores/session';
+import { formatTime } from 'js/utils'
+import assetUtils from 'js/assetUtils'
+import sessionStore from 'js/stores/session'
 
 // Constants and types
-import {ROUTES} from 'js/router/routerConstants';
-import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
-import type {
-  ProjectFieldName,
-  ProjectFieldDefinition,
-} from 'js/projects/projectViews/constants';
-import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
+import { ROUTES } from 'js/router/routerConstants'
+import { PROJECT_FIELDS } from 'js/projects/projectViews/constants'
+import type { ProjectFieldName, ProjectFieldDefinition } from 'js/projects/projectViews/constants'
+import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
 
 // Styles
-import styles from './projectsTableRow.module.scss';
+import styles from './projectsTableRow.module.scss'
 
 interface ProjectsTableRowProps {
-  asset: AssetResponse | ProjectViewAsset;
-  highlightedFields: ProjectFieldName[];
-  visibleFields: ProjectFieldName[];
-  isSelected: boolean;
-  onSelectRequested: (isSelected: boolean) => void;
+  asset: AssetResponse | ProjectViewAsset
+  highlightedFields: ProjectFieldName[]
+  visibleFields: ProjectFieldName[]
+  isSelected: boolean
+  onSelectRequested: (isSelected: boolean) => void
 }
 
 export default function ProjectsTableRow(props: ProjectsTableRowProps) {
   const toggleCheckbox = () => {
-    props.onSelectRequested(!props.isSelected);
-  };
+    props.onSelectRequested(!props.isSelected)
+  }
 
   const renderColumnContent = (field: ProjectFieldDefinition) => {
     switch (field.name) {
       case 'name':
         return (
-          <Link
-            to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)}
-            data-cy="asset"
-          >
+          <Link to={ROUTES.FORM_SUMMARY.replace(':uid', props.asset.uid)} data-cy='asset'>
             <AssetName asset={props.asset} />
           </Link>
-        );
+        )
       case 'description':
-        return props.asset.settings.description;
+        return props.asset.settings.description
       case 'status':
-        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />;
+        return <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />
       case 'ownerUsername':
-        return props.asset.owner_label ===
-          sessionStore.currentAccount.username ? (
+        return props.asset.owner_label === sessionStore.currentAccount.username ? (
           t('me')
         ) : (
-          <Avatar
-            username={props.asset.owner_label}
-            size='s'
-            isUsernameVisible
-          />
-        );
+          <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
+        )
       case 'ownerFullName':
-        return 'owner__name' in props.asset ? props.asset.owner__name : null;
+        return 'owner__name' in props.asset ? props.asset.owner__name : null
       case 'ownerEmail':
-        return 'owner__email' in props.asset ? props.asset.owner__email : null;
+        return 'owner__email' in props.asset ? props.asset.owner__email : null
       case 'ownerOrganization':
-        return 'owner__organization' in props.asset
-          ? props.asset.owner__organization
-          : null;
+        return 'owner__organization' in props.asset ? props.asset.owner__organization : null
       case 'dateModified':
-        return formatTime(props.asset.date_modified);
+        return formatTime(props.asset.date_modified)
       case 'dateDeployed':
-        if (
-          'date_deployed' in props.asset &&
-          props.asset.date_deployed
-        ) {
-          return formatTime(props.asset.date_deployed);
+        if ('date_deployed' in props.asset && props.asset.date_deployed) {
+          return formatTime(props.asset.date_deployed)
         }
-        return null;
+        return null
       case 'sector':
-        return assetUtils.getSectorDisplayString(props.asset);
+        return assetUtils.getSectorDisplayString(props.asset)
       case 'countries':
         if (Array.isArray(props.asset.settings.country)) {
           return props.asset.settings.country.map((country) => (
-            <Badge
-              key={country.value}
-              color='light-storm'
-              size='m'
-              label={country.label}
-            />
-          ));
+            <Badge key={country.value} color='light-storm' size='m' label={country.label} />
+          ))
         } else if (typeof props.asset.settings.country === 'string') {
-          <Badge color='light-storm' size='m' label={props.asset.settings.country} />;
+          ;<Badge color='light-storm' size='m' label={props.asset.settings.country} />
         }
-        return null;
+        return null
       case 'languages':
-        return assetUtils.getLanguagesDisplayString(props.asset);
+        return assetUtils.getLanguagesDisplayString(props.asset)
       case 'submissions':
         if (props.asset.deployment__submission_count === null) {
-          return null;
+          return null
         }
-        return (
-          <Badge
-            color='light-storm'
-            size='m'
-            label={props.asset.deployment__submission_count}
-          />
-        );
+        return <Badge color='light-storm' size='m' label={props.asset.deployment__submission_count} />
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div className={cx(styles.row, styles.rowTypeProject)}>
@@ -126,36 +99,33 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
         data-field='checkbox'
         onClick={toggleCheckbox} // Treat whole cell as checkbox
       >
-        <Checkbox
-          checked={props.isSelected}
-          onChange={props.onSelectRequested}
-        />
+        <Checkbox checked={props.isSelected} onChange={props.onSelectRequested} />
       </div>
 
       {Object.values(PROJECT_FIELDS).map((field: ProjectFieldDefinition) => {
         // Hide not visible fields.
         if (!props.visibleFields.includes(field.name)) {
-          return null;
+          return null
         }
 
         // All the columns that could have user content
-        const isUserContent = (
+        const isUserContent =
           field.name === 'name' ||
           field.name === 'description' ||
           field.name === 'ownerFullName' ||
           field.name === 'ownerOrganization'
-        );
 
         return (
           <div
             className={cx({
               [styles.cell]: true,
-              [styles.cellHighlighted]: props.highlightedFields.includes(
-                field.name
-              ),
+              [styles.cellHighlighted]: props.highlightedFields.includes(field.name),
             })}
-            onClick={() => {if (field.name !== PROJECT_FIELDS.name.name) {toggleCheckbox();}}
-            }
+            onClick={() => {
+              if (field.name !== PROJECT_FIELDS.name.name) {
+                toggleCheckbox()
+              }
+            }}
             // This attribute is being used for styling and for ColumnResizer
             data-field={field.name}
             key={field.name}
@@ -163,8 +133,8 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           >
             {renderColumnContent(field)}
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

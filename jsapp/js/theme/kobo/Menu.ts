@@ -1,9 +1,9 @@
-import {Menu} from '@mantine/core';
-import classes from './Menu.module.css';
+import { Menu } from '@mantine/core'
+import classes from './Menu.module.css'
 
 declare module '@mantine/core' {
   export interface MenuItemProps {
-    variant?: 'danger';
+    variant?: 'danger'
   }
 }
 
@@ -20,8 +20,8 @@ export const MenuThemeKobo = Menu.extend({
         borderColor: theme.colors.gray[6],
       },
       item: {
-        fontSize: theme.fontSizes.md
-      }
-    };
+        fontSize: theme.fontSizes.md,
+      },
+    }
   },
-});
+})

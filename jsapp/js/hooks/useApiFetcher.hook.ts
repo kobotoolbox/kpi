@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import { useCallback, useEffect, useState } from 'react'
 
 export interface ApiFetcherOptions {
   /* If set, the ApiFetcher will execute the fetch() function once per the
@@ -6,21 +6,21 @@ export interface ApiFetcherOptions {
    * *Don't* use this for fetches that mutate data on the server (DELETE, PUT,
    * non-idempotent POST requests).
    */
-  reloadEverySeconds?: number;
-  skipInitialLoad?: boolean;
+  reloadEverySeconds?: number
+  skipInitialLoad?: boolean
 }
 
 interface Status {
-  pending: boolean;
-  error: string | null;
-  isInitialLoad: boolean;
+  pending: boolean
+  error: string | null
+  isInitialLoad: boolean
 }
 
 export interface ApiFetcherStatus extends Status {
-  setIsInitialLoad: (isInitialLoad: boolean) => void;
+  setIsInitialLoad: (isInitialLoad: boolean) => void
 }
 
-export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
+export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus]
 
 /**
  * A reusable hook for making simple fetches with a consistent API.
@@ -48,71 +48,68 @@ export type WithApiFetcher<Type> = [Type, () => void, ApiFetcherStatus];
 export const useApiFetcher = <Type>(
   fetcher: () => Promise<Type | undefined>,
   initialValue: Type,
-  options?: ApiFetcherOptions
+  options?: ApiFetcherOptions,
 ): WithApiFetcher<Type> => {
-  const [response, setResponse] = useState<Type>(initialValue);
+  const [response, setResponse] = useState<Type>(initialValue)
   const [status, setStatus] = useState<Status>({
     error: null,
     pending: true,
     isInitialLoad: false,
-  });
+  })
 
   const loadFetcher = useCallback(() => {
     setStatus((prevState) => {
-      return {...prevState, pending: true};
-    });
+      return { ...prevState, pending: true }
+    })
     fetcher()
       .then((data) => {
-        setResponse(data ?? initialValue);
-        setStatus({error: null, isInitialLoad: false, pending: false});
+        setResponse(data ?? initialValue)
+        setStatus({ error: null, isInitialLoad: false, pending: false })
       })
       .catch((error) => {
-        setResponse(initialValue);
+        setResponse(initialValue)
         setStatus((prevState) => {
-          return {...prevState, error: error?.message, pending: false};
-        });
-      });
-  }, [fetcher]);
+          return { ...prevState, error: error?.message, pending: false }
+        })
+      })
+  }, [fetcher])
 
   // load the fetcher once when the component is mounted
   useEffect(() => {
     if (!options?.skipInitialLoad) {
-      loadFetcher();
+      loadFetcher()
     }
-  }, [options?.skipInitialLoad]);
+  }, [options?.skipInitialLoad])
 
   useEffect(() => {
     if (options?.reloadEverySeconds) {
       const intervalId = setInterval(() => {
         // only reload if the tab is visible
         if (document.visibilityState === 'visible') {
-          loadFetcher();
+          loadFetcher()
         }
-      }, options.reloadEverySeconds * 1000);
+      }, options.reloadEverySeconds * 1000)
       return () => {
-        clearInterval(intervalId);
-      };
+        clearInterval(intervalId)
+      }
     }
-    return;
-  }, [options]);
+    return
+  }, [options])
 
   const setIsInitialLoad = (value: boolean) => {
     setStatus((prevState) => {
-      return {...prevState, isInitialLoad: value};
-    });
-  };
+      return { ...prevState, isInitialLoad: value }
+    })
+  }
 
-  return [response, loadFetcher, {...status, setIsInitialLoad}];
-};
+  return [response, loadFetcher, { ...status, setIsInitialLoad }]
+}
 
 /**
  * @deprecated convert to functional component and use react-query instead.
  * See `useOrganizationQuery` for a simple example.
  */
-export const withApiFetcher = <Type>(
-  initialState: Type
-): WithApiFetcher<Type> => {
-  return [
+export const withApiFetcher = <Type>(initialState: Type): WithApiFetcher<Type> => [
     initialState,
     () => {},
     {
@@ -121,5 +118,4 @@ export const withApiFetcher = <Type>(
       isInitialLoad: true,
       setIsInitialLoad: () => {},
     },
-  ];
-};
+  ]

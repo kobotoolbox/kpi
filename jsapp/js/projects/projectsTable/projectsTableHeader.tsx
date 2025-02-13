@@ -1,42 +1,38 @@
 // Libraries
-import React from 'react';
-import cx from 'classnames';
+import React from 'react'
+import cx from 'classnames'
 
 // Partial components
-import ColumnResizer from './columnResizer';
-import SortableProjectColumnHeader from './sortableProjectColumnHeader';
+import ColumnResizer from './columnResizer'
+import SortableProjectColumnHeader from './sortableProjectColumnHeader'
 
 // Constants and types
-import {PROJECT_FIELDS} from 'js/projects/projectViews/constants';
-import type {
-  ProjectFieldDefinition,
-  ProjectFieldName,
-} from 'js/projects/projectViews/constants';
-import type {ProjectsTableOrder} from './projectsTable';
+import { PROJECT_FIELDS } from 'js/projects/projectViews/constants'
+import type { ProjectFieldDefinition, ProjectFieldName } from 'js/projects/projectViews/constants'
+import type { ProjectsTableOrder } from './projectsTable'
 
 // Styles
-import tableStyles from './projectsTable.module.scss';
-import rowStyles from './projectsTableRow.module.scss';
+import tableStyles from './projectsTable.module.scss'
+import rowStyles from './projectsTableRow.module.scss'
 
 interface ProjectsTableHeaderProps {
-  highlightedFields: ProjectFieldName[];
-  visibleFields: ProjectFieldName[];
-  orderableFields: ProjectFieldName[];
-  order: ProjectsTableOrder;
-  onChangeOrderRequested: (order: ProjectsTableOrder) => void;
-  onHideFieldRequested: (fieldName: ProjectFieldName) => void;
+  highlightedFields: ProjectFieldName[]
+  visibleFields: ProjectFieldName[]
+  orderableFields: ProjectFieldName[]
+  order: ProjectsTableOrder
+  onChangeOrderRequested: (order: ProjectsTableOrder) => void
+  onHideFieldRequested: (fieldName: ProjectFieldName) => void
 }
 
 export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
-
   const renderColumn = (field: ProjectFieldDefinition) => {
     // Hide not visible fields.
     if (!props.visibleFields.includes(field.name)) {
-      return null;
+      return null
     }
 
     // Generate a unique key for each rendered column
-    const key = `${field.name}_${field.label}`;
+    const key = `${field.name}_${field.label}`
 
     return (
       <SortableProjectColumnHeader
@@ -49,8 +45,8 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         onChangeOrderRequested={props.onChangeOrderRequested}
         onHideFieldRequested={props.onHideFieldRequested}
       />
-    );
-  };
+    )
+  }
 
   return (
     <header className={tableStyles.header}>
@@ -62,5 +58,5 @@ export default function ProjectsTableHeader(props: ProjectsTableHeaderProps) {
         {Object.values(PROJECT_FIELDS).map(renderColumn)}
       </div>
     </header>
-  );
+  )
 }

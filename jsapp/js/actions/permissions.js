@@ -2,54 +2,53 @@
  * permissions related actions
  */
 
-import Reflux from 'reflux';
-import RefluxPromise from 'js/libs/reflux-promise';
-Reflux.use(RefluxPromise(window.Promise));
-import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
-import {ANON_USERNAME_URL} from 'js/users/utils';
-import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import permConfig from 'js/components/permissions/permConfig';
-import {
-  INVALID_PERMS_ERROR,
-  validateBackendPermissions,
-} from 'js/components/permissions/validatePermissions';
+import Reflux from 'reflux'
+import RefluxPromise from 'js/libs/reflux-promise'
+Reflux.use(RefluxPromise(window.Promise))
+import { dataInterface } from 'js/dataInterface'
+import { notify } from 'utils'
+import { ANON_USERNAME_URL } from 'js/users/utils'
+import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+import permConfig from 'js/components/permissions/permConfig'
+import { INVALID_PERMS_ERROR, validateBackendPermissions } from 'js/components/permissions/validatePermissions'
 
 export const permissionsActions = Reflux.createActions({
-  getConfig: {children: ['completed', 'failed']},
-  getAssetPermissions: {children: ['completed', 'failed']},
-  bulkSetAssetPermissions: {children: ['completed', 'failed']},
-  assignAssetPermission: {children: ['completed', 'failed']},
-  removeAssetPermission: {children: ['completed', 'failed']},
-  setAssetPublic: {children: ['completed', 'failed']},
-  copyPermissionsFrom: {children: ['completed', 'failed']},
-});
+  getConfig: { children: ['completed', 'failed'] },
+  getAssetPermissions: { children: ['completed', 'failed'] },
+  bulkSetAssetPermissions: { children: ['completed', 'failed'] },
+  assignAssetPermission: { children: ['completed', 'failed'] },
+  removeAssetPermission: { children: ['completed', 'failed'] },
+  setAssetPublic: { children: ['completed', 'failed'] },
+  copyPermissionsFrom: { children: ['completed', 'failed'] },
+})
 
 /**
  * New actions
  */
 
 permissionsActions.getConfig.listen(() => {
-  dataInterface.getPermissionsConfig()
+  dataInterface
+    .getPermissionsConfig()
     .done(permissionsActions.getConfig.completed)
-    .fail(permissionsActions.getConfig.failed);
-});
+    .fail(permissionsActions.getConfig.failed)
+})
 
 permissionsActions.getConfig.failed.listen(() => {
-  notify('Failed to get permissions config!', 'error');
-});
+  notify('Failed to get permissions config!', 'error')
+})
 
 permissionsActions.getAssetPermissions.listen((assetUid) => {
-  dataInterface.getAssetPermissions(assetUid)
+  dataInterface
+    .getAssetPermissions(assetUid)
     .done((response) => {
       if (validateBackendPermissions(response)) {
-        permissionsActions.getAssetPermissions.completed(response);
+        permissionsActions.getAssetPermissions.completed(response)
       } else {
-        permissionsActions.getAssetPermissions.failed(INVALID_PERMS_ERROR);
+        permissionsActions.getAssetPermissions.failed(INVALID_PERMS_ERROR)
       }
     })
-    .fail(permissionsActions.getAssetPermissions.failed);
-});
+    .fail(permissionsActions.getAssetPermissions.failed)
+})
 
 /**
  * For bulk setting permissions - wipes all current permissions, sets given ones
@@ -58,15 +57,16 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
  * @param {Object[]} perms - permissions to set
  */
 permissionsActions.bulkSetAssetPermissions.listen((assetUid, perms) => {
-  dataInterface.bulkSetAssetPermissions(assetUid, perms)
+  dataInterface
+    .bulkSetAssetPermissions(assetUid, perms)
     .done((permissionAssignments) => {
-      permissionsActions.bulkSetAssetPermissions.completed(permissionAssignments);
+      permissionsActions.bulkSetAssetPermissions.completed(permissionAssignments)
     })
     .fail(() => {
-      permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.bulkSetAssetPermissions.failed();
-    });
-});
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.bulkSetAssetPermissions.failed()
+    })
+})
 
 /**
  * For adding single asset permission
@@ -75,16 +75,17 @@ permissionsActions.bulkSetAssetPermissions.listen((assetUid, perms) => {
  * @param {Object} perm - permission to add
  */
 permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
-  dataInterface.assignAssetPermission(assetUid, perm)
+  dataInterface
+    .assignAssetPermission(assetUid, perm)
     .done(() => {
-      permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.assignAssetPermission.completed(assetUid);
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.assignAssetPermission.completed(assetUid)
     })
     .fail(() => {
-      permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.assignAssetPermission.failed(assetUid);
-    });
-});
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.assignAssetPermission.failed(assetUid)
+    })
+})
 
 /**
  * For removing single permission
@@ -93,19 +94,20 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
  * @param {string} perm - permission url
  */
 permissionsActions.removeAssetPermission.listen((assetUid, perm, isNonOwner) => {
-  dataInterface.removePermission(perm)
+  dataInterface
+    .removePermission(perm)
     .done(() => {
       // Avoid this call if a non-owner removed their own permissions as it will fail
       if (!isNonOwner) {
-        permissionsActions.getAssetPermissions(assetUid);
+        permissionsActions.getAssetPermissions(assetUid)
       }
-      permissionsActions.removeAssetPermission.completed(assetUid, isNonOwner);
+      permissionsActions.removeAssetPermission.completed(assetUid, isNonOwner)
     })
     .fail(() => {
-      permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermission.failed(assetUid);
-    });
-});
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.removeAssetPermission.failed(assetUid)
+    })
+})
 
 /**
  * Makes asset public or private. This is a special action that mixes
@@ -117,39 +119,46 @@ permissionsActions.removeAssetPermission.listen((assetUid, perm, isNonOwner) => 
  */
 permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
   if (shouldSetAnonPerms) {
-    const permsToSet = asset.permissions.filter((permissionAssignment) => {
-      return permissionAssignment.user !== asset.owner;
-    });
+    const permsToSet = asset.permissions.filter((permissionAssignment) => permissionAssignment.user !== asset.owner)
     permsToSet.push({
       user: ANON_USERNAME_URL,
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
-    });
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url,
+    })
     permsToSet.push({
       user: ANON_USERNAME_URL,
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
-    });
-    dataInterface.bulkSetAssetPermissions(asset.uid, permsToSet)
-      .done(() => {permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms);})
-      .fail(() => {permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms);});
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url,
+    })
+    dataInterface
+      .bulkSetAssetPermissions(asset.uid, permsToSet)
+      .done(() => {
+        permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms)
+      })
+      .fail(() => {
+        permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms)
+      })
   } else {
-    const permToRemove = asset.permissions.find((permissionAssignment) => {
-      return (
+    const permToRemove = asset.permissions.find((permissionAssignment) => (
         permissionAssignment.user === ANON_USERNAME_URL &&
         permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
-      );
-    });
-    dataInterface.removePermission(permToRemove.url)
-      .done(() => {permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms);})
-      .fail(() => {permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms);});
+      ))
+    dataInterface
+      .removePermission(permToRemove.url)
+      .done(() => {
+        permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms)
+      })
+      .fail(() => {
+        permissionsActions.setAssetPublic.failed(asset.uid, shouldSetAnonPerms)
+      })
   }
-});
+})
 
 // copies permissions from one asset to other
-permissionsActions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
-  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
+permissionsActions.copyPermissionsFrom.listen(function (sourceUid, targetUid) {
+  dataInterface
+    .copyPermissionsFrom(sourceUid, targetUid)
     .done(() => {
-      permissionsActions.getAssetPermissions(targetUid);
-      permissionsActions.copyPermissionsFrom.completed(sourceUid, targetUid);
+      permissionsActions.getAssetPermissions(targetUid)
+      permissionsActions.copyPermissionsFrom.completed(sourceUid, targetUid)
     })
-    .fail(permissionsActions.copyPermissionsFrom.failed);
-});
+    .fail(permissionsActions.copyPermissionsFrom.failed)
+})

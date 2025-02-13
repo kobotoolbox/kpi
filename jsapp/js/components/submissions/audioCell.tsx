@@ -1,22 +1,22 @@
-import React from 'react';
-import bem, {makeBem} from 'js/bem';
-import Button from 'js/components/common/button';
-import Icon from 'js/components/common/icon';
-import MiniAudioPlayer from 'js/components/common/miniAudioPlayer';
-import DeletedAttachment from './deletedAttachment.component';
-import {goToProcessing} from 'js/components/processing/routes.utils';
-import type {SubmissionAttachment} from 'js/dataInterface';
-import './audioCell.scss';
+import React from 'react'
+import bem, { makeBem } from 'js/bem'
+import Button from 'js/components/common/button'
+import Icon from 'js/components/common/icon'
+import MiniAudioPlayer from 'js/components/common/miniAudioPlayer'
+import DeletedAttachment from './deletedAttachment.component'
+import { goToProcessing } from 'js/components/processing/routes.utils'
+import type { SubmissionAttachment } from 'js/dataInterface'
+import './audioCell.scss'
 
-bem.AudioCell = makeBem(null, 'audio-cell');
+bem.AudioCell = makeBem(null, 'audio-cell')
 
 interface AudioCellProps {
-  assetUid: string;
-  xpath: string;
+  assetUid: string
+  xpath: string
   /* submissionEditId is meta/rootUuid || _uuid */
-  submissionEditId: string;
+  submissionEditId: string
   /** Required by the mini player. String passed is an error message */
-  mediaAttachment: SubmissionAttachment | string;
+  mediaAttachment: SubmissionAttachment | string
 }
 
 /**
@@ -32,20 +32,11 @@ export default function AudioCell(props: AudioCellProps) {
         </span>
       )}
 
-      {
-        typeof props.mediaAttachment === 'object' &&
+      {typeof props.mediaAttachment === 'object' &&
         props.mediaAttachment?.download_url &&
-        !props.mediaAttachment?.is_deleted &&
-      (
-        <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
-      )}
+        !props.mediaAttachment?.is_deleted && <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />}
 
-      {
-        typeof props.mediaAttachment === 'object' &&
-        props.mediaAttachment?.is_deleted &&
-      (
-        <DeletedAttachment />
-      )}
+      {typeof props.mediaAttachment === 'object' && props.mediaAttachment?.is_deleted && <DeletedAttachment />}
 
       <Button
         type='primary'
@@ -54,9 +45,9 @@ export default function AudioCell(props: AudioCellProps) {
         label={t('Open')}
         isDisabled={typeof props.mediaAttachment === 'string'}
         onClick={() => {
-          goToProcessing(props.assetUid, props.xpath, props.submissionEditId);
+          goToProcessing(props.assetUid, props.xpath, props.submissionEditId)
         }}
       />
     </bem.AudioCell>
-  );
+  )
 }

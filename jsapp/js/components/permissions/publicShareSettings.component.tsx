@@ -1,83 +1,63 @@
-import React from 'react';
-import Checkbox from 'js/components/common/checkbox';
-import TextBox from 'js/components/common/textBox';
-import {actions} from 'js/actions';
-import bem from 'js/bem';
-import permConfig from './permConfig';
-import {ANON_USERNAME_URL} from 'js/users/utils';
-import {ROOT_URL} from 'js/constants';
-import type {PermissionCodename} from './permConstants';
-import type {PermissionResponse} from 'jsapp/js/dataInterface';
-import envStore from 'js/envStore';
-import AnonymousSubmission from '../anonymousSubmission.component';
-import NewFeatureDialog from 'js/components/newFeatureDialog.component';
+import React from 'react'
+import Checkbox from 'js/components/common/checkbox'
+import TextBox from 'js/components/common/textBox'
+import { actions } from 'js/actions'
+import bem from 'js/bem'
+import permConfig from './permConfig'
+import { ANON_USERNAME_URL } from 'js/users/utils'
+import { ROOT_URL } from 'js/constants'
+import type { PermissionCodename } from './permConstants'
+import type { PermissionResponse } from 'jsapp/js/dataInterface'
+import envStore from 'js/envStore'
+import AnonymousSubmission from '../anonymousSubmission.component'
+import NewFeatureDialog from 'js/components/newFeatureDialog.component'
 
-const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html';
+const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html'
 
 interface PublicShareSettingsProps {
-  publicPerms: PermissionResponse[];
-  assetUid: string;
-  deploymentActive: boolean;
-  userCanShare: boolean;
+  publicPerms: PermissionResponse[]
+  assetUid: string
+  deploymentActive: boolean
+  userCanShare: boolean
 }
 
 class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
   togglePerms(permCodename: PermissionCodename) {
     const permission = this.props.publicPerms.filter(
-      (perm) =>
-        perm.permission ===
-        permConfig.getPermissionByCodename(permCodename)?.url
-    )[0];
+      (perm) => perm.permission === permConfig.getPermissionByCodename(permCodename)?.url,
+    )[0]
     if (permission) {
-      actions.permissions.removeAssetPermission(
-        this.props.assetUid,
-        permission.url
-      );
+      actions.permissions.removeAssetPermission(this.props.assetUid, permission.url)
     } else {
       actions.permissions.assignAssetPermission(this.props.assetUid, {
         user: ANON_USERNAME_URL,
         permission: permConfig.getPermissionByCodename(permCodename)?.url,
-      });
+      })
     }
   }
 
   render() {
-    const uid = this.props.assetUid;
-    const url = `${ROOT_URL}/#/forms/${uid}`;
+    const uid = this.props.assetUid
+    const url = `${ROOT_URL}/#/forms/${uid}`
 
-    const anonCanViewPermUrl =
-      permConfig.getPermissionByCodename('view_asset')?.url;
-    const anonCanAddPermUrl =
-      permConfig.getPermissionByCodename('add_submissions')?.url;
-    const anonCanViewDataPermUrl =
-      permConfig.getPermissionByCodename('view_submissions')?.url;
+    const anonCanViewPermUrl = permConfig.getPermissionByCodename('view_asset')?.url
+    const anonCanAddPermUrl = permConfig.getPermissionByCodename('add_submissions')?.url
+    const anonCanViewDataPermUrl = permConfig.getPermissionByCodename('view_submissions')?.url
 
-    const anonCanView = Boolean(
-      this.props.publicPerms.filter(
-        (perm) => perm.permission === anonCanViewPermUrl
-      )[0]
-    );
+    const anonCanView = Boolean(this.props.publicPerms.filter((perm) => perm.permission === anonCanViewPermUrl)[0])
     const anonCanViewData = Boolean(
-      this.props.publicPerms.filter(
-        (perm) => perm.permission === anonCanViewDataPermUrl
-      )[0]
-    );
-    const anonCanAddData = Boolean(
-      this.props.publicPerms.filter(
-        (perm) => perm.permission === anonCanAddPermUrl
-      )[0]
-    );
+      this.props.publicPerms.filter((perm) => perm.permission === anonCanViewDataPermUrl)[0],
+    )
+    const anonCanAddData = Boolean(this.props.publicPerms.filter((perm) => perm.permission === anonCanAddPermUrl)[0])
 
     return (
       <bem.FormModal__item m='permissions'>
         <bem.FormModal__item m='anonymous-submissions'>
           <NewFeatureDialog
             content={t(
-              'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.'
+              'You can now control whether to allow anonymous submissions for each project. Previously, this was an account-wide setting.',
             )}
-            supportArticle={
-              envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-            }
+            supportArticle={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
             featureKey='anonymousSubmissions'
             pointerClass='anonymousSubmissionPointer'
             dialogClass='anonymousSubmissionDialog'
@@ -90,9 +70,7 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           </NewFeatureDialog>
         </bem.FormModal__item>
 
-        <bem.FormModal__item m='permissions-header'>
-          {t('Share publicly by link')}
-        </bem.FormModal__item>
+        <bem.FormModal__item m='permissions-header'>{t('Share publicly by link')}</bem.FormModal__item>
 
         <bem.FormModal__item>
           <Checkbox
@@ -114,17 +92,10 @@ class PublicShareSettings extends React.Component<PublicShareSettingsProps> {
           </bem.FormModal__item>
         )}
 
-        {anonCanView && (
-          <TextBox
-            label={t('Shareable link')}
-            type='text'
-            readOnly
-            value={url}
-          />
-        )}
+        {anonCanView && <TextBox label={t('Shareable link')} type='text' readOnly value={url} />}
       </bem.FormModal__item>
-    );
+    )
   }
 }
 
-export default PublicShareSettings;
+export default PublicShareSettings
