@@ -655,6 +655,16 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
             status_code=status.HTTP_400_BAD_REQUEST
         )
 
+        # Ensure that a new invitation is not sent if the user is already
+        # explicitly added to the organization
+        response = self.client.post(self.list_url, data={'invitees': ['alice']})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertContains(
+            response,
+            'User is already a member of this organization.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
     def test_admin_can_reinvite_accepted_email(self):
         """
         Ensure that an admin can send a new invitation to an email address
@@ -699,6 +709,13 @@ class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
         self.client.force_login(self.owner_user)
         response = self.client.post(
             self.list_url, data={'invitees': [email_invitee]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Ensure that the new invitation is sent to the same email address if
+        # the user is explicitly added to the organization
+        response = self.client.post(
+            self.list_url, data={'invitees': ['alice@alice.com']}
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
