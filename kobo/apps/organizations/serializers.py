@@ -406,7 +406,12 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             existing_invites = OrganizationInvitation.objects.filter(
                 Q(invitee__username=invitee) | Q(invitee_identifier=invitee),
                 organization=self.context['request'].user.organization
-            ).exclude(status__in=['declined', 'expired']).annotate(
+            ).exclude(
+                status__in=[
+                    OrganizationInviteStatusChoices.DECLINED,
+                    OrganizationInviteStatusChoices.EXPIRED
+                ]
+            ).annotate(
                 is_accepted=Case(
                     When(status='accepted', then=Value(True)),
                     default=Value(False),
