@@ -13,6 +13,7 @@ export const ModalThemeKobo = Modal.extend({
       zIndex: 3000,
     },
     zIndex: 4000,
+    padding: 'lg',
   },
   classNames: classes,
 })

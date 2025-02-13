@@ -520,8 +520,6 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                         retry_after=remaining_seconds,
                     )
 
-                value = OrganizationInviteStatusChoices.PENDING
-
         return value
 
     def update(self, instance, validated_data):
@@ -559,15 +557,21 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 raise NotFound({'detail': t(INVITE_NOT_FOUND_ERROR)})
 
     def _handle_status_update(self, instance, status):
-        instance.status = OrganizationInviteStatusChoices[status.upper()]
+        if status == OrganizationInviteStatusChoices.RESENT:
+            instance.status = OrganizationInviteStatusChoices.PENDING
+        else:
+            instance.status = OrganizationInviteStatusChoices[status.upper()]
         instance.save(update_fields=['status', 'modified'])
         self._send_status_email(instance, status)
 
     def _send_status_email(self, instance, status):
         status_map = {
-            'accepted': instance.send_acceptance_email,
-            'declined': instance.send_refusal_email,
-            'resent': instance.send_invite_email
+            OrganizationInviteStatusChoices.ACCEPTED:
+                instance.send_acceptance_email,
+            OrganizationInviteStatusChoices.DECLINED:
+                instance.send_refusal_email,
+            OrganizationInviteStatusChoices.RESENT:
+                instance.send_invite_email,
         }
 
         email_func = status_map.get(status)

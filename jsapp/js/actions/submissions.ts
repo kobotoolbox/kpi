@@ -4,7 +4,7 @@
 
 import Reflux from 'reflux'
 import { dataInterface } from 'js/dataInterface'
-import { notify } from 'js/utils'
+import { notify, matchUuid, addDefaultUuidPrefix } from 'js/utils'
 import { ROOT_URL } from 'js/constants'
 import type {
   GetSubmissionsOptions,
@@ -74,7 +74,7 @@ submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid:
   // `_uuid` is the legacy identifier that changes (per OpenRosa spec) after every edit;
   // `meta/rootUuid` remains consistent across edits.
   const query = JSON.stringify({
-    $or: [{ 'meta/rootUuid': submissionUuid }, { _uuid: submissionUuid }],
+    $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionUuid) }, { _uuid: submissionUuid }],
   })
   $.ajax({
     dataType: 'json',
@@ -84,7 +84,7 @@ submissionsActions.getSubmissionByUuid.listen((assetUid: string, submissionUuid:
     .done((response: PaginatedResponse<SubmissionResponse>) => {
       // preferentially return a result matching the persistent UUID
       submissionsActions.getSubmissionByUuid.completed(
-        response.results.find((sub) => sub['meta/rootUuid'] === submissionUuid) || response.results[0],
+        response.results.find((sub) => matchUuid(sub['meta/rootUuid'], submissionUuid)) || response.results[0],
       )
     })
     .fail(submissionsActions.getSubmissionByUuid.failed)

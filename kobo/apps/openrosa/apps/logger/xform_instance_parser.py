@@ -18,12 +18,18 @@ from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
 from kpi.utils.log import logging
 
 
+def add_uuid_prefix(uuid_: str) -> str:
+    if ':' in uuid_:
+        return uuid_
+    return f'uuid:{uuid_}'
+
+
 def get_meta_node_from_xml(
     xml_str: str, meta_name: str
 ) -> Union[None, tuple[str, minidom.Document]]:
     xml = clean_and_parse_xml(xml_str)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
@@ -58,37 +64,27 @@ def get_meta_from_xml(xml_str: str, meta_name: str) -> str:
 
 def get_uuid_from_xml(xml):
 
-    def _uuid_only(uuid):
-        """
-        Strips the 'uuid:' prefix from the provided identifier if it exists.
-        This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
-        while ensuring only the 'uuid:' prefix is removed. This approach
-        adheres to the OpenRosa spec, allowing custom prefixes to be stored
-        intact in the database to prevent potential ID collisions.
-        """
-        return re.sub(r'^uuid:', '', uuid)
-
     uuid = get_meta_from_xml(xml, 'instanceID')
     if uuid:
-        return _uuid_only(uuid)
+        return remove_uuid_prefix(uuid)
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
     uuid = survey_node.getAttribute('instanceID')
     if uuid != '':
-        return _uuid_only(uuid)
+        return remove_uuid_prefix(uuid)
     return None
 
 
 def get_root_uuid_from_xml(xml):
     root_uuid = get_meta_from_xml(xml, 'rootUuid')
     if root_uuid:
-        return root_uuid
+        return remove_uuid_prefix(root_uuid)
 
     # If no rootUuid, fall back to instanceID
     return get_uuid_from_xml(xml)
@@ -98,7 +94,7 @@ def get_submission_date_from_xml(xml) -> Optional[datetime]:
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
@@ -139,6 +135,17 @@ def set_meta(xml_str: str, meta_name: str, new_value: str) -> str:
     xml_output = root.toprettyxml(indent='  ')
     xml_output = xml_output.replace('<?xml version="1.0" ?>', '').strip()
     return xml_output
+
+
+def remove_uuid_prefix(uuid_: str) -> str:
+    """
+    Strips the 'uuid:' prefix from the provided identifier if it exists.
+    This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
+    while ensuring only the 'uuid:' prefix is removed. This approach
+    adheres to the OpenRosa spec, allowing custom prefixes to be stored
+    intact in the database to prevent potential ID collisions.
+    """
+    return re.sub(r'^uuid:', '', uuid_)
 
 
 def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:
@@ -348,9 +355,11 @@ class XFormInstanceParser:
             try:
                 assert key not in self._attributes
             except AssertionError:
-                logging.debug(
-                    f'Skipping duplicate attribute: {key} with value {value}'
-                )
+                pass
+                # Lines commented below to avoid flooding dev console
+                # logging.debug(
+                #     f'Skipping duplicate attribute: {key} with value {value}'
+                # )
             else:
                 self._attributes[key] = value
 

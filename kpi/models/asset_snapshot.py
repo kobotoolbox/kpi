@@ -7,7 +7,7 @@ from django.db import models
 from formpack import FormPack
 from rest_framework.reverse import reverse
 
-
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.mixins import (
@@ -62,8 +62,7 @@ class AssetSnapshot(
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey('Asset', null=True, on_delete=models.CASCADE)
-    # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
-    submission_uuid = models.CharField(null=True, max_length=41)
+    submission_uuid = models.CharField(null=True, max_length=249)
     _reversion_version_id = models.IntegerField(null=True)
     asset_version = models.ForeignKey(
         'AssetVersion', on_delete=models.CASCADE, null=True
@@ -157,15 +156,16 @@ class AssetSnapshot(
         )
         if self.submission_uuid:
             _xml = self.xml
-            rootUuid = self.submission_uuid.replace('uuid:', '')
+            rootUuid = add_uuid_prefix(self.submission_uuid)
             # this code would fit best within "generate_xml_from_source" method, where
             # additional XForm attributes are passed to formpack / pyxform at generation,
             # but the equivalent change can be done with string replacement
-            instance_id_path = f'/{id_string}/meta/instanceID'
             after_instanceid = '<rootUuid/>'
-            before_modelclose = '<bind calculate="\'' + rootUuid + '\'" ' + \
-                f'nodeset="/{id_string}/meta/rootUuid" ' + \
+            before_modelclose = (
+                f'<bind calculate="\'{rootUuid}\'" '
+                f'nodeset="/{id_string}/meta/rootUuid" '
                 'required="true()" type="string"/>'
+            )
 
             _xml = _xml.replace('<instanceID/>', f'<instanceID/>\n{after_instanceid}')
             _xml = _xml.replace('</model>', f'{before_modelclose}\n</model>')
@@ -174,12 +174,14 @@ class AssetSnapshot(
         self.source = _source
         return super().save(*args, **kwargs)
 
-    def generate_xml_from_source(self,
-                                 source,
-                                 include_note=False,
-                                 root_node_name=None,
-                                 form_title=None,
-                                 id_string=None):
+    def generate_xml_from_source(
+        self,
+        source,
+        include_note=False,
+        root_node_name=None,
+        form_title=None,
+        id_string=None,
+    ):
 
         if not root_node_name:
             if self.asset and self.asset.uid:
@@ -216,10 +218,12 @@ class AssetSnapshot(
         details = {}
 
         try:
-            xml = FormPack({'content': source_copy},
-                            root_node_name=root_node_name,
-                            id_string=id_string,
-                            title=form_title)[0].to_xml(warnings=warnings)
+            xml = FormPack(
+                {'content': source_copy},
+                root_node_name=root_node_name,
+                id_string=id_string,
+                title=form_title,
+            )[0].to_xml(warnings=warnings)
 
             details.update({
                 'status': 'success',

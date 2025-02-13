@@ -455,6 +455,7 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
     >        enable-sharing
     >        export
     >        modify-imported-fields
+    >        modify-qa-data
     >        modify-service
     >        modify-sharing
     >        modify-submission
@@ -534,6 +535,10 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
         a. metadata__paired-data__source_uid
 
         b. metadata__paired-data__source_name
+
+    * modify-qa-data
+
+        a. metadata__submission__submitted_by
 
     * modify-service
 

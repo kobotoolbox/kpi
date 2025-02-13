@@ -3,8 +3,8 @@ import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
-import type { FailResponse } from 'jsapp/js/dataInterface'
-import type { OrganizationMember } from './membersQuery'
+import type { FailResponse, PaginatedResponse } from 'jsapp/js/dataInterface'
+import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
 import type { Json } from 'jsapp/js/components/common/common.interfaces'
 
 /*
@@ -29,11 +29,8 @@ import type { Json } from 'jsapp/js/components/common/common.interfaces'
 export enum MemberInviteStatus {
   accepted = 'accepted',
   cancelled = 'cancelled',
-  complete = 'complete',
   declined = 'declined',
   expired = 'expired',
-  failed = 'failed',
-  in_progress = 'in_progress',
   pending = 'pending',
   resent = 'resent',
 }
@@ -43,6 +40,7 @@ export interface MemberInvite {
   url: string
   /** Url of a user that have sent the invite. */
   invited_by: string
+  organization_name: string
   status: MemberInviteStatus
   /** Username of user being invited. */
   invitee: string
@@ -61,10 +59,8 @@ interface MemberInviteRequestBase {
 interface SendMemberInviteParams extends MemberInviteRequestBase {
   /** List of usernames. */
   invitees: string[]
-}
-
-interface MemberInviteUpdate extends MemberInviteRequestBase {
-  status: MemberInviteStatus
+  /** Target role for the invitied users. */
+  role: OrganizationUserRole
 }
 
 interface MemberInviteUpdate extends MemberInviteRequestBase {
@@ -80,11 +76,9 @@ export function useSendMemberInvite() {
   const queryClient = useQueryClient()
   const orgQuery = useOrganizationQuery()
   const orgId = orgQuery.data?.id
+  const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
   return useMutation({
-    mutationFn: async (payload: SendMemberInviteParams & Json) => {
-      const apiPath = endpoints.ORG_MEMBER_INVITES_URL.replace(':organization_id', orgId!)
-      return fetchPost<OrganizationMember>(apiPath, payload)
-    },
+    mutationFn: async (payload: SendMemberInviteParams & Json) => fetchPost<OrganizationMember>(apiPath, payload),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.organizationMembers] })
     },
@@ -130,10 +124,27 @@ export function usePatchMemberInvite(inviteUrl?: string) {
   return useMutation({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return fetchPatchUrl<OrganizationMember>(inviteUrl, newInviteData, {
+        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, {
           errorMessageDisplay: t('There was an error updating this invitation.'),
         })
       } else return null
+    },
+    onMutate: async (mutationData) => {
+      if (mutationData.role) {
+        const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
+        const query = qData.find((q) =>
+          (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl),
+        )
+
+        if (!query) return
+
+        const queryKey = query[0]
+        const queryData = query[1]
+        const item = (queryData as any).results.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl)
+
+        item.invite.invitee_role = mutationData.role
+        queryClient.setQueryData(queryKey, queryData)
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -141,6 +152,9 @@ export function usePatchMemberInvite(inviteUrl?: string) {
       })
       queryClient.invalidateQueries({
         queryKey: [QueryKeys.organizationMembers],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.organizationMemberDetail],
       })
     },
   })

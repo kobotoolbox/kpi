@@ -132,6 +132,7 @@ export interface FailResponse {
   responseText?: string
   status: number
   statusText: string
+  headers?: Headers
 }
 
 /** Have a list of errors for different fields. */
@@ -215,6 +216,7 @@ export interface SubmissionResponse {
   end?: string
   'formhub/uuid': string
   'meta/instanceID': string
+  'meta/rootUuid': string
   phonenumber?: string
   start?: string
   today?: string

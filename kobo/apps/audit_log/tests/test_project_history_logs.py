@@ -1795,3 +1795,38 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ).first()
         self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)
+
+    @data(
+        # Submit as anonymous?, expected username
+        (True, 'AnonymousUser'),
+        (False, 'adminuser'),
+    )
+    @unpack
+    def test_update_qa_data(self, is_anonymous, expected_username):
+        self._add_submission('adminuser' if not is_anonymous else None)
+        submissions_json = self.asset.deployment.get_submissions(
+            self.asset.owner, fields=['_uuid']
+        )
+        submission_uuid = submissions_json[0]['_uuid']
+        log_metadata = self._base_project_history_log_test(
+            method=self.client.post,
+            url=reverse(
+                'advanced-submission-post',
+                kwargs={'asset_uid': self.asset.uid},
+            ),
+            request_data={
+                'submission': submission_uuid,
+                'q1': {
+                    'qual': [
+                        {
+                            'type': 'qual_text',
+                            'uuid': '12345',
+                            'val': 'someval',
+                        }
+                    ]
+                },
+            },
+            expected_action=AuditAction.MODIFY_QA_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(log_metadata['submission']['submitted_by'], expected_username)
