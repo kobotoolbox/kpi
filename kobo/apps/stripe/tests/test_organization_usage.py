@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from dateutil.relativedelta import relativedelta
-from ddt import data, ddt
+from ddt import data, ddt, unpack
 from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
@@ -157,7 +157,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
             self.expected_file_size() * self.expected_submissions_multi
         )
 
-
+@ddt
 class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     org_id = 'orgAKWMFskafsngf'
 
@@ -278,6 +278,11 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         )
 
     def test_plan_canceled_last_month(self):
+        """
+        Validate that the service usage behaviour one month after plan
+        cancellation follows the same logic as `test_plan_canceled_this_month`.
+        """
+
         subscription = generate_plan_subscription(self.organization, age_days=60)
 
         num_submissions = 5
@@ -338,6 +343,72 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert current_period_start.day == cancel_date.day
         assert current_period_end.month == 9
         assert current_period_end.day == 30
+
+    @data(
+        ('2024-11-15', '2024-10-31', '2024-11-30'),
+        ('2024-12-15', '2024-11-30', '2024-12-31'),
+        ('2025-01-15', '2024-12-31', '2025-01-31'),
+        ('2025-02-15', '2025-01-31', '2025-02-28'),
+        ('2025-03-15', '2025-02-28', '2025-03-31'),
+        ('2025-04-15', '2025-03-31', '2025-04-30'),
+        ('2025-05-15', '2025-04-30', '2025-05-31'),
+        ('2025-06-15', '2025-05-31', '2025-06-30'),
+        ('2025-07-15', '2025-06-30', '2025-07-31'),
+        ('2025-08-15', '2025-07-31', '2025-08-31'),
+        ('2025-09-15', '2025-08-31', '2025-09-30'),
+        ('2025-10-15', '2025-09-30', '2025-10-31'),
+        ('2025-11-15', '2025-10-31', '2025-11-30'),
+        ('2028-02-15', '2028-01-31', '2028-02-29'),
+        ('2028-03-15', '2028-02-29', '2028-03-31'),
+    )
+    @unpack
+    def test_billing_cycle_looks_like_stripe_after_plan_cancellation(
+        self, fake_now_str, expected_period_start_str, expected_period_end_str
+    ):
+        """
+        Verify that the billing cycle of users who cancelled their plan at the end of
+        the month matches Stripe's billing cycle behaviour.
+
+        According to Stripe:
+        > A monthly subscription with a billing cycle anchor date of January 31
+        > bills the last day of the month closest to the anchor date, so February 28
+        > (or February 29 in a leap year), then March 31, April 30, and so on.
+        """
+
+        # Fake subscription on Oct 1, 2024
+        frozen_subscribe_date = datetime(
+            year=2024,
+            month=10,
+            day=1,
+            tzinfo=ZoneInfo('UTC'),
+        )
+        cancel_date = frozen_subscribe_date.replace(day=31)
+
+        with freeze_time(frozen_subscribe_date):
+            subscription = generate_plan_subscription(self.organization)
+
+        # Cancel subscription on Oct 31, 2024
+        subscription.status = 'canceled'
+        subscription.ended_at = cancel_date
+        subscription.save()
+
+        fake_now = datetime.fromisoformat(fake_now_str)
+        with freeze_time(fake_now):
+            response = self.client.get(self.detail_url)
+
+        current_period_start = datetime.fromisoformat(
+            response.data['current_period_start']
+        )
+        expected_period_start = datetime.fromisoformat(
+            expected_period_start_str
+        ).replace(tzinfo=ZoneInfo('UTC'))
+        current_period_end = datetime.fromisoformat(response.data['current_period_end'])
+        expected_period_end = datetime.fromisoformat(
+            expected_period_end_str
+        ).replace(tzinfo=ZoneInfo('UTC'))
+
+        assert current_period_start == expected_period_start
+        assert current_period_end == expected_period_end
 
     def test_multiple_canceled_plans(self):
         """
