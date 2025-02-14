@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import BooleanField, Case, Value, When, Q
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from rest_framework import serializers
@@ -396,57 +395,23 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
         valid_users, valid_emails = [], []
         organization = self.context['request'].user.organization
         for invitee in value:
-            is_email = False
-            try:
-                validate_email(invitee)
-                is_email = True
-            except ValidationError:
-                pass
+            is_email = self._is_valid_email(invitee)
 
             # Check if the invitee is already invited and has not responded yet
-            existing_invites = OrganizationInvitation.objects.filter(
-                Q(invitee__username=invitee) | Q(invitee_identifier=invitee),
-                organization=organization
-            ).exclude(
-                status__in=[
-                    OrganizationInviteStatusChoices.DECLINED,
-                    OrganizationInviteStatusChoices.EXPIRED,
-                    OrganizationInviteStatusChoices.ACCEPTED
-                ]
+            search_filter = (
+                {'invitee_identifier': invitee}
+                if is_email
+                else {'invitee__username': invitee}
             )
-            if existing_invites:
-                raise serializers.ValidationError(
-                    replace_placeholders(
-                        t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee
-                    )
-                )
-
-            # Get the user object if the invitee is a registered user
-            user_filter = (
-                {'email': invitee} if is_email else {'username': invitee}
-            )
-            user = User.objects.filter(**user_filter, is_active=True)
+            self._check_existing_invites(organization, search_filter, invitee)
 
             if is_email:
                 # Allow multiple invitations for shared email or external users
                 valid_emails.append(invitee)
-            elif user.exists():
-                # Check if the invitee is already added to the organization
-                if OrganizationUser.objects.filter(
-                    organization=organization, user=user.first()
-                ).exists():
-                    raise serializers.ValidationError(
-                        replace_placeholders(
-                            t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee
-                        )
-                    )
-                valid_users.append(user.first())
             else:
-                raise serializers.ValidationError(
-                    replace_placeholders(
-                        t(USER_DOES_NOT_EXIST_ERROR), invitee=invitee
-                    )
-                )
+                user = self._get_valid_user(invitee)
+                self._check_existing_member(organization, user, invitee)
+                valid_users.append(user)
         return {'users': valid_users, 'emails': valid_emails}
 
     def validate_role(self, value):
@@ -539,6 +504,47 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
                 self._handle_status_update(instance, status)
         return instance
 
+    def _check_existing_member(self, organization, user, invitee):
+        """
+        Raise an error if the user is already a member of the organization
+        """
+        if OrganizationUser.objects.filter(
+            organization=organization, user=user
+        ).exists():
+            raise serializers.ValidationError(
+                replace_placeholders(
+                    t(INVITEE_ALREADY_MEMBER_ERROR), invitee=invitee
+                )
+            )
+
+    def _check_existing_invites(self, organization, search_filter, invitee):
+        """
+        Raise an error if an active invitation already exists
+        """
+        if OrganizationInvitation.objects.filter(
+            **search_filter,
+            organization=organization,
+            status=OrganizationInviteStatusChoices.PENDING
+        ).exists():
+            raise serializers.ValidationError(
+                replace_placeholders(
+                    t(INVITE_ALREADY_EXISTS_ERROR), invitee=invitee
+                )
+            )
+
+    def _get_valid_user(self, username):
+        """
+        Fetch a valid user by username, ensuring they exist and are active
+        """
+        user = User.objects.filter(username=username, is_active=True).first()
+        if not user:
+            raise serializers.ValidationError(
+                replace_placeholders(
+                    t(USER_DOES_NOT_EXIST_ERROR), invitee=username
+                )
+            )
+        return user
+
     def _handle_invitee_assignment(self, instance):
         """
         Assigns the invitee to the invite after the external user registers
@@ -559,6 +565,16 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
             instance.status = OrganizationInviteStatusChoices[status.upper()]
         instance.save(update_fields=['status', 'modified'])
         self._send_status_email(instance, status)
+
+    def _is_valid_email(self, invitee):
+        """
+        Check if invitee is a valid email
+        """
+        try:
+            validate_email(invitee)
+            return True
+        except ValidationError:
+            return False
 
     def _send_status_email(self, instance, status):
         status_map = {

@@ -254,6 +254,13 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
                 OrganizationInviteStatusChoices.CANCELLED,
             )
 
+            # Ensure the admin can re-invite the same user after canceling
+            self.client.force_login(self.owner_user)
+            response = self.client.post(
+                self.list_url, data={'invitees': ['bob']}
+            )
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     def test_list_invitations(self):
         """
         Test listing of invitations by the organization owner
@@ -324,6 +331,11 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         bob_asset = Asset.objects.get(uid=create_asset_response.data['uid'])
         self.assertEqual(bob_asset.owner, self.external_user)
         self.assertEqual(mail.outbox[2].to[0], invitation.invited_by.email)
+
+        # Ensure the admin can re-invite the same user after declining
+        self.client.force_login(self.owner_user)
+        response = self.client.post(self.list_url, data={'invitees': ['bob']})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_unregistered_user_can_accept_invitation(self):
         """
@@ -468,6 +480,16 @@ class OrganizationInviteTestCase(BaseOrganizationInviteTestCase):
         self.assertEqual(
             mail.outbox[0].subject, 'Organization invite has expired'
         )
+
+    @override_config(ORGANIZATION_INVITE_EXPIRY=0)
+    def test_admin_can_reinvite_user_after_expired_invitation(self):
+        """
+        Test that an admin can re-invite a user after expiration
+        """
+        self._create_invite(self.owner_user)
+        mark_organization_invite_as_expired()
+        response = self.client.post(self.list_url, data={'invitees': ['bob']})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
 class OrganizationInviteValidationTestCase(BaseOrganizationInviteTestCase):
