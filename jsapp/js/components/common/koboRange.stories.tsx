@@ -1,6 +1,6 @@
-import React from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import KoboRange, {KoboRangeColors} from 'js/components/common/koboRange';
+import React from 'react'
+import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import KoboRange, { KoboRangeColors } from 'js/components/common/koboRange'
 
 export default {
   title: 'common/KoboRange',
@@ -8,16 +8,14 @@ export default {
   argTypes: {
     color: {
       options: KoboRangeColors,
-      control: {type: 'select'},
+      control: { type: 'select' },
     },
   },
-} as ComponentMeta<typeof KoboRange>;
+} as ComponentMeta<typeof KoboRange>
 
-const Template: ComponentStory<typeof KoboRange> = (args) => (
-  <KoboRange {...args} />
-);
+const Template: ComponentStory<typeof KoboRange> = (args) => <KoboRange {...args} />
 
-export const Primary = Template.bind({});
+export const Primary = Template.bind({})
 Primary.args = {
   color: KoboRangeColors.default,
   totalLabel: '',
@@ -25,5 +23,5 @@ Primary.args = {
   max: 10,
   value: 4,
   isTime: false,
-  isDisabled: false
-};
+  isDisabled: false,
+}

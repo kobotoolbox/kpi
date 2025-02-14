@@ -1,9 +1,5 @@
 {
-  "testFiles": [
-    "project.spec.js",
-    "question.spec.js",
-    "delete.spec.js"
-  ],
+  "testFiles": ["project.spec.js", "question.spec.js", "delete.spec.js"],
   "viewportWidth": 1440,
   "viewportHeight": 900
 }

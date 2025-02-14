@@ -1,6 +1,6 @@
-import React from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import MultiCheckbox from './multiCheckbox';
+import React from 'react'
+import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import MultiCheckbox from './multiCheckbox'
 
 const RANDOM_LABELS = [
   'I suspect my neighbour is a reptilian',
@@ -16,12 +16,14 @@ const RANDOM_LABELS = [
   "No, I don't want your newsletter",
   'Is this it?',
   'Foo bar fum baz',
-];
+]
 
-const getRandomItem = () => ({
-  label: RANDOM_LABELS[Math.floor(Math.random() * RANDOM_LABELS.length)],
-  checked: false,
-});
+const getRandomItem = () => {
+  return {
+    label: RANDOM_LABELS[Math.floor(Math.random() * RANDOM_LABELS.length)],
+    checked: false,
+  }
+}
 
 export default {
   title: 'common/MultiCheckbox',
@@ -30,17 +32,17 @@ export default {
   args: {
     allChecked: false,
     numberOfItems: 3,
-  }
-} as ComponentMeta<typeof MultiCheckbox>;
+  },
+} as ComponentMeta<typeof MultiCheckbox>
 
 const Template: ComponentStory<typeof MultiCheckbox> = (args: any) => {
-  const items = Array.from({length: args.numberOfItems}, () => getRandomItem());
+  const items = Array.from({ length: args.numberOfItems }, () => getRandomItem())
   if (args.allChecked) {
-    items.map((item => item.checked = true))
+    items.map((item) => (item.checked = true))
   }
-  return <MultiCheckbox {...args} items={items} />;
-};
-export const Primary = Template.bind({});
+  return <MultiCheckbox {...args} items={items} />
+}
+export const Primary = Template.bind({})
 Primary.args = {
   type: 'bare',
-};
+}

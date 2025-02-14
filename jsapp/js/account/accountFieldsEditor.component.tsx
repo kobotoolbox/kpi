@@ -1,33 +1,28 @@
-import React from 'react';
-import Checkbox from '../components/common/checkbox';
-import TextBox from '../components/common/textBox';
-import {addRequiredToLabel} from 'js/textUtils';
-import envStore from '../envStore';
-import styles from './accountFieldsEditor.module.scss';
-import cx from 'classnames';
-import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect';
-import type {
-  UserFieldName,
-  AccountFieldsValues,
-  AccountFieldsErrors,
-} from './account.constants';
-import {ORGANIZATION_TYPES, type OrganizationTypeName} from 'jsapp/js/account/organization/organizationQuery';
+import React from 'react'
+import Checkbox from '../components/common/checkbox'
+import TextBox from '../components/common/textBox'
+import { addRequiredToLabel } from 'js/textUtils'
+import envStore from '../envStore'
+import styles from './accountFieldsEditor.module.scss'
+import cx from 'classnames'
+import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect'
+import type { UserFieldName, AccountFieldsValues, AccountFieldsErrors } from './account.constants'
+import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'jsapp/js/account/organization/organizationQuery'
 
-const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES)
-  .map((typeName) => {
-    return {
-      value: typeName,
-      label: ORGANIZATION_TYPES[typeName as OrganizationTypeName].label,
-    };
-});
+const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES).map((typeName) => {
+  return {
+    value: typeName,
+    label: ORGANIZATION_TYPES[typeName as OrganizationTypeName].label,
+  }
+})
 
 const GENDER_SELECT_OPTIONS = [
-  {value: 'male', label: t('Male')},
-  {value: 'female', label: t('Female')},
-  {value: 'other', label: t('Other')},
-];
+  { value: 'male', label: t('Male') },
+  { value: 'female', label: t('Female') },
+  { value: 'other', label: t('Other') },
+]
 
-type UserFieldValue = string | boolean;
+type UserFieldValue = string | boolean
 
 interface AccountFieldsEditorProps {
   /**
@@ -35,15 +30,15 @@ interface AccountFieldsEditorProps {
    * the fields values will be returned with `onChange` callback (to avoid
    * losing data). If this is not provided, we display all fields :)
    */
-  displayedFields?: UserFieldName[];
+  displayedFields?: UserFieldName[]
   /** Errors to be displayed for fields */
-  errors?: AccountFieldsErrors;
+  errors?: AccountFieldsErrors
   /**
    * We need values for all fields, even if only few are displayed (via
    * `displayedFields` prop)
    */
-  values: AccountFieldsValues;
-  onFieldChange: (fieldName: UserFieldName, value: UserFieldValue) => void;
+  values: AccountFieldsValues
+  onFieldChange: (fieldName: UserFieldName, value: UserFieldValue) => void
 }
 
 /**
@@ -52,66 +47,64 @@ interface AccountFieldsEditorProps {
  */
 export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   if (!envStore.isReady) {
-    return null;
+    return null
   }
 
-  const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict();
+  const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict()
 
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    return (
-      metadata[fieldName]?.label ||
-      (console.error(`No label for fieldname "${fieldName}"`), fieldName)
-    );
+    return metadata[fieldName]?.label || (console.error(`No label for fieldname "${fieldName}"`), fieldName)
   }
 
   /** Is this label required? */
   function isRequired(fieldName: UserFieldName): boolean {
-    return metadata[fieldName]?.required || false;
+    return metadata[fieldName]?.required || false
   }
 
   /** Get label and (required) for a given user metadata fieldname */
   function getLabelWithRequired(fieldName: UserFieldName): string {
-    return addRequiredToLabel(getLabel(fieldName), isRequired(fieldName));
+    return addRequiredToLabel(getLabel(fieldName), isRequired(fieldName))
   }
 
   function isFieldRequired(fieldName: UserFieldName): boolean {
-    return metadata[fieldName]?.required || false;
+    return metadata[fieldName]?.required || false
   }
 
-  function onAnyFieldChange(
-    fieldName: UserFieldName,
-    newValue: UserFieldValue
-  ) {
-    props.onFieldChange(fieldName, newValue);
+  function onAnyFieldChange(fieldName: UserFieldName, newValue: UserFieldValue) {
+    props.onFieldChange(fieldName, newValue)
   }
 
   const cleanedUrl = (value: string) => {
     if (!value) {
-      return '';
+      return ''
     }
-    value = ('' + value).trim();
+    value = ('' + value).trim()
     if (!value.match(/.\../)) {
-      return value;
+      return value
     } // "dotless". don't change it
     if (!value.match(/^https?:\/?\/?.*/)) {
-      value = 'http://' + value; // add missing protocol
+      value = 'http://' + value // add missing protocol
     }
     // normalize '://' and trailing slash if URL is valid
-    try {value = new URL(value).toString();} catch (e) {/**/}
-    return value;
-  };
+    try {
+      value = new URL(value).toString()
+    } catch (e) {
+      /**/
+    }
+    return value
+  }
 
   function updateWebsiteAddress(input: string) {
-    const cleaned = cleanedUrl(input);
+    const cleaned = cleanedUrl(input)
     if (cleaned !== input) {
-      onAnyFieldChange('organization_website', cleaned);
+      onAnyFieldChange('organization_website', cleaned)
     }
   }
 
   function onWebsiteKeydown(event: string) {
     if (event === 'Enter') {
-      updateWebsiteAddress(props.values.organization_website);
+      updateWebsiteAddress(props.values.organization_website)
     }
   }
 
@@ -132,7 +125,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         // Check if parent code is limiting displayed fields to a selection, and
         // that selection includes the field
         props.displayedFields.includes(name))
-    );
+    )
   }
 
   /**
@@ -148,7 +141,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       (isFieldToBeDisplayed('organization_type') ||
         isFieldToBeDisplayed('organization') ||
         isFieldToBeDisplayed('organization_website'))
-    );
+    )
   }
 
   /**
@@ -156,10 +149,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    * by the value of 'organization_type' dropdown.
    */
   function areOrganizationFieldsToBeSkipped() {
-    return (
-      isOrganizationTypeFieldToBeDisplayed() &&
-      props.values.organization_type === 'none'
-    );
+    return isOrganizationTypeFieldToBeDisplayed() && props.values.organization_type === 'none'
   }
 
   /**
@@ -193,7 +183,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    * I may try the CSS solution.
    *   -ph
    */
-  let fieldCount = 0; // field counter to adjust wrapping with spacers
+  let fieldCount = 0 // field counter to adjust wrapping with spacers
 
   return (
     <div>
@@ -201,178 +191,168 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         {/* Full name */}
         {/* Comma operator evaluates left-to-right, returns rightmost operand.
             We increment fieldCount and ignore the result. */}
-        {isFieldToBeDisplayed('name') && (fieldCount++, (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('name')}
-              required={isRequired('name')}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
-              value={props.values.name}
-              errors={props.errors?.name}
-              placeholder={t(
-                'Use this to display your real name to other users'
-              )}
-              renderFocused
-            />
-          </div>
-        ))}
+        {isFieldToBeDisplayed('name') &&
+          (fieldCount++,
+          (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('name')}
+                required={isRequired('name')}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'name')}
+                value={props.values.name}
+                errors={props.errors?.name}
+                placeholder={t('Use this to display your real name to other users')}
+                renderFocused
+              />
+            </div>
+          ))}
 
         {/* Gender */}
-        {isFieldToBeDisplayed('gender') && (fieldCount++, (
-          <div className={styles.field}>
-            <KoboAccessibleSelect
-              label={getLabel('gender')}
-              required={isRequired('gender')}
-              name='gender'
-              // type='outline'
-              // size='l'
-              isClearable={!isFieldRequired('gender')}
-              // selectedOption={props.values.gender}
-              value={props.values.gender}
-              onChange={(value: string | null) =>
-                onAnyFieldChange('gender', value || '')
-              }
-              options={GENDER_SELECT_OPTIONS}
-              error={props.errors?.gender}
-            />
-          </div>
-        ))}
-
+        {isFieldToBeDisplayed('gender') &&
+          (fieldCount++,
+          (
+            <div className={styles.field}>
+              <KoboAccessibleSelect
+                label={getLabel('gender')}
+                required={isRequired('gender')}
+                name='gender'
+                // type='outline'
+                // size='l'
+                isClearable={!isFieldRequired('gender')}
+                // selectedOption={props.values.gender}
+                value={props.values.gender}
+                onChange={(value: string | null) => onAnyFieldChange('gender', value || '')}
+                options={GENDER_SELECT_OPTIONS}
+                error={props.errors?.gender}
+              />
+            </div>
+          ))}
 
         {/*
           Start a new row for country and city if both are present.
           Insert a spacer if the preceding number of rows is odd.
         */}
-        {!!(fieldCount % 2) &&
-          isFieldToBeDisplayed('country') &&
-          isFieldToBeDisplayed('city') &&
-          fieldCount++ && <div className={styles.field} />}
+        {!!(fieldCount % 2) && isFieldToBeDisplayed('country') && isFieldToBeDisplayed('city') && fieldCount++ && (
+          <div className={styles.field} />
+        )}
 
         {/* Country */}
-        {isFieldToBeDisplayed('country') && (fieldCount++, (
-          <div className={styles.field}>
-            <KoboAccessibleSelect
-              label={getLabel('country')}
-              required={isRequired('country')}
-              name='country'
-              // type='outline'
-              // size='l'
-              isClearable={!isFieldRequired('country')}
-              // isSearchable
-              value={props.values.country}
-              onChange={(value: string | null) =>
-                onAnyFieldChange('country', value || '')
-              }
-              options={envStore.data.country_choices}
-              error={props.errors?.country}
-            />
-          </div>
-        ))}
+        {isFieldToBeDisplayed('country') &&
+          (fieldCount++,
+          (
+            <div className={styles.field}>
+              <KoboAccessibleSelect
+                label={getLabel('country')}
+                required={isRequired('country')}
+                name='country'
+                // type='outline'
+                // size='l'
+                isClearable={!isFieldRequired('country')}
+                // isSearchable
+                value={props.values.country}
+                onChange={(value: string | null) => onAnyFieldChange('country', value || '')}
+                options={envStore.data.country_choices}
+                error={props.errors?.country}
+              />
+            </div>
+          ))}
 
         {/* City */}
-        {isFieldToBeDisplayed('city') && (fieldCount++, (
-          <div className={styles.field}>
-            <TextBox
-              label={getLabel('city')}
-              required={isRequired('city')}
-              value={props.values.city}
-              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
-              errors={props.errors?.city}
-            />
-          </div>
-        ))}
+        {isFieldToBeDisplayed('city') &&
+          (fieldCount++,
+          (
+            <div className={styles.field}>
+              <TextBox
+                label={getLabel('city')}
+                required={isRequired('city')}
+                value={props.values.city}
+                onChange={onAnyFieldChange.bind(onAnyFieldChange, 'city')}
+                errors={props.errors?.city}
+              />
+            </div>
+          ))}
         {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') && (fieldCount++, (
-          <div className={styles.field}>
-            <KoboAccessibleSelect
-              label={getLabel('sector')}
-              required={isRequired('sector')}
-              name='sector'
-              // type='outline'
-              // size='l'
-              isClearable={!isFieldRequired('sector')}
-              // isSearchable
-              value={props.values.sector}
-              onChange={(value: string | null) =>
-                onAnyFieldChange('sector', value || '')
-              }
-              options={envStore.data.sector_choices}
-              error={props.errors?.sector}
-            />
-          </div>
-        ))}
+        {isFieldToBeDisplayed('sector') &&
+          (fieldCount++,
+          (
+            <div className={styles.field}>
+              <KoboAccessibleSelect
+                label={getLabel('sector')}
+                required={isRequired('sector')}
+                name='sector'
+                // type='outline'
+                // size='l'
+                isClearable={!isFieldRequired('sector')}
+                // isSearchable
+                value={props.values.sector}
+                onChange={(value: string | null) => onAnyFieldChange('sector', value || '')}
+                options={envStore.data.sector_choices}
+                error={props.errors?.sector}
+              />
+            </div>
+          ))}
 
         {/* Organization Type */}
-        {isOrganizationTypeFieldToBeDisplayed() && (fieldCount++, (
-          <div className={cx(styles.field, styles.orgTypeDropdown)}>
-            <KoboAccessibleSelect
-              label={getLabel('organization_type')}
-              required={isRequired('organization_type')}
-              name='organization_type'
-              // type='outline'
-              // size='l'
-              isClearable={!isFieldRequired('organization_type')}
-              value={props.values.organization_type}
-              onChange={(value: string | null) =>
-                onAnyFieldChange('organization_type', value || '')
-              }
-              options={ORGANIZATION_TYPE_SELECT_OPTIONS}
-              error={props.errors?.organization_type}
-              noMaxMenuHeight
-            />
-          </div>
-        ))}
+        {isOrganizationTypeFieldToBeDisplayed() &&
+          (fieldCount++,
+          (
+            <div className={cx(styles.field, styles.orgTypeDropdown)}>
+              <KoboAccessibleSelect
+                label={getLabel('organization_type')}
+                required={isRequired('organization_type')}
+                name='organization_type'
+                // type='outline'
+                // size='l'
+                isClearable={!isFieldRequired('organization_type')}
+                value={props.values.organization_type}
+                onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
+                options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+                error={props.errors?.organization_type}
+                noMaxMenuHeight
+              />
+            </div>
+          ))}
 
         {/*
           Start a new row for these two organization fields if both are present.
           Insert a spacer if the preceding number of rows is odd.
         */}
-        {!!(fieldCount % 2) &&
-          isFieldToBeDisplayed('organization') &&
-          isFieldToBeDisplayed('organization_website') && (
-            <div className={styles.field} />
-          )}
+        {!!(fieldCount % 2) && isFieldToBeDisplayed('organization') && isFieldToBeDisplayed('organization_website') && (
+          <div className={styles.field} />
+        )}
         {/*
           At this point we can stop counting fields because we don't need to
           know if we're on the even or odd side anymore.
         */}
 
         {/* Organization */}
-        {isFieldToBeDisplayed('organization') &&
-          !areOrganizationFieldsToBeSkipped() && (
-            <div className={styles.field}>
-              <TextBox
-                label={getLabel('organization')}
-                required={isRequired('organization')}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'organization'
-                )}
-                value={props.values.organization}
-                errors={props.errors?.organization}
-              />
-            </div>
-          )}
+        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped() && (
+          <div className={styles.field}>
+            <TextBox
+              label={getLabel('organization')}
+              required={isRequired('organization')}
+              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization')}
+              value={props.values.organization}
+              errors={props.errors?.organization}
+            />
+          </div>
+        )}
 
         {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') &&
-          !areOrganizationFieldsToBeSkipped() && (
-            <div className={styles.field}>
-              <TextBox
-                label={getLabel('organization_website')}
-                type='url'
-                value={props.values.organization_website}
-                required={isRequired('organization_website')}
-                onChange={onAnyFieldChange.bind(
-                  onAnyFieldChange,
-                  'organization_website'
-                )}
-                onBlur={updateWebsiteAddress}
-                onKeyPress={onWebsiteKeydown}
-                errors={props.errors?.organization_website}
-              />
-            </div>
-          )}
+        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped() && (
+          <div className={styles.field}>
+            <TextBox
+              label={getLabel('organization_website')}
+              type='url'
+              value={props.values.organization_website}
+              required={isRequired('organization_website')}
+              onChange={onAnyFieldChange.bind(onAnyFieldChange, 'organization_website')}
+              onBlur={updateWebsiteAddress}
+              onKeyPress={onWebsiteKeydown}
+              errors={props.errors?.organization_website}
+            />
+          </div>
+        )}
       </div>
 
       <div className={styles.row}>
@@ -393,9 +373,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
       <div className={styles.row}>
         {/* Social */}
-        {(isFieldToBeDisplayed('twitter') ||
-          isFieldToBeDisplayed('linkedin') ||
-          isFieldToBeDisplayed('instagram')) && (
+        {(isFieldToBeDisplayed('twitter') || isFieldToBeDisplayed('linkedin') || isFieldToBeDisplayed('instagram')) && (
           <>
             <div className={styles.socialLabel}>{t('Social')}</div>
 
@@ -432,10 +410,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                   startIcon='logo-instagram'
                   placeholder={getLabelWithRequired('instagram')}
                   value={props.values.instagram}
-                  onChange={onAnyFieldChange.bind(
-                    onAnyFieldChange,
-                    'instagram'
-                  )}
+                  onChange={onAnyFieldChange.bind(onAnyFieldChange, 'instagram')}
                   errors={props.errors?.instagram}
                 />
               </div>
@@ -452,9 +427,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
               <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
               <Checkbox
                 checked={props.values.newsletter_subscription}
-                onChange={(isChecked: boolean) =>
-                  onAnyFieldChange('newsletter_subscription', isChecked)
-                }
+                onChange={(isChecked: boolean) => onAnyFieldChange('newsletter_subscription', isChecked)}
                 label={getLabel('newsletter_subscription')}
               />
             </div>
@@ -462,5 +435,5 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
         )}
       </div>
     </div>
-  );
+  )
 }

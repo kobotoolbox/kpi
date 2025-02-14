@@ -1,4 +1,4 @@
-from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
+from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When, Q
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
@@ -473,35 +473,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             )
 
             # Get existing user IDs from the queryset
-            existing_user_ids = queryset.values_list('user_id', flat=True)
-
-            # Queryset for invited users who have registered
-            registered_invitees = OrganizationUser.objects.filter(
-                user_id__in=invitation_queryset.values('invitee_id')
-            ).exclude(user_id__in=existing_user_ids)
-
-            registered_invitees = registered_invitees.select_related(
-                'user__extra_details'
-            ).annotate(
-                role=Case(
-                    When(Exists(owner_subquery), then=Value('owner')),
-                    When(is_admin=True, then=Value('admin')),
-                    default=Value('member'),
-                    output_field=CharField()
-                ),
-                has_mfa_enabled=Exists(mfa_subquery)
+            members_user_ids = queryset.values_list('user_id', flat=True)
+            invitees = invitation_queryset.filter(
+                Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
             )
-
-            # Queryset for invited users who have not yet registered
-            unregistered_invitees = invitation_queryset.filter(
-                invitee_id__isnull=True
-            )
-
-            queryset = (
-                list(queryset) +
-                list(registered_invitees) +
-                list(unregistered_invitees)
-            )
+            queryset = list(queryset) + list(invitees)
         return queryset
 
 

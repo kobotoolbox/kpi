@@ -6,9 +6,7 @@
   "scripts": {
     "test": "echo \"See ./README.md for instructions.\" && exit 1"
   },
-  "contributors": [
-    "Ben Alexander (https://github.com/wetbadger)"
-  ],
+  "contributors": ["Ben Alexander (https://github.com/wetbadger)"],
   "devDependencies": {
     "cypress": "^8.7.0"
   }

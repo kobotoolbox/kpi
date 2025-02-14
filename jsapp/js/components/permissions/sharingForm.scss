@@ -27,9 +27,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .copy-team-permissions {
-  &.copy-team-permissions--opened
-    .copy-team-permissions-opener
-    .k-icon::before {
+  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -144,6 +142,7 @@ $s-gray-row-spacing: 10px;
 .anonymousSubmissionDialog {
   margin-top: 3px;
 }
+
 .anonymousSubmissionPointer {
   left: 1em;
 }

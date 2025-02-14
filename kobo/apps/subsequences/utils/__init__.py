@@ -1,6 +1,7 @@
 from collections import defaultdict
 from copy import deepcopy
 
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from ..actions.automatic_transcription import AutomaticTranscriptionAction
 from ..actions.qual import QualAction
 from ..actions.translation import TranslationAction
@@ -162,7 +163,7 @@ def stream_with_extras(submission_stream, asset):
 
     for submission in submission_stream:
         if SUBMISSION_UUID_FIELD in submission:
-            uuid = submission[SUBMISSION_UUID_FIELD]
+            uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         else:
             uuid = submission['_uuid']
 

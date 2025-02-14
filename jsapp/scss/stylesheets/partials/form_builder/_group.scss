@@ -14,8 +14,9 @@ $formbuilder-group-bg: colors.$kobo-gray-200;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
-    .card, .row__questiontypes {
-        margin-left: 0px;
+    .card,
+ .row__questiontypes {
+        margin-left: 0;
     }
 }
 
@@ -37,7 +38,7 @@ $formbuilder-group-bg: colors.$kobo-gray-200;
         font-size: 16px;
         line-height: 20px;
         font-weight: 600;
-        padding: 0px;
+        padding: 0;
         height: auto;
         vertical-align: middle;
     }
@@ -58,31 +59,36 @@ $formbuilder-group-bg: colors.$kobo-gray-200;
     > .card__settings {
         display: none;
     }
+
     &.card--expanded-settings {
-        padding:4px 0px;
-        padding-bottom: 0px;
+        padding: 4px 0;
+        padding-bottom: 0;
+
         > .card__settings {
             display: block;
             background-color: colors.$kobo-white;
-            border:none;
-            margin-top:1px;
-            &:after {
-                content: "";
-                border:none;
+            border: none;
+            margin-top: 1px;
+
+            &::after {
+                content: '';
+                border: none;
             }
-            &:before {
-                content: "";
-                border:none;
+
+            &::before {
+                content: '';
+                border: none;
             }
         }
+
         .group__rows {
             display: none;
         }
+
         .group__header {
-            margin:-4px 0px 0px;
+            margin: -4px 0 0;
         }
     }
-
 }
 
 .group__header__icon,
@@ -112,10 +118,12 @@ $formbuilder-group-bg: colors.$kobo-gray-200;
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group--shrunk {
     border-bottom: none;
-    padding-bottom: 0px;
+    padding-bottom: 0;
+
     .group__rows {
         display: none;
     }
+
     .survey__row {
         display: none;
     }

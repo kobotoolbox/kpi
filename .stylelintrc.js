@@ -444,8 +444,8 @@ module.exports = {
         severity: 'warning',
       },
     ],
-    'string-no-newline': [true, {severity: 'warning'}],
-    'string-quotes': ['single', {severity: 'warning', avoidEscape: true}],
+    'string-no-newline': [true, { severity: 'warning' }],
+    'string-quotes': ['single', { severity: 'warning', avoidEscape: true }],
     'unit-no-unknown': true,
     'unit-case': [
       'lower',
@@ -478,4 +478,4 @@ module.exports = {
       },
     ],
   },
-};
+}

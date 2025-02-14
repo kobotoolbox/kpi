@@ -139,7 +139,7 @@
   color: colors.$kobo-gray-800;
   border-top: 1px solid colors.$kobo-gray-300;
   background-color: colors.$kobo-gray-200;
-  margin: 0px;
+  margin: 0;
 }
 
 .popover-menu--formLanding-menu {
@@ -173,7 +173,7 @@
   color: colors.$kobo-red;
 }
 
-@media screen and (max-height: 475px) {
+@media screen and (height <= 475px) {
   .popover-menu__link,
   .popover-menu__item {
     i.k-icon:first-child {

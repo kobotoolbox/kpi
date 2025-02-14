@@ -1,28 +1,28 @@
 // Libraries
-import React from 'react';
-import bem from 'js/bem';
-import DocumentTitle from 'react-document-title';
+import React from 'react'
+import bem from 'js/bem'
+import DocumentTitle from 'react-document-title'
 
 // Partial components
-import ProjectExportsCreator from 'js/components/projectDownloads/ProjectExportsCreator';
-import ProjectExportsList from 'js/components/projectDownloads/ProjectExportsList';
-import LegacyExports from 'js/components/projectDownloads/LegacyExports';
-import AnonymousExports from 'js/components/projectDownloads/AnonymousExports';
+import ProjectExportsCreator from 'js/components/projectDownloads/ProjectExportsCreator'
+import ProjectExportsList from 'js/components/projectDownloads/ProjectExportsList'
+import LegacyExports from 'js/components/projectDownloads/LegacyExports'
+import AnonymousExports from 'js/components/projectDownloads/AnonymousExports'
 
 // Stores, hooks and utilities
-import sessionStore from 'js/stores/session';
-import exportsStore from 'js/components/projectDownloads/exportsStore';
+import sessionStore from 'js/stores/session'
+import exportsStore from 'js/components/projectDownloads/exportsStore'
 
 // Constants and types
-import type {AssetResponse} from 'jsapp/js/dataInterface';
-import type {ExportTypeDefinition} from './exportsConstants';
+import type { AssetResponse } from 'jsapp/js/dataInterface'
+import type { ExportTypeDefinition } from './exportsConstants'
 
 interface ProjectDownloadsProps {
-  asset: AssetResponse;
+  asset: AssetResponse
 }
 
 interface ProjectDownloadsState {
-  selectedExportType: ExportTypeDefinition;
+  selectedExportType: ExportTypeDefinition
 }
 
 /**
@@ -31,66 +31,55 @@ interface ProjectDownloadsState {
  *
  * @prop {object} asset
  */
-export default class ProjectDownloads extends React.Component<
-  ProjectDownloadsProps,
-  ProjectDownloadsState
-> {
+export default class ProjectDownloads extends React.Component<ProjectDownloadsProps, ProjectDownloadsState> {
   constructor(props: ProjectDownloadsProps) {
-    super(props);
-    this.state = {selectedExportType: exportsStore.getExportType()};
+    super(props)
+    this.state = { selectedExportType: exportsStore.getExportType() }
   }
 
-  private unlisteners: Function[] = [];
+  private unlisteners: Function[] = []
 
   componentDidMount() {
-    this.unlisteners.push(
-      exportsStore.listen(this.onExportsStoreChange.bind(this), this),
-    );
+    this.unlisteners.push(exportsStore.listen(this.onExportsStoreChange.bind(this), this))
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   onExportsStoreChange() {
-    this.setState({selectedExportType: exportsStore.getExportType()});
+    this.setState({ selectedExportType: exportsStore.getExportType() })
   }
 
   renderLoggedInExports() {
     if (this.state.selectedExportType.isLegacy) {
-      return (
-        <LegacyExports asset={this.props.asset} />
-      );
+      return <LegacyExports asset={this.props.asset} />
     } else {
       return (
         <React.Fragment>
-          <ProjectExportsCreator asset={this.props.asset}/>
-          <ProjectExportsList asset={this.props.asset}/>
+          <ProjectExportsCreator asset={this.props.asset} />
+          <ProjectExportsList asset={this.props.asset} />
         </React.Fragment>
-      );
+      )
     }
   }
 
   render() {
-    const docTitle = this.props.asset.name || t('Untitled');
+    const docTitle = this.props.asset.name || t('Untitled')
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView className='project-downloads'>
           <bem.FormView__row>
-            <bem.FormView__cell m={['page-title']}>
-              {t('Downloads')}
-            </bem.FormView__cell>
+            <bem.FormView__cell m={['page-title']}>{t('Downloads')}</bem.FormView__cell>
 
-            {sessionStore.isLoggedIn &&
-              this.renderLoggedInExports()
-            }
+            {sessionStore.isLoggedIn && this.renderLoggedInExports()}
 
-            {!sessionStore.isLoggedIn &&
-              <AnonymousExports asset={this.props.asset}/>
-            }
+            {!sessionStore.isLoggedIn && <AnonymousExports asset={this.props.asset} />}
           </bem.FormView__row>
         </bem.FormView>
       </DocumentTitle>
-    );
+    )
   }
 }

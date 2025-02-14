@@ -89,6 +89,7 @@ $projects-table-row-height: 36px;
 
     // Handling the fact that the cell content is a link
     padding: 0;
+
     :global a {
       @include mixins.textEllipsis;
       color: inherit;

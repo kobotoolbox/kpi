@@ -1,4 +1,4 @@
-import type {AccountFieldsValues} from './account.constants';
+import type { AccountFieldsValues } from './account.constants'
 
 export function getInitialAccountFieldsValues(): AccountFieldsValues {
   return {
@@ -16,7 +16,7 @@ export function getInitialAccountFieldsValues(): AccountFieldsValues {
     twitter: '',
     linkedin: '',
     instagram: '',
-  };
+  }
 }
 
 /**
@@ -24,5 +24,5 @@ export function getInitialAccountFieldsValues(): AccountFieldsValues {
  * updating the `extra_details`.
  */
 export function getProfilePatchData(fields: Partial<AccountFieldsValues>) {
-  return {extra_details: fields};
+  return { extra_details: fields }
 }

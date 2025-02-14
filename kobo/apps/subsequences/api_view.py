@@ -1,11 +1,17 @@
 from copy import deepcopy
 
+from django.shortcuts import get_object_or_404
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError as SchemaValidationError
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as APIValidationError
 from rest_framework.response import Response
-from rest_framework.views import APIView
+
+
+from kobo.apps.openrosa.apps.logger.models import Instance
+
+from kobo.apps.audit_log.base_views import AuditLoggedApiView
+from kobo.apps.audit_log.models import AuditType
 
 from kobo.apps.subsequences.models import SubmissionExtras
 from kobo.apps.subsequences.utils.deprecation import get_sanitized_dict_keys
@@ -59,15 +65,17 @@ class AdvancedSubmissionPermission(SubmissionPermission):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
-class AdvancedSubmissionView(APIView):
+class AdvancedSubmissionView(AuditLoggedApiView):
     permission_classes = [AdvancedSubmissionPermission]
     queryset = Asset.objects.all()
     asset = None
+    log_type = AuditType.PROJECT_HISTORY
 
     def initial(self, request, asset_uid, *args, **kwargs):
         # This must be done first in order to work with SubmissionPermission
         # which typically expects to be a nested view under Asset
         self.asset = self.get_object(asset_uid)
+        request._request.asset = self.asset
         return super().initial(request, asset_uid, *args, **kwargs)
 
     def get_object(self, uid):
@@ -80,6 +88,8 @@ class AdvancedSubmissionView(APIView):
             s_uuid = request.data.get('submission')
         else:
             s_uuid = request.query_params.get('submission')
+        if s_uuid is not None:
+            get_object_or_404(Instance, uuid=s_uuid)
         return get_submission_processing(self.asset, s_uuid)
 
     def post(self, request, asset_uid, format=None):
@@ -89,6 +99,8 @@ class AdvancedSubmissionView(APIView):
             validate(posted_data, schema)
         except SchemaValidationError as err:
             raise APIValidationError({'error': err})
+        # ensure the submission exists
+        get_object_or_404(Instance, uuid=posted_data['submission'])
 
         _check_asr_mt_access_if_applicable(request.user, posted_data)
 

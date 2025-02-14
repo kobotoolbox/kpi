@@ -1,31 +1,31 @@
 // TODO: this shouldn't be a mixin (wtf)
 // See: https://github.com/kobotoolbox/kpi/issues/3923
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import bem, {makeBem} from 'js/bem';
-import dkobo_xlform from '../../xlform/src/_xlform.init';
-import last from 'lodash.last';
-import envStore from 'js/envStore';
-import Button from 'js/components/common/button';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import bem, { makeBem } from 'js/bem'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
+import last from 'lodash.last'
+import envStore from 'js/envStore'
+import Button from 'js/components/common/button'
 
-bem.CascadePopup = makeBem(null, 'cascade-popup');
-bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message');
-bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper');
+bem.CascadePopup = makeBem(null, 'cascade-popup')
+bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')
+bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper')
 
-const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
+const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html'
 
 export const cascadeMixin = {
-  toggleCascade () {
+  toggleCascade() {
     var lastSelectedRow = last(this.app.selectedRows()),
-        lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1;
+      lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1
     this.setState({
       showCascadePopup: !this.state.showCascadePopup,
       cascadeTextareaValue: '',
       cascadeLastSelectedRowIndex: lastSelectedRowIndex,
-    });
+    })
   },
-  cancelCascade () {
+  cancelCascade() {
     this.setState({
       cascadeError: false,
       cascadeReady: false,
@@ -34,9 +34,9 @@ export const cascadeMixin = {
       cascadeTextareaValue: '',
       cascadeStr: '',
       showCascadePopup: false,
-    });
+    })
   },
-  cascadePopopChange (evt) {
+  cascadePopopChange(evt) {
     var s = {
       cascadeTextareaValue: ReactDOM.findDOMNode(this.refs.cascade).value,
     }
@@ -44,94 +44,89 @@ export const cascadeMixin = {
     //   return this.cancelCascade();
     // }
     try {
-      var inp = dkobo_xlform.model.utils.split_paste(s.cascadeTextareaValue);
+      var inp = dkobo_xlform.model.utils.split_paste(s.cascadeTextareaValue)
       var tmpSurvey = new dkobo_xlform.model.Survey({
         survey: [],
-        choices: inp
-      });
+        choices: inp,
+      })
       if (tmpSurvey.choices.length === 0) {
         throw new Error(
           // this message is presented to the user
-          t('Paste your formatted table from excel in the box below.')
-        );
+          t('Paste your formatted table from excel in the box below.'),
+        )
       }
-      tmpSurvey.choices.at(0).create_corresponding_rows();
+      tmpSurvey.choices.at(0).create_corresponding_rows()
       /*
       tmpSurvey._addGroup({
         __rows: tmpSurvey.rows.models,
         label: '',
       });
       */
-      var rowCount = tmpSurvey.rows.length;
+      var rowCount = tmpSurvey.rows.length
       if (rowCount === 0) {
         throw new Error(
           // this message is presented to the user
-          t('Paste your formatted table from excel in the box below.')
-        );
+          t('Paste your formatted table from excel in the box below.'),
+        )
       }
-      s.cascadeReady = true;
-      s.cascadeReadySurvey = tmpSurvey;
+      s.cascadeReady = true
+      s.cascadeReadySurvey = tmpSurvey
       s.cascadeMessage = {
         msgType: 'ready',
         addCascadeMessage: t('add cascade with # questions').replace('#', rowCount),
-      };
+      }
     } catch (err) {
-      s.cascadeReady = false;
+      s.cascadeReady = false
       s.cascadeMessage = {
         msgType: 'warning',
         message: err.message,
       }
     }
-    this.setState(s);
+    this.setState(s)
   },
-  renderCascadePopup () {
+  renderCascadePopup() {
     return (
-          <bem.CascadePopup>
-            {this.state.cascadeMessage ?
-              <bem.CascadePopup__message m={this.state.cascadeMessage.msgType}>
-                {this.state.cascadeMessage.message}
-              </bem.CascadePopup__message>
-            :
-              <bem.CascadePopup__message m='instructions'>
-                {t('Paste your formatted table from excel in the box below.')}
-              </bem.CascadePopup__message>
-            }
+      <bem.CascadePopup>
+        {this.state.cascadeMessage ? (
+          <bem.CascadePopup__message m={this.state.cascadeMessage.msgType}>
+            {this.state.cascadeMessage.message}
+          </bem.CascadePopup__message>
+        ) : (
+          <bem.CascadePopup__message m='instructions'>
+            {t('Paste your formatted table from excel in the box below.')}
+          </bem.CascadePopup__message>
+        )}
 
-            {this.state.cascadeReady ?
-              <bem.CascadePopup__message m='ready'>
-                {t('OK')}
-              </bem.CascadePopup__message>
-            : null}
+        {this.state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
 
-            <textarea ref='cascade' onChange={this.cascadePopopChange}
-              value={this.state.cascadeTextareaValue} />
+        <textarea ref='cascade' onChange={this.cascadePopopChange} value={this.state.cascadeTextareaValue} />
 
-            { envStore.isReady &&
-              envStore.data.support_url &&
-              <div className='cascade-help right-tooltip'>
-                <a href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
-                  target='_blank'
-                  data-tip={t('Learn more about importing cascading lists from Excel')}>
-                    <i className='k-icon k-icon-help' />
-                </a>
-              </div>
-            }
+        {envStore.isReady && envStore.data.support_url && (
+          <div className='cascade-help right-tooltip'>
+            <a
+              href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
+              target='_blank'
+              data-tip={t('Learn more about importing cascading lists from Excel')}
+            >
+              <i className='k-icon k-icon-help' />
+            </a>
+          </div>
+        )}
 
-            <bem.CascadePopup__buttonWrapper>
-              <Button
-                type='primary'
-                size='l'
-                isDisabled={!this.state.cascadeReady}
-                onClick={() => {
-                  var survey = this.app.survey;
-                  survey.insertSurvey(this.state.cascadeReadySurvey,
-                    this.state.cascadeLastSelectedRowIndex);
-                  this.cancelCascade();
-                }}
-                label={t('DONE')}
-              />
-            </bem.CascadePopup__buttonWrapper>
-          </bem.CascadePopup>
-      );
-  }
-};
+        <bem.CascadePopup__buttonWrapper>
+          <Button
+            type='primary'
+            size='l'
+            isDisabled={!this.state.cascadeReady}
+            onClick={() => {
+              var survey = this.app.survey
+              survey.insertSurvey(this.state.cascadeReadySurvey, this.state.cascadeLastSelectedRowIndex)
+              this.cancelCascade()
+            }}
+            label={t('DONE')}
+          />
+        </bem.CascadePopup__buttonWrapper>
+      </bem.CascadePopup>
+    )
+  },
+}

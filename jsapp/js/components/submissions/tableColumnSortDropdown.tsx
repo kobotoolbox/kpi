@@ -1,44 +1,42 @@
-import React from 'react';
-import classNames from 'classnames';
-import KoboDropdown from 'js/components/common/koboDropdown';
-import {PERMISSIONS_CODENAMES} from 'js/components/permissions/permConstants';
-import {SortValues} from 'js/components/submissions/tableConstants';
-import './tableColumnSortDropdown.scss';
-import {userCan} from 'js/components/permissions/utils';
-import type {AssetResponse} from 'js/dataInterface';
+import React from 'react'
+import classNames from 'classnames'
+import KoboDropdown from 'js/components/common/koboDropdown'
+import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+import { SortValues } from 'js/components/submissions/tableConstants'
+import './tableColumnSortDropdown.scss'
+import { userCan } from 'js/components/permissions/utils'
+import type { AssetResponse } from 'js/dataInterface'
 
-const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
+const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'
 
 interface TableColumnSortDropdownProps {
-  asset: AssetResponse;
+  asset: AssetResponse
   /** one of table columns */
-  fieldId: string;
-  sortValue: SortValues | null;
-  onSortChange: (fieldId: string, sortValue: SortValues | null) => void;
-  onHide: (fieldId: string) => void;
-  isFieldFrozen: boolean;
-  onFrozenChange: (fieldId: string, isFrozen: boolean) => void;
+  fieldId: string
+  sortValue: SortValues | null
+  onSortChange: (fieldId: string, sortValue: SortValues | null) => void
+  onHide: (fieldId: string) => void
+  isFieldFrozen: boolean
+  onFrozenChange: (fieldId: string, isFrozen: boolean) => void
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
    * stopPropagation to be clickable.
    */
-  additionalTriggerContent?: React.ReactNode;
+  additionalTriggerContent?: React.ReactNode
 }
 
 /**
  * A wrapper around KoboDropdown to be used in table header to sort columns.
  */
-export default function TableColumnSortDropdown(
-  props: TableColumnSortDropdownProps
-) {
+export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   function renderTrigger() {
-    let sortIcon = ['k-icon'];
+    let sortIcon = ['k-icon']
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
-      sortIcon.push('k-icon-sort-ascending');
+      sortIcon.push('k-icon-sort-ascending')
     }
     if (props.sortValue && props.sortValue === SortValues.DESCENDING) {
-      sortIcon.push('k-icon-sort-descending');
+      sortIcon.push('k-icon-sort-descending')
     }
 
     return (
@@ -48,34 +46,31 @@ export default function TableColumnSortDropdown(
         <i className='k-icon k-icon-caret-up' />
         <i className='k-icon k-icon-caret-down' />
       </div>
-    );
+    )
   }
 
   function clearSort() {
-    props.onSortChange(props.fieldId, null);
+    props.onSortChange(props.fieldId, null)
   }
 
-  function changeSort(
-    sortValue: SortValues,
-    evt: React.MouseEvent<HTMLButtonElement>
-  ) {
-    const eventTarget = evt.target as HTMLButtonElement;
+  function changeSort(sortValue: SortValues, evt: React.MouseEvent<HTMLButtonElement>) {
+    const eventTarget = evt.target as HTMLButtonElement
 
     // When clicking on clear icon button, we need to avoid triggering also the
     // change sort button. We can't use `stopPropagation` on `clearSort` as it
     // breaks `onMenuClick` functionality.
     if (eventTarget?.classList?.contains(CLEAR_BUTTON_CLASS_NAME)) {
-      return;
+      return
     }
-    props.onSortChange(props.fieldId, sortValue);
+    props.onSortChange(props.fieldId, sortValue)
   }
 
   function hideField() {
-    props.onHide(props.fieldId);
+    props.onHide(props.fieldId)
   }
 
   function changeFieldFrozen(isFrozen: boolean) {
-    props.onFrozenChange(props.fieldId, isFrozen);
+    props.onFrozenChange(props.fieldId, isFrozen)
   }
 
   function renderSortButton(buttonSortValue: SortValues) {
@@ -83,10 +78,10 @@ export default function TableColumnSortDropdown(
       <button
         className={classNames({
           'sort-dropdown-menu-button': true,
-          'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue
+          'sort-dropdown-menu-button--active': props.sortValue === buttonSortValue,
         })}
         onClick={(evt) => {
-          changeSort(buttonSortValue, evt);
+          changeSort(buttonSortValue, evt)
         }}
       >
         {buttonSortValue === SortValues.ASCENDING && [
@@ -99,17 +94,10 @@ export default function TableColumnSortDropdown(
         ]}
 
         {props.sortValue === buttonSortValue && (
-          <i
-            onClick={clearSort}
-            className={classNames(
-              'k-icon',
-              'k-icon-close',
-              CLEAR_BUTTON_CLASS_NAME
-            )}
-          />
+          <i onClick={clearSort} className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)} />
         )}
       </button>
-    );
+    )
   }
 
   return (
@@ -132,7 +120,7 @@ export default function TableColumnSortDropdown(
             <button
               className='sort-dropdown-menu-button'
               onClick={() => {
-                changeFieldFrozen(!props.isFieldFrozen);
+                changeFieldFrozen(!props.isFieldFrozen)
               }}
             >
               {props.isFieldFrozen && [
@@ -148,5 +136,5 @@ export default function TableColumnSortDropdown(
         </React.Fragment>
       }
     />
-  );
+  )
 }

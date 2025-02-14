@@ -1,19 +1,19 @@
-import React from 'react';
-import clonedeep from 'lodash.clonedeep';
-import KoboTagsInput from 'js/components/common/koboTagsInput';
-import bem from 'js/bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {dataInterface, type FailResponse, type ExternalServiceHookResponse} from 'js/dataInterface';
-import {actions} from 'js/actions';
-import WrappedSelect from 'js/components/common/wrappedSelect';
-import Checkbox from 'js/components/common/checkbox';
-import Radio from 'js/components/common/radio';
-import TextBox from 'js/components/common/textBox';
-import {KEY_CODES} from 'js/constants';
-import envStore from 'js/envStore';
-import {notify} from 'js/utils';
-import pageState from 'js/pageState.store';
-import Button from 'js/components/common/button';
+import React from 'react'
+import clonedeep from 'lodash.clonedeep'
+import KoboTagsInput from 'js/components/common/koboTagsInput'
+import bem from 'js/bem'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
+import { dataInterface, type FailResponse, type ExternalServiceHookResponse } from 'js/dataInterface'
+import { actions } from 'js/actions'
+import WrappedSelect from 'js/components/common/wrappedSelect'
+import Checkbox from 'js/components/common/checkbox'
+import Radio from 'js/components/common/radio'
+import TextBox from 'js/components/common/textBox'
+import { KEY_CODES } from 'js/constants'
+import envStore from 'js/envStore'
+import { notify } from 'js/utils'
+import pageState from 'js/pageState.store'
+import Button from 'js/components/common/button'
 
 export enum HookExportTypeName {
   json = 'json',
@@ -29,7 +29,7 @@ const EXPORT_TYPES = {
     value: HookExportTypeName.xml,
     label: t('XML'),
   },
-};
+}
 
 export enum HookAuthLevelName {
   no_auth = 'no_auth',
@@ -45,39 +45,39 @@ const AUTH_OPTIONS = {
     value: HookAuthLevelName.basic_auth,
     label: t('Basic Authorization'),
   },
-};
+}
 
 interface RESTServicesFormProps {
-  assetUid: string;
-  hookUid?: string;
+  assetUid: string
+  hookUid?: string
 }
 
 interface RESTServicesFormState {
-  isLoadingHook: boolean;
-  isSubmitPending: boolean;
-  assetUid: string;
-  hookUid?: string;
-  name: string;
-  nameError?: string;
-  endpoint: string;
-  endpointError?: string;
-  type: HookExportTypeName;
-  typeOptions: Array<{value: HookExportTypeName; label: string}>;
-  isActive: boolean;
-  emailNotification: boolean;
-  authLevel: {value: HookAuthLevelName; label: string} | null;
-  authOptions: Array<{value: HookAuthLevelName; label: string}>;
-  authUsername: string;
-  authPassword: string;
-  subsetFields: string[];
-  customHeaders: Array<{name: string; value: string}>;
-  payloadTemplate: string;
-  payloadTemplateErrors: string | string[];
+  isLoadingHook: boolean
+  isSubmitPending: boolean
+  assetUid: string
+  hookUid?: string
+  name: string
+  nameError?: string
+  endpoint: string
+  endpointError?: string
+  type: HookExportTypeName
+  typeOptions: Array<{ value: HookExportTypeName; label: string }>
+  isActive: boolean
+  emailNotification: boolean
+  authLevel: { value: HookAuthLevelName; label: string } | null
+  authOptions: Array<{ value: HookAuthLevelName; label: string }>
+  authUsername: string
+  authPassword: string
+  subsetFields: string[]
+  customHeaders: Array<{ name: string; value: string }>
+  payloadTemplate: string
+  payloadTemplateErrors: string | string[]
 }
 
 export default class RESTServicesForm extends React.Component<RESTServicesFormProps, RESTServicesFormState> {
-  constructor(props: RESTServicesFormProps){
-    super(props);
+  constructor(props: RESTServicesFormProps) {
+    super(props)
     this.state = {
       isLoadingHook: true,
       isSubmitPending: false,
@@ -88,31 +88,24 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
       endpoint: '',
       endpointError: undefined,
       type: EXPORT_TYPES.json.value,
-      typeOptions: [
-        EXPORT_TYPES.json,
-        EXPORT_TYPES.xml,
-      ],
+      typeOptions: [EXPORT_TYPES.json, EXPORT_TYPES.xml],
       isActive: true,
       emailNotification: true,
       authLevel: null,
-      authOptions: [
-        AUTH_OPTIONS.no_auth,
-        AUTH_OPTIONS.basic_auth,
-      ],
+      authOptions: [AUTH_OPTIONS.no_auth, AUTH_OPTIONS.basic_auth],
       authUsername: '',
       authPassword: '',
       subsetFields: [],
-      customHeaders: [
-        this.getEmptyHeaderRow(),
-      ],
+      customHeaders: [this.getEmptyHeaderRow()],
       payloadTemplate: '',
       payloadTemplateErrors: [],
-    };
+    }
   }
 
   componentDidMount() {
     if (this.state.hookUid) {
-      dataInterface.getHook(this.state.assetUid, this.state.hookUid)
+      dataInterface
+        .getHook(this.state.assetUid, this.state.hookUid)
         .done((data: ExternalServiceHookResponse) => {
           const stateUpdate: Partial<RESTServicesFormState> = {
             isLoadingHook: false,
@@ -125,26 +118,26 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers),
             payloadTemplate: data.payload_template,
-          };
+          }
 
           if (stateUpdate.customHeaders?.length === 0) {
-            stateUpdate.customHeaders.push(this.getEmptyHeaderRow());
+            stateUpdate.customHeaders.push(this.getEmptyHeaderRow())
           }
           if (data.settings.username) {
-            stateUpdate.authUsername = data.settings.username;
+            stateUpdate.authUsername = data.settings.username
           }
           if (data.settings.password) {
-            stateUpdate.authPassword = data.settings.password;
+            stateUpdate.authPassword = data.settings.password
           }
 
-          this.setState(stateUpdate as RESTServicesFormState);
+          this.setState(stateUpdate as RESTServicesFormState)
         })
         .fail(() => {
-          this.setState({isSubmitPending: false});
-          notify.error(t('Could not load REST Service'));
-        });
+          this.setState({ isSubmitPending: false })
+          notify.error(t('Could not load REST Service'))
+        })
     } else {
-      this.setState({isLoadingHook: false});
+      this.setState({ isLoadingHook: false })
     }
   }
 
@@ -153,30 +146,30 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   getEmptyHeaderRow() {
-    return {name: '', value: ''};
+    return { name: '', value: '' }
   }
 
-  headersObjToArr(headersObj: {[key: string]: string}) {
-    const headersArr: Array<{name: string; value: string}> = [];
+  headersObjToArr(headersObj: { [key: string]: string }) {
+    const headersArr: Array<{ name: string; value: string }> = []
     for (const header in headersObj) {
       if (Object.prototype.hasOwnProperty.call(headersObj, header)) {
         headersArr.push({
           name: header,
           value: headersObj[header],
-        });
+        })
       }
     }
-    return headersArr;
+    return headersArr
   }
 
-  headersArrToObj(headersArr: Array<{name: string; value: string}>) {
-    const headersObj: {[key: string]: string} = {};
+  headersArrToObj(headersArr: Array<{ name: string; value: string }>) {
+    const headersObj: { [key: string]: string } = {}
     for (const header of headersArr) {
       if (header.name) {
-        headersObj[header.name] = header.value;
+        headersObj[header.name] = header.value
       }
     }
-    return headersObj;
+    return headersObj
   }
 
   /*
@@ -187,58 +180,58 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
     this.setState({
       name: newName,
       nameError: undefined,
-    });
+    })
   }
 
   handleEndpointChange(newEndpoint: string) {
     this.setState({
       endpoint: newEndpoint,
       endpointError: undefined,
-    });
+    })
   }
 
   handleAuthTypeChange(evt: unknown) {
-    const newVal = evt as {value: HookAuthLevelName; label: string};
-    this.setState({authLevel: newVal});
+    const newVal = evt as { value: HookAuthLevelName; label: string }
+    this.setState({ authLevel: newVal })
   }
 
   handleAuthUsernameChange(newUsername: string) {
-    this.setState({authUsername: newUsername});
+    this.setState({ authUsername: newUsername })
   }
 
   handleAuthPasswordChange(newPassword: string) {
-    this.setState({authPassword: newPassword});
+    this.setState({ authPassword: newPassword })
   }
 
   handleActiveChange(isChecked: boolean) {
-    this.setState({isActive: isChecked});
+    this.setState({ isActive: isChecked })
   }
 
   handleEmailNotificationChange(isChecked: boolean) {
-    this.setState({emailNotification: isChecked});
+    this.setState({ emailNotification: isChecked })
   }
 
   handleTypeRadioChange(value: string, name: string) {
-    this.setState({[name]: value} as unknown as Pick<RESTServicesFormState, keyof RESTServicesFormState>);
+    this.setState({ [name]: value } as unknown as Pick<RESTServicesFormState, keyof RESTServicesFormState>)
   }
 
   handleCustomHeaderNameChange(headerIndex: number, newName: string) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders);
-    newCustomHeaders[headerIndex].name = newName;
-    this.setState({customHeaders: newCustomHeaders});
+    const newCustomHeaders = clonedeep(this.state.customHeaders)
+    newCustomHeaders[headerIndex].name = newName
+    this.setState({ customHeaders: newCustomHeaders })
   }
 
   handleCustomHeaderValueChange(headerIndex: number, newValue: string) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders);
-    newCustomHeaders[headerIndex].value = newValue;
-    this.setState({customHeaders: newCustomHeaders});
+    const newCustomHeaders = clonedeep(this.state.customHeaders)
+    newCustomHeaders[headerIndex].value = newValue
+    this.setState({ customHeaders: newCustomHeaders })
   }
 
   handleCustomWrapperChange(newVal: string) {
     this.setState({
       payloadTemplate: newVal,
       payloadTemplateErrors: [],
-    });
+    })
   }
 
   /*
@@ -246,9 +239,9 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   getDataForBackend() {
-    let authLevel = AUTH_OPTIONS.no_auth.value;
+    let authLevel = AUTH_OPTIONS.no_auth.value
     if (this.state.authLevel !== null) {
-      authLevel = this.state.authLevel.value;
+      authLevel = this.state.authLevel.value
     }
 
     const data: Partial<ExternalServiceHookResponse> = {
@@ -263,71 +256,62 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
         custom_headers: this.headersArrToObj(this.state.customHeaders),
       },
       payload_template: this.state.payloadTemplate,
-    };
+    }
 
     if (this.state.authUsername && data.settings !== undefined) {
-      data.settings.username = this.state.authUsername;
+      data.settings.username = this.state.authUsername
     }
     if (this.state.authPassword && data.settings !== undefined) {
-      data.settings.password = this.state.authPassword;
+      data.settings.password = this.state.authPassword
     }
-    return data;
+    return data
   }
 
   validateForm() {
-    let isValid = true;
+    let isValid = true
     if (this.state.name.trim() === '') {
-      this.setState({nameError: t('Name required')});
-      isValid = false;
+      this.setState({ nameError: t('Name required') })
+      isValid = false
     }
     if (this.state.endpoint.trim() === '') {
-      this.setState({endpointError: t('URL required')});
-      isValid = false;
+      this.setState({ endpointError: t('URL required') })
+      isValid = false
     }
-    return isValid;
+    return isValid
   }
 
   onSubmit(evt: React.FormEvent) {
-    evt.preventDefault();
+    evt.preventDefault()
 
     if (!this.validateForm()) {
-      notify.error(t('Please enter both name and url of your service.'));
-      return;
+      notify.error(t('Please enter both name and url of your service.'))
+      return
     }
 
     const callbacks = {
       onComplete: () => {
-        pageState.hideModal();
-        actions.resources.loadAsset({id: this.state.assetUid});
+        pageState.hideModal()
+        actions.resources.loadAsset({ id: this.state.assetUid })
       },
       onFail: (data: FailResponse) => {
-        let payloadTemplateErrors: string | string[] = [];
+        let payloadTemplateErrors: string | string[] = []
         if (data.responseJSON?.payload_template?.length !== 0) {
-          payloadTemplateErrors = data.responseJSON?.payload_template || [];
+          payloadTemplateErrors = data.responseJSON?.payload_template || []
         }
         this.setState({
           payloadTemplateErrors: payloadTemplateErrors,
           isSubmitPending: false,
-        });
+        })
       },
-    };
-
-    this.setState({isSubmitPending: true});
-    if (this.state.hookUid) {
-      actions.hooks.update(
-        this.state.assetUid,
-        this.state.hookUid,
-        this.getDataForBackend(),
-        callbacks
-      );
-    } else {
-      actions.hooks.add(
-        this.state.assetUid,
-        this.getDataForBackend(),
-        callbacks
-      );
     }
-    return false;
+
+    this.setState({ isSubmitPending: true })
+    if (this.state.hookUid) {
+      actions.hooks.update(this.state.assetUid, this.state.hookUid, this.getDataForBackend(), callbacks)
+    } else {
+      actions.hooks.add(this.state.assetUid, this.getDataForBackend(), callbacks)
+    }
+    return false
   }
 
   /*
@@ -337,88 +321,84 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
   onCustomHeaderInputKeyPress(evt: React.KeyboardEvent<HTMLInputElement>) {
     // Pressing ENTER key while editing the name, moves focus to the input for the value
     if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
-      evt.preventDefault();
-      (evt.currentTarget.parentElement?.querySelector('input[name="headerValue"]') as HTMLInputElement).focus();
+      evt.preventDefault()
+      ;(evt.currentTarget.parentElement?.querySelector('input[name="headerValue"]') as HTMLInputElement).focus()
     }
     // Pressing ENTER key while editing the value, adds a new row and moves focus to its name input
     if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
-      evt.preventDefault();
-      this.addNewCustomHeaderRow();
+      evt.preventDefault()
+      this.addNewCustomHeaderRow()
     }
   }
 
   addNewCustomHeaderRow(evt?: React.MouseEvent<HTMLButtonElement>) {
     if (evt) {
-      evt.preventDefault();
+      evt.preventDefault()
     }
-    const newCustomHeaders = this.state.customHeaders;
-    newCustomHeaders.push(this.getEmptyHeaderRow());
-    this.setState({customHeaders: newCustomHeaders});
+    const newCustomHeaders = this.state.customHeaders
+    newCustomHeaders.push(this.getEmptyHeaderRow())
+    this.setState({ customHeaders: newCustomHeaders })
     setTimeout(() => {
-      const inputs = document.querySelectorAll('input[name="headerName"]');
-      const lastEl = inputs[inputs.length - 1];
+      const inputs = document.querySelectorAll('input[name="headerName"]')
+      const lastEl = inputs[inputs.length - 1]
       if (lastEl !== null) {
-        (lastEl as HTMLInputElement).focus();
+        ;(lastEl as HTMLInputElement).focus()
       }
-    }, 0);
+    }, 0)
   }
 
   removeCustomHeaderRow(headerIndex: number) {
-    const newCustomHeaders = clonedeep(this.state.customHeaders);
-    newCustomHeaders.splice(Number(headerIndex), 1);
+    const newCustomHeaders = clonedeep(this.state.customHeaders)
+    newCustomHeaders.splice(Number(headerIndex), 1)
     if (newCustomHeaders.length === 0) {
-      newCustomHeaders.push(this.getEmptyHeaderRow());
+      newCustomHeaders.push(this.getEmptyHeaderRow())
     }
-    this.setState({customHeaders: newCustomHeaders});
+    this.setState({ customHeaders: newCustomHeaders })
   }
 
   renderCustomHeaders() {
     return (
       <bem.FormModal__item m='http-headers'>
-        <label>
-          {t('Custom HTTP Headers')}
-        </label>
+        <label>{t('Custom HTTP Headers')}</label>
 
-        {this.state.customHeaders.map((_item, n) =>
-           (
-            <bem.FormModal__item m='http-header-row' key={n}>
-              <input
-                type='text'
-                placeholder={t('Name')}
-                id={`headerName-${n}`}
-                name='headerName'
-                value={this.state.customHeaders[n].name}
-                onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.handleCustomHeaderNameChange(n, evt.target.value);
-                }}
-                onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
-              />
+        {this.state.customHeaders.map((_item, n) => (
+          <bem.FormModal__item m='http-header-row' key={n}>
+            <input
+              type='text'
+              placeholder={t('Name')}
+              id={`headerName-${n}`}
+              name='headerName'
+              value={this.state.customHeaders[n].name}
+              onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.handleCustomHeaderNameChange(n, evt.target.value)
+              }}
+              onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
+            />
 
-              <input
-                type='text'
-                placeholder={t('Value')}
-                id={`headerValue-${n}`}
-                name='headerValue'
-                value={this.state.customHeaders[n].value}
-                onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.handleCustomHeaderValueChange(n, evt.target.value);
-                }}
-                onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
-              />
+            <input
+              type='text'
+              placeholder={t('Value')}
+              id={`headerValue-${n}`}
+              name='headerValue'
+              value={this.state.customHeaders[n].value}
+              onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.handleCustomHeaderValueChange(n, evt.target.value)
+              }}
+              onKeyDown={this.onCustomHeaderInputKeyPress.bind(this)}
+            />
 
-              <Button
-                type='secondary-danger'
-                size='m'
-                className='http-header-row-remove'
-                startIcon='trash'
-                onClick={(evt: React.ChangeEvent<HTMLButtonElement>) => {
-                  evt.preventDefault();
-                  this.removeCustomHeaderRow(n);
-                }}
-              />
-            </bem.FormModal__item>
-          )
-        )}
+            <Button
+              type='secondary-danger'
+              size='m'
+              className='http-header-row-remove'
+              startIcon='trash'
+              onClick={(evt: React.ChangeEvent<HTMLButtonElement>) => {
+                evt.preventDefault()
+                this.removeCustomHeaderRow(n)
+              }}
+            />
+          </bem.FormModal__item>
+        ))}
 
         <Button
           type='secondary'
@@ -428,7 +408,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
           label={t('Add header')}
         />
       </bem.FormModal__item>
-    );
+    )
   }
 
   /*
@@ -436,7 +416,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   onSubsetFieldsChange(newValue: string) {
-    this.setState({subsetFields: newValue.split(',')});
+    this.setState({ subsetFields: newValue.split(',') })
   }
 
   renderFieldsSelector() {
@@ -449,7 +429,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
           label={t('Select fields subset')}
         />
       </bem.FormModal__item>
-    );
+    )
   }
 
   /*
@@ -457,14 +437,14 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
    */
 
   render() {
-    const isEditingExistingHook = Boolean(this.state.hookUid);
+    const isEditingExistingHook = Boolean(this.state.hookUid)
 
     if (this.state.isLoadingHook) {
-      return (<LoadingSpinner/>);
+      return <LoadingSpinner />
     } else {
-      let submissionPlaceholder = '%SUBMISSION%';
+      let submissionPlaceholder = '%SUBMISSION%'
       if (envStore.isReady && envStore.data.submission_placeholder) {
-        submissionPlaceholder = envStore.data.submission_placeholder;
+        submissionPlaceholder = envStore.data.submission_placeholder
       }
 
       return (
@@ -533,7 +513,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
               />
             </bem.FormModal__item>
 
-            {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
+            {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value && (
               <bem.FormModal__item>
                 <TextBox
                   label={t('Username')}
@@ -549,16 +529,19 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                   onChange={this.handleAuthPasswordChange.bind(this)}
                 />
               </bem.FormModal__item>
-            }
+            )}
 
             {this.renderFieldsSelector()}
 
             {this.renderCustomHeaders()}
 
-            {this.state.type === EXPORT_TYPES.json.value &&
+            {this.state.type === EXPORT_TYPES.json.value && (
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
-                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
+                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace(
+                    '%SUBMISSION%',
+                    submissionPlaceholder,
+                  )}
                   type='text-multiline'
                   placeholder={t('Add Custom Wrapper')}
                   value={this.state.payloadTemplate}
@@ -566,7 +549,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
                   onChange={this.handleCustomWrapperChange.bind(this)}
                 />
               </bem.FormModal__item>
-            }
+            )}
           </bem.FormModal__item>
 
           <bem.Modal__footer>
@@ -579,7 +562,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
             />
           </bem.Modal__footer>
         </bem.FormModal__form>
-      );
+      )
     }
   }
 }

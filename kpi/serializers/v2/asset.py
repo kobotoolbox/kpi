@@ -425,9 +425,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if real_owner != current_owner:
             with transaction.atomic():
                 validated_data['owner'] = real_owner
+                validated_data['is_excluded_from_projects_list'] = True
                 instance = super().create(validated_data)
                 instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
         else:
+            validated_data['is_excluded_from_projects_list'] = False
             instance = super().create(validated_data)
 
         return instance

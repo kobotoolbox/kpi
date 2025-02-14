@@ -15,7 +15,6 @@
   gap: 5px;
 }
 
-
 @include breakpoints.breakpoint(veryNarrow) {
   .root {
     flex-wrap: wrap;

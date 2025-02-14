@@ -1,7 +1,7 @@
 @use 'scss/colors';
 
 @mixin rangeTrack() {
-  -webkit-appearance: none;
+  appearance: none;
   border-radius: 10px;
   background: colors.$kobo-gray-300;
   height: 8px;
@@ -45,6 +45,7 @@ input[type='range'].kobo-range__input--default {
     box-shadow: -10005px 0 0 10000px colors.$kobo-blue;
   }
 }
+
 input[type='range'].kobo-range__input--warning {
   &::-moz-range-progress {
     background-color: colors.$kobo-mid-red;
@@ -56,6 +57,7 @@ input[type='range'].kobo-range__input--warning {
     box-shadow: -10005px 0 0 10000px colors.$kobo-mid-red;
   }
 }
+
 input[type='range'].kobo-range__input--teal {
   &::-moz-range-progress {
     background-color: colors.$kobo-teal;
@@ -70,7 +72,7 @@ input[type='range'].kobo-range__input--teal {
 
 input[type='range'].kobo-range__input {
   // General input styling across browsers
-  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   background: transparent;
   cursor: pointer;
@@ -111,10 +113,10 @@ input[type='range'].kobo-range__input {
   }
 
   &::-moz-range-track {
-    @include rangeTrack
-  }
+    @include rangeTrack;
+ }
 
   &::-ms-track {
-    @include rangeTrack
-  }
+    @include rangeTrack;
+ }
 }

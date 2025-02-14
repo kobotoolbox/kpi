@@ -10,6 +10,7 @@
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
+
   a {
     font-style: normal;
     font-weight: normal;
@@ -27,8 +28,8 @@
 .editable-wrapper input {
   font-family: $font;
   border: none;
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
   font-weight: 600;
   display: inline;
   height: auto !important;
@@ -37,11 +38,11 @@
   background: transparent;
 }
 
-code input[type="text"] {
+code input[type='text'] {
   border: none;
-  padding: 0px;
+  padding: 0;
   padding-right: 4px;
-  margin: 0px;
+  margin: 0;
   font-weight: 600;
   display: inline;
   background: none;
@@ -83,22 +84,26 @@ code input[type="text"] {
 // ==========================================================================
 
 .survey-editor {
-  transition: all .3s;
+  transition: all 0.3s;
 }
 
 .survey-editor__null-top-row {
   position: relative;
+
   &.expanded {
     .survey-editor__message {
       display: none;
     }
   }
+
   &.survey-editor__null-top-row--hidden {
     .survey-editor__message {
       display: none;
     }
+
     .survey__row__spacer {
       opacity: 0;
+
       &:hover {
         opacity: 1;
       }

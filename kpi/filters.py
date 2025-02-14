@@ -150,6 +150,19 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
         return queryset
 
 
+class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
+    """
+    Filters out assets marked as 'is_excluded_from_projects_list' for
+    organization owners in MMO organizations
+    """
+    def filter_queryset(self, request, queryset, view):
+        user = get_database_user(request.user)
+        organization = user.organization
+        if organization and organization.is_owner(user) and organization.is_mmo:
+            return queryset.exclude(is_excluded_from_projects_list=True)
+        return queryset
+
+
 class KpiObjectPermissionsFilter:
 
     STATUS_PARAMETER = 'status'

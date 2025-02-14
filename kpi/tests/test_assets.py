@@ -9,12 +9,17 @@ import openpyxl
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
+from kobo.apps.organizations.tests.test_organizations_api import (
+    BaseOrganizationAssetApiTestCase
+)
+from kobo.apps.project_ownership.models import InviteStatusChoices
 from kobo.apps.project_ownership.models.invite import Invite
 from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
@@ -901,3 +906,99 @@ class AssetSearchFieldTests(TestCase):
         self.assertEqual(
             asset.search_field['organization_name'], self.anotheruser.organization.name
         )
+
+
+class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
+    """
+    Tests for the `is_excluded_from_projects_list` flag on assets
+
+    ToDo: Modify this test to use the org invitations API once it's merged to main
+    """
+    def setUp(self):
+        super().setUp()
+        self.organization = self.someuser.organization
+        self.org_owner = self.someuser
+        self.external_user = self.bob
+        self.thirduser = User.objects.create_user(
+            username='thirduser', password='thirduser'
+        )
+        self.asset_detail_url = lambda uid: reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': uid}
+        )
+        self.invite_detail_url = lambda uid: reverse(
+            self._get_endpoint('project-ownership-invite-detail'),
+            kwargs={'uid': uid}
+        )
+
+    def _add_user_to_organization(self, user):
+        org_user = OrganizationUser.objects.get(user=user)
+        Organization.objects.filter(organization_users=org_user).delete()
+        org_user.organization = self.organization
+        org_user.save()
+
+        # Transfer the ownership of the user's assets to the organization
+        transfer_member_data_ownership_to_org(user.pk)
+
+    def test_asset_is_excluded_from_projects_list_flag(self):
+        # 1. Create an asset owned by the external user
+        external_user_asset = self._create_asset_by_bob()
+
+        # Ensure the flag is not present in the API response
+        self.assertNotIn('is_excluded_from_projects_list', external_user_asset)
+
+        # Verify the flag is `False` for external user's asset initially
+        asset = Asset.objects.get(owner=self.external_user)
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # Ensure the flag is not present in the asset details API response
+        response = self.client.get(self.asset_detail_url(asset.uid))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn('is_excluded_from_projects_list', response.data)
+
+        # 2. Add external user to the org and transfer the asset ownership
+        self._add_user_to_organization(self.external_user)
+
+        # Refresh asset instance and verify the flag is now True
+        asset.refresh_from_db()
+        self.assertTrue(asset.is_excluded_from_projects_list)
+
+        # 3. If the org owner transfers the asset explicitly to another user,
+        # the flag should be False
+        invite = Invite.objects.create(
+            sender=self.org_owner, recipient=self.thirduser
+        )
+        Transfer.objects.create(invite=invite, asset=asset)
+        self.client.force_login(self.thirduser)
+        payload = {
+            'status': InviteStatusChoices.ACCEPTED
+        }
+        response = self.client.patch(
+            self.invite_detail_url(invite.uid), data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        asset.refresh_from_db()
+        self.assertFalse(asset.is_excluded_from_projects_list)
+
+        # 4. Create an asset as the organization owner
+        self.client.force_login(self.org_owner)
+        response = self.create_asset(
+            name='Breakfast',
+            content={
+                'survey': [
+                    {
+                        'name': 'egg',
+                        'type': 'integer',
+                        'label': 'how many eggs?',
+                    },
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Ensure the flag is not present in the API response
+        self.assertNotIn('is_excluded_from_projects_list', response.data)
+
+        # Fetch the newly created asset and verify the flag is False
+        owner_asset = Asset.objects.get(name='Breakfast')
+        self.assertFalse(owner_asset.is_excluded_from_projects_list)

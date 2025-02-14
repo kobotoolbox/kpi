@@ -1,18 +1,18 @@
-import BillingButton from 'js/account/plans/billingButton.component';
-import type {Price, SinglePricedProduct} from 'js/account/stripe.types';
-import {postCustomerPortal} from 'js/account/stripe.api';
-import {processCheckoutResponse} from 'js/account/stripe.utils';
-import {useOrganizationQuery} from 'js/account/organization/organizationQuery';
+import BillingButton from 'js/account/plans/billingButton.component'
+import type { Price, SinglePricedProduct } from 'js/account/stripe.types'
+import { postCustomerPortal } from 'js/account/stripe.api'
+import { processCheckoutResponse } from 'js/account/stripe.utils'
+import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
 
 interface PlanButtonProps {
-  buySubscription: (price: Price, quantity?: number) => void;
-  downgrading: boolean;
-  isBusy: boolean;
-  isSubscribedToPlan: boolean;
-  showManage: boolean;
-  product: SinglePricedProduct;
-  quantity: number;
-  setIsBusy: (value: boolean) => void;
+  buySubscription: (price: Price, quantity?: number) => void
+  downgrading: boolean
+  isBusy: boolean
+  isSubscribedToPlan: boolean
+  showManage: boolean
+  product: SinglePricedProduct
+  quantity: number
+  setIsBusy: (value: boolean) => void
 }
 
 /**
@@ -29,18 +29,18 @@ export const PlanButton = ({
   quantity,
   isSubscribedToPlan,
 }: PlanButtonProps) => {
-  const orgQuery = useOrganizationQuery();
+  const orgQuery = useOrganizationQuery()
 
   if (!product || !orgQuery.data || product.price.unit_amount === 0) {
-    return null;
+    return null
   }
 
   const manageSubscription = (subscriptionPrice?: Price) => {
-    setIsBusy(true);
+    setIsBusy(true)
     postCustomerPortal(orgQuery.data.id, subscriptionPrice?.id, quantity)
       .then(processCheckoutResponse)
-      .catch(() => setIsBusy(false));
-  };
+      .catch(() => setIsBusy(false))
+  }
 
   if (!isSubscribedToPlan && !showManage && !downgrading) {
     return (
@@ -50,7 +50,7 @@ export const PlanButton = ({
         aria-label={`upgrade to ${product.name}`}
         isDisabled={isBusy}
       />
-    );
+    )
   }
 
   if (showManage || isSubscribedToPlan) {
@@ -61,7 +61,7 @@ export const PlanButton = ({
         aria-label={`manage your ${product.name} subscription`}
         isDisabled={isBusy}
       />
-    );
+    )
   }
 
   return (
@@ -71,5 +71,5 @@ export const PlanButton = ({
       aria-label={`change your subscription to ${product.name}`}
       isDisabled={isBusy}
     />
-  );
-};
+  )
+}

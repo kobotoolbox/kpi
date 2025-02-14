@@ -1,86 +1,80 @@
-import type {ChartType} from 'chart.js/auto';
-import type {AnyRowTypeName} from 'js/constants';
+import type { ChartType } from 'chart.js/auto'
+import type { AnyRowTypeName } from 'js/constants'
 
 export interface ReportStyle {
   /** Asset row type name (`AnyRowTypeName`) */
-  groupDataBy?: string;
-  report_type?: ReportStyleName;
-  report_colors?: string[];
-  translationIndex?: number;
-  graphWidth?: number;
+  groupDataBy?: string
+  report_type?: ReportStyleName
+  report_colors?: string[]
+  translationIndex?: number
+  graphWidth?: number
 }
 
 export interface CustomReportSettings {
-  crid: string;
-  name: string;
+  crid: string
+  name: string
   /** A list of asset content rows */
-  questions: string[];
-  reportStyle: ReportStyle;
+  questions: string[]
+  reportStyle: ReportStyle
   specified?: {
-    [rowName: string]: ReportStyle;
-  };
+    [rowName: string]: ReportStyle
+  }
 }
 
 interface ReportsResponseDataValueRegular {
-  responses: string[];
-  frequencies: number[];
-  percentages: number[];
+  responses: string[]
+  frequencies: number[]
+  percentages: number[]
 }
 
 interface ReportsResponseDataValueNumerical {
-  median?: number | '*';
-  mean?: number | '*';
-  mode?: number | '*';
-  stdev?: number | '*';
+  median?: number | '*'
+  mean?: number | '*'
+  mode?: number | '*'
+  stdev?: number | '*'
 }
 
-export type ReportsResponseDataValue = ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical;
+export type ReportsResponseDataValue = ReportsResponseDataValueRegular | ReportsResponseDataValueNumerical
 
-export type ReportsResponseDataValues = Array<
-  [
-    number,
-    ReportsResponseDataValue,
-    string | number | undefined,
-  ]
->;
+export type ReportsResponseDataValues = Array<[number, ReportsResponseDataValue, string | number | undefined]>
 
 export interface ReportsResponseData {
-  total_count: number;
-  not_provided: number;
-  provided: number;
-  show_graph: boolean;
+  total_count: number
+  not_provided: number
+  provided: number
+  show_graph: boolean
   /**
    * The `values` property appears in the API response when `?split_by` query
    * param is being used
    */
-  values?: ReportsResponseDataValues;
-  responses?: string[];
-  responseLabels?: string[];
+  values?: ReportsResponseDataValues
+  responses?: string[]
+  responseLabels?: string[]
   /** Integer */
-  frequencies?: number[];
+  frequencies?: number[]
   /** Number with 2 decimal points */
-  percentages?: number[];
+  percentages?: number[]
   /** It shows up sometimes as empty array, no idea what is it for. */
-  percentage?: [];
+  percentage?: []
   /** All four are for `integer`, `decimal`, `range` types */
-  median?: number | '*';
-  mean?: number | '*';
-  mode?: number | '*';
-  stdev?: number | '*';
+  median?: number | '*'
+  mean?: number | '*'
+  mode?: number | '*'
+  stdev?: number | '*'
 }
 
 export interface ReportsResponse {
   /** The question name */
-  name: string;
+  name: string
   row: {
-    type: AnyRowTypeName;
+    type: AnyRowTypeName
     // TODO: check if this is actually true, for sure `string` happens in
     // the code, but the array perhaps happens (some code suggests so indirectly)
-    label?: string | Array<string | null>;
-  };
-  data: ReportsResponseData;
-  kuid: string;
-  style: ReportStyle;
+    label?: string | Array<string | null>
+  }
+  data: ReportsResponseData
+  kuid: string
+  style: ReportStyle
 }
 
 /**
@@ -89,9 +83,9 @@ export interface ReportsResponse {
  * `dataInterface` file). This one is only being used by responses endpoint.
  */
 export interface ReportsPaginatedResponse {
-  url: string;
-  count: number;
-  list: ReportsResponse[];
+  url: string
+  count: number
+  list: ReportsResponse[]
 }
 
 /**
@@ -104,20 +98,20 @@ export interface AssetResponseReportStyles {
    * The default styles (i.e. not overrides). This is empty if there are no
    * overrides defined (in `specified` below).
    */
-  default: ReportStyle;
+  default: ReportStyle
   /** A map of rows and their style overrides. */
-  specified: {[rowName: string]: ReportStyle};
+  specified: { [rowName: string]: ReportStyle }
   /** This is a map of row names to their `kuid`s stored here for some reason. */
   kuid_names: {
-    [rowName: string]: string;
-  };
+    [rowName: string]: string
+  }
 }
 
 /**
  * This is the `report_custom` object from `AssetResponse`.
  */
 export interface AssetResponseReportCustom {
-  [crid: string]: CustomReportSettings;
+  [crid: string]: CustomReportSettings
 }
 
 /**
@@ -133,7 +127,7 @@ export type ReportStyleName =
   | 'donut'
   | 'area'
   | 'polar'
-  | 'radar';
+  | 'radar'
 
 /**
  * Combines together `ReportStyleName`, label (for users) and `ChartType` (from
@@ -141,21 +135,21 @@ export type ReportStyleName =
  */
 interface ChartStyleDefinition {
   /** This is our internal name of a report style/type. */
-  value: ReportStyleName;
+  value: ReportStyleName
   /**
    * This is a user friendly version of `ReportStyleName`, we use it to display
    * all available options in the settings.
    */
-  label: string;
+  label: string
   /**
    * This is the name of a chart that Chart.js understands. For some definitions
    * it matches our internal `ReportStyleName`. We use this name to render
    * a nice graph/chart in the UI for our users.
    */
-  chartJsType: ChartType;
+  chartJsType: ChartType
 }
 
-type ChartStyleDefinitions = {[P in ReportStyleName]: ChartStyleDefinition};
+type ChartStyleDefinitions = { [P in ReportStyleName]: ChartStyleDefinition }
 
 /**
  * A list of definitions of chart styles.
@@ -218,11 +212,11 @@ export const CHART_STYLES: ChartStyleDefinitions = Object.freeze({
     label: t('Radar'),
     chartJsType: 'radar',
   },
-});
+})
 
 export interface ChartColorSet {
-  label: string;
-  colors: string[];
+  label: string
+  colors: string[]
 }
 
 export const CHART_COLOR_SETS: ChartColorSet[] = [
@@ -291,7 +285,7 @@ export const CHART_COLOR_SETS: ChartColorSet[] = [
       'rgba(178, 179, 190, 1)',
     ],
   },
-];
+]
 
 /**
  * The default report style. An minimal instance of `ReportStyle` that uses
@@ -300,4 +294,4 @@ export const CHART_COLOR_SETS: ChartColorSet[] = [
 export const DEFAULT_MINIMAL_REPORT_STYLE: ReportStyle = {
   report_type: CHART_STYLES.vertical.value,
   report_colors: CHART_COLOR_SETS[0].colors,
-};
+}

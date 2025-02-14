@@ -1,8 +1,8 @@
-import type {SelectProps, ComboboxItem} from '@mantine/core';
-import {CloseButton, Group, Select as MantineSelect} from '@mantine/core';
-import type {IconSize} from './icon';
-import Icon from './icon';
-import {useState} from 'react';
+import type { SelectProps, ComboboxItem } from '@mantine/core'
+import { CloseButton, Group, Select as MantineSelect } from '@mantine/core'
+import type { IconSize } from './icon'
+import Icon from './icon'
+import { useEffect, useState } from 'react'
 
 declare module '@mantine/core/lib/components/Select' {
   /** @deprecated use Kobo implementation instead. (deprecating a new interface because can't augment variables) */
@@ -15,34 +15,32 @@ const iconSizeMap: Record<string, IconSize> = {
   md: 's',
   lg: 'm',
   xl: 'l',
-};
+}
 
 export const Select = (props: SelectProps) => {
-  const [value, setValue] = useState<string | null>(props.value || null);
-  const [isOpened, setIsOpened] = useState(
-    props.defaultDropdownOpened || false
-  );
+  const [value, setValue] = useState<string | null>(props.value || null)
+  const [isOpened, setIsOpened] = useState(props.defaultDropdownOpened || false)
 
   const onChange = (newValue: string | null, option: ComboboxItem) => {
-    setValue(newValue);
-    props.onChange?.(newValue, option);
-  };
+    setValue(newValue)
+    props.onChange?.(newValue, option)
+  }
 
   const clear = () => {
-    setValue(null);
-    props.onClear?.();
-  };
+    setValue(null)
+    props.onClear?.()
+  }
 
-  const iconSize =
-    typeof props.size === 'string' ? iconSizeMap[props.size] : 's';
+  useEffect(() => {
+    setValue(props.value || null)
+  }, [props.value])
+
+  const iconSize = typeof props.size === 'string' ? iconSizeMap[props.size] : 's'
 
   const clearButton =
     props.clearable && value && !props.disabled && !props.readOnly ? (
-      <CloseButton
-        onClick={clear}
-        icon={<Icon name='close' size={iconSize} />}
-      />
-    ) : null;
+      <CloseButton onClick={clear} icon={<Icon name='close' size={iconSize} />} />
+    ) : null
 
   return (
     <MantineSelect
@@ -58,5 +56,5 @@ export const Select = (props: SelectProps) => {
         </Group>
       }
     />
-  );
-};
+  )
+}

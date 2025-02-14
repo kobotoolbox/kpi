@@ -1,9 +1,3 @@
-// Libraries
-// Partial components
-// Stores, hooks and utilities
-// Constants and types
-// Styles
-
 import React from 'react'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
@@ -307,21 +301,19 @@ class MapSettings extends React.Component {
             {activeTab === TABS.get('geoquestion').id && (
               <div className='map-settings__GeoQuestions'>
                 <p>{t('Choose the Geopoint question you would like to display on the map:')}</p>
-                {geoQuestions.map((question, i) => {
-                  return (
-                    <label htmlFor={'GeopointQuestion-' + i} key={i}>
-                      <input
-                        type='radio'
-                        name='trnsltn'
-                        value={question.value}
-                        onChange={this.onGeoPointQuestionChange}
-                        checked={this.state.mapSettings.selectedQuestion === question.value ? true : false}
-                        id={'GeopointQuestion-' + i}
-                      />
-                      {question.label}
-                    </label>
-                  )
-                })}
+                {geoQuestions.map((question, i) => (
+                  <label htmlFor={'GeopointQuestion-' + i} key={i}>
+                    <input
+                      type='radio'
+                      name='trnsltn'
+                      value={question.value}
+                      onChange={this.onGeoPointQuestionChange}
+                      checked={this.state.mapSettings.selectedQuestion === question.value ? true : false}
+                      id={'GeopointQuestion-' + i}
+                    />
+                    {question.label}
+                  </label>
+                ))}
               </div>
             )}
             {activeTab === TABS.get('overlays').id && (
@@ -329,22 +321,20 @@ class MapSettings extends React.Component {
                 {this.state.files.length > 0 && (
                   <bem.FormModal__item m='list-files'>
                     <label>{t('Uploaded layers')}</label>
-                    {this.state.files.map((file, i) => {
-                      return (
-                        <div className='list-file-row' key={i}>
-                          <span className='file-type'>{file.metadata.type}</span>
-                          <span className='file-layer-name'>{file.description}</span>
-                          <span
-                            className='file-delete'
-                            onClick={this.deleteFile}
-                            data-tip={t('Delete layer')}
-                            data-uid={file.uid}
-                          >
-                            <i className='k-icon k-icon-trash' />
-                          </span>
-                        </div>
-                      )
-                    })}
+                    {this.state.files.map((file, i) => (
+                      <div className='list-file-row' key={i}>
+                        <span className='file-type'>{file.metadata.type}</span>
+                        <span className='file-layer-name'>{file.description}</span>
+                        <span
+                          className='file-delete'
+                          onClick={this.deleteFile}
+                          data-tip={t('Delete layer')}
+                          data-uid={file.uid}
+                        >
+                          <i className='k-icon k-icon-trash' />
+                        </span>
+                      </div>
+                    ))}
                   </bem.FormModal__item>
                 )}
                 <bem.FormModal__item m='layer-upload'>

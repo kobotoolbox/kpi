@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('kpi', '0061_add_search_field_to_asset'),
+        ('kpi', '0063_add_is_excluded_from_projects_list_to_asset'),
     ]
 
     operations = [

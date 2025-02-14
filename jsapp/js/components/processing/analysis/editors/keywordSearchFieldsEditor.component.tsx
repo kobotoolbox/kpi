@@ -1,28 +1,26 @@
-import React, {useContext} from 'react';
-import styles from './keywordSearchFieldsEditor.module.scss';
-import TagsInput from 'react-tagsinput';
-import Icon from 'js/components/common/icon';
-import type {AdditionalFields} from 'js/components/processing/analysis/constants';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import TransxSelector from 'js/components/processing/transxSelector';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
+import React, { useContext } from 'react'
+import styles from './keywordSearchFieldsEditor.module.scss'
+import TagsInput from 'react-tagsinput'
+import Icon from 'js/components/common/icon'
+import type { AdditionalFields } from 'js/components/processing/analysis/constants'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import TransxSelector from 'js/components/processing/transxSelector'
+import type { LanguageCode } from 'js/components/languages/languagesStore'
+import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
 
 interface KeywordSearchFieldsEditorProps {
-  questionUuid: string;
-  fields: AdditionalFields;
-  onFieldsChange: (fields: AdditionalFields) => void;
+  questionUuid: string
+  fields: AdditionalFields
+  onFieldsChange: (fields: AdditionalFields) => void
 }
 
 /**
  * TBD
  */
-export default function KeywordSearchFieldsEditor(
-  props: KeywordSearchFieldsEditorProps
-) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext);
+export default function KeywordSearchFieldsEditor(props: KeywordSearchFieldsEditorProps) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
-    return null;
+    return null
   }
 
   /**
@@ -32,22 +30,22 @@ export default function KeywordSearchFieldsEditor(
    *    `<TagsInput>`, because of whitespace changes)
    */
   function onKeywordsChange(newKeywords: string[]) {
-    const cleanTags = Array.from(new Set(newKeywords.map((tag) => tag.trim())));
+    const cleanTags = Array.from(new Set(newKeywords.map((tag) => tag.trim())))
 
     props.onFieldsChange({
       ...props.fields,
       keywords: cleanTags,
-    });
+    })
   }
 
   function onSourceChange(newSource: LanguageCode | null) {
     props.onFieldsChange({
       ...props.fields,
       source: newSource ? newSource : undefined,
-    });
+    })
   }
 
-  const inputHtmlId = 'keywordSearchFieldsEditor_TagsInput_Input';
+  const inputHtmlId = 'keywordSearchFieldsEditor_TagsInput_Input'
 
   return (
     <section className={styles.root}>
@@ -79,9 +77,7 @@ export default function KeywordSearchFieldsEditor(
       </section>
 
       <section className={styles.right}>
-        <label className={styles.sideLabel}>
-          {t('Search this transcript/translation:')}
-        </label>
+        <label className={styles.sideLabel}>{t('Search this transcript/translation:')}</label>
 
         <TransxSelector
           languageCodes={singleProcessingStore.getSources()}
@@ -92,5 +88,5 @@ export default function KeywordSearchFieldsEditor(
         />
       </section>
     </section>
-  );
+  )
 }

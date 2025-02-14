@@ -9,8 +9,7 @@ from .utils.determine_export_cols_with_values import determine_export_cols_indiv
 
 class SubmissionExtras(AbstractTimeStampedModel):
 
-    # FIXME: uuid on the KoboCAT logger.Instance model has max_length 249
-    submission_uuid = models.CharField(max_length=40)
+    submission_uuid = models.CharField(max_length=249)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
         Asset,

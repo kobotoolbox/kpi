@@ -1,4 +1,4 @@
-@use "scss/_variables";
+@use 'scss/_variables';
 @use 'scss/colors';
 
 // ==========================================================================
@@ -9,7 +9,6 @@
     box-shadow: none;
     margin-bottom: 0;
     display: inline-block;
-    font-weight: normal;
     text-align: center;
     vertical-align: middle;
     cursor: pointer;
@@ -24,10 +23,6 @@
     padding: 0 20px;
     font-weight: 400;
     font-size: variables.$base-font-size;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -o-user-select: none;
     user-select: none;
     position: relative;
 
@@ -36,7 +31,8 @@
         text-decoration: none;
     }
 
-    &:active, .is-active {
+    &:active,
+ .is-active {
         outline: 0;
         background-image: none;
         box-shadow: none;
@@ -69,9 +65,9 @@ fieldset[disabled] .btn {
     margin-top: 5px;
 }
 
-input[type="submit"].btn--block,
-input[type="reset"].btn--block,
-input[type="button"].btn--block {
+input[type='submit'].btn--block,
+input[type='reset'].btn--block,
+input[type='button'].btn--block {
     width: 100%;
 }
 

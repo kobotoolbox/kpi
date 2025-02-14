@@ -5,67 +5,67 @@ import {
   removeImpliedPerms,
   parseUserWithPermsList,
   sortParseBackendOutput,
-} from './permParser';
-import permConfig from './permConfig';
-import {endpoints} from './permParser.mocks';
-import constants from 'js/constants';
-import {ANON_USERNAME} from 'js/users/utils';
+} from './permParser'
+import permConfig from './permConfig'
+import { endpoints } from './permParser.mocks'
+import constants from 'js/constants'
+import { ANON_USERNAME } from 'js/users/utils'
 
 describe('permParser', () => {
   beforeEach(() => {
     // bootstraping
-    permConfig.setPermissions(endpoints.permissions.results);
-    constants.ROOT_URL = '';
-  });
+    permConfig.setPermissions(endpoints.permissions.results)
+    constants.ROOT_URL = ''
+  })
 
   describe('parseBackendData', () => {
     it('should hide anonymous user permissions from output by default', () => {
       // in original data there are total 7 permissions (6 of asset owner and
       // one of anonymous user)
-      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7);
+      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7)
       const parsed = parseBackendData(
         endpoints.assetWithAnonymousUser.results,
-        endpoints.assetWithAnonymousUser.results[0].user
-      );
+        endpoints.assetWithAnonymousUser.results[0].user,
+      )
       // parsed data should only contain data of owner
-      chai.expect(parsed.length).to.equal(1);
-      chai.expect(parsed[0].user.name).to.equal('kobo');
-    });
+      chai.expect(parsed.length).to.equal(1)
+      chai.expect(parsed[0].user.name).to.equal('kobo')
+    })
 
     it('should show anonymous user permissions from output when ordered to', () => {
       // in original data there are total 7 permissions (6 of asset owner and
       // one of anonymous user)
-      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7);
+      chai.expect(endpoints.assetWithAnonymousUser.results.length).to.equal(7)
       const parsed = parseBackendData(
         endpoints.assetWithAnonymousUser.results,
         endpoints.assetWithAnonymousUser.results[0].user,
-        true
-      );
+        true,
+      )
       // parsed data should contain data of owner and anonymous user
-      chai.expect(parsed.length).to.equal(2);
-      chai.expect(parsed[0].user.name).to.equal('kobo');
-      chai.expect(parsed[1].user.name).to.equal(ANON_USERNAME);
-    });
+      chai.expect(parsed.length).to.equal(2)
+      chai.expect(parsed[0].user.name).to.equal('kobo')
+      chai.expect(parsed[1].user.name).to.equal(ANON_USERNAME)
+    })
 
     it('should group permissions by users properly', () => {
       // in original data there are total 9 permissions (6 of asset owner,
       // 2 of one user and 1 of another)
-      chai.expect(endpoints.assetWithMultipleUsers.results.length).to.equal(10);
+      chai.expect(endpoints.assetWithMultipleUsers.results.length).to.equal(10)
       const parsed = parseBackendData(
         endpoints.assetWithMultipleUsers.results,
-        endpoints.assetWithMultipleUsers.results[0].user
-      );
+        endpoints.assetWithMultipleUsers.results[0].user,
+      )
 
       // parsed data should contain data of 3 users
-      chai.expect(parsed.length).to.equal(3);
-      chai.expect(parsed[0].user.name).to.equal('kobo');
-      chai.expect(parsed[0].permissions.length).to.equal(7);
-      chai.expect(parsed[1].user.name).to.equal('john');
-      chai.expect(parsed[1].permissions.length).to.equal(2);
-      chai.expect(parsed[2].user.name).to.equal('olivier');
-      chai.expect(parsed[2].permissions.length).to.equal(1);
-    });
-  });
+      chai.expect(parsed.length).to.equal(3)
+      chai.expect(parsed[0].user.name).to.equal('kobo')
+      chai.expect(parsed[0].permissions.length).to.equal(7)
+      chai.expect(parsed[1].user.name).to.equal('john')
+      chai.expect(parsed[1].permissions.length).to.equal(2)
+      chai.expect(parsed[2].user.name).to.equal('olivier')
+      chai.expect(parsed[2].permissions.length).to.equal(1)
+    })
+  })
 
   describe('removeImpliedPerms', () => {
     it('should remove implied non-partial permissions', () => {
@@ -84,15 +84,15 @@ describe('permParser', () => {
           user: '/api/v2/users/joe/',
           permission: '/api/v2/permissions/view_asset/',
         },
-      ]);
+      ])
 
       chai.expect(cleanedUpOutput).to.deep.equal([
         {
           user: '/api/v2/users/joe/',
           permission: '/api/v2/permissions/delete_submissions/',
         },
-      ]);
-    });
+      ])
+    })
 
     it('should remove implied partial permissions', () => {
       const cleanedUpOutput = removeImpliedPerms([
@@ -135,7 +135,7 @@ describe('permParser', () => {
             },
           ],
         },
-      ]);
+      ])
 
       chai.expect(cleanedUpOutput).to.deep.equal([
         {
@@ -146,7 +146,7 @@ describe('permParser', () => {
               url: '/api/v2/permissions/view_submissions/',
               filters: [
                 {
-                  _submitted_by: {$in: ['josh', 'bob']},
+                  _submitted_by: { $in: ['josh', 'bob'] },
                   Where_is_it: 'South',
                 },
               ],
@@ -162,9 +162,9 @@ describe('permParser', () => {
             },
           ],
         },
-      ]);
-    });
-  });
+      ])
+    })
+  })
 
   describe('sortParseBackendOutput', () => {
     it('should sort alphabetically with owner always first', () => {
@@ -217,7 +217,7 @@ describe('permParser', () => {
           },
           permissions: [],
         },
-      ]);
+      ])
       chai.expect(sortedOutput).to.deep.equal([
         {
           user: {
@@ -267,32 +267,29 @@ describe('permParser', () => {
           },
           permissions: [],
         },
-      ]);
-    });
-  });
+      ])
+    })
+  })
 
   describe('buildFormData', () => {
     it('should check proper options', () => {
       const parsed = parseBackendData(
         endpoints.assetWithMultipleUsers.results,
-        endpoints.assetWithMultipleUsers.results[0].user
-      );
+        endpoints.assetWithMultipleUsers.results[0].user,
+      )
 
-      const built = buildFormData(parsed[1].permissions, 'eric');
+      const built = buildFormData(parsed[1].permissions, 'eric')
 
       chai.expect(built).to.deep.equal({
         username: 'eric',
         submissionsView: true,
-      });
-    });
+      })
+    })
 
     it('should handle partial permissions', () => {
-      const parsed = parseBackendData(
-        endpoints.assetWithPartial.results,
-        endpoints.assetWithPartial.results[0].user
-      );
+      const parsed = parseBackendData(endpoints.assetWithPartial.results, endpoints.assetWithPartial.results[0].user)
 
-      const built = buildFormData(parsed[1].permissions, 'tessa');
+      const built = buildFormData(parsed[1].permissions, 'tessa')
 
       chai.expect(built).to.deep.equal({
         username: 'tessa',
@@ -301,50 +298,46 @@ describe('permParser', () => {
         submissionsEditPartialByResponses: true,
         submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
         submissionsEditPartialByResponsesValue: 'Poland',
-      });
-    });
+      })
+    })
 
     it('should not destroy data when chain parsing and building', () => {
-      const testUser = 'olivier';
+      const testUser = 'olivier'
 
       const usersWithPerms = parseBackendData(
         endpoints.assetWithMultipleUsers.results,
-        endpoints.assetWithMultipleUsers.results[0].user
-      );
+        endpoints.assetWithMultipleUsers.results[0].user,
+      )
 
       // Get testUser permissions
-      const testUserPerms =
-        usersWithPerms.find((item) => item.user.name === testUser)
-          ?.permissions || [];
+      const testUserPerms = usersWithPerms.find((item) => item.user.name === testUser)?.permissions || []
 
       // Build the data again for the testUser
-      const builtFormData = buildFormData(testUserPerms, testUser);
+      const builtFormData = buildFormData(testUserPerms, testUser)
 
-      const parsedForm = parseFormData(builtFormData);
+      const parsedForm = parseFormData(builtFormData)
 
       chai.expect(parsedForm).to.deep.equal([
         {
           user: '/api/v2/users/olivier/',
           permission: '/api/v2/permissions/view_asset/',
         },
-      ]);
-    });
+      ])
+    })
 
     it('should build proper form data for multiple partial permissions', () => {
-      const testUser = 'gwyneth';
+      const testUser = 'gwyneth'
 
       const usersWithPerms = parseBackendData(
         endpoints.assetWithMultiplePartial.results,
-        endpoints.assetWithMultiplePartial.results[0].user
-      );
+        endpoints.assetWithMultiplePartial.results[0].user,
+      )
 
       // Get testUser permissions
-      const testUserPerms =
-        usersWithPerms.find((item) => item.user.name === testUser)
-          ?.permissions || [];
+      const testUserPerms = usersWithPerms.find((item) => item.user.name === testUser)?.permissions || []
 
       // Build the data again for the testUser
-      const builtFormData = buildFormData(testUserPerms, testUser);
+      const builtFormData = buildFormData(testUserPerms, testUser)
 
       chai.expect(builtFormData).to.deep.equal({
         username: 'gwyneth',
@@ -362,11 +355,10 @@ describe('permParser', () => {
         submissionsValidatePartialByUsers: true,
         submissionsValidatePartialByUsersList: ['zachary'],
         submissionsValidatePartialByResponses: true,
-        submissionsValidatePartialByResponsesQuestion:
-          'What_is_your_fav_animal',
+        submissionsValidatePartialByResponsesQuestion: 'What_is_your_fav_animal',
         submissionsValidatePartialByResponsesValue: 'Racoon',
-      });
-    });
+      })
+    })
 
     it('should work with "by responses" permission with empty value', () => {
       const parsed = parseBackendData(
@@ -385,24 +377,24 @@ describe('permParser', () => {
             partial_permissions: [
               {
                 url: '/api/v2/permissions/view_submissions/',
-                filters: [{What_is_up: ''}],
+                filters: [{ What_is_up: '' }],
               },
             ],
           },
         ],
-        '/api/v2/users/joe/'
-      );
+        '/api/v2/users/joe/',
+      )
 
-      const built = buildFormData(parsed[1].permissions, 'gwyneth');
+      const built = buildFormData(parsed[1].permissions, 'gwyneth')
 
       chai.expect(built).to.deep.equal({
         username: 'gwyneth',
         submissionsViewPartialByResponses: true,
         submissionsViewPartialByResponsesQuestion: 'What_is_up',
         submissionsViewPartialByResponsesValue: '',
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('parseFormData', () => {
     it('should exclude all implied permissions as they are not needed', () => {
@@ -416,7 +408,7 @@ describe('permParser', () => {
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: true,
-      });
+      })
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -427,8 +419,8 @@ describe('permParser', () => {
           user: '/api/v2/users/leszek/',
           permission: '/api/v2/permissions/validate_submissions/',
         },
-      ]);
-    });
+      ])
+    })
 
     it('should add partial_permissions with merged filters for identical partial permission', () => {
       const parsed = parseFormData({
@@ -444,7 +436,7 @@ describe('permParser', () => {
         submissionsAdd: false,
         submissionsEdit: false,
         submissionsValidate: false,
-      });
+      })
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -455,15 +447,15 @@ describe('permParser', () => {
               url: '/api/v2/permissions/view_submissions/',
               filters: [
                 {
-                  _submitted_by: {$in: ['john', 'olivier', 'eric']},
+                  _submitted_by: { $in: ['john', 'olivier', 'eric'] },
                   Where_are_you_from: 'Poland',
                 },
               ],
             },
           ],
         },
-      ]);
-    });
+      ])
+    })
 
     it('should add separate partial_permissions for different partial permission', () => {
       const parsed = parseFormData({
@@ -479,7 +471,7 @@ describe('permParser', () => {
         submissionsEditPartialByResponsesQuestion: 'Where_are_you_from',
         submissionsEditPartialByResponsesValue: 'Poland',
         submissionsValidate: false,
-      });
+      })
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -488,16 +480,16 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{_submitted_by: {$in: ['john', 'olivier', 'eric']}}],
+              filters: [{ _submitted_by: { $in: ['john', 'olivier', 'eric'] } }],
             },
             {
               url: '/api/v2/permissions/change_submissions/',
-              filters: [{Where_are_you_from: 'Poland'}],
+              filters: [{ Where_are_you_from: 'Poland' }],
             },
           ],
         },
-      ]);
-    });
+      ])
+    })
 
     it('should allow partial "by responses" with empty value', () => {
       const parsed = parseFormData({
@@ -508,7 +500,7 @@ describe('permParser', () => {
         submissionsViewPartialByResponses: true,
         submissionsViewPartialByResponsesQuestion: 'What_is_up',
         submissionsViewPartialByResponsesValue: '',
-      });
+      })
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -517,21 +509,21 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{What_is_up: ''}],
+              filters: [{ What_is_up: '' }],
             },
           ],
         },
-      ]);
-    });
-  });
+      ])
+    })
+  })
 
   describe('parseUserWithPermsList', () => {
     it('should return flat list of permissions', () => {
       const userWithPermsList = parseBackendData(
         endpoints.assetWithMultipleUsers.results,
-        endpoints.assetWithMultipleUsers.results[0].user
-      );
-      const parsed = parseUserWithPermsList(userWithPermsList);
+        endpoints.assetWithMultipleUsers.results[0].user,
+      )
+      const parsed = parseUserWithPermsList(userWithPermsList)
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -574,15 +566,15 @@ describe('permParser', () => {
           user: '/api/v2/users/olivier/',
           permission: '/api/v2/permissions/view_asset/',
         },
-      ]);
-    });
+      ])
+    })
 
     it('should not omit partial permissions', () => {
       const userWithPermsList = parseBackendData(
         endpoints.assetWithPartial.results,
-        endpoints.assetWithPartial.results[0].user
-      );
-      const parsed = parseUserWithPermsList(userWithPermsList);
+        endpoints.assetWithPartial.results[0].user,
+      )
+      const parsed = parseUserWithPermsList(userWithPermsList)
 
       chai.expect(parsed).to.deep.equal([
         {
@@ -619,15 +611,15 @@ describe('permParser', () => {
           partial_permissions: [
             {
               url: '/api/v2/permissions/view_submissions/',
-              filters: [{_submitted_by: {$in: ['john', 'olivier']}}],
+              filters: [{ _submitted_by: { $in: ['john', 'olivier'] } }],
             },
             {
               url: '/api/v2/permissions/change_submissions/',
-              filters: [{Where_are_you_from: 'Poland'}],
+              filters: [{ Where_are_you_from: 'Poland' }],
             },
           ],
         },
-      ]);
-    });
-  });
-});
+      ])
+    })
+  })
+})

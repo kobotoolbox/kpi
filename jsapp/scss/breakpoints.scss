@@ -27,28 +27,28 @@ The names for screen sizes and the breakpoints that divides them are:
   @if $breakpointName == veryNarrow {
     @media (width < $b600) {@content;}
   }
-  @else if $breakpointName == narrow {
+ @else if $breakpointName == narrow {
     @media (min-width: $b600) and (width < $b960) {@content;}
   }
-  @else if $breakpointName == narrowAndUp {
+ @else if $breakpointName == narrowAndUp {
     @media (min-width: $b600) {@content;}
   }
-  @else if $breakpointName == medium {
+ @else if $breakpointName == medium {
     @media (min-width: $b960) and (width < $b1140) {@content;}
   }
-  @else if $breakpointName == mediumAndUp {
+ @else if $breakpointName == mediumAndUp {
     @media (min-width: $b960) {@content;}
   }
-  @else if $breakpointName == wide {
+ @else if $breakpointName == wide {
     @media (min-width: $b1140) and (width < $b1440) {@content;}
   }
-  @else if $breakpointName == wideAndUp {
+ @else if $breakpointName == wideAndUp {
     @media (min-width: $b1140) {@content;}
   }
-  @else if $breakpointName == veryWide {
+ @else if $breakpointName == veryWide {
     @media (min-width: $b1440) {@content;}
   }
-  @else {
+ @else {
     @error 'Unknown brakpoint "#{$breakpointName}".';
   }
 }

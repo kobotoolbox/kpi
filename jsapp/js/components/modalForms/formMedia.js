@@ -1,31 +1,24 @@
-import React from 'react';
-import autoBind from 'react-autobind';
-import Dropzone from 'react-dropzone';
-import Button from 'js/components/common/button';
-import TextBox from 'js/components/common/textBox';
-import InlineMessage from 'js/components/common/inlineMessage';
-import {actions} from 'js/actions';
-import bem, {makeBem} from 'js/bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
-import envStore from 'js/envStore';
-import {
-  ASSET_FILE_TYPES,
-  MAX_DISPLAYED_STRING_LENGTH,
-} from 'js/constants';
+import React from 'react'
+import autoBind from 'react-autobind'
+import Dropzone from 'react-dropzone'
+import Button from 'js/components/common/button'
+import TextBox from 'js/components/common/textBox'
+import InlineMessage from 'js/components/common/inlineMessage'
+import { actions } from 'js/actions'
+import bem, { makeBem } from 'js/bem'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
+import envStore from 'js/envStore'
+import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
 
-import {
-  truncateString,
-  truncateUrl,
-  notify,
-} from 'js/utils';
-import './formMedia.scss';
+import { truncateString, truncateUrl, notify } from 'js/utils'
+import './formMedia.scss'
 
-const DEFAULT_MEDIA_DESCRIPTION = 'default';
-const MEDIA_SUPPORT_URL = 'media.html';
+const DEFAULT_MEDIA_DESCRIPTION = 'default'
+const MEDIA_SUPPORT_URL = 'media.html'
 
-bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url');
-bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label');
-bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form');
+bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url')
+bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label')
+bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form')
 
 /**
  * @prop {object} asset
@@ -34,7 +27,7 @@ bem.FormMediaUploadUrl__form = makeBem(bem.FormMediaUploadUrl, 'form');
  */
 class FormMedia extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       uploadedAssets: [],
       fieldsErrors: {},
@@ -44,9 +37,9 @@ class FormMedia extends React.Component {
       // to show loading icon while uploading any file
       isUploadFilePending: false,
       isUploadURLPending: false,
-    };
+    }
 
-    autoBind(this);
+    autoBind(this)
   }
 
   /*
@@ -54,10 +47,10 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    actions.media.loadMedia(this.props.asset.uid);
+    actions.media.loadMedia(this.props.asset.uid)
 
-    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
+    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted)
+    actions.media.uploadMedia.failed.listen(this.onUploadFailed)
   }
 
   /*
@@ -70,7 +63,7 @@ class FormMedia extends React.Component {
       isUploadFilePending: false,
       isUploadURLPending: false,
       isInitialised: true,
-    });
+    })
   }
 
   onUploadFailed(response) {
@@ -78,7 +71,7 @@ class FormMedia extends React.Component {
       fieldsErrors: response.responseJSON,
       isUploadFilePending: false,
       isUploadURLPending: false,
-    });
+    })
   }
 
   /*
@@ -87,11 +80,11 @@ class FormMedia extends React.Component {
 
   toBase64(file) {
     return new Promise((resolve, reject) => {
-      var reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+      var reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   /*
@@ -111,8 +104,8 @@ class FormMedia extends React.Component {
 
   uploadMedia(formMediaJSON) {
     // Reset error message before uploading again
-    this.setState({fieldsErrors: {}});
-    actions.media.uploadMedia(this.props.asset.uid, formMediaJSON);
+    this.setState({ fieldsErrors: {} })
+    actions.media.uploadMedia(this.props.asset.uid, formMediaJSON)
   }
 
   /*
@@ -121,47 +114,47 @@ class FormMedia extends React.Component {
 
   onFileDrop(files) {
     if (files.length >= 1) {
-      this.setState({isUploadFilePending: true});
+      this.setState({ isUploadFilePending: true })
 
       files.forEach(async (file) => {
-        var base64File = await this.toBase64(file);
+        var base64File = await this.toBase64(file)
 
         this.uploadMedia({
           description: DEFAULT_MEDIA_DESCRIPTION,
           file_type: ASSET_FILE_TYPES.form_media.id,
-          metadata: JSON.stringify({filename: file.name}),
+          metadata: JSON.stringify({ filename: file.name }),
           base64Encoded: base64File,
-        });
-      });
+        })
+      })
     }
   }
 
   onInputURLChange(inputURL) {
-    this.setState({inputURL: inputURL});
+    this.setState({ inputURL: inputURL })
   }
 
   onSubmitURL() {
-    var url = this.state.inputURL;
+    var url = this.state.inputURL
 
     if (url === '') {
-      notify.warning(t('URL is empty!'));
+      notify.warning(t('URL is empty!'))
     } else {
       this.setState({
         isUploadURLPending: true,
         inputURL: '',
-      });
+      })
 
       this.uploadMedia({
         description: DEFAULT_MEDIA_DESCRIPTION,
         file_type: ASSET_FILE_TYPES.form_media.id,
-        metadata: JSON.stringify({redirect_url: url}),
-      });
+        metadata: JSON.stringify({ redirect_url: url }),
+      })
     }
   }
 
   onDeleteMedia(evt, url) {
-    evt.preventDefault();
-    actions.media.deleteMedia(this.props.asset.uid, url);
+    evt.preventDefault()
+    actions.media.deleteMedia(this.props.asset.uid, url)
   }
 
   /*
@@ -170,11 +163,11 @@ class FormMedia extends React.Component {
 
   renderFileName(item) {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
-    var fileName = item.metadata.filename;
+    var fileName = item.metadata.filename
     if (item.metadata.redirect_url) {
-      fileName = truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media);
+      fileName = truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media)
     } else {
-      fileName = truncateString(fileName, MAX_DISPLAYED_STRING_LENGTH.form_media);
+      fileName = truncateString(fileName, MAX_DISPLAYED_STRING_LENGTH.form_media)
     }
 
     return (
@@ -186,66 +179,53 @@ class FormMedia extends React.Component {
       >
         {fileName}
       </a>
-    );
+    )
   }
 
   renderIcon(item) {
-    const iconClassNames = ['form-media__file-type', 'k-icon'];
+    const iconClassNames = ['form-media__file-type', 'k-icon']
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     if (item.metadata.redirect_url) {
-      iconClassNames.push('k-icon-link');
+      iconClassNames.push('k-icon-link')
     } else {
-      iconClassNames.push('k-icon-media-files');
+      iconClassNames.push('k-icon-media-files')
     }
 
-    return <i className={iconClassNames.join(' ')} />;
+    return <i className={iconClassNames.join(' ')} />
   }
 
   render() {
     return (
       <bem.FormView m='form-media'>
         <bem.FormMedia>
-          {this.props.asset.deployment__active &&
+          {this.props.asset.deployment__active && (
             <InlineMessage
               icon='alert'
               type='warning'
               message={t('You must redeploy this form to see media changes.')}
             />
-          }
+          )}
 
           <bem.FormMedia__title>
-            <bem.FormMedia__label>
-              {t('Attach files')}
-            </bem.FormMedia__label>
+            <bem.FormMedia__label>{t('Attach files')}</bem.FormMedia__label>
 
-            {envStore.isReady &&
-              envStore.data.support_url && (
-                <a
-                  className='title-help'
-                  target='_blank'
-                  href={
-                    envStore.data.support_url +
-                    MEDIA_SUPPORT_URL
-                  }
-                  data-tip={t('Learn more about form media')}
-                >
-                  <i className='k-icon k-icon-help' />
-                </a>
-              )}
+            {envStore.isReady && envStore.data.support_url && (
+              <a
+                className='title-help'
+                target='_blank'
+                href={envStore.data.support_url + MEDIA_SUPPORT_URL}
+                data-tip={t('Learn more about form media')}
+              >
+                <i className='k-icon k-icon-help' />
+              </a>
+            )}
           </bem.FormMedia__title>
 
           <bem.FormMedia__upload>
             {!this.state.isUploadFilePending && (
-              <Dropzone
-                onDrop={this.onFileDrop.bind(this)}
-                className='kobo-dropzone kobo-dropzone--form-media'
-              >
+              <Dropzone onDrop={this.onFileDrop.bind(this)} className='kobo-dropzone kobo-dropzone--form-media'>
                 {this.state.fieldsErrors?.base64Encoded && (
-                  <InlineMessage
-                    type='error'
-                    icon='alert'
-                    message={this.state.fieldsErrors?.base64Encoded}
-                  />
+                  <InlineMessage type='error' icon='alert' message={this.state.fieldsErrors?.base64Encoded} />
                 )}
                 <i className='k-icon k-icon-upload' />
                 {t('Drag and drop files here')}
@@ -262,9 +242,7 @@ class FormMedia extends React.Component {
             )}
 
             <bem.FormMediaUploadUrl>
-              <bem.FormMediaUploadUrl__label>
-                {t('You can also add files using a URL')}
-              </bem.FormMediaUploadUrl__label>
+              <bem.FormMediaUploadUrl__label>{t('You can also add files using a URL')}</bem.FormMediaUploadUrl__label>
 
               <bem.FormMediaUploadUrl__form>
                 <TextBox
@@ -288,25 +266,18 @@ class FormMedia extends React.Component {
           </bem.FormMedia__upload>
 
           <bem.FormMedia__list>
-            <bem.FormMedia__label>
-              {t('Attached files')}
-            </bem.FormMedia__label>
+            <bem.FormMedia__label>{t('Attached files')}</bem.FormMedia__label>
 
             <ul>
-              {(!this.state.isInitialised ||
-                this.state.isUploadFilePending ||
-                this.state.isUploadURLPending) && (
+              {(!this.state.isInitialised || this.state.isUploadFilePending || this.state.isUploadURLPending) && (
                 <bem.FormMedia__listItem>
                   <LoadingSpinner message={t('loading media')} />
                 </bem.FormMedia__listItem>
               )}
 
-              {this.state.isInitialised &&
-                !this.state.uploadedAssets.length && (
-                  <bem.FormMedia__listItem>
-                    {t('No files uploaded yet')}
-                  </bem.FormMedia__listItem>
-                )}
+              {this.state.isInitialised && !this.state.uploadedAssets.length && (
+                <bem.FormMedia__listItem>{t('No files uploaded yet')}</bem.FormMedia__listItem>
+              )}
 
               {this.state.uploadedAssets.map((item, n) => (
                 <bem.FormMedia__listItem key={n}>
@@ -326,8 +297,8 @@ class FormMedia extends React.Component {
           </bem.FormMedia__list>
         </bem.FormMedia>
       </bem.FormView>
-    );
+    )
   }
 }
 
-export default FormMedia;
+export default FormMedia

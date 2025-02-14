@@ -1,10 +1,10 @@
-import {Alert} from '@mantine/core';
-import classes from './Alert.module.css';
-import {AlertType} from 'jsapp/js/components/common/alert';
+import { Alert } from '@mantine/core'
+import classes from './Alert.module.css'
+import { AlertType } from 'jsapp/js/components/common/alert'
 
 declare module '@mantine/core' {
   export interface AlertProps {
-    type: AlertType;
+    type: AlertType
   }
 }
 
@@ -34,6 +34,6 @@ export const AlertThemeKobo = Alert.extend({
           '--alert-color': theme.colors.amber[6],
         }),
       },
-    };
+    }
   },
-});
+})

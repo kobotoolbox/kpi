@@ -12,7 +12,7 @@
 
 .form-view__cell.form-view__cell--subs-graph {
   padding: 30px;
-  padding-bottom: 0px;
+  padding-bottom: 0;
 
   .form-view__cell--subs-graph-toggle {
     padding-bottom: 20px;
@@ -63,7 +63,7 @@
 
     &:last-child {
       flex: 1;
-      margin-right: 0px;
+      margin-right: 0;
     }
   }
 
@@ -125,15 +125,15 @@
 
   .user-row {
     margin: 0;
-    border-bottom: 0px;
-    margin-right: 0px;
+    border-bottom: 0;
+    margin-right: 0;
   }
 
   a.team-sharing-button {
     cursor: pointer;
     color: colors.$kobo-gray-700;
     position: absolute;
-    right: 0px;
+    right: 0;
     top: -2px;
 
     .k-icon {
@@ -148,7 +148,7 @@
 
 .form-view__cell.form-view__cell--summary-chart {
   position: relative;
-  height: 0px;
+  height: 0;
   overflow: hidden;
 
   + .form-view__cell--chart-no-data {
@@ -173,7 +173,7 @@
     }
 
     + .form-view__cell--chart-no-data {
-      height: 0px;
+      height: 0;
       overflow: hidden;
     }
   }
@@ -187,7 +187,7 @@
       width: 65%;
 
       .form-view__row {
-        margin-right: 0px;
+        margin-right: 0;
       }
     }
 
@@ -202,7 +202,7 @@
   }
 }
 
-@media screen and (min-width: 1024px) {
+@media screen and (width >= 1024px) {
   .form-view--summary {
     .form-view__column--left {
       width: 70%;

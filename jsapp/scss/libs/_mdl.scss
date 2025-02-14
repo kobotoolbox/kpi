@@ -3,8 +3,8 @@
 
 $root-background: colors.$kobo-white;
 
-$font: "Roboto", sans-serif !default;
-$font_mono: "Roboto Mono", monospace !default;
+$font: 'Roboto', sans-serif !default;
+$font_mono: 'Roboto Mono', monospace !default;
 $layout-text-color: colors.$kobo-gray-800 !default;
 $layout-nav-color: colors.$kobo-white !default;
 $layout-header-bg-color: colors.$kobo-gray-800 !default;
@@ -39,4 +39,4 @@ $layout-desktop-header-height: 64px;
   outline-width: 5px;
 }
 
-@import "mdl.layout";
+@import 'mdl.layout';

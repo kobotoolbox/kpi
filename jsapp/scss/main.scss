@@ -1,56 +1,56 @@
 @import '~normalize.css';
 
-@import "variables";
+@import 'variables';
 
-@import "./libs/mdl";
+@import './libs/mdl';
 
-@import "./fonts/roboto";
-@import "../fonts/k-icons";
-@import "~select2/select2.css";
-@import "~react-table/react-table.css";
-@import "~alertifyjs/build/css/alertify.css";
+@import './fonts/roboto';
+@import '../fonts/k-icons';
+@import '~select2/select2.css';
+@import '~react-table/react-table.css';
+@import '~alertifyjs/build/css/alertify.css';
 
-@import "./libs/alertify.overrides";
-@import "./libs/react-select.overrides";
+@import './libs/alertify.overrides';
+@import './libs/react-select.overrides';
 
 // Form Builder related stylesheets
-@import "stylesheets/partials/select2_override";
-@import "stylesheets/partials/tagsinput_override";
-@import "stylesheets/partials/base";
-@import "stylesheets/partials/buttons";
-@import "stylesheets/partials/misc";
-@import "stylesheets/partials/content";
-@import "stylesheets/partials/registration";
-@import "stylesheets/partials/mfa_token";
-@import "stylesheets/pages/form_builder";
-@import "stylesheets/partials/helpers";
+@import 'stylesheets/partials/select2_override';
+@import 'stylesheets/partials/tagsinput_override';
+@import 'stylesheets/partials/base';
+@import 'stylesheets/partials/buttons';
+@import 'stylesheets/partials/misc';
+@import 'stylesheets/partials/content';
+@import 'stylesheets/partials/registration';
+@import 'stylesheets/partials/mfa_token';
+@import 'stylesheets/pages/form_builder';
+@import 'stylesheets/partials/helpers';
 
-@import "./components/kobo.bem.ui";
-@import "jsapp/js/popoverMenu.scss";
-@import "./components/kobo.button";
-@import "./components/kobo.tooltips-big";
-@import "./components/kobo.navigation";
-@import "./components/kobo.drawer";
-@import "./components/kobo.drawer.sidebar";
-@import "./components/kobo.form-builder";
-@import "./components/kobo.form-builder-message-box";
-@import "./components/kobo.locking";
-@import "./components/kobo.lib-nav";
-@import "./components/kobo.lib-list";
-@import "./components/kobo.form-view";
-@import "./components/kobo.project-downloads";
-@import "./components/kobo.service-row";
-@import "./components/kobo.empty-content";
-@import "./components/kobo.background-audio-player";
-@import "./components/kobo.dropzone";
+@import './components/kobo.bem.ui';
+@import 'jsapp/js/popoverMenu.scss';
+@import './components/kobo.button';
+@import './components/kobo.tooltips-big';
+@import './components/kobo.navigation';
+@import './components/kobo.drawer';
+@import './components/kobo.drawer.sidebar';
+@import './components/kobo.form-builder';
+@import './components/kobo.form-builder-message-box';
+@import './components/kobo.locking';
+@import './components/kobo.lib-nav';
+@import './components/kobo.lib-list';
+@import './components/kobo.form-view';
+@import './components/kobo.project-downloads';
+@import './components/kobo.service-row';
+@import './components/kobo.empty-content';
+@import './components/kobo.background-audio-player';
+@import './components/kobo.dropzone';
 @import './components/kobo.table-meta';
 @import 'jsapp/js/components/common/tooltip.scss';
 
-@import "./formbuild/kobomatrix";
+@import './formbuild/kobomatrix';
 
 .k-invisible {
   visibility: hidden;
 }
 
 // Print stylesheet
-@import "./libs/print";
+@import './libs/print';

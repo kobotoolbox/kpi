@@ -1,8 +1,8 @@
-import React from 'react';
-import {Navigate, Route} from 'react-router-dom';
-import RequireAuth from 'js/router/requireAuth';
-import {RequireOrgPermissions} from 'js/router/RequireOrgPermissions.component';
-import {OrganizationUserRole} from 'js/account/organization/organizationQuery';
+import React from 'react'
+import { Navigate, Route } from 'react-router-dom'
+import RequireAuth from 'js/router/requireAuth'
+import { RequireOrgPermissions } from 'js/router/RequireOrgPermissions.component'
+import { OrganizationUserRole } from 'js/account/organization/organizationQuery'
 import {
   ACCOUNT_ROUTES,
   AccountSettings,
@@ -13,16 +13,12 @@ import {
   SecurityRoute,
   MembersRoute,
   OrganizationSettingsRoute,
-} from 'js/account/routes.constants';
+} from 'js/account/routes.constants'
 
 export default function routes() {
-
   return (
     <>
-      <Route
-        path=''
-        element={<Navigate to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS} replace />}
-      />
+      <Route path='' element={<Navigate to={ACCOUNT_ROUTES.ACCOUNT_SETTINGS} replace />} />
       <Route
         path={ACCOUNT_ROUTES.SECURITY}
         element={
@@ -65,10 +61,7 @@ export default function routes() {
         element={
           <RequireAuth>
             <RequireOrgPermissions
-              validRoles={[
-                OrganizationUserRole.owner,
-                OrganizationUserRole.admin,
-              ]}
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
               redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
               <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE} />
@@ -81,15 +74,10 @@ export default function routes() {
         element={
           <RequireAuth>
             <RequireOrgPermissions
-              validRoles={[
-                OrganizationUserRole.owner,
-                OrganizationUserRole.admin,
-              ]}
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
               redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
-              <DataStorage
-                activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN}
-              />
+              <DataStorage activeRoute={ACCOUNT_ROUTES.USAGE_PROJECT_BREAKDOWN} />
             </RequireOrgPermissions>
           </RequireAuth>
         }
@@ -114,10 +102,7 @@ export default function routes() {
         path={ACCOUNT_ROUTES.ORGANIZATION_MEMBERS}
         element={
           <RequireAuth>
-            <RequireOrgPermissions
-              mmoOnly
-              redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
-            >
+            <RequireOrgPermissions mmoOnly redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}>
               <MembersRoute />
             </RequireOrgPermissions>
           </RequireAuth>
@@ -128,10 +113,7 @@ export default function routes() {
         element={
           <RequireAuth>
             <RequireOrgPermissions
-              validRoles={[
-                OrganizationUserRole.owner,
-                OrganizationUserRole.admin,
-              ]}
+              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
               mmoOnly
               redirectRoute={ACCOUNT_ROUTES.ACCOUNT_SETTINGS}
             >
@@ -141,5 +123,5 @@ export default function routes() {
         }
       />
     </>
-  );
+  )
 }

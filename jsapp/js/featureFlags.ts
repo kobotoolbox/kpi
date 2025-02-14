@@ -35,40 +35,40 @@ export enum FeatureFlag {
  * @returns {Record<FeatureFlag, boolean>} Object containing enabled flags as entries set as true
  */
 const getFeatureFlags = (): Record<FeatureFlag, boolean> => {
-  const flags = JSON.parse(sessionStorage.getItem('feature_flags') || '{}');
+  const flags = JSON.parse(sessionStorage.getItem('feature_flags') || '{}')
 
   // Due hash router used for kobo this fails to resolve the search parameters,
   // so we need to remove the hash from the URL
-  const params = new URL(window.location.href.replace('/#', '')).searchParams;
+  const params = new URL(window.location.href.replace('/#', '')).searchParams
 
   if (params.size === 0) {
-    return flags;
+    return flags
   }
 
-  const newFlags: Partial<Record<FeatureFlag, boolean>> = {};
+  const newFlags: Partial<Record<FeatureFlag, boolean>> = {}
   for (const [key, value] of params) {
     if (!key.startsWith('ff_')) {
-      continue;
+      continue
     }
 
-    const flag = key.slice(3);
+    const flag = key.slice(3)
     if (!Object.values(FeatureFlag).includes(flag as FeatureFlag)) {
-      continue;
+      continue
     }
     // A flag will be removed from storage if set to anything different from 'true'
-    newFlags[flag as FeatureFlag] = value === 'true' ? true : undefined;
+    newFlags[flag as FeatureFlag] = value === 'true' ? true : undefined
   }
 
   const totalFlags = {
     ...flags,
     ...newFlags,
-  };
+  }
 
-  sessionStorage.setItem('feature_flags', JSON.stringify(totalFlags));
+  sessionStorage.setItem('feature_flags', JSON.stringify(totalFlags))
 
   // Stringifying and re-parsing to clean up undefined keys
-  return JSON.parse(sessionStorage.getItem('feature_flags')!);
-};
+  return JSON.parse(sessionStorage.getItem('feature_flags')!)
+}
 
 /**
  * This should only be used if a hook can't be used.
@@ -76,8 +76,7 @@ const getFeatureFlags = (): Record<FeatureFlag, boolean> => {
  *
  * @deprecated use {@link useFeatureFlag} instead.
  */
-export const checkFeatureFlag = (flag: FeatureFlag): boolean =>
-  !!getFeatureFlags()[flag];
+export const checkFeatureFlag = (flag: FeatureFlag): boolean => !!getFeatureFlags()[flag]
 
 /**
  * This hook is used to check if a feature flag is enabled.
@@ -105,5 +104,4 @@ export const checkFeatureFlag = (flag: FeatureFlag): boolean =>
  *
  * @returns {boolean} - True if the feature flag is enabled
  */
-export const useFeatureFlag = (flag: FeatureFlag): boolean =>
-  checkFeatureFlag(flag);
+export const useFeatureFlag = (flag: FeatureFlag): boolean => checkFeatureFlag(flag)

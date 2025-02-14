@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as t
 from rest_framework import exceptions, status
+from rest_framework.exceptions import APIException
 
 
 class AbstractMethodError(NotImplementedError):
@@ -189,6 +190,18 @@ class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
+
+
+class RetryAfterAPIException(APIException):
+    default_code = 'retry_after'
+    default_detail = 'Please try again later.'
+    status_code = 429
+
+    def __init__(self, detail=None, retry_after=60):
+        if detail is None:
+            detail = self.default_detail
+        self.retry_after = retry_after
+        super().__init__(detail)
 
 
 class SearchQueryTooShortException(InvalidSearchException):

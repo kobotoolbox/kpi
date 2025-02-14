@@ -1,4 +1,5 @@
 from rest_framework import mixins, viewsets
+from rest_framework.views import APIView
 
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -102,6 +103,16 @@ class AuditLoggedViewSet(viewsets.GenericViewSet):
 
     def get_object_override(self):
         return super().get_object()
+
+
+class AuditLoggedApiView(APIView):
+    # requires a separate class to deal with a diamond inheritance problem
+    # (APIView inherits from GenericViewSet)
+    def initialize_request(self, request, *args, **kwargs):
+        request = super().initialize_request(request, *args, **kwargs)
+        request._request.log_type = self.log_type
+        request._request._data = request.data.copy()
+        return request
 
 
 class AuditLoggedModelViewSet(

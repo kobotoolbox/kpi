@@ -1,11 +1,11 @@
-import React from 'react';
-import cx from 'classnames';
-import styles from './diffValue.module.scss';
+import React from 'react'
+import cx from 'classnames'
+import styles from './diffValue.module.scss'
 
 interface DiffValueProps {
-  before: React.ReactNode;
-  after: React.ReactNode;
-  isInline?: boolean;
+  before: React.ReactNode
+  after: React.ReactNode
+  isInline?: boolean
 }
 
 /**
@@ -20,9 +20,9 @@ interface DiffValueProps {
  */
 export default function DiffValue(props: DiffValueProps) {
   return (
-    <span className={cx(styles.root, {[styles.isInline]: props.isInline})}>
+    <span className={cx(styles.root, { [styles.isInline]: props.isInline })}>
       <span className={styles.before}>{props.before}</span>
       <span className={styles.after}>{props.after}</span>
     </span>
-  );
+  )
 }

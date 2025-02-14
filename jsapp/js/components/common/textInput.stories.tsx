@@ -1,12 +1,8 @@
-import type {Meta, StoryObj} from '@storybook/react';
-import { TextInput, TextInputProps } from '@mantine/core';
-import Icon from './icon';
+import type { Meta, StoryObj } from '@storybook/react'
+import { TextInput, TextInputProps } from '@mantine/core'
+import Icon from './icon'
 
-const inputSizes: Array<TextInputProps['size']> = [
-  'sm',
-  'md',
-  'lg',
-];
+const inputSizes: Array<TextInputProps['size']> = ['sm', 'md', 'lg']
 
 export default {
   title: 'common/TextInput',
@@ -28,11 +24,10 @@ export default {
       description: 'Input value change callback',
     },
     size: {
-      description:
-        'Changes the size of the component (similar sizing as Button)',
+      description: 'Changes the size of the component (similar sizing as Button)',
       defaultValue: 'md',
       options: inputSizes,
-      control: {type: 'radio'},
+      control: { type: 'radio' },
     },
     disabled: {
       description: 'Disables the input',
@@ -47,9 +42,9 @@ export default {
       control: 'text',
     },
   },
-} as Meta<typeof TextInput>;
+} as Meta<typeof TextInput>
 
-type Story = StoryObj<typeof TextInput>;
+type Story = StoryObj<typeof TextInput>
 
 export const Primary: Story = {
   args: {
@@ -57,7 +52,7 @@ export const Primary: Story = {
     placeholder: 'Enter text...',
     size: 'md',
   },
-};
+}
 
 export const AutoFocused: Story = {
   args: {
@@ -66,7 +61,7 @@ export const AutoFocused: Story = {
     size: 'md',
     autoFocus: true,
   },
-};
+}
 
 export const Disabled: Story = {
   args: {
@@ -75,17 +70,17 @@ export const Disabled: Story = {
     size: 'md',
     disabled: true,
   },
-};
+}
 
 export const WithError: Story = {
   args: {
     label: 'Email',
     placeholder: 'Enter your email',
-    value: "not an email",
+    value: 'not an email',
     error: 'Invalid email address',
     size: 'md',
   },
-};
+}
 
 export const WithIconLeft: Story = {
   args: {
@@ -96,7 +91,7 @@ export const WithIconLeft: Story = {
     leftSection: <Icon name='user' size='s' />,
     size: 'md',
   },
-};
+}
 
 export const WithIconRight: Story = {
   args: {
@@ -107,4 +102,4 @@ export const WithIconRight: Story = {
     rightSection: <Icon name='user' size='s' />,
     size: 'md',
   },
-};
+}

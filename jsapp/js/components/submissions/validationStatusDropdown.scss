@@ -60,7 +60,7 @@
 
     // used to make the clickable area take the whole space
     &::after {
-      content: "";
+      content: '';
       position: absolute;
       top: 0;
       left: 0;
@@ -102,7 +102,7 @@
     // This dummy input is used by react-select to close menu onBlur event and
     // other. But it causes the caret indicator to be weirdly positioned when
     // ellipsis overflow kicks in
-    & + [class*="dummyInput-DummyInput"] {
+    & + [class*='dummyInput-DummyInput'] {
       position: absolute;
     }
 

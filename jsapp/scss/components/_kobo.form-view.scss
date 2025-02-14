@@ -137,7 +137,7 @@ $side-tabs-width-mobile: 70px;
       // left border is detached from horizontal lines,
       // so we need to make it a separate element
       &::before {
-        content: "";
+        content: '';
         position: absolute;
         width: 4px;
         height: 100%;
@@ -283,7 +283,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--small-padding {
-    padding: 10px 20px 20px 20px;
+    padding: 10px 20px 20px;
   }
 
   &.form-view__cell--padding-small {
@@ -497,8 +497,9 @@ $side-tabs-width-mobile: 70px;
 
 .form-view.form-view--form-settings-sharing {
   background: colors.$kobo-white;
+
   .form-modal {
-    padding: 40px 40px 16px 40px;
+    padding: 40px 40px 16px;
     overflow: auto;
   }
 }
@@ -607,7 +608,7 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-@media screen and (max-height: 420px) {
+@media screen and (height <= 420px) {
   .form-view__sidetabs {
     padding-top: 0;
 
@@ -718,6 +719,7 @@ $side-tabs-width-mobile: 70px;
 .anonymousSubmissionDialog {
   margin-top: 3px;
 }
+
 .anonymousSubmissionPointer {
   left: 1em;
 }

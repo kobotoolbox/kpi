@@ -1,39 +1,37 @@
 // Libraries
-import React, {useState, useMemo} from 'react';
+import React, { useState, useMemo } from 'react'
 
 // Partial components
-import UniversalTable from './universalTable.component';
+import UniversalTable from './universalTable.component'
 
 // Types
-import type {UseQueryResult} from '@tanstack/react-query';
-import type {PaginatedResponse} from 'js/dataInterface';
-import type {UniversalTableColumn} from './universalTable.component';
-import type {Record} from 'immutable';
+import type { UseQueryResult } from '@tanstack/react-query'
+import type { PaginatedResponse } from 'js/dataInterface'
+import type { UniversalTableColumn } from './universalTable.component'
+import type { Record } from 'immutable'
 
-type PaginatedQueryHookData = Record<string, string | number | boolean>;
+type PaginatedQueryHookData = Record<string, string | number | boolean>
 
 export type PaginatedQueryHookParams = {
-  limit: number;
-  offset: number;
-} & PaginatedQueryHookData;
+  limit: number
+  offset: number
+} & PaginatedQueryHookData
 
 interface PaginatedQueryHook<DataItem> {
-  (
-    params: PaginatedQueryHookParams
-  ): UseQueryResult<PaginatedResponse<DataItem>>;
+  (params: PaginatedQueryHookParams): UseQueryResult<PaginatedResponse<DataItem>>
 }
 
 interface PaginatedQueryUniversalTableProps<DataItem> {
-  queryHook: PaginatedQueryHook<DataItem>;
-  queryHookData?: PaginatedQueryHookData;
+  queryHook: PaginatedQueryHook<DataItem>
+  queryHookData?: PaginatedQueryHookData
   // Below are props from `UniversalTable` that should come from the parent
   // component (these are kind of "configuration" props). The other
   // `UniversalTable` props are being handled here internally.
-  columns: Array<UniversalTableColumn<DataItem>>;
+  columns: Array<UniversalTableColumn<DataItem>>
 }
 
-const PAGE_SIZES = [10, 30, 50, 100];
-const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
+const PAGE_SIZES = [10, 30, 50, 100]
+const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
 
 /**
  * This is a wrapper component for `UniversalTable`. It should be used in
@@ -58,31 +56,26 @@ const DEFAULT_PAGE_SIZE = PAGE_SIZES[0];
  *
  * All the rest of the functionalities are the same as `UniversalTable`.
  */
-export default function PaginatedQueryUniversalTable<DataItem>(
-  props: PaginatedQueryUniversalTableProps<DataItem>
-) {
+export default function PaginatedQueryUniversalTable<DataItem>(props: PaginatedQueryUniversalTableProps<DataItem>) {
   const [pagination, setPagination] = useState({
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
-  });
+  })
 
   const paginatedQuery = props.queryHook({
     ...props.queryHookData,
     limit: pagination.limit,
     offset: pagination.offset,
-  });
+  })
 
   const availablePages = useMemo(
     () => Math.ceil((paginatedQuery.data?.count ?? 0) / pagination.limit),
-    [paginatedQuery.data, pagination]
-  );
+    [paginatedQuery.data, pagination],
+  )
 
-  const currentPageIndex = useMemo(
-    () => Math.ceil(pagination.offset / pagination.limit),
-    [pagination]
-  );
+  const currentPageIndex = useMemo(() => Math.ceil(pagination.offset / pagination.limit), [pagination])
 
-  const data = paginatedQuery.data?.results || [];
+  const data = paginatedQuery.data?.results || []
 
   return (
     <UniversalTable<DataItem>
@@ -95,16 +88,16 @@ export default function PaginatedQueryUniversalTable<DataItem>(
       pageSizeOptions={PAGE_SIZES}
       onRequestPaginationChange={(newPageInfo, oldPageInfo) => {
         // Calculate new offset and limit from what we've got
-        let newOffset = newPageInfo.pageIndex * newPageInfo.pageSize;
-        const newLimit = newPageInfo.pageSize;
+        let newOffset = newPageInfo.pageIndex * newPageInfo.pageSize
+        const newLimit = newPageInfo.pageSize
 
         // If we change page size, we switch back to first page
         if (newPageInfo.pageSize !== oldPageInfo.pageSize) {
-          newOffset = 0;
+          newOffset = 0
         }
 
-        setPagination({limit: newLimit, offset: newOffset});
+        setPagination({ limit: newLimit, offset: newOffset })
       }}
     />
-  );
+  )
 }

@@ -20,10 +20,12 @@
   justify-content: space-between;
   align-items: flex-end;
   column-gap: 4%;
+
   .input {
     min-width: 75%; // Most rows are wide enough to get their own row,
     flex: 1; // and when they do, they grow to occupy the full available width
   }
+
   .sector,
   .country {
     min-width: 40%; // These fields can sit next to each other in pairs.
@@ -44,6 +46,7 @@
 
 .inputInline {
   display: inline-block;
+
   &:not(:last-child) {
     margin-bottom: 0;
     margin-right: 20px;
@@ -81,13 +84,13 @@ $buttons-spacing: 10px;
     padding: $buttons-spacing;
     width: calc(50% - #{$buttons-spacing});
     min-height: 120px;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
 
     i {
       display: block;
       margin: 3px auto;
       font-size: 34px;
-      color: currentColor;
+      color: currentcolor;
     }
 
     &:hover {
@@ -99,7 +102,7 @@ $buttons-spacing: 10px;
       // makes the shadow smaller and moves button down by small bit
       // to make it look pressed-in
       transform: translateY(1px);
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 25%);
     }
   }
 }
@@ -131,7 +134,7 @@ $buttons-spacing: 10px;
   }
 }
 
-@media screen and (min-height: 600px) {
+@media screen and (height >= 600px) {
   // on bigger screens make templates-list scrollable to always display back/next buttons
   .chooseTemplate:first-child {
     max-height: 380px;

@@ -10,30 +10,30 @@ export enum ExportTypeName {
 }
 
 export interface ExportTypeDefinition {
-  value: ExportTypeName;
-  label: string;
-  isLegacy: boolean;
+  value: ExportTypeName
+  label: string
+  isLegacy: boolean
 }
 
-export const EXPORT_TYPES: {[key in ExportTypeName]: ExportTypeDefinition} = Object.freeze({
-  csv_legacy: {value: ExportTypeName.csv_legacy, label: t('CSV (legacy)'), isLegacy: true},
-  csv: {value: ExportTypeName.csv, label: t('CSV'), isLegacy: false},
-  geojson: {value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false},
-  kml_legacy: {value: ExportTypeName.kml_legacy, label: t('GPS coordinates (KML)'), isLegacy: true},
-  spss_labels: {value: ExportTypeName.spss_labels, label: t('SPSS Labels'), isLegacy: false},
-  xls_legacy: {value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true},
-  xls: {value: ExportTypeName.xls, label: t('XLS'), isLegacy: false},
-  zip_legacy: {value: ExportTypeName.zip_legacy, label: t('Media Attachments (ZIP)'), isLegacy: true},
-});
+export const EXPORT_TYPES: { [key in ExportTypeName]: ExportTypeDefinition } = Object.freeze({
+  csv_legacy: { value: ExportTypeName.csv_legacy, label: t('CSV (legacy)'), isLegacy: true },
+  csv: { value: ExportTypeName.csv, label: t('CSV'), isLegacy: false },
+  geojson: { value: ExportTypeName.geojson, label: t('GeoJSON'), isLegacy: false },
+  kml_legacy: { value: ExportTypeName.kml_legacy, label: t('GPS coordinates (KML)'), isLegacy: true },
+  spss_labels: { value: ExportTypeName.spss_labels, label: t('SPSS Labels'), isLegacy: false },
+  xls_legacy: { value: ExportTypeName.xls_legacy, label: t('XLS (legacy)'), isLegacy: true },
+  xls: { value: ExportTypeName.xls, label: t('XLS'), isLegacy: false },
+  zip_legacy: { value: ExportTypeName.zip_legacy, label: t('Media Attachments (ZIP)'), isLegacy: true },
+})
 
-export type ExportFormatName = '_default' | '_xml';
+export type ExportFormatName = '_default' | '_xml'
 
 export const EXPORT_FORMATS: {
-  [key in ExportFormatName]: {value: ExportFormatName; label: string}
+  [key in ExportFormatName]: { value: ExportFormatName; label: string }
 } = Object.freeze({
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNTRANSLATED` is `null` which is the same as `_default`
-  _default: {value: '_default', label: t('Labels')},
+  _default: { value: '_default', label: t('Labels') },
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNSPECIFIED_TRANSLATION` is `false` which is the same as `_xml`
   //
@@ -41,14 +41,14 @@ export const EXPORT_FORMATS: {
   // > Exports previously used `xml` (no underscore) for this, which works so
   // > long as the form has no language called `xml`. We shouldn't bank on that:
   // > https://en.wikipedia.org/wiki/Malaysian_Sign_Language
-  _xml: {value: '_xml', label: t('XML values and headers')},
-});
+  _xml: { value: '_xml', label: t('XML values and headers') },
+})
 
-export type ExportMultiOptionName = 'details' | 'summary' | 'both';
+export type ExportMultiOptionName = 'details' | 'summary' | 'both'
 
 export interface ExportMultiOption {
-  value: ExportMultiOptionName;
-  label: string;
+  value: ExportMultiOptionName
+  label: string
 }
 
 export const EXPORT_MULTIPLE_OPTIONS: {
@@ -66,7 +66,7 @@ export const EXPORT_MULTIPLE_OPTIONS: {
     value: 'both',
     label: t('Single and separate columns'),
   },
-});
+})
 
 export enum ExportStatusName {
   created = 'created',
@@ -96,4 +96,4 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // here, so the set will be empty, and the component using
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up
   SELECTED_ROWS: new Set(),
-});
+})

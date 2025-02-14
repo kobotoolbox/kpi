@@ -6,7 +6,7 @@
 }
 
 .table-media-preview__audio {
-  padding: 32px 0 12px 0;
+  padding: 32px 0 12px;
   text-align: center;
 
   .audio-player {
@@ -42,7 +42,7 @@
   object-fit: contain;
 }
 
-@media screen and (min-width: 600px) {
+@media screen and (width >= 600px) {
   .table-media-preview {
     min-width: 400px;
   }

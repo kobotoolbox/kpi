@@ -58,6 +58,18 @@ class OrganizationInviteStatusChoices(models.TextChoices):
     PENDING = 'pending'
     RESENT = 'resent'
 
+    @classmethod
+    def get_admin_choices(cls) -> tuple:
+        return cls.CANCELLED, cls.RESENT,
+
+    @classmethod
+    def get_calculated_choices(cls) -> tuple:
+        return cls.EXPIRED, cls.PENDING,
+
+    @classmethod
+    def get_member_choices(cls) -> tuple:
+        return cls.ACCEPTED, cls.DECLINED,
+
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)

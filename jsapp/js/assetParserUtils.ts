@@ -1,36 +1,29 @@
-import {
-  AssetResponse,
-  AssetContentSettings
-} from 'js/dataInterface'
+import { AssetResponse, AssetContentSettings } from 'js/dataInterface'
 
 export function parseTags(asset: AssetResponse) {
   return {
-    tags: asset.tag_string.split(',').filter((tg) => { return tg.length !== 0; })
-  };
+    tags: asset.tag_string.split(',').filter((tg) => tg.length !== 0),
+  }
 }
 
 function parseSettings(asset: AssetResponse) {
-  const settings = asset.content && asset.content.settings;
+  const settings = asset.content && asset.content.settings
   if (settings) {
-    let foundSettings: AssetContentSettings = {};
+    let foundSettings: AssetContentSettings = {}
     if (Array.isArray(settings) && settings.length) {
-      foundSettings = settings[0];
+      foundSettings = settings[0]
     }
     return {
       unparsed__settings: foundSettings,
       settings__style: foundSettings.style,
       settings__form_id: foundSettings.form_id,
       settings__title: foundSettings.title,
-    };
+    }
   } else {
-    return {};
+    return {}
   }
 }
 
 export function parsed(asset: AssetResponse): AssetResponse {
-  return Object.assign(
-    asset,
-    parseSettings(asset),
-    parseTags(asset)
-  ) as AssetResponse;
+  return Object.assign(asset, parseSettings(asset), parseTags(asset)) as AssetResponse
 }

@@ -103,6 +103,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         else:
             queryset = queryset.filter(id_string=id_string_filter)
 
+        # Submissions for forms owned by inactive users are already blocked by
+        # #5321; those forms should be excluded from `formList` as well
+        queryset = queryset.exclude(user__is_active=False)
+
         return queryset
 
     def list(self, request, *args, **kwargs):

@@ -30,7 +30,7 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
-@media screen and (min-width: 1100px) {
+@media screen and (width >= 1100px) {
   .form-builder-aside--visible + .form-builder,
   .lib-nav--visible + .form-builder {
     .form-builder__contents {
@@ -307,6 +307,7 @@ $s-form-builder-content-width: 1024px;
   .placeholder {
     margin: 5px 0;
   }
+
   .lib-list__item {
     background: transparent;
   }
@@ -349,7 +350,7 @@ $s-form-builder-content-width: 1024px;
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (width <= 480px) {
   .card--selectquestion__expansion {
     padding-right: 5px;
     padding-left: 25px;
@@ -395,7 +396,7 @@ $s-form-builder-content-width: 1024px;
     }
 
     .settings__input {
-      input[type="text"] {
+      input[type='text'] {
         border: 1px solid colors.$kobo-gray-300;
       }
     }

@@ -1,9 +1,9 @@
-import React from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import LoadingSpinner from './loadingSpinner';
-import type {LoadingSpinnerType} from './loadingSpinner';
+import React from 'react'
+import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import LoadingSpinner from './loadingSpinner'
+import type { LoadingSpinnerType } from './loadingSpinner'
 
-const spinnerTypes: LoadingSpinnerType[] = ['regular', 'big'];
+const spinnerTypes: LoadingSpinnerType[] = ['regular', 'big']
 
 export default {
   title: 'common/LoadingSpinner',
@@ -26,20 +26,18 @@ export default {
       control: 'select',
     },
   },
-} as ComponentMeta<typeof LoadingSpinner>;
+} as ComponentMeta<typeof LoadingSpinner>
 
-const Template: ComponentStory<typeof LoadingSpinner> = (args) => (
-  <LoadingSpinner {...args} />
-);
+const Template: ComponentStory<typeof LoadingSpinner> = (args) => <LoadingSpinner {...args} />
 
-export const Regular = Template.bind({});
+export const Regular = Template.bind({})
 Regular.args = {
   type: 'regular',
   message: 'To infinity and beyond…',
-};
+}
 
-export const Big = Template.bind({});
+export const Big = Template.bind({})
 Big.args = {
   type: 'big',
   message: 'Working on it…',
-};
+}

@@ -219,6 +219,7 @@ class TestPandasMongoBridge(TestBase):
             'gps_group/_gps_altitude',
             'gps_group/_gps_precision',
             'meta/instanceID',
+            'meta/rootUuid',
             'web_browsers/firefox',
             'web_browsers/chrome',
             'web_browsers/ie',
@@ -259,6 +260,7 @@ class TestPandasMongoBridge(TestBase):
             'kids/kids_details[2]/kids_name': 'Cain',
             'kids/kids_details[2]/kids_age': '76',
             'meta/instanceID': 'uuid:435f173c688e482463a486617004534df',
+            'meta/rootUuid': 'uuid:435f173c688e482463a486617004534df',
             'web_browsers/chrome': True,
             'web_browsers/ie': True,
             'web_browsers/safari': False,
@@ -573,7 +575,7 @@ class TestPandasMongoBridge(TestBase):
         # remove dynamic fields
         ignore_list = [
             '_uuid', 'meta/instanceID', 'formhub/uuid', '_submission_time',
-            '_id']
+            '_id', 'meta/rootUuid']
         for item in ignore_list:
             data_0.pop(item)
         expected_data_0 = {

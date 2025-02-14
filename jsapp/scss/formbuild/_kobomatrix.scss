@@ -19,12 +19,12 @@
   background: colors.$kobo-white;
 
   .matrix-items-new {
-    margin: 23px 0px;
+    margin: 23px 0;
     overflow: hidden;
     position: absolute;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
+    right: 0;
+    top: 0;
+    bottom: 0;
     width: 50px;
     text-align: center;
     padding-top: 10px;
@@ -101,7 +101,7 @@
   text-align: initial;
   width: 500px;
   margin: 0 auto;
-  padding: 0px 20px;
+  padding: 0 20px;
 
   .checkbox {
     display: inline-block;
@@ -124,7 +124,7 @@
       vertical-align: middle;
     }
 
-    > input[type="text"] {
+    > input[type='text'] {
       padding: 4px 8px;
       border: 1px solid colors.$kobo-gray-500;
       border-radius: 4px;
@@ -138,7 +138,7 @@
   .matrix-cols__delete {
     width: 100%;
     text-align: right;
-    padding: 10px 0px 10px;
+    padding: 10px 0;
 
     span {
       color: colors.$kobo-red;
@@ -158,7 +158,7 @@
   background: colors.$kobo-gray-200;
   border: 1px solid colors.$kobo-gray-300;
   padding: 10px;
-  margin: 20px 0px;
+  margin: 20px 0;
   clear: both;
 }
 
@@ -182,7 +182,7 @@
     &.matrix-options__delete {
       width: 5%;
       text-align: right;
-      margin-right: 0px;
+      margin-right: 0;
 
       i {
         font-size: 24px;

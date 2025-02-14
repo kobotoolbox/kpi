@@ -1,5 +1,5 @@
-import classes from './InputBase.module.css';
-import {InputBase} from '@mantine/core';
+import classes from './InputBase.module.css'
+import { InputBase } from '@mantine/core'
 
 export const InputBaseThemeKobo = InputBase.extend({
   defaultProps: {
@@ -14,4 +14,4 @@ export const InputBaseThemeKobo = InputBase.extend({
       section: classes.section,
     },
   },
-});
+})
