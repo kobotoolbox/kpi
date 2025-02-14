@@ -32,7 +32,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
 
   const [isModalOpen, setIsModalOpen] = useState(true)
   const session = useSession()
-  const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId)
+  const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId, false)
   const patchMemberInvite = usePatchMemberInvite(inviteUrl, false)
   // We handle all the errors through query and BE responses, but for some edge cases we have this:
   const [miscError, setMiscError] = useState<string | undefined>()
@@ -76,13 +76,14 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
   // Case 2: failed to get the invitation data from API.
   else if (orgMemberInviteQuery.isError) {
     title = t('Invitation not found')
-    content = (
-      <Alert type='error'>
-        {t('Could not find invitation ##invite_id## from organization ##org_id##')
-          .replace('##invite_id##', props.inviteId)
-          .replace('##org_id##', props.orgId)}
-      </Alert>
-    )
+    // Fallback message
+    let memberInviteErrorMessage = t('Could not find invitation ##invite_id## from organization ##org_id##')
+      .replace('##invite_id##', props.inviteId)
+      .replace('##org_id##', props.orgId)
+    if (orgMemberInviteQuery.error?.responseJSON?.detail) {
+      memberInviteErrorMessage = orgMemberInviteQuery.error.responseJSON.detail
+    }
+    content = <Alert type='error'>{memberInviteErrorMessage}</Alert>
   }
   // Case 3: failed to accept or decline invitation (API response).
   else if (patchMemberInvite.isError) {

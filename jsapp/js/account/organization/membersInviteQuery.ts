@@ -102,13 +102,19 @@ export function useRemoveMemberInvite() {
 /**
  * A hook that gives you a single organization member invite.
  */
-export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
+export const useOrgMemberInviteQuery = (orgId: string, inviteId: string, displayErrorNotification = true) => {
   const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', orgId!).replace(
     ':invite_id',
     inviteId,
   )
+  const fetchOptions: FetchDataOptions = {}
+  if (displayErrorNotification) {
+    fetchOptions.errorMessageDisplay = t('There was an error getting this invitation.')
+  } else {
+    fetchOptions.notifyAboutError = false
+  }
   return useQuery<MemberInvite, FailResponse>({
-    queryFn: () => fetchGet<MemberInvite>(apiPath),
+    queryFn: () => fetchGet<MemberInvite>(apiPath, fetchOptions),
     queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath],
   })
 }
