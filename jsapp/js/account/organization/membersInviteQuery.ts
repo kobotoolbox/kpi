@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl } from 'js/api'
+import { fetchPost, fetchGet, fetchPatchUrl, fetchDeleteUrl, FetchDataOptions } from 'js/api'
 import { type OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import { QueryKeys } from 'js/query/queryKeys'
 import { endpoints } from 'jsapp/js/api.endpoints'
@@ -102,14 +102,20 @@ export function useRemoveMemberInvite() {
 /**
  * A hook that gives you a single organization member invite.
  */
-export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
+export const useOrgMemberInviteQuery = (orgId: string, inviteId: string, displayErrorNotification = true) => {
   const apiPath = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', orgId!).replace(
     ':invite_id',
     inviteId,
   )
+  const fetchOptions: FetchDataOptions = {}
+  if (displayErrorNotification) {
+    fetchOptions.errorMessageDisplay = t('There was an error getting this invitation.')
+  } else {
+    fetchOptions.notifyAboutError = false
+  }
   return useQuery<MemberInvite, FailResponse>({
-    queryFn: () => fetchGet<MemberInvite>(apiPath),
-    queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath],
+    queryFn: () => fetchGet<MemberInvite>(apiPath, fetchOptions),
+    queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath, fetchOptions],
   })
 }
 
@@ -118,15 +124,21 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string) => {
  * the status of the invite (e.g. decline invite). It ensures that both
  * `membersQuery` and `useOrgMemberInviteQuery` will refetch data (by
  * invalidation).
+ *
+ * If you want to handle errors in your component, use `displayErrorNotification`.
  */
-export function usePatchMemberInvite(inviteUrl?: string) {
+export function usePatchMemberInvite(inviteUrl?: string, displayErrorNotification = true) {
   const queryClient = useQueryClient()
-  return useMutation({
+  const fetchOptions: FetchDataOptions = {}
+  if (displayErrorNotification) {
+    fetchOptions.errorMessageDisplay = t('There was an error updating this invitation.')
+  } else {
+    fetchOptions.notifyAboutError = false
+  }
+  return useMutation<MemberInvite | null, Error & FailResponse, Partial<MemberInviteUpdate>>({
     mutationFn: async (newInviteData: Partial<MemberInviteUpdate>) => {
       if (inviteUrl) {
-        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, {
-          errorMessageDisplay: t('There was an error updating this invitation.'),
-        })
+        return fetchPatchUrl<MemberInvite>(inviteUrl, newInviteData, fetchOptions)
       } else return null
     },
     onMutate: async (mutationData) => {
