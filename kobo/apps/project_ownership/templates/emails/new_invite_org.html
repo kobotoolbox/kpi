@@ -9,7 +9,7 @@
 
   <p>{% trans "Because you are part of a team, this project will be owned by the team, but you will retain the ability to manage project permissions. If you do not want the team to own this project, then don’t click on the link below." %}</p>
 
-  <p>{% blocktrans %}
+  <p>{% blocktrans trimmed %}
     If you accept the transfer:
     <ul>
       <li>All submissions, data storage, and transcription/translation usage for this project will count toward the team’s plan limits</li>
@@ -18,7 +18,7 @@
     {% endblocktrans %}
   </p>
 {% else %}
-  <p>{% blocktrans %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
+  <p>{% blocktrans trimmed %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
     <ul>
     {% for transfer in transfers %}
       <li><a href="{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing">{{ transfer.asset_name }}</a></li>
@@ -28,7 +28,7 @@
 
   <p>{% trans "Because you are part of a team, this project will be owned by the team, but you will retain the ability to manage project permissions. If you do not want the team to own this project, then don’t click on the link below." %}</p>
 
-  <p>{% blocktrans %}
+  <p>{% blocktrans trimmed %}
     If you accept the transfer:
     <ul>
       <li>All submissions, data storage, and transcription/translation usage for these projects will count toward the team’s plan limits</li>
@@ -39,9 +39,9 @@
 
 <p>{% trans "If you are unsure, please contact the current owner." %}</p>
 
-<p>{% blocktrans %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}</p>
+<p>{% blocktrans trimmed %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}</p>
 
-<p>{% blocktrans %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}</p>
+<p>{% blocktrans trimmed %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}</p>
 
 <p>
 &nbsp;-&nbsp;KoboToolbox
