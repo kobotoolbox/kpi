@@ -1,5 +1,6 @@
 /**
- * Translated text. Please search for duplicates before adding a new text. Examples:
+ * Translated text. Please search for duplicates and consider the context before either writing the exact same phrase
+ * or a slight variation of it. Examples:
  * ```ts
  * t('hello world') // basic usage
  * t('hello ##NAME##').replace('##NAME##', name) // usage with variables, friendly way for translators.
