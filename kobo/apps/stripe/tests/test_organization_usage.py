@@ -157,6 +157,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
             self.expected_file_size() * self.expected_submissions_multi
         )
 
+
 @ddt
 class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     org_id = 'orgAKWMFskafsngf'
@@ -345,6 +346,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert current_period_end.day == 30
 
     @data(
+        # regular year
         ('2024-11-15', '2024-10-31', '2024-11-30'),
         ('2024-12-15', '2024-11-30', '2024-12-31'),
         ('2025-01-15', '2024-12-31', '2025-01-31'),
@@ -358,6 +360,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         ('2025-09-15', '2025-08-31', '2025-09-30'),
         ('2025-10-15', '2025-09-30', '2025-10-31'),
         ('2025-11-15', '2025-10-31', '2025-11-30'),
+        # leap year, edge case with February
         ('2028-02-15', '2028-01-31', '2028-02-29'),
         ('2028-03-15', '2028-02-29', '2028-03-31'),
     )
