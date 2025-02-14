@@ -1,40 +1,35 @@
 // Libraries
-import React from 'react';
-import bem from 'js/bem';
-import cx from 'classnames';
-import JSZip from 'jszip';
+import React from 'react'
+import bem from 'js/bem'
+import cx from 'classnames'
+import JSZip from 'jszip'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
-import omnivore from '@mapbox/leaflet-omnivore';
-import L, {type LayerGroup} from 'leaflet'; // TODO: does this work? D:
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.heat/dist/leaflet-heat';
-import 'leaflet.markercluster/dist/leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
+import omnivore from '@mapbox/leaflet-omnivore'
+import L, { type LayerGroup } from 'leaflet' // TODO: does this work? D:
+import 'leaflet/dist/leaflet.css'
+import 'leaflet.heat/dist/leaflet-heat'
+import 'leaflet.markercluster/dist/leaflet.markercluster'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 // Partial components
-import PopoverMenu from 'js/popoverMenu';
-import Modal from 'js/components/common/modal';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
-import CenteredMessage from 'js/components/common/centeredMessage.component';
-import MapSettings from './mapSettings';
+import PopoverMenu from 'js/popoverMenu'
+import Modal from 'js/components/common/modal'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
+import CenteredMessage from 'js/components/common/centeredMessage.component'
+import MapSettings from './mapSettings'
 
 // Stores, hooks and utilities
-import {dataInterface} from 'js/dataInterface';
-import {actions} from 'js/actions';
-import {withRouter, type WithRouterProps} from 'js/router/legacy';
-import pageState from 'js/pageState.store';
-import {notify, checkLatLng} from 'js/utils';
-import {getSurveyFlatPaths} from 'js/assetUtils';
+import { dataInterface } from 'js/dataInterface'
+import { actions } from 'js/actions'
+import { withRouter, type WithRouterProps } from 'js/router/legacy'
+import pageState from 'js/pageState.store'
+import { notify, checkLatLng } from 'js/utils'
+import { getSurveyFlatPaths } from 'js/assetUtils'
 
 // Constants and types
-import {
-  ASSET_FILE_TYPES,
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  QUERY_LIMIT_DEFAULT,
-} from 'js/constants';
+import { ASSET_FILE_TYPES, MODAL_TYPES, QUESTION_TYPES, QUERY_LIMIT_DEFAULT } from 'js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -44,20 +39,16 @@ import type {
   SubmissionResponse,
   SurveyChoice,
   SurveyRow,
-} from 'js/dataInterface';
+} from 'js/dataInterface'
 
 // Styles
-import './map.scss';
-import './map.marker-colors.scss';
+import './map.scss'
+import './map.marker-colors.scss'
 
-const streets = L.tileLayer(
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    subdomains: ['a', 'b', 'c'],
-  }
-);
+const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  subdomains: ['a', 'b', 'c'],
+})
 
 const baseLayers = {
   OpenStreetMap: streets,
@@ -70,80 +61,79 @@ const baseLayers = {
     {
       attribution:
         'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-    }
+    },
   ),
-  Humanitarian: L.tileLayer(
-    'https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-    {
-      attribution:
-        'Tiles &copy; Humanitarian OpenStreetMap Team &mdash; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }
-  ),
-};
+  Humanitarian: L.tileLayer('https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+    attribution:
+      'Tiles &copy; Humanitarian OpenStreetMap Team &mdash; &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }),
+}
 
 // We need to extend the types (which are not perfect), to make sure the internal properties are accessible. It is true
 // that we should not access those, but this file is quite old, and I am only migrating it to TypeScript without changing.
 interface CustomLayerControl extends L.Control.Layers {
   _layers: Array<{
-    name: string;
-    layer: L.Layer;
-    overlay: boolean;
-  }>;
+    name: string
+    layer: L.Layer
+    overlay: boolean
+  }>
 }
 
-const controls: CustomLayerControl = L.control.layers(baseLayers) as CustomLayerControl;
+const controls: CustomLayerControl = L.control.layers(baseLayers) as CustomLayerControl
 
 type MarkerMap = Array<{
-  count: number;
-  id: number;
-  labels: any;
-  value: any;
-}>;
+  count: number
+  id: number
+  labels: any
+  value: any
+}>
 
-interface MapValueCounts {[key: string]: {count: number; id: number}}
+interface MapValueCounts {
+  [key: string]: { count: number; id: number }
+}
 
 interface FormMapProps extends WithRouterProps {
-  asset: AssetResponse;
+  asset: AssetResponse
   // TODO: describe what this is
-  viewby: string;
+  viewby: string
 }
 
 // NOTE: `false` value is being used as a placehholder for `null` or `undefined`
 // in the state. This is some old approach that Penar was doing years ago.
 interface FormMapState {
   // TODO: see if AI produced good state types
-  map: L.Map | undefined;
-  markers: L.FeatureGroup | undefined;
-  heatmap: L.HeatLayer | undefined;
-  markersVisible: boolean;
-  markerMap?: MarkerMap;
-  fields: SurveyRow[];
-  hasGeoPoint: boolean;
-  submissions: SubmissionResponse[];
-  error: string | undefined;
-  isFullscreen: boolean;
-  showExpandedLegend: boolean;
-  langIndex: number;
-  filteredByMarker: string[] | undefined;
-  componentRefreshed: boolean;
-  showMapSettings: boolean;
-  overridenStyles?: AssetMapStyles;
-  clearDisaggregatedPopover: boolean;
-  noData: boolean;
-  previousViewby?: string;
+  map: L.Map | undefined
+  markers: L.FeatureGroup | undefined
+  heatmap: L.HeatLayer | undefined
+  markersVisible: boolean
+  markerMap?: MarkerMap
+  fields: SurveyRow[]
+  hasGeoPoint: boolean
+  submissions: SubmissionResponse[]
+  error: string | undefined
+  isFullscreen: boolean
+  showExpandedLegend: boolean
+  langIndex: number
+  filteredByMarker: string[] | undefined
+  componentRefreshed: boolean
+  showMapSettings: boolean
+  overridenStyles?: AssetMapStyles
+  clearDisaggregatedPopover: boolean
+  noData: boolean
+  previousViewby?: string
 }
 
 export class FormMap extends React.Component<FormMapProps, FormMapState> {
   constructor(props: FormMapProps) {
-    super(props);
+    super(props)
 
-    const survey = props.asset.content?.survey || [];
-    let hasGeoPoint = false;
+    const survey = props.asset.content?.survey || []
+    let hasGeoPoint = false
     survey.forEach(function (s) {
       if (s.type === QUESTION_TYPES.geopoint.id) {
-        hasGeoPoint = true;
+        hasGeoPoint = true
       }
-    });
+    })
 
     this.state = {
       map: undefined,
@@ -164,118 +154,105 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       overridenStyles: undefined,
       clearDisaggregatedPopover: false,
       noData: false,
-    };
+    }
   }
 
   componentWillUnmount() {
     if (this.state.map) {
-      this.state.map.remove();
+      this.state.map.remove()
     }
   }
 
   componentDidMount() {
-    const fields: SurveyRow[] = [];
-    const fieldTypes = [
-      'select_one',
-      'select_multiple',
-      'integer',
-      'decimal',
-      'text',
-    ];
+    const fields: SurveyRow[] = []
+    const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
     this.props.asset.content?.survey?.forEach((q) => {
       if (fieldTypes.includes(q.type)) {
-        fields.push(q);
+        fields.push(q)
       }
-    });
+    })
 
     L.Marker.prototype.options.icon = L.divIcon({
       className: 'map-marker default-overlay-marker',
       iconSize: [12, 12],
-    });
+    })
 
     const map = L.map('data-map', {
       maxZoom: 17,
       scrollWheelZoom: false,
       preferCanvas: true,
-    });
+    })
 
-    streets.addTo(map);
-    controls.addTo(map);
+    streets.addTo(map)
+    controls.addTo(map)
 
     this.setState({
       map: map,
       fields: fields,
-    });
+    })
 
     if (this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
       notify(
         t(
-          'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.'
-        ).replace('##number##', QUERY_LIMIT_DEFAULT.toString())
-      );
+          'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
+        ).replace('##number##', QUERY_LIMIT_DEFAULT.toString()),
+      )
     }
 
-    this.requestData(map, this.props.viewby);
-    actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this));
-    actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this));
-    actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this));
+    this.requestData(map, this.props.viewby)
+    actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this))
+    actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this))
+    actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this))
 
-    actions.resources.getAssetFiles(
-      this.props.asset.uid,
-      ASSET_FILE_TYPES.map_layer.id
-    );
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
   }
 
   loadOverlayLayers() {
-    dataInterface
-      .getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
-      .done(() => {});
+    dataInterface.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id).done(() => {})
   }
 
   onGetAssetFiles(data: PaginatedResponse<AssetFileResponse>) {
-    const map = this.state.map;
+    const map = this.state.map
 
     // remove layers from controls if they are no longer in asset files
     controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
         const layerMatch = data.results.filter(
           // TODO: there is no `name` in AssetFileResponse. Should this be `description`?
-          (result) => result.name === controlLayer.name
-        );
+          (result) => result.name === controlLayer.name,
+        )
         if (!layerMatch.length) {
-          controls.removeLayer(controlLayer.layer);
-          map?.removeLayer(controlLayer.layer);
+          controls.removeLayer(controlLayer.layer)
+          map?.removeLayer(controlLayer.layer)
         }
       }
-    });
+    })
 
     // add new layers to controls (if they haven't been added already)
     data.results.forEach((layer) => {
       if (layer.file_type !== 'map_layer') {
-        return false;
+        return false
       }
-      const layerMatch = controls._layers.filter(
-        (controlLayer) => controlLayer.name === layer.name
-      );
+      const layerMatch = controls._layers.filter((controlLayer) => controlLayer.name === layer.name)
       if (layerMatch.length) {
-        return false;
+        return false
       }
 
-      let overlayLayer: LayerGroup | undefined;
+      let overlayLayer: LayerGroup | undefined
       switch (layer.metadata.type) {
         case 'kml':
-          overlayLayer = omnivore.kml(layer.content);
-          break;
+          overlayLayer = omnivore.kml(layer.content)
+          break
         case 'csv':
-          overlayLayer = omnivore.csv(layer.content);
-          break;
+          overlayLayer = omnivore.csv(layer.content)
+          break
         case 'json':
         case 'geojson':
-          overlayLayer = omnivore.geojson(layer.content);
-          break;
+          overlayLayer = omnivore.geojson(layer.content)
+          break
         case 'wkt':
-          overlayLayer = omnivore.wkt(layer.content);
-          break;
+          overlayLayer = omnivore.wkt(layer.content)
+          break
         case 'kmz':
           // KMZ files are zipped KMLs, therefore
           // unzip the KMZ file in the browser
@@ -283,52 +260,47 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           fetch(layer.content)
             .then(function (response) {
               if (response.status === 200 || response.status === 0) {
-                return Promise.resolve(response.blob());
+                return Promise.resolve(response.blob())
               } else {
-                return Promise.reject(new Error(response.statusText));
+                return Promise.reject(new Error(response.statusText))
               }
             })
             .then(JSZip.loadAsync)
             .then(function (zip) {
-              return zip.file('doc.kml')?.async('string');
+              return zip.file('doc.kml')?.async('string')
             })
             .then(function success(kml) {
               if (kml && map) {
-                overlayLayer = omnivore.kml.parse(kml);
-                controls.addOverlay(overlayLayer, layer.name);
-                overlayLayer.addTo(map);
+                overlayLayer = omnivore.kml.parse(kml)
+                controls.addOverlay(overlayLayer, layer.name)
+                overlayLayer.addTo(map)
               }
-            });
-          break;
+            })
+          break
       }
 
       if (overlayLayer && map) {
         overlayLayer.on('ready', () => {
           overlayLayer?.eachLayer((l) => {
-            const fprops = l.feature.properties;
-            const name =
-              fprops.name || fprops.title || fprops.NAME || fprops.TITLE;
+            const fprops = l.feature.properties
+            const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
             if (name) {
-              l.bindPopup(name);
+              l.bindPopup(name)
             } else {
               // when no name or title, load full list of feature's properties
-              l.bindPopup(
-                '<pre>' +
-                  JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') +
-                  '</pre>'
-              );
+              l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
             }
-          });
-        });
-        controls.addOverlay(overlayLayer, layer.name);
-        overlayLayer.addTo(map);
+          })
+        })
+        controls.addOverlay(overlayLayer, layer.name)
+        overlayLayer.addTo(map)
       }
-    });
+    })
   }
 
   onSetMapStylesCompleted() {
     // asset is updated, no need to store oberriden styles as they are identical
-    this.setState({overridenStyles: undefined});
+    this.setState({ overridenStyles: undefined })
   }
 
   /**
@@ -337,20 +309,20 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
    */
   onSetMapStylesStarted(_assetUid: string, upcomingMapSettings: AssetMapStyles) {
     if (!upcomingMapSettings.colorSet) {
-      upcomingMapSettings.colorSet = 'a';
+      upcomingMapSettings.colorSet = 'a'
     }
 
     if (!upcomingMapSettings.querylimit) {
-      upcomingMapSettings.querylimit = QUERY_LIMIT_DEFAULT.toString();
+      upcomingMapSettings.querylimit = QUERY_LIMIT_DEFAULT.toString()
     }
 
-    this.overrideStyles(upcomingMapSettings);
+    this.overrideStyles(upcomingMapSettings)
   }
 
   requestData(map: L.Map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
-    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
+    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
     this.props.asset.content?.survey?.forEach(function (row) {
       if (
@@ -359,109 +331,100 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         selectedQuestion === row.label[0] &&
         row.type !== QUESTION_TYPES.geopoint.id
       ) {
-        selectedQuestion = null; //Ignore if not a geopoint question type
+        selectedQuestion = null //Ignore if not a geopoint question type
       }
-    });
+    })
 
-    let queryLimit = QUERY_LIMIT_DEFAULT;
+    let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
-      queryLimit = parseInt(this.state.overridenStyles.querylimit);
+      queryLimit = parseInt(this.state.overridenStyles.querylimit)
     } else if (this.props.asset.map_styles.querylimit) {
-      queryLimit = parseInt(this.props.asset.map_styles.querylimit);
+      queryLimit = parseInt(this.props.asset.map_styles.querylimit)
     }
 
-    const fq = ['_id', '_geolocation'];
+    const fq = ['_id', '_geolocation']
     if (selectedQuestion) {
-      fq.push(selectedQuestion);
+      fq.push(selectedQuestion)
     }
     if (nextViewBy) {
-      fq.push(this.nameOfFieldInGroup(nextViewBy));
+      fq.push(this.nameOfFieldInGroup(nextViewBy))
     }
-    const sort = [{id: '_id', desc: true}];
+    const sort = [{ id: '_id', desc: true }]
     dataInterface
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results;
+        const results = data.results
         if (selectedQuestion) {
           results.forEach((row, i) => {
             if (selectedQuestion && row[selectedQuestion]) {
-              const coordsArray: string[] = String(row[selectedQuestion]).split(' ');
-              results[i]._geolocation[0] = parseInt(coordsArray[0]);
-              results[i]._geolocation[1] = parseInt(coordsArray[1]);
+              const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
+              results[i]._geolocation[0] = parseInt(coordsArray[0])
+              results[i]._geolocation[1] = parseInt(coordsArray[1])
             }
-          });
+          })
         }
 
-        this.setState({submissions: results}, () => {
-          this.buildMarkers(map);
-          this.buildHeatMap(map);
-        });
+        this.setState({ submissions: results }, () => {
+          this.buildMarkers(map)
+          this.buildHeatMap(map)
+        })
       })
       .fail((error: FailResponse) => {
         if (error.responseText) {
-          this.setState({error: error.responseText});
+          this.setState({ error: error.responseText })
         } else if (error.statusText) {
-          this.setState({error: error.statusText});
+          this.setState({ error: error.statusText })
         } else {
           this.setState({
             error: t('Error: could not load data.'),
-          });
+          })
         }
-      });
+      })
   }
 
   calculateClusterRadius(zoom: number) {
     if (zoom >= 12) {
-      return 12;
+      return 12
     }
-    return 20;
+    return 20
   }
 
   calcColorSet() {
-    let colorSet;
+    let colorSet
     if (this.state.overridenStyles?.colorSet) {
-      colorSet = this.state.overridenStyles.colorSet;
+      colorSet = this.state.overridenStyles.colorSet
     } else {
-      const ms = this.props.asset.map_styles;
-      colorSet = ms.colorSet ? ms.colorSet : undefined;
+      const ms = this.props.asset.map_styles
+      colorSet = ms.colorSet ? ms.colorSet : undefined
     }
 
-    return colorSet;
+    return colorSet
   }
 
   buildMarkers(map: L.Map) {
-    const _this = this;
-    const prepPoints: L.Marker[] = [];
-    const viewby = this.props.viewby || undefined;
-    const colorSet = this.calcColorSet();
-    let currentQuestionChoices: SurveyChoice[] = [];
-    let mapMarkers: MapValueCounts = {};
-    let mM: MarkerMap = [];
+    const _this = this
+    const prepPoints: L.Marker[] = []
+    const viewby = this.props.viewby || undefined
+    const colorSet = this.calcColorSet()
+    let currentQuestionChoices: SurveyChoice[] = []
+    let mapMarkers: MapValueCounts = {}
+    let mM: MarkerMap = []
 
     if (viewby) {
-      mapMarkers = this.prepFilteredMarkers(
-        this.state.submissions,
-        this.props.viewby
-      );
-      const choices = this.props.asset.content?.choices || [];
-      const survey = this.props.asset.content?.survey || [];
+      mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby)
+      const choices = this.props.asset.content?.choices || []
+      const survey = this.props.asset.content?.survey || []
 
-      const question = survey.find(
-        (s) => s.name === viewby || s.$autoname === viewby
-      );
+      const question = survey.find((s) => s.name === viewby || s.$autoname === viewby)
 
       if (question && question.type === 'select_one') {
-        currentQuestionChoices = choices.filter(
-          (ch) => ch.list_name === question.select_from_list_name
-        );
+        currentQuestionChoices = choices.filter((ch) => ch.list_name === question.select_from_list_name)
       }
 
       Object.keys(mapMarkers).map(function (m) {
-        let choice;
+        let choice
         if (question && question.type === 'select_one') {
-          choice = currentQuestionChoices.find(
-            (ch) => ch.name === m || ch.$autoname === m
-          );
+          choice = currentQuestionChoices.find((ch) => ch.name === m || ch.$autoname === m)
         }
 
         mM.push({
@@ -469,133 +432,121 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           id: mapMarkers[m].id,
           labels: choice ? choice.label : undefined,
           value: m !== 'undefined' ? m : undefined,
-        });
-      });
+        })
+      })
 
-      if (
-        colorSet !== undefined &&
-        colorSet !== 'a' &&
-        question &&
-        question.type === 'select_one'
-      ) {
+      if (colorSet !== undefined && colorSet !== 'a' && question && question.type === 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
         mM.sort(function (a, b) {
-          const aIndex = currentQuestionChoices.findIndex(
-            (ch) => ch.name === a.value
-          );
-          const bIndex = currentQuestionChoices.findIndex(
-            (ch) => ch.name === b.value
-          );
-          return aIndex - bIndex;
-        });
+          const aIndex = currentQuestionChoices.findIndex((ch) => ch.name === a.value)
+          const bIndex = currentQuestionChoices.findIndex((ch) => ch.name === b.value)
+          return aIndex - bIndex
+        })
       } else {
         // sort by occurrence count
         mM.sort(function (a, b) {
-          return a.count - b.count;
-        }).reverse();
+          return a.count - b.count
+        }).reverse()
       }
 
       // move elements with no data in submission for the disaggregated question to end of marker list
-      const emptyEl = mM.find((m) => m.value === undefined);
+      const emptyEl = mM.find((m) => m.value === undefined)
       if (emptyEl) {
-        mM = mM.filter((m) => m !== emptyEl);
-        mM.push(emptyEl);
+        mM = mM.filter((m) => m !== emptyEl)
+        mM.push(emptyEl)
       }
-      this.setState({markerMap: mM});
+      this.setState({ markerMap: mM })
     } else {
-      this.setState({markerMap: undefined});
+      this.setState({ markerMap: undefined })
     }
 
     this.state.submissions.forEach((item) => {
-      let markerProps = {};
+      let markerProps = {}
       if (checkLatLng(item._geolocation)) {
         if (viewby && mM) {
-          const vb = _this.nameOfFieldInGroup(viewby);
-          const itemId = String(item[vb]);
-          let index: number | '-novalue' = mM.findIndex((m) => m.value === itemId);
+          const vb = _this.nameOfFieldInGroup(viewby)
+          const itemId = String(item[vb])
+          let index: number | '-novalue' = mM.findIndex((m) => m.value === itemId)
 
           // spread indexes to use full colorset gamut if necessary
           if (colorSet !== undefined && colorSet !== 'a') {
-            index = _this.calculateIconIndex(index, mM);
+            index = _this.calculateIconIndex(index, mM)
           }
 
           // TODO: this should work as expected, unless `index` is '-novalue', then I set it to 1.
           // Previously this was doing `'-novalue' + 1` which is a big WTF.
-          let iconNumber = 1;
+          let iconNumber = 1
           if (typeof index === 'number') {
-            iconNumber = index + 1;
+            iconNumber = index + 1
           }
 
           markerProps = {
             icon: _this.buildIcon(iconNumber),
             sId: item._id,
             typeId: mapMarkers[itemId].id,
-          };
+          }
         } else {
           markerProps = {
             icon: _this.buildIcon(),
             sId: item._id,
             typeId: null,
-          };
+          }
         }
 
-        const geo0 = item._geolocation[0];
-        const geo1 = item._geolocation[1];
+        const geo0 = item._geolocation[0]
+        const geo1 = item._geolocation[1]
         if (geo0 !== null && geo1 !== null) {
-          prepPoints.push(L.marker([geo0, geo1], markerProps));
+          prepPoints.push(L.marker([geo0, geo1], markerProps))
         }
       }
-    });
+    })
 
     if (prepPoints.length >= 0) {
-      let markers;
+      let markers
       if (viewby) {
-        markers = L.featureGroup(prepPoints);
+        markers = L.featureGroup(prepPoints)
       } else {
         markers = L.markerClusterGroup({
           maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
           iconCreateFunction: function (cluster) {
-            const childCount = cluster.getChildCount();
+            const childCount = cluster.getChildCount()
 
-            let markerClass = 'marker-cluster marker-cluster-';
+            let markerClass = 'marker-cluster marker-cluster-'
             if (childCount < 10) {
-              markerClass += 'small';
+              markerClass += 'small'
             } else if (childCount < 100) {
-              markerClass += 'medium';
+              markerClass += 'medium'
             } else {
-              markerClass += 'large';
+              markerClass += 'large'
             }
 
             const divIcon = L.divIcon({
               html: '<div><span>' + childCount + '</span></div>',
               className: markerClass,
               iconSize: new L.Point(30, 30),
-            });
-            return divIcon;
+            })
+            return divIcon
           },
-        });
+        })
 
-        markers.addLayers(prepPoints);
+        markers.addLayers(prepPoints)
       }
 
-      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map);
+      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
-      if (
-        prepPoints.length > 0 &&
-        (!viewby || !this.state.componentRefreshed)
-      ) {
-        map.fitBounds(markers.getBounds());
+      if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
+        map.fitBounds(markers.getBounds())
       }
       if (prepPoints.length === 0) {
-        map.fitBounds([[42.373, -71.124]]);
-        this.setState({noData: true});
+        map.fitBounds([[42.373, -71.124]])
+        this.setState({ noData: true })
       }
       this.setState({
         markers: markers,
-      });
+      })
     } else {
-      this.setState({error: t('Error: could not load data.')});
+      this.setState({ error: t('Error: could not load data.') })
     }
   }
 
@@ -604,106 +555,106 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   calculateIconIndex(index: number, mM: MarkerMap): number | '-novalue' {
     // use neutral color for items with no set value
     if (mM[index] && mM[index].value === undefined) {
-      return '-novalue';
+      return '-novalue'
     }
 
     // if there are submissions with unset values, reset the local marker array
     // this helps us use the full gamut of colors in the set
-    const emptyEl = mM.find((m) => m.value === undefined);
+    const emptyEl = mM.find((m) => m.value === undefined)
     if (emptyEl) {
-      mM = mM.filter((m) => m !== emptyEl);
+      mM = mM.filter((m) => m !== emptyEl)
     }
 
     // return regular index for list >= 9 items
     if (mM.length >= 9) {
-      return index;
+      return index
     }
 
     // spread index fairly evenly from 1 to 9 when less than 9 items in list
-    const num = (index / mM.length) * 9.5;
-    return Math.round(num);
+    const num = (index / mM.length) * 9.5
+    return Math.round(num)
   }
 
   buildIcon(index: number | boolean = false) {
-    const colorSet = this.calcColorSet() || 'a';
-    const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a';
+    const colorSet = this.calcColorSet() || 'a'
+    const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a'
 
     return L.divIcon({
       className: `map-marker ${iconClass}`,
       iconSize: [20, 20],
-    });
+    })
   }
 
   prepFilteredMarkers(data: SubmissionResponse[], viewby: string): MapValueCounts {
-    const markerMap: MapValueCounts = {};
-    const currentViewBy = this.nameOfFieldInGroup(viewby);
-    let idCounter = 1;
+    const markerMap: MapValueCounts = {}
+    const currentViewBy = this.nameOfFieldInGroup(viewby)
+    let idCounter = 1
 
     data.forEach((submission) => {
-      const subResponseValue = String(submission[currentViewBy]);
+      const subResponseValue = String(submission[currentViewBy])
 
       if (markerMap[subResponseValue] === undefined) {
-        markerMap[subResponseValue] = {count: 1, id: idCounter};
-        idCounter++;
+        markerMap[subResponseValue] = { count: 1, id: idCounter }
+        idCounter++
       } else {
-        markerMap[subResponseValue]['count'] += 1;
+        markerMap[subResponseValue]['count'] += 1
       }
-    });
+    })
 
-    return markerMap;
+    return markerMap
   }
 
   buildHeatMap(map: L.Map) {
-    const heatmapPoints: Array<[number, number, number]> = [];
+    const heatmapPoints: Array<[number, number, number]> = []
     this.state.submissions.forEach((item) => {
       if (checkLatLng(item._geolocation)) {
-        const geo0 = item._geolocation[0];
-        const geo1 = item._geolocation[1];
+        const geo0 = item._geolocation[0]
+        const geo1 = item._geolocation[1]
         if (geo0 !== null && geo1 !== null) {
-          heatmapPoints.push([geo0, geo1, 1]);
+          heatmapPoints.push([geo0, geo1, 1])
         }
       }
-    });
+    })
     const heatmap = L.heatLayer(heatmapPoints, {
       minOpacity: 0.25,
       radius: 20,
       blur: 8,
-    });
+    })
 
     if (!this.state.markersVisible) {
-      map.addLayer(heatmap);
+      map.addLayer(heatmap)
     }
-    this.setState({heatmap: heatmap});
+    this.setState({ heatmap: heatmap })
   }
 
   showMarkers() {
     if (this.state.map && this.state.markers) {
-      this.state.map.addLayer(this.state.markers);
+      this.state.map.addLayer(this.state.markers)
     }
     if (this.state.map && this.state.heatmap) {
-      this.state.map.removeLayer(this.state.heatmap);
+      this.state.map.removeLayer(this.state.heatmap)
     }
     this.setState({
       markersVisible: true,
-    });
+    })
   }
 
   showLayerControls() {
-    controls.expand();
+    controls.expand()
   }
 
   showHeatmap() {
-    const map = this.state.map;
+    const map = this.state.map
 
     if (map && this.state.heatmap) {
-      map.addLayer(this.state.heatmap);
+      map.addLayer(this.state.heatmap)
     }
     if (map && this.state.markers) {
-      map.removeLayer(this.state.markers);
+      map.removeLayer(this.state.markers)
     }
     this.setState({
       markersVisible: false,
-    });
+    })
   }
 
   filterMap(evt: React.TouchEvent<HTMLAnchorElement>) {
@@ -712,149 +663,150 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
     // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
     // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
-    this.setState({clearDisaggregatedPopover: true});
+    this.setState({ clearDisaggregatedPopover: true })
     // reset clearDisaggregatedPopover in order to maintain same behaviour on subsequent clicks
     window.setTimeout(() => {
-      this.setState({clearDisaggregatedPopover: false});
-    }, 1000);
+      this.setState({ clearDisaggregatedPopover: false })
+    }, 1000)
 
-    const name = evt.currentTarget.getAttribute('data-name') || undefined;
+    const name = evt.currentTarget.getAttribute('data-name') || undefined
     if (name !== undefined) {
-      this.props.router.navigate(
-        `/forms/${this.props.asset.uid}/data/map/${name}`
-      );
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
     } else {
-      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`);
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`)
     }
   }
 
   filterLanguage(evt: React.TouchEvent<HTMLAnchorElement>) {
-    const dataIndexAttr = evt.currentTarget.getAttribute('data-index');
+    const dataIndexAttr = evt.currentTarget.getAttribute('data-index')
     if (dataIndexAttr !== null) {
-      this.setState({langIndex: parseInt(dataIndexAttr)});
+      this.setState({ langIndex: parseInt(dataIndexAttr) })
     }
   }
 
   static getDerivedStateFromProps(props: FormMapProps, state: FormMapState) {
     const newState: Partial<FormMapState> = {
       previousViewby: props.viewby,
-    };
+    }
     if (props.viewby !== undefined) {
-      newState.markersVisible = true;
+      newState.markersVisible = true
     }
     if (state.previousViewby !== props.viewby) {
-      newState.filteredByMarker = undefined;
-      newState.componentRefreshed = true;
+      newState.filteredByMarker = undefined
+      newState.componentRefreshed = true
     }
-    return newState;
+    return newState
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
     if (prevProps.viewby !== this.props.viewby) {
-      const map = this.refreshMap();
+      const map = this.refreshMap()
       if (map) {
-        this.requestData(map, this.props.viewby);
+        this.requestData(map, this.props.viewby)
       }
     }
   }
 
   refreshMap() {
-    const map = this.state.map;
+    const map = this.state.map
     if (map && this.state.markers) {
-      map.removeLayer(this.state.markers);
+      map.removeLayer(this.state.markers)
     }
     if (map && this.state.heatmap) {
-      map.removeLayer(this.state.heatmap);
+      map.removeLayer(this.state.heatmap)
     }
-    return map;
+    return map
   }
 
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.state.submissions;
-    const ids: number[] = [];
+    const td = this.state.submissions
+    const ids: number[] = []
     td.forEach(function (r) {
-      ids.push(r._id);
-    });
+      ids.push(r._id)
+    })
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: evt.layer.options.sId,
       asset: this.props.asset,
       ids: ids,
-    });
+    })
   }
 
   toggleMapSettings() {
     this.setState({
       showMapSettings: !this.state.showMapSettings,
-    });
+    })
   }
 
   overrideStyles(mapStyles: AssetMapStyles) {
-    this.setState({
-      filteredByMarker: undefined,
-      componentRefreshed: true,
-      overridenStyles: mapStyles,
-    }, () => {
-      const map = this.refreshMap();
+    this.setState(
+      {
+        filteredByMarker: undefined,
+        componentRefreshed: true,
+        overridenStyles: mapStyles,
+      },
+      () => {
+        const map = this.refreshMap()
 
-      if (map) {
-        this.requestData(map, this.props.viewby);
-      }
-    });
+        if (map) {
+          this.requestData(map, this.props.viewby)
+        }
+      },
+    )
   }
 
   toggleFullscreen() {
-    this.setState({isFullscreen: !this.state.isFullscreen}, () => {
-      this.state.map?.invalidateSize();
-    });
+    this.setState({ isFullscreen: !this.state.isFullscreen }, () => {
+      this.state.map?.invalidateSize()
+    })
   }
 
   toggleLegend() {
     this.setState({
       showExpandedLegend: !this.state.showExpandedLegend,
-    });
+    })
   }
 
   filterByMarker(markerId: number) {
-    const id = String(markerId);
-    const markers = this.state.markers;
-    let filteredByMarker = this.state.filteredByMarker;
-    const unselectedClass = 'unselected';
+    const id = String(markerId)
+    const markers = this.state.markers
+    let filteredByMarker = this.state.filteredByMarker
+    const unselectedClass = 'unselected'
 
     if (!filteredByMarker) {
-      filteredByMarker = [id];
+      filteredByMarker = [id]
     } else if (!filteredByMarker.includes(id)) {
-      filteredByMarker.push(id);
+      filteredByMarker.push(id)
     } else {
-      filteredByMarker = filteredByMarker.filter((l) => l !== id);
+      filteredByMarker = filteredByMarker.filter((l) => l !== id)
     }
 
-    this.setState({filteredByMarker: filteredByMarker});
+    this.setState({ filteredByMarker: filteredByMarker })
     markers?.eachLayer(function (layer) {
       if (!filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.add(unselectedClass);
+        layer._icon.classList.add(unselectedClass)
       } else {
-        layer._icon.classList.remove(unselectedClass);
+        layer._icon.classList.remove(unselectedClass)
       }
-    });
+    })
   }
 
   resetFilterByMarker() {
-    const markers = this.state.markers;
-    this.setState({filteredByMarker: undefined});
+    const markers = this.state.markers
+    this.setState({ filteredByMarker: undefined })
     markers.eachLayer(function (layer) {
-      layer._icon.classList.remove('unselected');
-    });
+      layer._icon.classList.remove('unselected')
+    })
   }
 
   nameOfFieldInGroup(fieldName: string): string {
     if (this.props.asset.content?.survey) {
-      const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
-      return flatPaths[fieldName];
+      const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
+      return flatPaths[fieldName]
     }
     // Fallback - should never happen
-    return fieldName;
+    return fieldName
   }
 
   render() {
@@ -863,40 +815,35 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         <bem.FormView m='ui-panel'>
           <CenteredMessage message={this.state.error} />
         </bem.FormView>
-      );
+      )
     }
 
-    const fields = this.state.fields;
-    const langIndex = this.state.langIndex;
-    let langs: Array<string | null> = [];
-    if (
-      this.props.asset.content?.translations &&
-      this.props.asset.content?.translations.length > 1
-    ) {
-      langs = this.props.asset.content.translations;
+    const fields = this.state.fields
+    const langIndex = this.state.langIndex
+    let langs: Array<string | null> = []
+    if (this.props.asset.content?.translations && this.props.asset.content?.translations.length > 1) {
+      langs = this.props.asset.content.translations
     }
-    const viewby = this.props.viewby;
+    const viewby = this.props.viewby
 
-    const colorSet = this.calcColorSet() || 'a';
-    let label = t('Disaggregate by survey responses');
+    const colorSet = this.calcColorSet() || 'a'
+    let label = t('Disaggregate by survey responses')
 
     if (viewby) {
       fields.forEach(function (f) {
         if (viewby === f.name || viewby === f.$autoname) {
-          label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`;
+          label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }
-      });
+      })
     } else if (this.state.noData && this.state.hasGeoPoint) {
-      label = `${t('No "geopoint" responses have been received')}`;
+      label = `${t('No "geopoint" responses have been received')}`
     } else if (!this.state.hasGeoPoint) {
-      label = `${t(
-        'The map does not show data because this form does not have a "geopoint" field.'
-      )}`;
+      label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
     }
 
-    const formViewModifiers = ['map'];
+    const formViewModifiers = ['map']
     if (this.state.isFullscreen) {
-      formViewModifiers.push('fullscreen');
+      formViewModifiers.push('fullscreen')
     }
 
     return (
@@ -917,11 +864,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton
-          m={'layers'}
-          onClick={this.showLayerControls.bind(this)}
-          data-tip={t('Toggle layers')}
-        >
+        <bem.FormView__mapButton m={'layers'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
           <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
@@ -951,11 +894,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
             clearPopover={this.state.clearDisaggregatedPopover}
             blurEventDisabled
           >
-            {langs.length > 1 && (
-              <bem.PopoverMenu__heading>
-                {t('Language')}
-              </bem.PopoverMenu__heading>
-            )}
+            {langs.length > 1 && <bem.PopoverMenu__heading>{t('Language')}</bem.PopoverMenu__heading>}
             {langs.map((l, i) => (
               <bem.PopoverMenu__link
                 data-index={i}
@@ -974,7 +913,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
               {t('-- See all data --')}
             </bem.PopoverMenu__link>
             {fields.map((f) => {
-              const name = f.name || f.$autoname;
+              const name = f.name || f.$autoname
               const fieldLabel = f.label ? (
                 f.label[langIndex] ? (
                   f.label[langIndex]
@@ -983,7 +922,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                 )
               ) : (
                 t('Question label not set')
-              );
+              )
               return (
                 <bem.PopoverMenu__link
                   data-name={name}
@@ -993,7 +932,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                 >
                   {fieldLabel}
                 </bem.PopoverMenu__link>
-              );
+              )
             })}
           </PopoverMenu>
         )}
@@ -1002,9 +941,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>
-                {t(
-                  'The map does not show data because this form does not have a "geopoint" field.'
-                )}
+                {t('The map does not show data because this form does not have a "geopoint" field.')}
               </p>
             </div>
           </div>
@@ -1013,17 +950,13 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.state.noData && this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>
-                {t('No "geopoint" responses have been received')}
-              </p>
+              <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
             </div>
           </div>
         )}
 
         {this.state.markerMap && this.state.markersVisible && (
-          <bem.FormView__mapList
-            className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}
-          >
+          <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
               {this.state.filteredByMarker && (
                 <div
@@ -1035,34 +968,24 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                 </div>
               )}
               {this.state.markerMap.map((m, i) => {
-                let markerItemClass = 'map-marker-item ';
+                let markerItemClass = 'map-marker-item '
                 if (this.state.filteredByMarker) {
-                  markerItemClass += this.state.filteredByMarker.includes(
-                    m.id.toString()
-                  )
-                    ? 'selected'
-                    : 'unselected';
+                  markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
                 }
-                const markerLabel = m.labels
-                  ? m.labels[langIndex]
-                  : m.value
-                  ? m.value
-                  : t('not set');
-                let index: number | '-novalue' = i;
+                const markerLabel = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set')
+                let index: number | '-novalue' = i
                 if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
-                  index = this.calculateIconIndex(index, this.state.markerMap);
+                  index = this.calculateIconIndex(index, this.state.markerMap)
                 }
 
-                let markerItemSpanClass = '';
+                let markerItemSpanClass = ''
                 if (typeof index === 'number') {
-                  markerItemSpanClass = `map-marker-${colorSet}${index + 1}`;
+                  markerItemSpanClass = `map-marker-${colorSet}${index + 1}`
                 }
 
                 return (
                   <div key={`m-${i}`} className={markerItemClass}>
-                    <span className={`map-marker ${markerItemSpanClass}`}>
-                      {m.count}
-                    </span>
+                    <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
 
                     <span
                       className={'map-marker-label'}
@@ -1074,31 +997,18 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                       {markerLabel}
                     </span>
                   </div>
-                );
+                )
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend.bind(this)}>
-              <i
-                className={cx(
-                  'k-icon',
-                  this.state.showExpandedLegend
-                    ? 'k-icon-angle-down'
-                    : 'k-icon-angle-up'
-                )}
-              />{' '}
+              <i className={cx('k-icon', this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
               {t('Legend')}
             </div>
           </bem.FormView__mapList>
         )}
-        {!this.state.markers && !this.state.heatmap && (
-          <LoadingSpinner message={false} />
-        )}
+        {!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />}
         {this.state.showMapSettings && (
-          <Modal
-            open
-            onClose={this.toggleMapSettings}
-            title={t('Map Settings')}
-          >
+          <Modal open onClose={this.toggleMapSettings} title={t('Map Settings')}>
             <MapSettings
               asset={this.props.asset}
               toggleMapSettings={this.toggleMapSettings.bind(this)}
@@ -1110,8 +1020,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
         <div id='data-map' />
       </bem.FormView>
-    );
+    )
   }
 }
 
-export default withRouter(FormMap);
+export default withRouter(FormMap)
