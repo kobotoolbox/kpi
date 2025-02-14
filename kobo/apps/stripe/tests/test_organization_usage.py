@@ -277,7 +277,6 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             == current_billing_period_end.isoformat()
         )
 
-    @pytest.mark.skip(reason='Waiting for product decision')
     def test_plan_canceled_last_month(self):
         """
         This test is failing and will continue to fail until we make a business
