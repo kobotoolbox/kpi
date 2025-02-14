@@ -211,9 +211,30 @@ interface MapSetMapStylesDefinition extends Function {
   completed: GenericCallbackDefinition;
   failed: GenericFailedDefinition;
 }
-interface MapSetMapStylesStartedDefinition extends Function {
-  (assetUid: string, upcomingMapSettings: AssetMapStyles): void;
-  listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function;
+
+interface HooksGetLogsDefinition extends Function {
+  (
+    assetUid: string,
+    hookUid: string,
+    options: {
+      onComplete: (data: PaginatedResponse<HookResponse>) => void;
+      onFail: () => void;
+    }
+  ): void;
+  listen: (callback: (
+    assetUid: string,
+    hookUid: string,
+    options: {
+      onComplete: (data: PaginatedResponse<HookResponse>) => void;
+      onFail: () => void;
+    }
+  ) => void) => Function;
+  completed: HooksGetLogsCompletedDefinition;
+  failed: GenericFailedDefinition;
+}
+interface HooksGetLogsCompletedDefinition extends Function {
+  (response: PaginatedResponse<HookResponse>): void;
+  listen: (callback: (response: PaginatedResponse<HookResponse>) => void) => Function;
 }
 
 // NOTE: as you use more actions in your ts files, please extend this namespace,
@@ -248,7 +269,15 @@ export namespace actions {
       refreshTableSubmissions: GenericDefinition;
       getAssetFiles: ResourcesGetAssetFilesDefinition;
     };
-    const hooks: object;
+    const hooks: {
+      add: GenericDefinition;
+      update: GenericDefinition;
+      delete: GenericDefinition;
+      getAll: GenericDefinition;
+      getLogs: HooksGetLogsDefinition;
+      retryLog: GenericDefinition;
+      retryLogs: GenericDefinition;
+    };
     const misc: {
       getUser: GetUserDefinition;
     };

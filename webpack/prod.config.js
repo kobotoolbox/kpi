@@ -29,7 +29,7 @@ const prodConfig = WebpackCommon({
     ],
   },
   entry: {
-    app: './jsapp/js/main.es6',
+    app: './jsapp/js/main.js',
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),

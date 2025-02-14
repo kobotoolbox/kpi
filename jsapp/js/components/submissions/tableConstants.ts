@@ -89,7 +89,7 @@ export const TEXT_FILTER_QUESTION_TYPES: AnyRowTypeName[] = [
   QuestionTypeName.range,
   QuestionTypeName.rank,
   QuestionTypeName.score,
-  // TODO: for now there is no code in `table.es6` that makes the choices from
+  // TODO: for now there is no code in `table.js` that makes the choices from
   // file available there, so we fallback to text filter
   QuestionTypeName.select_multiple_from_file,
   QuestionTypeName.select_one_from_file,

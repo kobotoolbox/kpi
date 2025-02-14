@@ -85,7 +85,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
                 </label>
                 <data>
                   <strong>
-                    {limitDisplay(props.type, props.remainingLimit)}
+                    {limitDisplay(props.type, props.usage, props.remainingLimit)}
                   </strong>
                 </data>
               </li>

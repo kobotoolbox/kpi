@@ -1,16 +1,16 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
-import RESTServicesList from './RESTServices/RESTServicesList';
-import RESTServiceLogs from './RESTServices/RESTServiceLogs';
+import RESTServicesList from './RESTServicesList';
+import RESTServiceLogs from './RESTServiceLogs';
+import type {AssetResponse} from 'js/dataInterface';
 import './RESTServices.scss';
 
-export default class RESTServices extends React.Component {
-  constructor(props){
-    super(props);
-    autoBind(this);
-  }
+interface RESTServicesProps {
+  asset: AssetResponse;
+  hookUid: string;
+}
 
+export default class RESTServices extends React.Component<RESTServicesProps> {
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
     return (

@@ -198,7 +198,7 @@ declare global {
     log: () => void;
 
     // For legacy use. Instead, use `import * as Sentry from '@sentry/react';`.
-    // See note on window.Raven in main.es6
+    // See note on window.Raven in main.js
     Raven?: Sentry.BrowserClient;
   }
 }

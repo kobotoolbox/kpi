@@ -37,7 +37,8 @@ const AccessDenied = (props: AccessDeniedProps) => {
   
   // Conditionally rendering error message based on number
   switch (errorNumber){
-    case 403 || 401:
+    case 401:
+    case 403:
       bodyText = t(`You don't have access to this page.`);
       break;
     case 404:

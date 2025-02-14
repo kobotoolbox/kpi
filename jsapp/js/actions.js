@@ -4,7 +4,7 @@
  *
  * You can observe action result through Reflux callbacks in your component, or
  * more preferably (where applicable) use the update eveont of one of the stores
- * from `jsapp/js/stores.es6`
+ * from `jsapp/js/stores.js`
  */
 
 import alertify from 'alertifyjs';

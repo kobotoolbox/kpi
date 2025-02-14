@@ -46,6 +46,7 @@ class EnvironmentView(APIView):
         'SOURCE_CODE_URL',
         'SUPPORT_EMAIL',
         'SUPPORT_URL',
+        'ACADEMY_URL',
         'COMMUNITY_URL',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',

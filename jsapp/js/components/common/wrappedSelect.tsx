@@ -15,7 +15,7 @@ type WrappedSelectProps = Props & {
 
 /**
  * Adds error displaying to the Select component. Largely cribbed from
- * `components/dataAttachments/connectProjects.es6` file.
+ * `components/dataAttachments/connectProjects.js` file.
  */
 class WrappedSelect extends React.Component<WrappedSelectProps> {
   render() {

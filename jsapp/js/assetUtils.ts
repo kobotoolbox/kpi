@@ -671,7 +671,7 @@ export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
   return (
     asset &&
     sessionStore.currentAccount &&
-    asset.owner_label === sessionStore.currentAccount.username
+    asset.owner__username === sessionStore.currentAccount.username
   );
 }
 

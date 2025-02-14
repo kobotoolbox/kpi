@@ -1,4 +1,4 @@
-// TODO: either change whole `stores.es6` to `stores.ts` or crete a type
+// TODO: either change whole `stores.js` to `stores.ts` or crete a type
 // definition for a store you need.
 export namespace stores {
   const tags: any;

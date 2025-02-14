@@ -67,7 +67,11 @@ class OrganizationNestedHasOrgRolePermission(HasOrgRolePermission):
 class OrgMembershipInvitePermission(
     ValidationPasswordPermissionMixin, IsAuthenticated
 ):
+
+    ALLOWED_ROLES = (ORG_OWNER_ROLE, ORG_ADMIN_ROLE,)
+
     def has_permission(self, request, view):
+
         self.validate_password(request)
         if not super().has_permission(request=request, view=view):
             return False
@@ -83,18 +87,37 @@ class OrgMembershipInvitePermission(
         user_role = organization.get_user_role(user)
         view.user_role = user_role
 
-        allowed_roles = [ORG_OWNER_ROLE, ORG_ADMIN_ROLE]
-        if request.method in ['POST', 'DELETE'] or (
-            request.method == 'PATCH' and
-            request.data.get('status') in ['resent', 'cancelled']
-        ):
-            if user_role in allowed_roles:
-                return True
-            elif user_role == ORG_EXTERNAL_ROLE:
-                raise Http404
-            return False
+        return True
 
-        if request.method == 'GET' and user_role == ORG_EXTERNAL_ROLE:
-            raise Http404
+    def has_object_permission(self, request, view, obj):
+        org_invite = obj
+        user = get_database_user(request.user)
+
+        if view.user_role in self.ALLOWED_ROLES:
+            return True
+
+        if org_invite.invitee_identifier:
+            if org_invite.invitee_identifier != user.email:
+                raise Http404
+        elif org_invite.invitee_id != user.pk:
+            if view.user_role == ORG_EXTERNAL_ROLE:
+                raise Http404
+            else:
+                return False
 
         return True
+
+
+class OrgMembershipCreateOrDeleteInvitePermission(OrgMembershipInvitePermission):
+
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+
+        user_role = view.user_role
+        if user_role in self.ALLOWED_ROLES:
+            return True
+        elif user_role == ORG_EXTERNAL_ROLE:
+            raise Http404
+
+        return False

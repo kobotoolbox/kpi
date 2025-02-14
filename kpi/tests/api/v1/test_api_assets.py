@@ -4,10 +4,10 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
+from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, SubmissionExportTask
@@ -18,6 +18,7 @@ from kpi.serializers.v1.asset import AssetListSerializer
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -296,8 +297,9 @@ class AssetExportTaskTest(BaseTestCase):
             'source': asset_url,
             'type': 'csv',
         }
-        # Create the export task
-        response = self.client.post(post_url, task_data)
+        with immediate_on_commit():
+            # Create the export task
+            response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])

@@ -10,11 +10,11 @@ import {defaults} from 'jest-config';
 
 const config: Config = {
   // Naming convention (*.tests.*)
-  testMatch: ['**/?(*.)+(tests).(js|jsx|ts|tsx|es6|coffee)'],
+  testMatch: ['**/?(*.)+(tests).(js|jsx|ts|tsx|coffee)'],
 
   // Where to find tests. <rootDir> = 'kpi/jsapp/jest'
   roots: [
-    '<rootDir>/../js/',      // unit tests    🛠️ 'jsapp/js/**/*.tests.{ts,es6}'
+    '<rootDir>/../js/',      // unit tests    🛠️ 'jsapp/js/**/*.tests.ts'
     '<rootDir>/../../test/', // xlform/coffee ☕ 'test/**/*.tests.coffee'
   ],
 
@@ -30,11 +30,11 @@ const config: Config = {
   },
 
   // Extensions to try in order (for import statements with no extension)
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'es6', 'coffee'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'coffee'],
 
   // Transformers (SWC for JS/TS, CoffeeScript for .coffee)
   transform: {
-    '^.+\\.(js|jsx|ts|tsx|es6)$': '@swc/jest',
+    '^.+\\.(js|jsx|ts|tsx)$': '@swc/jest',
     '^.+\\.coffee$': '<rootDir>/coffeeTransformer.js',
   },
 

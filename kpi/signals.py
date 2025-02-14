@@ -20,6 +20,11 @@ def tag_uid_post_save(sender, instance, created, raw, **kwargs):
     """ Make sure we have a TagUid object for each newly-created Tag """
     if raw or not created:
         return
+
+    # We don't want to create KPI things for OpenRosa models
+    if kwargs.get('using') == settings.OPENROSA_DB_ALIAS:  # noqa
+        return
+
     TagUid.objects.get_or_create(tag=instance)
 
 
@@ -28,7 +33,8 @@ def post_delete_asset(sender, instance, **kwargs):
     # Update parent's languages if this object is a child of another asset.
     try:
         parent = instance.parent
-    except Asset.DoesNotExist:  # `parent` may exists in DJANGO models cache but not in DB
+    except Asset.DoesNotExist:
+        # `parent` may exist in DJANGO models cache but not in DB
         pass
     else:
         if parent:

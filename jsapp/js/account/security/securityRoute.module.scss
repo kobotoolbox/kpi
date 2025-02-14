@@ -37,6 +37,7 @@ h2.securityHeaderText {
 
 .securityHeaderActions {
   @include mixins.centerRowFlex;
+  padding-right: 15px;
 }
 
 // Shared styles for sections

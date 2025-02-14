@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -618,12 +619,14 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
                 'type': 'project_history_logs_export',
             },
         )
-
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.ProjectHistoryLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.ProjectHistoryLogExportTask',
+            )
         )
+
         return Response(
             {f'status: {export_task.status}'},
             status=status.HTTP_202_ACCEPTED,
@@ -961,10 +964,12 @@ class ProjectHistoryLogViewSet(
             },
         )
 
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.ProjectHistoryLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.ProjectHistoryLogExportTask',
+            )
         )
         return Response(
             {f'status: {export_task.status}'},
@@ -985,12 +990,14 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
                 'type': 'access_logs_export',
             },
         )
-
-        export_task_in_background.delay(
-            export_task_uid=export_task.uid,
-            username=export_task.user.username,
-            export_task_name='kpi.AccessLogExportTask',
+        transaction.on_commit(
+            lambda: export_task_in_background.delay(
+                export_task_uid=export_task.uid,
+                username=export_task.user.username,
+                export_task_name='kpi.AccessLogExportTask',
+            )
         )
+
         return Response(
             {f'status: {export_task.status}'},
             status=status.HTTP_202_ACCEPTED,

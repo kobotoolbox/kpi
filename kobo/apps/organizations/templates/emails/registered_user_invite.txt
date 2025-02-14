@@ -17,6 +17,6 @@
 
 {% trans "If you want to transfer any projects to another account or remove a project, please do so before accepting the invitation. This action cannot be undone." %}
 
-{% blocktrans %}To respond to this invitation, please use the following link: {{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}
+{% blocktrans %}To respond to this invitation, please use the following link: {{ base_url }}/#/projects/home?organization_invite={{ invite_uid }}&organization_id={{ organization_id }}{% endblocktrans %}
 
 - KoboToolbox

@@ -13,6 +13,6 @@ class Command(makemessages.Command):
         options['ignore_patterns'].append('jsapp/compiled*')
         options['ignore_patterns'].append('staticfiles*')
         if options['domain'] == 'djangojs':
-            options['extensions'] = ['js', 'tsx', 'ts', 'es6']
+            options['extensions'] = ['js', 'tsx', 'ts']
 
         super().handle(*args, **options)

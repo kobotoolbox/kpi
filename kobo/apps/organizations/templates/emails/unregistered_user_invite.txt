@@ -11,6 +11,6 @@
 {% blocktrans %}It takes less than 2 minutes to create your account to join the organization. Please create your account here: {{ base_url }}/accounts/signup/{% endblocktrans %}
 
 {% trans "Once you have finished creating your account, respond to this invitation using the following link:" %}
-{% blocktrans %}{{ base_url }}/#/projects/home?organization-invite={{ invite_uid }}{% endblocktrans %}
+{% blocktrans %}{{ base_url }}/#/projects/home?organization_invite={{ invite_uid }}&organization_id={{ organization_id }}{% endblocktrans %}
 
 - KoboToolbox
