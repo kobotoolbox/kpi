@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When, Q
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
@@ -17,7 +18,7 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
+from .utils import revoke_org_asset_perms
 from .models import (
     Organization,
     OrganizationOwner,
@@ -37,6 +38,7 @@ from .serializers import (
     OrgMembershipInviteSerializer
 )
 from .renderers import OnlyGetBrowsableAPIRenderer
+from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -479,6 +481,16 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             )
             queryset = list(queryset) + list(invitees)
         return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Revoke asset permissions before deleting the user from the organization
+        """
+        member = self.get_object()
+        with transaction.atomic():
+            revoke_org_asset_perms(member.organization, [member.user_id])
+            member.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
