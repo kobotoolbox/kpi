@@ -25,3 +25,10 @@ For this reason, you will no longer see a separate kobocat container: the code t
     pyxform. It also provides a map and single survey view.
   - **main** - This app is the glue that brings logger and viewer
     together.
+
+## Deprecation Notices
+
+Much of the user-facing and REST API features of this application are being refactored.
+For more details and discussion, please refer to
+<https://community.kobotoolbox.org/t/contemplating-the-future-of-kobocat/2743>. Please
+see [REMOVALS.md](REMOVALS.md) for a complete list.
