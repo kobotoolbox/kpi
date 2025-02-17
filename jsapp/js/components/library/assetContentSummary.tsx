@@ -28,7 +28,7 @@ export default class AssetContentSummary extends React.Component<AssetContentSum
   }
 
   renderQuestion(question: FlatQuestion, itemIndex: number) {
-    const modifiers = ['columns', 'padding-small']
+    const modifiers = ['columns', 'padding']
     if (itemIndex !== 0) {
       modifiers.push('bordertop')
     }
@@ -72,7 +72,7 @@ export default class AssetContentSummary extends React.Component<AssetContentSum
 
     if (items.length === 0) {
       return (
-        <bem.FormView__cell m={['box', 'padding-small']}>
+        <bem.FormView__cell m={['box', 'padding']}>
           {t('This ##asset_type## is empty.').replace('##asset_type##', this.props.asset.asset_type)}
         </bem.FormView__cell>
       )

@@ -28,6 +28,7 @@ import AnonymousSubmission from 'js/components/anonymousSubmission.component'
 import NewFeatureDialog from 'js/components/newFeatureDialog.component'
 import pageState from 'js/pageState.store'
 import Button from 'js/components/common/button'
+import { Stack } from '@mantine/core'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
@@ -308,7 +309,7 @@ class FormLanding extends React.Component {
             <bem.FormView__cell className='collect-header-actions'>{this.renderCollectLink()}</bem.FormView__cell>
           </bem.FormView__cell>
 
-          <bem.FormView__cell m={['small-padding', 'collect-meta']}>
+          <Stack pb='md' pl='md' pr='md' className='collect-meta-description'>
             {chosenMethod !== COLLECTION_METHODS.android.id && COLLECTION_METHODS[chosenMethod].desc}
 
             {chosenMethod === COLLECTION_METHODS.iframe_url.id && (
@@ -341,7 +342,7 @@ class FormLanding extends React.Component {
                 <li>{t('Open "Enter Data."')}</li>
               </ol>
             )}
-          </bem.FormView__cell>
+          </Stack>
 
           {userCan('change_asset', this.state) && (
             <bem.FormView__cell m={['padding', 'anonymous-submissions', 'bordertop']}>
@@ -634,13 +635,13 @@ class FormLanding extends React.Component {
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() && (
-                <bem.FormView__cell>
+                <Stack pt='md' pl='md' pr='md'>
                   <InlineMessage
                     icon='alert'
                     type='warning'
                     message={t('If you want to make these changes public, you must deploy this form.')}
                   />
-                </bem.FormView__cell>
+                </Stack>
               )}
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
