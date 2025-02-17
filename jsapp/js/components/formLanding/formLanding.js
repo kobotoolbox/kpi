@@ -309,7 +309,7 @@ class FormLanding extends React.Component {
             <bem.FormView__cell className='collect-header-actions'>{this.renderCollectLink()}</bem.FormView__cell>
           </bem.FormView__cell>
 
-          <Stack pb='md' pl='md' pr='md' className='collect-meta-description'>
+          <Stack pb='lg' pl='lg' pr='lg' className='collect-meta-description'>
             {chosenMethod !== COLLECTION_METHODS.android.id && COLLECTION_METHODS[chosenMethod].desc}
 
             {chosenMethod === COLLECTION_METHODS.iframe_url.id && (
@@ -635,7 +635,7 @@ class FormLanding extends React.Component {
             </bem.FormView__cell>
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() && (
-                <Stack pt='md' pl='md' pr='md'>
+                <Stack pt='lg' pl='lg' pr='lg'>
                   <InlineMessage
                     icon='alert'
                     type='warning'
