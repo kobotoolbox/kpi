@@ -22,6 +22,7 @@ export enum AuditActions {
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
   'modify-submission' = 'modify-submission',
+  'modify-qa-data' = 'modify-qa-data',
   'modify-user-permissions' = 'modify-user-permissions',
   redeploy = 'redeploy',
   'register-service' = 'register-service',
@@ -143,6 +144,12 @@ export const AUDIT_ACTION_TYPES: AuditActionTypes = {
     name: AuditActions['modify-imported-fields'],
     label: t('change imported fields'),
     message: t('##username## changed imported fields from another project'),
+  },
+  'modify-qa-data': {
+    order: 8.5,
+    name: AuditActions['modify-qa-data'],
+    label: t('edit qualitative analysis data'),
+    message: t('##username## edited qualitative analysis data'),
   },
   'modify-service': {
     order: 28,
