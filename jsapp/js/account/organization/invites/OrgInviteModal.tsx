@@ -2,7 +2,7 @@
 import React, { useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
-import { Modal, Button, Stack, Text, Group } from '@mantine/core'
+import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
 import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
 // Stores, hooks and utilities
 import {
@@ -14,6 +14,7 @@ import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
 import envStore from 'jsapp/js/envStore'
 import subscriptionStore from 'jsapp/js/account/subscriptionStore'
 import { notify } from 'jsapp/js/utils'
+import { useSession } from 'jsapp/js/stores/useSession'
 // Constants and types
 import { endpoints } from 'jsapp/js/api.endpoints'
 
@@ -30,8 +31,11 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
   )
 
   const [isModalOpen, setIsModalOpen] = useState(true)
-  const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId)
-  const patchMemberInvite = usePatchMemberInvite(inviteUrl)
+  const session = useSession()
+  const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId, false)
+  const patchMemberInvite = usePatchMemberInvite(inviteUrl, false)
+  // We handle all the errors through query and BE responses, but for some edge cases we have this:
+  const [miscError, setMiscError] = useState<string | undefined>()
 
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
@@ -44,7 +48,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
       setIsModalOpen(false)
       notify(t('Invitation successfully declined'))
     } catch (error) {
-      notify(t('Failed to decline the invitation'), 'error')
+      setMiscError(t('Unknown error while trying to update an invitation'))
     }
   }
 
@@ -54,27 +58,67 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
       setIsModalOpen(false)
       notify(t('Invitation successfully accepted'))
     } catch (error) {
-      notify(t('Failed to accept the invitation'), 'error')
+      setMiscError(t('Unknown error while trying to update an invitation'))
     }
+  }
+
+  const handleSignOut = () => {
+    session.logOut()
   }
 
   let content: React.ReactNode = null
   let title: React.ReactNode = null
 
-  // Case 1: loading data
+  // Case 1: loading data.
   if (orgMemberInviteQuery.isLoading) {
     content = <LoadingSpinner />
   }
-  // Case 2: failed to get the invite
+  // Case 2: failed to get the invitation data from API.
   else if (orgMemberInviteQuery.isError) {
+    title = t('Invitation not found')
+    // Fallback message
+    let memberInviteErrorMessage = t('Could not find invitation ##invite_id## from organization ##org_id##')
+      .replace('##invite_id##', props.inviteId)
+      .replace('##org_id##', props.orgId)
+    if (orgMemberInviteQuery.error?.responseJSON?.detail) {
+      memberInviteErrorMessage = orgMemberInviteQuery.error.responseJSON.detail
+    }
+    content = <Alert type='error'>{memberInviteErrorMessage}</Alert>
+  }
+  // Case 3: failed to accept or decline invitation (API response).
+  else if (patchMemberInvite.isError) {
     title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
+    // Fallback message
+    let patchMemberInviteErrorMessage = t('Failed to respond to invitation')
+    if (patchMemberInvite.error?.responseJSON?.detail) {
+      patchMemberInviteErrorMessage = patchMemberInvite.error.responseJSON.detail
+    }
     content = (
-      <Alert type='error'>
-        {t('Could not find invitation ##invite_id## from organization ##org_id##')
-          .replace('##invite_id##', props.inviteId)
-          .replace('##org_id##', props.orgId)}
-      </Alert>
+      <Stack>
+        <Alert type='error'>{patchMemberInviteErrorMessage}</Alert>
+
+        <Group justify='flex-end'>
+          <Button
+            variant='light'
+            size='lg'
+            onClick={() => {
+              setIsModalOpen(false)
+            }}
+          >
+            {t('Cancel')}
+          </Button>
+
+          <Button variant='filled' size='lg' onClick={handleSignOut}>
+            {t('Sign out')}
+          </Button>
+        </Group>
+      </Stack>
     )
+  }
+  // Case 4: failed to accept or decline invitation (misc error)
+  else if (miscError) {
+    title = t('Unable to join ##TEAM_OR_ORGANIZATION_NAME##').replace('##TEAM_OR_ORGANIZATION_NAME##', orgName)
+    content = <Alert type='error'>{miscError}</Alert>
   }
   // Case 3: got the invite, its status is pending, so we display form
   else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
@@ -125,6 +169,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
       }}
       title={title}
     >
+      {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+      <FocusTrap.InitialFocus />
       {content}
     </Modal>
   )
