@@ -135,6 +135,7 @@ class EmailContentModelTestCase(TestCase):
         ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
     )
     def test_default_activation_email_template(self):
+        self.maxDiff = None
         username = 'user003'
         email = username + '@example.com'
         data = {
@@ -150,7 +151,7 @@ class EmailContentModelTestCase(TestCase):
                        "KoboToolbox applications. Please visit the following " \
                        "URL to finish activation of your new account."
         default_closing = "For help getting started, check out the KoboToolbox " \
-                          "user documentation: https://support.kobotoolbox.com "
+                          "user documentation: https://support.kobotoolbox.com"
         request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
         assert request.status_code == status.HTTP_302_FOUND
