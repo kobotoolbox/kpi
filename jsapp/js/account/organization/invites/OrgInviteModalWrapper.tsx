@@ -3,7 +3,7 @@ import OrgInviteModal from './OrgInviteModal'
 
 /**
  * This is a wrapper for conditionally rendering the OrgInviteModal component. It looks for a particular pair of
- * search parameters and, if an invitation is deleted or accepted, removes those params.
+ * search parameters to pass to the modal. Also, if an invitation is deleted or accepted, it removes those params.
  */
 export default function OrgInviteModalWrapper() {
   const [searchParams, setSearchParams] = useSearchParams()
