@@ -93,7 +93,6 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
   // The organization url might change during the session (e.g. user accepts invitation to join organization), so we
   // need to make sure it is up to date.
   useEffect(() => {
-    console.log('xxx organizationUrl', organizationUrl, session.currentLoggedAccount?.organization?.url)
     setOrganizationUrl(session.currentLoggedAccount?.organization?.url)
   }, [session.currentLoggedAccount?.organization?.url])
 
