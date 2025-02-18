@@ -84,9 +84,9 @@ def mark_organization_invite_as_expired():
             EmailMessage(
                 to=invite.invited_by.email,
                 subject=t('Organization invite has expired'),
-                plain_text_content_or_template='emails/expired_invite.txt',
+                plain_text_content_or_template='emails/expired_org_invite.txt',
                 template_variables=template_variables,
-                html_content_or_template='emails/expired_invite.html',
+                html_content_or_template='emails/expired_org_invite.html',
                 language=(
                     invite.invited_by.extra_details.data.get('last_ui_language')
                 )
