@@ -1,7 +1,7 @@
 {% load i18n %}
 <p>{% trans "Dear" %} {{ sender_username }},</p>
 
-<p>{% blocktrans %}{{ recipient_username }} ({{ recipient_email }}) has accepted your request to join {{ organization_name }} organization.{% endblocktrans %}</p>
+<p>{% blocktrans trimmed %}{{ recipient_username }} ({{ recipient_email }}) has accepted your request to join {{ organization_name }} organization.{% endblocktrans %}</p>
 
 <p>{% trans "All projects, submissions, data storage, transcription and translation usage for their projects will be transferred to you." %}</p>
 

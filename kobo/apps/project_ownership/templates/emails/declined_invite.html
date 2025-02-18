@@ -9,7 +9,7 @@
 
   <p>{% trans "You will remain the owner of the project. The submissions, data storage, and transcription and translation usage for the project have not been transferred." %}</p>
 {% else %}
-  <p>{% blocktrans %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
+  <p>{% blocktrans trimmed %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
     <ul>
     {% for transfer in transfers %}
       <li><a href="{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing">{{ transfer.asset_name }}</a></li>

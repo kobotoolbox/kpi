@@ -7,13 +7,13 @@
 {% if content.section_one or content.section_one == '' %}
 {% convert_placeholders content.section_one activate_url user %}
 {% else %}
-{% blocktrans %}Thanks for signing up with KoboToolbox!{% endblocktrans %}
+{% blocktrans trimmed %}Thanks for signing up with KoboToolbox!{% endblocktrans %}
 
-{% blocktrans %}Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account.{% endblocktrans %}
+{% blocktrans trimmed %}Confirming your account will give you access to KoboToolbox applications. Please visit the following URL to finish activation of your new account.{% endblocktrans %}
 
 {{ activate_url }}
 
-{% blocktrans %}Your username is: {% endblocktrans %}{{ user }}
+{% blocktrans trimmed %}Your username is: {% endblocktrans %}{{ user }}
 
 {% endif %}
 {% endspaceless %}
@@ -22,11 +22,11 @@
 {% if content.section_two or content.section_two == '' %}
 {% convert_placeholders content.section_two activate_url user %}
 {% else %}
-{% blocktrans %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com {% endblocktrans %}
+{% blocktrans trimmed %}For help getting started, check out the KoboToolbox user documentation: https://support.kobotoolbox.com {% endblocktrans %}
 
-{% blocktrans %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
+{% blocktrans trimmed %}You can also join the KoboToolbox community forum to ask questions, share solutions, and chat with thousands of users: https://community.kobotoolbox.org{% endblocktrans %}
 
-{% blocktrans %}Best,{% endblocktrans %}
+{% blocktrans trimmed %}Best,{% endblocktrans %}
 KoboToolbox
 {% endif %}
 {% endspaceless %}
