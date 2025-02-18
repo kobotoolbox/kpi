@@ -1,7 +1,8 @@
+from django.db import transaction
 from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -16,7 +17,6 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .permissions import (
     HasOrgRolePermission,
@@ -24,6 +24,8 @@ from .permissions import (
     OrganizationNestedHasOrgRolePermission,
 )
 from .serializers import OrganizationSerializer, OrganizationUserSerializer
+from .utils import revoke_org_asset_perms
+from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -420,3 +422,13 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             has_mfa_enabled=Exists(mfa_subquery)
         )
         return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Revoke asset permissions before deleting the user from the organization
+        """
+        member = self.get_object()
+        with transaction.atomic():
+            revoke_org_asset_perms(member.organization, [member.user_id])
+            member.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
