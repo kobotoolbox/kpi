@@ -24,7 +24,7 @@ import { endpoints } from 'jsapp/js/api.endpoints'
  *
  * Note: this is for a user that is NOT a part of an organization (and thus has no access to it).
  */
-export default function OrgInviteModal(props: { orgId: string; inviteId: string }) {
+export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const inviteUrl = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', props.orgId).replace(
     ':invite_id',
     props.inviteId,
@@ -46,6 +46,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
     try {
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.declined })
       setIsModalOpen(false)
+      props.onUserResponse()
       notify(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
@@ -56,6 +57,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
     try {
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.accepted })
       setIsModalOpen(false)
+      props.onUserResponse()
       notify(t('Invitation successfully accepted'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
