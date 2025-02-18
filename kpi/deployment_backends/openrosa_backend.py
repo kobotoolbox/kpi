@@ -235,7 +235,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have full access.
         if submission_ids:
-            # Remove query from `data` because all the submission ids have been
+            # Remove `query` from `data` because all the submission ids have been
             # already retrieved
             data.pop('query', None)
             data['submission_ids'] = submission_ids
@@ -1228,7 +1228,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         pk = self.backend_response['formid']
         xform = (
-            XForm.objects.filter(pk=pk)
+            XForm.all_objects.filter(pk=pk)
             .only(
                 'user__username',
                 'id_string',
