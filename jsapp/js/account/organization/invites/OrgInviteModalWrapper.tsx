@@ -1,21 +1,25 @@
-import { useLocation } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import OrgInviteModal from './OrgInviteModal'
 
 /**
- * This is a wrapper for conditionally rendering the OrgInviteModal component. It simply looks for particular pair of
- * search parameters.
+ * This is a wrapper for conditionally rendering the OrgInviteModal component. It looks for a particular pair of
+ * search parameters to pass to the modal. Also, if an invitation is deleted or accepted, it removes those params.
  */
 export default function OrgInviteModalWrapper() {
-  // Get values from URL params
-  const location = useLocation()
-  const searchParams = new URLSearchParams(location.search)
+  const [searchParams, setSearchParams] = useSearchParams()
   const inviteId = searchParams.get('organization_invite')
   const orgId = searchParams.get('organization_id')
+
+  function handleUserResponse() {
+    searchParams.delete('organization_invite')
+    searchParams.delete('organization_id')
+    setSearchParams(searchParams)
+  }
 
   // Avoid rendering anything if there is no invite in the URL
   if (!inviteId || !orgId) {
     return null
   }
 
-  return <OrgInviteModal orgId={orgId} inviteId={inviteId} />
+  return <OrgInviteModal orgId={orgId} inviteId={inviteId} onUserResponse={handleUserResponse} />
 }

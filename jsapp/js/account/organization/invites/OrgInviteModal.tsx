@@ -24,7 +24,7 @@ import { endpoints } from 'jsapp/js/api.endpoints'
  *
  * Note: this is for a user that is NOT a part of an organization (and thus has no access to it).
  */
-export default function OrgInviteModal(props: { orgId: string; inviteId: string }) {
+export default function OrgInviteModal(props: { orgId: string; inviteId: string; onUserResponse: () => void }) {
   const inviteUrl = endpoints.ORG_MEMBER_INVITE_DETAIL_URL.replace(':organization_id', props.orgId).replace(
     ':invite_id',
     props.inviteId,
@@ -45,6 +45,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
   function handleSuccessfullInviteResponse(message: string) {
     // Ensure that fresh session is fetched, as we get the organiztion url from it.
     session.refreshAccount()
+    props.onUserResponse()
     setIsModalOpen(false)
     notify(message)
   }
