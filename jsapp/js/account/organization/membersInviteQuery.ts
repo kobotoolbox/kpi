@@ -143,6 +143,8 @@ export function usePatchMemberInvite(inviteUrl?: string, displayErrorNotificatio
     },
     onMutate: async (mutationData) => {
       if (mutationData.role) {
+        // If we are updating the invitee's role, we want to optimistically update their role in queries for
+        // the members table list. So we look for their unique invite url and update the relevant query accordingly
         const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
         const query = qData.find((q) =>
           (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.invite?.url === inviteUrl),
