@@ -18,7 +18,7 @@ import { MemberInviteStatus } from 'js/account/organization//membersInviteQuery'
 export default function OrgInviteAcceptedBanner(props: { username: string }) {
   const organizationMemberDetailQuery = useOrganizationMemberDetailQuery(props.username, false)
   const orgQuery = useOrganizationQuery()
-  const [showBanner, setShowBanner] = useState<boolean>(false)
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false)
   const localStorageKey = useSafeUsernameStorageKey('kpiOrgInviteAcceptedBanner', props.username)
 
   /*
@@ -27,27 +27,27 @@ export default function OrgInviteAcceptedBanner(props: { username: string }) {
    */
   useEffect(() => {
     const bannerStatus = localStorageKey && localStorage.getItem(localStorageKey)
-    setShowBanner(!bannerStatus)
+    setIsBannerDismissed(!bannerStatus)
   }, [localStorageKey])
 
   // Close the dialog box and store that we've closed it
   function handleCloseBanner() {
     if (localStorageKey) {
       localStorage.setItem(localStorageKey, 'dismissed')
-      setShowBanner(false)
+      setIsBannerDismissed(false)
     }
   }
 
-  // We are only interested in showing the banner if the invite has been accepted
-  if (organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted) {
-    return null
-  }
-  // Wait for data to be loaded
-  if (orgQuery.data?.name === undefined) {
-    return null
-  }
-
-  if (!showBanner) {
+  if (
+    // Wait for data to be loaded
+    orgQuery.data?.name === undefined ||
+    // Only show banner to users who are members of MMO organization
+    !orgQuery.data.is_mmo ||
+    // Only show banner to users who have accepted the invite
+    organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
+    // Respect users who dismissed the banner
+    !isBannerDismissed
+  ) {
     return null
   }
 
