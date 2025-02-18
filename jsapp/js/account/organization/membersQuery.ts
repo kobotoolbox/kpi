@@ -62,6 +62,8 @@ export function usePatchOrganizationMember(username: string) {
       fetchPatch<OrganizationMember>(getMemberEndpoint(orgId!, username), data as Json),
     onMutate: async (mutationData) => {
       if (mutationData.role) {
+        // If we are updating the user's role, we want to optimistically update their role in queries for
+        // the members table list. So we look for their username and update the relevant query accordingly
         const qData = queryClient.getQueriesData({ queryKey: [QueryKeys.organizationMembers] })
         const query = qData.find((q) =>
           (q[1] as any)?.results?.find((m: OrganizationMemberListItem) => m.user__username === username),

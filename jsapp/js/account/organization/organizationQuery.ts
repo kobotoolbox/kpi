@@ -78,6 +78,9 @@ interface OrganizationQueryParams {
  * to invalidate data and refetch when absolute latest data is needed.
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
+  const session = useSession()
+  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined
+
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
       queryClient.invalidateQueries({
@@ -86,9 +89,6 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
       })
     }
   }, [params?.shouldForceInvalidation])
-
-  const session = useSession()
-  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined
 
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
