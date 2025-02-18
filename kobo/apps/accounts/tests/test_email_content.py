@@ -135,7 +135,6 @@ class EmailContentModelTestCase(TestCase):
         ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
     )
     def test_default_activation_email_template(self):
-        self.maxDiff = None
         username = 'user003'
         email = username + '@example.com'
         data = {
