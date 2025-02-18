@@ -1201,6 +1201,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    # Schedule every 10 minutes
+    'trash-bin-task-restarter': {
+        'task': 'kobo.apps.trash_bin.tasks.task_restarter',
+        'schedule': crontab(minute='*/10'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
@@ -1258,6 +1264,7 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+
 }
 
 
@@ -1849,3 +1856,5 @@ IMPORT_EXPORT_CELERY_MODELS = {
 }
 
 IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
+
+SUBMISSION_DELETION_BATCH_SIZE = 1000
