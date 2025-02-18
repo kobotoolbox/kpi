@@ -188,6 +188,7 @@ export enum QuestionTypeName {
   acknowledge = 'acknowledge',
   audio = 'audio',
   'background-audio' = 'background-audio',
+  'background-geopoint' = 'background-geopoint',
   barcode = 'barcode',
   calculate = 'calculate',
   date = 'date',
@@ -255,6 +256,11 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
     label: t('Background Audio'),
     icon: 'qt-background-audio',
     id: QuestionTypeName['background-audio'],
+  },
+  'background-geopoint': {
+    label: t('Background Geopoint'),
+    icon: 'qt-point',
+    id: QuestionTypeName['background-geopoint'],
   },
   barcode: {
     label: t('Barcode / QR Code'),
