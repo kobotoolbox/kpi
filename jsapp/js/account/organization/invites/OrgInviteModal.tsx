@@ -42,11 +42,17 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
   const orgName = orgMemberInviteQuery.data?.organization_name || mmoLabel
 
+  function handleSuccessfullInviteResponse(message: string) {
+    // Ensure that fresh session is fetched, as we get the organiztion url from it.
+    session.refreshAccount()
+    setIsModalOpen(false)
+    notify(message)
+  }
+
   const handleDeclineInvite = async () => {
     try {
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.declined })
-      setIsModalOpen(false)
-      notify(t('Invitation successfully declined'))
+      handleSuccessfullInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
     }
@@ -55,8 +61,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string 
   const handleAcceptInvite = async () => {
     try {
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.accepted })
-      setIsModalOpen(false)
-      notify(t('Invitation successfully accepted'))
+      handleSuccessfullInviteResponse(t('Invitation successfully accepted'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
     }

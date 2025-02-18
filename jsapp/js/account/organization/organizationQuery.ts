@@ -1,6 +1,6 @@
 // Libraries
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // Stores, hooks and utilities
 import { fetchGetUrl, fetchPatch } from 'jsapp/js/api'
@@ -78,6 +78,9 @@ interface OrganizationQueryParams {
  * to invalidate data and refetch when absolute latest data is needed.
  */
 export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
+  const session = useSession()
+  const [organizationUrl, setOrganizationUrl] = useState<string | undefined>(session.currentLoggedAccount?.organization?.url)
+
   useEffect(() => {
     if (params?.shouldForceInvalidation) {
       queryClient.invalidateQueries({
@@ -87,8 +90,12 @@ export const useOrganizationQuery = (params?: OrganizationQueryParams) => {
     }
   }, [params?.shouldForceInvalidation])
 
-  const session = useSession()
-  const organizationUrl = !session.isPending ? session.currentLoggedAccount?.organization?.url : undefined
+  // The organization url might change during the session (e.g. user accepts invitation to join organization), so we
+  // need to make sure it is up to date.
+  useEffect(() => {
+    console.log('xxx organizationUrl', organizationUrl, session.currentLoggedAccount?.organization?.url)
+    setOrganizationUrl(session.currentLoggedAccount?.organization?.url)
+  }, [session.currentLoggedAccount?.organization?.url])
 
   // Setting the 'enabled' property so the query won't run until we have
   // the session data loaded. Account data is needed to fetch the organization
