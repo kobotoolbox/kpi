@@ -795,7 +795,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   resetFilterByMarker() {
     const markers = this.state.markers
     this.setState({ filteredByMarker: undefined })
-    markers.eachLayer(function (layer) {
+    markers?.eachLayer(function (layer) {
       layer._icon.classList.remove('unselected')
     })
   }
