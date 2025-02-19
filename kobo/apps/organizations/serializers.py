@@ -94,7 +94,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         Get the latest invite for the user if it exists
         """
         invite = OrganizationInvitation.objects.filter(
-            invitee=obj.user
+            invitee=obj.user, organization_id=obj.organization_id
         ).order_by('-created').first()
 
         if invite:
