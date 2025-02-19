@@ -84,7 +84,7 @@ const JSON_HEADER = 'application/json'
 
 type FetchHttpMethod = 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE'
 
-interface FetchDataOptions {
+export interface FetchDataOptions {
   /**
    * By default we display an error toast notification when response is not good
    * and the error code is clearly error. If you need to handle the notification

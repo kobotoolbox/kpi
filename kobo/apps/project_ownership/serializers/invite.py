@@ -155,9 +155,17 @@ class InviteSerializer(serializers.ModelSerializer):
 
         return assets
 
-    def validate_recipient(self, user: 'kobo_auth.User') -> 'kobo_auth.User':
+    def validate_recipient(self, recipient: 'kobo_auth.User') -> 'kobo_auth.User':
         if self.instance is None:
-            return user
+            request = self.context['request']
+            sender = request.user
+            recipient_org = recipient.organization
+            sender_org = sender.organization
+            if recipient_org == sender_org:
+                raise serializers.ValidationError(
+                    t('Must not be in the same organization')
+                )
+            return recipient
 
         raise serializers.ValidationError(t(
             'This field cannot be modified'

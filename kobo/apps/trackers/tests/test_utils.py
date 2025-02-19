@@ -53,9 +53,8 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         price,
         customer,
         payment_status='succeeded',
-        quantity=1,
     ):
-        payment_total = quantity * 2000
+        payment_total = 2000
         payment_intent = baker.make(
             PaymentIntent,
             customer=customer,
@@ -81,7 +80,6 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge.metadata = {
             'price_id': price.id,
             'organization_id': self.organization.id,
-            'quantity': quantity,
             **(price.product.metadata or {}),
         }
         charge.save()
@@ -104,7 +102,8 @@ class TrackersUtilitiesTestCase(BaseTestCase):
             'valid_tags': 'all',
         }
         product, price = self._create_product(addon_metadata)
-        self._make_payment(price, subscription.customer, quantity=2)
+        self._make_payment(price, subscription.customer)
+        self._make_payment(price, subscription.customer)
 
         total_limit = 2000 * 2 + 1000
         remaining = get_organization_remaining_usage(self.organization, usage_type)

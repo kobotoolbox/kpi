@@ -8,7 +8,7 @@
 
 {% trans "When you accept the ownership transfer, all of the submissions, data storage, and transcription and translation usage for the project will be transferred to you and count against your plan limits." %}
 {% else %}
-{% blocktrans %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
+{% blocktrans trimmed %}{{ sender_username }} ({{ sender_email }}) has requested to transfer ownership of the following projects to you:{% endblocktrans %}
     {% for transfer in transfers %}
     * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ asset_uid }}/landing]
     {% endfor %}
@@ -18,8 +18,8 @@
 
 {% trans "If you are unsure, please contact the current owner." %}
 
-{% blocktrans %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}
+{% blocktrans trimmed %}This transfer request will expire in {{ invite_expiry }} days.{% endblocktrans %}
 
-{% blocktrans %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}
+{% blocktrans trimmed %}To respond to this transfer request, please use the following link: {{ base_url }}/#/projects/home?invite={{ invite_uid }}{% endblocktrans %}
 
 - KoboToolbox

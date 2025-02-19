@@ -24,7 +24,6 @@ import type { UniversalTableColumn } from 'jsapp/js/universalTable/universalTabl
 
 // Styles
 import styles from './membersRoute.module.scss'
-import { FeatureFlag, useFeatureFlag } from 'jsapp/js/featureFlags'
 import ActionIcon from 'jsapp/js/components/common/ActionIcon'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 
@@ -45,8 +44,6 @@ export default function MembersRoute() {
   if (!orgQuery.data) {
     return <LoadingSpinner />
   }
-
-  const isInviteOrgMembersEnabled = useFeatureFlag(FeatureFlag.orgMemberInvitesEnabled)
 
   const columns: Array<UniversalTableColumn<OrganizationMemberListItem>> = [
     {
@@ -191,7 +188,7 @@ export default function MembersRoute() {
         <h2 className={styles.headerText}>{t('Members')}</h2>
       </header>
 
-      {isInviteOrgMembersEnabled && !(orgQuery.data.request_user_role === 'member') && (
+      {!(orgQuery.data.request_user_role === 'member') && (
         <Box>
           <Divider />
           <Group w='100%' justify='space-between'>

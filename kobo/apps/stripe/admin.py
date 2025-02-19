@@ -11,7 +11,6 @@ class PlanAddOnAdmin(ModelAdmin):
     list_display = (
         'organization',
         'product',
-        'quantity',
         'is_available',
         'created',
     )

@@ -6,6 +6,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
+from kpi.constants import PERM_MANAGE_ASSET
+from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
@@ -24,6 +26,10 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.registered_invitee_user = User.objects.create_user(
             username='registered_invitee', email='registered_invitee@test.com',
         )
+
+        # Create an asset owned by the organization member
+        asset_response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=asset_response.data['uid'])
 
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
@@ -154,6 +160,8 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         else:
             user = getattr(self, f'{user_role}_user')
             self.client.force_login(user)
+
+        assert self.asset.has_perm(self.member_user, PERM_MANAGE_ASSET)
         response = self.client.delete(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
         if expected_status == status.HTTP_204_NO_CONTENT:
@@ -163,6 +171,9 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             self.assertFalse(
                 User.objects.filter(username=f'{user_role}_user').exists()
             )
+
+            # Confirm asset permissions are revoked
+            assert not self.asset.get_perms(self.member_user)
 
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),

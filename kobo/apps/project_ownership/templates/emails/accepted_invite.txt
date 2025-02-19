@@ -9,7 +9,7 @@
 
 {% trans "Note: You will continue to have permissions to manage the project until the user permissions are changed." %}
 {% else %}
-{% blocktrans %}{{ recipient }} has accepted your request to transfer ownership of these projects:{% endblocktrans %}
+{% blocktrans trimmed %}{{ recipient }} has accepted your request to transfer ownership of these projects:{% endblocktrans %}
 {% for transfer in transfers %}
     * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing]
 {% endfor %}

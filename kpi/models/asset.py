@@ -254,7 +254,12 @@ class Asset(
     )
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+
+    # Distinguish between projects created by the organization owner and those
+    # created by other members by introducing a flag to manage project
+    # visibility in the "My Projects" list. (#5451)
     is_excluded_from_projects_list = models.BooleanField(default=False)
+
     search_field = models.JSONField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()

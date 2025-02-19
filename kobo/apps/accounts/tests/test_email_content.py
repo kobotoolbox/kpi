@@ -149,8 +149,8 @@ class EmailContentModelTestCase(TestCase):
         default_body = "Confirming your account will give you access to " \
                        "KoboToolbox applications. Please visit the following " \
                        "URL to finish activation of your new account."
-        default_closing = "For help getting started, check out the KoboToolbox " \
-                          "user documentation: https://support.kobotoolbox.com "
+        default_closing = 'For help getting started, check out the KoboToolbox ' \
+                          'user documentation: https://support.kobotoolbox.com'
         request = self.client.post(self.signup_url, data)
         user = get_user_model().objects.get(email=email)
         assert request.status_code == status.HTTP_302_FOUND

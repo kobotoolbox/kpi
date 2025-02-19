@@ -21,12 +21,12 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kpi.exceptions import InvalidXFormException, MissingXFormException
 from kpi.models import Asset, SubmissionExportTask, ImportTask
+from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
 from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from .exceptions import (
     TrashIntegrityError,
-    TrashMongoDeleteOrphansError,
     TrashNotImplementedError,
     TrashTaskInProgressError,
 )
@@ -42,6 +42,7 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
     host = settings.KOBOFORM_URL
     owner_username = asset.owner.username
     project_exports = []
+
     if asset.has_deployment:
         _delete_submissions(request_author, asset)
         asset.deployment.delete()
@@ -320,23 +321,40 @@ def temporarily_disconnect_signals(save=False, delete=False):
 
 def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
 
+    # Test if XForm is still valid
+    try:
+        asset.deployment.xform
+    except (MissingXFormException, InvalidXFormException):
+        # Submissions are lingering in MongoDB but XForm has been
+        # already deleted
+        xform_id_string = asset.deployment.backend_response['id_string']
+        xform_uuid = asset.deployment.backend_response['uuid']
+        deleted_orphans = MongoHelper.delete(xform_id_string, xform_uuid)
+        logging.warning(f'TrashBin: {deleted_orphans} deleted MongoDB orphans')
+
+        return
+
     while True:
         audit_logs = []
-        submissions = list(asset.deployment.get_submissions(
-            asset.owner, fields=['_id', '_uuid'], limit=200
-        ))
+        submissions = list(
+            asset.deployment.get_submissions(
+                asset.owner,
+                fields=['_id', '_uuid'],
+                limit=settings.SUBMISSION_DELETION_BATCH_SIZE,
+            )
+        )
         if not submissions:
             if not (
                 queryset_or_false := asset.deployment.get_orphan_postgres_submissions()
             ):
                 break
 
-            # Make submissions an iterable similar to what
-            # `deployment.get_submissions()` would return
+            # Make submissions an iterable, similar to the output of
+            # `deployment.get_submissions()`.
             if not (
                 submissions := queryset_or_false.annotate(
                     _id=F('pk'), _uuid=F('uuid')
-                ).values('_id', '_uuid')
+                ).values('_id', '_uuid')[:settings.SUBMISSION_DELETION_BATCH_SIZE]
             ):
                 break
 
@@ -360,23 +378,11 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
 
             submission_ids.append(submission['_id'])
 
-        try:
-            deleted = asset.deployment.delete_submissions(
-                {'submission_ids': submission_ids, 'query': ''}, request_author
-            )
-        except (MissingXFormException, InvalidXFormException):
-            # XForm is invalid or gone
-            deleted = 0
+        asset.deployment.delete_submissions(
+            {'submission_ids': submission_ids, 'query': ''}, request_author
+        )
 
         if audit_logs:
-            if not deleted:
-                # Submissions are lingering in MongoDB but XForm has been
-                # already deleted
-                if not MongoHelper.delete(
-                    asset.deployment.mongo_userform_id, submission_ids
-                ):
-                    raise TrashMongoDeleteOrphansError
-
             AuditLog.objects.bulk_create(audit_logs)
 
 

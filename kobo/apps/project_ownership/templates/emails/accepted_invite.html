@@ -11,7 +11,7 @@
 
   <p>{% trans "Note: You will continue to have permissions to manage the project until the user permissions are changed." %}</p>
 {% else %}
-  <p>{% blocktrans %}{{ recipient }} has accepted your request to transfer ownership of these projects:{% endblocktrans %}
+  <p>{% blocktrans trimmed %}{{ recipient }} has accepted your request to transfer ownership of these projects:{% endblocktrans %}
     <ul>
     {% for transfer in transfers %}
       {% url 'api_v2:asset-detail' uid=transfer.asset_uid as asset_url %}

@@ -10,12 +10,12 @@
   {% if form.username and form.username.value %}
   <h1>{% blocktrans with username=form.username.value %}Welcome to KoboToolbox, {{username}}!{% endblocktrans %}</h1>
   {% else %}
-  <h1>{% blocktrans %}Welcome to KoboToolbox!{% endblocktrans %}</h1>
+  <h1>{% blocktrans trimmed %}Welcome to KoboToolbox!{% endblocktrans %}</h1>
   {% endif %}
 
   {# Helptext #}
   {% get_provider_appname account.get_provider as appname %}
-  <p>{% blocktrans %}You are about to use your {{ appname }} account to login to KoboToolbox.{% endblocktrans %} {% trans "As a final step, please complete the following form" %}:</p>
+  <p>{% blocktrans trimmed %}You are about to use your {{ appname }} account to login to KoboToolbox.{% endblocktrans %} {% trans "As a final step, please complete the following form" %}:</p>
 
   {% csrf_token %}
 

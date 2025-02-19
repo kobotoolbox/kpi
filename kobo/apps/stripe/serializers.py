@@ -18,7 +18,6 @@ class OneTimeAddOnSerializer(serializers.ModelSerializer):
             'id',
             'created',
             'is_available',
-            'quantity',
             'usage_limits',
             'total_usage_limits',
             'limits_remaining',

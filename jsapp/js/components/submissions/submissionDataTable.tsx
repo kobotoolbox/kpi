@@ -173,6 +173,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case QUESTION_TYPES.geopoint.id:
       case QUESTION_TYPES.geotrace.id:
       case QUESTION_TYPES.geoshape.id:
+      case QUESTION_TYPES['background-geopoint'].id:
         return this.renderPointsData(item.data)
       default:
         // all types not specified above just returns raw data

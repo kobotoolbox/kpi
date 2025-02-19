@@ -8,7 +8,7 @@
 
 {% trans "You will remain the owner of the project. The submissions, data storage, and transcription and translation usage for the project have not been transferred." %}
 {% else %}
-{% blocktrans %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
+{% blocktrans trimmed %}{{ recipient }} has declined your request to transfer ownership of these projects:{% endblocktrans %}
     {% for transfer in transfers %}
     * {{ transfer.asset_name }} - [{{ base_url }}/#/forms/{{ transfer.asset_uid }}/landing]
     {% endfor %}

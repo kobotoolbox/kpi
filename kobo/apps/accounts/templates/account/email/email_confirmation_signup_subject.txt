@@ -7,7 +7,7 @@
 {% if content.subject %}
     {{ content.subject }}
 {% else %}
-    {% blocktrans %}Activate your KoboToolbox Account{% endblocktrans %}
+    {% blocktrans trimmed %}Activate your KoboToolbox Account{% endblocktrans %}
 {% endif %}
 {% endwith %}
 {% endspaceless %}

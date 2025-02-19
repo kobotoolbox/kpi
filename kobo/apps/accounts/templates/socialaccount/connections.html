@@ -12,7 +12,7 @@
     {% slot body %}
     {% if form.accounts %}
         <p>
-            {% blocktrans %}You can sign in to your KoboToolbox account using any of the following SSO providers:{% endblocktrans %}
+            {% blocktrans trimmed %}You can sign in to your KoboToolbox account using any of the following SSO providers:{% endblocktrans %}
         </p>
         {% url 'socialaccount_connections' as action_url %}
         {% element form form=form method="post" action=action_url %}
