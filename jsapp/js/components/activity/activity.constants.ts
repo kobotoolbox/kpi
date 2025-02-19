@@ -50,18 +50,43 @@ interface AuditActionDefinition {
 /**
  * An ordered (the order matters!) list of audit action types.
  */
+// biome-ignore format: the array should not be formatted, as it makes it harder to read
 const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
-  { name: AuditActions['update-name'], label: t('change name'), message: t('##username## changed project name') },
+  {
+    name: AuditActions['update-name'],
+    label: t('change name'),
+    message: t('##username## changed project name'),
+  },
   {
     name: AuditActions['update-settings'],
     label: t('update settings'),
     message: t('##username## updated project settings'),
   },
-  { name: AuditActions['deploy'], label: t('deploy project'), message: t('##username## deployed project') },
-  { name: AuditActions['redeploy'], label: t('redeploy project'), message: t('##username## redeployed project') },
-  { name: AuditActions['archive'], label: t('archive project'), message: t('##username## archived project') },
-  { name: AuditActions['unarchive'], label: t('unarchive project'), message: t('##username## unarchived project') },
-  { name: AuditActions['replace-form'], label: t('upload new form'), message: t('##username## uploaded a new form') },
+  {
+    name: AuditActions['deploy'],
+    label: t('deploy project'),
+    message: t('##username## deployed project'),
+  },
+  {
+    name: AuditActions['redeploy'],
+    label: t('redeploy project'),
+    message: t('##username## redeployed project'),
+  },
+  {
+    name: AuditActions['archive'],
+    label: t('archive project'),
+    message: t('##username## archived project'),
+  },
+  {
+    name: AuditActions['unarchive'],
+    label: t('unarchive project'),
+    message: t('##username## unarchived project'),
+  },
+  {
+    name: AuditActions['replace-form'],
+    label: t('upload new form'),
+    message: t('##username## uploaded a new form'),
+  },
   {
     name: AuditActions['update-content'],
     label: t('edit form'),
@@ -77,7 +102,11 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     label: t('edit qualitative analysis data'),
     message: t('##username## edited qualitative analysis data'),
   },
-  { name: AuditActions['export'], label: t('export data'), message: t('##username## exported data') },
+  {
+    name: AuditActions['export'],
+    label: t('export data'),
+    message: t('##username## exported data'),
+  },
   {
     name: AuditActions['add-media'],
     label: t('add media attachment'),
@@ -178,7 +207,11 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
     label: t('delete a REST service'),
     message: t('##username## deleted a REST service'),
   },
-  { name: AuditActions['add-submission'], label: t('add submission'), message: t('##username## added a submission') },
+  {
+    name: AuditActions['add-submission'],
+    label: t('add submission'),
+    message: t('##username## added a submission'),
+  },
   {
     name: AuditActions['modify-submission'],
     label: t('edit submission'),
