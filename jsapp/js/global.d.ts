@@ -1,4 +1,15 @@
-/** Please pass only static strings and don't use concatenating (`+`). */
+/**
+ * For similar source text segments, aim for consistent phrasing to facilitate reuse of existing translations.
+ * Examples:
+ * ```ts
+ * t('hello world') // basic usage
+ * t('hello ##NAME##').replace('##NAME##', name) // usage with variables, friendly way for translators.
+ * t(
+ *   'Voluptate eiusmod fugiat consequat proident reprehenderit fugiat enim.' +
+ *   'Eiusmod sint sunt qui adipisicing laboris. Incididunt labore esse consectetur pariatur.' +
+ *   'Sint fugiat nostrud consectetur ut.',
+ * ) // usage with long text
+ */
 declare function t(str: string): string
 
 // NOTE: all alertify typings are written manually and could be wrong!
