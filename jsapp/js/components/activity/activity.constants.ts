@@ -196,9 +196,7 @@ type AuditActionTypes = {
 }
 
 export const AUDIT_ACTION_TYPES: AuditActionTypes = _AUDIT_ACTION_TYPES.reduce((acc, action, index) => {
-  if (action.name) {
-    acc[action.name] = { ...action, order: index } as AuditActionDefinition
-  }
+  acc[action.name] = { ...action, order: index } as AuditActionDefinition
   return acc
 }, {} as AuditActionTypes)
 
