@@ -48,7 +48,10 @@ class Migration(migrations.Migration):
                     'template',
                     models.TextField(
                         blank=True,
-                        help_text="Available placeholders:<br />##username##<br />##full_name## - user's full name<br />##plan_name## - user's current subscription plan name",
+                        help_text='Available placeholders:<br />'
+                                  '##username##<br />'
+                                  '##full_name## - user\'s full name <br />'
+                                  '##plan_name## - user\'s current subscription plan',
                         null=True,
                     ),
                 ),

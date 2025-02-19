@@ -23,10 +23,10 @@ class MassEmailConfig(AbstractTimeStampedModel):
     template = models.TextField(
         null=True,
         blank=True,
-        help_text="Available placeholders:<br />"
-        "##username##<br />"
-        "##full_name## - user's full name<br />"
-        "##plan_name## - user's current subscription plan name",
+        help_text='Available placeholders:<br />'
+        '##username##<br />'
+        '##full_name## - user\'s full name<br />'
+        '##plan_name## - user\'s current subscription plan',
     )
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES
