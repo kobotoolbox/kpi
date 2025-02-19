@@ -1347,8 +1347,12 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 =======
     const markers = this.state.markers
     this.setState({ filteredByMarker: undefined })
+<<<<<<< HEAD
 >>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     markers.eachLayer(function (layer) {
+=======
+    markers?.eachLayer(function (layer) {
+>>>>>>> c070193b8 (ts fix)
       layer._icon.classList.remove('unselected')
     })
   }
