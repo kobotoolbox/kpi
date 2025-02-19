@@ -43,18 +43,22 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             },
         )
 
-    def _create_invite(self, user):
+    def _create_invite(self, invited_by: 'User', invitees=None):
         """
         Helper method to create and accept invitations
         """
-        invitation_data = {
-            'invitees': ['registered_invitee', 'unregistered_invitee@test.com']
-        }
+        if not invitees:
+            invitation_data = {
+                'invitees': ['registered_invitee', 'unregistered_invitee@test.com']
+            }
+        else:
+            invitation_data = {'invitees': invitees}
+
         list_url = reverse(
             self._get_endpoint('organization-invites-list'),
             kwargs={'organization_id': self.organization.id},
         )
-        self.client.force_login(user)
+        self.client.force_login(invited_by)
         self.client.post(list_url, data=invitation_data)
 
     @data(
@@ -192,3 +196,37 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         data = {'role': 'admin'}
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, expected_status)
+
+    def test_invitation_is_correctly_assigned_in_member_list(self):
+
+        bob_org = self.bob.organization
+        bob_org.mmo_override = True
+        bob_org.save(update_fields=['mmo_override'])
+
+        # Let someuser invite bob to join their org
+        self._create_invite(invited_by=self.someuser, invitees=['bob'])
+
+        # Look at bob's membership detail endpoint in bob's org,
+        # someuser's invite should not be there
+        self.client.force_login(self.bob)
+        bob_org_members_list_url = reverse(
+            self._get_endpoint('organization-members-list'),
+            kwargs={'organization_id': bob_org.id},
+        )
+        response = self.client.get(bob_org_members_list_url)
+        # The first member should be bob
+        assert response.data['results'][0]['user__username'] == 'bob'
+        assert response.data['results'][0]['invite'] == {}
+
+        # Look at bob's membership detail endpoint in someother's org,
+        # someuser's invite should **BE** there
+        self.client.force_login(self.someuser)
+        someuser_org_members_list_url = reverse(
+            self._get_endpoint('organization-members-list'),
+            kwargs={'organization_id': self.organization.id},
+        )
+        response = self.client.get(someuser_org_members_list_url)
+
+        # The last invite should be bob's one
+        assert response.data['results'][-1]['invite']['invitee'] == 'bob'
+        assert response.data['results'][-1]['invite']['status'] == 'pending'
