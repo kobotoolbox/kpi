@@ -413,6 +413,27 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
 
+    def test_remove_all_permissions(self):
+        response = self._assign_perms_as_logged_in_user(
+            [
+                ('someuser', PERM_MANAGE_ASSET),
+            ]
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        all_obj_perms = self.asset.permissions.all()
+        perm_view_asset = None
+        for obj in all_obj_perms:
+            if obj.permission.codename == PERM_VIEW_ASSET:
+                perm_view_asset = obj
+        url = reverse(
+            self._get_endpoint('asset-permission-assignment-delete-all'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm_view_asset.uid},
+        )
+        self.client.login(username='someuser', password='someuser')
+        self.client.delete(url)
+        remaining_perms = self.asset.permissions.filter(user__username='someuser')
+        assert len(remaining_perms) == 0
+
     def test_viewers_cannot_give_permissions(self):
         self.asset.assign_perm(self.someuser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
