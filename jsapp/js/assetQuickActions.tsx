@@ -389,7 +389,8 @@ export function removeAssetSharing(uid: string) {
       // Only non-owners should have the asset removed from their asset list.
       // This menu option is only open to non-owners so we don't need to check again.
       const isNonOwner = true
-      actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner)
+      const removeAll = true
+      actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, removeAll, isNonOwner)
     },
     oncancel: () => {
       dialog.destroy()
