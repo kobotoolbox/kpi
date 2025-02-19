@@ -79,6 +79,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         ]
 
     def get_url(self, obj):
+
         request = self.context.get('request')
         return reverse(
             'organization-members-detail',
@@ -93,14 +94,21 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         """
         Get the latest invite for the user if it exists
         """
-        invite = OrganizationInvitation.objects.filter(
-            invitee=obj.user
-        ).order_by('-created').first()
+        try:
+            invites_per_member = self.context['invites_per_member']
+        except KeyError:
+            invite = OrganizationInvitation.objects.filter(
+                organization=obj.organization,
+                invitee=obj.user
+            ).order_by('-created').first()
+        else:
+            invite = invites_per_member.get(obj.user_id)
 
         if invite:
             return OrgMembershipInviteSerializer(
                 invite, context=self.context
             ).data
+
         return {}
 
     def to_representation(self, instance):

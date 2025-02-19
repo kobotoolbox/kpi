@@ -1,5 +1,14 @@
 from django.db import transaction
-from django.db.models import Case, CharField, OuterRef, QuerySet, Value, When, Q
+from django.db.models import (
+    Case,
+    CharField,
+    F,
+    OuterRef,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
 from rest_framework import status, viewsets
@@ -20,7 +29,8 @@ from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
 from .models import Organization, OrganizationOwner, OrganizationUser
 from .models import (
-    OrganizationInvitation
+    OrganizationInvitation,
+    OrganizationInviteStatusChoices,
 )
 from .permissions import (
     HasOrgRolePermission,
@@ -436,6 +446,23 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'patch', 'delete']
     lookup_field = 'user__username'
 
+    def paginate_queryset(self, queryset):
+        page = super().paginate_queryset(queryset)
+        members_user_ids = []
+        organization_id = self.kwargs['organization_id']
+
+        for obj in page:
+            if obj.model_type != '0_organization_user':
+                break
+            members_user_ids.append(obj.user_id)
+
+        self._invites_queryset = OrganizationInvitation.objects.filter(  # noqa
+            status=OrganizationInviteStatusChoices.ACCEPTED,
+            invitee_id__in=members_user_ids,
+            organization_id=organization_id
+        ).order_by('invitee_id', 'created')
+        return page
+
     def get_queryset(self):
         organization_id = self.kwargs['organization_id']
 
@@ -452,42 +479,67 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         ).values('pk')
 
         # Annotate with the role based on organization ownership and admin status
-        queryset = OrganizationUser.objects.filter(
-            organization_id=organization_id
-        ).select_related('user__extra_details').annotate(
-            role=Case(
-                When(Exists(owner_subquery), then=Value('owner')),
-                When(is_admin=True, then=Value('admin')),
-                default=Value('member'),
-                output_field=CharField()
-            ),
-            has_mfa_enabled=Exists(mfa_subquery)
+        queryset = (
+            OrganizationUser.objects.filter(organization_id=organization_id)
+            .select_related('user__extra_details')
+            .annotate(
+                role=Case(
+                    When(Exists(owner_subquery), then=Value('owner')),
+                    When(is_admin=True, then=Value('admin')),
+                    default=Value('member'),
+                    output_field=CharField(),
+                ),
+                has_mfa_enabled=Exists(mfa_subquery),
+                invite=Value(None, output_field=CharField()),
+                ordering_date=F('created'),
+                model_type=Value('0_organization_user', output_field=CharField()),
+            )
         )
 
         if self.action == 'list':
             # Include invited users who are not yet part of this organization
             invitation_queryset = OrganizationInvitation.objects.filter(
                 organization_id=organization_id,
-                status__in=['pending', 'resent']
+                status__in=[
+                    OrganizationInviteStatusChoices.PENDING,
+                    OrganizationInviteStatusChoices.RESENT,
+                ],
             )
 
             # Get existing user IDs from the queryset
             members_user_ids = queryset.values_list('user_id', flat=True)
             invitees = invitation_queryset.filter(
                 Q(invitee_id__isnull=True) | ~Q(invitee_id__in=members_user_ids)
+            ).annotate(
+                ordering_date=F('created'),
+                model_type=Value('1_organization_invitation', output_field=CharField()),
             )
             queryset = list(queryset) + list(invitees)
+            queryset = sorted(
+                queryset, key=lambda x: (x.model_type, x.ordering_date)
+            )
+
         return queryset
 
-    def destroy(self, request, *args, **kwargs):
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if hasattr(self, '_invites_queryset'):
+            invites_per_member = {}
+            for invite in self._invites_queryset:
+                invites_per_member[invite.invitee_id] = invite
+            context['invites_per_member'] = invites_per_member
+
+        return context
+
+    def perform_destroy(self, instance):
         """
         Revoke asset permissions before deleting the user from the organization
         """
-        member = self.get_object()
+        member = instance
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
-            member.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            super().perform_destroy(member)
 
 
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
