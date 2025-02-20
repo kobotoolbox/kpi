@@ -93,8 +93,17 @@ class MapColorPicker extends React.Component {
   }
 }
 
-class MapSettings extends React.Component {
-  constructor(props) {
+interface MapSettingsState {
+  activeModalTab: any
+  geoQuestions: any
+  mapSettings: any
+  files: any[]
+  layerName: string
+  queryCount: any
+}
+
+export default class MapSettings extends React.Component<MapSettingsProps, MapSettingsState> {
+  constructor(props: MapSettingsProps) {
     super(props)
     autoBind(this)
 
@@ -102,8 +111,8 @@ class MapSettings extends React.Component {
     props.asset.content.survey.forEach((question) => {
       if (question.type && question.type === 'geopoint') {
         geoQuestions.push({
-          value: question.name || question.$autoname,
-          label: question.label[0],
+          value: getRowName(question),
+          label: getQuestionOrChoiceDisplayName(question, 0),
         })
       }
     })
@@ -414,5 +423,3 @@ class MapSettings extends React.Component {
 }
 
 reactMixin(MapSettings.prototype, Reflux.ListenerMixin)
-
-export default MapSettings
