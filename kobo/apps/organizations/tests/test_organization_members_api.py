@@ -3,6 +3,10 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import (
+    OrganizationInvitation,
+    OrganizationInviteStatusChoices
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
@@ -60,6 +64,19 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         )
         self.client.force_login(invited_by)
         self.client.post(list_url, data=invitation_data)
+
+    def _update_invite(self, user, guid, status):
+        """
+        Helper method to update invitation status
+        """
+        detail_url = reverse(
+            self._get_endpoint('organization-invites-detail'),
+            kwargs={
+                'guid': guid, 'organization_id': self.organization.id
+            }
+        )
+        self.client.force_login(user)
+        return self.client.patch(detail_url, data={'status': status})
 
     @data(
         ('owner', status.HTTP_200_OK),
@@ -229,4 +246,47 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
         # The last invite should be bob's one
         assert response.data['results'][-1]['invite']['invitee'] == 'bob'
-        assert response.data['results'][-1]['invite']['status'] == 'pending'
+        assert (
+            response.data['results'][-1]['invite']['status']
+            == OrganizationInviteStatusChoices.PENDING
+        )
+
+    def test_invite_details_clear_after_user_removal(self):
+        """
+        Ensure invite details are only available while the user is part of an
+        organization
+        """
+        # 1. Create an invite for the registered invitee
+        self._create_invite(self.someuser)
+
+        # 2. Accept the invite and ensure the user is added to the organization
+        self.client.force_login(self.registered_invitee_user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.registered_invitee_user
+        )
+        response = self._update_invite(
+            self.registered_invitee_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 3. Verify that invite details are present for the user
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invite']['invitee'], 'registered_invitee')
+
+        # 4. Remove the user from the organization
+        self.client.delete(self.detail_url(self.registered_invitee_user))
+
+        # 5. Verify that the removed user is no longer retrievable
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 6. Verify that previous invite details are not retained
+        self.client.force_login(self.registered_invitee_user)
+        self.organization = self.registered_invitee_user.organization
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invite'], {})
