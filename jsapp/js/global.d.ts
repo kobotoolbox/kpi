@@ -175,6 +175,7 @@ interface AlertifyJsModule {
   /** Alias to `setting`, please do not use. */
   get: Function
   /**
+   * @deprecated Use `notify` function from our utils file, i.e. `import { notify } from 'js/utils'`.
    * Creates a new notification message.
    * If a type is passed, a class name "ajs-{type}" will be added.
    * This allows for custom look and feel for various types of notifications.
@@ -232,6 +233,9 @@ interface AlertifyJsModule {
   [id: string]: any
 }
 declare module 'alertifyjs' {
+  /**
+   * @deprecated Use `notify` function from our utils file, i.e. `import { notify } from 'js/utils'`.
+   */
   const alertifyjsmodule: AlertifyJsModule = {}
   export = alertifyjsmodule
 }
