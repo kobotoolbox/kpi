@@ -93,6 +93,7 @@ export interface AssetFileResponse {
   user: string
   user__username: string
   file_type: AssetFileType
+  /** This used to be `name`, but we've changed it */
   description: string
   date_created: string
   /** URL to file content */

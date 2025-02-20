@@ -9,10 +9,12 @@ import Dropzone from 'react-dropzone'
 import alertify from 'alertifyjs'
 import { notify } from 'js/utils'
 import { QUERY_LIMIT_DEFAULT, ASSET_FILE_TYPES } from 'js/constants'
-import { dataInterface } from 'js/dataInterface'
+import { AssetMapStyles, AssetResponse, dataInterface, LabelValuePair } from 'js/dataInterface'
 import { userCan } from 'js/components/permissions/utils'
 import Button from 'js/components/common/button'
 import cx from 'classnames'
+import { getQuestionOrChoiceDisplayName, getRowName } from 'jsapp/js/assetUtils'
+import MapColorPicker from 'js/components/map/MapColorPicker'
 
 // see kobo.map.marker-colors.scss for styling details of each set
 const COLOR_SETS = ['a', 'b', 'c', 'd', 'e']
@@ -25,84 +27,33 @@ const TABS = new Map([
   ['overlays', { id: 'overlays', label: t('Overlays') }],
 ])
 
-class MapColorPicker extends React.Component {
-  constructor(props) {
-    super(props)
-    autoBind(this)
-
-    this.state = {
-      selected: props.mapSettings.colorSet ? props.mapSettings.colorSet : 'a',
-    }
-  }
-
-  onChange(e) {
-    this.props.onChange(e.currentTarget.value)
-    this.setState({
-      selected: e.currentTarget.value,
-    })
-  }
-
-  defaultValue(set) {
-    return this.state.selected === set
-  }
-
-  colorRows(set, length = 10) {
-    let colorRows = []
-    for (let i = 1; i < length; i++) {
-      colorRows.push(<span key={i} className={`map-marker map-marker-${set}${i}`} />)
-    }
-    return colorRows
-  }
-
-  render() {
-    var radioButtons = COLOR_SETS.map(function (set, index) {
-      var length = 10
-      var label = false
-      if (set === 'a') {
-        length = 16
-      }
-      if (set === 'a') {
-        label = t('Best for qualitative data')
-      }
-      if (set === 'b') {
-        label = t('Best for sequential data')
-      }
-      if (set === 'd') {
-        label = t('Best for diverging data')
-      }
-      return (
-        <bem.FormModal__item m='map-color-item' key={index}>
-          {label && <label>{label}</label>}
-          <bem.GraphSettings__radio>
-            <input
-              type='radio'
-              name='chart_colors'
-              value={set}
-              checked={this.defaultValue(set)}
-              onChange={this.onChange}
-              id={'c-' + index}
-            />
-            <label htmlFor={'c-' + index}>{this.colorRows(set, length)}</label>
-          </bem.GraphSettings__radio>
-        </bem.FormModal__item>
-      )
-    }, this)
-
-    return <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
-  }
+interface MapSettingsProps {
+  asset: AssetResponse
+  toggleMapSettings: () => void
+  overrideStyles: (mapStyles: AssetMapStyles) => void
+  overridenStyles?: AssetMapStyles
 }
 
-class MapSettings extends React.Component {
-  constructor(props) {
+interface MapSettingsState {
+  activeModalTab: any
+  geoQuestions: any
+  mapSettings: any
+  files: any[]
+  layerName: string
+  queryCount: any
+}
+
+export default class MapSettings extends React.Component<MapSettingsProps, MapSettingsState> {
+  constructor(props: MapSettingsProps) {
     super(props)
     autoBind(this)
 
-    const geoQuestions = []
-    props.asset.content.survey.forEach(function (question) {
+    const geoQuestions: LabelValuePair[] = []
+    props.asset.content?.survey?.forEach(function (question) {
       if (question.type && question.type === 'geopoint') {
         geoQuestions.push({
-          value: question.name || question.$autoname,
-          label: question.label[0],
+          value: getRowName(question),
+          label: getQuestionOrChoiceDisplayName(question, 0),
         })
       }
     })
@@ -414,5 +365,3 @@ class MapSettings extends React.Component {
 }
 
 reactMixin(MapSettings.prototype, Reflux.ListenerMixin)
-
-export default MapSettings

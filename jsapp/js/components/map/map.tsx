@@ -219,7 +219,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (controlLayer.overlay) {
         const layerMatch = data.results.filter(
           // TODO: there is no `name` in AssetFileResponse. Should this be `description`?
-          (result) => result.name === controlLayer.name,
+          (result) => result.description === controlLayer.name,
         )
         if (!layerMatch.length) {
           controls.removeLayer(controlLayer.layer)
@@ -233,7 +233,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (layer.file_type !== 'map_layer') {
         return false
       }
-      const layerMatch = controls._layers.filter((controlLayer) => controlLayer.name === layer.name)
+      const layerMatch = controls._layers.filter((controlLayer) => controlLayer.name === layer.description)
       if (layerMatch.length) {
         return false
       }
@@ -272,7 +272,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
             .then(function success(kml) {
               if (kml && map) {
                 overlayLayer = omnivore.kml.parse(kml)
-                controls.addOverlay(overlayLayer, layer.name)
+                controls.addOverlay(overlayLayer, layer.description)
                 overlayLayer.addTo(map)
               }
             })
@@ -292,7 +292,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
             }
           })
         })
-        controls.addOverlay(overlayLayer, layer.name)
+        controls.addOverlay(overlayLayer, layer.description)
         overlayLayer.addTo(map)
       }
     })
