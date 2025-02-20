@@ -1216,6 +1216,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    # Schedule every 10 minutes
+    'trash-bin-task-restarter': {
+        'task': 'kobo.apps.trash_bin.tasks.task_restarter',
+        'schedule': crontab(minute='*/10'),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
     'perform-maintenance': {
         'task': 'kpi.tasks.perform_maintenance',
         'schedule': crontab(hour=20, minute=0),
@@ -1238,14 +1244,14 @@ CELERY_BEAT_SCHEDULE = {
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 10 minutes
-    'project-ownership-task-scheduler': {
-        'task': 'kobo.apps.project_ownership.tasks.task_rescheduler',
+    'project-ownership-task-restarter': {
+        'task': 'kobo.apps.project_ownership.tasks.task_restarter',
         'schedule': crontab(minute='*/10'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
-    'project-ownership-mark-stuck-tasks-as-failed': {
-        'task': 'kobo.apps.project_ownership.tasks.mark_stuck_tasks_as_failed',
+    'project-ownership-mark-as-failed': {
+        'task': 'kobo.apps.project_ownership.tasks.mark_as_failed',
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
@@ -1279,6 +1285,7 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+
 }
 
 
@@ -1338,11 +1345,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 SOCIALACCOUNT_FORMS = {
     'signup': 'kobo.apps.accounts.forms.SocialSignupForm',
 }
-# For SSO, the signup form is prepopulated with the account email
-# If set True, the email field in the SSO signup form will be readonly
-UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE = env.bool(
-    'UNSAFE_SSO_REGISTRATION_EMAIL_DISABLE', False
-)
+
 
 WEBPACK_LOADER = {
     'DEFAULT': {
@@ -1870,3 +1873,7 @@ IMPORT_EXPORT_CELERY_MODELS = {
 }
 
 IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
+
+ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
+
+SUBMISSION_DELETION_BATCH_SIZE = 1000

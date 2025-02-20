@@ -117,6 +117,15 @@ class OrgUserResource(resources.ModelResource):
         column_name='user',
         widget=ForeignKeyWidget(User, field='username'),
     )
+    organization = Field(
+        attribute='organization',
+        column_name='organization',
+        widget=ForeignKeyWidget(Organization, field='name'),
+    )
+    organization_id = Field(
+        attribute='organization_id',
+        column_name='organization_id',
+    )
 
     class Meta:
         model = OrganizationUser

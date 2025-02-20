@@ -2,9 +2,8 @@ from typing import List
 
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, IntegerField, Sum
+from django.db.models import IntegerField, Sum
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -29,11 +28,9 @@ class PlanAddOn(models.Model):
         null=True,
         blank=True,
     )
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     usage_limits = models.JSONField(
         default=get_default_add_on_limits,
         help_text='''The historical usage limits when the add-on was purchased.
-        Multiply this value by `quantity` to get the total limits for this add-on.
         Possible keys:
         "submission_limit", "asr_seconds_limit", and/or "mt_characters_limit"''',
     )
@@ -70,7 +67,6 @@ class PlanAddOn(models.Model):
         if (
             charge.payment_intent.status != PaymentIntentStatus.succeeded
             or not charge.metadata.get('price_id', None)
-            or not charge.metadata.get('quantity', None)
         ):
             # make sure the charge is for a successful addon purchase
             return False
@@ -101,14 +97,13 @@ class PlanAddOn(models.Model):
             # this user doesn't have the subscription level they need for this addon
             return False
 
-        quantity = int(charge.metadata['quantity'])
         usage_limits = {}
         limits_remaining = {}
         for limit_type in get_default_add_on_limits().keys():
             limit_value = charge.metadata.get(limit_type, None)
             if limit_value is not None:
                 usage_limits[limit_type] = int(limit_value)
-                limits_remaining[limit_type] = int(limit_value) * quantity
+                limits_remaining[limit_type] = int(limit_value)
 
         if not len(usage_limits):
             # not a valid plan add-on
@@ -119,7 +114,6 @@ class PlanAddOn(models.Model):
         )
         if add_on_created:
             add_on.product = product
-            add_on.quantity = int(charge.metadata['quantity'])
             add_on.organization = organization
             add_on.usage_limits = usage_limits
             add_on.limits_remaining = limits_remaining
@@ -145,7 +139,7 @@ class PlanAddOn(models.Model):
             charge__refunded=False,
         ).aggregate(
             total_usage_limit=Coalesce(
-                Sum(Cast(usage_field, output_field=IntegerField()) * F('quantity')),
+                Sum(Cast(usage_field, output_field=IntegerField())),
                 0,
                 output_field=IntegerField(),
             ),
@@ -234,9 +228,9 @@ class PlanAddOn(models.Model):
     def total_usage_limits(self):
         """
         The total usage limits for this add-on, based on the usage_limits for a single
-        add-on and the quantity.
+        add-on.
         """
-        return {key: value * self.quantity for key, value in self.usage_limits.items()}
+        return {key: value for key, value in self.usage_limits.items()}
 
     @property
     def valid_tags(self) -> List:

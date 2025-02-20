@@ -11,10 +11,17 @@ import six
 from defusedxml import minidom
 from django.utils.encoding import smart_str
 from django.utils.translation import gettext as t
+from pyxform.survey_element import SurveyElement
 
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceEmptyError
 from kobo.apps.openrosa.libs.utils.common_tags import XFORM_ID_STRING
 from kpi.utils.log import logging
+
+
+def add_uuid_prefix(uuid_: str) -> str:
+    if ':' in uuid_:
+        return uuid_
+    return f'uuid:{uuid_}'
 
 
 def get_meta_node_from_xml(
@@ -22,7 +29,7 @@ def get_meta_node_from_xml(
 ) -> Union[None, tuple[str, minidom.Document]]:
     xml = clean_and_parse_xml(xml_str)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
@@ -57,37 +64,27 @@ def get_meta_from_xml(xml_str: str, meta_name: str) -> str:
 
 def get_uuid_from_xml(xml):
 
-    def _uuid_only(uuid):
-        """
-        Strips the 'uuid:' prefix from the provided identifier if it exists.
-        This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
-        while ensuring only the 'uuid:' prefix is removed. This approach
-        adheres to the OpenRosa spec, allowing custom prefixes to be stored
-        intact in the database to prevent potential ID collisions.
-        """
-        return re.sub(r'^uuid:', '', uuid)
-
     uuid = get_meta_from_xml(xml, 'instanceID')
     if uuid:
-        return _uuid_only(uuid)
+        return remove_uuid_prefix(uuid)
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
     survey_node = children[0]
     uuid = survey_node.getAttribute('instanceID')
     if uuid != '':
-        return _uuid_only(uuid)
+        return remove_uuid_prefix(uuid)
     return None
 
 
 def get_root_uuid_from_xml(xml):
     root_uuid = get_meta_from_xml(xml, 'rootUuid')
     if root_uuid:
-        return root_uuid
+        return remove_uuid_prefix(root_uuid)
 
     # If no rootUuid, fall back to instanceID
     return get_uuid_from_xml(xml)
@@ -97,7 +94,7 @@ def get_submission_date_from_xml(xml) -> Optional[datetime]:
     # check in survey_node attributes
     xml = clean_and_parse_xml(xml)
     children = xml.childNodes
-    # children ideally contains a single element
+    # children ideally contain a single element
     # that is the parent of all survey elements
     if children.length == 0:
         raise ValueError(t('XML string must have a survey element.'))
@@ -138,6 +135,17 @@ def set_meta(xml_str: str, meta_name: str, new_value: str) -> str:
     xml_output = root.toprettyxml(indent='  ')
     xml_output = xml_output.replace('<?xml version="1.0" ?>', '').strip()
     return xml_output
+
+
+def remove_uuid_prefix(uuid_: str) -> str:
+    """
+    Strips the 'uuid:' prefix from the provided identifier if it exists.
+    This preserves any custom ID schemes (e.g., 'kobotoolbox.org:123456789')
+    while ensuring only the 'uuid:' prefix is removed. This approach
+    adheres to the OpenRosa spec, allowing custom prefixes to be stored
+    intact in the database to prevent potential ID collisions.
+    """
+    return re.sub(r'^uuid:', '', uuid_)
 
 
 def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:
@@ -310,7 +318,7 @@ class XFormInstanceParser:
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
         repeats = [
-            e.get_abbreviated_xpath()
+            get_abbreviated_xpath(e)
             for e in self.dd.get_survey_elements_of_type('repeat')
         ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
@@ -347,9 +355,11 @@ class XFormInstanceParser:
             try:
                 assert key not in self._attributes
             except AssertionError:
-                logging.debug(
-                    f'Skipping duplicate attribute: {key} with value {value}'
-                )
+                pass
+                # Lines commented below to avoid flooding dev console
+                # logging.debug(
+                #     f'Skipping duplicate attribute: {key} with value {value}'
+                # )
             else:
                 self._attributes[key] = value
 
@@ -413,3 +423,25 @@ def get_xform_media_question_xpaths(
             media_field_xpaths.append(next_attribute_value[1:])
 
     return media_field_xpaths
+
+
+def get_abbreviated_xpath(element: SurveyElement) -> str:
+    """
+    Construct the xpath of an element, leaving out the root element.
+
+    If the element itself is the root element, just return the element name.
+    """
+    def is_flat(elem):
+        # can't use elem.get('flat', False) here because SurveyElement overrides
+        # __getitem__ and it doesn't work with defaults
+        return hasattr(elem, 'flat') and elem.get('flat')
+
+    lineage = [
+        parent[0] for parent in element.iter_ancestors() if not is_flat(parent[0])
+    ]
+    lineage.reverse()
+    lineage.append(element)
+    if len(lineage) > 1:
+        return '/'.join([n.name for n in lineage[1:]])
+    else:
+        return lineage[0].name

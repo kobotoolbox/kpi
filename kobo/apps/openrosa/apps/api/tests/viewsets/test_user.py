@@ -1,4 +1,3 @@
-import base64
 import os
 
 import pytest
@@ -91,52 +90,6 @@ class TestUserViewSet(TestAbstractViewSet):
         url = reverse('user-detail', args=(self.alice.username,))
         response = self.client.delete(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_only_open_rosa_endpoints_allowed_with_not_validated_password(self):
-        # log in as bob
-        self._login_user_and_profile()
-        self.user.profile.validated_password = True
-        self.user.profile.save()
-
-        # Password is valid, bob should be able to create a new form, submit data
-        # and browse the API
-        self.publish_xls_form()
-        self._submit_data()
-        assert self.response.status_code == status.HTTP_201_CREATED
-        # Validate bob is allowed to access all endpoints
-        self._access_endpoints(access_granted=True)
-
-        # Flag Bob's password as not trusted
-        self.user.profile.validated_password = False
-        self.user.profile.save()
-        # Access denied to API endpoints with not validated password - Session auth
-        self._access_endpoints(access_granted=False)
-        # Still able to submit data
-        self._submit_data()
-        # We are sending a duplicate, we should receive a 202 if not blocked
-        assert self.response.status_code == status.HTTP_202_ACCEPTED
-
-        # Access denied to API endpoints with not validated password - Basic auth
-        self.client.logout()
-        headers = {
-            'HTTP_AUTHORIZATION': 'Basic '
-            + base64.b64encode(b'bob:bobbob').decode('ascii')
-        }
-        self._access_endpoints(access_granted=False, headers=headers)
-        # Still able to submit data
-        self._submit_data()
-        # We are sending a duplicate, we should receive a 202 if not blocked
-        assert self.response.status_code == status.HTTP_202_ACCEPTED
-
-        # Access denied to API endpoints with not validated password - Token auth
-        headers = {
-            'HTTP_AUTHORIZATION': f'Token {self.user.auth_token}'
-        }
-        self._access_endpoints(access_granted=False, headers=headers)
-        # Still able to submit data
-        self._submit_data()
-        # We are sending a duplicate, we should receive a 202 if not blocked
-        assert self.response.status_code == status.HTTP_202_ACCEPTED
 
     def _access_endpoints(self, access_granted: bool, headers: dict = {}):
         """

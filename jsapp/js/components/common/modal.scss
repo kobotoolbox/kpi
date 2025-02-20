@@ -17,8 +17,8 @@ $z-modal-x: 10;
   height: 100%;
   width: 100%;
   z-index: $z-modal-backdrop;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   background-color: rgba(colors.$kobo-gray-800, 0.4) !important;
 }
 
@@ -31,7 +31,6 @@ $z-modal-x: 10;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  min-width: 40%;
   max-width: 90%;
   max-height: 95%;
   overflow-x: auto;
@@ -113,7 +112,7 @@ $z-modal-x: 10;
 }
 
 .modal__title {
-  margin: 0px;
+  margin: 0;
   padding: 24px 30px;
   font-size: 18px;
   line-height: 22px;
@@ -214,7 +213,7 @@ $modal-custom-header-height: 60px;
 
     .modal__x {
       padding: 0;
-      margin: 2px 0 0 0;
+      margin: 2px 0 0;
     }
   }
 
@@ -237,7 +236,7 @@ $modal-custom-header-height: 60px;
   .modal__header {
     background-color: colors.$kobo-gray-100;
     font-size: 24px;
-    padding: 32px 32px 48px 32px;
+    padding: 32px 32px 48px;
 
     .modal__x {
       font-size: 12px;
@@ -249,7 +248,7 @@ $modal-custom-header-height: 60px;
     overflow: hidden;
 
     .mfa-setup {
-      padding: 0 32px 32px 32px;
+      padding: 0 32px 32px;
       margin: auto;
     }
   }
@@ -298,7 +297,7 @@ $modal-custom-header-height: 60px;
 
 .enketo-holder {
   // resets modal window paddings
-  margin: -30px -30px;
+  margin: -30px;
 
   .enketo-loading-message {
     p {
@@ -315,7 +314,7 @@ $modal-custom-header-height: 60px;
   .touch & {
     width: 94%;
     left: 3%;
-    margin-left: 0px;
+    margin-left: 0;
     -webkit-overflow-scrolling: touch;
     overflow-y: scroll;
   }
@@ -323,7 +322,7 @@ $modal-custom-header-height: 60px;
 
 .enketo-iframe-icon {
   color: colors.$kobo-white;
-  background-image: url("~/node_modules/jquery-ui/themes/base/images/ui-icons_ffffff_256x240.png");
+  background-image: url('~/node_modules/jquery-ui/themes/base/images/ui-icons_ffffff_256x240.png');
   background-color: colors.$kobo-gray-500;
   background-position: -81px -129px;
   position: absolute;
@@ -380,7 +379,7 @@ $modal-custom-header-height: 60px;
       padding: $buttons-spacing;
       width: calc(50% - #{$buttons-spacing});
       min-height: 120px;
-      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+      box-shadow: 0 2px 4px 0 rgb(0 0 0 / 25%);
 
       @media screen and (min-width: breakpoints.$b768) {
         margin: $buttons-spacing;
@@ -392,7 +391,7 @@ $modal-custom-header-height: 60px;
         display: block;
         margin: 3px auto;
         font-size: 34px;
-        color: currentColor;
+        color: currentcolor;
       }
 
       &:hover {
@@ -404,10 +403,11 @@ $modal-custom-header-height: 60px;
         // makes the shadow smaller and moves button down by small bit
         // to make it look pressed-in
         transform: translateY(1px);
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 25%);
       }
     }
   }
+
   .dropzone {
     background: colors.$kobo-gray-200;
     padding: 30px;
@@ -446,7 +446,7 @@ $modal-custom-header-height: 60px;
 
     margin-top: 10px;
 
-    input[type="text"] {
+    input[type='text'] {
       background-color: rgba(colors.$kobo-gray-800, 0.05);
       padding: 5px;
     }
@@ -454,7 +454,7 @@ $modal-custom-header-height: 60px;
 }
 
 .form-modal--translation-settings {
-  @media (min-width: 600px) {
+  @media (width >= 600px) {
     min-width: 500px;
   }
 
@@ -469,12 +469,13 @@ $modal-custom-header-height: 60px;
       margin: 0;
     }
   }
+
   .form-view__cell--translation {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-top: 1px solid colors.$kobo-gray-300;
-    padding: 6px 0px;
+    padding: 6px 0;
 
     .form-view__cell--translation-name {
       display: flex;
@@ -558,6 +559,7 @@ $modal-custom-header-height: 60px;
           color: colors.$kobo-gray-500;
         }
       }
+
       > .rt-th:first-child,
       > .rt-td:first-child {
         min-width: 30%;
@@ -568,9 +570,11 @@ $modal-custom-header-height: 60px;
       > .rt-td:last-child {
         min-width: 70%;
       }
+
       .translation {
-        padding: 0px;
+        padding: 0;
         color: colors.$kobo-gray-700;
+
         textarea {
           background: colors.$kobo-light-green;
           display: block;
@@ -579,9 +583,11 @@ $modal-custom-header-height: 60px;
           width: 100%;
           height: 100% !important;
           color: colors.$kobo-gray-800;
+
           &:focus {
             background: colors.$kobo-white;
           }
+
           &:disabled {
             color: colors.$kobo-gray-500;
             background-color: colors.$kobo-gray-200;
@@ -711,11 +717,11 @@ $modal-custom-header-height: 60px;
 @media screen and (width < 597px) {
   .form-media__upload-url {
     width: 100%;
-    padding-left: 0px;
+    padding-left: 0;
 
     button {
       width: 100%;
-      margin-left: 0px !important;
+      margin-left: 0 !important;
       margin-top: 12px;
     }
   }

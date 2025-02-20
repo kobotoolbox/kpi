@@ -1,5 +1,5 @@
 @use 'scss/breakpoints';
-@use "scss/_variables";
+@use 'scss/_variables';
 @use 'scss/z-indexes';
 @use 'scss/colors';
 
@@ -17,13 +17,13 @@
 .mdl-layout__header {
   background-color: $layout-header-bg-color;
   min-height: $layout-desktop-header-height;
-  margin-left: 0px;
+  margin-left: 0;
   width: 100%;
   z-index: auto;
 
   .mdl-layout__header-row {
     height: $layout-desktop-header-height;
-    padding: 0px 12px;
+    padding: 0 12px;
   }
 
   .mdl-placeholder {
@@ -36,7 +36,7 @@
 
   .header__logo {
     // NOTE: this is overrideable, see `/kpi/templates/index.html`
-    background-image: url("../img/kobologo_symbol.svg");
+    background-image: url('../img/kobologo_symbol.svg');
     background-repeat: no-repeat;
     background-position: 50% 50%;
     width: 40px;
@@ -85,7 +85,7 @@
 
   .search {
     vertical-align: middle;
-    margin: 0px 6px;
+    margin: 0 6px;
     display: inline-block;
     width: 60%;
     position: relative;
@@ -99,7 +99,7 @@
     .search-input {
       color: colors.$kobo-white;
       border: none;
-      border-radius: 0px;
+      border-radius: 0;
       padding: 10px 12px;
       padding-left: 42px;
       background-color: rgba(colors.$kobo-white, 0.1);
@@ -298,14 +298,14 @@
   }
 
   .mdl-layout__header .header__logo {
-    background-image: url("../img/kobologo.svg");
+    background-image: url('../img/kobologo.svg');
     width: 180px;
   }
 }
 
 @media (min-width: breakpoints.$bMobileMenu) {
   .mdl-layout__header .mdl-layout__header-row {
-    padding: 0px 12px;
+    padding: 0 12px;
   }
 }
 
@@ -313,7 +313,7 @@
   .git-rev {
     display: block;
     position: fixed;
-    bottom: 0px;
+    bottom: 0;
     left: 80px;
     z-index: 100;
 
@@ -337,7 +337,7 @@
       position: static;
       border: 1px solid colors.$kobo-gray-300;
       margin-left: 12px;
-      padding: 0px;
+      padding: 0;
       max-height: 1000px;
       box-shadow: none;
 

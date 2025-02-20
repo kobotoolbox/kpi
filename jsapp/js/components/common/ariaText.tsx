@@ -1,9 +1,9 @@
-import React from 'react';
+import React from 'react'
 
 interface AriaTextProps {
-  uiText: string;
-  screenReaderText: string;
-  classNames?: string;
+  uiText: string
+  screenReaderText: string
+  classNames?: string
 }
 
 /*
@@ -17,10 +17,8 @@ const AriaText = (props: AriaTextProps) => (
     <span aria-hidden className={props.classNames}>
       {props.uiText}
     </span>
-    <span className='visuallyhidden'>
-      {props.screenReaderText.toLowerCase()}
-    </span>
+    <span className='visuallyhidden'>{props.screenReaderText.toLowerCase()}</span>
   </>
-);
+)
 
-export default AriaText;
+export default AriaText

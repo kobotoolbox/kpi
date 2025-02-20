@@ -58,6 +58,18 @@ class OrganizationInviteStatusChoices(models.TextChoices):
     PENDING = 'pending'
     RESENT = 'resent'
 
+    @classmethod
+    def get_admin_choices(cls) -> tuple:
+        return cls.CANCELLED, cls.RESENT,
+
+    @classmethod
+    def get_calculated_choices(cls) -> tuple:
+        return cls.EXPIRED, cls.PENDING,
+
+    @classmethod
+    def get_member_choices(cls) -> tuple:
+        return cls.ACCEPTED, cls.DECLINED,
+
 
 class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
@@ -325,9 +337,9 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         email_message = EmailMessage(
             to=self.invited_by.email,
             subject='KoboToolbox organization invitation accepted',
-            plain_text_content_or_template='emails/accepted_invite.txt',
+            plain_text_content_or_template='emails/accepted_org_invite.txt',
             template_variables=template_variables,
-            html_content_or_template='emails/accepted_invite.html',
+            html_content_or_template='emails/accepted_org_invite.html',
             language=sender_language
         )
 
@@ -348,7 +360,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         # To avoid circular import
         User = apps.get_model('kobo_auth', 'User')
         has_multiple_accounts = User.objects.filter(email=to_email).count() > 1
-        organization_name = self.invited_by.organization.name
+        organization = self.invited_by.organization
         current_language = settings.LANGUAGE_CODE
         invitee_language = (
             self.invitee.extra_details.data.get(
@@ -369,7 +381,8 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             ),
             'recipient_email': to_email,
             'recipient_role': recipient_role,
-            'organization_name': organization_name,
+            'organization_name': organization.name,
+            'organization_id': organization.id,
             'base_url': settings.KOBOFORM_URL,
             'invite_uid': self.guid,
             'is_registered_user': is_registered_user,
@@ -388,7 +401,7 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
             # by EmailMessage
             subject = replace_placeholders(
                 t("You're invited to join ##organization_name## organization"),
-                organization_name=organization_name
+                organization_name=organization.name,
             )
 
         email_message = EmailMessage(
@@ -426,9 +439,9 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
         email_message = EmailMessage(
             to=self.invited_by.email,
             subject='KoboToolbox organization invitation declined',
-            plain_text_content_or_template='emails/declined_invite.txt',
+            plain_text_content_or_template='emails/declined_org_invite.txt',
             template_variables=template_variables,
-            html_content_or_template='emails/declined_invite.html',
+            html_content_or_template='emails/declined_org_invite.html',
             language=sender_language,
         )
 

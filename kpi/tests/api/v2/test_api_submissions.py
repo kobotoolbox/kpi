@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import lxml
 import pytest
 import responses
+from constance.test import override_config
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.urls import reverse
@@ -20,8 +21,11 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.project_ownership.utils import create_invite
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -49,6 +53,7 @@ from kpi.tests.utils.mock import (
     enketo_edit_instance_response_with_uuid_validation,
     enketo_view_instance_response,
 )
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
@@ -154,6 +159,25 @@ class BulkDeleteSubmissionsApiTests(
                 'parent_lookup_asset': self.asset.uid,
             },
         )
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_delete_submissions_after_transfer(self):
+        """
+        someuser has transfered the project to anotheruser
+        someuser can delete anotheruser's project data after transfer
+        """
+        # Transfer the project to anotheruser
+        with immediate_on_commit():
+            create_invite(
+                self.someuser,
+                self.anotheruser,
+                [self.asset],
+                'Invite'
+            )
+        self.asset.refresh_from_db()
+        assert self.asset.owner == self.anotheruser
+
+        self._delete_submissions()
 
     def test_delete_submissions_as_owner(self):
         """
@@ -1085,6 +1109,33 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
+    def test_inject_root_uuid_if_not_present(self):
+        """
+        Ensure `meta/rootUUid` is present in API response even if rootUuid was
+        not present (e.g. like old submissions)
+        """
+        # remove "meta/rootUuid" from MongoDB
+        submission = self.submissions_submitted_by_someuser[0]
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'_id': submission['_id']}
+        )
+        root_uuid = mongo_document.pop(META_ROOT_UUID)
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+        )
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        assert response.data['_id'] == submission['_id']
+        assert META_ROOT_UUID in response.data
+        assert response.data[META_ROOT_UUID] == root_uuid
+
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
@@ -1423,15 +1474,23 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.asset.save()  # Create a new version
         self.asset.deploy(backend='mock', active=True)
 
+        # Retrieve the submission from MongoDB because self.submission does not match
+        # the data returned by the API (e.g., it lacks fields like `meta/rootUuid`).
+        json_submission = self.asset.deployment.get_submission(
+            self.submission['_id'], self.asset.owner
+        )
+
         xml_submission = self.asset.deployment.get_submission(
             self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
         )
+
+        submission_root_uuid = remove_uuid_prefix(json_submission['meta/rootUuid'])
 
         # Create a snapshot without specifying the root name. The default root
         # name will be the name saved in the settings of the asset version.
         snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=f"uuid:{self.submission['_uuid']}"
+            submission_uuid=submission_root_uuid
         )
 
         (
@@ -1462,7 +1521,7 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         # Validate a new snapshot has been generated for the same criteria
         new_snapshot = self.asset.snapshot(
             version_uid=self.asset.latest_deployed_version_uid,
-            submission_uuid=f"uuid:{self.submission['_uuid']}"
+            submission_uuid=submission_root_uuid
         )
         assert new_snapshot.pk != snapshot.pk
 

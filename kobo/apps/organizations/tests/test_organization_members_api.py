@@ -3,9 +3,15 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import (
+    OrganizationInvitation,
+    OrganizationInviteStatusChoices
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
 )
+from kpi.constants import PERM_MANAGE_ASSET
+from kpi.models import Asset
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 
 
@@ -25,6 +31,10 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             username='registered_invitee', email='registered_invitee@test.com',
         )
 
+        # Create an asset owned by the organization member
+        asset_response = self._create_asset_by_alice()
+        self.asset = Asset.objects.get(uid=asset_response.data['uid'])
+
         self.list_url = reverse(
             self._get_endpoint('organization-members-list'),
             kwargs={'organization_id': self.organization.id},
@@ -37,19 +47,36 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             },
         )
 
-    def _create_invite(self, user):
+    def _create_invite(self, invited_by: 'User', invitees=None):
         """
         Helper method to create and accept invitations
         """
-        invitation_data = {
-            'invitees': ['registered_invitee', 'unregistered_invitee@test.com']
-        }
+        if not invitees:
+            invitation_data = {
+                'invitees': ['registered_invitee', 'unregistered_invitee@test.com']
+            }
+        else:
+            invitation_data = {'invitees': invitees}
+
         list_url = reverse(
             self._get_endpoint('organization-invites-list'),
             kwargs={'organization_id': self.organization.id},
         )
-        self.client.force_login(user)
+        self.client.force_login(invited_by)
         self.client.post(list_url, data=invitation_data)
+
+    def _update_invite(self, user, guid, status):
+        """
+        Helper method to update invitation status
+        """
+        detail_url = reverse(
+            self._get_endpoint('organization-invites-detail'),
+            kwargs={
+                'guid': guid, 'organization_id': self.organization.id
+            }
+        )
+        self.client.force_login(user)
+        return self.client.patch(detail_url, data={'status': status})
 
     @data(
         ('owner', status.HTTP_200_OK),
@@ -69,20 +96,39 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, expected_status)
 
+        if response.status_code != status.HTTP_200_OK:
+            return
+
+        # Expected user count (owner, admin, member and invitees)
+        expected_users = 5
+        expected_invite_keys = {
+            'url', 'invited_by', 'status', 'invitee_role', 'organization_name',
+            'created', 'modified',  'invitee'
+        }
+
         # Check if the invite data is present for invitees
-        if response.status_code == status.HTTP_200_OK:
-            for result in response.data.get('results'):
-                self.assertIn('invite', result)
-                if result['user__username'] in [
-                    'registered_invitee', 'unregistered_invitee'
+        self.assertEqual(len(response.data.get('results')), expected_users)
+
+        for result in response.data.get('results'):
+            self.assertIn('invite', result)
+            if result['invite']:
+                # Check if the invite contains exactly the expected keys
+                self.assertEqual(
+                    set(result['invite'].keys()), expected_invite_keys
+                )
+
+                # Ensure the details are not revealed for unregistered invitees
+                if result['invite']['invitee'] in [
+                    'registered_invitee', 'unregistered_invitee@test.com'
                 ]:
-                    self.assertIn('url', result['invite'])
-                    self.assertIn('invited_by', result['invite'])
-                    self.assertIn('status', result['invite'])
-                    self.assertIn('invitee_role', result['invite'])
-                    self.assertIn('invitee', result['invite'])
-                    self.assertEqual(result['invite']['status'], 'pending')
-                    self.assertEqual(result['invite']['invitee_role'], 'member')
+                    self.assertEqual(result['user__username'], None)
+                    self.assertEqual(result['user__has_mfa_enabled'], None)
+                    self.assertEqual(result['role'], None)
+                else:
+                    self.assertIn(
+                        result['user__username'],
+                        ['someuser', 'anotheruser', 'alice']
+                    )
 
     @data(
         ('owner', status.HTTP_200_OK),
@@ -135,6 +181,8 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         else:
             user = getattr(self, f'{user_role}_user')
             self.client.force_login(user)
+
+        assert self.asset.has_perm(self.member_user, PERM_MANAGE_ASSET)
         response = self.client.delete(self.detail_url(self.member_user))
         self.assertEqual(response.status_code, expected_status)
         if expected_status == status.HTTP_204_NO_CONTENT:
@@ -144,6 +192,9 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
             self.assertFalse(
                 User.objects.filter(username=f'{user_role}_user').exists()
             )
+
+            # Confirm asset permissions are revoked
+            assert not self.asset.get_perms(self.member_user)
 
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
@@ -162,3 +213,80 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         data = {'role': 'admin'}
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, expected_status)
+
+    def test_invitation_is_correctly_assigned_in_member_list(self):
+
+        bob_org = self.bob.organization
+        bob_org.mmo_override = True
+        bob_org.save(update_fields=['mmo_override'])
+
+        # Let someuser invite bob to join their org
+        self._create_invite(invited_by=self.someuser, invitees=['bob'])
+
+        # Look at bob's membership detail endpoint in bob's org,
+        # someuser's invite should not be there
+        self.client.force_login(self.bob)
+        bob_org_members_list_url = reverse(
+            self._get_endpoint('organization-members-list'),
+            kwargs={'organization_id': bob_org.id},
+        )
+        response = self.client.get(bob_org_members_list_url)
+        # The first member should be bob
+        assert response.data['results'][0]['user__username'] == 'bob'
+        assert response.data['results'][0]['invite'] == {}
+
+        # Look at bob's membership detail endpoint in someother's org,
+        # someuser's invite should **BE** there
+        self.client.force_login(self.someuser)
+        someuser_org_members_list_url = reverse(
+            self._get_endpoint('organization-members-list'),
+            kwargs={'organization_id': self.organization.id},
+        )
+        response = self.client.get(someuser_org_members_list_url)
+
+        # The last invite should be bob's one
+        assert response.data['results'][-1]['invite']['invitee'] == 'bob'
+        assert (
+            response.data['results'][-1]['invite']['status']
+            == OrganizationInviteStatusChoices.PENDING
+        )
+
+    def test_invite_details_clear_after_user_removal(self):
+        """
+        Ensure invite details are only available while the user is part of an
+        organization
+        """
+        # 1. Create an invite for the registered invitee
+        self._create_invite(self.someuser)
+
+        # 2. Accept the invite and ensure the user is added to the organization
+        self.client.force_login(self.registered_invitee_user)
+        invitation = OrganizationInvitation.objects.get(
+            invitee=self.registered_invitee_user
+        )
+        response = self._update_invite(
+            self.registered_invitee_user,
+            invitation.guid,
+            OrganizationInviteStatusChoices.ACCEPTED,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # 3. Verify that invite details are present for the user
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invite']['invitee'], 'registered_invitee')
+
+        # 4. Remove the user from the organization
+        self.client.delete(self.detail_url(self.registered_invitee_user))
+
+        # 5. Verify that the removed user is no longer retrievable
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 6. Verify that previous invite details are not retained
+        self.client.force_login(self.registered_invitee_user)
+        self.organization = self.registered_invitee_user.organization
+        response = self.client.get(self.detail_url(self.registered_invitee_user))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['invite'], {})

@@ -79,6 +79,31 @@ class ProjectOwnershipAPITestCase(KpiTestCase):
         response = self.client.post(self.invite_url, data=payload, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_cannot_create_invite_for_member_of_same_organization(self):
+
+        organization = self.someuser.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(self.anotheruser)
+
+        self.anotheruser.refresh_from_db()
+        assert self.anotheruser.organization == organization
+
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [self.asset.uid]
+        }
+        response = self.client.post(self.invite_url, data=payload, format='json')
+        self.assertContains(
+            response,
+            'Must not be in the same organization',
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
 
 class ProjectOwnershipInviteAPITestCase(KpiTestCase):
 

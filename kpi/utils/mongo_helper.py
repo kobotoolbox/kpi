@@ -89,14 +89,15 @@ class MongoHelper:
         return key
 
     @classmethod
-    def delete(cls, mongo_userform_id: str, submission_ids: list):
+    def delete(cls, xform_id_string: str, xform_uuid: str) -> int:
         query = {
-            '_id': {cls.IN_OPERATOR: submission_ids},
-            cls.USERFORM_ID: mongo_userform_id,
+            '$or': [
+                {'_xform_id_string': xform_id_string},
+                {'formhub/uuid': xform_uuid},
+            ],
         }
-        delete_counts = settings.MONGO_DB.instances.delete_many(query)
-
-        return delete_counts == len(submission_ids)
+        mongo_query = settings.MONGO_DB.instances.delete_many(query)
+        return mongo_query.deleted_count
 
     @classmethod
     def encode(cls, key: str) -> str:

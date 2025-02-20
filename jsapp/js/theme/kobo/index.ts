@@ -1,14 +1,15 @@
-import {createTheme, rem} from '@mantine/core';
-import {ActionIconThemeKobo} from './ActionIcon';
-import {ButtonThemeKobo} from './Button';
-import {TableThemeKobo} from './Table';
-import {InputBaseThemeKobo} from './InputBase';
-import {TooltipThemeKobo} from './Tooltip';
-import {MenuThemeKobo} from './Menu';
-import {AlertThemeKobo} from './Alert';
-import {SelectThemeKobo} from './Select';
-import {LoaderThemeKobo} from './Loader';
-import {ModalThemeKobo} from './Modal';
+import { createTheme, rem } from '@mantine/core'
+import { ActionIconThemeKobo } from './ActionIcon'
+import { ButtonThemeKobo } from './Button'
+import { TableThemeKobo } from './Table'
+import { InputBaseThemeKobo } from './InputBase'
+import { TooltipThemeKobo } from './Tooltip'
+import { MenuThemeKobo } from './Menu'
+import { AlertThemeKobo } from './Alert'
+import { SelectThemeKobo } from './Select'
+import { LoaderThemeKobo } from './Loader'
+import { ModalThemeKobo } from './Modal'
+import { DividerThemeKobo } from './Divider'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -114,5 +115,6 @@ export const themeKobo = createTheme({
     Select: SelectThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
+    Divider: DividerThemeKobo,
   },
-});
+})

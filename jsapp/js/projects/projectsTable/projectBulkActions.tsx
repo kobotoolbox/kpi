@@ -1,26 +1,26 @@
 // Libraries
-import React, {useState} from 'react';
+import React, { useState } from 'react'
 
 // Partial components
-import Button from 'js/components/common/button';
-import BulkDeletePrompt from './bulkActions/bulkDeletePrompt';
+import Button from 'js/components/common/button'
+import BulkDeletePrompt from './bulkActions/bulkDeletePrompt'
 
 // Stores, hooks and utilities
-import {userCan} from 'js/components/permissions/utils';
+import { userCan } from 'js/components/permissions/utils'
 
 // Constants and types
-import type {AssetResponse, ProjectViewAsset} from 'js/dataInterface';
+import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
 
 // Styles
-import actionsStyles from './projectActions.module.scss';
+import actionsStyles from './projectActions.module.scss'
 
 interface ProjectBulkActionsProps {
   /** A list of selected assets for bulk operations. */
-  assets: Array<AssetResponse | ProjectViewAsset>;
+  assets: Array<AssetResponse | ProjectViewAsset>
 }
 
 function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
-  return assets.every((asset) => userCan('manage_asset', asset));
+  return assets.every((asset) => userCan('manage_asset', asset))
 }
 
 /**
@@ -28,15 +28,12 @@ function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>) {
  * selected in the Project Table.
  */
 export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
-  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
-  const canBulkDelete = userCanDeleteAssets(props.assets);
+  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false)
+  const canBulkDelete = userCanDeleteAssets(props.assets)
 
-  let tooltipForDelete = t('Delete projects');
+  let tooltipForDelete = t('Delete projects')
   if (canBulkDelete) {
-    tooltipForDelete = t('Delete ##count## projects').replace(
-      '##count##',
-      String(props.assets.length)
-    );
+    tooltipForDelete = t('Delete ##count## projects').replace('##count##', String(props.assets.length))
   }
 
   return (
@@ -79,5 +76,5 @@ export default function ProjectBulkActions(props: ProjectBulkActionsProps) {
         />
       )}
     </div>
-  );
+  )
 }

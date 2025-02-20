@@ -22,7 +22,7 @@ const bem: bemInstances = {}
 
 export default bem
 
-type BemModifiersObject = {
+interface BemModifiersObject {
   [modifierName: string]: boolean
 }
 
@@ -50,11 +50,7 @@ interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
  *
  * @deprecated Use CSS Modules and regular HTML tags.
  */
-export function makeBem(
-  parent: BemInstance | null,
-  name: string,
-  htmlTagName: string = 'div'
-): BemInstance {
+export function makeBem(parent: BemInstance | null, name: string, htmlTagName: string = 'div'): BemInstance {
   class BemComponent extends React.Component<BemComponentProps, {}> {
     static blockName: string = parent ? parent.blockName : name
 
@@ -83,8 +79,8 @@ export function makeBem(
         })
       }
 
-      const newProps: {[propName: string]: any} = {
-        className: classNames.join(' ')
+      const newProps: { [propName: string]: any } = {
+        className: classNames.join(' '),
       }
 
       // Keep all the original props expect for modifiers (don't need it) and
