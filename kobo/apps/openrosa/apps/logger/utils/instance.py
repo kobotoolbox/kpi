@@ -137,7 +137,7 @@ def set_instance_validation_statuses(
                 action='modify',
                 status=validation_status,
                 id=record['id'],
-                rootUuid=record['root_uuid'],
+                root_uuid=record['root_uuid'],
             )
             for record in records_queryset.values('user__username', 'id', 'root_uuid')
         }

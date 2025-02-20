@@ -91,7 +91,7 @@ def add_instance_to_request(instance, action):
                 status=instance.get_validation_status().get('label', 'None'),
                 action=action,
                 id=instance.id,
-                rootUuid=instance.root_uuid,
+                root_uuid=instance.root_uuid,
             )
         }
     )

@@ -592,7 +592,7 @@ class DataViewSet(
                 id=sub['_id'],
                 username=sub['_submitted_by'],
                 action='delete',
-                rootUuid=sub['meta/rootUuid'],
+                root_uuid=sub['meta/rootUuid'],
             )
             for sub in submissions
         }

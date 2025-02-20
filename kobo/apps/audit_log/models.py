@@ -629,7 +629,7 @@ class ProjectHistoryLog(AuditLog):
                 'source': get_human_readable_client_user_agent(request),
                 'submission': {
                     'submitted_by': instance.username,
-                    'root_uuid': instance.rootUuid,
+                    'root_uuid': instance.root_uuid,
                 },
             }
             if 'validation-status' in url_name:
