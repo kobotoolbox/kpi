@@ -233,6 +233,9 @@ interface AlertifyJsModule {
   [id: string]: any
 }
 declare module 'alertifyjs' {
+  /**
+   * @deprecated Use `notify` function from our utils file, i.e. `import { notify } from 'js/utils'`.
+   */
   const alertifyjsmodule: AlertifyJsModule = {}
   export = alertifyjsmodule
 }
