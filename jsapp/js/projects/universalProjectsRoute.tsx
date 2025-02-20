@@ -26,6 +26,7 @@ import { dropImportXLSForms } from 'js/dropzone.utils'
 import { handleApiFail, fetchPostUrl } from 'js/api'
 import projectViewsStore from './projectViews/projectViewsStore'
 import { useSession } from 'jsapp/js/stores/useSession'
+import { useOrganizationQuery } from '../account/organization/organizationQuery'
 
 // Constants and types
 import type { ProjectsFilterDefinition, ProjectFieldName } from './projectViews/constants'
@@ -56,6 +57,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   const [customView] = useState(customViewStore)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const session = useSession()
+  const orgQuery = useOrganizationQuery()
 
   useEffect(() => {
     customView.setUp(props.viewUid, props.baseUrl, props.defaultVisibleFields, props.includeTypeFilter)
@@ -121,7 +123,9 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
         <OrgInviteModalWrapper />
 
-        {session.currentLoggedAccount && <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} />}
+        {session.currentLoggedAccount && orgQuery.data && (
+          <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={orgQuery.data} />
+        )}
 
         <LimitNotifications useModal />
 

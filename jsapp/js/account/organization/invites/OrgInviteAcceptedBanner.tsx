@@ -4,10 +4,15 @@ import React, { useEffect, useState } from 'react'
 import Alert from 'js/components/common/alert'
 // Stores, hooks and utilities
 import { useOrganizationMemberDetailQuery } from 'jsapp/js/account/organization/membersQuery'
-import { useOrganizationQuery } from '../organizationQuery'
 import { useSafeUsernameStorageKey } from 'jsapp/js/hooks/useSafeUsernameStorageKey'
 // Constants and types
-import { MemberInviteStatus } from 'js/account/organization//membersInviteQuery'
+import { type Organization } from 'js/account/organization/organizationQuery'
+import { MemberInviteStatus } from 'js/account/organization/membersInviteQuery'
+
+interface OrgInviteAcceptedBannerProps {
+  username: string
+  organization: Organization
+}
 
 /**
  * Displays a banner to a user that has joined organization. It will be displayed indefinitely (until user dismisses it
@@ -15,11 +20,17 @@ import { MemberInviteStatus } from 'js/account/organization//membersInviteQuery'
  *
  * Note: this is for a user that is part of an organization (and thus has access to it).
  */
-export default function OrgInviteAcceptedBanner(props: { username: string }) {
+export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerProps) {
   const organizationMemberDetailQuery = useOrganizationMemberDetailQuery(props.username, false)
-  const orgQuery = useOrganizationQuery()
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false)
-  const localStorageKey = useSafeUsernameStorageKey('kpiOrgInviteAcceptedBanner', props.username)
+  /**
+   * For the local storage key we include organization id, because otherwise the banner would not appear when user would
+   * leave one organization and join another.
+   */
+  const localStorageKey = useSafeUsernameStorageKey(
+    `kpiOrgInviteAcceptedBanner-${props.organization.id}`,
+    props.username,
+  )
 
   /*
    * Show the dialog if we have a key to check and localStorage has an entry for this
@@ -39,10 +50,8 @@ export default function OrgInviteAcceptedBanner(props: { username: string }) {
   }
 
   if (
-    // Wait for data to be loaded
-    orgQuery.data?.name === undefined ||
     // Only show banner to users who are members of MMO organization
-    !orgQuery.data.is_mmo ||
+    !props.organization.is_mmo ||
     // Only show banner to users who have accepted the invite
     organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
     // Respect users who dismissed the banner
@@ -59,7 +68,7 @@ export default function OrgInviteAcceptedBanner(props: { username: string }) {
           'This account is now managed by ##TEAM_OR_ORGANIZATION_NAME##. All projects previously owned by your ' +
             'account are currently being transfered and will be owned by ##TEAM_OR_ORGANIZATION_NAME##. This process ' +
             'can take up to a few minutes to complete.',
-        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', orgQuery.data.name)}
+        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', props.organization.name)}
       </Alert>
     </div>
   )
