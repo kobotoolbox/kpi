@@ -412,17 +412,15 @@ class FormLanding extends React.Component {
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>
-                  {t('Click on')} <i className='k-icon k-icon-more-vertical' />{' '}
-                  {t('to open settings.')}
-                </li>
+                <li>{t('Select the option "Manually enter project details"')}</li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;
                   {t('and your username and password')}
                 </li>
-                <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                <li>{t('Open "Enter Data."')}</li>
+                <li>{t('Select "Download form" and select this project')}</li>
+                <li>{t('Select "Start New Form"')}</li>
+                <li>{t('Select this project from the list of downloaded projects')}</li>
               </ol>
             )}
           </bem.FormView__cell>
