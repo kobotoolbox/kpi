@@ -1,5 +1,5 @@
 // Libraries
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
 import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
@@ -31,6 +31,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   )
 
   const [isModalOpen, setIsModalOpen] = useState(true)
+  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
+  const [userResponseType, setUserResponseType] = useState<MemberInviteStatus | null>(null)
   const session = useSession()
   const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId, false)
   const patchMemberInvite = usePatchMemberInvite(inviteUrl, false)
@@ -42,29 +44,39 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
   const orgName = orgMemberInviteQuery.data?.organization_name || mmoLabel
 
-  function handleSuccessfulInviteResponse(message: string) {
-    // Ensure that fresh session is fetched, as we get the organiztion url from it.
-    session.refreshAccount()
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  async function handleSuccessfulInviteResponse(message: string, refreshData: boolean = false) {
+    // After a one-second delay to allow for initial backend data transfers,
+    // refresh session to refresh org data and project list
+    if (refreshData) {
+      setAwaitingDataRefresh(true)
+      await wait(1000)
+      session.refreshAccount()
+    }
     props.onUserResponse()
-    setIsModalOpen(false)
     notify(message)
   }
 
   const handleDeclineInvite = async () => {
     try {
+      setUserResponseType(MemberInviteStatus.declined)
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.declined })
       handleSuccessfulInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
+      setUserResponseType(null)
     }
   }
 
   const handleAcceptInvite = async () => {
     try {
+      setUserResponseType(MemberInviteStatus.accepted)
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.accepted })
-      handleSuccessfulInviteResponse(t('Invitation successfully accepted'))
+      await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
+      setUserResponseType(null)
     }
   }
 
@@ -76,7 +88,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let title: React.ReactNode = null
 
   // Case 1: loading data.
-  if (orgMemberInviteQuery.isLoading) {
+  if (orgMemberInviteQuery.isLoading || awaitingDataRefresh) {
     content = <LoadingSpinner />
   }
   // Case 2: failed to get the invitation data from API.
@@ -146,11 +158,21 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
         </Alert>
 
         <Group justify='flex-end'>
-          <Button variant='light' size='lg' onClick={handleDeclineInvite} loading={patchMemberInvite.isPending}>
+          <Button
+            variant='light'
+            size='lg'
+            onClick={handleDeclineInvite}
+            loading={userResponseType === MemberInviteStatus.declined && patchMemberInvite.isPending}
+          >
             {t('Decline')}
           </Button>
 
-          <Button variant='filled' size='lg' onClick={handleAcceptInvite} loading={patchMemberInvite.isPending}>
+          <Button
+            variant='filled'
+            size='lg'
+            onClick={handleAcceptInvite}
+            loading={userResponseType === MemberInviteStatus.accepted && patchMemberInvite.isPending}
+          >
             {t('Accept')}
           </Button>
         </Group>
