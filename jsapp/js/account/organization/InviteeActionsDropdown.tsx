@@ -4,7 +4,7 @@ import ButtonNew from 'jsapp/js/components/common/ButtonNew'
 import type { ReactNode } from 'react'
 import type { MemberInvite } from './membersInviteQuery'
 import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
-import { notify } from 'alertifyjs'
+import { notify } from 'js/utils'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
