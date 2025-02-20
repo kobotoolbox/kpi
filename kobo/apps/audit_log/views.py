@@ -486,6 +486,8 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 
         a. metadata__submission__submitted_by
 
+        b. metadata__submission__root_uuid
+
     * archive
 
         a. metadata__latest_version_uid
@@ -518,6 +520,8 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 
         a. metadata__submission__submitted_by
 
+        b. metadata__submission__root_uuid
+
     * deploy
 
         a. metadata__latest_version_uid
@@ -540,6 +544,8 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
 
         a. metadata__submission__submitted_by
 
+        b. metadata__submission__root_uuid
+
     * modify-service
 
         a. metadata__hook__uid
@@ -551,6 +557,8 @@ def generate_ph_view_set_logstring(description, path, example_path, all):
     * modify-submission
 
         a. metadata__submission__submitted_by
+
+        b. metadata__submission__root_uuid
 
         b. metadata__submission__status (only present if changed)
 
