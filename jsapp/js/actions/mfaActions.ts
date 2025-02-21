@@ -1,5 +1,5 @@
 import Reflux from 'reflux'
-import { notify } from 'alertifyjs'
+import { notify } from 'js/utils'
 import { ROOT_URL } from 'js/constants'
 import { hasActiveSubscription } from 'js/account/stripe.utils'
 import { when } from 'mobx'

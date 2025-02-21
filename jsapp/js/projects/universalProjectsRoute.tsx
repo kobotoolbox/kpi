@@ -171,7 +171,9 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
         <ProjectsTable
           assets={customView.assets}
-          isLoading={!customView.isFirstLoadComplete}
+          // refreshing session will result in refreshing table, so while that is pending
+          // we want to show a loading spinner
+          isLoading={!customView.isFirstLoadComplete || session.isPending}
           highlightedFields={getFilteredFieldsNames()}
           visibleFields={getTableVisibleFields()}
           orderableFields={props.defaultOrderableFields}

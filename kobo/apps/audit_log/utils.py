@@ -5,6 +5,7 @@ from dataclasses import dataclass
 class SubmissionUpdate:
     id: int
     action: str
+    root_uuid: str
     username: str = 'AnonymousUser'
     status: str | None = None
 
