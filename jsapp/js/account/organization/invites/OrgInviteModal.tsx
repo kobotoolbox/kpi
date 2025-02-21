@@ -1,5 +1,5 @@
 // Libraries
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 // Partial components
 import Alert from 'js/components/common/alert'
 import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
