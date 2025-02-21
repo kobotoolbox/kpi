@@ -14,6 +14,8 @@ interface OrgInviteAcceptedBannerProps {
   organization: Organization
 }
 
+const BANNER_DISMISSAL_VALUE = 'dismissed'
+
 /**
  * Displays a banner to a user that has joined organization. It will be displayed indefinitely (until user dismisses it
  * with "x" button). Dismissal is being stored in `localStorage`.
@@ -22,30 +24,30 @@ interface OrgInviteAcceptedBannerProps {
  */
 export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerProps) {
   const organizationMemberDetailQuery = useOrganizationMemberDetailQuery(props.username, false)
-  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false)
-  /**
-   * For the local storage key we include organization id, because otherwise the banner would not appear when user would
-   * leave one organization and join another.
-   */
-  const localStorageKey = useSafeUsernameStorageKey(
-    `kpiOrgInviteAcceptedBanner-${props.organization.id}`,
-    props.username,
-  )
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
+  const [localStorageKeyPrefix, setLocalStorageKeyPrefix] = useState<string | undefined>()
+  const localStorageKey = useSafeUsernameStorageKey(localStorageKeyPrefix, props.username)
 
-  /*
-   * Show the dialog if we have a key to check and localStorage has an entry for this
-   * user/feature combination, hide it otherwise
-   */
+  // Build local storage prefix when invite data is ready.
+  useEffect(() => {
+    if (organizationMemberDetailQuery.data?.invite?.url) {
+      // For the local storage key we include invite url (it has an id), because otherwise the banner would not appear
+      // when user would leave one organization and join another (or rejoin the same one).
+      setLocalStorageKeyPrefix(`kpiOrgInviteAcceptedBanner-${organizationMemberDetailQuery.data?.invite?.url}`)
+    }
+  }, [organizationMemberDetailQuery.data])
+
+  // Get information whether the banner was already dismissed by user. It requires localStorage key to be ready.
   useEffect(() => {
     const bannerStatus = localStorageKey && localStorage.getItem(localStorageKey)
-    setIsBannerDismissed(!bannerStatus)
+    setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
   }, [localStorageKey])
 
   // Close the dialog box and store that we've closed it
   function handleCloseBanner() {
     if (localStorageKey) {
-      localStorage.setItem(localStorageKey, 'dismissed')
-      setIsBannerDismissed(false)
+      localStorage.setItem(localStorageKey, BANNER_DISMISSAL_VALUE)
+      setIsBannerDismissed(true)
     }
   }
 
@@ -54,8 +56,10 @@ export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerPr
     !props.organization.is_mmo ||
     // Only show banner to users who have accepted the invite
     organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
+    // Wait for local storage information
+    isBannerDismissed === undefined ||
     // Respect users who dismissed the banner
-    !isBannerDismissed
+    isBannerDismissed === true
   ) {
     return null
   }
