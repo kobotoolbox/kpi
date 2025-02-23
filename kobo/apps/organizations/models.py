@@ -233,6 +233,15 @@ class Organization(AbstractOrganization):
         except ObjectDoesNotExist:
             return
 
+    @admin.display(description='Subscription Plan')
+    def subscription_plan(self):
+        obj = self
+        sub_details = obj.active_subscription_billing_details()
+        if sub_details:
+            price = Price.objects.get(id=sub_details['price_id'])
+            return price
+
+        return None
 
 class OrganizationUser(AbstractOrganizationUser):
 
