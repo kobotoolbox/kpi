@@ -17,8 +17,8 @@ from .organization_user import OrgUserInline, max_users_for_edit_mode
 class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline, OrgUserInline]
     view_on_site = False
-    readonly_fields = ['id']
-    fields = ['id', 'name', 'mmo_override']
+    readonly_fields = ['id', 'subscription_plan']
+    fields = ['id', 'name', 'mmo_override', 'subscription_plan']
     search_fields = ['name']
 
     # parent overrides

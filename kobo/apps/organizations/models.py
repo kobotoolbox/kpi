@@ -2,14 +2,17 @@ from functools import partial
 from typing import Literal
 
 from django.conf import settings
+from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
+from django.utils.translation import gettext_lazy as t
+from django.utils.translation import override
 from django_request_cache import cache_for_request
 from django.utils.translation import gettext_lazy as t
 
 if settings.STRIPE_ENABLED:
-    from djstripe.models import Customer, Subscription
+    from djstripe.models import Customer, Price, Subscription
 
     from kobo.apps.stripe.constants import (
         ACTIVE_STRIPE_STATUSES,
@@ -24,6 +27,8 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
+from kpi.utils.mailer import EmailMessage, Mailer
+from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
     ORG_ADMIN_ROLE,
@@ -58,6 +63,16 @@ class Organization(AbstractOrganization):
         max_length=20,
         choices=OrganizationType.choices,
     )
+
+    @admin.display(description='Subscription Plan')
+    def subscription_plan(self):
+        obj = self
+        sub_details = obj.active_subscription_billing_details()
+        if sub_details:
+            price = Price.objects.get(id=sub_details['price_id'])
+            return price
+
+        return None
 
     def add_user(self, user, is_admin=False):
         if not self.is_mmo and self.users.all().count():
@@ -102,6 +117,7 @@ class Organization(AbstractOrganization):
                 product_metadata=F(
                     'djstripe_customers__subscriptions__items__price__product__metadata'
                 ),
+                price_id=F('djstripe_customers__subscriptions__items__price__id'),
                 price_metadata=F(
                     'djstripe_customers__subscriptions__items__price__metadata'
                 ),
