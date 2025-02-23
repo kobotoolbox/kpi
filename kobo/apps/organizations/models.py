@@ -243,6 +243,7 @@ class Organization(AbstractOrganization):
 
         return None
 
+
 class OrganizationUser(AbstractOrganizationUser):
 
     def __str__(self):
