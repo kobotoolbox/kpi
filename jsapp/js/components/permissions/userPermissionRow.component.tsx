@@ -62,29 +62,13 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     dialog.set(opts).show()
   }
 
-  /**
-   * Note: we remove "view_asset" permission, as it is the most basic one,
-   * so removing it will in fact remove every permission except `add_submissions`.
-   * That permission will be removed seprately.
-   */
   removeAllPermissions() {
     this.setState({ isBeingDeleted: true })
-    const userViewAssetPerm = this.props.permissions.find(
+    const userAssetPermUrl = this.props.permissions.find(
       (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
     )
-
-    const userAddSubmissionsPerm = this.props.permissions.find(
-      (perm) => perm.permission === permConfig.getPermissionByCodename('add_submissions')?.url,
-    )
-    if (userViewAssetPerm) {
-      actions.permissions.removeAssetPermission(this.props.assetUid, userViewAssetPerm.url)
-    }
-
-    // We have to remove this permission seprately as it can be granted without
-    // `view_asset`.
-    if (userAddSubmissionsPerm) {
-      actions.permissions.removeAssetPermission(this.props.assetUid, userAddSubmissionsPerm.url)
-    }
+    const removeAll = true
+    actions.permissions.removeAssetPermission(this.props.assetUid, userAssetPermUrl?.url, removeAll)
   }
 
   onPermissionsEditorSubmitEnd(isSuccess: boolean) {
@@ -147,6 +131,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
                     onClick={this.toggleEditForm.bind(this)}
                   />
 
+                  {/* this!!  */}
                   <Button
                     type='secondary-danger'
                     size='m'
