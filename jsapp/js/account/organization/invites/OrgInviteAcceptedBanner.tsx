@@ -4,10 +4,17 @@ import React, { useEffect, useState } from 'react'
 import Alert from 'js/components/common/alert'
 // Stores, hooks and utilities
 import { useOrganizationMemberDetailQuery } from 'jsapp/js/account/organization/membersQuery'
-import { useOrganizationQuery } from '../organizationQuery'
 import { useSafeUsernameStorageKey } from 'jsapp/js/hooks/useSafeUsernameStorageKey'
 // Constants and types
-import { MemberInviteStatus } from 'js/account/organization//membersInviteQuery'
+import { type Organization } from 'js/account/organization/organizationQuery'
+import { MemberInviteStatus } from 'js/account/organization/membersInviteQuery'
+
+interface OrgInviteAcceptedBannerProps {
+  username: string
+  organization: Organization
+}
+
+const BANNER_DISMISSAL_VALUE = 'dismissed'
 
 /**
  * Displays a banner to a user that has joined organization. It will be displayed indefinitely (until user dismisses it
@@ -15,38 +22,44 @@ import { MemberInviteStatus } from 'js/account/organization//membersInviteQuery'
  *
  * Note: this is for a user that is part of an organization (and thus has access to it).
  */
-export default function OrgInviteAcceptedBanner(props: { username: string }) {
+export default function OrgInviteAcceptedBanner(props: OrgInviteAcceptedBannerProps) {
   const organizationMemberDetailQuery = useOrganizationMemberDetailQuery(props.username, false)
-  const orgQuery = useOrganizationQuery()
-  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false)
-  const localStorageKey = useSafeUsernameStorageKey('kpiOrgInviteAcceptedBanner', props.username)
+  const [isBannerDismissed, setIsBannerDismissed] = useState<boolean | undefined>()
+  const [localStorageKeyPrefix, setLocalStorageKeyPrefix] = useState<string | undefined>()
+  const localStorageKey = useSafeUsernameStorageKey(localStorageKeyPrefix, props.username)
 
-  /*
-   * Show the dialog if we have a key to check and localStorage has an entry for this
-   * user/feature combination, hide it otherwise
-   */
+  // Build local storage prefix when invite data is ready.
+  useEffect(() => {
+    if (organizationMemberDetailQuery.data?.invite?.url) {
+      // For the local storage key we include invite url (it has an id), because otherwise the banner would not appear
+      // when user would leave one organization and join another (or rejoin the same one).
+      setLocalStorageKeyPrefix(`kpiOrgInviteAcceptedBanner-${organizationMemberDetailQuery.data?.invite?.url}`)
+    }
+  }, [organizationMemberDetailQuery.data])
+
+  // Get information whether the banner was already dismissed by user. It requires localStorage key to be ready.
   useEffect(() => {
     const bannerStatus = localStorageKey && localStorage.getItem(localStorageKey)
-    setIsBannerDismissed(!bannerStatus)
+    setIsBannerDismissed(bannerStatus === BANNER_DISMISSAL_VALUE)
   }, [localStorageKey])
 
   // Close the dialog box and store that we've closed it
   function handleCloseBanner() {
     if (localStorageKey) {
-      localStorage.setItem(localStorageKey, 'dismissed')
-      setIsBannerDismissed(false)
+      localStorage.setItem(localStorageKey, BANNER_DISMISSAL_VALUE)
+      setIsBannerDismissed(true)
     }
   }
 
   if (
-    // Wait for data to be loaded
-    orgQuery.data?.name === undefined ||
     // Only show banner to users who are members of MMO organization
-    !orgQuery.data.is_mmo ||
+    !props.organization.is_mmo ||
     // Only show banner to users who have accepted the invite
     organizationMemberDetailQuery.data?.invite?.status !== MemberInviteStatus.accepted ||
+    // Wait for local storage information
+    isBannerDismissed === undefined ||
     // Respect users who dismissed the banner
-    !isBannerDismissed
+    isBannerDismissed === true
   ) {
     return null
   }
@@ -59,7 +72,7 @@ export default function OrgInviteAcceptedBanner(props: { username: string }) {
           'This account is now managed by ##TEAM_OR_ORGANIZATION_NAME##. All projects previously owned by your ' +
             'account are currently being transfered and will be owned by ##TEAM_OR_ORGANIZATION_NAME##. This process ' +
             'can take up to a few minutes to complete.',
-        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', orgQuery.data.name)}
+        ).replaceAll('##TEAM_OR_ORGANIZATION_NAME##', props.organization.name)}
       </Alert>
     </div>
   )
