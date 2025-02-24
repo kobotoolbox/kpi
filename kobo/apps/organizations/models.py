@@ -60,16 +60,6 @@ class Organization(AbstractOrganization):
         choices=OrganizationType.choices,
     )
 
-    @admin.display(description='Subscription Plan')
-    def subscription_plan(self):
-        obj = self
-        sub_details = obj.active_subscription_billing_details()
-        if sub_details:
-            price = Price.objects.get(id=sub_details['price_id'])
-            return price
-
-        return None
-
     def add_user(self, user, is_admin=False):
         if not self.is_mmo and self.users.all().count():
             raise NotMultiMemberOrganizationException
