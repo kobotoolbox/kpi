@@ -6,8 +6,6 @@ from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
-from django.utils.translation import gettext_lazy as t
-from django.utils.translation import override
 from django_request_cache import cache_for_request
 from django.utils.translation import gettext_lazy as t
 
@@ -27,8 +25,6 @@ from organizations.abstract import (
 from organizations.utils import create_organization as create_organization_base
 
 from kpi.fields import KpiUidField
-from kpi.utils.mailer import EmailMessage, Mailer
-from kpi.utils.placeholders import replace_placeholders
 
 from .constants import (
     ORG_ADMIN_ROLE,
