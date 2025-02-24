@@ -9,7 +9,7 @@ from django_request_cache import cache_for_request
 from django.utils.translation import gettext_lazy as t
 
 if settings.STRIPE_ENABLED:
-    from djstripe.models import Customer, Price, Subscription
+    from djstripe.models import Customer, Subscription
 
     from kobo.apps.stripe.constants import (
         ACTIVE_STRIPE_STATUSES,
