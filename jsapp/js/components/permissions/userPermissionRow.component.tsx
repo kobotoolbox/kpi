@@ -131,7 +131,6 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
                     onClick={this.toggleEditForm.bind(this)}
                   />
 
-                  {/* this!!  */}
                   <Button
                     type='secondary-danger'
                     size='m'
