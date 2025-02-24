@@ -2,7 +2,6 @@ from functools import partial
 from typing import Literal
 
 from django.conf import settings
-from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import F
@@ -234,16 +233,6 @@ class Organization(AbstractOrganization):
             return self.owner.organization_user.user
         except ObjectDoesNotExist:
             return
-
-    @admin.display(description='Subscription Plan')
-    def subscription_plan(self):
-        obj = self
-        sub_details = obj.active_subscription_billing_details()
-        if sub_details:
-            price = Price.objects.get(id=sub_details['price_id'])
-            return price
-
-        return None
 
 
 class OrganizationUser(AbstractOrganizationUser):
