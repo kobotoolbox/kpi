@@ -116,6 +116,7 @@ export const useOrgMemberInviteQuery = (orgId: string, inviteId: string, display
   return useQuery<MemberInvite, FailResponse>({
     queryFn: () => fetchGet<MemberInvite>(apiPath, fetchOptions),
     queryKey: [QueryKeys.organizationMemberInviteDetail, apiPath, fetchOptions],
+    retry: false,
   })
 }
 
