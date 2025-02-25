@@ -7,10 +7,10 @@ import JSZip from 'jszip'
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
 import omnivore from '@mapbox/leaflet-omnivore'
-import L, { type LayerGroup } from 'leaflet' // TODO: does this work? D:
+import L, { type LayerGroup } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import 'leaflet.heat/dist/leaflet-heat'
-import 'leaflet.markercluster/dist/leaflet.markercluster'
+import 'leaflet.heat'
+import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 // Partial components
@@ -44,6 +44,7 @@ import type {
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
+import { fetchGetUrl } from 'jsapp/js/api'
 
 const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -79,6 +80,22 @@ interface CustomLayerControl extends L.Control.Layers {
   }>
 }
 
+interface LayerExtended extends L.Layer {
+  feature: {
+    properties: any
+  }
+  _icon: any
+  options: LayerOptionsExtended
+}
+
+interface LayerOptionsExtended extends L.LayerOptions {
+  typeId: any
+}
+
+interface FeatureGroupExtended extends L.FeatureGroup {
+  eachLayer: (fn: (layer: LayerExtended) => void, context?: any) => this
+}
+
 const controls: CustomLayerControl = L.control.layers(baseLayers) as CustomLayerControl
 
 type MarkerMap = Array<{
@@ -92,6 +109,21 @@ interface MapValueCounts {
   [key: string]: { count: number; id: number }
 }
 
+// Function to validate GeoJSON object
+function isValidGeoJSON(geojson: any): boolean {
+  return (
+    typeof geojson === 'object' &&
+    geojson !== null &&
+    geojson.type === 'FeatureCollection' &&
+    Array.isArray(geojson.features) &&
+    geojson.features.length > 0
+  )
+}
+
+const OVERLAY_ERROR = t('Error loading overlay layer "##name##"')
+const OVERLAY_ERROR_INVALID_GEOJSON = t('Error loading overlay layer "##name##" (invalid GeoJSON)')
+const OVERLAY_ERROR_OMNIVORE = t('Error loading overlay layer "##name##" (omnivore error)')
+
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
   // TODO: describe what this is
@@ -103,7 +135,7 @@ interface FormMapProps extends WithRouterProps {
 interface FormMapState {
   // TODO: see if AI produced good state types
   map: L.Map | undefined
-  markers: L.FeatureGroup | undefined
+  markers: FeatureGroupExtended | undefined
   heatmap: L.HeatLayer | undefined
   markersVisible: boolean
   markerMap?: MarkerMap
@@ -217,10 +249,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     // remove layers from controls if they are no longer in asset files
     controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
-        const layerMatch = data.results.filter(
-          // TODO: there is no `name` in AssetFileResponse. Should this be `description`?
-          (result) => result.description === controlLayer.name,
-        )
+        const layerMatch = data.results.filter((result) => result.description === controlLayer.name)
         if (!layerMatch.length) {
           controls.removeLayer(controlLayer.layer)
           map?.removeLayer(controlLayer.layer)
@@ -248,7 +277,32 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           break
         case 'json':
         case 'geojson':
-          overlayLayer = omnivore.geojson(layer.content)
+          try {
+            console.log('xxx geojson start')
+            fetchGetUrl<string>(layer.content)
+              .then((response) => {
+                console.log('xxx response', response)
+                console.log('xxx isValidGeoJSON(response)', isValidGeoJSON(response))
+                if (isValidGeoJSON(response)) {
+                  overlayLayer = omnivore
+                    .geojson(layer.content)
+                    .on('error', () => {
+                      notify('error', OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
+                    })
+                    .on('ready', (foo: any) => {
+                      console.log('xxx omnivore geojson ready', foo)
+                    })
+                } else {
+                  notify('error', OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
+                }
+              })
+              .catch(() => {
+                notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+              })
+          } catch (err) {
+            console.log('xxx err', { err, layer })
+            notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+          }
           break
         case 'wkt':
           overlayLayer = omnivore.wkt(layer.content)
@@ -276,25 +330,38 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                 overlayLayer.addTo(map)
               }
             })
+            .catch(function error() {
+              notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+            })
           break
       }
 
       if (overlayLayer && map) {
-        overlayLayer.on('ready', () => {
-          overlayLayer?.eachLayer((l) => {
-            const fprops = l.feature.properties
-            const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
-            if (name) {
-              l.bindPopup(name)
-            } else {
-              // when no name or title, load full list of feature's properties
-              l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
-            }
+        overlayLayer
+          .on('ready', () => {
+            overlayLayer?.eachLayer((l) => {
+              const fprops = (l as LayerExtended).feature.properties
+              const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
+              if (name) {
+                l.bindPopup(name)
+              } else {
+                // when no name or title, load full list of feature's properties
+                l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
+              }
+            })
           })
-        })
-        controls.addOverlay(overlayLayer, layer.description)
-        overlayLayer.addTo(map)
+          .on('error', () => {
+            notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+          })
+        if (isValidGeoJSON(overlayLayer.toGeoJSON())) {
+          controls.addOverlay(overlayLayer, layer.description)
+          overlayLayer.addTo(map)
+        } else {
+          notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
+        }
       }
+      // Avoid TS complaining
+      return
     })
   }
 
@@ -543,7 +610,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         this.setState({ noData: true })
       }
       this.setState({
-        markers: markers,
+        markers: markers as FeatureGroupExtended,
       })
     } else {
       this.setState({ error: t('Error: could not load data.') })
@@ -783,7 +850,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.setState({ filteredByMarker: filteredByMarker })
-    markers?.eachLayer(function (layer) {
+    markers?.eachLayer((layer) => {
       if (!filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.add(unselectedClass)
       } else {
@@ -1008,7 +1075,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         )}
         {!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />}
         {this.state.showMapSettings && (
-          <Modal open onClose={this.toggleMapSettings} title={t('Map Settings')}>
+          <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings
               asset={this.props.asset}
               toggleMapSettings={this.toggleMapSettings.bind(this)}

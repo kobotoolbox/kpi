@@ -6,11 +6,8 @@ declare module '@mapbox/leaflet-omnivore' {
   // This seems to be this weird object that is both a function and an object
   // with properties.
   interface OmnivoreFunction extends Function {
-    (type: string): LayerGroup
+    (url: string, options?: any, layer?: LayerGroup | FeatureGroup): LayerGroup
     parse: (type: string) => LayerGroup
-    url: string
-    options?: any
-    layer?: LayerGroup | FeatureGroup
   }
 
   interface Omnivore {
