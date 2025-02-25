@@ -1,16 +1,18 @@
 import React from 'react'
 import bem from 'js/bem'
 
-// see kobo.map.marker-colors.scss for styling details of each set
-const COLOR_SETS = ['a', 'b', 'c', 'd', 'e']
+export type ColorSetName = 'a' | 'b' | 'c' | 'd' | 'e'
+
+/** see `kobo.map.marker-colors.scss` for styling details of each set */
+const COLOR_SETS: ColorSetName[] = ['a', 'b', 'c', 'd', 'e']
 
 interface MapColorPickerProps {
   mapSettings: any
-  onChange: (colorSet: string) => void
+  onChange: (colorSet: ColorSetName) => void
 }
 
 interface MapColorPickerState {
-  selected: string
+  selected: ColorSetName
 }
 
 export default class MapColorPicker extends React.Component<MapColorPickerProps, MapColorPickerState> {
@@ -22,18 +24,16 @@ export default class MapColorPicker extends React.Component<MapColorPickerProps,
     }
   }
 
-  onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    this.props.onChange(e.currentTarget.value)
-    this.setState({
-      selected: e.currentTarget.value,
-    })
+  onChange(newSelectedSet: ColorSetName) {
+    this.props.onChange(newSelectedSet)
+    this.setState({ selected: newSelectedSet })
   }
 
-  defaultValue(set) {
+  defaultValue(set: ColorSetName) {
     return this.state.selected === set
   }
 
-  colorRows(set, length = 10) {
+  colorRows(set: ColorSetName, length = 10) {
     let colorRows = []
     for (let i = 1; i < length; i++) {
       colorRows.push(<span key={i} className={`map-marker map-marker-${set}${i}`} />)
@@ -42,7 +42,7 @@ export default class MapColorPicker extends React.Component<MapColorPickerProps,
   }
 
   render() {
-    var radioButtons = COLOR_SETS.map(function (set, index) {
+    var radioButtons = COLOR_SETS.map((set, index) => {
       let length = 10
       let label: string | undefined
       if (set === 'a') {
@@ -66,14 +66,16 @@ export default class MapColorPicker extends React.Component<MapColorPickerProps,
               name='chart_colors'
               value={set}
               checked={this.defaultValue(set)}
-              onChange={this.onChange.bind(this)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                this.onChange(e.currentTarget.value as ColorSetName)
+              }}
               id={'c-' + index}
             />
             <label htmlFor={'c-' + index}>{this.colorRows(set, length)}</label>
           </bem.GraphSettings__radio>
         </bem.FormModal__item>
       )
-    }, this)
+    })
 
     return <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
   }
