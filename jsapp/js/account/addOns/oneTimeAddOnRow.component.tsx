@@ -96,31 +96,33 @@ export const OneTimeAddOnRow = ({
   }
 
   const priceTableCells = (
-    <>
+    <div className={styles.purchase}>
       <div className={styles.oneTimePrice}>
         {selectedPrice.recurring?.interval === 'year' ? selectedPrice.human_readable_price : displayPrice}
       </div>
-      <div className={styles.buy}>
-        {isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label={t('Manage')}
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickManage}
-            isFullWidth
-          />
-        )}
-        {!isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label={t('Buy now')}
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickBuy}
-            isFullWidth
-          />
-        )}
+      <div className={styles.buyContainer}>
+        <div className={styles.buy}>
+          {isSubscribedAddOnPrice && (
+            <BillingButton
+              size={'m'}
+              label={t('Manage')}
+              isDisabled={Boolean(selectedPrice) && isBusy}
+              onClick={onClickManage}
+              isFullWidth
+            />
+          )}
+          {!isSubscribedAddOnPrice && (
+            <BillingButton
+              size={'m'}
+              label={t('Buy now')}
+              isDisabled={Boolean(selectedPrice) && isBusy}
+              onClick={onClickBuy}
+              isFullWidth
+            />
+          )}
+        </div>
       </div>
-    </>
+    </div>
   )
 
   return (
