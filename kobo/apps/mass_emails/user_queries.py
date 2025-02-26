@@ -4,64 +4,13 @@ from django.apps import apps
 from django.conf import settings
 from django.db.models import F, IntegerField, Max, Q, Sum, Window
 from django.db.models.functions import Cast, Coalesce
-from djstripe.models.core import Product
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.types import UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
-
-
-def get_active_subscription_storage_limit_by_owner(
-    owner_ids: list[int] = None,
-) -> dict[str, dict]:
-    """
-    Get the storage limit for all active paid subscriptions by org owner.
-    If an org has multiple, use the one with the earliest start date.
-    Example value:
-    1: {'limit': '100000000', 'product_type':'plan'}
-    """
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if owner_ids is not None:
-        orgs = orgs.filter(owner__organization_user__user__in=owner_ids)
-    all_owner_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
-        )
-        .values(
-            owner_user_id=F('owner__organization_user__user'),
-            # prefer price metadata over product metadata
-            limit=Coalesce(
-                F(
-                    'djstripe_customers__subscriptions__items__price__metadata__storage_bytes_limit'
-                ),
-                F(
-                    'djstripe_customers__subscriptions__items__price__product__metadata__storage_bytes_limit'
-                ),
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-            product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'
-            ),
-        )
-        .annotate(
-            # find the one with the earliest start date
-            earliest=Window(
-                expression=Max('start_date'),
-                partition_by=F('owner_user_id'),
-                order_by='owner_user_id',
-            )
-        )
-        .filter(Q(start_date=F('earliest')))
-    )
-
-    return {
-        res['owner_user_id']: {
-            'limit': res['limit'],
-            'product_type': res['product_type'],
-        }
-        for res in all_owner_plans
-    }
+from kobo.apps.stripe.utils import get_organization_plan_limits
 
 
 def get_storage_limit_addons_by_user(owner_ids: list[int] = None):
@@ -98,9 +47,11 @@ def get_storage_limit_addons_by_user(owner_ids: list[int] = None):
 
 
 def get_total_storage_limits_by_org_owner():
-    all_owner_plans = get_active_subscription_storage_limit_by_owner()
+    all_owner_plans = get_organization_plan_limits(usage_type='storage')
     all_storage_add_ons = get_storage_limit_addons_by_user()
     # find the storage limit for the default (ie free) plan
+    from djstripe.models.core import Product
+
     default_plan_storage_limit = (
         Product.objects.filter(
             prices__unit_amount=0, prices__recurring__interval='month'

@@ -1,11 +1,11 @@
 from math import ceil, floor, inf
 
 from django.conf import settings
-from django.db.models import F
-
+from django.db.models import F, IntegerField, Max, Q, Sum, Window
+from django.db.models.functions import Cast, Coalesce
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
+from kobo.apps.stripe.constants import USAGE_LIMIT_MAP, ACTIVE_STRIPE_STATUSES
 
 
 def generate_return_url(product_metadata):
@@ -25,6 +25,67 @@ def get_default_add_on_limits():
         'mt_characters_limit': 0,
     }
 
+def get_organization_plan_limits(organizations: list[Organization], usage_type: UsageType):
+    orgs = Organization.objects.prefetch_related('djstripe_customers')
+    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+    if organizations is not None:
+        orgs = orgs.filter(id__in=[org.id for org in organizations])
+    all_owner_plans = (
+        orgs.filter(
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
+        )
+        .values(
+            org_id=F('id'),
+            # prefer price metadata over product metadata
+            limit=Coalesce(
+                F(
+                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'
+                ),
+                F(
+                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'
+                ),
+            ),
+            start_date=F('djstripe_customers__subscriptions__start_date'),
+            product_type=F(
+                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'
+            ),
+        )
+        .annotate(
+            # find the one with the earliest start date
+            earliest=Window(
+                expression=Max('start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(Q(start_date=F('earliest')) | (Q(start_date__isnull=True) & Q(earliest__isnull=True)))
+    )
+    subscriptions = {
+        res['org_id']:  res['limit']
+        for res in all_owner_plans if not (res['product_type'] == 'addon' and res['limit'] is None)
+    }
+    from djstripe.models.core import Product
+
+    # Anyone who does not have a subscription is on the free tier plan by default
+    default_plan = (
+        Product.objects.filter(
+            prices__unit_amount=0, prices__recurring__interval='month'
+        )
+        .values(limit=F(f'metadata__{limit_key}'))
+        .first()
+    )
+    default_limit = default_plan['limit'] if default_plan else 'unlimited'
+
+    def get_limit(org):
+        limit = subscriptions.get(org.id, default_limit)
+        if limit == 'unlimited':
+            limit = inf
+        else:
+            limit = int(limit)
+        return limit
+
+    return { org.id: get_limit(org) for org in organizations}
+
 
 def get_organization_plan_limit(
     organization: Organization, usage_type: UsageType
@@ -34,53 +95,7 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    if not settings.STRIPE_ENABLED:
-        return inf
-
-    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-
-    relevant_limit = None
-    subscription = organization.active_subscription_billing_details()
-    use_default_plan_limit = False
-
-    if subscription is None:
-        use_default_plan_limit = True
-    else:
-        price_metadata = subscription.get('price_metadata', {})
-        product_metadata = subscription.get('product_metadata', {})
-        price_limit = price_metadata.get(limit_key) if price_metadata else None
-        product_limit = product_metadata.get(limit_key) if product_metadata else None
-        if (
-            product_metadata.get('product_type') == 'addon'
-            and price_limit is None
-            and product_limit is None
-        ):
-            use_default_plan_limit = True
-        else:
-            relevant_limit = price_limit or product_limit
-
-    if use_default_plan_limit:
-        from djstripe.models.core import Product
-
-        # Anyone who does not have a subscription is on the free tier plan by default
-        default_plan = (
-            Product.objects.filter(
-                prices__unit_amount=0, prices__recurring__interval='month'
-            )
-            .values(limit=F(f'metadata__{limit_key}'))
-            .first()
-        )
-
-        if default_plan:
-            relevant_limit = default_plan['limit']
-
-    if relevant_limit == 'unlimited':
-        return inf
-
-    if relevant_limit:
-        return int(relevant_limit)
-
-    return inf
+    return get_organization_plan_limits([organization], usage_type)[organization.id]
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):

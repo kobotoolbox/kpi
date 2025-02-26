@@ -13,7 +13,7 @@ USER_QUERIES: dict[str, Callable] = {
     'over_100_storage_bytes': get_users_with_100_storage,
 }
 
-USER_QUERY_CHOICES = {name: name.lower() for name in USER_QUERIES.keys()}
+USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 
 
 class EmailStatus(models.TextChoices):
