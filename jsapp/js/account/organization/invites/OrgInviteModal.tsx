@@ -88,7 +88,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let title: React.ReactNode = null
 
   // Case 1: loading data.
-  if (orgMemberInviteQuery.isLoading || awaitingDataRefresh) {
+  if (orgMemberInviteQuery.isLoading) {
     content = <LoadingSpinner />
   }
   // Case 2: failed to get the invitation data from API.
@@ -139,7 +139,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     content = <Alert type='error'>{miscError}</Alert>
   }
   // Case 3: got the invite, its status is pending, so we display form
-  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
+  // We also continue displaying this content while we wait for data to refresh following acceptance
+  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending || awaitingDataRefresh) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
       orgName,
@@ -162,7 +163,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='light'
             size='lg'
             onClick={handleDeclineInvite}
-            loading={userResponseType === MemberInviteStatus.declined && patchMemberInvite.isPending}
+            loading={userResponseType === MemberInviteStatus.declined}
           >
             {t('Decline')}
           </Button>
@@ -171,7 +172,9 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='filled'
             size='lg'
             onClick={handleAcceptInvite}
-            loading={userResponseType === MemberInviteStatus.accepted && patchMemberInvite.isPending}
+            // We don't use RQ loading state here because we also want spinner to display during
+            // timeout while we give backend time for data transfer
+            loading={userResponseType === MemberInviteStatus.accepted}
           >
             {t('Accept')}
           </Button>
