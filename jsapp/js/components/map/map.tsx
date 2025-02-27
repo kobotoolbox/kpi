@@ -471,7 +471,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
               .then((response) => {
                 if (isValidGeoJSON(JSON.stringify(response))) {
                   overlayLayer = omnivore
-                    // TODO: should this be .parse?
+                    // We have already loaded file content, but unfortunately omnivore doesn't support parsing JSON
+                    // strings for GeoJSON (it does support most of other types though…). So unfortunately we need to
+                    // make it load the file second time (`.geojson` does a call to fetch URL)
                     .geojson(layer.content)
                     .on('error', () => {
                       notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
@@ -483,7 +485,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                   notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
                 }
               })
-              .catch(() => {
+              .catch((err) => {
+                console.error(err)
                 notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 1')
               })
           } catch (err) {
