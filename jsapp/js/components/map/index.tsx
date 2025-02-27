@@ -55,7 +55,7 @@ import PopoverMenu from 'js/popoverMenu'
 import Modal from 'js/components/common/modal'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import CenteredMessage from 'js/components/common/centeredMessage.component'
-import MapSettings from './FormMapSettings'
+import MapSettings from './MapSettings'
 
 // Stores, hooks and utilities
 import { dataInterface } from 'js/dataInterface'
