@@ -102,6 +102,7 @@ class Organization(AbstractOrganization):
                 product_metadata=F(
                     'djstripe_customers__subscriptions__items__price__product__metadata'
                 ),
+                price_id=F('djstripe_customers__subscriptions__items__price__id'),
                 price_metadata=F(
                     'djstripe_customers__subscriptions__items__price__metadata'
                 ),

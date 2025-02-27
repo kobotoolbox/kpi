@@ -1,8 +1,11 @@
+from django.conf import settings
 from django.contrib import admin, messages
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
+if settings.STRIPE_ENABLED:
+    from djstripe.models import Price
 
 from kobo.apps.kobo_auth.shortcuts import User
 
@@ -17,8 +20,8 @@ from .organization_user import OrgUserInline, max_users_for_edit_mode
 class OrgAdmin(BaseOrganizationAdmin):
     inlines = [OwnerInline, OrgUserInline]
     view_on_site = False
-    readonly_fields = ['id']
-    fields = ['id', 'name', 'mmo_override']
+    readonly_fields = ['id', 'subscription_plan']
+    fields = ['id', 'name', 'mmo_override', 'subscription_plan']
     search_fields = ['name']
 
     # parent overrides
@@ -67,6 +70,14 @@ class OrgAdmin(BaseOrganizationAdmin):
 
                 if deleted_user_ids:
                     revoke_org_asset_perms(form.instance, deleted_user_ids)
+
+    def subscription_plan(self, obj):
+        sub_details = obj.active_subscription_billing_details()
+        if sub_details:
+            price = Price.objects.get(id=sub_details['price_id'])
+            return price
+
+        return None
 
     def _delete_previous_organizations(
         self, new_members: 'QuerySet', organization_id: int
