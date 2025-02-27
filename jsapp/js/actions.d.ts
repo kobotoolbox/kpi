@@ -1,7 +1,7 @@
 /**
-* NOTE: all the actions groups definitions are both functions and objects with
-* nested functions.
-*/
+ * NOTE: all the actions groups definitions are both functions and objects with
+ * nested functions.
+ */
 
 interface GenericDefinition extends Function {
   (a?: any, b?: any, c?: any, d?: any): void
@@ -135,13 +135,13 @@ interface RemoveSubmissionValidationStatusDefinition extends Function {
 }
 
 interface ResourcesGetAssetFilesDefinition extends Function {
-  (assetId: string, fileType: AssetFileType): void;
-  completed: ResourcesGetAssetFilesCompletedDefinition;
-  failed: GenericFailedDefinition;
+  (assetId: string, fileType: AssetFileType): void
+  completed: ResourcesGetAssetFilesCompletedDefinition
+  failed: GenericFailedDefinition
 }
 interface ResourcesGetAssetFilesCompletedDefinition extends Function {
-  (response: PaginatedResponse<AssetFileResponse>): void;
-  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function;
+  (response: PaginatedResponse<AssetFileResponse>): void
+  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
 }
 
 interface DuplicateSubmissionDefinition extends Function {
@@ -204,11 +204,11 @@ interface ReportsSetCustomCompletedDefinition extends Function {
 }
 
 interface MapSetMapStylesDefinition extends Function {
-  (assetUid: string, newMapSettings: AssetMapStyles): void;
-  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function;
-  started: MapSetMapStylesStartedDefinition;
-  completed: GenericCallbackDefinition;
-  failed: GenericFailedDefinition;
+  (assetUid: string, newMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
+  started: MapSetMapStylesStartedDefinition
+  completed: GenericCallbackDefinition
+  failed: GenericFailedDefinition
 }
 
 interface HooksGetLogsDefinition extends Function {
@@ -242,91 +242,91 @@ interface HooksGetLogsCompletedDefinition extends Function {
 // for now we are defining only the ones we need.
 export namespace actions {
   const navigation: {
-    routeUpdate: GenericCallbackDefinition;
-  };
+    routeUpdate: GenericCallbackDefinition
+  }
   const auth: {
     verifyLogin: {
-      loggedin: GenericCallbackDefinition;
-    };
-    changePassword: GenericDefinition;
-  };
-  const survey: object;
-  const search: object;
+      loggedin: GenericCallbackDefinition
+    }
+    changePassword: GenericDefinition
+  }
+  const survey: object
+  const search: object
   const resources: {
-    createImport: GenericDefinition;
-    loadAsset: LoadAssetDefinition;
-    deployAsset: GenericDefinition;
-    setDeploymentActive: GenericDefinition;
-    createSnapshot: GenericDefinition;
-    cloneAsset: GenericDefinition;
-    deleteAsset: DeleteAssetDefinition;
-    listTags: GenericDefinition;
-    createResource: GenericDefinition;
-    updateAsset: UpdateAssetDefinition;
-    updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition;
-    removeSubmissionValidationStatus: RemoveSubmissionValidationStatusDefinition;
-    deleteSubmission: GenericDefinition;
-    duplicateSubmission: DuplicateSubmissionDefinition;
-    refreshTableSubmissions: GenericDefinition;
-    getAssetFiles: ResourcesGetAssetFilesDefinition;
-  };
+    createImport: GenericDefinition
+    loadAsset: LoadAssetDefinition
+    deployAsset: GenericDefinition
+    setDeploymentActive: GenericDefinition
+    createSnapshot: GenericDefinition
+    cloneAsset: GenericDefinition
+    deleteAsset: DeleteAssetDefinition
+    listTags: GenericDefinition
+    createResource: GenericDefinition
+    updateAsset: UpdateAssetDefinition
+    updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
+    removeSubmissionValidationStatus: RemoveSubmissionValidationStatusDefinition
+    deleteSubmission: GenericDefinition
+    duplicateSubmission: DuplicateSubmissionDefinition
+    refreshTableSubmissions: GenericDefinition
+    getAssetFiles: ResourcesGetAssetFilesDefinition
+  }
   const hooks: {
-    add: GenericDefinition;
-    update: GenericDefinition;
-    delete: GenericDefinition;
-    getAll: GenericDefinition;
-    getLogs: HooksGetLogsDefinition;
-    retryLog: GenericDefinition;
-    retryLogs: GenericDefinition;
-  };
+    add: GenericDefinition
+    update: GenericDefinition
+    delete: GenericDefinition
+    getAll: GenericDefinition
+    getLogs: HooksGetLogsDefinition
+    retryLog: GenericDefinition
+    retryLogs: GenericDefinition
+  }
   const misc: {
-    getUser: GetUserDefinition;
-  };
+    getUser: GetUserDefinition
+  }
   const reports: {
-    setStyle: ReportsSetStyleDefinition;
-    setCustom: ReportsSetCustomDefinition;
-  };
+    setStyle: ReportsSetStyleDefinition
+    setCustom: ReportsSetCustomDefinition
+  }
   const table: {
-    updateSettings: TableUpdateSettingsDefinition;
-  };
+    updateSettings: TableUpdateSettingsDefinition
+  }
   const map: {
-    setMapStyles: MapSetMapStylesDefinition;
-  };
+    setMapStyles: MapSetMapStylesDefinition
+  }
   const permissions: {
-    getConfig: GenericDefinition;
-    copyPermissionsFrom: GenericDefinition;
-    removeAssetPermission: GenericDefinition;
-    assignAssetPermission: GenericDefinition;
-    bulkSetAssetPermissions: GenericDefinition;
-    getAssetPermissions: GenericDefinition;
-    setAssetPublic: SetAssetPublicDefinition;
-  };
+    getConfig: GenericDefinition
+    copyPermissionsFrom: GenericDefinition
+    removeAssetPermission: GenericDefinition
+    assignAssetPermission: GenericDefinition
+    bulkSetAssetPermissions: GenericDefinition
+    getAssetPermissions: GenericDefinition
+    setAssetPublic: SetAssetPublicDefinition
+  }
   const help: {
-    getInAppMessages: GenericDefinition;
-    setMessageAcknowledged: GenericDefinition;
-    setMessageReadTime: GenericDefinition;
-  };
-  const library: any;
+    getInAppMessages: GenericDefinition
+    setMessageAcknowledged: GenericDefinition
+    setMessageReadTime: GenericDefinition
+  }
+  const library: any
   const submissions: {
-    getSubmission: GetSubmissionDefinition;
-    getSubmissionByUuid: GetSubmissionDefinition;
-    getSubmissions: GetSubmissionsDefinition;
-    getProcessingSubmissions: GetProcessingSubmissionsDefinition;
-    bulkDeleteStatus: GenericDefinition;
-    bulkPatchStatus: GenericDefinition;
-    bulkPatchValues: GenericDefinition;
-    bulkDelete: GenericDefinition;
-  };
-  const media: object;
+    getSubmission: GetSubmissionDefinition
+    getSubmissionByUuid: GetSubmissionDefinition
+    getSubmissions: GetSubmissionsDefinition
+    getProcessingSubmissions: GetProcessingSubmissionsDefinition
+    bulkDeleteStatus: GenericDefinition
+    bulkPatchStatus: GenericDefinition
+    bulkPatchValues: GenericDefinition
+    bulkDelete: GenericDefinition
+  }
+  const media: object
   const exports: {
-    getExport: GetExportDefinition;
-    getExports: GenericDefinition;
-    createExport: GenericDefinition;
-    deleteExport: GenericDefinition;
-    getExportSettings: GetExportSettingsDefinition;
-    updateExportSetting: GenericDefinition;
-    createExportSetting: GenericDefinition;
-    deleteExportSetting: GenericDefinition;
-  };
-  const dataShare: object;
+    getExport: GetExportDefinition
+    getExports: GenericDefinition
+    createExport: GenericDefinition
+    deleteExport: GenericDefinition
+    getExportSettings: GetExportSettingsDefinition
+    updateExportSetting: GenericDefinition
+    createExportSetting: GenericDefinition
+    deleteExportSetting: GenericDefinition
+  }
+  const dataShare: object
 }
