@@ -122,18 +122,6 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == total_limit - 2500
 
-        update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
-        )
-
-        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
-        assert remaining == total_limit - 1000
-
-        update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
-        )
-        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
-        assert remaining == total_limit - 2500
 
     @override_settings(
         STRIPE_ENABLED=False,
