@@ -6,8 +6,14 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
-USER_QUERIES: dict[str, Callable] = {}
-USER_QUERY_CHOICES = {name: name.lower() for name in USER_QUERIES.keys()}
+from .user_queries import get_users_with_90_storage, get_users_with_100_storage
+
+USER_QUERIES: dict[str, Callable] = {
+    'over_90_storage_bytes': get_users_with_90_storage,
+    'over_100_storage_bytes': get_users_with_100_storage,
+}
+
+USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 
 
 class EmailStatus(models.TextChoices):

@@ -127,6 +127,8 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         generate_mmo_subscription(self.organization)
 
         first_response = self.client.get(self.detail_url)
+        print(f'{first_response=}')
+        print(f'{first_response.data}')
         assert (
             first_response.data['total_submission_count']['current_period']
             == self.expected_submissions_multi
