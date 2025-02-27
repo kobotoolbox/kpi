@@ -330,7 +330,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                       type='radio'
                       name='trnsltn'
                       value={question.value}
-                      onChange={this.onGeoPointQuestionChange}
+                      onChange={this.onGeoPointQuestionChange.bind(this)}
                       checked={this.state.mapSettings.selectedQuestion === question.value ? true : false}
                       id={'GeopointQuestion-' + i}
                     />
@@ -387,7 +387,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
               <bem.FormModal__item>
                 <div className='map-settings__colors'>
                   {t('Choose the color set for the disaggregated map markers.')}
-                  <MapColorPicker onChange={this.onColorChange} mapSettings={this.state.mapSettings} />
+                  <MapColorPicker onChange={this.onColorChange.bind(this)} mapSettings={this.state.mapSettings} />
                 </div>
               </bem.FormModal__item>
             )}
@@ -409,7 +409,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
                       min={QUERY_LIMIT_MINIMUM}
                       max={QUERY_LIMIT_MAXIMUM}
                       value={queryLimit}
-                      onChange={this.onQueryLimitChange}
+                      onChange={this.onQueryLimitChange.bind(this)}
                     />
                     <output id='limit-slider-value' className='change-limit-slider-value' htmlFor='limit-slider'>
                       {queryLimit}
