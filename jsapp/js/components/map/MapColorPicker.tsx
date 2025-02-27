@@ -1,13 +1,12 @@
 import React from 'react'
 import bem from 'js/bem'
-
-export type ColorSetName = 'a' | 'b' | 'c' | 'd' | 'e'
+import type { AssetMapStyles, ColorSetName } from 'jsapp/js/dataInterface'
 
 /** see `kobo.map.marker-colors.scss` for styling details of each set */
 const COLOR_SETS: ColorSetName[] = ['a', 'b', 'c', 'd', 'e']
 
 interface MapColorPickerProps {
-  mapSettings: any
+  mapSettings: AssetMapStyles
   onChange: (colorSet: ColorSetName) => void
 }
 

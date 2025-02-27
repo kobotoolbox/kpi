@@ -8,7 +8,7 @@ import cx from 'classnames'
 import bem from 'js/bem'
 import Modal from 'js/components/common/modal'
 import Button from 'js/components/common/button'
-import MapColorPicker, { type ColorSetName } from 'js/components/map/MapColorPicker'
+import MapColorPicker from 'js/components/map/MapColorPicker'
 
 // Stores, hooks and utilities
 import { actions } from 'js/actions'
@@ -26,6 +26,7 @@ import type {
   FailResponse,
   LabelValuePair,
   PaginatedResponse,
+  ColorSetName,
 } from 'js/dataInterface'
 
 enum MapSettingsTabNames {

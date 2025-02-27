@@ -85,14 +85,15 @@ interface CustomLayerControl extends L.Control.Layers {
 
 interface LayerExtended extends L.Layer {
   feature: {
-    properties: any
+    // This is coming from the external file, so we should expect anything
+    properties: { [key: string]: any }
   }
-  _icon: any
+  _icon: HTMLImageElement
   options: LayerOptionsExtended
 }
 
 interface LayerOptionsExtended extends L.LayerOptions {
-  typeId: any
+  typeId: number
 }
 
 interface FeatureGroupExtended extends L.FeatureGroup {
@@ -102,8 +103,8 @@ interface FeatureGroupExtended extends L.FeatureGroup {
 type MarkerMap = Array<{
   count: number
   id: number
-  labels: any
-  value: any
+  labels: string[] | undefined
+  value: string | undefined
 }>
 
 interface MapValueCounts {
@@ -323,7 +324,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           // KMZ files are zipped KMLs, therefore we need to unzip the KMZ file in the browser and then feed
           // the resulting text to map and controls
           fetch(layer.content)
-            .then(function (response) {
+            .then((response) => {
               if (response.status === 200 || response.status === 0) {
                 return Promise.resolve(response.blob())
               } else {
@@ -331,9 +332,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
               }
             })
             .then(JSZip.loadAsync)
-            .then(function (zip) {
-              return zip.file('doc.kml')?.async('string')
-            })
+            .then((zip) => zip.file('doc.kml')?.async('string'))
             .then((kmlContent) => {
               if (kmlContent && this.state.map) {
                 // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
@@ -414,7 +413,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     // See: https://github.com/kobotoolbox/kpi/issues/3913
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
-    this.props.asset.content?.survey?.forEach(function (row) {
+    this.props.asset.content?.survey?.forEach((row) => {
       if (
         typeof row.label !== 'undefined' &&
         row.label !== null &&
@@ -511,7 +510,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         currentQuestionChoices = choices.filter((ch) => ch.list_name === question.select_from_list_name)
       }
 
-      Object.keys(mapMarkers).map(function (m) {
+      Object.keys(mapMarkers).map((m) => {
         let choice
         if (question && question.type === 'select_one') {
           choice = currentQuestionChoices.find((ch) => ch.name === m || ch.$autoname === m)
@@ -527,16 +526,14 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       if (colorSet !== undefined && colorSet !== 'a' && question && question.type === 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
-        mM.sort(function (a, b) {
+        mM.sort((a, b) => {
           const aIndex = currentQuestionChoices.findIndex((ch) => ch.name === a.value)
           const bIndex = currentQuestionChoices.findIndex((ch) => ch.name === b.value)
           return aIndex - bIndex
         })
       } else {
         // sort by occurrence count
-        mM.sort(function (a, b) {
-          return a.count - b.count
-        }).reverse()
+        mM.sort((a, b) => a.count - b.count).reverse()
       }
 
       // move elements with no data in submission for the disaggregated question to end of marker list
@@ -599,7 +596,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers = L.markerClusterGroup({
           maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
-          iconCreateFunction: function (cluster) {
+          iconCreateFunction: (cluster) => {
             const childCount = cluster.getChildCount()
 
             let markerClass = 'marker-cluster marker-cluster-'
@@ -812,7 +809,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
     const td = this.state.submissions
     const ids: number[] = []
-    td.forEach(function (r) {
+    td.forEach((r) => {
       ids.push(r._id)
     })
 
@@ -886,7 +883,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   resetFilterByMarker() {
     const markers = this.state.markers
     this.setState({ filteredByMarker: undefined })
-    markers?.eachLayer(function (layer) {
+    markers?.eachLayer((layer) => {
       layer._icon.classList.remove('unselected')
     })
   }
@@ -921,7 +918,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     let label = t('Disaggregate by survey responses')
 
     if (viewby) {
-      fields.forEach(function (f) {
+      fields.forEach((f) => {
         if (viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }

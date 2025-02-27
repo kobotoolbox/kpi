@@ -1042,8 +1042,10 @@ export interface ExportDataResponse {
   }
 }
 
+export type ColorSetName = 'a' | 'b' | 'c' | 'd' | 'e'
+
 export interface AssetMapStyles {
-  colorSet?: string
+  colorSet?: ColorSetName
   querylimit?: string
   selectedQuestion?: string
 }
