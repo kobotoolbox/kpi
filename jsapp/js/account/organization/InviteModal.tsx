@@ -8,9 +8,13 @@ import { OrganizationUserRole } from './organizationQuery'
 import userExistence from 'js/users/userExistence.store'
 import { useField } from '@mantine/form'
 import { checkEmailPattern, notify } from 'js/utils'
+import envStore from 'jsapp/js/envStore'
+import subscriptionStore from 'jsapp/js/account/subscriptionStore'
+import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite()
+  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   const [role, setRole] = useState<string | null>(null)
 
@@ -68,8 +72,8 @@ export default function InviteModal(props: ModalProps) {
       <Stack>
         <Text>
           {t(
-            'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.',
-          )}
+            'Enter the username or email address of the person you wish to invite to your ##TEAM_OR_ORGANIZATION##. They will receive an invitation in their inbox.',
+          ).replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
         </Text>
         <Group align={'flex-start'} w='100%' gap='xs'>
           <TextInput

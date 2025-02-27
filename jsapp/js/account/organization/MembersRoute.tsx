@@ -13,7 +13,10 @@ import { Divider, Group, Stack, Text, Title, Box } from '@mantine/core'
 import InviteModal from 'js/account/organization/InviteModal'
 
 // Stores, hooks and utilities
+import envStore from 'jsapp/js/envStore'
+import subscriptionStore from 'jsapp/js/account/subscriptionStore'
 import { formatDate } from 'js/utils'
+import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
 import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import useOrganizationMembersQuery from './membersQuery'
 import { useDisclosure } from '@mantine/hooks'
@@ -30,6 +33,7 @@ import InviteeActionsDropdown from './InviteeActionsDropdown'
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery()
   const [opened, { open, close }] = useDisclosure(false)
+  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   /**
    * Checks whether object should be treated as organization member or invitee.
@@ -197,7 +201,11 @@ export default function MembersRoute() {
               <Title fw={600} order={5}>
                 {t('Invite members')}
               </Title>
-              <Text>{t('Invite more people to join your team or change their role permissions below.')}</Text>
+              <Text>
+                {t(
+                  'Invite more people to join your ##TEAM_OR_ORGANIZATION## or change their role permissions below.',
+                ).replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
+              </Text>
             </Stack>
 
             <Box>
