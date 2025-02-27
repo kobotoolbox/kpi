@@ -187,7 +187,7 @@ const OVERLAY_ERROR_OMNIVORE = t('Error loading overlay layer "##name##" (omnivo
 
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
-  // TODO: describe what this is
+  /** A question/row name for map to focus on given question data */
   viewby: string
 }
 
@@ -1647,8 +1647,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
-            // TODO: see if this is needed, as previously it was set to nonexisting prop:
-            additionalModifiers={['above']}
             clearPopover={this.state.clearDisaggregatedPopover}
             blurEventDisabled
           >
