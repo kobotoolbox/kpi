@@ -2,6 +2,7 @@
 
 .cell {
   @include mixins.centerRowFlex;
+  height: 100%; // To make it nicely aligned in the Data Table
 }
 
 .textContent {

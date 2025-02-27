@@ -12,12 +12,13 @@ import {
 } from 'js/components/submissions/submissionUtils'
 import type { DisplayResponse } from 'js/components/submissions/submissionUtils'
 import { META_QUESTION_TYPES, QUESTION_TYPES, SCORE_ROW_TYPE, RANK_LEVEL_TYPE } from 'js/constants'
-import type { AnyRowTypeName, QuestionTypeName, MetaQuestionTypeName } from 'js/constants'
+import type { AnyRowTypeName, MetaQuestionTypeName } from 'js/constants'
 import './submissionDataTable.scss'
-import type { AssetResponse, SubmissionResponse } from 'jsapp/js/dataInterface'
+import type { AssetResponse, SubmissionResponse, SubmissionAttachment } from 'jsapp/js/dataInterface'
 import AudioPlayer from 'js/components/common/audioPlayer'
 import { goToProcessing } from 'js/components/processing/routes.utils'
-import { PROCESSING_QUESTION_TYPES } from 'js/components/processing/processingUtils'
+import AttachmentActionsDropdown from './attachmentActionsDropdown.component'
+import DeletedAttachment from './deletedAttachment.component'
 import SimpleTable from 'js/components/common/SimpleTable'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
@@ -31,6 +32,7 @@ interface SubmissionDataTableProps {
   submissionData: SubmissionResponse
   translationIndex: number
   showXMLNames?: boolean
+  onAttachmentDeleted: (attachment: SubmissionAttachment) => void
 }
 
 /**
@@ -189,7 +191,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
   renderPointsData(data: string) {
     const pointsArray: string[][] = data.split(';').map((pointString) => pointString.split(' '))
-
     return (
       <SimpleTable
         head={[t('Point'), t('latitude (x.y °):'), t('longitude (x.y °):'), t('altitude (m):'), t('accuracy (m):')]}
@@ -206,6 +207,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
   renderAttachment(type: AnyRowTypeName | null, filename: string, name: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath)
     if (attachment && attachment instanceof Object) {
+      if (attachment.is_deleted) {
+        return <DeletedAttachment />
+      }
+
       return (
         <>
           {type === QUESTION_TYPES.audio.id && (
@@ -233,6 +238,19 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             <a href={attachment.download_url} target='_blank'>
               {filename}
             </a>
+          )}
+
+          {type !== null && (
+            <AttachmentActionsDropdown
+              asset={this.props.asset}
+              questionType={type}
+              attachmentUrl={attachment.download_url}
+              submissionData={this.props.submissionData}
+              onDeleted={() => {
+                // We're letting know upstream that the attachment was deleted
+                this.props.onAttachmentDeleted(attachment)
+              }}
+            />
           )}
         </>
       )

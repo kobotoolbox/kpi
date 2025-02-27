@@ -8,6 +8,7 @@ import { getFlatQuestionsList } from 'jsapp/js/assetUtils'
 import './formGallery.component.scss'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
+import DeletedAttachment from 'js/components/submissions/deletedAttachment.component'
 
 bem.Gallery = makeBem(null, 'gallery')
 bem.Gallery__wrapper = makeBem(bem.Gallery, 'wrapper')
@@ -115,11 +116,21 @@ export default function FormGallery(props: FormGalleryProps) {
           </bem.GalleryFiltersDates>
         </bem.GalleryFilters>
         <bem.GalleryGrid>
-          {attachments.map((attachment) => (
-            <a key={attachment.id} href={attachment.download_url} target='_blank'>
-              <img src={attachment.download_small_url} alt={attachment.filename} width='150' loading='lazy' />
-            </a>
-          ))}
+          {attachments.map((attachment) => {
+            if (attachment.is_deleted) {
+              return (
+                <span className='gallery-grid-deleted-attachment'>
+                  <DeletedAttachment />
+                </span>
+              )
+            } else {
+              return (
+                <a key={attachment.id} href={attachment.download_url} target='_blank'>
+                  <img src={attachment.download_url} alt={attachment.filename} width='150' loading='lazy' />
+                </a>
+              )
+            }
+          })}
         </bem.GalleryGrid>
         {showLoadMore && (
           <bem.GalleryFooter>
