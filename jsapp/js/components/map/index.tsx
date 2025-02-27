@@ -71,6 +71,8 @@ const BASE_LAYERS = {
   }),
 }
 
+type IconNoValue = '-novalue'
+
 // We need to extend the types (which are not perfect), to make sure the internal properties are accessible. It is true
 // that we should not access those, but this file is quite old, and I am only migrating it to TypeScript without changing.
 interface CustomLayerControl extends L.Control.Layers {
@@ -128,8 +130,6 @@ interface FormMapProps extends WithRouterProps {
   viewby: string
 }
 
-// NOTE: `false` value is being used as a placehholder for `null` or `undefined`
-// in the state. This is some old approach that Penar was doing years ago.
 interface FormMapState {
   map: L.Map | undefined
   markers: FeatureGroupExtended | undefined
@@ -556,15 +556,15 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         if (viewby && mM) {
           const vb = _this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
-          let index: number | '-novalue' = mM.findIndex((m) => m.value === itemId)
+          let index: number | IconNoValue = mM.findIndex((m) => m.value === itemId)
 
           // spread indexes to use full colorset gamut if necessary
           if (colorSet !== undefined && colorSet !== 'a') {
             index = _this.calculateIconIndex(index, mM)
           }
 
-          // TODO: this should work as expected, unless `index` is '-novalue', then I set it to 1.
-          // Previously this was doing `'-novalue' + 1` which is a big WTF.
+          // Previously it was possible that `'-novalue' + 1` would happen resulting in code not knowing what to do.
+          // I've changed it to default to 1 in case `index` is not a number.
           let iconNumber = 1
           if (typeof index === 'number') {
             iconNumber = index + 1
@@ -640,9 +640,10 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
   }
 
-  // TODO: this returns '-novalue' string for some reason, which is strange given that the rest of
-  // the code kinda expects this to always return a number.
-  calculateIconIndex(index: number, mM: MarkerMap): number | '-novalue' {
+  /**
+   * Note: this function sometimes returns IconNoValue string.
+   */
+  calculateIconIndex(index: number, mM: MarkerMap): number | IconNoValue {
     // use neutral color for items with no set value
     if (mM[index] && mM[index].value === undefined) {
       return '-novalue'
@@ -1061,7 +1062,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                   markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
                 }
                 const markerLabel = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set')
-                let index: number | '-novalue' = i
+                let index: number | IconNoValue = i
                 if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
                   index = this.calculateIconIndex(index, this.state.markerMap)
                 }
