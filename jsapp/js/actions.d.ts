@@ -136,13 +136,13 @@ interface RemoveSubmissionValidationStatusDefinition extends Function {
 }
 
 interface ResourcesGetAssetFilesDefinition extends Function {
-  (assetId: string, fileType: AssetFileType): void;
-  completed: ResourcesGetAssetFilesCompletedDefinition;
-  failed: GenericFailedDefinition;
+  (assetId: string, fileType: AssetFileType): void
+  completed: ResourcesGetAssetFilesCompletedDefinition
+  failed: GenericFailedDefinition
 }
 interface ResourcesGetAssetFilesCompletedDefinition extends Function {
-  (response: PaginatedResponse<AssetFileResponse>): void;
-  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function;
+  (response: PaginatedResponse<AssetFileResponse>): void
+  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
 }
 
 interface DuplicateSubmissionDefinition extends Function {
