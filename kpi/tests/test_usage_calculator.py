@@ -111,9 +111,9 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         Submissions assigned to 'anotheruser' by default
         """
         submissions = []
-        v_uid = self.asset.latest_deployed_version.uid
         if asset is None:
             asset = self.asset
+        v_uid = asset.latest_deployed_version.uid
 
         for x in range(count):
             submission = {

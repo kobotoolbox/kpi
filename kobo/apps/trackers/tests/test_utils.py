@@ -85,6 +85,18 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         charge.save()
         return charge
 
+    def test_get_organization_plan_usage(self):
+        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        sub_metadata = {
+            'storage_bytes_limit': '1000000',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        subscription = generate_plan_subscription(
+            self.organization, metadata=sub_metadata
+        )
+        pass
+
     @data('characters', 'seconds')
     def test_organization_nlp_usage_utils(self, usage_type):
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
