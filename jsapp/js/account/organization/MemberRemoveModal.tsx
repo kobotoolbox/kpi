@@ -11,7 +11,7 @@ import { getSimpleMMOLabel } from './organization.utils'
 import envStore from 'jsapp/js/envStore'
 import subscriptionStore from 'jsapp/js/account/subscriptionStore'
 import { useRemoveOrganizationMember } from './membersQuery'
-import { notify } from 'alertifyjs'
+import { notify } from 'js/utils'
 
 interface MemberRemoveModalProps {
   username: string

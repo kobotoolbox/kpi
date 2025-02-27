@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [ 'release/**' ]
+
+jobs:
+  darker:
+    uses: ./.github/workflows/darker.yml
+
+  pytest:
+    uses: ./.github/workflows/pytest.yml
+
+  npm-test:
+    uses: ./.github/workflows/npm-test.yml
+
+  on-failure:
+    runs-on: ubuntu-22.04
+    if: ${{ always() && (needs.darker.result == 'failure' || needs.darker.result == 'timed_out' || needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' || needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out') }}
+    needs:
+      - darker
+      - pytest
+      - npm-test
+    steps:
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: "Github Actions (releases)"
+        content: ":warn: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits[0].message) }}](${{ github.event.compare }})"

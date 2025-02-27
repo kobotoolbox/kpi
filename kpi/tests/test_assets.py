@@ -14,7 +14,7 @@ from rest_framework import serializers, status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
-from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase
@@ -922,6 +922,7 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.thirduser = User.objects.create_user(
             username='thirduser', password='thirduser'
         )
+        self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.asset_detail_url = lambda uid: reverse(
             self._get_endpoint('asset-detail'),
             kwargs={'uid': uid}
@@ -930,12 +931,13 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('project-ownership-invite-detail'),
             kwargs={'uid': uid}
         )
+        self.org_assets_list_url = lambda org_id: reverse(
+            self._get_endpoint('organizations-assets'),
+            kwargs={'id': org_id}
+        )
 
-    def _add_user_to_organization(self, user):
-        org_user = OrganizationUser.objects.get(user=user)
-        Organization.objects.filter(organization_users=org_user).delete()
-        org_user.organization = self.organization
-        org_user.save()
+    def _add_user_to_organization(self, user, organization):
+        organization.add_user(user)
 
         # Transfer the ownership of the user's assets to the organization
         transfer_member_data_ownership_to_org(user.pk)
@@ -957,7 +959,7 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.assertNotIn('is_excluded_from_projects_list', response.data)
 
         # 2. Add external user to the org and transfer the asset ownership
-        self._add_user_to_organization(self.external_user)
+        self._add_user_to_organization(self.external_user, self.organization)
 
         # Refresh asset instance and verify the flag is now True
         asset.refresh_from_db()
@@ -1002,3 +1004,55 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         # Fetch the newly created asset and verify the flag is False
         owner_asset = Asset.objects.get(name='Breakfast')
         self.assertFalse(owner_asset.is_excluded_from_projects_list)
+
+    def test_asset_visibility_after_transfer(self):
+        """
+        Test to ensure that an asset shared with an organization owner remains
+        visible after the asset owner joins a different organization
+        """
+        # Step 1: Create an asset owned by an external user
+        response = self._create_asset_by_bob()
+        asset = Asset.objects.get(uid=response.data['uid'])
+
+        # Step 2: External user shares the asset explicitly with OrgA's owner
+        asset.assign_perm(self.org_owner, PERM_VIEW_ASSET)
+        self.assertTrue(self.org_owner.has_perm(PERM_VIEW_ASSET, asset))
+
+        # Step 3: Verify asset visibility in OrgA owner's `My Projects` list
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step 4: Create another organization
+        thirduser_org = Organization.objects.create(
+            id='org1234', name='Another Organization', mmo_override=True
+        )
+        thirduser_org.add_user(self.thirduser, is_admin=True)
+
+        # Add external user to another organization and transfer asset ownership
+        self._add_user_to_organization(self.external_user, thirduser_org)
+
+        # Step 5: Verify that the asset is still visible to OrgA's owner after
+        # the external user joins another organization and transfers assets
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step-6: Verify asset is visible in OrgB owner's `My Org Projects` list
+        self.client.force_login(self.thirduser)
+        response = self.client.get(self.org_assets_list_url(thirduser_org.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )
+
+        # Step-7 Verify asset is not visible in OrgB owner's `My Projects` list
+        response = self.client.get(self.asset_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(
+            any(obj['uid'] == asset.uid for obj in response.data['results'])
+        )

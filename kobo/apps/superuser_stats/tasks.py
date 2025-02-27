@@ -10,7 +10,7 @@ from celery import shared_task
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import default_storage
-from django.db.models import CharField, Count, DateField, F, IntegerField, Q, Sum, Value
+from django.db.models import CharField, Count, DateField, F, IntegerField, Sum, Value
 from django.db.models.functions import Cast, Concat
 
 from hub.models import ExtraUserDetail
@@ -285,42 +285,6 @@ def generate_media_storage_report(output_filename: str):
     with default_storage.open(output_filename, 'w') as output:
         writer = csv.writer(output)
         writer.writerow(headers)
-        writer.writerows(data)
-
-
-@shared_task
-def generate_user_count_by_organization(output_filename: str):
-    # get users organizations
-    organizations = (
-        User.objects.filter(extra_details__data__has_key='organization')
-        .values('extra_details__data__organization')
-        .annotate(total=Count('extra_details__data__organization'))
-    ).order_by('extra_details__data__organization')
-
-    no_organizations_count = User.objects.exclude(
-        Q(pk=settings.ANONYMOUS_USER_ID)
-        | Q(extra_details__data__has_key='organization')
-    ).count()
-
-    has_no_organizations = False
-    data = []
-    for o in organizations.iterator():
-        if not o['extra_details__data__organization']:
-            has_no_organizations = True
-            o['extra_details__data__organization'] = 'Unspecified'
-            o['total'] += no_organizations_count
-
-        data.append([o['extra_details__data__organization'], o['total']])
-
-    if not has_no_organizations:
-        data.insert(0, ['Unspecified', no_organizations_count])
-
-    # write data to a csv file
-    columns = ['Organization', 'Count']
-
-    with default_storage.open(output_filename, 'w') as output_file:
-        writer = csv.writer(output_file)
-        writer.writerow(columns)
         writer.writerows(data)
 
 

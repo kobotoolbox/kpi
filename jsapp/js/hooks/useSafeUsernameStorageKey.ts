@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 
 /**
- * A hook for generating a key for `localStorage`/`sessionStorage` that includes encrypted username.
+ * A hook for generating a key for `localStorage`/`sessionStorage` that includes encrypted username and a prefix. You
+ * can pass `undefined` as prefix if it's not ready yet.
  */
-export function useSafeUsernameStorageKey(prefix: string, username: string) {
+export function useSafeUsernameStorageKey(prefix: string | undefined, username: string) {
   const [key, setKey] = useState<string | undefined>()
 
   // When this component is mounted, create the localStorage key we'll use
   useEffect(() => {
+    if (!prefix) {
+      return
+    }
     ;(async () => {
       if (crypto.subtle) {
         // Let's avoid leaving behind an easily-accessible list of all users
@@ -24,7 +28,7 @@ export function useSafeUsernameStorageKey(prefix: string, username: string) {
         setKey(`${prefix}-FOR DEVELOPMENT ONLY-${username}`)
       }
     })()
-  }, [])
+  }, [prefix, username])
 
   return key
 }

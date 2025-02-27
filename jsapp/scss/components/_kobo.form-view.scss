@@ -200,12 +200,6 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-.form-view__row--history {
-  .form-view__cell--history-table {
-    margin-bottom: 20px;
-  }
-}
-
 .form-view__cell-label {
   font-size: 12px;
   opacity: 0.6;
@@ -279,15 +273,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--padding {
-    padding: 20px;
-  }
-
-  &.form-view__cell--small-padding {
-    padding: 10px 20px 20px;
-  }
-
-  &.form-view__cell--padding-small {
-    padding: 10px 20px;
+    padding: var(--mantine-spacing-lg);
   }
 
   &.form-view__cell--full-width {
@@ -312,7 +298,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--first {
-    padding-bottom: 20px;
+    padding-bottom: var(--mantine-spacing-lg);
     position: relative;
 
     .form-view__group {
@@ -566,13 +552,17 @@ $side-tabs-width-mobile: 70px;
   gap: 10px;
 }
 
-.form-view__cell--collect-meta {
-  pre {
-    display: block;
-    margin: 10px 0;
-    padding: 10px;
+.collect-meta-description {
+  pre,
+  code {
     border: 1px solid colors.$kobo-gray-300;
     background: colors.$kobo-gray-200;
+  }
+
+  pre {
+    display: block;
+    margin: 0;
+    padding: 10px;
     font-size: 13px;
     white-space: normal;
   }
@@ -581,7 +571,7 @@ $side-tabs-width-mobile: 70px;
     margin: 0;
     padding: 0;
     margin-left: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 0;
 
     li {
       margin-bottom: 5px;
@@ -597,14 +587,8 @@ $side-tabs-width-mobile: 70px;
 
   code {
     padding: 4px;
-    border: 1px solid colors.$kobo-gray-300;
-    background: colors.$kobo-gray-200;
     margin-left: 5px;
     margin-right: 5px;
-  }
-
-  .form-view__cell {
-    margin-top: 25px;
   }
 }
 

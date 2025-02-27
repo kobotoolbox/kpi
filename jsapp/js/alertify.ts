@@ -29,6 +29,7 @@ interface MultiConfirmButtonCloseEvent {
 }
 
 /**
+ * @deprecated don't use alertifyjs
  * Use this custom alertify modal to display multiple buttons with different
  * callbacks.
  */
@@ -148,6 +149,7 @@ export function multiConfirm(confirmId: string, title: string, message: string, 
 }
 
 /**
+ * @deprecated don't use alertifyjs
  * A DRY dialog wrapper for `alertifyjs` that will display a simple confirmation
  * for destroying something. The fallback text is for deleting stuff, as most
  * common case.
@@ -183,6 +185,7 @@ export function destroyConfirm(
 }
 
 /**
+ * @deprecated don't use alertifyjs
  * Useful to pass a complex JSX message into alertify (which accepts only
  * strings).
  */

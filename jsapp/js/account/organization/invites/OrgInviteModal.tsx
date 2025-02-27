@@ -31,6 +31,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   )
 
   const [isModalOpen, setIsModalOpen] = useState(true)
+  const [awaitingDataRefresh, setAwaitingDataRefresh] = useState(false)
+  const [userResponseType, setUserResponseType] = useState<MemberInviteStatus | null>(null)
   const session = useSession()
   const orgMemberInviteQuery = useOrgMemberInviteQuery(props.orgId, props.inviteId, false)
   const patchMemberInvite = usePatchMemberInvite(inviteUrl, false)
@@ -42,29 +44,39 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   // We use `mmoLabel` as fallback until `organization_name` is available at the endpoint
   const orgName = orgMemberInviteQuery.data?.organization_name || mmoLabel
 
-  function handleSuccessfulInviteResponse(message: string) {
-    // Ensure that fresh session is fetched, as we get the organiztion url from it.
-    session.refreshAccount()
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  async function handleSuccessfulInviteResponse(message: string, refreshData: boolean = false) {
+    // After a one-second delay to allow for initial backend data transfers,
+    // refresh session to refresh org data and project list
+    if (refreshData) {
+      setAwaitingDataRefresh(true)
+      await wait(1000)
+      session.refreshAccount()
+    }
     props.onUserResponse()
-    setIsModalOpen(false)
     notify(message)
   }
 
   const handleDeclineInvite = async () => {
     try {
+      setUserResponseType(MemberInviteStatus.declined)
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.declined })
       handleSuccessfulInviteResponse(t('Invitation successfully declined'))
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
+      setUserResponseType(null)
     }
   }
 
   const handleAcceptInvite = async () => {
     try {
+      setUserResponseType(MemberInviteStatus.accepted)
       await patchMemberInvite.mutateAsync({ status: MemberInviteStatus.accepted })
-      handleSuccessfulInviteResponse(t('Invitation successfully accepted'))
+      await handleSuccessfulInviteResponse(t('Invitation successfully accepted'), true)
     } catch (error) {
       setMiscError(t('Unknown error while trying to update an invitation'))
+      setUserResponseType(null)
     }
   }
 
@@ -127,7 +139,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     content = <Alert type='error'>{miscError}</Alert>
   }
   // Case 3: got the invite, its status is pending, so we display form
-  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
+  // We also continue displaying this content while we wait for data to refresh following acceptance
+  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending || awaitingDataRefresh) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
       orgName,
@@ -146,11 +159,23 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
         </Alert>
 
         <Group justify='flex-end'>
-          <Button variant='light' size='lg' onClick={handleDeclineInvite} loading={patchMemberInvite.isPending}>
+          <Button
+            variant='light'
+            size='lg'
+            onClick={handleDeclineInvite}
+            loading={userResponseType === MemberInviteStatus.declined}
+          >
             {t('Decline')}
           </Button>
 
-          <Button variant='filled' size='lg' onClick={handleAcceptInvite} loading={patchMemberInvite.isPending}>
+          <Button
+            variant='filled'
+            size='lg'
+            onClick={handleAcceptInvite}
+            // We don't use RQ loading state here because we also want spinner to display during
+            // timeout while we give backend time for data transfer
+            loading={userResponseType === MemberInviteStatus.accepted}
+          >
             {t('Accept')}
           </Button>
         </Group>

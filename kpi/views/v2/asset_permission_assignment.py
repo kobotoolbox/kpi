@@ -15,7 +15,12 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
-from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
+from kpi.constants import (
+    CLONE_ARG_NAME,
+    PERM_ADD_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
+)
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
@@ -113,7 +118,17 @@ class AssetPermissionAssignmentViewSet(
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/  # noqa: E501
+
+    **Remove all permission assignments**
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/  # noqa: E501
 
 
     **Assign all permissions at once**
@@ -220,6 +235,19 @@ class AssetPermissionAssignmentViewSet(
         # returns asset permissions. Users who can change permissions can
         # see all permissions.
         return self.list(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['DELETE'],
+        url_path='delete-all',
+    )
+    def delete_all(self, request, *args, **kwargs):
+        object_permission = self.get_object()
+        user = object_permission.user
+        response = self.destroy(request, *args, **kwargs)
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            self.asset.remove_perm(user, PERM_ADD_SUBMISSIONS)
+        return response
 
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()

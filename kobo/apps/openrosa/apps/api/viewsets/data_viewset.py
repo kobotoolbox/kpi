@@ -8,31 +8,13 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 from rest_framework.settings import api_settings
 
-from kobo.apps.openrosa.apps.api.exceptions import NoConfirmationProvidedAPIException
-from kobo.apps.openrosa.apps.api.permissions import (
-    EnketoSubmissionEditPermissions,
-    EnketoSubmissionViewPermissions,
-    XFormDataPermissions,
-)
+from kobo.apps.openrosa.apps.api.permissions import XFormDataPermissions
 from kobo.apps.openrosa.apps.api.tools import add_tags_to_instance
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import custom_response_handler
-from kobo.apps.openrosa.apps.logger.exceptions import (
-    BuildDbQueriesAttributeError,
-    BuildDbQueriesBadArgumentError,
-    BuildDbQueriesNoConfirmationProvidedError,
-    MissingValidationStatusPayloadError,
-)
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.utils.instance import (
-    add_validation_status_to_instance,
-    delete_instances,
-    remove_validation_status_from_instance,
-    set_instance_validation_statuses,
-)
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.mixins.anonymous_user_public_forms_mixin import (
     AnonymousUserPublicFormsMixin,
@@ -43,11 +25,6 @@ from kobo.apps.openrosa.libs.serializers.data_serializer import (
     DataListSerializer,
     DataSerializer,
 )
-from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    EnketoError,
-    get_enketo_submission_url,
-)
-from kpi.utils.object_permission import get_database_user
 from ..utils.rest_framework.viewsets import OpenRosaModelViewSet
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -299,84 +276,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     > Response
     >
     >        HTTP 200 OK
-
-
-    ## Query submitted validation status of a specific submission
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
-
-    > Example
-    >
-    >       curl -X GET https://example.com/api/v1/data/22845/56/validation_status
-
-    > Response
-    >
-    >       {
-    >           "timestamp": 1513299978,
-    >           "by_whom ": "John Doe",
-    >           "uid": "validation_status_approved",
-    >           "label: "Approved"
-    >       }
-
-    ## Change validation status of a submission data point
-
-    A `PATCH` payload of parameter `validation_status`.
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/validation_status</pre>
-
-    Payload
-
-    >       {
-    >           "validation_status_uid": "validation_status_not_approved"
-    >       }
-
-    > Example
-    >
-    >       curl -X PATCH https://example.com/api/v1/data/22845/56/validation_status
-
-    > Response
-    >
-    >       {
-    >           "timestamp": 1513299978,
-    >           "by_whom ": "John Doe",
-    >           "uid": "validation_status_not_approved",
-    >           "label": "Not Approved"
-    >       }
-
-    ## Get enketo edit link for a submission instance
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>/enketo
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://example.com/api/v1/data/28058/20/enketo?return_url=url
-
-    > Response
-    >       {"url": "https://hmh2a.enketo.formhub.org"}
-    >
-    >
-
-    ## Delete a specific submission instance
-
-    Delete a specific submission in a form
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v1/data/<code>{pk}</code>/<code>{dataid}</code>
-    </pre>
-
-    > Example
-    >
-    >       curl -X DELETE https://example.com/api/v1/data/28058/20
-
-    > Response
-    >
-    >       HTTP 204 No Content
-    >
-    >
     """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
         renderers.XLSRenderer,
@@ -393,67 +292,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
     lookup_fields = ('pk', 'dataid')
     extra_lookup_fields = None
     queryset = XForm.objects.all()
-
-    def bulk_delete(self, request, *args, **kwargs):
-        """
-        Bulk delete instances
-        """
-        xform = self.get_object()
-
-        try:
-            deleted_records_count = delete_instances(xform, request.data)
-        except BuildDbQueriesBadArgumentError:
-            raise ValidationError(
-                {'payload': t("`query` and `instance_ids` can't be used together")}
-            )
-        except BuildDbQueriesAttributeError:
-            raise ValidationError(
-                {'payload': t('Invalid `query` or `submission_ids` params')}
-            )
-        except BuildDbQueriesNoConfirmationProvidedError:
-            raise NoConfirmationProvidedAPIException()
-
-        return Response(
-            {
-                'detail': t('{} submissions have been deleted').format(
-                    deleted_records_count
-                )
-            },
-            status.HTTP_200_OK,
-        )
-
-    def bulk_validation_status(self, request, *args, **kwargs):
-
-        xform = self.get_object()
-        real_user = get_database_user(request.user)
-
-        try:
-            updated_records_count = set_instance_validation_statuses(
-                xform, request.data, real_user.username
-            )
-        except BuildDbQueriesBadArgumentError:
-            raise ValidationError(
-                {'payload': t("`query` and `instance_ids` can't be used together")}
-            )
-        except BuildDbQueriesAttributeError:
-            raise ValidationError(
-                {'payload': t('Invalid `query` or `submission_ids` params')}
-            )
-        except BuildDbQueriesNoConfirmationProvidedError:
-            raise NoConfirmationProvidedAPIException()
-        except MissingValidationStatusPayloadError:
-            raise ValidationError({
-                'payload': t('No `validation_status.uid` provided')
-            })
-
-        return Response(
-            {
-                'detail': t('{} submissions have been updated').format(
-                    updated_records_count
-                )
-            },
-            status.HTTP_200_OK,
-        )
 
     def get_serializer_class(self):
         pk_lookup, dataid_lookup = self.lookup_fields
@@ -526,38 +364,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
         return qs
 
-    @action(detail=True, methods=['GET', 'PATCH', 'DELETE'])
-    def validation_status(self, request, *args, **kwargs):
-        """
-        View or modify validation status of specific instance.
-        User needs 'validate_xform' permission to update the data.
-
-        :param request: Request
-        :return: Response
-        """
-        http_status = status.HTTP_200_OK
-        instance = self.get_object()
-        data = {}
-
-        if request.method != 'GET':
-            username = get_database_user(request.user).username
-            validation_status_uid = request.data.get('validation_status.uid')
-            if request.method == 'PATCH' and not add_validation_status_to_instance(
-                username, validation_status_uid, instance
-            ):
-                http_status = status.HTTP_400_BAD_REQUEST
-            elif request.method == 'DELETE':
-                if remove_validation_status_from_instance(instance):
-                    http_status = status.HTTP_204_NO_CONTENT
-                    data = None
-                else:
-                    http_status = status.HTTP_400_BAD_REQUEST
-
-        if http_status == status.HTTP_200_OK:
-            data = instance.validation_status
-
-        return Response(data, status=http_status)
-
     @action(
         detail=True,
         methods=['GET', 'POST', 'DELETE'],
@@ -595,64 +401,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
 
         return Response(data, status=http_status)
 
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionEditPermissions],
-    )
-    def enketo(self, request, *args, **kwargs):
-        # keep `/enketo` for retro-compatibility
-        return self.enketo_edit(request, *args, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionEditPermissions],
-    )
-    def enketo_edit(self, request, *args, **kwargs):
-        return self._enketo_request(request, action_='edit', *args, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        permission_classes=[EnketoSubmissionViewPermissions],
-    )
-    def enketo_view(self, request, *args, **kwargs):
-        return self._enketo_request(request, action_='view', *args, **kwargs)
-
-    def _enketo_request(self, request, action_, *args, **kwargs):
-        object_ = self.get_object()
-        data = {}
-        if isinstance(object_, XForm):
-            raise ParseError(t('Data id not provided.'))
-        elif isinstance(object_, Instance):
-            return_url = request.query_params.get('return_url')
-            if not return_url and not action_ == 'view':
-                raise ParseError(t('`return_url` not provided.'))
-
-            if not object_.xform.require_auth and action_ == 'edit':
-                # Trying to edit in Enketo while `xform.require_auth == False`
-                # leads to an infinite authentication loop because Enketo never
-                # sends credentials unless it receives a 401 response to an
-                # unauthenticated HEAD request.
-                # There's no way to send such a response for editing only while
-                # simultaneously allowing anonymous submissions to the same endpoint.
-                # Avoid the infinite loop by blocking doomed requests here and
-                # returning a helpful error message.
-                raise ValidationError(t(
-                    'Cannot edit submissions while "Require authentication to '
-                    'see form and submit data" is disabled for your project'
-                ))
-
-            try:
-                data['url'] = get_enketo_submission_url(
-                    request, object_, return_url, action=action_
-                )
-            except EnketoError as e:
-                data['detail'] = str(e)
-
-        return Response(data=data)
-
     def retrieve(self, request, *args, **kwargs):
         # XML rendering does not a serializer
         if request.accepted_renderer.format == 'xml':
@@ -660,15 +408,6 @@ class DataViewSet(AnonymousUserPublicFormsMixin, OpenRosaModelViewSet):
             return Response(instance.xml)
         else:
             return super().retrieve(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if isinstance(instance, XForm):
-            raise ParseError(t('Data id not provided'))
-        elif isinstance(instance, Instance):
-            instance.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request, *args, **kwargs):
         lookup_field = self.lookup_field

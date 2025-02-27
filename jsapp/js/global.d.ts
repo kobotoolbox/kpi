@@ -1,4 +1,15 @@
-/** Please pass only static strings and don't use concatenating (`+`). */
+/**
+ * For similar source text segments, aim for consistent phrasing to facilitate reuse of existing translations.
+ * Examples:
+ * ```ts
+ * t('hello world') // basic usage
+ * t('hello ##NAME##').replace('##NAME##', name) // usage with variables, friendly way for translators.
+ * t(
+ *   'Voluptate eiusmod fugiat consequat proident reprehenderit fugiat enim.' +
+ *   'Eiusmod sint sunt qui adipisicing laboris. Incididunt labore esse consectetur pariatur.' +
+ *   'Sint fugiat nostrud consectetur ut.',
+ * ) // usage with long text
+ */
 declare function t(str: string): string
 
 // NOTE: all alertify typings are written manually and could be wrong!
@@ -164,6 +175,7 @@ interface AlertifyJsModule {
   /** Alias to `setting`, please do not use. */
   get: Function
   /**
+   * @deprecated Use `notify` function from our utils file, i.e. `import { notify } from 'js/utils'`.
    * Creates a new notification message.
    * If a type is passed, a class name "ajs-{type}" will be added.
    * This allows for custom look and feel for various types of notifications.
@@ -221,6 +233,9 @@ interface AlertifyJsModule {
   [id: string]: any
 }
 declare module 'alertifyjs' {
+  /**
+   * @deprecated Use `notify` function from our utils file, i.e. `import { notify } from 'js/utils'`.
+   */
   const alertifyjsmodule: AlertifyJsModule = {}
   export = alertifyjsmodule
 }

@@ -583,13 +583,16 @@ class DataViewSet(
             user=request.user,
             submission_ids=data['submission_ids'],
             query=data['query'],
-            fields=['_id', '_uuid', '_submitted_by'],
+            fields=['_id', '_uuid', '_submitted_by', 'meta/rootUuid'],
         )
 
         # Prepare logs before deleting all submissions.
         request._request.instances = {
             sub['_id']: SubmissionUpdate(
-                id=sub['_id'], username=sub['_submitted_by'], action='delete'
+                id=sub['_id'],
+                username=sub['_submitted_by'],
+                action='delete',
+                root_uuid=sub['meta/rootUuid'],
             )
             for sub in submissions
         }

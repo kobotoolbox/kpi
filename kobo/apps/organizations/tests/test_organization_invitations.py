@@ -60,11 +60,11 @@ class BaseOrganizationInviteTestCase(BaseOrganizationAssetApiTestCase):
             'invitees': ['bob', 'unregistereduser@example.com']
         }
 
-    def _create_invite(self, user):
+    def _create_invite(self, invited_by):
         """
         Helper method to create invitations
         """
-        self.client.force_login(user)
+        self.client.force_login(invited_by)
         return self.client.post(self.list_url, data=self.invitation_data)
 
     def _update_invite(self, user, guid, status):
