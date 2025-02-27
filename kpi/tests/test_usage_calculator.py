@@ -17,7 +17,10 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.utils.usage_calculator import (
+    ServiceUsageCalculator,
+    get_storage_usage_by_user_id,
+)
 
 
 class BaseServiceUsageTestCase(BaseAssetTestCase):
@@ -59,16 +62,20 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 },
             ]
         }
-        self.asset = Asset.objects.create(
+        asset = Asset.objects.create(
             content=content_source_asset,
             owner=owner,
             asset_type='survey',
         )
 
-        self.asset.deploy(backend='mock', active=True)
-        self.asset.save()
+        asset.deploy(backend='mock', active=True)
+        asset.save()
+        asset.deployment.set_namespace(self.URL_NAMESPACE)
+        return asset
 
-        self.asset.deployment.set_namespace(self.URL_NAMESPACE)
+
+    def _create_and_set_asset(self, user=None):
+        self.asset = self._create_asset(user)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
@@ -109,12 +116,14 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             total_mt_characters=counter_2['google_mt_characters'],
         )
 
-    def add_submissions(self, count=2):
+    def add_submissions(self, count=2, asset=None, username='anotheruser'):
         """
         Add one or more submissions to an asset (TWO by default)
         """
         submissions = []
-        v_uid = self.asset.latest_deployed_version.uid
+        if asset is None:
+            asset = self.asset
+        v_uid = asset.latest_deployed_version.uid
 
         for x in range(count):
             submission = {
@@ -124,22 +133,22 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',  # noqa: E501
-                        'filename': 'anotheruser/audio_conversion_test_clip.3gp',
+                        'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                        'filename': f'{username}/audio_conversion_test_clip.3gp',
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',  # noqa: E501
-                        'filename': 'anotheruser/audio_conversion_test_image.jpg',
+                        'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
+                        'filename': f'{username}/audio_conversion_test_image.jpg',
                         'mimetype': 'image/jpeg',
                     },
                 ],
-                '_submitted_by': 'anotheruser',
+                '_submitted_by': username,
             }
             # increment the attachment ID for each attachment created
             submissions.append(submission)
 
-        self.asset.deployment.mock_submissions(submissions)
+        asset.deployment.mock_submissions(submissions)
 
     def expected_file_size(self):
         """
@@ -157,7 +166,7 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
 class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     def setUp(self):
         super().setUp()
-        self._create_asset()
+        self._create_and_set_asset()
         self.add_nlp_trackers()
         self.add_submissions(count=5)
 
@@ -218,6 +227,32 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['characters']) == 5473
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
+
+    def test_storage_usage_all_users(self):
+        asset_2 = self._create_asset(self.someuser)
+        asset_3 = self._create_asset(self.someuser)
+        self.add_submissions(count=2, asset=asset_2, username='someuser')
+        self.add_submissions(count=2, asset=asset_3, username='someuser')
+        results = get_storage_usage_by_user_id()
+        assert results == {
+            self.someuser.id: 4 * self.expected_file_size(),
+            self.anotheruser.id: 5 * self.expected_file_size(),
+        }
+
+    def test_storage_usage_subset_users(self):
+        user3 = User.objects.get(username='adminuser')
+        asset_2 = self._create_asset(self.someuser)
+        asset_3 = self._create_asset(self.someuser)
+        asset_4 = self._create_asset(user3)
+        self.add_submissions(count=2, asset=asset_2, username='someuser')
+        self.add_submissions(count=2, asset=asset_3, username='someuser')
+        self.add_submissions(count=2, asset=asset_4, username='adminuser')
+        results = get_storage_usage_by_user_id([self.someuser.id, self.anotheruser.id])
+        # third user should not be in results
+        assert results == {
+            self.someuser.id: 4 * self.expected_file_size(),
+            self.anotheruser.id: 5 * self.expected_file_size(),
+        }
 
     def test_storage_usage(self):
         calculator = ServiceUsageCalculator(self.anotheruser)
