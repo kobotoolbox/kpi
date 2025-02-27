@@ -1,11 +1,12 @@
 from math import ceil, floor, inf
 
 from django.conf import settings
-from django.db.models import F, IntegerField, Max, Q, Sum, Window
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import F, Max, Q, Window
+from django.db.models.functions import Coalesce
+
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP, ACTIVE_STRIPE_STATUSES
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
 
 def generate_return_url(product_metadata):
@@ -25,7 +26,10 @@ def get_default_add_on_limits():
         'mt_characters_limit': 0,
     }
 
-def get_organization_plan_limits(organizations: list[Organization], usage_type: UsageType):
+
+def get_organization_plan_limits(
+    usage_type: UsageType, organizations: list[Organization] = None
+):
     orgs = Organization.objects.prefetch_related('djstripe_customers')
     limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
     if organizations is not None:
@@ -51,14 +55,17 @@ def get_organization_plan_limits(organizations: list[Organization], usage_type: 
             ),
         )
         .annotate(
-            # find the one with the earliest start date
-            earliest=Window(
+            # find the most recent one
+            most_recent=Window(
                 expression=Max('start_date'),
                 partition_by=F('org_id'),
                 order_by='org_id',
             )
         )
-        .filter(Q(start_date=F('earliest')) | (Q(start_date__isnull=True) & Q(earliest__isnull=True)))
+        .filter(
+            Q(start_date=F('most_recent'))
+            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
+        )
     )
     subscriptions = {
         res['org_id']:  res['limit']
@@ -95,7 +102,7 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    return get_organization_plan_limits([organization], usage_type)[organization.id]
+    return get_organization_plan_limits(usage_type, [organization])[organization.id]
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):

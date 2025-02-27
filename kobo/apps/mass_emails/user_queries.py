@@ -2,99 +2,25 @@ from math import inf
 
 from django.apps import apps
 from django.conf import settings
-from django.db.models import F, IntegerField, Max, Q, Sum, Window
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import F
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils import get_organization_plan_limits
+from kpi.utils.usage_calculator import get_storage_usage_by_user
 
 
-def get_storage_limit_addons_by_user(owner_ids: list[int] = None):
-    """
-    Get additional storage limits from add-ons purchased by org owner
-    Example value:
-    1:10000000000
-    """
-
-    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
-    add_ons = PlanAddOn.objects
-    if owner_ids is not None:
-        add_ons = add_ons.filter(
-            organization__owner__organization_user__user__in=owner_ids
-        )
-    add_ons = (
-        add_ons.filter(
-            usage_limits__has_key='storage_bytes_limit',
-            charge__refunded=False,
-        )
-        .values(
-            owner_user_id=F('organization__owner__organization_user__user'),
-            limit=F('usage_limits__storage_bytes_limit'),
-        )
-        .annotate(
-            total_storage_limit=Coalesce(
-                Sum(Cast('limit', output_field=IntegerField())),
-                0,
-                output_field=IntegerField(),
-            ),
-        )
-    )
-    return {res['owner_user_id']: res['total_storage_limit'] for res in add_ons}
-
-
-def get_total_storage_limits_by_org_owner():
-    all_owner_plans = get_organization_plan_limits(usage_type='storage')
-    all_storage_add_ons = get_storage_limit_addons_by_user()
-    # find the storage limit for the default (ie free) plan
-    from djstripe.models.core import Product
-
-    default_plan_storage_limit = (
-        Product.objects.filter(
-            prices__unit_amount=0, prices__recurring__interval='month'
-        )
-        .values_list('metadata__storage_bytes_limit', flat=True)
-        .first()
-    )
-    all_org_owners = Organization.objects.exclude(owner__isnull=True).values_list(
-        'owner__organization_user__user', flat=True
-    )
-    all_limits = {}
-    for org_owner_id in all_org_owners:
-        plan_limit = all_owner_plans.get(org_owner_id, None)
-        # logic copied from stripe.utils.get_organization_plan_limit
-        if plan_limit is None or (
-            plan_limit['product_type'] == 'addon' and plan_limit['limit'] is None
-        ):
-            # if no plan, use the community plan limit
-            total = default_plan_storage_limit
-        else:
-            total = plan_limit['limit']
-
-        if total == 'unlimited':
-            total = inf
-        else:
-            total = int(total)
-
-        # add any additional bytes from purchased add_ons
-        add_on_limit = all_storage_add_ons.get(org_owner_id, None)
-        if add_on_limit is not None:
-            total += int(add_on_limit)
-        all_limits[org_owner_id] = total
-    return all_limits
-
-
-def get_all_storage_usage_by_owner():
-    # logic copied from usage_calculator
-    xform_query = (
-        XForm.objects.exclude(pending_delete=True)
-        .values('user')
-        .annotate(bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0))
-    )
-    return {res['user']: res['bytes_sum'] for res in xform_query}
+def get_total_storage_limits_by_org():
+    plan_limits_by_org = get_organization_plan_limits('storage')
+    add_on_limits_by_org = {}
+    if settings.STRIPE_ENABLED:
+        PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+        add_on_limits_by_org = PlanAddOn.get_organization_totals('storage')
+    result = {}
+    for org_id, storage_limit in plan_limits_by_org.items():
+        total_addon_storage_limit, _ = add_on_limits_by_org.get(org_id, (0, 0))
+        result[org_id] = storage_limit + total_addon_storage_limit
+    return result
 
 
 def get_users_within_x_percent_storage_limits(
@@ -104,11 +30,23 @@ def get_users_within_x_percent_storage_limits(
         return User.objects.none()
     minimum_percent = minimum / 100
     maximum_percent = maximum / 100
-    all_limits_by_owner = get_total_storage_limits_by_org_owner()
-    all_storage_by_owner = get_all_storage_usage_by_owner()
+    all_limits_by_org = get_total_storage_limits_by_org()
+    all_org_owners = {
+        res['id']: res['owner']
+        for res in Organization.objects.values(
+            'id', owner=F('owner__organization_user__user')
+        )
+    }
+    all_limits_by_org_owner = {
+        all_org_owners.get(org_id, None): org_limit
+        for org_id, org_limit in all_limits_by_org.items()
+        if all_org_owners.get(org_id, None) is not None
+    }
+
+    all_storage_usage_by_owner = get_storage_usage_by_user()
     users = []
-    for owner_id, usage in all_storage_by_owner.items():
-        storage_limit = all_limits_by_owner.get(owner_id, inf)
+    for owner_id, usage in all_storage_usage_by_owner.items():
+        storage_limit = all_limits_by_org_owner.get(owner_id, inf)
         if (
             storage_limit != inf
             and minimum_percent * storage_limit

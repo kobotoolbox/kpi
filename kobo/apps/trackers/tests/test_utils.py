@@ -11,7 +11,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_plan_subscription
 from kobo.apps.trackers.utils import (
-    get_organization_remaining_usage,
+    get_organization_remaining_nlp_usage,
     update_nlp_counter,
 )
 from kpi.models.asset import Asset
@@ -86,7 +86,7 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         return charge
 
     @data('characters', 'seconds')
-    def test_organization_usage_utils(self, usage_type):
+    def test_organization_nlp_usage_utils(self, usage_type):
         usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         sub_metadata = {
             usage_key: '1000',
@@ -106,20 +106,33 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         self._make_payment(price, subscription.customer)
 
         total_limit = 2000 * 2 + 1000
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == total_limit
 
         update_nlp_counter(
             USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
         )
 
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == total_limit - 1000
 
         update_nlp_counter(
             USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
         )
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
+        assert remaining == total_limit - 2500
+
+        update_nlp_counter(
+            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
+        )
+
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
+        assert remaining == total_limit - 1000
+
+        update_nlp_counter(
+            USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
+        )
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == total_limit - 2500
 
     @override_settings(
@@ -127,12 +140,12 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     )
     @data('characters', 'seconds')
     def test_org_usage_utils_without_stripe(self, usage_type):
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == inf
 
         update_nlp_counter(
             USAGE_LIMIT_MAP[usage_type], 10000, self.someuser.id, self.asset.id
         )
 
-        remaining = get_organization_remaining_usage(self.organization, usage_type)
+        remaining = get_organization_remaining_nlp_usage(self.organization, usage_type)
         assert remaining == inf
