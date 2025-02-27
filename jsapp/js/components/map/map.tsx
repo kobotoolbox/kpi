@@ -6,12 +6,13 @@ import JSZip from 'jszip'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
-import omnivore from '@mapbox/leaflet-omnivore'
+import omnivore, { OmnivoreFunction } from '@mapbox/leaflet-omnivore'
 import L, { type LayerGroup } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
+import { check } from '@placemarkio/check-geojson'
 
 // Partial components
 import PopoverMenu from 'js/popoverMenu'
@@ -96,6 +97,7 @@ interface FeatureGroupExtended extends L.FeatureGroup {
   eachLayer: (fn: (layer: LayerExtended) => void, context?: any) => this
 }
 
+// TODO: why does this live outside component?
 const controls: CustomLayerControl = L.control.layers(baseLayers) as CustomLayerControl
 
 type MarkerMap = Array<{
@@ -110,14 +112,13 @@ interface MapValueCounts {
 }
 
 // Function to validate GeoJSON object
-function isValidGeoJSON(geojson: any): boolean {
-  return (
-    typeof geojson === 'object' &&
-    geojson !== null &&
-    geojson.type === 'FeatureCollection' &&
-    Array.isArray(geojson.features) &&
-    geojson.features.length > 0
-  )
+function isValidGeoJSON(geojson: string): boolean {
+  try {
+    return Boolean(check(geojson))
+  } catch (e) {
+    console.error(e)
+    return false
+  }
 }
 
 const OVERLAY_ERROR = t('Error loading overlay layer "##name##"')
@@ -244,73 +245,87 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   onGetAssetFiles(data: PaginatedResponse<AssetFileResponse>) {
-    const map = this.state.map
+    this.removeUnknownLayers(data.results)
+    this.addNewLayers(data.results)
+  }
 
-    // remove layers from controls if they are no longer in asset files
+  /**
+   * Removes layers from controls if they are no longer in asset files
+   */
+  removeUnknownLayers(files: AssetFileResponse[]) {
     controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
-        const layerMatch = data.results.filter((result) => result.description === controlLayer.name)
+        const layerMatch = files.filter((file) => file.description === controlLayer.name)
         if (!layerMatch.length) {
           controls.removeLayer(controlLayer.layer)
-          map?.removeLayer(controlLayer.layer)
+          this.state.map?.removeLayer(controlLayer.layer)
         }
       }
     })
+  }
 
-    // add new layers to controls (if they haven't been added already)
-    data.results.forEach((layer) => {
+  /**
+   * Adds new layers to controls (if they haven't been added already)
+   */
+  addNewLayers(files: AssetFileResponse[]) {
+    files.forEach((layer) => {
+      // Step 1. Verify file type is ok - we are only interested in files that are map layers
       if (layer.file_type !== 'map_layer') {
-        return false
-      }
-      const layerMatch = controls._layers.filter((controlLayer) => controlLayer.name === layer.description)
-      if (layerMatch.length) {
-        return false
+        return
       }
 
+      // Step 2. Ensure the layer is not already loaded
+      const hasLayer = controls._layers.some((controlLayer) => controlLayer.name === layer.description)
+      if (hasLayer) {
+        return
+      }
+
+      // Step 3: Identify omnivore function to be used
       let overlayLayer: LayerGroup | undefined
+      let omnivoreFn: OmnivoreFunction | undefined
       switch (layer.metadata.type) {
         case 'kml':
-          overlayLayer = omnivore.kml(layer.content)
+          omnivoreFn = omnivore.kml
           break
         case 'csv':
-          overlayLayer = omnivore.csv(layer.content)
+          omnivoreFn = omnivore.csv
           break
         case 'json':
         case 'geojson':
+          // Step 3.1: Special case for GeoJSON files
+          // We need to ensure the file is valid before passing it to omnivore, as omnivore doesn't handle invalid
+          // GeoJSON well, resulting in UI crashing.
           try {
-            console.log('xxx geojson start')
-            fetchGetUrl<string>(layer.content)
+            fetchGetUrl<object>(layer.content)
               .then((response) => {
-                console.log('xxx response', response)
-                console.log('xxx isValidGeoJSON(response)', isValidGeoJSON(response))
-                if (isValidGeoJSON(response)) {
+                if (isValidGeoJSON(JSON.stringify(response))) {
                   overlayLayer = omnivore
+                    // TODO: should this be .parse?
                     .geojson(layer.content)
                     .on('error', () => {
-                      notify('error', OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
+                      notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
                     })
-                    .on('ready', (foo: any) => {
-                      console.log('xxx omnivore geojson ready', foo)
+                    .on('ready', () => {
+                      this.onOmnivoreLayerReady(overlayLayer, layer.description)
                     })
                 } else {
-                  notify('error', OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
+                  notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
                 }
               })
               .catch(() => {
-                notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+                notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 1')
               })
           } catch (err) {
-            console.log('xxx err', { err, layer })
-            notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+            notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 2')
           }
           break
         case 'wkt':
-          overlayLayer = omnivore.wkt(layer.content)
+          omnivoreFn = omnivore.wkt
           break
         case 'kmz':
-          // KMZ files are zipped KMLs, therefore
-          // unzip the KMZ file in the browser
-          // and feed the resulting text to map and controls
+          // Step 3.2: Special case for KMZ files
+          // KMZ files are zipped KMLs, therefore we need to unzip the KMZ file in the browser and then feed
+          // the resulting text to map and controls
           fetch(layer.content)
             .then(function (response) {
               if (response.status === 200 || response.status === 0) {
@@ -323,46 +338,58 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
             .then(function (zip) {
               return zip.file('doc.kml')?.async('string')
             })
-            .then(function success(kml) {
-              if (kml && map) {
-                overlayLayer = omnivore.kml.parse(kml)
-                controls.addOverlay(overlayLayer, layer.description)
-                overlayLayer.addTo(map)
+            .then((kmlContent) => {
+              if (kmlContent && this.state.map) {
+                // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
+                // parse it (works synchronously)
+                const parsedOverlayLayer = omnivore.kml.parse(kmlContent)
+                this.onOmnivoreLayerReady(parsedOverlayLayer, layer.description)
               }
             })
-            .catch(function error() {
-              notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+            .catch((err) => {
+              console.error(err)
+              notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 3')
             })
+          break
+        default:
+          notify.error(OVERLAY_ERROR.replace('##name##', layer.description) + ' 4')
           break
       }
 
-      if (overlayLayer && map) {
-        overlayLayer
-          .on('ready', () => {
-            overlayLayer?.eachLayer((l) => {
-              const fprops = (l as LayerExtended).feature.properties
-              const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
-              if (name) {
-                l.bindPopup(name)
-              } else {
-                // when no name or title, load full list of feature's properties
-                l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
-              }
-            })
-          })
+      // Step 4: If this wasn't a special case, `omnivoreFn` should be ready to be used here, `onOmnivoreLayerReady`
+      // function handles the rest
+      if (omnivoreFn) {
+        overlayLayer = omnivoreFn(layer.content)
           .on('error', () => {
-            notify.error(OVERLAY_ERROR.replace('##name##', layer.description))
+            notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
           })
-        if (isValidGeoJSON(overlayLayer.toGeoJSON())) {
-          controls.addOverlay(overlayLayer, layer.description)
-          overlayLayer.addTo(map)
-        } else {
-          notify.error(OVERLAY_ERROR_INVALID_GEOJSON.replace('##name##', layer.description))
-        }
+          .on('ready', () => {
+            this.onOmnivoreLayerReady(overlayLayer, layer.description)
+          })
       }
-      // Avoid TS complaining
-      return
     })
+  }
+
+  /**
+   * Handle map layer successfully loaded by omnivore.
+   */
+  onOmnivoreLayerReady(overlayLayer: LayerGroup | undefined, description: string) {
+    if (overlayLayer && this.state.map) {
+      controls.addOverlay(overlayLayer, description)
+      overlayLayer.addTo(this.state.map)
+
+      // Add popups to each layer feature (i.e. each point)
+      overlayLayer.eachLayer((l) => {
+        const fprops = (l as LayerExtended).feature.properties
+        const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
+        if (name) {
+          l.bindPopup(name)
+        } else {
+          // when no name or title, load full list of feature's properties
+          l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
+        }
+      })
+    }
   }
 
   onSetMapStylesCompleted() {
