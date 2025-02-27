@@ -84,6 +84,7 @@ import './map.marker-colors.scss'
 import { fetchGetUrl } from 'jsapp/js/api'
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const streets = L.tileLayer(
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
@@ -95,13 +96,16 @@ const streets = L.tileLayer(
 >>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
 =======
 const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+=======
+const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+>>>>>>> a7467789f (move controls inside component)
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   subdomains: ['a', 'b', 'c'],
 })
 >>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
-const baseLayers = {
-  OpenStreetMap: streets,
+const BASE_LAYERS = {
+  OpenStreetMap: STREETS_LAYER,
   OpenTopoMap: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     attribution:
       'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
@@ -156,9 +160,6 @@ interface FeatureGroupExtended extends L.FeatureGroup {
   eachLayer: (fn: (layer: LayerExtended) => void, context?: any) => this
 }
 
-// TODO: why does this live outside component?
-const controls: CustomLayerControl = L.control.layers(baseLayers) as CustomLayerControl
-
 type MarkerMap = Array<{
   count: number
   id: number
@@ -193,7 +194,6 @@ interface FormMapProps extends WithRouterProps {
 // NOTE: `false` value is being used as a placehholder for `null` or `undefined`
 // in the state. This is some old approach that Penar was doing years ago.
 interface FormMapState {
-  // TODO: see if AI produced good state types
   map: L.Map | undefined
   markers: FeatureGroupExtended | undefined
   heatmap: L.HeatLayer | undefined
@@ -216,10 +216,13 @@ interface FormMapState {
 }
 
 export class FormMap extends React.Component<FormMapProps, FormMapState> {
+  controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
+
   constructor(props: FormMapProps) {
     super(props)
 
     const survey = props.asset.content?.survey || []
+<<<<<<< HEAD
     let hasGeoPoint = false
     survey.forEach(function (s) {
 >>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
@@ -227,6 +230,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         hasGeoPoint = true
       }
     })
+=======
+    const hasGeoPoint = survey.some((row) => row.type === QUESTION_TYPES.geopoint.id)
+>>>>>>> a7467789f (move controls inside component)
 
     this.state = {
       map: undefined,
@@ -303,8 +309,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       preferCanvas: true,
     })
 
-    streets.addTo(map)
-    controls.addTo(map)
+    STREETS_LAYER.addTo(map)
+    this.controls.addTo(map)
 
     this.setState({
       map: map,
@@ -380,7 +386,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
    * Removes layers from controls if they are no longer in asset files
    */
   removeUnknownLayers(files: AssetFileResponse[]) {
-    controls._layers.forEach((controlLayer) => {
+    this.controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -409,7 +415,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 =======
         const layerMatch = files.filter((file) => file.description === controlLayer.name)
         if (!layerMatch.length) {
-          controls.removeLayer(controlLayer.layer)
+          this.controls.removeLayer(controlLayer.layer)
           this.state.map?.removeLayer(controlLayer.layer)
 >>>>>>> a41ccbd32 (add check-geojson and final fixes)
         }
@@ -439,7 +445,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 >>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 =======
       // Step 2. Ensure the layer is not already loaded
-      const hasLayer = controls._layers.some((controlLayer) => controlLayer.name === layer.description)
+      const hasLayer = this.controls._layers.some((controlLayer) => controlLayer.name === layer.description)
       if (hasLayer) {
         return
       }
@@ -593,7 +599,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
    */
   onOmnivoreLayerReady(overlayLayer: LayerGroup | undefined, description: string) {
     if (overlayLayer && this.state.map) {
-      controls.addOverlay(overlayLayer, description)
+      this.controls.addOverlay(overlayLayer, description)
       overlayLayer.addTo(this.state.map)
 
       // Add popups to each layer feature (i.e. each point)
@@ -1178,7 +1184,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   showLayerControls() {
-    controls.expand()
+    this.controls.expand()
   }
 
   showHeatmap() {
