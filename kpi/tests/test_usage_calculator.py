@@ -73,7 +73,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         asset.deployment.set_namespace(self.URL_NAMESPACE)
         return asset
 
-
     def _create_and_set_asset(self, user=None):
         self.asset = self._create_asset(user)
         self.submission_list_url = reverse(

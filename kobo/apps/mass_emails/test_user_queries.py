@@ -79,6 +79,7 @@ class MyTestCase(BaseServiceUsageTestCase):
                     minimum=minimum, maximum=maximum
                 )
 
-        # result should always be empty no matter what min/max were given if user has infinite storage
+        # result should always be empty no matter what min/max were given if user has
+        # infinite storage
         aslist = list(results)
         assert aslist == []
