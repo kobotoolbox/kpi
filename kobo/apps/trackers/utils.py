@@ -68,9 +68,9 @@ def update_nlp_counter(
 
 
 @cache_for_request
-def get_organization_usage(organization: Organization, usage_type: UsageType) -> int:
+def get_organization_nlp_usage(organization: Organization, usage_type: UsageType) -> int:
     """
-    Get the used amount for a given organization and usage type
+    Get the used amount for a given organization and usage type (characters or seconds)
     """
     usage_calc = ServiceUsageCalculator(
         organization.owner.organization_user.user, disable_cache=True
@@ -80,24 +80,25 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     return usage
 
 
-def get_organization_remaining_usage(
+def get_organization_remaining_nlp_usage(
     organization: Organization, usage_type: UsageType
 ) -> Union[int, None]:
     """
     Get the organization remaining usage count for a given limit type
+    (characters or seconds)
     """
     addon_remaining = 0
     if settings.STRIPE_ENABLED:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
         _, addon_remaining = PlanAddOn.get_organization_totals(
-            organization,
+            [organization],
             usage_type,
-        )
+        )[organization.id]
 
     plan_limit = get_organization_plan_limit(organization, usage_type)
     if plan_limit is None:
         plan_limit = 0
-    usage = get_organization_usage(organization, usage_type)
+    usage = get_organization_nlp_usage(organization, usage_type)
     plan_remaining = max(0, plan_limit - usage)  # if negative, they have 0 remaining
     total_remaining = addon_remaining + plan_remaining
 
@@ -113,7 +114,7 @@ def handle_usage_deduction(
     PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
     plan_limit = get_organization_plan_limit(organization, usage_type)
-    current_usage = get_organization_usage(organization, usage_type)
+    current_usage = get_organization_nlp_usage(organization, usage_type)
     if current_usage is None:
         current_usage = 0
     new_total_usage = current_usage + amount
