@@ -1,18 +1,19 @@
-# coding: utf-8
 from datetime import timedelta
+from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
-from mock import patch
 
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models.account import AccountTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account
+from ..tasks import empty_account, empty_project
 from ..utils import move_to_trash, put_back
 
 
@@ -209,15 +210,29 @@ class ProjectTrashTestCase(TestCase):
 
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
+        asset.save()  # create a version
+        asset.deploy(backend='mock', active=True)
+        asset.deployment.mock_submissions(
+            [
+                {
+                    'q1': 'foo',
+                    'q2': 'bar',
+                }
+            ]
+        )
+
         grace_period = 1
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
+        assert not asset.deployment.xform.pending_delete
         ProjectTrash.toggle_asset_statuses(
             [asset.uid], active=False, toggle_delete=True
         )
 
         asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
         assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
 
         before = now() + timedelta(days=grace_period)
         move_to_trash(
@@ -251,10 +266,13 @@ class ProjectTrashTestCase(TestCase):
             log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()
 
+        return project_trash
+
     def test_put_back(self):
         self.test_move_to_trash()
         asset = Asset.all_objects.get(pk=1)
         assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
         project_trash = ProjectTrash.objects.get(asset=asset)
         periodic_task_id = project_trash.periodic_task_id
 
@@ -273,9 +291,11 @@ class ProjectTrashTestCase(TestCase):
             [asset.uid], active=True, toggle_delete=True
         )
         asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
         assert not asset.pending_delete
+        assert not asset.deployment.xform.pending_delete
 
-        # Ensure project is not in trash anymore
+        # Ensure the project is not in trash anymore
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
@@ -288,3 +308,31 @@ class ProjectTrashTestCase(TestCase):
             action=AuditAction.PUT_BACK,
             log_type=AuditType.ASSET_MANAGEMENT,
         ).exists()
+
+    def test_delete_project(self):
+
+        project_trash = self.test_move_to_trash()
+        asset_uid = project_trash.asset.uid
+        xform_queryset = XForm.all_objects.filter(kpi_asset_uid=asset_uid)
+        xform_ids = list(xform_queryset.values_list('pk', flat=True))
+        mongo_userform_id = project_trash.asset.deployment.mongo_userform_id
+
+        assert Asset.all_objects.filter(uid=asset_uid).exists()
+        assert xform_queryset.exists()
+        assert Instance.objects.filter(xform_id__in=xform_ids)
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': mongo_userform_id}
+            )
+            >= 0
+        )
+        empty_project(project_trash.pk)
+        assert not Asset.all_objects.filter(uid=asset_uid).exists()
+        assert not xform_queryset.exists()
+        assert not Instance.objects.filter(xform_id__in=xform_ids)
+        assert (
+            settings.MONGO_DB.instances.count_documents(
+                {'_userform_id': mongo_userform_id}
+            )
+            == 0
+        )
