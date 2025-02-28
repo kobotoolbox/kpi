@@ -34,6 +34,7 @@ def generate_plan_subscription(
     customer: Customer = None,
     interval: Literal['year', 'month'] = 'month',
     age_days: int = 0,
+    price_metadata: dict = None
 ) -> Subscription:
     """Create a subscription for a product with custom metadata"""
     created_date = timezone.now() - relativedelta(days=age_days)
@@ -54,6 +55,7 @@ def generate_plan_subscription(
         active=True,
         recurring={'interval': interval},
         product=product,
+        metadata=price_metadata
     )
 
     period_offset = relativedelta(weeks=2)

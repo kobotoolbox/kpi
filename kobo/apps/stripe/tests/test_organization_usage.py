@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import Customer
+from djstripe.models import Customer, Price
 from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
@@ -530,10 +530,27 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         self.organization = baker.make(
             Organization, id='123456abcdef', name='test organization'
         )
+        self.second_organization = baker.make(Organization, id='abcdef123456', name='second test organization')
         self.someuser = User.objects.get(username='someuser')
         self.anotheruser = User.objects.get(username='anotheruser')
         self.newuser = baker.make(User, username='newuser')
         self.organization.add_user(self.anotheruser, is_admin=True)
+
+    def test_get_organization_plan_limits_prioritizes_price_metadata(self):
+        product_metadata = {
+            'mt_characters_limit': '1234',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        price_metadata = {
+            'mt_characters_limit': '5678',
+        }
+        generate_plan_subscription(self.organization, metadata=product_metadata, price_metadata=price_metadata)
+        limit = get_organization_plan_limit(self.organization, 'characters')
+        assert limit == 5678
+
+
+
 
     def test_get_plan_community_limit(self):
         generate_free_plan()
@@ -543,7 +560,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert limit == 6000
 
     @data('characters', 'seconds')
-    def test_get_suscription_limit(self, usage_type):
+    def test_get_subscription_limit(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         product_metadata = {
             stripe_key: '1234',
@@ -557,7 +574,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
     # Currently submissions and storage are the only usage types that can be
     # 'unlimited'
     @data('submission', 'storage')
-    def test_get_suscription_limit_unlimited(self, usage_type):
+    def test_get_subscription_limit_unlimited(self, usage_type):
         stripe_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
         product_metadata = {
             stripe_key: 'unlimited',
@@ -568,7 +585,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == float('inf')
 
-    def test_get_addon_suscription_default_limits(self):
+    def test_get_addon_subscription_default_limits(self):
         generate_free_plan()
         product_metadata = {
             'product_type': 'addon',
@@ -579,7 +596,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, 'characters')
         assert limit == 6000
 
-    def test_get_addon_suscription_limits(self):
+    def test_get_addon_subscription_limits(self):
         generate_free_plan()
         characters_key = f'{USAGE_LIMIT_MAP["characters"]}_limit'
         seconds_key = f'{USAGE_LIMIT_MAP["seconds"]}_limit'
