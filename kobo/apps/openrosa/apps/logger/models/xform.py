@@ -122,9 +122,8 @@ class XForm(AbstractTimeStampedModel):
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
         if not hasattr(self, '_cache_asset'):
-            # We only need to load the PK because XMLFormWithDisclaimer
-            # uses an Asset object only to narrow down a query with a filter,
-            # thus uses only asset PK
+            # We only need to load some fields when fetching the related Asset object
+            # with XMLFormWithDisclaimer
             try:
                 asset = Asset.all_objects.only(
                     'pk', 'name', 'uid', 'owner_id'
@@ -133,7 +132,7 @@ class XForm(AbstractTimeStampedModel):
                 try:
                     asset = Asset.all_objects.only(
                         'pk', 'name', 'uid', 'owner_id'
-                    ).get(_deployment_data__formid=self.pk)
+                    ).get(_deployment_data__backend_response__formid=self.pk)
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
