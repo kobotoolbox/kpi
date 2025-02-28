@@ -43,15 +43,15 @@ def get_organization_plan_limits(
             # prefer price metadata over product metadata
             limit=Coalesce(
                 F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'
+                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'  # noqa
                 ),
                 F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'
+                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'  # noqa
                 ),
             ),
             start_date=F('djstripe_customers__subscriptions__start_date'),
             product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'
+                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
             ),
         )
         .annotate(
@@ -92,7 +92,7 @@ def get_organization_plan_limits(
             limit = int(limit)
         return limit
 
-    return {org.id: get_limit(org) for org in organizations}
+    return {org.id: get_limit(org) for org in orgs}
 
 
 def get_organization_plan_limit(
