@@ -115,7 +115,7 @@ class XForm(AbstractTimeStampedModel):
     @property
     def asset(self):
         """
-        Retrieve related asset object easily from XForm instance.
+        Retrieve the related asset object easily from XForm instance.
 
         Useful to display form disclaimer in Enketo.
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
@@ -126,16 +126,22 @@ class XForm(AbstractTimeStampedModel):
             # uses an Asset object only to narrow down a query with a filter,
             # thus uses only asset PK
             try:
-                asset = Asset.objects.only('pk').get(uid=self.kpi_asset_uid)
+                asset = Asset.all_objects.only(
+                    'pk', 'name', 'uid', 'owner_id'
+                ).get(uid=self.kpi_asset_uid)
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only('pk').get(
-                        _deployment_data__formid=self.pk
-                    )
+                    asset = Asset.all_objects.only(
+                        'pk', 'name', 'uid', 'owner_id'
+                    ).get(_deployment_data__formid=self.pk)
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(uid=self.id_string)
+                    asset = Asset(
+                        uid=self.id_string,
+                        name=self.title,
+                        owner_id=self.user.id,
+                    )
 
             setattr(self, '_cache_asset', asset)
 
