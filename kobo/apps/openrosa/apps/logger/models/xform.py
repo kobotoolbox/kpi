@@ -122,9 +122,8 @@ class XForm(AbstractTimeStampedModel):
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
         if not hasattr(self, '_cache_asset'):
-            # We only need to load the PK because XMLFormWithDisclaimer
-            # uses an Asset object only to narrow down a query with a filter,
-            # thus uses only asset PK
+            # We only need to load some fields when fetching the related Asset object
+            # with XMLFormWithDisclaimer
             try:
                 asset = Asset.all_objects.only(
                     'pk', 'name', 'uid', 'owner_id'
