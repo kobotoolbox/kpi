@@ -10,7 +10,6 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_mmo_subscription
