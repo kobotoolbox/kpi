@@ -11,7 +11,6 @@ module.exports = {
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
     '@storybook/addon-a11y',
-    'storybook-dark-mode',
     // NB:
     // 'storybook-addon-swc' may improve build speed in the future.
     // - At time of writing, the build performance gains are negated because it
@@ -19,6 +18,8 @@ module.exports = {
     //   issues in Storybook 6.
     // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
     //   well.
+    'storybook-dark-mode',
+    '@storybook/addon-webpack5-compiler-swc'
   ],
 
   framework: {
@@ -85,9 +86,7 @@ module.exports = {
     }
     return config
   },
-  docs: {
-    autodocs: true,
-  },
+  docs: {},
 }
 
 /// Apply some customizations to the config, intended to decrease build time
