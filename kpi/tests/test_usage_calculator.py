@@ -232,18 +232,11 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         asset_3 = self._create_asset(self.someuser)
         self.add_submissions(count=2, asset=asset_2, username='someuser')
         self.add_submissions(count=2, asset=asset_3, username='someuser')
-        other_users = UserProfile.objects.exclude(
-            user_id__in=[self.someuser.id, self.anotheruser.id]
-        )
         results = get_storage_usage_by_user_id()
-        expected_results = {
+        assert results == {
             self.someuser.id: 4 * self.expected_file_size(),
             self.anotheruser.id: 5 * self.expected_file_size(),
         }
-        # all other users should have 0 storage
-        for user in other_users:
-            expected_results[user.id] = 0
-        assert results == expected_results
 
     def test_storage_usage_subset_users(self):
         user3 = User.objects.create_user(
