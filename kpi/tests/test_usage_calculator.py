@@ -10,6 +10,7 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import generate_mmo_subscription
@@ -69,7 +70,6 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         )
 
         asset.deploy(backend='mock', active=True)
-        asset.save()
         asset.deployment.set_namespace(self.URL_NAMESPACE)
         return asset
 
@@ -232,20 +232,29 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         asset_3 = self._create_asset(self.someuser)
         self.add_submissions(count=2, asset=asset_2, username='someuser')
         self.add_submissions(count=2, asset=asset_3, username='someuser')
+        other_users = UserProfile.objects.exclude(
+            user_id__in=[self.someuser.id, self.anotheruser.id]
+        )
         results = get_storage_usage_by_user_id()
-        assert results == {
+        expected_results = {
             self.someuser.id: 4 * self.expected_file_size(),
             self.anotheruser.id: 5 * self.expected_file_size(),
         }
+        # all other users should have 0 storage
+        for user in other_users:
+            expected_results[user.id] = 0
+        assert results == expected_results
 
     def test_storage_usage_subset_users(self):
-        user3 = User.objects.get(username='adminuser')
+        user3 = User.objects.create_user(
+            username='fred', password='fred', email='fred@fred.com'
+        )
         asset_2 = self._create_asset(self.someuser)
         asset_3 = self._create_asset(self.someuser)
         asset_4 = self._create_asset(user3)
         self.add_submissions(count=2, asset=asset_2, username='someuser')
         self.add_submissions(count=2, asset=asset_3, username='someuser')
-        self.add_submissions(count=2, asset=asset_4, username='adminuser')
+        self.add_submissions(count=2, asset=asset_4, username='fred')
         results = get_storage_usage_by_user_id([self.someuser.id, self.anotheruser.id])
         # third user should not be in results
         assert results == {

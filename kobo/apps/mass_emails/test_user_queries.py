@@ -5,28 +5,29 @@ from ddt import data, ddt, unpack
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit
-from kobo.apps.organizations.models import Organization
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
 @ddt
-class MyTestCase(BaseServiceUsageTestCase):
+class UserQueryTestCase(BaseServiceUsageTestCase):
     fixtures = ['test_data']
 
     @data(
-        (0.9, None, ['adminuser', 'someuser']),
+        (0.9, None, ['fred', 'someuser']),
         (0.75, 1, ['someuser', 'anotheruser']),
         (None, 0.9, ['anotheruser']),
     )
     @unpack
     def test_users_within_range_of_usage_limit(self, minimum, maximum, expected_users):
-        user1 = User.objects.get(username='adminuser')
+        user1 = User.objects.create_user(
+            username='fred', password='fred', email='fred@fred.com'
+        )
         user2 = User.objects.get(username='someuser')
         user3 = User.objects.get(username='anotheruser')
 
-        user1org = Organization.objects.get(owner__organization_user__user=user1)
-        user2org = Organization.objects.get(owner__organization_user__user=user2)
-        user3org = Organization.objects.get(owner__organization_user__user=user3)
+        user1org = user1.organization
+        user2org = user2.organization
+        user3org = user3.organization
 
         usage_limits = {
             user1org.id: 1000000000,
@@ -64,7 +65,7 @@ class MyTestCase(BaseServiceUsageTestCase):
     @unpack
     def test_users_with_infinite_limits(self, minimum, maximum):
         user1 = User.objects.get(username='adminuser')
-        user1org = Organization.objects.get(owner__organization_user__user=user1)
+        user1org = user1.organization
         usage_limits = {user1org.id: inf}
         storage_by_user_id = {user1.id: 1000000000}
         with patch(

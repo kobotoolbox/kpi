@@ -3,6 +3,7 @@ from math import ceil, floor, inf
 from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.db.models.functions import Coalesce
+from djstripe.models.core import Product
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -72,7 +73,6 @@ def get_organization_plan_limits(
         for res in all_owner_plans
         if not (res['product_type'] == 'addon' and res['limit'] is None)
     }
-    from djstripe.models.core import Product
 
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
@@ -103,7 +103,9 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    return get_organization_plan_limits(usage_type, [organization])[organization.id]
+    return get_organization_plan_limits(usage_type, [organization]).get(
+        organization.id, None
+    )
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
