@@ -64,7 +64,7 @@ class UserQueryTestCase(BaseServiceUsageTestCase):
     )
     @unpack
     def test_users_with_infinite_limits(self, minimum, maximum):
-        user1 = User.objects.get(username='adminuser')
+        user1 = User.objects.get(username='anotheruser')
         user1org = user1.organization
         usage_limits = {user1org.id: inf}
         storage_by_user_id = {user1.id: 1000000000}
