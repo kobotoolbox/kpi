@@ -179,22 +179,18 @@ class LanguageSelector extends React.Component<
   async fetchSuggestedLanguages() {
     this.setState({ suggestedLanguages: undefined });
     if (this.props.suggestedLanguages) {
-      try {
-        const languages = await Promise.all(
-          this.props.suggestedLanguages.map(async (languageCode) => {
-            try {
-              return await languagesStore.getLanguage(languageCode);
-            } catch (error) {
-              console.error(`Language ${languageCode} not found 2`);
-              return null;
-            }
-          })
-        );
-        const suggestedLanguages = languages.filter((language) => language !== null);
-        this.setState({ suggestedLanguages });
-      } catch (error) {
-        console.error('Error fetching suggested languages', error);
-      }
+      const languages = await Promise.all(
+        this.props.suggestedLanguages.map(async (languageCode) => {
+          try {
+            return await languagesStore.getLanguage(languageCode);
+          } catch (error) {
+            console.error(`Language ${languageCode} not found 2`);
+            return null;
+          }
+        })
+      );
+      const suggestedLanguages = languages.filter((language) => language !== null);
+      this.setState({ suggestedLanguages });
     }
   }
 
