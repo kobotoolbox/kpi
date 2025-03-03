@@ -7,20 +7,19 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
-from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.utils import get_billing_dates
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
 def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
-    user_profiles = UserProfile.objects
+    xforms = XForm.objects.exclude(pending_delete=True)
     if user_ids is not None:
-        user_profiles = user_profiles.filter(user_id__in=user_ids)
-    return {
-        res['user']: res['attachment_storage_bytes']
-        for res in user_profiles.values('user', 'attachment_storage_bytes')
-    }
+        xforms = xforms.filter(user_id__in=user_ids)
+    xform_query = xforms.values('user').annotate(
+        bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0)
+    )
+    return {res['user']: res['bytes_sum'] for res in xform_query}
 
 
 class ServiceUsageCalculator(CachedClass):
