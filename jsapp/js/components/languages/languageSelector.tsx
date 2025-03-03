@@ -190,8 +190,8 @@ class LanguageSelector extends React.Component<
             }
           })
         );
-        const validLanguages = languages.filter((language) => language !== null);
-        this.setState({ suggestedLanguages: validLanguages });
+        const suggestedLanguages = languages.filter((language) => language !== null);
+        this.setState({ suggestedLanguages });
       } catch (error) {
         console.error('Error fetching suggested languages', error);
       }
