@@ -658,6 +658,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             fields=['_id'],
             skip_count=True,
         )
+
+        if settings.TESTING:
+            # `all_submissions` is a list in testing environment,
+            # but a generator on production.
+            all_submissions = iter(all_submissions)
+
         try:
             next(all_submissions)
         except StopIteration:
