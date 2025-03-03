@@ -42,4 +42,4 @@ export const parameters = {
 window.t = function (str) {
   return str
 }
-export const tags = ['autodocs'];
+export const tags = ['autodocs']
