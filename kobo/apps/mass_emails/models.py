@@ -3,11 +3,14 @@ from collections.abc import Callable
 from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.mass_emails.user_queries import get_inactive_users
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
-USER_QUERIES: dict[str, Callable] = {}
-USER_QUERY_CHOICES = {name: name.lower() for name in USER_QUERIES.keys()}
+USER_QUERIES: dict[str, Callable] = {
+    'users_inactive_for_a_year': get_inactive_users,
+}
+USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 
 
 class EmailStatus(models.TextChoices):
