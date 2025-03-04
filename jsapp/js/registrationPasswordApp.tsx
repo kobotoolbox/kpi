@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+
 import PasswordStrength from './components/passwordStrength.component'
 import envStore from './envStore'
 

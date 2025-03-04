@@ -1,17 +1,19 @@
-import $ from 'jquery'
-import React from 'react'
-import Fuse from 'fuse.js'
-import { FUSE_OPTIONS } from 'js/constants'
-import bem, { makeBem } from 'js/bem'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import type { IconSize } from 'js/components/common/icon'
-import Icon from 'js/components/common/icon'
-import type { ButtonSize } from 'js/components/common/button'
-import { ButtonToIconMap } from 'js/components/common/button'
-import KoboDropdown from 'js/components/common/koboDropdown'
-import koboDropdownActions from 'js/components/common/koboDropdownActions'
 import './koboSelect.scss'
-import type { KoboDropdownPlacement } from 'js/components/common/koboDropdown'
+
+import React from 'react'
+
+import Fuse from 'fuse.js'
+import $ from 'jquery'
+import bem, { makeBem } from '#/bem'
+import type { ButtonSize } from '#/components/common/button'
+import { ButtonToIconMap } from '#/components/common/button'
+import type { IconSize } from '#/components/common/icon'
+import Icon from '#/components/common/icon'
+import KoboDropdown from '#/components/common/koboDropdown'
+import type { KoboDropdownPlacement } from '#/components/common/koboDropdown'
+import koboDropdownActions from '#/components/common/koboDropdownActions'
+import { FUSE_OPTIONS } from '#/constants'
+import type { IconName } from '#/k-icons'
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select')

@@ -1,9 +1,9 @@
 import {
-  readParameters,
-  writeParameters,
   nullifyTranslations,
+  readParameters,
   unnullifyTranslations,
-} from 'js/components/formBuilder/formBuilderUtils'
+  writeParameters,
+} from '#/components/formBuilder/formBuilderUtils'
 
 describe('translations hack', () => {
   describe('nullifyTranslations', () => {

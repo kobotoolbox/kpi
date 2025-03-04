@@ -1,6 +1,7 @@
 import React from 'react'
-import type { AnalysisQuestionsState } from './analysisQuestions.reducer'
+
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
+import type { AnalysisQuestionsState } from './analysisQuestions.reducer'
 
 interface AnalysisQuestionsContextType {
   state: AnalysisQuestionsState

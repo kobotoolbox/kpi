@@ -1,5 +1,5 @@
-// Libraries
 import React from 'react'
+
 import cx from 'classnames'
 
 /** These are all possible tabs. */

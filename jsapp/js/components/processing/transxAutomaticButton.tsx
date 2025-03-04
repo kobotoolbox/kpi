@@ -1,9 +1,10 @@
 import React from 'react'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import Button from 'js/components/common/button'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import { hasTranscriptServicesAvailable, hasTranslationServicesAvailable } from 'js/components/languages/languagesUtils'
-import envStore from 'js/envStore'
+
+import Button from '#/components/common/button'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { hasTranscriptServicesAvailable, hasTranslationServicesAvailable } from '#/components/languages/languagesUtils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import envStore from '#/envStore'
 
 interface TransxAutomaticButtonProps {
   onClick: () => void

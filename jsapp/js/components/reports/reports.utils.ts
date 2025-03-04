@@ -1,9 +1,6 @@
-// Utils
-import { getTranslatedRowLabel } from 'js/assetUtils'
-
-// Types
-import type { SurveyRow } from 'js/dataInterface'
-import type { ReportsResponse, ReportsPaginatedResponse } from './reportsConstants'
+import { getTranslatedRowLabel } from '#/assetUtils'
+import type { SurveyRow } from '#/dataInterface'
+import type { ReportsPaginatedResponse, ReportsResponse } from './reportsConstants'
 
 /**
  * This function filters out reports to get only ones with responses. Also makes

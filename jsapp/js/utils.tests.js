@@ -1,13 +1,13 @@
 import {
+  formatSeconds,
+  generateAutoname,
   getLangAsObject,
   getLangString,
+  join,
+  truncateFile,
   truncateString,
   truncateUrl,
-  truncateFile,
-  generateAutoname,
-  formatSeconds,
-  join,
-} from 'utils'
+} from '#/utils'
 
 describe('utils', () => {
   describe('join', () => {

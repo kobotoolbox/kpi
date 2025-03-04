@@ -1,13 +1,15 @@
+import './assetBreadcrumbs.scss'
+
 import React from 'react'
-import bem from 'js/bem'
-import { isSelfOwned, getAssetDisplayName } from 'js/assetUtils'
-import { isAnyLibraryRoute } from 'js/router/routerUtils'
+
+import { getAssetDisplayName, isSelfOwned } from '#/assetUtils'
+import bem from '#/bem'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { isAnyLibraryRoute } from '#/router/routerUtils'
+import { ROOT_BREADCRUMBS } from './libraryConstants'
 import myLibraryStore from './myLibraryStore'
 import publicCollectionsStore from './publicCollectionsStore'
-import { ROOT_BREADCRUMBS } from './libraryConstants'
-import type { AssetResponse } from 'js/dataInterface'
-import { ACCESS_TYPES, ASSET_TYPES } from 'js/constants'
-import './assetBreadcrumbs.scss'
 
 interface AssetBreadcrumbsProps {
   asset: AssetResponse

@@ -1,10 +1,10 @@
-import isEmpty from 'lodash.isempty'
 import findIndex from 'lodash.findindex'
+import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
+import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
+import { ASSET_TYPES, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
+import { notify } from '#/utils'
 import { actions } from '../actions'
-import { ASSET_TYPES, QUESTION_TYPES, CHOICE_LISTS } from 'js/constants'
-import { notify } from 'utils'
-import { unnullifyTranslations } from 'js/components/formBuilder/formBuilderUtils'
 
 class SurveyScope {
   constructor({ survey, rawSurvey, assetType }) {

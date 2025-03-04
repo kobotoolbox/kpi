@@ -1,5 +1,5 @@
 import Avatar from '../common/avatar'
-import { type ActivityLogsItem, AUDIT_ACTION_TYPES, FALLBACK_MESSAGE } from './activity.constants'
+import { AUDIT_ACTION_TYPES, type ActivityLogsItem, FALLBACK_MESSAGE } from './activity.constants'
 import styles from './activityMessage.module.scss'
 
 /**

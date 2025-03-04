@@ -1,4 +1,4 @@
-import envStore from 'js/envStore'
+import envStore from '#/envStore'
 
 const ORIGINAL_SUPPORT_EMAIL = 'help@kobotoolbox.org'
 

@@ -1,5 +1,6 @@
 import React from 'react'
-import type { Story, Meta } from '@storybook/react'
+
+import type { Meta, Story } from '@storybook/react'
 import type { TabsProps } from './tabs'
 import Tabs from './tabs'
 

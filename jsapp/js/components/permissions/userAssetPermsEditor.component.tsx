@@ -1,40 +1,41 @@
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
+
 import cx from 'classnames'
-import Checkbox from 'js/components/common/checkbox'
-import TextBox from 'js/components/common/textBox'
-import Button from 'js/components/common/button'
-import AriaText from 'js/components/common/ariaText'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { parseFormData, buildFormData } from './permParser'
-import { notify } from 'js/utils'
-import { buildUserUrl, ANON_USERNAME } from 'js/users/utils'
-import { KEY_CODES } from 'js/constants'
-import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS, CHECKBOX_LABELS } from './permConstants'
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import { getSurveyFlatPaths } from '#/assetUtils'
+import bem from '#/bem'
+import AriaText from '#/components/common/ariaText'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import TextBox from '#/components/common/textBox'
+import { KEY_CODES } from '#/constants'
+import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import userExistence from '#/users/userExistence.store'
+import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
+import { notify } from '#/utils'
+import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_LABELS, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
 import type {
   CheckboxNameAll,
-  CheckboxNamePartialByUsers,
   CheckboxNamePartialByResponses,
+  CheckboxNamePartialByUsers,
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants'
+import { buildFormData, parseFormData } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
-import type { PermissionBase, PermissionResponse } from 'js/dataInterface'
-import userExistence from 'js/users/userExistence.store'
-import { getPartialByUsersListName, getPartialByResponsesQuestionName, getPartialByResponsesValueName } from './utils'
-import { getSurveyFlatPaths } from 'js/assetUtils'
-import assetStore from 'js/assetStore'
-import KoboSelect from 'js/components/common/koboSelect'
-import type { KoboSelectOption } from 'js/components/common/koboSelect'
+import styles from './userAssetPermsEditor.module.scss'
 import {
   applyValidityRules,
-  isAssignable,
-  isPartialByUsersValid,
-  isPartialByResponsesValid,
   getFormData,
+  isAssignable,
+  isPartialByResponsesValid,
+  isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-import styles from './userAssetPermsEditor.module.scss'
+import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','

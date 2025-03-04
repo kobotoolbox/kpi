@@ -1,9 +1,9 @@
+import { describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, it, expect, jest } from '@jest/globals'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import type { KoboSelectOption } from './koboAccessibleSelect'
 import KoboSelect3 from './koboAccessibleSelect'
-import { useState } from 'react'
 
 const options: KoboSelectOption[] = [
   { value: '1', label: 'Apple' },

@@ -1,4 +1,4 @@
-import { Table, type MantineStyleProps, type TableData } from '@mantine/core'
+import { type MantineStyleProps, Table, type TableData } from '@mantine/core'
 import styles from './SimpleTable.module.scss'
 
 interface SimpleTableProps extends MantineStyleProps {

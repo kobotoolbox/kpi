@@ -1,27 +1,19 @@
-// Libraries
 import React from 'react'
-import { Link } from 'react-router-dom'
+
 import cx from 'classnames'
-
-// Partial components
-import Badge from 'js/components/common/badge'
-import Avatar from 'js/components/common/avatar'
-import AssetName from 'js/components/common/assetName'
-import AssetStatusBadge from 'js/components/common/assetStatusBadge'
-import Checkbox from 'js/components/common/checkbox'
-
-// Stores, hooks and utilities
-import { formatTime } from 'js/utils'
-import assetUtils from 'js/assetUtils'
-import sessionStore from 'js/stores/session'
-
-// Constants and types
-import { ROUTES } from 'js/router/routerConstants'
-import { PROJECT_FIELDS } from 'js/projects/projectViews/constants'
-import type { ProjectFieldName, ProjectFieldDefinition } from 'js/projects/projectViews/constants'
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
-
-// Styles
+import { Link } from 'react-router-dom'
+import assetUtils from '#/assetUtils'
+import AssetName from '#/components/common/assetName'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import Avatar from '#/components/common/avatar'
+import Badge from '#/components/common/badge'
+import Checkbox from '#/components/common/checkbox'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
+import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
+import { ROUTES } from '#/router/routerConstants'
+import sessionStore from '#/stores/session'
+import { formatTime } from '#/utils'
 import styles from './projectsTableRow.module.scss'
 
 interface ProjectsTableRowProps {

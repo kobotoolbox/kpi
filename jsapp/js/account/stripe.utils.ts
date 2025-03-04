@@ -1,25 +1,25 @@
-import { when } from 'mobx'
-import prettyBytes from 'pretty-bytes'
 import { useCallback } from 'react'
 
-import { ACTIVE_STRIPE_STATUSES } from 'js/constants'
-import envStore from 'js/envStore'
+import { when } from 'mobx'
+import prettyBytes from 'pretty-bytes'
 import {
-  Limits,
-  USAGE_TYPE,
-  Price,
   BaseProduct,
   ChangePlan,
+  ChangePlanStatus,
   Checkout,
+  LimitAmount,
+  Limits,
+  Price,
   Product,
   SubscriptionChangeType,
   SubscriptionInfo,
   TransformQuantity,
-  LimitAmount,
-  ChangePlanStatus,
-} from 'js/account/stripe.types'
-import subscriptionStore from 'js/account/subscriptionStore'
-import { convertUnixTimestampToUtc, notify } from 'js/utils'
+  USAGE_TYPE,
+} from '#/account/stripe.types'
+import subscriptionStore from '#/account/subscriptionStore'
+import { ACTIVE_STRIPE_STATUSES } from '#/constants'
+import envStore from '#/envStore'
+import { convertUnixTimestampToUtc, notify } from '#/utils'
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`

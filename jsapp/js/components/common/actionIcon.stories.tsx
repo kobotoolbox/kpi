@@ -1,6 +1,7 @@
 import React from 'react'
+
 import type { Meta, StoryObj } from '@storybook/react'
-import { IconNames } from 'jsapp/fonts/k-icons'
+import { IconNames } from '#/k-icons'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
 
 const actionIconVariants: Array<ActionIconProps['variant']> = [

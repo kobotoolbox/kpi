@@ -1,11 +1,13 @@
-import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
-import { IconNames } from 'jsapp/fonts/k-icons'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
-import Icon from './icon'
 import '@mantine/core/styles.css'
+
+import React from 'react'
+
+import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import { IconNames } from '#/k-icons'
+import type { IconName } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
+import Icon from './icon'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',

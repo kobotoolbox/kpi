@@ -8,9 +8,9 @@
  * of defined ROUTES.
  */
 
-import { ROUTES, PATHS, PROJECTS_ROUTES } from 'js/router/routerConstants'
-import sessionStore from 'js/stores/session'
-import envStore from 'js/envStore'
+import envStore from '#/envStore'
+import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
+import sessionStore from '#/stores/session'
 // import session from '../stores/session';
 // import {when} from 'mobx';
 // import {redirectDocument} from 'react-router';

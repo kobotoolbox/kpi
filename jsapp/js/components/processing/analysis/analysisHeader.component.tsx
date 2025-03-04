@@ -1,13 +1,14 @@
 import React, { useContext } from 'react'
-import AnalysisQuestionsContext from './analysisQuestions.context'
+
+import classNames from 'classnames'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboDropdown from '#/components/common/koboDropdown'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import styles from './analysisHeader.module.scss'
-import Button from 'js/components/common/button'
-import KoboDropdown from 'js/components/common/koboDropdown'
+import AnalysisQuestionsContext from './analysisQuestions.context'
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 import type { AnalysisQuestionTypeDefinition } from './constants'
-import Icon from 'js/components/common/icon'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import classNames from 'classnames'
 import { hasManagePermissionsToCurrentAsset } from './utils'
 
 /**

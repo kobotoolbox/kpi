@@ -1,7 +1,7 @@
 import Reflux from 'reflux'
-import { parsed } from './assetParserUtils'
+import type { AssetResponse } from '#/dataInterface'
 import { actions } from './actions'
-import type { AssetResponse } from 'js/dataInterface'
+import { parsed } from './assetParserUtils'
 
 export interface AssetStoreData {
   [uid: string]: AssetResponse

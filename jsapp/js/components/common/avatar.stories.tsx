@@ -1,6 +1,6 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta, StoryObj } from '@storybook/react'
 
+import type { ComponentMeta, ComponentStory, StoryObj } from '@storybook/react'
 import Avatar from './avatar'
 import type { AvatarSize } from './avatar'
 

@@ -1,10 +1,12 @@
-import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import { getFlatQuestionsList, getLanguageIndex } from 'js/assetUtils'
-import type { FlatQuestion } from 'js/assetUtils'
-import type { AssetResponse, SubmissionResponse } from 'js/dataInterface'
-import { getRowData } from 'js/components/submissions/submissionUtils'
 import './submissionDataList.scss'
+
+import React from 'react'
+
+import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
+import type { FlatQuestion } from '#/assetUtils'
+import bem, { makeBem } from '#/bem'
+import { getRowData } from '#/components/submissions/submissionUtils'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import singleProcessingStore from '../processing/singleProcessingStore'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')

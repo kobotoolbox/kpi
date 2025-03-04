@@ -1,25 +1,18 @@
-// Libraries
 import React from 'react'
-import bem from 'js/bem'
-
-// Partial components
-import ExportTypeSelector from 'js/components/projectDownloads/ExportTypeSelector'
-import Button from 'js/components/common/button'
-
-// Stores, hooks and utilities
-import { actions } from 'js/actions'
-import { downloadUrl } from 'js/utils'
-import { getContextualDefaultExportFormat } from 'js/components/projectDownloads/exportsUtils'
-import exportsStore from 'js/components/projectDownloads/exportsStore'
-import ExportFetcher from 'js/components/projectDownloads/exportFetcher'
-
-// Constants and types
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
+import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
-  ExportStatusName,
   DEFAULT_EXPORT_SETTINGS,
+  ExportStatusName,
   type ExportTypeDefinition,
-} from 'js/components/projectDownloads/exportsConstants'
-import type { AssetResponse, ExportDataResponse } from 'jsapp/js/dataInterface'
+} from '#/components/projectDownloads/exportsConstants'
+import exportsStore from '#/components/projectDownloads/exportsStore'
+import { getContextualDefaultExportFormat } from '#/components/projectDownloads/exportsUtils'
+import type { AssetResponse, ExportDataResponse } from '#/dataInterface'
+import { downloadUrl } from '#/utils'
 
 interface AnonymousExportsProps {
   asset: AssetResponse

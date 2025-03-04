@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
-import singleProcessingStore, { StaticDisplays } from 'js/components/processing/singleProcessingStore'
-import TransxDisplay from './transxDisplay'
-import SidebarDisplaySettings from 'js/components/processing/sidebar/sidebarDisplaySettings'
-import type { AssetResponse } from 'jsapp/js/dataInterface'
-import SidebarSubmissionData from 'js/components/processing/sidebar/sidebarSubmissionData'
-import SidebarSubmissionMedia from 'js/components/processing/sidebar/sidebarSubmissionMedia'
-import { getActiveTab } from 'js/components/processing/routes.utils'
+
+import { getActiveTab } from '#/components/processing/routes.utils'
+import SidebarDisplaySettings from '#/components/processing/sidebar/sidebarDisplaySettings'
+import SidebarSubmissionData from '#/components/processing/sidebar/sidebarSubmissionData'
+import SidebarSubmissionMedia from '#/components/processing/sidebar/sidebarSubmissionMedia'
+import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
+import type { AssetResponse } from '#/dataInterface'
 import styles from './processingSidebar.module.scss'
+import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
   asset: AssetResponse

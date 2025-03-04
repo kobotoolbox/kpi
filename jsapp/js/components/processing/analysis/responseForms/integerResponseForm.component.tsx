@@ -1,14 +1,15 @@
 import React, { useContext, useState } from 'react'
-import TextBox from 'js/components/common/textBox'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
-import { AUTO_SAVE_TYPING_DELAY } from 'js/components/processing/analysis/constants'
+
+import TextBox from '#/components/common/textBox'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import { AUTO_SAVE_TYPING_DELAY } from '#/components/processing/analysis/constants'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
-} from 'js/components/processing/analysis/utils'
-import CommonHeader from './commonHeader.component'
+} from '#/components/processing/analysis/utils'
 import commonStyles from './common.module.scss'
+import CommonHeader from './commonHeader.component'
 
 interface IntegerResponseFormProps {
   uuid: string

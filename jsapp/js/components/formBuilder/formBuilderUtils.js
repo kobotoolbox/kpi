@@ -1,5 +1,5 @@
 import clonedeep from 'lodash.clonedeep'
-import { ASSET_TYPES } from 'js/constants'
+import { ASSET_TYPES } from '#/constants'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)

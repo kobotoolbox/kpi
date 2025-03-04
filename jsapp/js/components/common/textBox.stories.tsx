@@ -1,8 +1,9 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import { IconNames } from '#/k-icons'
 import TextBox from './textBox'
-import type { TextBoxType, TextBoxSize } from './textBox'
-import { IconNames } from 'jsapp/fonts/k-icons'
+import type { TextBoxSize, TextBoxType } from './textBox'
 
 const textBoxTypes: TextBoxType[] = ['email', 'number', 'password', 'text-multiline', 'text', 'url']
 

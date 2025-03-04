@@ -10,7 +10,7 @@ Details pulled from ODK documents / google docs. Notably this one:
 
 _ = require 'underscore'
 Backbone = require 'backbone'
-txtid = require('js/utils').txtid
+txtid = require('#/utils').txtid
 
 module.exports = do ->
   configs = {}

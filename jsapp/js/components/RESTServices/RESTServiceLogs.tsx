@@ -1,29 +1,23 @@
-// Libraries
 import React from 'react'
+
 import alertify from 'alertifyjs'
-import bem from 'js/bem'
-
-// Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-
-// Stores, hooks and utilities
-import pageState from 'js/pageState.store'
-import { actions } from 'js/actions'
-import { dataInterface } from 'js/dataInterface'
-import { formatTime, notify } from 'js/utils'
-import assetStore from 'jsapp/js/assetStore'
-import { getRouteAssetUid } from 'jsapp/js/router/routerUtils'
-
-// Constants and types
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { HOOK_LOG_STATUSES, MODAL_TYPES } from '#/constants'
+import { dataInterface } from '#/dataInterface'
 import type {
-  FailResponse,
-  ExternalServiceLogResponse,
-  PaginatedResponse,
   ExternalServiceHookResponse,
+  ExternalServiceLogResponse,
+  FailResponse,
+  PaginatedResponse,
   RetryExternalServiceLogsResponse,
-} from 'js/dataInterface'
-import { HOOK_LOG_STATUSES, MODAL_TYPES } from 'js/constants'
+} from '#/dataInterface'
+import pageState from '#/pageState.store'
+import { getRouteAssetUid } from '#/router/routerUtils'
+import { formatTime, notify } from '#/utils'
 
 interface RESTServiceLogsProps {
   assetUid: string

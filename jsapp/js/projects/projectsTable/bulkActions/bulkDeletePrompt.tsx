@@ -1,17 +1,11 @@
-// Libraries
 import React, { useState } from 'react'
 
-// Partial components
-import KoboPrompt from 'js/components/modals/koboPrompt'
-import Checkbox from 'js/components/common/checkbox'
-
-// Stores, hooks and utilities
-import { fetchPost, handleApiFail } from 'js/api'
-import { notify } from 'js/utils'
-import customViewStore from 'js/projects/customViewStore'
-import { searches } from 'js/searches'
-
-// Styles
+import { fetchPost, handleApiFail } from '#/api'
+import Checkbox from '#/components/common/checkbox'
+import KoboPrompt from '#/components/modals/koboPrompt'
+import customViewStore from '#/projects/customViewStore'
+import { searches } from '#/searches'
+import { notify } from '#/utils'
 import styles from './bulkDeletePrompt.module.scss'
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'

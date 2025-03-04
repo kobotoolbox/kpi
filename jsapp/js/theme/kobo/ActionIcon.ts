@@ -1,4 +1,4 @@
-import { rem, ActionIcon } from '@mantine/core'
+import { ActionIcon, rem } from '@mantine/core'
 import classes from './ActionIcon.module.css'
 
 export const ActionIconThemeKobo = ActionIcon.extend({

@@ -1,12 +1,8 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./jsapp",
     "paths": {
-      "jsapp/*": ["./*"],
-      "js/*": ["js/*"],
-      "scss/*": ["scss/*"],
-      "test/*": ["test/*"]
+      "#/*": ["./jsapp/js/*"]
     },
     "target": "es2017",
     "module": "es2020",

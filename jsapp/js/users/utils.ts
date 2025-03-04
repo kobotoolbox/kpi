@@ -1,4 +1,4 @@
-import constants from 'js/constants'
+import constants from '#/constants'
 
 /** Make sure to not call this with a user url :) */
 export function buildUserUrl(username: string): string {

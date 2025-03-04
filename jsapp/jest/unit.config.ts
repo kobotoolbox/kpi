@@ -21,10 +21,7 @@ const config: Config = {
   // Where to resolve module imports
   moduleNameMapper: {
     // ℹ️ same aliases as in webpack.common.js (module.resolve.alias)
-    '^jsapp/(.+)$': '<rootDir>/../$1', // 📁 'jsapp/*'
-    '^js/(.*)$': '<rootDir>/../js/$1', // 📁 'js/*'
-    '^test/(.*)$': '<rootDir>/../../test/$1', // 📁 'test/*'
-    '^utils$': '<rootDir>/../js/utils', // 📄 'utils'
+    '^#/(.*)$': '<rootDir>/../js/$1', // 📁 'js/*'
     // 🎨 mock all CSS modules imported (styles.root = 'root')
     '\\.(css|scss)$': 'identity-obj-proxy',
   },

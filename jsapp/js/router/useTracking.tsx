@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+
 import { useLocation } from 'react-router-dom'
 
 // Send a pageview to Google Analytics for every change in routes

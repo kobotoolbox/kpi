@@ -1,16 +1,17 @@
-import autoBind from 'react-autobind'
-import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import { MODAL_TYPES, QUESTION_TYPES } from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
-import Button from 'js/components/common/button'
-import { truncateString } from 'js/utils'
-// import {hashHistory} from 'react-router';
-import type { SubmissionAttachment } from 'js/dataInterface'
 import './mediaCell.scss'
-import Icon from 'js/components/common/icon'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import pageState from 'js/pageState.store'
+
+import React from 'react'
+
+import autoBind from 'react-autobind'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import { MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import type { SubmissionAttachment } from '#/dataInterface'
+import type { IconName } from '#/k-icons'
+import pageState from '#/pageState.store'
+import { truncateString } from '#/utils'
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header')
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div')

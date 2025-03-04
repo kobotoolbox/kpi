@@ -1,5 +1,5 @@
-import type { PaginatedResponse } from 'js/dataInterface'
-import { fetchGet, fetchPost, fetchDelete } from 'jsapp/js/api'
+import { fetchDelete, fetchGet, fetchPost } from '#/api'
+import type { PaginatedResponse } from '#/dataInterface'
 
 export interface EmailResponse {
   primary: boolean

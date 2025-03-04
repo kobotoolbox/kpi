@@ -1,11 +1,12 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
-import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils'
-import MultiCheckbox from 'js/components/common/multiCheckbox'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import MultiCheckbox from '#/components/common/multiCheckbox'
+import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUtils'
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`

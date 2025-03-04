@@ -2,11 +2,11 @@
  * Dynamic data attachment related actions
  */
 
-import Reflux from 'reflux'
 import alertify from 'alertifyjs'
-import { dataInterface } from 'js/dataInterface'
-import { MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
-import { getAssetUIDFromUrl, truncateFile, truncateString, notify } from 'js/utils'
+import Reflux from 'reflux'
+import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
+import { dataInterface } from '#/dataInterface'
+import { getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 
 const dataShareActions = Reflux.createActions({
   attachToSource: { children: ['started', 'completed', 'failed'] },

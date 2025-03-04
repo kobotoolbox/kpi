@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import Radio from './radio'
 import type { RadioOption } from './radio'
 

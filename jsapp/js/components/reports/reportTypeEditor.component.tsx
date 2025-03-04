@@ -1,7 +1,8 @@
 import React from 'react'
+
+import styles from './reportTypeEditor.module.scss'
 import { CHART_STYLES } from './reportsConstants'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
-import styles from './reportTypeEditor.module.scss'
 
 interface ReportTypeEditorProps {
   onChange: (newType: ReportStyleName) => void

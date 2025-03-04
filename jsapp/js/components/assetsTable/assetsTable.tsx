@@ -1,16 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import PopoverMenu from 'js/popoverMenu'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import bem, { makeBem } from 'js/bem'
-import { hasVerticalScrollbar, getScrollbarWidth } from 'js/utils'
-import AssetsTableRow from './assetsTableRow'
-import { ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS, ASSETS_TABLE_COLUMNS } from './assetsTableConstants'
-import type { AssetsTableContextName, AssetsTableColumn } from './assetsTableConstants'
-import type { OrderDirection } from 'js/projects/projectViews/constants'
-import type { AssetResponse, MetadataResponse } from 'js/dataInterface'
 import './assetsTable.scss'
-import Button from 'js/components/common/button'
+
+import React from 'react'
+
+import ReactDOM from 'react-dom'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { AssetResponse, MetadataResponse } from '#/dataInterface'
+import PopoverMenu from '#/popoverMenu'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
+import { ASSETS_TABLE_COLUMNS, ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS } from './assetsTableConstants'
+import type { AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
+import AssetsTableRow from './assetsTableRow'
 
 bem.AssetsTable = makeBem(null, 'assets-table')
 bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header')

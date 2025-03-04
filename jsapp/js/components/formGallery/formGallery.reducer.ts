@@ -1,4 +1,4 @@
-import type { SubmissionResponse } from 'js/dataInterface'
+import type { SubmissionResponse } from '#/dataInterface'
 import type { FormGalleryAction } from './formGallery.actions'
 
 interface State {

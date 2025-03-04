@@ -1,44 +1,37 @@
-// Libraries
+import './reports.scss'
+
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
-
-// Partial components
-import InlineMessage from 'js/components/common/inlineMessage'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Modal from 'js/components/common/modal'
 import DocumentTitle from 'react-document-title'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
-import Button from 'js/components/common/button'
-import KoboSelect from 'js/components/common/koboSelect'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import CenteredMessage from '#/components/common/centeredMessage.component'
+import InlineMessage from '#/components/common/inlineMessage'
+import KoboSelect from '#/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Modal from '#/components/common/modal'
+import { userCan } from '#/components/permissions/utils'
+import { dataInterface } from '#/dataInterface'
+import type { AssetResponse, FailResponse, SurveyRow } from '#/dataInterface'
+import type { WithRouterProps } from '#/router/legacy'
+import { stores } from '#/stores'
+import { launchPrinting, notify, txtid } from '#/utils'
 import CustomReportEditor from './customReportEditor.component'
 import ReportContents from './reportContents.component'
 import ReportStyleSettings from './reportStyleSettings.component'
 import ReportStyleSettingsSingleQuestion from './reportStyleSettingsSingleQuestion.component'
-
-// Utilities
-import { dataInterface } from 'js/dataInterface'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { stores } from 'js/stores'
-import { txtid, notify, launchPrinting } from 'js/utils'
-import { userCan } from 'js/components/permissions/utils'
 import { getDataWithResponses } from './reports.utils'
-
-// Types & constants
 import {
-  CHART_STYLES,
-  DEFAULT_MINIMAL_REPORT_STYLE,
   type AssetResponseReportStyles,
+  CHART_STYLES,
   type CustomReportSettings,
+  DEFAULT_MINIMAL_REPORT_STYLE,
   type ReportsPaginatedResponse,
   type ReportsResponse,
 } from './reportsConstants'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
-import type { AssetResponse, SurveyRow, FailResponse } from 'js/dataInterface'
-
-// Styles
-import './reports.scss'
 
 interface ReportsProps extends WithRouterProps {
   uid?: string

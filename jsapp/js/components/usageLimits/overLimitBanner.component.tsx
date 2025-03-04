@@ -1,14 +1,14 @@
 import cx from 'classnames'
-import Button from 'js/components/common/button'
-import { useNavigate } from 'react-router-dom'
-import styles from './overLimitBanner.module.scss'
-import Icon from 'js/components/common/icon'
-import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
-import envStore from 'jsapp/js/envStore'
-import subscriptionStore from 'jsapp/js/account/subscriptionStore'
-import { OrganizationUserRole, useOrganizationQuery } from 'jsapp/js/account/organization/organizationQuery'
-import { getSimpleMMOLabel, shouldUseTeamLabel } from 'jsapp/js/account/organization/organization.utils'
 import Markdown from 'react-markdown'
+import { useNavigate } from 'react-router-dom'
+import { getSimpleMMOLabel, shouldUseTeamLabel } from '#/account/organization/organization.utils'
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import subscriptionStore from '#/account/subscriptionStore'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import envStore from '#/envStore'
+import styles from './overLimitBanner.module.scss'
 
 interface OverLimitBannerProps {
   warning?: boolean

@@ -1,8 +1,8 @@
-import chai from 'chai'
-import $ from 'jquery'
-
 // Polyfill global fetch (for Node 20 and older)
 import 'whatwg-fetch'
+
+import chai from 'chai'
+import $ from 'jquery'
 
 // Add global t() mock (see /static/js/global_t.js)
 global.t = (str: string) => str

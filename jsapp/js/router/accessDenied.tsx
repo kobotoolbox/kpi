@@ -1,11 +1,12 @@
-import React from 'react'
-import { observer } from 'mobx-react'
-import bem, { makeBem } from 'js/bem'
-import sessionStore from 'js/stores/session'
-import { replaceBracketsWithLink } from 'js/textUtils'
-
-import envStore from 'js/envStore'
 import './accessDenied.scss'
+
+import React from 'react'
+
+import { observer } from 'mobx-react'
+import bem, { makeBem } from '#/bem'
+import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
+import { replaceBracketsWithLink } from '#/textUtils'
 
 bem.AccessDenied = makeBem(null, 'access-denied')
 bem.AccessDenied__body = makeBem(bem.AccessDenied, 'body', 'section')

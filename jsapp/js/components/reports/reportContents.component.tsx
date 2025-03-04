@@ -1,18 +1,12 @@
-// Libraries
 import React from 'react'
-import bem from 'js/bem'
 
-// Partial components
+import bem from '#/bem'
+import { QUESTION_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import ReportViewItem from './reportViewItem.component'
-
-// Utils
-import { getReportRowTranslatedLabel } from './reports.utils'
-
-// Types & constants
-import { QUESTION_TYPES } from 'js/constants'
 import type { ReportsState } from './reports'
+import { getReportRowTranslatedLabel } from './reports.utils'
 import type { ReportStyle, ReportsResponse } from './reportsConstants'
-import type { AssetResponse } from 'jsapp/js/dataInterface'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void

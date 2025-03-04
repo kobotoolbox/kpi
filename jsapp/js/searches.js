@@ -5,16 +5,15 @@
  * context everywhere.
  */
 
-import values from 'lodash.values'
 import debounce from 'lodash.debounce'
+import values from 'lodash.values'
 import Reflux from 'reflux'
 import SparkMD5 from 'spark-md5'
-
+import { actions } from './actions'
+import { parsed } from './assetParserUtils'
+import { dataInterface } from './dataInterface'
 import { stores } from './stores'
 import sessionStore from './stores/session'
-import { actions } from './actions'
-import { dataInterface } from './dataInterface'
-import { parsed } from './assetParserUtils'
 
 const emptySearchState = {
   searchState: 'none',

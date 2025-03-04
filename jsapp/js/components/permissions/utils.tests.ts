@@ -1,11 +1,11 @@
-import type { PartialPermission, PermissionResponse, PartialPermissionFilter } from 'js/dataInterface'
+import type { PartialPermission, PartialPermissionFilter, PermissionResponse } from '#/dataInterface'
 import {
-  hasPartialByUsers,
-  hasPartialByResponses,
-  isPartialByUsersFilter,
-  getPartialByUsersFilterList,
-  isPartialByResponsesFilter,
   getPartialByResponsesFilter,
+  getPartialByUsersFilterList,
+  hasPartialByResponses,
+  hasPartialByUsers,
+  isPartialByResponsesFilter,
+  isPartialByUsersFilter,
 } from './utils'
 
 // single partial "by users"

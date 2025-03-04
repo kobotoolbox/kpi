@@ -3,18 +3,19 @@
  * Add `onSelectTemplate` callback function to get selected uid:
  * `<TemplatesList onSelectTemplate={this.handleTemplateSelected}/>`
  */
+import './templatesList.scss'
 
 import React from 'react'
-import Reflux from 'reflux'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import sessionStore from 'js/stores/session'
+import reactMixin from 'react-mixin'
+import Reflux from 'reflux'
+import { getAssetOwnerDisplayName } from '#/assetUtils'
+import bem from '#/bem'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import sessionStore from '#/stores/session'
+import { formatTime } from '#/utils'
 import { dataInterface } from '../dataInterface'
-import { formatTime } from 'utils'
-import { getAssetOwnerDisplayName } from 'js/assetUtils'
-import './templatesList.scss'
 
 class TemplatesList extends React.Component {
   constructor(props) {

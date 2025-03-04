@@ -1,9 +1,11 @@
-import React from 'react'
-import DocumentTitle from 'react-document-title'
-import RESTServicesList from './RESTServicesList'
-import RESTServiceLogs from './RESTServiceLogs'
-import type { AssetResponse } from 'js/dataInterface'
 import './RESTServices.scss'
+
+import React from 'react'
+
+import DocumentTitle from 'react-document-title'
+import type { AssetResponse } from '#/dataInterface'
+import RESTServiceLogs from './RESTServiceLogs'
+import RESTServicesList from './RESTServicesList'
 
 interface RESTServicesProps {
   asset: AssetResponse

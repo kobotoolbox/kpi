@@ -1,34 +1,26 @@
-// Libraries
 import React from 'react'
 
-// Partial components
-import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Avatar from 'js/components/common/avatar'
-import Badge from 'jsapp/js/components/common/badge'
+import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import InviteModal from '#/account/organization/InviteModal'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
+import Avatar from '#/components/common/avatar'
+import Badge from '#/components/common/badge'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import envStore from '#/envStore'
+import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
+import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
+import { formatDate } from '#/utils'
+import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
-import ButtonNew from 'jsapp/js/components/common/ButtonNew'
-import { Divider, Group, Stack, Text, Title, Box } from '@mantine/core'
-import InviteModal from 'js/account/organization/InviteModal'
-
-// Stores, hooks and utilities
-import envStore from 'jsapp/js/envStore'
-import subscriptionStore from 'jsapp/js/account/subscriptionStore'
-import { formatDate } from 'js/utils'
-import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
-import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import useOrganizationMembersQuery from './membersQuery'
-import { useDisclosure } from '@mantine/hooks'
-
-// Constants and types
 import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
-import type { UniversalTableColumn } from 'jsapp/js/universalTable/universalTable.component'
-
-// Styles
 import styles from './membersRoute.module.scss'
-import ActionIcon from 'jsapp/js/components/common/ActionIcon'
-import InviteeActionsDropdown from './InviteeActionsDropdown'
+import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery()

@@ -1,5 +1,5 @@
-import { surveyWithGroups, surveyWithAllPossibleGroups } from 'js/assetUtils.mocks'
-import { getSurveyFlatPaths } from 'js/assetUtils'
+import { getSurveyFlatPaths } from '#/assetUtils'
+import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
 
 describe('getSurveyFlatPaths', () => {
   it('should return a list of paths for all questions', () => {

@@ -4,7 +4,7 @@
  * add anything more here :kiss:
  */
 
-import bem, { makeBem } from 'js/bem'
+import bem, { makeBem } from '#/bem'
 
 bem.KoboSelect = makeBem(null, 'kobo-select')
 bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper')

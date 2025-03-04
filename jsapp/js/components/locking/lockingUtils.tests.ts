@@ -1,35 +1,35 @@
+import { expect } from '@jest/globals'
+import { getRowName } from '#/assetUtils'
+import { ASSET_TYPES } from '#/constants'
+import {
+  FORM_RESTRICTIONS,
+  GROUP_RESTRICTIONS,
+  LockingRestrictionName,
+  QUESTION_RESTRICTIONS,
+} from './lockingConstants'
+import {
+  getAssetLockingProfile,
+  getFormFeatures,
+  getGroupFeatures,
+  getLockingProfile,
+  getQuestionFeatures,
+  getRowLockingProfile,
+  hasAssetAnyLocking,
+  hasAssetRestriction,
+  hasRowRestriction,
+  isAssetAllLocked,
+  isAssetLockable,
+  isAssetLocked,
+  isRowLocked,
+} from './lockingUtils'
 import {
   simpleTemplate,
   simpleTemplateLocked,
-  simpleTemplateLockedWithAll,
-  simpleTemplateWithAll,
   simpleTemplateLockedFormUndef,
   simpleTemplateLockedRowUndef,
+  simpleTemplateLockedWithAll,
+  simpleTemplateWithAll,
 } from './lockingUtils.mocks'
-import {
-  hasRowRestriction,
-  hasAssetRestriction,
-  getLockingProfile,
-  getRowLockingProfile,
-  getAssetLockingProfile,
-  isRowLocked,
-  isAssetLocked,
-  hasAssetAnyLocking,
-  isAssetAllLocked,
-  isAssetLockable,
-  getQuestionFeatures,
-  getGroupFeatures,
-  getFormFeatures,
-} from './lockingUtils'
-import {
-  QUESTION_RESTRICTIONS,
-  GROUP_RESTRICTIONS,
-  FORM_RESTRICTIONS,
-  LockingRestrictionName,
-} from './lockingConstants'
-import { getRowName } from 'js/assetUtils'
-import { ASSET_TYPES } from 'js/constants'
-import { expect } from '@jest/globals'
 
 describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {

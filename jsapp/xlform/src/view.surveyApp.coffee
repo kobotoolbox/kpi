@@ -8,10 +8,10 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
-isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
-hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
-LockingRestrictionName = require('js/components/locking/lockingConstants').LockingRestrictionName
-LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
+isAssetLockable = require('#/components/locking/lockingUtils').isAssetLockable
+hasAssetRestriction = require('#/components/locking/lockingUtils').hasAssetRestriction
+LockingRestrictionName = require('#/components/locking/lockingConstants').LockingRestrictionName
+LOCKING_UI_CLASSNAMES = require('#/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
   surveyApp = {}

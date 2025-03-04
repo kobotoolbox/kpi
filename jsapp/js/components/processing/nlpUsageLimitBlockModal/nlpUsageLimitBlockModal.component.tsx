@@ -1,14 +1,15 @@
-import cx from 'classnames'
 import React from 'react'
-import KoboModal from '../../modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalFooter from 'js/components/modals/koboModalFooter'
-import Button from 'js/components/common/button'
-import Icon from 'js/components/common/icon'
+
+import cx from 'classnames'
 import { useNavigate } from 'react-router-dom'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboModalFooter from '#/components/modals/koboModalFooter'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import KoboModal from '../../modals/koboModal'
 import styles from './nlpUsageLimitBlockModal.module.scss'
-import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
-import { RecurringInterval, UsageLimitTypes } from 'jsapp/js/account/stripe.types'
 
 interface NlpUsageLimitBlockModalProps {
   isModalOpen: boolean

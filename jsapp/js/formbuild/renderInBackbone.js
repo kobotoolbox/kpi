@@ -1,7 +1,8 @@
 import React from 'react'
+
+import { fromJS } from 'immutable'
 import { createRoot } from 'react-dom/client'
 import KoboMatrix from './containers/KoboMatrix'
-import { fromJS } from 'immutable'
 
 /*
 Initially, this KoboMatrixRow class will be an intermediary between

@@ -1,5 +1,5 @@
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from 'js/constants'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 
 /** Single Processing is capable of handling these question types. */
 export const PROCESSING_QUESTION_TYPES = [QuestionTypeName.audio, QuestionTypeName['background-audio']]

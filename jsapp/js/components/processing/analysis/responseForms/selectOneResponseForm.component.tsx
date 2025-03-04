@@ -1,15 +1,16 @@
 import React, { useContext, useState } from 'react'
-import CommonHeader from './commonHeader.component'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
+
+import classNames from 'classnames'
+import Radio from '#/components/common/radio'
+import type { RadioOption } from '#/components/common/radio'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
-} from 'js/components/processing/analysis/utils'
-import Radio from 'js/components/common/radio'
-import type { RadioOption } from 'js/components/common/radio'
+} from '#/components/processing/analysis/utils'
 import commonStyles from './common.module.scss'
-import classNames from 'classnames'
+import CommonHeader from './commonHeader.component'
 import styles from './selectOneResponseForm.module.scss'
 
 interface SelectOneResponseFormProps {

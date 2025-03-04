@@ -11,23 +11,23 @@ $viewParams = require('./view.params')
 $viewMandatorySetting = require('./view.mandatorySetting')
 $acceptedFilesView = require('./view.acceptedFiles')
 $viewRowDetail = require('./view.rowDetail')
-renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
-getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
-isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
-isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
-isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
-getQuestionFeatures = require('js/components/locking/lockingUtils').getQuestionFeatures
-getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeatures
-LockingRestrictionName = require('js/components/locking/lockingConstants').LockingRestrictionName
-LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
+renderKobomatrix = require('#/formbuild/renderInBackbone').renderKobomatrix
+hasRowRestriction = require('#/components/locking/lockingUtils').hasRowRestriction
+getRowLockingProfile = require('#/components/locking/lockingUtils').getRowLockingProfile
+isRowLocked = require('#/components/locking/lockingUtils').isRowLocked
+isAssetLockable = require('#/components/locking/lockingUtils').isAssetLockable
+isAssetAllLocked = require('#/components/locking/lockingUtils').isAssetAllLocked
+getQuestionFeatures = require('#/components/locking/lockingUtils').getQuestionFeatures
+getGroupFeatures = require('#/components/locking/lockingUtils').getGroupFeatures
+LockingRestrictionName = require('#/components/locking/lockingConstants').LockingRestrictionName
+LOCKING_UI_CLASSNAMES = require('#/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 $icons = require('./view.icons')
 # TODO: port this and others from alertify.dialog to new modal system
 # https://github.com/kobotoolbox/kpi/issues/3977
-multiConfirm = require('js/alertify').multiConfirm
+multiConfirm = require('#/alertify').multiConfirm
 alertify = require('alertifyjs')
-constants = require('js/constants')
-notify = require('js/utils').notify
+constants = require('#/constants')
+notify = require('#/utils').notify
 
 module.exports = do ->
   class BaseRowView extends Backbone.View

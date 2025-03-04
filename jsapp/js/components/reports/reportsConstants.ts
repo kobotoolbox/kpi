@@ -1,5 +1,5 @@
 import type { ChartType } from 'chart.js/auto'
-import type { AnyRowTypeName } from 'js/constants'
+import type { AnyRowTypeName } from '#/constants'
 
 export interface ReportStyle {
   /** Asset row type name (`AnyRowTypeName`) */

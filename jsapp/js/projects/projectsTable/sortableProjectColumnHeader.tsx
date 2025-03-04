@@ -1,17 +1,11 @@
-// Libraries
 import React, { useState } from 'react'
+
 import cx from 'classnames'
-
-// Partial components
-import Icon from 'js/components/common/icon'
-import Button from 'jsapp/js/components/common/button'
-import KoboDropdown from 'jsapp/js/components/common/koboDropdown'
-
-// Constants and types
-import type { ProjectsTableOrder } from './projectsTable'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboDropdown from '#/components/common/koboDropdown'
 import { type ProjectFieldDefinition, type ProjectFieldName } from '../projectViews/constants'
-
-// Styles
+import type { ProjectsTableOrder } from './projectsTable'
 import styles from './projectsTableHeader.module.scss'
 import rowStyles from './projectsTableRow.module.scss'
 

@@ -5,7 +5,7 @@ const config: Config = {
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/../js', '<rootDir>'],
   moduleNameMapper: {
-    '^js/(.*)$': '<rootDir>/../js/$1',
+    '^#/(.*)$': '<rootDir>/../js/$1',
     '\\.(css|scss)$': 'identity-obj-proxy',
   },
   setupFilesAfterEnv: ['<rootDir>/setupJestTest.ts'],

@@ -1,9 +1,9 @@
-import Reflux from 'reflux'
-import { notify } from 'js/utils'
-import { ROOT_URL } from 'js/constants'
-import { hasActiveSubscription } from 'js/account/stripe.utils'
 import { when } from 'mobx'
-import envStore from 'js/envStore'
+import Reflux from 'reflux'
+import { hasActiveSubscription } from '#/account/stripe.utils'
+import { ROOT_URL } from '#/constants'
+import envStore from '#/envStore'
+import { notify } from '#/utils'
 
 export type MfaErrorResponse = JQueryXHR & {
   non_field_errors?: string

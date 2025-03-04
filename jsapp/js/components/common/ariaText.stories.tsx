@@ -1,6 +1,7 @@
 import React from 'react'
+
 import type { StoryObj } from '@storybook/react'
-import AriaText from 'js/components/common/ariaText'
+import AriaText from '#/components/common/ariaText'
 
 export default {
   component: AriaText,

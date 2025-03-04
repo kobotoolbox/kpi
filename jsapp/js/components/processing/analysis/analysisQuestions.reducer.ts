@@ -1,6 +1,6 @@
-import { generateUuid, moveArrayElementToIndex } from 'jsapp/js/utils'
-import type { AnalysisQuestionInternal } from './constants'
+import { generateUuid, moveArrayElementToIndex } from '#/utils'
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
+import type { AnalysisQuestionInternal } from './constants'
 import { applyUpdateResponseToInternalQuestions, updateSingleQuestionPreservingResponse } from './utils'
 
 export interface AnalysisQuestionsState {

@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx'
-import type { PaginatedResponse, FailResponse } from 'js/dataInterface'
-import { handleApiFail } from 'js/api'
-import { ROOT_URL } from 'js/constants'
+import { handleApiFail } from '#/api'
+import { ROOT_URL } from '#/constants'
+import type { FailResponse, PaginatedResponse } from '#/dataInterface'
 import languagesStore from './languagesStore'
 import type { ListLanguage } from './languagesStore'
 

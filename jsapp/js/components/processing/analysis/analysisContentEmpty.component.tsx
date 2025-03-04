@@ -1,8 +1,9 @@
 import React from 'react'
+
+import Icon from '#/components/common/icon'
+import InlineMessage from '#/components/common/inlineMessage'
 import styles from './analysisContentEmpty.module.scss'
 import { hasManagePermissionsToCurrentAsset } from './utils'
-import InlineMessage from 'js/components/common/inlineMessage'
-import Icon from 'js/components/common/icon'
 
 /** To be displayed when there are no questions defined yet. */
 export default function AnalysisContentEmpty() {

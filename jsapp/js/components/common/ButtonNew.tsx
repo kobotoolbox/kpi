@@ -1,6 +1,7 @@
-import { Button as ButtonMantine, createPolymorphicComponent, Tooltip } from '@mantine/core'
-import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
 import { forwardRef } from 'react'
+
+import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
+import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
 
 // See boilerpate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
 

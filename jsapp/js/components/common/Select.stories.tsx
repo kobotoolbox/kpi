@@ -1,6 +1,6 @@
-import { Stack, type MantineSize } from '@mantine/core'
-import { Select } from './Select'
+import { type MantineSize, Stack } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
+import { Select } from './Select'
 
 const sizes: MantineSize[] = ['xs', 'sm', 'md', 'lg', 'xl']
 

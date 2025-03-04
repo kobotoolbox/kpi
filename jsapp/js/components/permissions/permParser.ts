@@ -1,24 +1,24 @@
-import isEqual from 'lodash.isequal'
 import clonedeep from 'lodash.clonedeep'
+import isEqual from 'lodash.isequal'
+import type { PartialPermission, PartialPermissionFilter, PermissionBase, PermissionResponse } from '#/dataInterface'
+import { ANON_USERNAME, buildUserUrl, getUsernameFromUrl } from '#/users/utils'
 import permConfig from './permConfig'
 import type {
-  PermissionCodename,
   CheckboxNameAll,
-  CheckboxNamePartialByUsers,
   CheckboxNamePartialByResponses,
+  CheckboxNamePartialByUsers,
+  PermissionCodename,
 } from './permConstants'
-import { PARTIAL_BY_USERS_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, CHECKBOX_PERM_PAIRS } from './permConstants'
-import { buildUserUrl, getUsernameFromUrl, ANON_USERNAME } from 'js/users/utils'
-import type { PermissionResponse, PermissionBase, PartialPermission, PartialPermissionFilter } from 'js/dataInterface'
+import { CHECKBOX_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, PARTIAL_BY_USERS_PERM_PAIRS } from './permConstants'
 import {
   getCheckboxNameByPermission,
-  getPartialByUsersCheckboxName,
-  getPartialByUsersListName,
   getPartialByResponsesCheckboxName,
+  getPartialByResponsesFilter,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
+  getPartialByUsersCheckboxName,
   getPartialByUsersFilterList,
-  getPartialByResponsesFilter,
+  getPartialByUsersListName,
 } from './utils'
 
 export interface PermsFormData {

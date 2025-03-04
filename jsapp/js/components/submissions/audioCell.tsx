@@ -1,11 +1,13 @@
-import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import Button from 'js/components/common/button'
-import Icon from 'js/components/common/icon'
-import MiniAudioPlayer from 'js/components/common/miniAudioPlayer'
-import { goToProcessing } from 'js/components/processing/routes.utils'
-import type { SubmissionAttachment } from 'js/dataInterface'
 import './audioCell.scss'
+
+import React from 'react'
+
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
+import { goToProcessing } from '#/components/processing/routes.utils'
+import type { SubmissionAttachment } from '#/dataInterface'
 
 bem.AudioCell = makeBem(null, 'audio-cell')
 

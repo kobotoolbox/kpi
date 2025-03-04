@@ -1,10 +1,11 @@
-import debounce from 'lodash.debounce'
 import React from 'react'
-import { observer } from 'mobx-react'
-import bem from 'js/bem'
-import searchBoxStore from './searchBoxStore'
-import { KEY_CODES } from 'js/constants'
+
+import debounce from 'lodash.debounce'
 import { autorun } from 'mobx'
+import { observer } from 'mobx-react'
+import bem from '#/bem'
+import { KEY_CODES } from '#/constants'
+import searchBoxStore from './searchBoxStore'
 
 interface SearchBoxProps {
   /** A text to be displayed in empty input. */
