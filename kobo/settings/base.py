@@ -1286,7 +1286,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-
+    # Schedule every day at midnight UTC
+    'delete-expired-access-logs': {
+        'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 
@@ -1385,6 +1390,7 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
+MAX_MASS_EMAILS_PER_DAY = 1000
 
 """ AWS configuration (email and storage) """
 if env.str('AWS_ACCESS_KEY_ID', False):
