@@ -25,8 +25,8 @@ class MassEmailConfig(AbstractTimeStampedModel):
         blank=True,
         help_text='Available placeholders:<br />'
         '##username##<br />'
-        "##full_name## - user\'s full name<br />"
-        "##plan_name## - user\'s current subscription plan",
+        "##full_name## - user's full name<br />"
+        "##plan_name## - user's current subscription plan",
     )
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES
@@ -37,7 +37,9 @@ class MassEmailConfig(AbstractTimeStampedModel):
 
 
 class MassEmailJob(AbstractTimeStampedModel):
-    email_config = models.ForeignKey(MassEmailConfig, on_delete=models.PROTECT)
+    email_config = models.ForeignKey(
+        MassEmailConfig, on_delete=models.PROTECT, related_name='jobs'
+    )
     uid = KpiUidField(uid_prefix='mej')
 
     def __str__(self):
@@ -46,7 +48,9 @@ class MassEmailJob(AbstractTimeStampedModel):
 
 class MassEmailRecord(AbstractTimeStampedModel):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    email_job = models.ForeignKey(MassEmailJob, on_delete=models.PROTECT)
+    email_job = models.ForeignKey(
+        MassEmailJob, on_delete=models.PROTECT, related_name='records'
+    )
     status = models.CharField(choices=EmailStatus.choices, null=True, blank=True)
     uid = KpiUidField(uid_prefix='mer')
 
