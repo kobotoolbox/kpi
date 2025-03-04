@@ -9,7 +9,7 @@ from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
 @ddt
-class UserQueryTestCase(BaseServiceUsageTestCase):
+class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     fixtures = ['test_data']
 
     @data(
