@@ -1,22 +1,19 @@
+import './sharingForm.scss'
+
 import React from 'react'
 
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import bem from '#/bem'
+import AssetName from '#/components/common/assetName'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
 import { ASSET_TYPES } from '#/constants'
-import { stores } from '#/stores'
-import sessionStore from '#/stores/session'
-import { replaceBracketsWithLink } from '#/textUtils'
-import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
-import './sharingForm.scss'
-import { ACCOUNT_ROUTES } from '#/account/routes.constants'
-import AssetName from '#/components/common/assetName'
 import type {
   AssetResponse,
   AssignablePermission,
@@ -24,6 +21,10 @@ import type {
   PermissionBase,
   PermissionResponse,
 } from '#/dataInterface'
+import { stores } from '#/stores'
+import sessionStore from '#/stores/session'
+import { replaceBracketsWithLink } from '#/textUtils'
+import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import { parseBackendData, parseUserWithPermsList } from './permParser'
 import type { UserWithPerms } from './permParser'

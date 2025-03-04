@@ -1,16 +1,19 @@
 /**
  * A component with common layout elements for all routes.
  */
+import '#/bemComponents' // importing it so it exists
+import '#/surveyCompanionStore' // importing it so it exists
+import '@mantine/core/styles.css'
 
 import React from 'react'
 
+import { MantineProvider } from '@mantine/core'
+import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Outlet } from 'react-router-dom'
 import Reflux from 'reflux'
-import '#/surveyCompanionStore' // importing it so it exists
 import bem from '#/bem'
-import {} from '#/bemComponents' // importing it so it exists
 import BigModal from '#/components/bigModal/bigModal'
 import Drawer from '#/components/drawer'
 import FormViewSideTabs from '#/components/formViewSideTabs'
@@ -23,17 +26,11 @@ import { RootContextProvider } from '#/rootContextProvider.component'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
 import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
+import { queryClient } from './query/queryClient.ts'
 import { router, routerGetAssetId, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
-import ToasterConfig from './toasterConfig'
-
-import '@mantine/core/styles.css'
-import { MantineProvider } from '@mantine/core'
-
-// Query-related
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from './query/queryClient.ts'
 import { themeKobo } from './theme'
+import ToasterConfig from './toasterConfig'
 
 class App extends React.Component {
   constructor(props) {

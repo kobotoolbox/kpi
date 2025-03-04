@@ -1,9 +1,15 @@
+import './submissionDataTable.scss'
+
 import React from 'react'
 
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import SimpleTable from '#/components/common/SimpleTable'
+import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
+import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
+import { goToProcessing } from '#/components/processing/routes.utils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
@@ -13,13 +19,8 @@ import {
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName, QuestionTypeName } from '#/constants'
-import { formatDate, formatTimeDate } from '#/utils'
-import './submissionDataTable.scss'
-import SimpleTable from '#/components/common/SimpleTable'
-import AudioPlayer from '#/components/common/audioPlayer'
-import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
-import { goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import { formatDate, formatTimeDate } from '#/utils'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')

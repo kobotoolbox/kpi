@@ -1,3 +1,5 @@
+import './formSummary.scss'
+
 import React from 'react'
 
 import autoBind from 'react-autobind'
@@ -9,13 +11,12 @@ import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Icon from '#/components/common/icon'
 import { getFormDataTabs } from '#/components/formViewSideTabs'
+import { userCan } from '#/components/permissions/utils'
 import { MODAL_TYPES } from '#/constants'
 import mixins from '#/mixins'
-import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
-import './formSummary.scss'
-import { userCan } from '#/components/permissions/utils'
 import pageState from '#/pageState.store'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
+import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
 import FormSummaryProjectInfo from './formSummaryProjectInfo'
 
 class FormSummary extends React.Component {

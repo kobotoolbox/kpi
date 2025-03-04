@@ -1,7 +1,8 @@
+import './toggleSwitch.scss'
+
 import React from 'react'
 
 import bem from '#/bem'
-import './toggleSwitch.scss'
 
 interface ToggleSwitchProps {
   checked?: boolean

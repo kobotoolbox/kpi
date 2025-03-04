@@ -1,3 +1,5 @@
+import './submissionModal.scss'
+
 import React from 'react'
 
 import alertify from 'alertifyjs'
@@ -26,7 +28,6 @@ import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusR
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
-import './submissionModal.scss'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 

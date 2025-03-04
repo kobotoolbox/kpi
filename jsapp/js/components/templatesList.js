@@ -3,6 +3,7 @@
  * Add `onSelectTemplate` callback function to get selected uid:
  * `<TemplatesList onSelectTemplate={this.handleTemplateSelected}/>`
  */
+import './templatesList.scss'
 
 import React from 'react'
 
@@ -15,7 +16,6 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'
 import { dataInterface } from '../dataInterface'
-import './templatesList.scss'
 
 class TemplatesList extends React.Component {
   constructor(props) {

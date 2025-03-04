@@ -1,7 +1,8 @@
+import './koboRange.scss'
+
 import React from 'react'
 
 import bem, { makeBem } from '#/bem'
-import './koboRange.scss'
 
 bem.KoboRange = makeBem(null, 'kobo-range')
 bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div')

@@ -5,24 +5,14 @@
  * - project landing page (see: https://github.com/kobotoolbox/kpi/issues/2758)
  * - projects listing row (see: https://github.com/kobotoolbox/kpi/issues/2758)
  */
+import './assetActionButtons.scss'
 
 import React from 'react'
 
 import debounce from 'lodash.debounce'
 import autoBind from 'react-autobind'
-import { actions } from '#/actions'
-import assetUtils from '#/assetUtils'
-import bem from '#/bem'
-import managedCollectionsStore from '#/components/library/managedCollectionsStore'
-import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
-import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
-import type { AssetDownloads, AssetResponse } from '#/dataInterface'
-import mixins from '#/mixins'
-import PopoverMenu from '#/popoverMenu'
-import { ROUTES } from '#/router/routerConstants'
-import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
-import './assetActionButtons.scss'
 import { Link } from 'react-router-dom'
+import { actions } from '#/actions'
 import {
   archiveAsset,
   cloneAsset,
@@ -36,12 +26,22 @@ import {
   replaceAssetForm,
   unarchiveAsset,
 } from '#/assetQuickActions'
+import assetUtils from '#/assetUtils'
+import bem from '#/bem'
 import Button from '#/components/common/button'
 import type { ButtonType } from '#/components/common/button'
+import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
 import { userCan } from '#/components/permissions/utils'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import type { AssetDownloads, AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
+import mixins from '#/mixins'
+import PopoverMenu from '#/popoverMenu'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse

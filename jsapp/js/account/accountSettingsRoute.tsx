@@ -1,11 +1,12 @@
+import './accountSettings.scss'
+
 import React, { useEffect, useState } from 'react'
 
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import bem, { makeBem } from '#/bem'
+import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
-import './accountSettings.scss'
-import Avatar from '#/components/common/avatar'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify } from '#/utils'

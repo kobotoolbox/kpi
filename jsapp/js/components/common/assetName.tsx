@@ -1,9 +1,10 @@
+import './assetName.scss'
+
 import React from 'react'
 
 import { getAssetDisplayName } from '#/assetUtils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { hasLongWords } from '#/textUtils'
-import './assetName.scss'
 
 interface AssetNameProps {
   asset: AssetResponse | ProjectViewAsset

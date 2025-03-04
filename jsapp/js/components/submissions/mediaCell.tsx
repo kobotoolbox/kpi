@@ -1,16 +1,17 @@
-import React from 'react'
-import autoBind from 'react-autobind'
+import './mediaCell.scss'
 
+import React from 'react'
+
+import autoBind from 'react-autobind'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import { MODAL_TYPES, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { SubmissionAttachment } from '#/dataInterface'
-import { truncateString } from '#/utils'
-import './mediaCell.scss'
-import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'
 import pageState from '#/pageState.store'
+import { truncateString } from '#/utils'
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header')
 bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div')

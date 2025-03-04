@@ -1,6 +1,7 @@
+import '../../../scss/components/_kobo.form-view.scss'
+
 import { useState } from 'react'
 
-import '../../../scss/components/_kobo.form-view.scss'
 import cx from 'classnames'
 import { useParams } from 'react-router-dom'
 import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'

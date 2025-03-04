@@ -1,7 +1,10 @@
+import './assetsTable.scss'
+
 import React from 'react'
 
 import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse, MetadataResponse } from '#/dataInterface'
 import PopoverMenu from '#/popoverMenu'
@@ -10,8 +13,6 @@ import { getScrollbarWidth, hasVerticalScrollbar } from '#/utils'
 import { ASSETS_TABLE_COLUMNS, ASSETS_TABLE_CONTEXTS, ORDER_DIRECTIONS } from './assetsTableConstants'
 import type { AssetsTableColumn, AssetsTableContextName } from './assetsTableConstants'
 import AssetsTableRow from './assetsTableRow'
-import './assetsTable.scss'
-import Button from '#/components/common/button'
 
 bem.AssetsTable = makeBem(null, 'assets-table')
 bem.AssetsTable__header = makeBem(bem.AssetsTable, 'header')

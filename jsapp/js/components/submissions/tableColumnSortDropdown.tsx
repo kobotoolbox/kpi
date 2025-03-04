@@ -1,11 +1,12 @@
+import './tableColumnSortDropdown.scss'
+
 import React from 'react'
 
 import classNames from 'classnames'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { SortValues } from '#/components/submissions/tableConstants'
-import './tableColumnSortDropdown.scss'
 import { userCan } from '#/components/permissions/utils'
+import { SortValues } from '#/components/submissions/tableConstants'
 import type { AssetResponse } from '#/dataInterface'
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'

@@ -1,6 +1,7 @@
 import 'jsapp/scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
+
 import { useEffect } from 'react'
 
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'

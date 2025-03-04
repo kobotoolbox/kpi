@@ -1,11 +1,12 @@
+import './button.scss'
+
 import React from 'react'
 
+import cx from 'classnames'
 import type { IconSize } from '#/components/common/icon'
 import Icon from '#/components/common/icon'
-import type { IconName } from '#/k-icons'
-import './button.scss'
-import cx from 'classnames'
 import { useId } from '#/hooks/useId.hook'
+import type { IconName } from '#/k-icons'
 import type { TooltipAlignment } from './tooltip'
 import Tooltip from './tooltip'
 

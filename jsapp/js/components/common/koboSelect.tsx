@@ -1,3 +1,5 @@
+import './koboSelect.scss'
+
 import React from 'react'
 
 import Fuse from 'fuse.js'
@@ -8,11 +10,10 @@ import { ButtonToIconMap } from '#/components/common/button'
 import type { IconSize } from '#/components/common/icon'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
+import type { KoboDropdownPlacement } from '#/components/common/koboDropdown'
 import koboDropdownActions from '#/components/common/koboDropdownActions'
 import { FUSE_OPTIONS } from '#/constants'
 import type { IconName } from '#/k-icons'
-import './koboSelect.scss'
-import type { KoboDropdownPlacement } from '#/components/common/koboDropdown'
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select')

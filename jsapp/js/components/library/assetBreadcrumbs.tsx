@@ -1,3 +1,5 @@
+import './assetBreadcrumbs.scss'
+
 import React from 'react'
 
 import { getAssetDisplayName, isSelfOwned } from '#/assetUtils'
@@ -8,7 +10,6 @@ import { isAnyLibraryRoute } from '#/router/routerUtils'
 import { ROOT_BREADCRUMBS } from './libraryConstants'
 import myLibraryStore from './myLibraryStore'
 import publicCollectionsStore from './publicCollectionsStore'
-import './assetBreadcrumbs.scss'
 
 interface AssetBreadcrumbsProps {
   asset: AssetResponse

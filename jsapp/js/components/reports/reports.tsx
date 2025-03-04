@@ -1,3 +1,5 @@
+import './reports.scss'
+
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
@@ -30,9 +32,6 @@ import {
   type ReportsPaginatedResponse,
   type ReportsResponse,
 } from './reportsConstants'
-
-// Styles
-import './reports.scss'
 
 interface ReportsProps extends WithRouterProps {
   uid?: string

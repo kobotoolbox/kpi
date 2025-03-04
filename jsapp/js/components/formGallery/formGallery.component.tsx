@@ -1,3 +1,5 @@
+import './formGallery.component.scss'
+
 import React, { useEffect, useMemo, useReducer } from 'react'
 
 import ReactSelect from 'react-select'
@@ -6,7 +8,6 @@ import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
-import './formGallery.component.scss'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 

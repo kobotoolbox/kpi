@@ -1,3 +1,5 @@
+import './tableSettings.scss'
+
 import React from 'react'
 
 import autoBind from 'react-autobind'
@@ -10,7 +12,6 @@ import { userCan } from '#/components/permissions/utils'
 import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
 import { notify } from '#/utils'
-import './tableSettings.scss'
 
 /**
  * This is a modal form that handles changing some of the table settings.

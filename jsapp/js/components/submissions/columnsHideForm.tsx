@@ -1,8 +1,11 @@
+import './columnsHideDropdown.scss'
+
 import React from 'react'
 
 import Fuse from 'fuse.js'
 import { actions } from '#/actions'
 import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
 import koboDropdownActions from '#/components/common/koboDropdownActions'
 import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
@@ -10,8 +13,6 @@ import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import './columnsHideDropdown.scss'
-import Button from '#/components/common/button'
 
 bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section')
 bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p')

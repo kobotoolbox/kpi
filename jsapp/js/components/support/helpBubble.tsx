@@ -1,11 +1,12 @@
+import './helpBubble.scss'
+
 import React from 'react'
 
+import { observer } from 'mobx-react'
 import bem, { makeBem } from '#/bem'
 import Icon from '#/components/common/icon'
 import { KEY_CODES } from '#/constants'
 import envStore from '#/envStore'
-import './helpBubble.scss'
-import { observer } from 'mobx-react'
 import type { InAppMessage } from './helpBubbleStore'
 import helpBubbleStore from './helpBubbleStore'
 

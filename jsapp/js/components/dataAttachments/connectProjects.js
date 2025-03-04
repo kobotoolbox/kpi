@@ -1,3 +1,5 @@
+import './connect-projects.scss'
+
 import React from 'react'
 
 import alertify from 'alertifyjs'
@@ -16,7 +18,6 @@ import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { escapeHtml, generateAutoname } from '#/utils'
-import './connect-projects.scss'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 

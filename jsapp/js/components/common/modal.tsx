@@ -1,10 +1,11 @@
+import './modal.scss'
+
 import React from 'react'
 
 import classNames from 'classnames'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import { KEY_CODES } from '#/constants'
-import './modal.scss'
 
 interface ModalPartialProps {
   children?: React.ReactNode

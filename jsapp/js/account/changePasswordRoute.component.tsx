@@ -1,14 +1,15 @@
+import './accountSettings.scss'
+
 import React from 'react'
 
 import { observer } from 'mobx-react'
 import DocumentTitle from 'react-document-title'
 import bem, { makeBem } from '#/bem'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import sessionStore from '#/stores/session'
-import './accountSettings.scss'
-import Avatar from '#/components/common/avatar'
-import Button from '#/components/common/button'
 import styles from './changePasswordRoute.module.scss'
 import UpdatePasswordForm from './security/password/updatePasswordForm.component'
 

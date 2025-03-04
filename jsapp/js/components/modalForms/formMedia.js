@@ -1,3 +1,5 @@
+import './formMedia.scss'
+
 import React from 'react'
 
 import autoBind from 'react-autobind'
@@ -11,7 +13,6 @@ import TextBox from '#/components/common/textBox'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
-import './formMedia.scss'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
 const MEDIA_SUPPORT_URL = 'media.html'

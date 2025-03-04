@@ -2,19 +2,19 @@
  * The Project Management app bundle file. All the required setup is done here
  * plus it is the file that is handling the root rendering.
  */
-
 import 'jquery-ui/ui/widgets/sortable'
+import '../scss/main.scss'
+
+import React from 'react'
 
 import * as Sentry from '@sentry/react'
 import moment from 'moment'
-import React from 'react'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
+import Modal from 'react-modal'
 import AllRoutes from '#/router/allRoutes'
 import { csrfSafeMethod, currentLang } from '#/utils'
 import RegistrationPasswordApp from './registrationPasswordApp'
-import '../scss/main.scss'
-import Modal from 'react-modal'
 
 const sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]')
 if (sentryDsnEl !== null) {

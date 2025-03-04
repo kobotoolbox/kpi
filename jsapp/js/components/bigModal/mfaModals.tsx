@@ -1,3 +1,5 @@
+import './mfaModals.scss'
+
 import React from 'react'
 
 import { observer } from 'mobx-react'
@@ -10,7 +12,6 @@ import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
-import './mfaModals.scss'
 
 bem.MFAModal = makeBem(null, 'mfa-modal')
 

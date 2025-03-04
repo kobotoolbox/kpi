@@ -1,3 +1,5 @@
+import './validationStatusDropdown.scss'
+
 import React from 'react'
 
 import Select, { components, OptionProps, SingleValueProps, DropdownIndicatorProps } from 'react-select'
@@ -11,7 +13,6 @@ import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
-import './validationStatusDropdown.scss'
 
 interface ValidationStatusDropdownProps {
   /** Calls back with `value`, not option object */

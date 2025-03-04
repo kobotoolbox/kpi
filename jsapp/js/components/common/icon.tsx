@@ -1,7 +1,8 @@
+import './icon.scss'
+
 import React from 'react'
 
 import type { IconName } from '#/k-icons'
-import './icon.scss'
 
 /**
  * Check out `icon.scss` file for exact pixel values.

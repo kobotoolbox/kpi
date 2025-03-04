@@ -1,3 +1,5 @@
+import '#/components/common/audioPlayer.scss'
+
 import React from 'react'
 
 import bem, { makeBem } from '#/bem'
@@ -5,7 +7,6 @@ import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboRange from '#/components/common/koboRange'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import '#/components/common/audioPlayer.scss'
 import Icon from './icon'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')

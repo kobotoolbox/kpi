@@ -1,3 +1,5 @@
+import './languageSelector.scss'
+
 import React from 'react'
 
 import debounce from 'lodash.debounce'
@@ -10,7 +12,6 @@ import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
-import './languageSelector.scss'
 import LanguagesListStore from './languagesListStore'
 import languagesStore from './languagesStore'
 import type { DetailedLanguage, LanguageCode, ListLanguage } from './languagesStore'

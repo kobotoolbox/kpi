@@ -1,9 +1,10 @@
+import './inlineMessage.scss'
+
 import React from 'react'
 
 import cx from 'classnames'
 import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'
-import './inlineMessage.scss'
 
 /** Influences the background color and the icon color */
 export type InlineMessageType = 'default' | 'error' | 'success' | 'warning' | 'info'

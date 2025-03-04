@@ -1,3 +1,5 @@
+import './table.scss'
+
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
@@ -9,15 +11,25 @@ import { actions } from '#/actions'
 import type { SurveyFlatPaths } from '#/assetUtils'
 import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
+import Button from '#/components/common/button'
+import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import {
   getMediaAttachment,
   getRepeatGroupAnswers,
   getSupplementalDetailsContent,
 } from '#/components/submissions/submissionUtils'
+import type {
+  DataTableSelectedRows,
+  ReactTableInstance,
+  ReactTableState,
+  SubmissionPageName,
+  TableColumn,
+} from '#/components/submissions/table.types'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
 import TableBulkOptions from '#/components/submissions/tableBulkOptions'
 import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
@@ -41,6 +53,7 @@ import {
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
 } from '#/components/submissions/tableUtils'
+import TextModalCell from '#/components/submissions/textModalCell.component'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
@@ -62,23 +75,6 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import enketoHandler from '#/enketoHandler'
-import pageState from '#/pageState.store'
-import type { PageStateStoreState } from '#/pageState.store'
-import { stores } from '#/stores'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
-import './table.scss'
-import Button from '#/components/common/button'
-import CenteredMessage from '#/components/common/centeredMessage.component'
-import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
-import type {
-  DataTableSelectedRows,
-  ReactTableInstance,
-  ReactTableState,
-  SubmissionPageName,
-  TableColumn,
-} from '#/components/submissions/table.types'
-import TextModalCell from '#/components/submissions/textModalCell.component'
 import type {
   AssetResponse,
   AssetTableSettings,
@@ -90,6 +86,11 @@ import type {
   SurveyRow,
   ValidationStatusResponse,
 } from '#/dataInterface'
+import enketoHandler from '#/enketoHandler'
+import pageState from '#/pageState.store'
+import type { PageStateStoreState } from '#/pageState.store'
+import { stores } from '#/stores'
+import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
 

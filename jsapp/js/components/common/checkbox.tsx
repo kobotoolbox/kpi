@@ -1,8 +1,9 @@
+import './checkbox.scss'
+
 import React from 'react'
 
 import autoBind from 'react-autobind'
 import bem, { makeBem } from '#/bem'
-import './checkbox.scss'
 
 bem.Checkbox = makeBem(null, 'checkbox')
 bem.Checkbox__wrapper = makeBem(bem.Checkbox, 'wrapper', 'label')

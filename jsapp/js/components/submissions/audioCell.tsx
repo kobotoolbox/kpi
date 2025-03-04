@@ -1,3 +1,5 @@
+import './audioCell.scss'
+
 import React from 'react'
 
 import bem, { makeBem } from '#/bem'
@@ -6,7 +8,6 @@ import Icon from '#/components/common/icon'
 import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionAttachment } from '#/dataInterface'
-import './audioCell.scss'
 
 bem.AudioCell = makeBem(null, 'audio-cell')
 
