@@ -12,6 +12,16 @@ from kobo.apps.organizations.utils import get_billing_dates
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
+def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
+    xforms = XForm.objects.exclude(pending_delete=True)
+    if user_ids is not None:
+        xforms = xforms.filter(user_id__in=user_ids)
+    xform_query = xforms.values('user').annotate(
+        bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0)
+    )
+    return {res['user']: res['bytes_sum'] for res in xform_query}
+
+
 class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
@@ -88,17 +98,7 @@ class ServiceUsageCalculator(CachedClass):
 
         Users are represented by their ids with `self._user_ids`
         """
-        xforms = (
-            XForm.objects.only('attachment_storage_bytes', 'id')
-            .exclude(pending_delete=True)
-            .filter(user_id=self._user_id)
-        )
-
-        total_storage_bytes = xforms.aggregate(
-            bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0),
-        )
-
-        return total_storage_bytes['bytes_sum'] or 0
+        return get_storage_usage_by_user_id([self._user_id]).get(self._user_id, 0)
 
     @cached_class_property(
         key='submission_counters', serializer=dumps, deserializer=loads
