@@ -1,8 +1,9 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
+
 import KoboDropdown from 'js/components/common/koboDropdown'
 
-export default {
+const meta: Meta<typeof KoboDropdown> = {
   title: 'common/KoboDropdown',
   component: KoboDropdown,
   argTypes: {
@@ -14,21 +15,24 @@ export default {
       control: 'boolean',
     },
   },
-} as ComponentMeta<typeof KoboDropdown>
+}
 
-const Template: ComponentStory<typeof KoboDropdown> = (args) => <KoboDropdown {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  name: 'kobo-dropdown-demo',
-  placement: 'down-center',
-  triggerContent: 'click me',
-  menuContent: (
-    <ol>
-      <li>Some menu</li>
-      <li>Content is</li>
-      <li>Here, and</li>
-      <li>Says "hi"</li>
-    </ol>
-  ),
+type Story = StoryObj<typeof KoboDropdown>
+
+export const Default: Story = {
+  args: {
+    name: 'kobo-dropdown-demo',
+    placement: 'down-center',
+    triggerContent: 'click me',
+    menuContent: (
+      <ol>
+        <li>Some menu</li>
+        <li>Content is</li>
+        <li>Here, and</li>
+        <li>Says: hi</li>
+      </ol>
+    ),
+  },
 }
