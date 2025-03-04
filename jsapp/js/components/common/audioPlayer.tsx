@@ -4,7 +4,7 @@ import KoboRange from '#/components/common/koboRange'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import InlineMessage from '#/components/common/inlineMessage'
 import Button from '#/components/common/button'
-import 'js/components/common/audioPlayer.scss'
+import '#/components/common/audioPlayer.scss'
 import Icon from './icon'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')

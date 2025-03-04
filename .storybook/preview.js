@@ -1,5 +1,5 @@
 import 'jsapp/scss/main.scss'
-import 'js/bemComponents'
+import '#/bemComponents'
 import '@mantine/core/styles.css'
 import { useEffect } from 'react'
 import { addons } from '@storybook/preview-api'

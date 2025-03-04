@@ -1,6 +1,6 @@
 /**
  * The only file that is making calls to Backend. You shouldn't use it directly,
- * but through proper actions in `jsapp/js/actions.js`.
+ * but through proper actions in `#/actions.js`.
  *
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */

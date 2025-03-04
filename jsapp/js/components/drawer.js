@@ -18,7 +18,7 @@ import { router, routerIsActive, withRouter } from '../router/legacy'
 import pageState from '#/pageState.store'
 import { Button } from '@mantine/core'
 
-const AccountSidebar = lazy(() => import('js/account/accountSidebar'))
+const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
 
 const INITIAL_STATE = {
   headerFilters: 'forms',

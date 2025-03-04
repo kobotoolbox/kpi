@@ -17,11 +17,11 @@ import { withRouter } from '#/router/legacy'
 import TransferProjects from '#/components/permissions/transferProjects/transferProjects.component'
 
 const ConnectProjects = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/dataAttachments/connectProjects'),
+  () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
 )
-const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/submissions/table'))
+const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/submissions/table'))
 const ProjectDownloads = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/projectDownloads/ProjectDownloads'),
+  () => import(/* webpackPrefetch: true */ '#/components/projectDownloads/ProjectDownloads'),
 )
 const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
 

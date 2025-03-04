@@ -1,4 +1,4 @@
-// TODO: In future please consider moving some things from `js/dataInterface`.
+// TODO: In future please consider moving some things from `#/dataInterface`.
 
 import { createEnum } from '#/constants'
 

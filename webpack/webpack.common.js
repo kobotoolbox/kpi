@@ -94,7 +94,8 @@ const commonOptions = {
   resolve: {
     extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
-      '#': path.join(__dirname, '..', 'jsapp', 'js'),
+      '#': path.join(__dirname, '..', 'jsapp', 'js'), // TODO: someday rename "js" to "src".
+      js: path.join(__dirname, '..', 'jsapp', 'js'), // within scss files only, sass-loader doesn't handle # char.
       scss: path.join(__dirname, '..', 'jsapp', 'scss'), // within scss files only.
     },
     // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423

@@ -7,7 +7,7 @@ import DocumentTitle from 'react-document-title'
 import { Outlet } from 'react-router-dom'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
-import 'js/surveyCompanionStore' // importing it so it exists
+import '#/surveyCompanionStore' // importing it so it exists
 import {} from '#/bemComponents' // importing it so it exists
 import bem from '#/bem'
 import mixins from '#/mixins'

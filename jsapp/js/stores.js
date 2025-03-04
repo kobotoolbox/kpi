@@ -9,7 +9,7 @@
  * throught stores not actions callbacks (for applicable stores of course - not
  * every action is connected to a store).
  *
- * TODO: it would be best to split these to separate files within `jsapp/js/stores`
+ * TODO: it would be best to split these to separate files within `#/stores`
  * directory and probably import all of them here and keep this file as a single
  * source for all stores(?).
  * See: https://github.com/kobotoolbox/kpi/issues/3908
