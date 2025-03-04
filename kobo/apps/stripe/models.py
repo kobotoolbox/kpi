@@ -122,8 +122,8 @@ class PlanAddOn(models.Model):
 
     @staticmethod
     def get_organization_totals(
-        organization: 'Organization', usage_type: UsageType
-    ) -> (int, int):
+        organization: list['Organization'], usage_type: UsageType
+    ) -> dict[int, (int, int)]:
         """
         Returns the total limit and the total remaining usage for a given organization
         and usage type.
@@ -132,24 +132,30 @@ class PlanAddOn(models.Model):
         limit_key = f'{usage_mapped}_limit'
         limit_field = f'limits_remaining__{limit_key}'
         usage_field = f'usage_limits__{limit_key}'
-        totals = PlanAddOn.objects.filter(
-            organization__id=organization.id,
-            limits_remaining__has_key=limit_key,
-            usage_limits__has_key=limit_key,
-            charge__refunded=False,
-        ).aggregate(
-            total_usage_limit=Coalesce(
-                Sum(Cast(usage_field, output_field=IntegerField())),
-                0,
-                output_field=IntegerField(),
-            ),
-            total_remaining=Coalesce(
-                Sum(Cast(limit_field, output_field=IntegerField())),
-                0,
-            ),
+        totals = (
+            PlanAddOn.objects.filter(
+                organization__in=[org.id for org in organization],
+                limits_remaining__has_key=limit_key,
+                usage_limits__has_key=limit_key,
+                charge__refunded=False,
+            )
+            .values('organization')
+            .annotate(
+                total_usage_limit=Coalesce(
+                    Sum(Cast(usage_field, output_field=IntegerField())),
+                    0,
+                    output_field=IntegerField(),
+                ),
+                total_remaining=Coalesce(
+                    Sum(Cast(limit_field, output_field=IntegerField())),
+                    0,
+                ),
+            )
         )
-
-        return totals['total_usage_limit'], totals['total_remaining']
+        return {
+            res['organization']: (res['total_usage_limit'], res['total_remaining'])
+            for res in totals
+        }
 
     @property
     def is_expended(self):
