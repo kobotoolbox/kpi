@@ -103,9 +103,7 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    return get_organization_plan_limits(usage_type, [organization]).get(
-        organization.id, None
-    )
+    return get_organization_plan_limits(usage_type, [organization]).get(organization.id)
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
