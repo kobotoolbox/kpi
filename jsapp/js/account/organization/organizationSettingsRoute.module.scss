@@ -1,7 +1,7 @@
 @use 'scss/mixins';
 @use 'scss/colors';
 @use 'scss/breakpoints';
-@use '#/components/common/textBox.module';
+@use 'js/components/common/textBox.module';
 
 $s-field-width: 285px;
 
