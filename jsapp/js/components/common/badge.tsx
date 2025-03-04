@@ -1,7 +1,7 @@
 import React from 'react'
 import cx from 'classnames'
 import styles from './badge.module.scss'
-import type { IconName } from 'js/k-icons'
+import type { IconName } from '#/k-icons'
 import Icon from './icon'
 import type { IconSize } from './icon'
 

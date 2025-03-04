@@ -1,4 +1,4 @@
-import type { PermissionsConfigResponse, PaginatedResponse, PermissionResponse } from 'js/dataInterface'
+import type { PermissionsConfigResponse, PaginatedResponse, PermissionResponse } from '#/dataInterface'
 
 /**
  * Mock permissions endpoints responses for tests.

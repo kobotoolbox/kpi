@@ -1,6 +1,6 @@
 import React from 'react'
 import autoBind from 'react-autobind'
-import bem, { makeBem } from 'js/bem'
+import bem, { makeBem } from '#/bem'
 import './radio.scss'
 
 bem.Radio = makeBem(null, 'radio')

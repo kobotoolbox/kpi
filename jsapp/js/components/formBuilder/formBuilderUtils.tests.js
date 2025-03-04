@@ -3,7 +3,7 @@ import {
   writeParameters,
   nullifyTranslations,
   unnullifyTranslations,
-} from 'js/components/formBuilder/formBuilderUtils'
+} from '#/components/formBuilder/formBuilderUtils'
 
 describe('translations hack', () => {
   describe('nullifyTranslations', () => {

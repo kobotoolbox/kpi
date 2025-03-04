@@ -1,13 +1,13 @@
 import React, { useContext, useState } from 'react'
 import CommonHeader from './commonHeader.component'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
-} from 'js/components/processing/analysis/utils'
-import type { MultiCheckboxItem } from 'js/components/common/multiCheckbox'
-import MultiCheckbox from 'js/components/common/multiCheckbox'
+} from '#/components/processing/analysis/utils'
+import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import MultiCheckbox from '#/components/common/multiCheckbox'
 import commonStyles from './common.module.scss'
 
 interface SelectMultipleResponseFormProps {

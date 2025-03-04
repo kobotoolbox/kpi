@@ -1,5 +1,5 @@
-import { getRowName } from 'js/assetUtils'
-import { AssetTypeName } from 'js/constants'
+import { getRowName } from '#/assetUtils'
+import { AssetTypeName } from '#/constants'
 import {
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
@@ -13,7 +13,7 @@ import {
   type IndexedAssetLockingProfileDefinition,
   type LockingRestrictionDefinition,
 } from './lockingConstants'
-import type { AssetContent } from 'js/dataInterface'
+import type { AssetContent } from '#/dataInterface'
 
 /**
  * Should be used with QUESTION_RESTRICTIONS or GROUP_RESTRICTIONS

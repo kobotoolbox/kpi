@@ -3,23 +3,23 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 
 // Partial components
-import Radio from 'js/components/common/radio'
-import Modal from 'js/components/common/modal'
+import Radio from '#/components/common/radio'
+import Modal from '#/components/common/modal'
 import ReportTypeEditor from './reportTypeEditor.component'
 import ReportColorsEditor from './reportColorsEditor.component'
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
-} from 'js/components/reports/reportsModalTabs.component'
+} from '#/components/reports/reportsModalTabs.component'
 
 // Utilities
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import { handleApiFail } from 'js/api'
+import bem from '#/bem'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 
 // Types & constants
-import type { FailResponse, LabelValuePair } from 'js/dataInterface'
+import type { FailResponse, LabelValuePair } from '#/dataInterface'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
 import type { ReportsState } from './reports'
 

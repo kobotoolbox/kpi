@@ -1,6 +1,6 @@
 import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import Checkbox from 'js/components/common/checkbox'
+import bem, { makeBem } from '#/bem'
+import Checkbox from '#/components/common/checkbox'
 import './multiCheckbox.scss'
 
 bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul')

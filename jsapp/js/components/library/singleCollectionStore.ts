@@ -1,14 +1,14 @@
 import Reflux from 'reflux'
 import type { RouterState } from '@remix-run/router'
-import assetUtils from 'js/assetUtils'
-import { getCurrentPath, getRouteAssetUid, isAnyLibraryItemRoute } from 'js/router/routerUtils'
-import { actions } from 'js/actions'
-import { ORDER_DIRECTIONS, ASSETS_TABLE_COLUMNS } from 'js/components/assetsTable/assetsTableConstants'
-import type { OrderDirection } from 'js/projects/projectViews/constants'
-import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from 'js/dataInterface'
-import { ROUTES } from 'js/router/routerConstants'
-import { router } from 'js/router/legacy'
-import type { AssetTypeName } from 'js/constants'
+import assetUtils from '#/assetUtils'
+import { getCurrentPath, getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
+import { actions } from '#/actions'
+import { ORDER_DIRECTIONS, ASSETS_TABLE_COLUMNS } from '#/components/assetsTable/assetsTableConstants'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from '#/dataInterface'
+import { ROUTES } from '#/router/routerConstants'
+import { router } from '#/router/legacy'
+import type { AssetTypeName } from '#/constants'
 
 interface SingleCollectionStoreData {
   isFetchingData: boolean

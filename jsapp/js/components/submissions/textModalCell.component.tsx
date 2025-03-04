@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import styles from './textModalCell.module.scss'
-import Button from 'js/components/common/button'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalContent from 'js/components/modals/koboModalContent'
+import Button from '#/components/common/button'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import KoboModalContent from '#/components/modals/koboModalContent'
 
 interface TextModalCellProps {
   /**

@@ -1,11 +1,11 @@
 import React from 'react'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import assetUtils from 'js/assetUtils'
-import { ASSET_TYPES } from 'js/constants'
-import { notify } from 'utils'
-import Button from 'js/components/common/button'
-import type { AssetResponse } from 'js/dataInterface'
+import bem from '#/bem'
+import { actions } from '#/actions'
+import assetUtils from '#/assetUtils'
+import { ASSET_TYPES } from '#/constants'
+import { notify } from '#/utils'
+import Button from '#/components/common/button'
+import type { AssetResponse } from '#/dataInterface'
 
 interface AssetPublicButtonProps {
   asset: AssetResponse

@@ -1,7 +1,7 @@
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { AssetContent, SubmissionAttachment } from 'js/dataInterface'
-import { getQuestionXPath, getRowData, getMediaAttachment } from 'js/components/submissions/submissionUtils'
-import { convertSecondsToMinutes } from 'utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import type { AssetContent, SubmissionAttachment } from '#/dataInterface'
+import { getQuestionXPath, getRowData, getMediaAttachment } from '#/components/submissions/submissionUtils'
+import { convertSecondsToMinutes } from '#/utils'
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function

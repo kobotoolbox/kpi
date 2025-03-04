@@ -1,7 +1,7 @@
 import { createContext, useState } from 'react'
-import type { OneTimeAddOn } from 'js/account/stripe.types'
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
-import { getOneTimeAddOns } from 'js/account/stripe.api'
+import type { OneTimeAddOn } from '#/account/stripe.types'
+import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+import { getOneTimeAddOns } from '#/account/stripe.api'
 
 export interface OneTimeAddOnState {
   oneTimeAddOns: OneTimeAddOn[]

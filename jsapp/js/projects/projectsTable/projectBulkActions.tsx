@@ -2,14 +2,14 @@
 import React, { useState } from 'react'
 
 // Partial components
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 import BulkDeletePrompt from './bulkActions/bulkDeletePrompt'
 
 // Stores, hooks and utilities
-import { userCan } from 'js/components/permissions/utils'
+import { userCan } from '#/components/permissions/utils'
 
 // Constants and types
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 
 // Styles
 import actionsStyles from './projectActions.module.scss'

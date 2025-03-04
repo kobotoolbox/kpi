@@ -4,9 +4,9 @@ import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 
 // Partial components
-import Button from 'js/components/common/button'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
+import Button from '#/components/common/button'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
 import ProjectsFilterEditor from './projectsFilterEditor'
 
 // Utilities

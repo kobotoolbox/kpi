@@ -1,20 +1,20 @@
 // Libraries
 import React from 'react'
-import bem from 'js/bem'
+import bem from '#/bem'
 import DocumentTitle from 'react-document-title'
 
 // Partial components
-import ProjectExportsCreator from 'js/components/projectDownloads/ProjectExportsCreator'
-import ProjectExportsList from 'js/components/projectDownloads/ProjectExportsList'
-import LegacyExports from 'js/components/projectDownloads/LegacyExports'
-import AnonymousExports from 'js/components/projectDownloads/AnonymousExports'
+import ProjectExportsCreator from '#/components/projectDownloads/ProjectExportsCreator'
+import ProjectExportsList from '#/components/projectDownloads/ProjectExportsList'
+import LegacyExports from '#/components/projectDownloads/LegacyExports'
+import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
 
 // Stores, hooks and utilities
-import sessionStore from 'js/stores/session'
-import exportsStore from 'js/components/projectDownloads/exportsStore'
+import sessionStore from '#/stores/session'
+import exportsStore from '#/components/projectDownloads/exportsStore'
 
 // Constants and types
-import type { AssetResponse } from 'js/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import type { ExportTypeDefinition } from './exportsConstants'
 
 interface ProjectDownloadsProps {

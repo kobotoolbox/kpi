@@ -1,6 +1,6 @@
 import React from 'react'
 import type { ComponentStory, ComponentMeta } from '@storybook/react'
-import KoboRange, { KoboRangeColors } from 'js/components/common/koboRange'
+import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
 
 export default {
   title: 'common/KoboRange',

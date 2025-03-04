@@ -1,8 +1,8 @@
-import BillingButton from 'js/account/plans/billingButton.component'
-import type { Price, SinglePricedProduct } from 'js/account/stripe.types'
-import { postCustomerPortal } from 'js/account/stripe.api'
-import { processCheckoutResponse } from 'js/account/stripe.utils'
-import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
+import BillingButton from '#/account/plans/billingButton.component'
+import type { Price, SinglePricedProduct } from '#/account/stripe.types'
+import { postCustomerPortal } from '#/account/stripe.api'
+import { processCheckoutResponse } from '#/account/stripe.utils'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 
 interface PlanButtonProps {
   buySubscription: (price: Price, quantity?: number) => void

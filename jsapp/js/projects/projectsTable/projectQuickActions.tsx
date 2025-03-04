@@ -2,17 +2,17 @@
 import React from 'react'
 
 // Partial components
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 
 // Stores, hooks and utilities
-import { getAssetDisplayName } from 'js/assetUtils'
-import { userCan } from 'js/components/permissions/utils'
-import customViewStore from 'js/projects/customViewStore'
+import { getAssetDisplayName } from '#/assetUtils'
+import { userCan } from '#/components/permissions/utils'
+import customViewStore from '#/projects/customViewStore'
 
 // Constants and types
-import type { AssetResponse, ProjectViewAsset, DeploymentResponse } from 'js/dataInterface'
-import { ASSET_TYPES } from 'js/constants'
-import { archiveAsset, unarchiveAsset, deleteAsset, manageAssetSharing } from 'js/assetQuickActions'
+import type { AssetResponse, ProjectViewAsset, DeploymentResponse } from '#/dataInterface'
+import { ASSET_TYPES } from '#/constants'
+import { archiveAsset, unarchiveAsset, deleteAsset, manageAssetSharing } from '#/assetQuickActions'
 
 // Styles
 import styles from './projectActions.module.scss'

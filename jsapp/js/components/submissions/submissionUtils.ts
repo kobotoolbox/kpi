@@ -1,6 +1,6 @@
 import get from 'lodash.get'
-import { getRowName, getTranslatedRowLabel, getSurveyFlatPaths, isRowSpecialLabelHolder } from 'js/assetUtils'
-import { getColumnLabel } from 'js/components/submissions/tableUtils'
+import { getRowName, getTranslatedRowLabel, getSurveyFlatPaths, isRowSpecialLabelHolder } from '#/assetUtils'
+import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
   createEnum,
   SCORE_ROW_TYPE,
@@ -9,8 +9,8 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type {
   SurveyRow,
   SurveyChoice,
@@ -19,10 +19,10 @@ import type {
   SubmissionAttachment,
   AssetResponse,
   AnalysisFormJsonField,
-} from 'js/dataInterface'
-import { getSupplementalPathParts } from 'js/components/processing/processingUtils'
-import type { SubmissionAnalysisResponse } from 'js/components/processing/analysis/constants'
-import { QUAL_NOTE_TYPE } from 'js/components/processing/analysis/constants'
+} from '#/dataInterface'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
+import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',

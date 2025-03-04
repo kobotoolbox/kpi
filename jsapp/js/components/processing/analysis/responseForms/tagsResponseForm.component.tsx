@@ -1,11 +1,11 @@
 import React, { useContext, useState } from 'react'
 import CommonHeader from './commonHeader.component'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
-} from 'js/components/processing/analysis/utils'
+} from '#/components/processing/analysis/utils'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
 import TagsInput from 'react-tagsinput'

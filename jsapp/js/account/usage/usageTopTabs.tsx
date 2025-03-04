@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import Tabs from 'js/components/common/tabs'
+import Tabs from '#/components/common/tabs'
 import ProjectBreakdown from './usageProjectBreakdown'
 import { useNavigate } from 'react-router-dom'
 import Usage from './usage.component'
-import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 
 interface UsageTopTabsProps {
   activeRoute: string

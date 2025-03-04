@@ -1,4 +1,4 @@
-import { Select } from 'js/components/common/Select'
+import { Select } from '#/components/common/Select'
 import { usePatchOrganizationMember } from './membersQuery'
 import { usePatchMemberInvite } from './membersInviteQuery'
 import { OrganizationUserRole } from './organizationQuery'

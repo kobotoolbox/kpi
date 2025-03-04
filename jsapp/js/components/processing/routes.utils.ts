@@ -2,9 +2,9 @@
 // routes and navigation.
 
 import { generatePath, matchPath, useNavigate } from 'react-router-dom'
-import { router } from 'js/router/legacy'
-import { ROUTES, PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC } from 'js/router/routerConstants'
-import { getCurrentPath } from 'js/router/routerUtils'
+import { router } from '#/router/legacy'
+import { ROUTES, PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC } from '#/router/routerConstants'
+import { getCurrentPath } from '#/router/routerUtils'
 
 /**
  * This is a list of available tabs in Single Processing View. Each tab uses

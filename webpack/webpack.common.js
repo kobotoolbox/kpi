@@ -94,8 +94,7 @@ const commonOptions = {
   resolve: {
     extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
-      js: path.join(__dirname, '..', 'jsapp', 'js'),
-      utils: path.join(__dirname, '..', 'jsapp', 'js', 'utils'),
+      '#': path.join(__dirname, '..', 'jsapp', 'js'),
       scss: path.join(__dirname, '..', 'jsapp', 'scss'), // within scss files only.
     },
     // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423

@@ -1,5 +1,5 @@
 import React from 'react'
-import bem from 'js/bem'
+import bem from '#/bem'
 import { CHART_COLOR_SETS } from './reportsConstants'
 import type { ReportStyle, ChartColorSet } from './reportsConstants'
 

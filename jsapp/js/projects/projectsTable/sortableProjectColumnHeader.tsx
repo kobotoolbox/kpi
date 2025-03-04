@@ -3,9 +3,9 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 
 // Partial components
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import KoboDropdown from 'js/components/common/koboDropdown'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/button'
+import KoboDropdown from '#/components/common/koboDropdown'
 
 // Constants and types
 import type { ProjectsTableOrder } from './projectsTable'

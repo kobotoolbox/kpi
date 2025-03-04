@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
 import styles from './oneTimeAddOnUsageModal.module.scss'
 import { OneTimeAddOn, RecurringInterval, USAGE_TYPE } from '../../stripe.types'
 import { useLimitDisplay } from '../../stripe.utils'

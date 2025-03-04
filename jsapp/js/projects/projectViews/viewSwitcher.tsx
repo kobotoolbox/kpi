@@ -5,15 +5,15 @@ import { observer } from 'mobx-react-lite'
 import cx from 'classnames'
 
 // Partial components
-import Icon from 'js/components/common/icon'
-import KoboDropdown from 'js/components/common/koboDropdown'
+import Icon from '#/components/common/icon'
+import KoboDropdown from '#/components/common/koboDropdown'
 
 // Stores and hooks
 import projectViewsStore from './projectViewsStore'
-import { useOrganizationQuery, OrganizationUserRole } from 'js/account/organization/organizationQuery'
+import { useOrganizationQuery, OrganizationUserRole } from '#/account/organization/organizationQuery'
 
 // Constants
-import { PROJECTS_ROUTES } from 'js/router/routerConstants'
+import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { HOME_VIEW, ORG_VIEW } from './constants'
 
 // Styles

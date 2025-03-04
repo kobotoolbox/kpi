@@ -1,8 +1,8 @@
 import React from 'react'
-import type { IconName } from 'js/k-icons'
-import bem, { makeBem } from 'js/bem'
-import Button from 'js/components/common/button'
-import Icon from 'js/components/common/icon'
+import type { IconName } from '#/k-icons'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 
 bem.KoboModal__header = makeBem(bem.KoboModal, 'header', 'header')
 bem.KoboModal__headerIcon = makeBem(bem.KoboModal, 'header-icon', 'span')

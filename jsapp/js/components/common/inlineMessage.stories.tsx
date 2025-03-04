@@ -1,6 +1,6 @@
 import React from 'react'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
-import InlineMessage from 'js/components/common/inlineMessage'
+import InlineMessage from '#/components/common/inlineMessage'
 
 export default {
   title: 'commonDeprecated/Inline Message',

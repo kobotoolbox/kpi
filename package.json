@@ -202,6 +202,9 @@
     },
     "coffee-script": "$coffeescript"
   },
+  "imports": {
+    "#/*": "./jsapp/*"
+  },
   "scripts": {
     "preinstall": "npm run hint",
     "postinstall": "patch-package && npm run copy-fonts",

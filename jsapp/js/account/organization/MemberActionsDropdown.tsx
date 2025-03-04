@@ -7,17 +7,17 @@ import MemberRemoveModal from './MemberRemoveModal'
 import { Menu } from '@mantine/core'
 
 // Stores, hooks and utilities
-import { useSession } from 'js/stores/useSession'
+import { useSession } from '#/stores/useSession'
 import { getSimpleMMOLabel } from './organization.utils'
-import envStore from 'js/envStore'
-import subscriptionStore from 'js/account/subscriptionStore'
+import envStore from '#/envStore'
+import subscriptionStore from '#/account/subscriptionStore'
 
 // Constants and types
 import { OrganizationUserRole } from './organizationQuery'
 
 // Styles
-import router from 'js/router/router'
-import { ROUTES } from 'js/router/routerConstants'
+import router from '#/router/router'
+import { ROUTES } from '#/router/routerConstants'
 
 interface MemberActionsDropdownProps {
   target: ReactNode

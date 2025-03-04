@@ -1,8 +1,8 @@
 import React from 'react'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import envStore from 'js/envStore'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from 'js/constants'
-import Icon from 'js/components/common/icon'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import envStore from '#/envStore'
+import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import Icon from '#/components/common/icon'
 import styles from './anonymousSubmission.module.scss'
 
 interface AnonymousSubmissionProps {

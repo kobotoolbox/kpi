@@ -1,8 +1,8 @@
 import React from 'react'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import { AsyncLanguageDisplayLabel } from 'js/components/languages/languagesUtils'
-import TransxDate from 'js/components/processing/transxDate.component'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
+import TransxDate from '#/components/processing/transxDate.component'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
 
 /** We have this as separate component, because we use it in two places. */
 export default function HeaderLanguageAndDate() {

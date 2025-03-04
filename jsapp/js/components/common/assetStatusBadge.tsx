@@ -1,5 +1,5 @@
 import React from 'react'
-import Badge from 'js/components/common/badge'
+import Badge from '#/components/common/badge'
 
 interface AssetStatusBadgeProps {
   deploymentStatus?: string

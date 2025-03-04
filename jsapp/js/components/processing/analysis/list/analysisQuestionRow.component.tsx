@@ -10,11 +10,11 @@ import IntegerResponseForm from '../responseForms/integerResponseForm.component'
 import CommonHeader from '../responseForms/commonHeader.component'
 import styles from './analysisQuestionRow.module.scss'
 import type { AnalysisQuestionBase } from '../constants'
-import Icon from 'js/components/common/icon'
-import InlineMessage from 'js/components/common/inlineMessage'
+import Icon from '#/components/common/icon'
+import InlineMessage from '#/components/common/inlineMessage'
 import { useDrag, useDrop } from 'react-dnd'
 import type { Identifier, XYCoord } from 'dnd-core'
-import { DND_TYPES } from 'js/constants'
+import { DND_TYPES } from '#/constants'
 import {
   findQuestion,
   getQuestionsFromSchema,
@@ -22,11 +22,11 @@ import {
   hasManagePermissionsToCurrentAsset,
 } from '../utils'
 import classnames from 'classnames'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import { handleApiFail } from 'js/api'
-import type { FailResponse } from 'js/dataInterface'
-import assetStore from 'js/assetStore'
-import { userCan } from 'js/components/permissions/utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { handleApiFail } from '#/api'
+import type { FailResponse } from '#/dataInterface'
+import assetStore from '#/assetStore'
+import { userCan } from '#/components/permissions/utils'
 
 export interface AnalysisQuestionRowProps {
   uuid: string

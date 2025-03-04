@@ -1,5 +1,5 @@
-import type { AssetResponse } from 'js/dataInterface'
-import { ANY_ROW_TYPE_NAMES, AssetTypeName } from 'js/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 
 export const assetWithBgAudioAndNLP: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/am5q2MmVckuLBXPKsbHjEt',

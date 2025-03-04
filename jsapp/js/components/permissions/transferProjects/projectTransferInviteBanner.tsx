@@ -1,7 +1,7 @@
 import React from 'react'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import { TransferStatuses } from 'js/components/permissions/transferProjects/transferProjects.api'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/button'
+import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import styles from './projectTransferInviteBanner.module.scss'
 
 export interface TransferInviteState {

@@ -1,27 +1,27 @@
 import React from 'react'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import PopoverMenu from 'js/popoverMenu'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import PopoverMenu from '#/popoverMenu'
 import alertify from 'alertifyjs'
-import { MODAL_TYPES } from 'js/constants'
+import { MODAL_TYPES } from '#/constants'
 import {
   ValidationStatusAdditionalName,
   VALIDATION_STATUS_OPTIONS,
-} from 'js/components/submissions/validationStatus.constants'
+} from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusName,
   ValidationStatusOptionName,
-} from 'js/components/submissions/validationStatus.constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { renderCheckbox } from 'utils'
-import { userCan, userCanPartially } from 'js/components/permissions/utils'
+} from '#/components/submissions/validationStatus.constants'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { renderCheckbox } from '#/utils'
+import { userCan, userCanPartially } from '#/components/permissions/utils'
 import { buildFilterQuery } from './tableUtils'
-import type { AssetResponse, SubmissionResponse, BulkSubmissionsRequest } from 'js/dataInterface'
-import pageState from 'js/pageState.store'
-import type { DataTableSelectedRows, ReactTableStateFilteredItem } from 'js/components/submissions/table.types'
-import Button from 'js/components/common/button'
-import Badge from 'js/components/common/badge'
-import Icon from 'js/components/common/icon'
+import type { AssetResponse, SubmissionResponse, BulkSubmissionsRequest } from '#/dataInterface'
+import pageState from '#/pageState.store'
+import type { DataTableSelectedRows, ReactTableStateFilteredItem } from '#/components/submissions/table.types'
+import Button from '#/components/common/button'
+import Badge from '#/components/common/badge'
+import Icon from '#/components/common/icon'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse

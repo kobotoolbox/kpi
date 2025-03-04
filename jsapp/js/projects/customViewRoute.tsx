@@ -7,7 +7,7 @@ import UniversalProjectsRoute from './universalProjectsRoute'
 
 // Constants and types
 import { DEFAULT_VISIBLE_FIELDS, DEFAULT_ORDERABLE_FIELDS, DEFAULT_EXCLUDED_FIELDS } from './projectViews/constants'
-import { ROOT_URL } from 'js/constants'
+import { ROOT_URL } from '#/constants'
 
 /**
  * Component responsible for rendering a custom project view route (`#/projects/<vid>`).

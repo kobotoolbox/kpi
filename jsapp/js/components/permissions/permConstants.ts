@@ -1,6 +1,6 @@
 // TODO: In future please consider moving some things from `js/dataInterface`.
 
-import { createEnum } from 'js/constants'
+import { createEnum } from '#/constants'
 
 export type PermissionCodename =
   | 'add_submissions'

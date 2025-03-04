@@ -1,8 +1,8 @@
 // Utils
-import { getTranslatedRowLabel } from 'js/assetUtils'
+import { getTranslatedRowLabel } from '#/assetUtils'
 
 // Types
-import type { SurveyRow } from 'js/dataInterface'
+import type { SurveyRow } from '#/dataInterface'
 import type { ReportsResponse, ReportsPaginatedResponse } from './reportsConstants'
 
 /**

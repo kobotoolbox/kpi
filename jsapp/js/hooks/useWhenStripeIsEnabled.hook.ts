@@ -1,6 +1,6 @@
-import useWhen from 'js/hooks/useWhen.hook'
+import useWhen from '#/hooks/useWhen.hook'
 import type { DependencyList, EffectCallback } from 'react'
-import envStore from 'js/envStore'
+import envStore from '#/envStore'
 
 // A useEffect hook that only executes when Stripe is enabled.
 const useWhenStripeIsEnabled = (effect: EffectCallback, dependencies: DependencyList) => {

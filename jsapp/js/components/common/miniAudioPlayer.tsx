@@ -1,8 +1,8 @@
 import React, { createRef } from 'react'
-import bem, { makeBem } from 'js/bem'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import { formatSeconds, generateUuid, notify } from 'utils'
+import bem, { makeBem } from '#/bem'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/button'
+import { formatSeconds, generateUuid, notify } from '#/utils'
 import 'js/components/common/miniAudioPlayer.scss'
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player')

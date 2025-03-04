@@ -1,8 +1,8 @@
 import React from 'react'
-import bem from 'js/bem'
-import PopoverMenu from 'js/popoverMenu'
-import Checkbox from 'js/components/common/checkbox'
-import Icon from 'js/components/common/icon'
+import bem from '#/bem'
+import PopoverMenu from '#/popoverMenu'
+import Checkbox from '#/components/common/checkbox'
+import Icon from '#/components/common/icon'
 import './tableBulkCheckbox.scss'
 
 interface TableBulkCheckboxProps {

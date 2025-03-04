@@ -4,12 +4,12 @@
  */
 
 import React from 'react'
-import permConfig from 'js/components/permissions/permConfig'
-import { ANON_USERNAME_URL } from 'js/users/utils'
-import envStore from 'js/envStore'
-import sessionStore from 'js/stores/session'
-import type { AssetTypeName, AnyRowTypeName, QuestionTypeName } from 'js/constants'
-import assetStore from 'js/assetStore'
+import permConfig from '#/components/permissions/permConfig'
+import { ANON_USERNAME_URL } from '#/users/utils'
+import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
+import type { AssetTypeName, AnyRowTypeName, QuestionTypeName } from '#/constants'
+import assetStore from '#/assetStore'
 import {
   ASSET_TYPES,
   QUESTION_TYPES,
@@ -22,8 +22,8 @@ import {
   ROOT_URL,
   SUPPLEMENTAL_DETAILS_PROP,
   XML_VALUES_OPTION_VALUE,
-} from 'js/constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+} from '#/constants'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import type {
   AssetContent,
   AssetResponse,
@@ -32,9 +32,9 @@ import type {
   SurveyChoice,
   PermissionResponse,
   AnalysisFormJsonField,
-} from 'js/dataInterface'
-import type { IconName } from 'js/k-icons'
-import { QUAL_NOTE_TYPE } from 'js/components/processing/analysis/constants'
+} from '#/dataInterface'
+import type { IconName } from '#/k-icons'
+import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.

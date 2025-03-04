@@ -2,7 +2,7 @@ import React from 'react'
 import type { ComponentStory, ComponentMeta } from '@storybook/react'
 import TextBox from './textBox'
 import type { TextBoxType, TextBoxSize } from './textBox'
-import { IconNames } from 'js/k-icons'
+import { IconNames } from '#/k-icons'
 
 const textBoxTypes: TextBoxType[] = ['email', 'number', 'password', 'text-multiline', 'text', 'url']
 

@@ -9,36 +9,36 @@ import SurveyScope from '../models/surveyScope'
 import { cascadeMixin } from './cascadeMixin'
 import AssetNavigator from './assetNavigator'
 import alertify from 'alertifyjs'
-import MetadataEditor from 'js/components/metadataEditor'
+import MetadataEditor from '#/components/metadataEditor'
 import { escapeHtml } from '../utils'
-import { QuestionTypeName, ASSET_TYPES, AVAILABLE_FORM_STYLES, update_states, NAME_MAX_LENGTH } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Modal from 'js/components/common/modal'
-import bem, { makeBem } from 'js/bem'
+import { QuestionTypeName, ASSET_TYPES, AVAILABLE_FORM_STYLES, update_states, NAME_MAX_LENGTH } from '#/constants'
+import { ROUTES } from '#/router/routerConstants'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Modal from '#/components/common/modal'
+import bem, { makeBem } from '#/bem'
 import { stores } from '../stores'
 import { actions } from '../actions'
 import dkobo_xlform from '../../xlform/src/_xlform.init'
 import { dataInterface } from '../dataInterface'
-import assetUtils from 'js/assetUtils'
-import FormLockedMessage from 'js/components/locking/formLockedMessage'
+import assetUtils from '#/assetUtils'
+import FormLockedMessage from '#/components/locking/formLockedMessage'
 import {
   hasAssetRestriction,
   hasAssetAnyLocking,
   isAssetAllLocked,
   isAssetLockable,
-} from 'js/components/locking/lockingUtils'
-import { LockingRestrictionName, LOCKING_UI_CLASSNAMES } from 'js/components/locking/lockingConstants'
+} from '#/components/locking/lockingUtils'
+import { LockingRestrictionName, LOCKING_UI_CLASSNAMES } from '#/components/locking/lockingConstants'
 import {
   koboMatrixParser,
   surveyToValidJson,
   getFormBuilderAssetType,
   unnullifyTranslations,
-} from 'js/components/formBuilder/formBuilderUtils'
-import envStore from 'js/envStore'
+} from '#/components/formBuilder/formBuilderUtils'
+import envStore from '#/envStore'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/button'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')

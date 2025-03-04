@@ -1,8 +1,8 @@
 import React from 'react'
 import Select from 'react-select'
-import bem from 'js/bem'
-import { EXPORT_TYPES, type ExportTypeDefinition } from 'js/components/projectDownloads/exportsConstants'
-import exportsStore from 'js/components/projectDownloads/exportsStore'
+import bem from '#/bem'
+import { EXPORT_TYPES, type ExportTypeDefinition } from '#/components/projectDownloads/exportsConstants'
+import exportsStore from '#/components/projectDownloads/exportsStore'
 
 interface ExportTypeSelectorProps {
   disabled?: boolean

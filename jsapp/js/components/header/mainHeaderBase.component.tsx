@@ -1,5 +1,5 @@
 import React from 'react'
-import bem, { makeBem } from 'js/bem'
+import bem, { makeBem } from '#/bem'
 
 bem.MainHeader = makeBem(null, 'main-header', 'header')
 bem.MainHeader__icon = makeBem(bem.MainHeader, 'icon')

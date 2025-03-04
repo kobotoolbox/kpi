@@ -1,31 +1,31 @@
 // Libraries
 import React from 'react'
 import alertify from 'alertifyjs'
-import bem from 'js/bem'
+import bem from '#/bem'
 
 // Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-import SimpleTable from 'js/components/common/SimpleTable'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Button from '#/components/common/button'
+import SimpleTable from '#/components/common/SimpleTable'
 import { Text, Flex } from '@mantine/core'
 
 // Stores, hooks and utilities
-import { actions } from 'js/actions'
-import { formatTime } from 'utils'
-import { getLanguageIndex } from 'js/assetUtils'
-import exportsStore from 'js/components/projectDownloads/exportsStore'
-import ExportFetcher from 'js/components/projectDownloads/exportFetcher'
-import { userCan } from 'js/components/permissions/utils'
+import { actions } from '#/actions'
+import { formatTime } from '#/utils'
+import { getLanguageIndex } from '#/assetUtils'
+import exportsStore from '#/components/projectDownloads/exportsStore'
+import ExportFetcher from '#/components/projectDownloads/exportFetcher'
+import { userCan } from '#/components/permissions/utils'
 
 // Constants and types
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
   ExportStatusName,
   type ExportTypeDefinition,
-} from 'js/components/projectDownloads/exportsConstants'
-import type { ExportDataResponse, AssetResponse, PaginatedResponse, ExportDataLang } from 'js/dataInterface'
+} from '#/components/projectDownloads/exportsConstants'
+import type { ExportDataResponse, AssetResponse, PaginatedResponse, ExportDataLang } from '#/dataInterface'
 
 interface ProjectExportsListProps {
   asset: AssetResponse

@@ -1,6 +1,6 @@
 import cx from 'classnames'
-import type { ButtonProps, ButtonType } from 'js/components/common/button'
-import Button from 'js/components/common/button'
+import type { ButtonProps, ButtonType } from '#/components/common/button'
+import Button from '#/components/common/button'
 import React from 'react'
 import styles from './billingButton.module.scss'
 

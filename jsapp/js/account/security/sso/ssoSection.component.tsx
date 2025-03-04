@@ -4,16 +4,16 @@ import { observer } from 'mobx-react-lite'
 import cx from 'classnames'
 
 // Partial components
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 
 // Stores and utils
-import sessionStore from 'js/stores/session'
-import envStore, { type SocialApp } from 'js/envStore'
+import sessionStore from '#/stores/session'
+import envStore, { type SocialApp } from '#/envStore'
 import { deleteSocialAccount } from './sso.api'
 
 // Styles
 import styles from './ssoSection.module.scss'
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 
 const SsoSection = observer(() => {
   const socialApps = envStore.isReady ? envStore.data.social_apps : []

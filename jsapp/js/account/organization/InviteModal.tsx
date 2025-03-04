@@ -1,16 +1,16 @@
 import type { ModalProps } from '@mantine/core'
 import { Group, Modal, Stack, Text, TextInput, Loader } from '@mantine/core'
-import ButtonNew from 'js/components/common/ButtonNew'
-import { Select } from 'js/components/common/Select'
+import ButtonNew from '#/components/common/ButtonNew'
+import { Select } from '#/components/common/Select'
 import { useSendMemberInvite } from './membersInviteQuery'
 import { useState } from 'react'
 import { OrganizationUserRole } from './organizationQuery'
-import userExistence from 'js/users/userExistence.store'
+import userExistence from '#/users/userExistence.store'
 import { useField } from '@mantine/form'
-import { checkEmailPattern, notify } from 'utils'
-import envStore from 'js/envStore'
-import subscriptionStore from 'js/account/subscriptionStore'
-import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
+import { checkEmailPattern, notify } from '#/utils'
+import envStore from '#/envStore'
+import subscriptionStore from '#/account/subscriptionStore'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite()

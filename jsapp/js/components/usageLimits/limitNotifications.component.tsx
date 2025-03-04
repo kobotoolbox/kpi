@@ -1,11 +1,11 @@
-import LimitBanner from 'js/components/usageLimits/overLimitBanner.component'
-import LimitModal from 'js/components/usageLimits/overLimitModal.component'
+import LimitBanner from '#/components/usageLimits/overLimitBanner.component'
+import LimitModal from '#/components/usageLimits/overLimitModal.component'
 import React, { useContext, useState } from 'react'
 import { Cookies } from 'react-cookie'
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
-import { UsageContext } from 'js/account/usage/useUsage.hook'
-import { useExceedingLimits } from 'js/components/usageLimits/useExceedingLimits.hook'
-import { OrganizationUserRole, useOrganizationQuery } from 'js/account/organization/organizationQuery'
+import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+import { UsageContext } from '#/account/usage/useUsage.hook'
+import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 
 const cookies = new Cookies()
 

@@ -4,9 +4,9 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
-import { ValidationStatusAdditionalName } from 'js/components/submissions/validationStatus.constants'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
@@ -15,10 +15,10 @@ import {
   TEXT_FILTER_QUESTION_TYPES,
   FILTER_EXACT_TYPES,
   DROPDOWN_FILTER_QUESTION_TYPES,
-} from 'js/components/submissions/tableConstants'
-import type { SubmissionResponse, AssetResponse, SurveyRow } from 'js/dataInterface'
-import { getSurveyFlatPaths, getRowName, injectSupplementalRowsIntoListOfRows } from 'js/assetUtils'
-import { getSupplementalPathParts } from 'js/components/processing/processingUtils'
+} from '#/components/submissions/tableConstants'
+import type { SubmissionResponse, AssetResponse, SurveyRow } from '#/dataInterface'
+import { getSurveyFlatPaths, getRowName, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import type { Filter } from 'react-table'
 
 export function getColumnLabel(

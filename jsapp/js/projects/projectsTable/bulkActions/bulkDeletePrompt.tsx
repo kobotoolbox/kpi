@@ -2,14 +2,14 @@
 import React, { useState } from 'react'
 
 // Partial components
-import KoboPrompt from 'js/components/modals/koboPrompt'
-import Checkbox from 'js/components/common/checkbox'
+import KoboPrompt from '#/components/modals/koboPrompt'
+import Checkbox from '#/components/common/checkbox'
 
 // Stores, hooks and utilities
-import { fetchPost, handleApiFail } from 'js/api'
-import { notify } from 'utils'
-import customViewStore from 'js/projects/customViewStore'
-import { searches } from 'js/searches'
+import { fetchPost, handleApiFail } from '#/api'
+import { notify } from '#/utils'
+import customViewStore from '#/projects/customViewStore'
+import { searches } from '#/searches'
 
 // Styles
 import styles from './bulkDeletePrompt.module.scss'

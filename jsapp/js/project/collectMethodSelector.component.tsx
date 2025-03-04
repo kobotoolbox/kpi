@@ -2,10 +2,10 @@
 import React from 'react'
 
 // Partial components
-import KoboSelect from 'js/components/common/koboSelect'
+import KoboSelect from '#/components/common/koboSelect'
 
 // Constants
-import { CollectionMethodName, COLLECTION_METHODS } from 'js/constants'
+import { CollectionMethodName, COLLECTION_METHODS } from '#/constants'
 
 // Styles
 import styles from './collectMethodSelector.module.scss'

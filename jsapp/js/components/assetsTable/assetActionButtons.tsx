@@ -9,20 +9,20 @@
 import React from 'react'
 import autoBind from 'react-autobind'
 import debounce from 'lodash.debounce'
-import PopoverMenu from 'js/popoverMenu'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import assetUtils from 'js/assetUtils'
-import { ASSET_TYPES, ACCESS_TYPES } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import mixins from 'js/mixins'
-import type { AssetResponse, AssetDownloads } from 'js/dataInterface'
-import { isAnyLibraryItemRoute, getRouteAssetUid, isAnyFormRoute } from 'js/router/routerUtils'
-import managedCollectionsStore from 'js/components/library/managedCollectionsStore'
-import type { ManagedCollectionsStoreData } from 'js/components/library/managedCollectionsStore'
+import PopoverMenu from '#/popoverMenu'
+import bem from '#/bem'
+import { actions } from '#/actions'
+import assetUtils from '#/assetUtils'
+import { ASSET_TYPES, ACCESS_TYPES } from '#/constants'
+import { ROUTES } from '#/router/routerConstants'
+import mixins from '#/mixins'
+import type { AssetResponse, AssetDownloads } from '#/dataInterface'
+import { isAnyLibraryItemRoute, getRouteAssetUid, isAnyFormRoute } from '#/router/routerUtils'
+import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
 import './assetActionButtons.scss'
-import { withRouter } from 'js/router/legacy'
-import type { WithRouterProps } from 'js/router/legacy'
+import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import {
   archiveAsset,
   deleteAsset,
@@ -35,12 +35,12 @@ import {
   modifyAssetTags,
   manageAssetLanguages,
   manageAssetSettings,
-} from 'js/assetQuickActions'
-import { userCan } from 'js/components/permissions/utils'
+} from '#/assetQuickActions'
+import { userCan } from '#/components/permissions/utils'
 import { Link } from 'react-router-dom'
-import Button from 'js/components/common/button'
-import type { ButtonType } from 'js/components/common/button'
-import type { IconName } from 'js/k-icons'
+import Button from '#/components/common/button'
+import type { ButtonType } from '#/components/common/button'
+import type { IconName } from '#/k-icons'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse

@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react'
 
 // Partial components
 import UniversalProjectsRoute from './universalProjectsRoute'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 
 // Stores, hooks and utilities
-import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 
 // Constants and types
 import {
@@ -15,8 +15,8 @@ import {
   HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,
 } from './projectViews/constants'
-import { ROOT_URL } from 'js/constants'
-import { endpoints } from 'js/api.endpoints'
+import { ROOT_URL } from '#/constants'
+import { endpoints } from '#/api.endpoints'
 
 /**
  * Component responsible for rendering organization projects route

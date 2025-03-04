@@ -6,7 +6,7 @@ import UniversalTable from './universalTable.component'
 
 // Types
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { PaginatedResponse } from 'js/dataInterface'
+import type { PaginatedResponse } from '#/dataInterface'
 import type { UniversalTableColumn } from './universalTable.component'
 import type { Record } from 'immutable'
 

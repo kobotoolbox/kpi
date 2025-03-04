@@ -1,5 +1,5 @@
-import { EXPORT_FORMATS } from 'js/components/projectDownloads/exportsConstants'
-import { type ExportDataLang, type AssetResponse } from 'js/dataInterface'
+import { EXPORT_FORMATS } from '#/components/projectDownloads/exportsConstants'
+import { type ExportDataLang, type AssetResponse } from '#/dataInterface'
 
 export interface ExportFormatOption {
   value: ExportDataLang

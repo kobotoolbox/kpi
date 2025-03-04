@@ -1,6 +1,6 @@
 // Libraries
 import React from 'react'
-import bem from 'js/bem'
+import bem from '#/bem'
 
 // Partial components
 import ReportViewItem from './reportViewItem.component'
@@ -9,10 +9,10 @@ import ReportViewItem from './reportViewItem.component'
 import { getReportRowTranslatedLabel } from './reports.utils'
 
 // Types & constants
-import { QUESTION_TYPES } from 'js/constants'
+import { QUESTION_TYPES } from '#/constants'
 import type { ReportsState } from './reports'
 import type { ReportStyle, ReportsResponse } from './reportsConstants'
-import type { AssetResponse } from 'js/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 
 interface ReportContentsProps {
   triggerQuestionSettings: (questionName: string) => void

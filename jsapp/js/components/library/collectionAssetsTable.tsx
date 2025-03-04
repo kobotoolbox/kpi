@@ -1,9 +1,9 @@
 import React from 'react'
-import AssetsTable from 'js/components/assetsTable/assetsTable'
-import { AssetsTableContextName } from 'js/components/assetsTable/assetsTableConstants'
-import type { OrderDirection } from 'js/projects/projectViews/constants'
+import AssetsTable from '#/components/assetsTable/assetsTable'
+import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import type { OrderDirection } from '#/projects/projectViews/constants'
 import singleCollectionStore from './singleCollectionStore'
-import type { AssetResponse } from 'js/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 
 interface CollectionAssetsTableProps {
   asset: AssetResponse

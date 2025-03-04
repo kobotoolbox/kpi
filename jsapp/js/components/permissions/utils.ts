@@ -1,7 +1,7 @@
 import clonedeep from 'lodash.clonedeep'
-import sessionStore from 'js/stores/session'
+import sessionStore from '#/stores/session'
 import permConfig from './permConfig'
-import { buildUserUrl, ANON_USERNAME_URL } from 'js/users/utils'
+import { buildUserUrl, ANON_USERNAME_URL } from '#/users/utils'
 import type {
   AssetResponse,
   PartialPermissionFilter,
@@ -11,8 +11,8 @@ import type {
   PermissionResponse,
   ProjectViewAsset,
   SubmissionResponse,
-} from 'js/dataInterface'
-import { isSelfOwned } from 'js/assetUtils'
+} from '#/dataInterface'
+import { isSelfOwned } from '#/assetUtils'
 import type {
   PermissionCodename,
   CheckboxNameAll,

@@ -4,22 +4,22 @@ import { Link } from 'react-router-dom'
 import cx from 'classnames'
 
 // Partial components
-import Badge from 'js/components/common/badge'
-import Avatar from 'js/components/common/avatar'
-import AssetName from 'js/components/common/assetName'
-import AssetStatusBadge from 'js/components/common/assetStatusBadge'
-import Checkbox from 'js/components/common/checkbox'
+import Badge from '#/components/common/badge'
+import Avatar from '#/components/common/avatar'
+import AssetName from '#/components/common/assetName'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import Checkbox from '#/components/common/checkbox'
 
 // Stores, hooks and utilities
-import { formatTime } from 'utils'
-import assetUtils from 'js/assetUtils'
-import sessionStore from 'js/stores/session'
+import { formatTime } from '#/utils'
+import assetUtils from '#/assetUtils'
+import sessionStore from '#/stores/session'
 
 // Constants and types
-import { ROUTES } from 'js/router/routerConstants'
-import { PROJECT_FIELDS } from 'js/projects/projectViews/constants'
-import type { ProjectFieldName, ProjectFieldDefinition } from 'js/projects/projectViews/constants'
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
+import { ROUTES } from '#/router/routerConstants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
+import type { ProjectFieldName, ProjectFieldDefinition } from '#/projects/projectViews/constants'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 
 // Styles
 import styles from './projectsTableRow.module.scss'

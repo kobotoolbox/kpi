@@ -1,11 +1,11 @@
 import React from 'react'
-import type { IconName } from 'js/k-icons'
-import type { IconSize } from 'js/components/common/icon'
-import Icon from 'js/components/common/icon'
+import type { IconName } from '#/k-icons'
+import type { IconSize } from '#/components/common/icon'
+import Icon from '#/components/common/icon'
 import './button.scss'
 import type { TooltipAlignment } from './tooltip'
 import Tooltip from './tooltip'
-import { useId } from 'js/hooks/useId.hook'
+import { useId } from '#/hooks/useId.hook'
 import cx from 'classnames'
 
 /**

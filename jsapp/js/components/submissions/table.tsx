@@ -1,27 +1,27 @@
 import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
-import enketoHandler from 'js/enketoHandler'
-import Checkbox from 'js/components/common/checkbox'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { stores } from 'js/stores'
-import pageState from 'js/pageState.store'
-import type { PageStateStoreState } from 'js/pageState.store'
+import enketoHandler from '#/enketoHandler'
+import Checkbox from '#/components/common/checkbox'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { stores } from '#/stores'
+import pageState from '#/pageState.store'
+import type { PageStateStoreState } from '#/pageState.store'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
-import ValidationStatusDropdown from 'js/components/submissions/validationStatusDropdown'
+import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
-} from 'js/components/submissions/validationStatus.constants'
+} from '#/components/submissions/validationStatus.constants'
 import {
   ValidationStatusAdditionalName,
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_SHOW_ALL_OPTION,
   VALIDATION_STATUS_NO_OPTION,
-} from 'js/components/submissions/validationStatus.constants'
+} from '#/components/submissions/validationStatus.constants'
 import { DebounceInput } from 'react-debounce-input'
 import {
   MODAL_TYPES,
@@ -31,21 +31,21 @@ import {
   ADDITIONAL_SUBMISSION_PROPS,
   EnketoActions,
   SUPPLEMENTAL_DETAILS_PROP,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from 'utils'
-import type { SurveyFlatPaths } from 'js/assetUtils'
-import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from 'js/assetUtils'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
+import type { SurveyFlatPaths } from '#/assetUtils'
+import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from '#/assetUtils'
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
   getSupplementalDetailsContent,
-} from 'js/components/submissions/submissionUtils'
-import TableBulkOptions from 'js/components/submissions/tableBulkOptions'
-import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox'
-import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown'
-import ColumnsHideDropdown from 'js/components/submissions/columnsHideDropdown'
+} from '#/components/submissions/submissionUtils'
+import TableBulkOptions from '#/components/submissions/tableBulkOptions'
+import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
+import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
+import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
 import {
   SortValues,
   SUBMISSION_ACTIONS_ID,
@@ -55,7 +55,7 @@ import {
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
   CELLS_WIDTH_OVERRIDES,
-} from 'js/components/submissions/tableConstants'
+} from '#/components/submissions/tableConstants'
 import {
   getColumnLabel,
   getColumnHXLTags,
@@ -63,15 +63,15 @@ import {
   buildFilterQuery,
   isTableColumnFilterableByTextInput,
   isTableColumnFilterableByDropdown,
-} from 'js/components/submissions/tableUtils'
-import tableStore from 'js/components/submissions/tableStore'
-import type { TableStoreData } from 'js/components/submissions/tableStore'
+} from '#/components/submissions/tableUtils'
+import tableStore from '#/components/submissions/tableStore'
+import type { TableStoreData } from '#/components/submissions/tableStore'
 import './table.scss'
 import MediaCell from './mediaCell'
 import AudioCell from './audioCell'
-import { userCan, userCanPartially, userHasPermForSubmission } from 'js/components/permissions/utils'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
-import TextModalCell from 'js/components/submissions/textModalCell.component'
+import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
+import CenteredMessage from '#/components/common/centeredMessage.component'
+import TextModalCell from '#/components/submissions/textModalCell.component'
 import type {
   FailResponse,
   AssetResponse,
@@ -82,15 +82,15 @@ import type {
   ValidationStatusResponse,
   SurveyChoice,
   SurveyRow,
-} from 'js/dataInterface'
+} from '#/dataInterface'
 import type {
   SubmissionPageName,
   TableColumn,
   ReactTableState,
   ReactTableInstance,
   DataTableSelectedRows,
-} from 'js/components/submissions/table.types'
-import Button from 'js/components/common/button'
+} from '#/components/submissions/table.types'
+import Button from '#/components/common/button'
 
 const DEFAULT_PAGE_SIZE = 30
 

@@ -1,6 +1,6 @@
 import Reflux, { type StoreDefinition, type Store } from 'reflux'
 import { DEFAULT_EXPORT_SETTINGS, type ExportTypeDefinition } from './exportsConstants'
-import { router } from 'js/router/legacy'
+import { router } from '#/router/legacy'
 
 interface ExportsStoreDefinition extends StoreDefinition {
   data: {

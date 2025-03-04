@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import RegionSelector from 'js/components/languages/regionSelector'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import Button from '#/components/common/button'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import RegionSelector from '#/components/languages/regionSelector'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
 import {
   getAttachmentForProcessing,
   secondsToTranscriptionEstimate,
-} from 'js/components/processing/transcript/transcript.utils'
-import assetStore from 'js/assetStore'
-import { getAudioDuration } from 'utils'
+} from '#/components/processing/transcript/transcript.utils'
+import assetStore from '#/assetStore'
+import { getAudioDuration } from '#/utils'
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'

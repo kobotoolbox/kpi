@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react'
 
 // Partial components
-import Button from 'js/components/common/button'
-import MultiCheckbox from 'js/components/common/multiCheckbox'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalContent from 'js/components/modals/koboModalContent'
-import KoboModalFooter from 'js/components/modals/koboModalFooter'
+import Button from '#/components/common/button'
+import MultiCheckbox from '#/components/common/multiCheckbox'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import KoboModalContent from '#/components/modals/koboModalContent'
+import KoboModalFooter from '#/components/modals/koboModalFooter'
 
 // Constants and types
-import type { MultiCheckboxItem } from 'js/components/common/multiCheckbox'
+import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import type { ProjectFieldName } from './constants'
 import { PROJECT_FIELDS, DEFAULT_VISIBLE_FIELDS } from './constants'
 

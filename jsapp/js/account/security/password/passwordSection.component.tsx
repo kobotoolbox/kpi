@@ -3,15 +3,15 @@ import React from 'react'
 
 // Partial components
 import { NavLink } from 'react-router-dom'
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 
 // Constants
-import { PATHS } from 'js/router/routerConstants'
-import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
+import { PATHS } from '#/router/routerConstants'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 
 // Styles
 import styles from './passwordSection.module.scss'
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10)
 

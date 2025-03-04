@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import UniversalTable, { type UniversalTableColumn } from './universalTable.component'
-import Avatar from 'js/components/common/avatar'
+import Avatar from '#/components/common/avatar'
 import { type ColumnPinningPosition } from '@tanstack/react-table'
 import moment from 'moment'
 

@@ -1,10 +1,10 @@
 import React from 'react'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import { AsyncLanguageDisplayLabel } from 'js/components/languages/languagesUtils'
-import TransxSelector from 'js/components/processing/transxSelector'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import TransxDate from 'js/components/processing/transxDate.component'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
+import TransxSelector from '#/components/processing/transxSelector'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import TransxDate from '#/components/processing/transxDate.component'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
 
 interface HeaderLanguageAndDateProps {
   /** Uses languageCode. */

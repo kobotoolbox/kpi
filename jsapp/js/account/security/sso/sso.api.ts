@@ -1,4 +1,4 @@
-import { fetchDelete } from 'js/api'
+import { fetchDelete } from '#/api'
 
 const LIST_URL = '/me/social-accounts/'
 

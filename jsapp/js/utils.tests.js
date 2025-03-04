@@ -7,7 +7,7 @@ import {
   generateAutoname,
   formatSeconds,
   join,
-} from 'utils'
+} from '#/utils'
 
 describe('utils', () => {
   describe('join', () => {

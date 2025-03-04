@@ -1,24 +1,24 @@
 import React from 'react'
 import autoBind from 'react-autobind'
-import bem, { makeBem } from 'js/bem'
-import Button from 'js/components/common/button'
-import { formatTimeDate, formatDate } from 'utils'
-import { findRow, renderQuestionTypeIcon } from 'js/assetUtils'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import { formatTimeDate, formatDate } from '#/utils'
+import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
   getMediaAttachment,
   DisplayGroup,
-} from 'js/components/submissions/submissionUtils'
-import type { DisplayResponse } from 'js/components/submissions/submissionUtils'
-import { META_QUESTION_TYPES, QUESTION_TYPES, SCORE_ROW_TYPE, RANK_LEVEL_TYPE } from 'js/constants'
-import type { AnyRowTypeName, QuestionTypeName, MetaQuestionTypeName } from 'js/constants'
+} from '#/components/submissions/submissionUtils'
+import type { DisplayResponse } from '#/components/submissions/submissionUtils'
+import { META_QUESTION_TYPES, QUESTION_TYPES, SCORE_ROW_TYPE, RANK_LEVEL_TYPE } from '#/constants'
+import type { AnyRowTypeName, QuestionTypeName, MetaQuestionTypeName } from '#/constants'
 import './submissionDataTable.scss'
-import type { AssetResponse, SubmissionResponse } from 'js/dataInterface'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import { goToProcessing } from 'js/components/processing/routes.utils'
-import { PROCESSING_QUESTION_TYPES } from 'js/components/processing/processingUtils'
-import SimpleTable from 'js/components/common/SimpleTable'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import AudioPlayer from '#/components/common/audioPlayer'
+import { goToProcessing } from '#/components/processing/routes.utils'
+import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
+import SimpleTable from '#/components/common/SimpleTable'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')

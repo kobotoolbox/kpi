@@ -4,8 +4,8 @@ import {
   ADDITIONAL_SUBMISSION_PROPS,
   QuestionTypeName,
   MiscRowTypeName,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions'
 

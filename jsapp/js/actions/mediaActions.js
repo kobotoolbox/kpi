@@ -3,8 +3,8 @@
  */
 
 import Reflux from 'reflux'
-import { dataInterface } from 'js/dataInterface'
-import { notify } from 'utils'
+import { dataInterface } from '#/dataInterface'
+import { notify } from '#/utils'
 
 const FORM_MEDIA_FILE_TYPE = 'form_media'
 

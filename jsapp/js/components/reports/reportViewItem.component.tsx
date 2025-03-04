@@ -6,14 +6,14 @@ import isEqual from 'lodash.isequal'
 import Chart from 'chart.js/auto'
 import type { ChartType, ChartDataset, ChartConfiguration } from 'chart.js/auto'
 import clonedeep from 'lodash.clonedeep'
-import bem from 'js/bem'
+import bem from '#/bem'
 
 // Stores
-import sessionStore from 'js/stores/session'
+import sessionStore from '#/stores/session'
 
 // Partial components
 import ReportTable from './reportTable.component'
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 
 // Constants
 import { CHART_STYLES, CHART_COLOR_SETS } from './reportsConstants'

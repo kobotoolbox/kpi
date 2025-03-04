@@ -2,28 +2,28 @@
 import { useState, useEffect } from 'react'
 
 // Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import InlineMessage from 'js/components/common/inlineMessage'
-import Button from 'js/components/common/button'
-import TextBox from 'js/components/common/textBox'
-import KoboSelect from 'js/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import InlineMessage from '#/components/common/inlineMessage'
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import KoboSelect from '#/components/common/koboSelect'
 
 // Stores, hooks and utilities
-import useWhenStripeIsEnabled from 'js/hooks/useWhenStripeIsEnabled.hook'
+import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import {
   OrganizationUserRole,
   useOrganizationQuery,
   usePatchOrganization,
-} from 'js/account/organization/organizationQuery'
-import subscriptionStore from 'js/account/subscriptionStore'
-import envStore from 'js/envStore'
+} from '#/account/organization/organizationQuery'
+import subscriptionStore from '#/account/subscriptionStore'
+import envStore from '#/envStore'
 import { getSimpleMMOLabel } from './organization.utils'
 
 // Constants and types
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'js/account/organization/organizationQuery'
+import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
 
 // Styles
-import styles from 'js/account/organization/organizationSettingsRoute.module.scss'
+import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 
 /**
  * Renders few fields with organization related settings, like name or website

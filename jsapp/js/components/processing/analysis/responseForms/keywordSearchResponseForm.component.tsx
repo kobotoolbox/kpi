@@ -2,10 +2,10 @@ import React, { useContext } from 'react'
 import CommonHeader from './commonHeader.component'
 import commonStyles from './common.module.scss'
 import styles from './keywordSearchResponseForm.module.scss'
-import Button from 'js/components/common/button'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition } from 'js/components/processing/analysis/utils'
-import Badge from 'js/components/common/badge'
+import Button from '#/components/common/button'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
+import Badge from '#/components/common/badge'
 
 interface KeywordSearchResponseFormProps {
   uuid: string

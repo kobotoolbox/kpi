@@ -19,7 +19,7 @@ import Reflux from 'reflux'
 import { Cookies } from 'react-cookie'
 import { parseTags } from './assetParserUtils'
 import { actions } from './actions'
-import { log, notify } from 'utils'
+import { log, notify } from '#/utils'
 import { toast } from 'react-hot-toast'
 
 const cookies = new Cookies()

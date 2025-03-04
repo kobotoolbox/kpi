@@ -27,8 +27,8 @@ import {
   FORM_RESTRICTIONS,
   LockingRestrictionName,
 } from './lockingConstants'
-import { getRowName } from 'js/assetUtils'
-import { ASSET_TYPES } from 'js/constants'
+import { getRowName } from '#/assetUtils'
+import { ASSET_TYPES } from '#/constants'
 import { expect } from '@jest/globals'
 
 describe('hasRowRestriction', () => {

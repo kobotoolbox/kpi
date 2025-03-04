@@ -1,13 +1,13 @@
 import { when } from 'mobx'
-import subscriptionStore from 'js/account/subscriptionStore'
-import { endpoints } from 'js/api.endpoints'
-import { ACTIVE_STRIPE_STATUSES } from 'js/constants'
-import type { PaginatedResponse } from 'js/dataInterface'
-import envStore from 'js/envStore'
-import { fetchGet, fetchPost } from 'js/api'
-import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, PriceMetadata, Product } from 'js/account/stripe.types'
-import { Limits } from 'js/account/stripe.types'
-import { getAdjustedQuantityForPrice } from 'js/account/stripe.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import { endpoints } from '#/api.endpoints'
+import { ACTIVE_STRIPE_STATUSES } from '#/constants'
+import type { PaginatedResponse } from '#/dataInterface'
+import envStore from '#/envStore'
+import { fetchGet, fetchPost } from '#/api'
+import type { AccountLimit, ChangePlan, Checkout, OneTimeAddOn, PriceMetadata, Product } from '#/account/stripe.types'
+import { Limits } from '#/account/stripe.types'
+import { getAdjustedQuantityForPrice } from '#/account/stripe.utils'
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   submission_limit: Limits.unlimited,

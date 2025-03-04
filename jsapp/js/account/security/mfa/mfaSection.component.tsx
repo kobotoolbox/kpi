@@ -3,27 +3,27 @@ import React from 'react'
 import cx from 'classnames'
 
 // Partial components
-import Button from 'js/components/common/button'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import Icon from 'js/components/common/icon'
-import InlineMessage from 'js/components/common/inlineMessage'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
+import Button from '#/components/common/button'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import Icon from '#/components/common/icon'
+import InlineMessage from '#/components/common/inlineMessage'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 
 // Reflux
-import type { MfaUserMethodsResponse, MfaActivatedResponse } from 'js/actions/mfaActions'
-import mfaActions from 'js/actions/mfaActions'
+import type { MfaUserMethodsResponse, MfaActivatedResponse } from '#/actions/mfaActions'
+import mfaActions from '#/actions/mfaActions'
 
 // Constants and utils
-import { MODAL_TYPES } from 'js/constants'
-import { formatTime, formatDate } from 'utils'
+import { MODAL_TYPES } from '#/constants'
+import { formatTime, formatDate } from '#/utils'
 
 // Stores
-import envStore from 'js/envStore'
-import pageState from 'js/pageState.store'
+import envStore from '#/envStore'
+import pageState from '#/pageState.store'
 
 // Styles
 import styles from './mfaSection.module.scss'
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 
 interface SecurityState {
   isMfaAvailable?: boolean

@@ -2,18 +2,18 @@
 import { useQuery, useQueryClient, useMutation, keepPreviousData, QueryKey } from '@tanstack/react-query'
 
 // Stores, hooks and utilities
-import { fetchGet, fetchPatch, fetchDelete } from 'js/api'
+import { fetchGet, fetchPatch, fetchDelete } from '#/api'
 import { useOrganizationQuery, type OrganizationUserRole } from './organizationQuery'
 
 // Constants and types
-import type { Nullable } from 'js/constants'
-import { endpoints } from 'js/api.endpoints'
-import type { PaginatedResponse } from 'js/dataInterface'
-import { QueryKeys } from 'js/query/queryKeys'
-import type { PaginatedQueryHookParams } from 'js/universalTable/paginatedQueryUniversalTable.component'
+import type { Nullable } from '#/constants'
+import { endpoints } from '#/api.endpoints'
+import type { PaginatedResponse } from '#/dataInterface'
+import { QueryKeys } from '#/query/queryKeys'
+import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 import type { MemberInvite } from './membersInviteQuery'
-import type { Json } from 'js/components/common/common.interfaces'
-import { useSession } from 'js/stores/useSession'
+import type { Json } from '#/components/common/common.interfaces'
+import { useSession } from '#/stores/useSession'
 
 export interface OrganizationMember {
   /**

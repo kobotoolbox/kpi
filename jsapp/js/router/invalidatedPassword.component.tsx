@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import UpdatePasswordForm from 'js/account/security/password/updatePasswordForm.component'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/button'
+import UpdatePasswordForm from '#/account/security/password/updatePasswordForm.component'
 import styles from './invalidatedPassword.module.scss'
 import BasicLayout from './basicLayout.component'
 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import SubmissionDataList from 'js/components/submissions/submissionDataList'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { AssetContent, AssetResponse } from 'js/dataInterface'
-import { META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS } from 'js/constants'
+import SubmissionDataList from '#/components/submissions/submissionDataList'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import type { AssetContent, AssetResponse } from '#/dataInterface'
+import { META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS } from '#/constants'
 import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {

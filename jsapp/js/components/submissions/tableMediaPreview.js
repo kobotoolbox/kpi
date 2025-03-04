@@ -1,10 +1,10 @@
 import autoBind from 'react-autobind'
 import React from 'react'
 
-import bem, { makeBem } from 'js/bem'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import KoboImage from 'js/components/common/koboImage'
-import { QUESTION_TYPES } from 'js/constants'
+import bem, { makeBem } from '#/bem'
+import AudioPlayer from '#/components/common/audioPlayer'
+import KoboImage from '#/components/common/koboImage'
+import { QUESTION_TYPES } from '#/constants'
 import './tableMediaPreview.scss'
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview')

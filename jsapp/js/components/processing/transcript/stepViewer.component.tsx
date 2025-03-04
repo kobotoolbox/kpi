@@ -1,9 +1,9 @@
 import React from 'react'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import Button from '#/components/common/button'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
-import { destroyConfirm } from 'js/alertify'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import { destroyConfirm } from '#/alertify'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
 import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
 
 export default function StepViewer() {

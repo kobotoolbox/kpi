@@ -2,32 +2,32 @@
 import React from 'react'
 
 // Partial components
-import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Avatar from 'js/components/common/avatar'
-import Badge from 'js/components/common/badge'
+import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Avatar from '#/components/common/avatar'
+import Badge from '#/components/common/badge'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
-import ButtonNew from 'js/components/common/ButtonNew'
+import ButtonNew from '#/components/common/ButtonNew'
 import { Divider, Group, Stack, Text, Title, Box } from '@mantine/core'
-import InviteModal from 'js/account/organization/InviteModal'
+import InviteModal from '#/account/organization/InviteModal'
 
 // Stores, hooks and utilities
-import envStore from 'js/envStore'
-import subscriptionStore from 'js/account/subscriptionStore'
-import { formatDate } from 'utils'
-import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
+import envStore from '#/envStore'
+import subscriptionStore from '#/account/subscriptionStore'
+import { formatDate } from '#/utils'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import useOrganizationMembersQuery from './membersQuery'
 import { useDisclosure } from '@mantine/hooks'
 
 // Constants and types
 import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
-import type { UniversalTableColumn } from 'js/universalTable/universalTable.component'
+import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
 
 // Styles
 import styles from './membersRoute.module.scss'
-import ActionIcon from 'js/components/common/ActionIcon'
+import ActionIcon from '#/components/common/ActionIcon'
 import InviteeActionsDropdown from './InviteeActionsDropdown'
 
 export default function MembersRoute() {

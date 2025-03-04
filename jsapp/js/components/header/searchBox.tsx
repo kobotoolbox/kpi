@@ -1,9 +1,9 @@
 import debounce from 'lodash.debounce'
 import React from 'react'
 import { observer } from 'mobx-react'
-import bem from 'js/bem'
+import bem from '#/bem'
 import searchBoxStore from './searchBoxStore'
-import { KEY_CODES } from 'js/constants'
+import { KEY_CODES } from '#/constants'
 import { autorun } from 'mobx'
 
 interface SearchBoxProps {

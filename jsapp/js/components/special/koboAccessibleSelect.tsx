@@ -8,8 +8,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import cx from 'classnames'
 import styles from './koboAccessibleSelect.module.scss'
-import type { IconName } from 'js/k-icons'
-import Icon from 'js/components/common/icon'
+import type { IconName } from '#/k-icons'
+import Icon from '#/components/common/icon'
 
 const NOTHING_SELECTED: KoboSelectOption = { value: '', label: '' }
 

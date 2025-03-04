@@ -1,16 +1,16 @@
 import React from 'react'
 import alertify from 'alertifyjs'
 import { PROJECT_SETTINGS_CONTEXTS, MODAL_TYPES, ASSET_TYPES } from './constants'
-import { ROUTES } from 'js/router/routerConstants'
-import { dataInterface } from 'js/dataInterface'
+import { ROUTES } from '#/router/routerConstants'
+import { dataInterface } from '#/dataInterface'
 import { stores } from './stores'
-import assetStore from 'js/assetStore'
-import type { AssetStoreData } from 'js/assetStore'
+import assetStore from '#/assetStore'
+import type { AssetStoreData } from '#/assetStore'
 import { actions } from './actions'
-import { log, notify, escapeHtml, join } from 'utils'
-import type { AssetResponse, CreateImportRequest, ImportResponse, DeploymentResponse } from 'js/dataInterface'
-import { getRouteAssetUid } from 'js/router/routerUtils'
-import { router, routerGetAssetId, routerIsActive } from 'js/router/legacy'
+import { log, notify, escapeHtml, join } from '#/utils'
+import type { AssetResponse, CreateImportRequest, ImportResponse, DeploymentResponse } from '#/dataInterface'
+import { getRouteAssetUid } from '#/router/routerUtils'
+import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
 import {
   archiveAsset,
   unarchiveAsset,
@@ -18,9 +18,9 @@ import {
   cloneAssetAsTemplate,
   removeAssetSharing,
   deployAsset,
-} from 'js/assetQuickActions'
+} from '#/assetQuickActions'
 import type { DropFilesEventHandler } from 'react-dropzone'
-import pageState from 'js/pageState.store'
+import pageState from '#/pageState.store'
 
 const IMPORT_CHECK_INTERVAL = 1000
 

@@ -2,9 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
-      "js/*": ["./jsapp/js/*"],
-      "utils": ["./jsapp/js/utils"],
-      "utils/*": ["./jsapp/js/utils/*"]
+      "#/*": ["./jsapp/js/*"]
     },
     "target": "es2017",
     "module": "es2020",

@@ -3,24 +3,24 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 
 // Partial components
-import bem from 'js/bem'
-import Modal from 'js/components/common/modal'
+import bem from '#/bem'
+import Modal from '#/components/common/modal'
 import ReportTypeEditor from './reportTypeEditor.component'
 import ReportColorsEditor from './reportColorsEditor.component'
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
-} from 'js/components/reports/reportsModalTabs.component'
+} from '#/components/reports/reportsModalTabs.component'
 
 // Utilities
-import { actions } from 'js/actions'
-import { handleApiFail } from 'js/api'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 
 // Types & constants
 import type { ReportStyleName, ReportStyle } from './reportsConstants'
 import type { ReportsState } from './reports'
-import type { FailResponse } from 'js/dataInterface'
+import type { FailResponse } from '#/dataInterface'
 
 interface ReportStyleSettingsSingleQuestionProps {
   parentState: ReportsState

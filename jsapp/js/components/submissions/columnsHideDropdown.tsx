@@ -1,9 +1,9 @@
 import React from 'react'
-import KoboDropdown from 'js/components/common/koboDropdown'
-import ColumnsHideForm from 'js/components/submissions/columnsHideForm'
-import type { ColumnsHideFormProps } from 'js/components/submissions/columnsHideForm'
+import KoboDropdown from '#/components/common/koboDropdown'
+import ColumnsHideForm from '#/components/submissions/columnsHideForm'
+import type { ColumnsHideFormProps } from '#/components/submissions/columnsHideForm'
 import './columnsHideDropdown.scss'
-import Button from 'js/components/common/button'
+import Button from '#/components/common/button'
 
 /**
  * A wrapper around KoboDropdown to be used atop table to bulk hide columns.

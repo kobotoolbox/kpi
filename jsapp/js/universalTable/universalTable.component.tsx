@@ -12,15 +12,15 @@ import {
   type TableOptions,
   type ColumnPinningPosition,
 } from '@tanstack/react-table'
-import { useViewportSize } from 'js/hooks/useViewportSize'
+import { useViewportSize } from '#/hooks/useViewportSize'
 
 // Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-import KoboSelect from 'js/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Button from '#/components/common/button'
+import KoboSelect from '#/components/common/koboSelect'
 
 // Utilities
-import { generateUuid } from 'utils'
+import { generateUuid } from '#/utils'
 
 // Styles
 import styles from './universalTable.module.scss'

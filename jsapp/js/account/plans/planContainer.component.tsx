@@ -1,18 +1,18 @@
 import classnames from 'classnames'
-import styles from 'js/account/plans/plan.module.scss'
-import Icon from 'js/components/common/icon'
-import { PlanButton } from 'js/account/plans/planButton.component'
+import styles from '#/account/plans/plan.module.scss'
+import Icon from '#/components/common/icon'
+import { PlanButton } from '#/account/plans/planButton.component'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { SinglePricedProduct, Price, SubscriptionInfo } from 'js/account/stripe.types'
-import { FreeTierOverride, PlanState } from 'js/account/plans/plan.component'
+import { SinglePricedProduct, Price, SubscriptionInfo } from '#/account/stripe.types'
+import { FreeTierOverride, PlanState } from '#/account/plans/plan.component'
 import {
   getAdjustedQuantityForPrice,
   getSubscriptionsForProductId,
   isChangeScheduled,
   isDowngrade,
-} from 'js/account/stripe.utils'
-import KoboSelect, { KoboSelectOption } from 'js/components/common/koboSelect'
-import { useDisplayPrice } from 'js/account/plans/useDisplayPrice.hook'
+} from '#/account/stripe.utils'
+import KoboSelect, { KoboSelectOption } from '#/components/common/koboSelect'
+import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 
 interface PlanContainerProps {
   product: SinglePricedProduct

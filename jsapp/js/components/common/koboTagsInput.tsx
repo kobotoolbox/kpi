@@ -1,7 +1,7 @@
 import React from 'react'
 import autoBind from 'react-autobind'
 import TagsInput from 'react-tagsinput'
-import { cleanupTags } from 'js/assetUtils'
+import { cleanupTags } from '#/assetUtils'
 import './koboTagsInput.scss'
 
 const DEFAULT_PLACEHOLDER = t('Type and confirm with ENTER')

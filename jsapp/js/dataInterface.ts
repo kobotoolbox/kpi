@@ -6,23 +6,23 @@
  */
 
 import { ROOT_URL, COMMON_QUERIES } from './constants'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import type { AnyRowTypeName, AssetTypeName, AssetFileType } from 'js/constants'
-import type { PermissionCodename } from 'js/components/permissions/permConstants'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { AnyRowTypeName, AssetTypeName, AssetFileType } from '#/constants'
+import type { PermissionCodename } from '#/components/permissions/permConstants'
 import type { Json } from './components/common/common.interfaces'
 import type { ProjectViewsSettings } from './projects/customViewStore'
 import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
-import type { UserResponse } from 'js/users/userExistence.store'
+import type { UserResponse } from '#/users/userExistence.store'
 import type {
   ReportsPaginatedResponse,
   AssetResponseReportStyles,
   AssetResponseReportCustom,
-} from 'js/components/reports/reportsConstants'
-import type { ProjectTransferAssetDetail } from 'js/components/permissions/transferProjects/transferProjects.api'
-import type { SortValues } from 'js/components/submissions/tableConstants'
-import type { ValidationStatusName } from 'js/components/submissions/validationStatus.constants'
-import type { AssetLockingProfileDefinition } from 'js/components/locking/lockingConstants'
+} from '#/components/reports/reportsConstants'
+import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
+import type { SortValues } from '#/components/submissions/tableConstants'
+import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
+import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
 import {
   type ExportFormatName,
   type ExportMultiOptionName,

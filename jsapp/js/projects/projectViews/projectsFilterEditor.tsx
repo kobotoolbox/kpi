@@ -2,14 +2,14 @@
 import React from 'react'
 
 // Partial components
-import Button from 'js/components/common/button'
-import TextBox from 'js/components/common/textBox'
-import KoboSelect from 'js/components/common/koboSelect'
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import KoboSelect from '#/components/common/koboSelect'
 
 // Stores and utilities
-import { generateUuid } from 'utils'
+import { generateUuid } from '#/utils'
 import { isFilterConditionValueRequired } from './utils'
-import envStore from 'js/envStore'
+import envStore from '#/envStore'
 
 // Constants and types
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'

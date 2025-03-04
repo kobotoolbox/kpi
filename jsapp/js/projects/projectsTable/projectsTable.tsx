@@ -4,13 +4,13 @@ import InfiniteScroll from 'react-infinite-scroller'
 import cx from 'classnames'
 
 // Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import ProjectsTableRow from './projectsTableRow'
 import ProjectsTableHeader from './projectsTableHeader'
 
 // Constants and types
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
-import type { ProjectFieldName, OrderDirection } from 'js/projects/projectViews/constants'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
+import type { ProjectFieldName, OrderDirection } from '#/projects/projectViews/constants'
 
 // Styles
 import styles from './projectsTable.module.scss'

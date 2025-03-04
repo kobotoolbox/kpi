@@ -4,7 +4,7 @@
 
 import React from 'react'
 import autoBind from 'react-autobind'
-import bem from 'js/bem'
+import bem from '#/bem'
 
 interface PopoverMenuProps {
   /** A callback run whenever popover is opened (made visible). */

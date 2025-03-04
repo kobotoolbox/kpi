@@ -7,8 +7,8 @@ import ColumnResizer from './columnResizer'
 import SortableProjectColumnHeader from './sortableProjectColumnHeader'
 
 // Constants and types
-import { PROJECT_FIELDS } from 'js/projects/projectViews/constants'
-import type { ProjectFieldDefinition, ProjectFieldName } from 'js/projects/projectViews/constants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
+import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from './projectsTable'
 
 // Styles

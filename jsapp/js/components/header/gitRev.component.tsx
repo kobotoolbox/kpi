@@ -1,6 +1,6 @@
 import React from 'react'
-import sessionStore from 'js/stores/session'
-import bem, { makeBem } from 'js/bem'
+import sessionStore from '#/stores/session'
+import bem, { makeBem } from '#/bem'
 
 bem.GitRev = makeBem(null, 'git-rev')
 bem.GitRev__item = makeBem(bem.GitRev, 'item', 'div')

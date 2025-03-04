@@ -2,17 +2,17 @@
 import React from 'react'
 
 // Partial components
-import Button from 'js/components/common/button'
-import PaginatedQueryUniversalTable from 'js/universalTable/paginatedQueryUniversalTable.component'
-import ExportToEmailButton from 'js/components/exportToEmailButton/exportToEmailButton.component'
+import Button from '#/components/common/button'
+import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
+import ExportToEmailButton from '#/components/exportToEmailButton/exportToEmailButton.component'
 
 // Utilities
 import useAccessLogsQuery, { startAccessLogsExport, type AccessLog } from './accessLogs.query'
-import { formatTime } from 'utils'
-import sessionStore from 'js/stores/session'
+import { formatTime } from '#/utils'
+import sessionStore from '#/stores/session'
 
 // Styles
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 
 export default function AccessLogsSection() {
   function logOutAllSessions() {

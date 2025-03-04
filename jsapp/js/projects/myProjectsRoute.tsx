@@ -11,7 +11,7 @@ import {
   HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,
 } from './projectViews/constants'
-import { ROOT_URL } from 'js/constants'
+import { ROOT_URL } from '#/constants'
 
 /**
  * Component responsible for rendering "My projects" route (`#/projects/home`).

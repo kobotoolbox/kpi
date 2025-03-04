@@ -1,7 +1,7 @@
 import React from 'react'
 import cx from 'classnames'
 import styles from './loadingSpinner.module.scss'
-import Icon from 'js/components/common/icon'
+import Icon from '#/components/common/icon'
 
 export type LoadingSpinnerType = 'regular' | 'big'
 

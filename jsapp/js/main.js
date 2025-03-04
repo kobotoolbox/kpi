@@ -5,13 +5,13 @@
 
 import 'jquery-ui/ui/widgets/sortable'
 import moment from 'moment'
-import AllRoutes from 'js/router/allRoutes'
+import AllRoutes from '#/router/allRoutes'
 import RegistrationPasswordApp from './registrationPasswordApp'
 import React from 'react'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import * as Sentry from '@sentry/react'
-import { csrfSafeMethod, currentLang } from 'utils'
+import { csrfSafeMethod, currentLang } from '#/utils'
 import '../scss/main.scss'
 import Modal from 'react-modal'
 

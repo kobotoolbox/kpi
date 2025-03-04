@@ -1,11 +1,11 @@
 import React, { useContext } from 'react'
 import styles from './selectXFieldsEditor.module.scss'
-import type { AdditionalFields } from 'js/components/processing/analysis/constants'
-import Button from 'js/components/common/button'
-import { generateUuid } from 'utils'
-import TextBox from 'js/components/common/textBox'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
-import { findQuestion } from 'js/components/processing/analysis/utils'
+import type { AdditionalFields } from '#/components/processing/analysis/constants'
+import Button from '#/components/common/button'
+import { generateUuid } from '#/utils'
+import TextBox from '#/components/common/textBox'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import { findQuestion } from '#/components/processing/analysis/utils'
 
 interface SelectXFieldsEditorProps {
   questionUuid: string

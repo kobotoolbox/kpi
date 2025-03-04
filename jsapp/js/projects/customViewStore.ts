@@ -4,17 +4,17 @@ import isEqual from 'lodash.isequal'
 import { makeAutoObservable, reaction } from 'mobx'
 
 // Stores and utilities
-import { handleApiFail } from 'js/api'
+import { handleApiFail } from '#/api'
 import { buildQueriesFromFilters } from './projectViews/utils'
-import session from 'js/stores/session'
-import searchBoxStore from 'js/components/header/searchBoxStore'
+import session from '#/stores/session'
+import searchBoxStore from '#/components/header/searchBoxStore'
 
 // Constants and types
-import type { AssetResponse, ProjectViewAsset, PaginatedResponse, FailResponse } from 'js/dataInterface'
+import type { AssetResponse, ProjectViewAsset, PaginatedResponse, FailResponse } from '#/dataInterface'
 import { DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './projectViews/constants'
 import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 import type { ProjectsTableOrder } from './projectsTable/projectsTable'
-import { COMMON_QUERIES } from 'js/constants'
+import { COMMON_QUERIES } from '#/constants'
 
 const SAVE_DATA_NAME = 'project_views_settings'
 const PAGE_SIZE = 50

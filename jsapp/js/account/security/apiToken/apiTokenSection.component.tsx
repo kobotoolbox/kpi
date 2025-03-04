@@ -3,16 +3,16 @@ import React, { useState, useEffect } from 'react'
 import cx from 'classnames'
 
 // Partial components
-import TextBox from 'js/components/common/textBox'
-import Button from 'js/components/common/button'
+import TextBox from '#/components/common/textBox'
+import Button from '#/components/common/button'
 
 // Utils
-import { dataInterface } from 'js/dataInterface'
-import { notify } from 'utils'
+import { dataInterface } from '#/dataInterface'
+import { notify } from '#/utils'
 
 // Styles
 import styles from './apiTokenSection.module.scss'
-import securityStyles from 'js/account/security/securityRoute.module.scss'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '*'.repeat(40)
 

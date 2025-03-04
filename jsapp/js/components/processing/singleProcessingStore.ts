@@ -1,8 +1,8 @@
 import Reflux from 'reflux'
 import alertify from 'alertifyjs'
 import type { RouterState } from '@remix-run/router'
-import { router } from 'js/router/legacy'
-import { getCurrentPath } from 'js/router/routerUtils'
+import { router } from '#/router/legacy'
+import { getCurrentPath } from '#/router/routerUtils'
 import {
   getSurveyFlatPaths,
   getAssetProcessingRows,
@@ -13,31 +13,31 @@ import {
   getRowNameByXpath,
   getFlatQuestionsList,
   getLanguageIndex,
-} from 'js/assetUtils'
-import type { SurveyFlatPaths } from 'js/assetUtils'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import processingActions from 'js/components/processing/processingActions'
-import type { ProcessingDataResponse } from 'js/components/processing/processingActions'
+} from '#/assetUtils'
+import type { SurveyFlatPaths } from '#/assetUtils'
+import assetStore from '#/assetStore'
+import { actions } from '#/actions'
+import processingActions from '#/components/processing/processingActions'
+import type { ProcessingDataResponse } from '#/components/processing/processingActions'
 import type {
   FailResponse,
   SubmissionResponse,
   AssetResponse,
   GetProcessingSubmissionsResponse,
-} from 'js/dataInterface'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import { QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE } from 'js/constants'
-import { destroyConfirm } from 'js/alertify'
+} from '#/dataInterface'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE } from '#/constants'
+import { destroyConfirm } from '#/alertify'
 import {
   isAnyProcessingRoute,
   isAnyProcessingRouteActive,
   getProcessingRouteParts,
   getCurrentProcessingRouteParts,
   ProcessingTab,
-} from 'js/components/processing/routes.utils'
-import type { KoboSelectOption } from 'js/components/common/koboSelect'
-import { getExponentialDelayTime, removeDefaultUuidPrefix } from 'utils'
-import envStore from 'js/envStore'
+} from '#/components/processing/routes.utils'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import { getExponentialDelayTime, removeDefaultUuidPrefix } from '#/utils'
+import envStore from '#/envStore'
 
 export enum StaticDisplays {
   Data = 'Data',

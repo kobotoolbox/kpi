@@ -8,8 +8,8 @@ import type {
   CheckboxNamePartialByResponses,
 } from './permConstants'
 import { PARTIAL_BY_USERS_PERM_PAIRS, PARTIAL_BY_RESPONSES_PERM_PAIRS, CHECKBOX_PERM_PAIRS } from './permConstants'
-import { buildUserUrl, getUsernameFromUrl, ANON_USERNAME } from 'js/users/utils'
-import type { PermissionResponse, PermissionBase, PartialPermission, PartialPermissionFilter } from 'js/dataInterface'
+import { buildUserUrl, getUsernameFromUrl, ANON_USERNAME } from '#/users/utils'
+import type { PermissionResponse, PermissionBase, PartialPermission, PartialPermissionFilter } from '#/dataInterface'
 import {
   getCheckboxNameByPermission,
   getPartialByUsersCheckboxName,

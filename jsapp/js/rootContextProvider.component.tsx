@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { BillingContextProvider } from 'js/account/billingContextProvider.component'
+import { BillingContextProvider } from '#/account/billingContextProvider.component'
 
 /* This context provider that wraps the root element (in ./app.js)
  * *Avoid* adding additional providers here unless you *truly* need global state

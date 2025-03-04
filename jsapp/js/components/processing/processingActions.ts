@@ -6,12 +6,12 @@
  */
 
 import Reflux from 'reflux'
-import { notify } from 'utils'
+import { notify } from '#/utils'
 import clonedeep from 'lodash.clonedeep'
-import { actions } from 'js/actions'
-import { getAssetAdvancedFeatures, getAssetProcessingUrl } from 'js/assetUtils'
-import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from 'js/dataInterface'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
+import { actions } from '#/actions'
+import { getAssetAdvancedFeatures, getAssetProcessingUrl } from '#/assetUtils'
+import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 
 /**
  * A safety check error message for calls made with assets that don't have

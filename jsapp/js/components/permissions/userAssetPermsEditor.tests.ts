@@ -6,7 +6,7 @@ import {
 } from './userAssetPermsEditor.utils'
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
-import constants from 'js/constants'
+import constants from '#/constants'
 
 /**
  * This is `UserAssetPermsEditorState` with all possible properties having falsy

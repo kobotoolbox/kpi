@@ -8,8 +8,8 @@ import {
 } from './permParser'
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
-import constants from 'js/constants'
-import { ANON_USERNAME } from 'js/users/utils'
+import constants from '#/constants'
+import { ANON_USERNAME } from '#/users/utils'
 
 describe('permParser', () => {
   beforeEach(() => {

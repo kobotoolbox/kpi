@@ -1,7 +1,7 @@
-import permConfig from 'js/components/permissions/permConfig'
-import { notify } from 'utils'
-import { replaceSupportEmail } from 'js/textUtils'
-import type { PermissionResponse } from 'js/dataInterface'
+import permConfig from '#/components/permissions/permConfig'
+import { notify } from '#/utils'
+import { replaceSupportEmail } from '#/textUtils'
+import type { PermissionResponse } from '#/dataInterface'
 import union from 'lodash.union'
 
 export const INVALID_PERMS_ERROR = t(
