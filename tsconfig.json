@@ -5,9 +5,7 @@
       "jsapp/*": ["./jsapp/*"],
       "js/*": ["./jsapp/js/*"],
       "utils": ["./jsapp/js/utils"],
-      "utils/*": ["./jsapp/js/utils/*"],
-      "scss/*": ["./jsapp/scss/*"],
-      "test/*": ["./jsapp/test/*"]
+      "utils/*": ["./jsapp/js/utils/*"]
     },
     "target": "es2017",
     "module": "es2020",
