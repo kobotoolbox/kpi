@@ -40,7 +40,7 @@ import { userCan } from 'js/components/permissions/utils'
 import { Link } from 'react-router-dom'
 import Button from 'js/components/common/button'
 import type { ButtonType } from 'js/components/common/button'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse

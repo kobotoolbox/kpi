@@ -1,5 +1,5 @@
 import React from 'react'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import bem, { makeBem } from 'js/bem'
 import Button from 'js/components/common/button'
 import Icon from 'js/components/common/icon'

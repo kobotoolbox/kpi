@@ -1,5 +1,5 @@
 import React from 'react'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import type { ButtonType } from 'js/components/common/button'
 import Button from 'js/components/common/button'
 import KoboModal from './koboModal'

@@ -4,7 +4,7 @@ import styles from './textBox.module.scss'
 import classnames from 'classnames'
 import type { ButtonSize } from 'js/components/common/button'
 import { ButtonToIconMap } from 'js/components/common/button'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import Icon from './icon'
 
 export type TextBoxType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url'

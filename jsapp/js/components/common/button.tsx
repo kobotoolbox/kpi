@@ -1,5 +1,5 @@
 import React from 'react'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import type { IconSize } from 'js/components/common/icon'
 import Icon from 'js/components/common/icon'
 import './button.scss'

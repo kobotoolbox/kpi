@@ -33,7 +33,7 @@ import type {
   PermissionResponse,
   AnalysisFormJsonField,
 } from 'js/dataInterface'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import { QUAL_NOTE_TYPE } from 'js/components/processing/analysis/constants'
 
 /**

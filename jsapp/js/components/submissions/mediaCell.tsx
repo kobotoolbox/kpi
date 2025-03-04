@@ -9,7 +9,7 @@ import { truncateString } from 'utils'
 import type { SubmissionAttachment } from 'js/dataInterface'
 import './mediaCell.scss'
 import Icon from 'js/components/common/icon'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import pageState from 'js/pageState.store'
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header')

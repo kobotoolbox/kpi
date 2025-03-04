@@ -1,4 +1,4 @@
-import type { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'js/k-icons'
 import type { LanguageCode } from 'js/components/languages/languagesStore'
 
 export const AUTO_SAVE_TYPING_DELAY = 3000

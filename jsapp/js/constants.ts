@@ -1,4 +1,4 @@
-import { IconName } from 'jsapp/fonts/k-icons'
+import { IconName } from 'js/k-icons'
 
 /**
  * A list of all shareable constants for the application.
