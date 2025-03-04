@@ -1,19 +1,13 @@
-// Libraries
 import React from 'react'
+
 import cx from 'classnames'
-
-// Partial components
-import ColumnResizer from './columnResizer'
-import SortableProjectColumnHeader from './sortableProjectColumnHeader'
-
-// Constants and types
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
+import ColumnResizer from './columnResizer'
 import type { ProjectsTableOrder } from './projectsTable'
-
-// Styles
 import tableStyles from './projectsTable.module.scss'
 import rowStyles from './projectsTableRow.module.scss'
+import SortableProjectColumnHeader from './sortableProjectColumnHeader'
 
 interface ProjectsTableHeaderProps {
   highlightedFields: ProjectFieldName[]

@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import sessionStore from '#/stores/session'
+
+import classnames from 'classnames'
+import { when } from 'mobx'
+import { fetchPatch } from '#/api'
+import { endpoints } from '#/api.endpoints'
+import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import PasswordStrength from '#/components/passwordStrength.component'
 import { ROOT_URL } from '#/constants'
-import styles from './updatePasswordForm.module.scss'
-import Button from '#/components/common/button'
-import { fetchPatch } from '#/api'
-import { endpoints } from '#/api.endpoints'
-import { notify } from '#/utils'
-import envStore from '#/envStore'
 import type { FailResponse } from '#/dataInterface'
-import classnames from 'classnames'
-import { when } from 'mobx'
+import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
+import { notify } from '#/utils'
+import styles from './updatePasswordForm.module.scss'
 
 const FIELD_REQUIRED_ERROR = t('This field is required.')
 

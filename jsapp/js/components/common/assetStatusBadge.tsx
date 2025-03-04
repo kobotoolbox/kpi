@@ -1,4 +1,5 @@
 import React from 'react'
+
 import Badge from '#/components/common/badge'
 
 interface AssetStatusBadgeProps {

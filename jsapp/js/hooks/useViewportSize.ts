@@ -1,6 +1,7 @@
 // TODO: in near future either replace with `@mantine/hooks` or other hooks library
 // This is a copy of: https://github.com/mantinedev/mantine/blob/master/packages/%40mantine/hooks/src/use-viewport-size/use-viewport-size.ts
 import { useCallback, useEffect, useState } from 'react'
+
 import { useWindowEvent } from './useWindowEvent'
 
 const eventListerOptions = {

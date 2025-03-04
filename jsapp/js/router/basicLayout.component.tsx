@@ -1,13 +1,14 @@
 import React from 'react'
-import MainHeaderBase from '#/components/header/mainHeaderBase.component'
+
+import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
-import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import AccountMenu from '#/components/header/accountMenu'
-import { Tracking } from './useTracking'
-import ToasterConfig from '../toasterConfig'
-import { QueryClientProvider } from '@tanstack/react-query'
+import MainHeaderBase from '#/components/header/mainHeaderBase.component'
+import MainHeaderLogo from '#/components/header/mainHeaderLogo.component'
 import { queryClient } from '../query/queryClient'
+import ToasterConfig from '../toasterConfig'
+import { Tracking } from './useTracking'
 
 interface BasicLayoutProps {
   children: React.ReactNode

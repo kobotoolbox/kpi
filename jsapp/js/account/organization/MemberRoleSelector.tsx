@@ -1,8 +1,8 @@
-import { Select } from '#/components/common/Select'
-import { usePatchOrganizationMember } from './membersQuery'
-import { usePatchMemberInvite } from './membersInviteQuery'
-import { OrganizationUserRole } from './organizationQuery'
 import { LoadingOverlay } from '@mantine/core'
+import { Select } from '#/components/common/Select'
+import { usePatchMemberInvite } from './membersInviteQuery'
+import { usePatchOrganizationMember } from './membersQuery'
+import { OrganizationUserRole } from './organizationQuery'
 
 interface MemberRoleSelectorProps {
   username: string

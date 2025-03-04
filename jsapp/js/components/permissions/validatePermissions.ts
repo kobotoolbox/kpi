@@ -1,8 +1,8 @@
-import permConfig from '#/components/permissions/permConfig'
-import { notify } from '#/utils'
-import { replaceSupportEmail } from '#/textUtils'
-import type { PermissionResponse } from '#/dataInterface'
 import union from 'lodash.union'
+import permConfig from '#/components/permissions/permConfig'
+import type { PermissionResponse } from '#/dataInterface'
+import { replaceSupportEmail } from '#/textUtils'
+import { notify } from '#/utils'
 
 export const INVALID_PERMS_ERROR = t(
   'The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org',

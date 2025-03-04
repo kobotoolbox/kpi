@@ -1,17 +1,18 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
+
+import { when } from 'mobx'
 import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import sessionStore from '#/stores/session'
-import { MODAL_TYPES, ASSET_TYPES } from '#/constants'
-import { ROUTES } from '#/router/routerConstants'
-import mixins from '#/mixins'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
-import { withRouter } from '#/router/legacy'
-import { when } from 'mobx'
+import { ASSET_TYPES, MODAL_TYPES } from '#/constants'
+import mixins from '#/mixins'
 import pageState from '#/pageState.store'
+import { withRouter } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import sessionStore from '#/stores/session'
 
 class LibraryNewItemForm extends React.Component {
   constructor(props) {

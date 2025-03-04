@@ -1,4 +1,4 @@
-import type { SubmissionResponse, PaginatedResponse } from '#/dataInterface'
+import type { PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 
 export type FormGalleryAction =
   | {

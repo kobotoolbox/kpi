@@ -1,19 +1,13 @@
-// Libraries
 import React, { useCallback } from 'react'
-import { observer } from 'mobx-react-lite'
+
 import cx from 'classnames'
-
-// Partial components
-import Button from '#/components/common/button'
-
-// Stores and utils
-import sessionStore from '#/stores/session'
-import envStore, { type SocialApp } from '#/envStore'
-import { deleteSocialAccount } from './sso.api'
-
-// Styles
-import styles from './ssoSection.module.scss'
+import { observer } from 'mobx-react-lite'
 import securityStyles from '#/account/security/securityRoute.module.scss'
+import Button from '#/components/common/button'
+import envStore, { type SocialApp } from '#/envStore'
+import sessionStore from '#/stores/session'
+import { deleteSocialAccount } from './sso.api'
+import styles from './ssoSection.module.scss'
 
 const SsoSection = observer(() => {
   const socialApps = envStore.isReady ? envStore.data.social_apps : []

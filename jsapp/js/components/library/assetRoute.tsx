@@ -1,19 +1,20 @@
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import DocumentTitle from 'react-document-title'
-import bem from '#/bem'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
-import { ASSET_TYPES, ACCESS_TYPES } from '#/constants'
+import bem from '#/bem'
 import AssetActionButtons from '#/components/assetsTable/assetActionButtons'
-import AssetInfoBox from './assetInfoBox'
-import AssetPublicButton from './assetPublicButton'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import CollectionAssetsTable from '#/components/library/collectionAssetsTable'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { getRouteAssetUid } from '#/router/routerUtils'
 import AssetBreadcrumbs from './assetBreadcrumbs'
 import AssetContentSummary from './assetContentSummary'
-import CollectionAssetsTable from '#/components/library/collectionAssetsTable'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import { getRouteAssetUid } from '#/router/routerUtils'
-import type { AssetResponse } from '#/dataInterface'
+import AssetInfoBox from './assetInfoBox'
+import AssetPublicButton from './assetPublicButton'
 
 interface AssetRouteProps {
   params: {

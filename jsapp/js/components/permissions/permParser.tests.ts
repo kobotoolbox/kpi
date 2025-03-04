@@ -1,15 +1,15 @@
-import {
-  parseFormData,
-  buildFormData,
-  parseBackendData,
-  removeImpliedPerms,
-  parseUserWithPermsList,
-  sortParseBackendOutput,
-} from './permParser'
-import permConfig from './permConfig'
-import { endpoints } from './permParser.mocks'
 import constants from '#/constants'
 import { ANON_USERNAME } from '#/users/utils'
+import permConfig from './permConfig'
+import {
+  buildFormData,
+  parseBackendData,
+  parseFormData,
+  parseUserWithPermsList,
+  removeImpliedPerms,
+  sortParseBackendOutput,
+} from './permParser'
+import { endpoints } from './permParser.mocks'
 
 describe('permParser', () => {
   beforeEach(() => {

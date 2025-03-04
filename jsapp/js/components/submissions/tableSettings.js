@@ -1,14 +1,15 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
 import Radio from '#/components/common/radio'
-import bem from '#/bem'
-import { actions } from '#/actions'
-import { notify } from '#/utils'
-import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
 import { userCan } from '#/components/permissions/utils'
+import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
-import Button from '#/components/common/button'
+import { notify } from '#/utils'
 import './tableSettings.scss'
 
 /**

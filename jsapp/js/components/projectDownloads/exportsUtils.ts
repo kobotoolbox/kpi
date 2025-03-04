@@ -1,5 +1,5 @@
 import { EXPORT_FORMATS } from '#/components/projectDownloads/exportsConstants'
-import { type ExportDataLang, type AssetResponse } from '#/dataInterface'
+import { type AssetResponse, type ExportDataLang } from '#/dataInterface'
 
 export interface ExportFormatOption {
   value: ExportDataLang

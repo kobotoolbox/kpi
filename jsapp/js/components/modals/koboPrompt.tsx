@@ -1,11 +1,12 @@
 import React from 'react'
-import type { IconName } from '#/k-icons'
+
 import type { ButtonType } from '#/components/common/button'
 import Button from '#/components/common/button'
+import type { IconName } from '#/k-icons'
 import KoboModal from './koboModal'
-import KoboModalHeader from './koboModalHeader'
 import KoboModalContent from './koboModalContent'
 import KoboModalFooter from './koboModalFooter'
+import KoboModalHeader from './koboModalHeader'
 
 interface KoboPromptButton {
   type?: ButtonType

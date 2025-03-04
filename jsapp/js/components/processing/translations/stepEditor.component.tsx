@@ -1,10 +1,11 @@
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import Button from '#/components/common/button'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 interface StepEditorProps {
   /** Uses languageCode. */

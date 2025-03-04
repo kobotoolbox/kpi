@@ -1,29 +1,21 @@
-// Libraries
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-// Partial components
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import InlineMessage from '#/components/common/inlineMessage'
-import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
-import KoboSelect from '#/components/common/koboSelect'
-
-// Stores, hooks and utilities
-import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import {
   OrganizationUserRole,
   useOrganizationQuery,
   usePatchOrganization,
 } from '#/account/organization/organizationQuery'
-import subscriptionStore from '#/account/subscriptionStore'
-import envStore from '#/envStore'
-import { getSimpleMMOLabel } from './organization.utils'
-
-// Constants and types
 import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
-
-// Styles
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
+import subscriptionStore from '#/account/subscriptionStore'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import KoboSelect from '#/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import TextBox from '#/components/common/textBox'
+import envStore from '#/envStore'
+import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+import { getSimpleMMOLabel } from './organization.utils'
 
 /**
  * Renders few fields with organization related settings, like name or website

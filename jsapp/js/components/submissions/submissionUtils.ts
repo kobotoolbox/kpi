@@ -1,28 +1,28 @@
 import get from 'lodash.get'
-import { getRowName, getTranslatedRowLabel, getSurveyFlatPaths, isRowSpecialLabelHolder } from '#/assetUtils'
+import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
+import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
+import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import {
-  createEnum,
-  SCORE_ROW_TYPE,
-  RANK_LEVEL_TYPE,
-  MATRIX_PAIR_PROPS,
-  GROUP_TYPES_BEGIN,
-  QUESTION_TYPES,
   CHOICE_LISTS,
+  GROUP_TYPES_BEGIN,
+  MATRIX_PAIR_PROPS,
+  QUESTION_TYPES,
+  RANK_LEVEL_TYPE,
+  SCORE_ROW_TYPE,
+  createEnum,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
-  SurveyRow,
-  SurveyChoice,
+  AnalysisFormJsonField,
+  AssetResponse,
+  SubmissionAttachment,
   SubmissionResponse,
   SubmissionResponseValue,
-  SubmissionAttachment,
-  AssetResponse,
-  AnalysisFormJsonField,
+  SurveyChoice,
+  SurveyRow,
 } from '#/dataInterface'
-import { getSupplementalPathParts } from '#/components/processing/processingUtils'
-import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
-import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',

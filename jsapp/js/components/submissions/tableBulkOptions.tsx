@@ -1,27 +1,28 @@
 import React from 'react'
+
+import alertify from 'alertifyjs'
 import { actions } from '#/actions'
 import bem from '#/bem'
-import PopoverMenu from '#/popoverMenu'
-import alertify from 'alertifyjs'
-import { MODAL_TYPES } from '#/constants'
+import Badge from '#/components/common/badge'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan, userCanPartially } from '#/components/permissions/utils'
+import type { DataTableSelectedRows, ReactTableStateFilteredItem } from '#/components/submissions/table.types'
 import {
-  ValidationStatusAdditionalName,
   VALIDATION_STATUS_OPTIONS,
+  ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusName,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { renderCheckbox } from '#/utils'
-import { userCan, userCanPartially } from '#/components/permissions/utils'
-import { buildFilterQuery } from './tableUtils'
-import type { AssetResponse, SubmissionResponse, BulkSubmissionsRequest } from '#/dataInterface'
+import { MODAL_TYPES } from '#/constants'
+import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
-import type { DataTableSelectedRows, ReactTableStateFilteredItem } from '#/components/submissions/table.types'
-import Button from '#/components/common/button'
-import Badge from '#/components/common/badge'
-import Icon from '#/components/common/icon'
+import PopoverMenu from '#/popoverMenu'
+import { renderCheckbox } from '#/utils'
+import { buildFilterQuery } from './tableUtils'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse

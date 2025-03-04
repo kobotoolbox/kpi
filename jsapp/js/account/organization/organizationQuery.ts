@@ -1,15 +1,11 @@
-// Libraries
-import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-// Stores, hooks and utilities
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { fetchGetUrl, fetchPatch } from '#/api'
-import { useSession } from '#/stores/useSession'
-
-// Constants and types
 import type { FailResponse } from '#/dataInterface'
-import { QueryKeys } from '#/query/queryKeys'
 import { queryClient } from '#/query/queryClient'
+import { QueryKeys } from '#/query/queryKeys'
+import { useSession } from '#/stores/useSession'
 
 // Comes from `kobo/apps/accounts/forms.py`
 export type OrganizationTypeName = 'non-profit' | 'government' | 'educational' | 'commercial' | 'none'

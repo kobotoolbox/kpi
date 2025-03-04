@@ -1,17 +1,11 @@
-// Libraries
 import React from 'react'
 
-// Partial components
 import { NavLink } from 'react-router-dom'
-import Button from '#/components/common/button'
-
-// Constants
-import { PATHS } from '#/router/routerConstants'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
-
-// Styles
-import styles from './passwordSection.module.scss'
 import securityStyles from '#/account/security/securityRoute.module.scss'
+import Button from '#/components/common/button'
+import { PATHS } from '#/router/routerConstants'
+import styles from './passwordSection.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10)
 

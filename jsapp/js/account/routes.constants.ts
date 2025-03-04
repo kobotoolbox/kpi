@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { ROUTES } from '#/router/routerConstants'
 
 export const ChangePasswordRoute = React.lazy(

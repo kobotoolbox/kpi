@@ -1,12 +1,12 @@
 import findIndex from 'lodash.findindex'
-import Reflux from 'reflux'
 import { when } from 'mobx'
-import sessionStore from '#/stores/session'
+import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { isAnyLibraryRoute } from '#/router/routerUtils'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse, AssetsResponse, DeleteAssetResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
+import { isAnyLibraryRoute } from '#/router/routerUtils'
+import sessionStore from '#/stores/session'
 import { userCan } from '../permissions/utils'
 
 export interface ManagedCollectionsStoreData {

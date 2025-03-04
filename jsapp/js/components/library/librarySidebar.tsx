@@ -1,13 +1,14 @@
 import React from 'react'
-import sessionStore from '#/stores/session'
+
+import { NavLink } from 'react-router-dom'
 import bem from '#/bem'
+import Button from '#/components/common/button'
 import { MODAL_TYPES } from '#/constants'
-import myLibraryStore from './myLibraryStore'
+import pageState from '#/pageState.store'
 import { routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import { NavLink } from 'react-router-dom'
-import Button from '#/components/common/button'
-import pageState from '#/pageState.store'
+import sessionStore from '#/stores/session'
+import myLibraryStore from './myLibraryStore'
 
 interface LibrarySidebarState {
   myLibraryCount: number | null

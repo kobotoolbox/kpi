@@ -1,13 +1,10 @@
-// Libraries
 import React, { useEffect, useState } from 'react'
-// Partial components
-import Alert from '#/components/common/alert'
-// Stores, hooks and utilities
-import { useOrganizationMemberDetailQuery } from '#/account/organization/membersQuery'
-import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
-// Constants and types
-import { type Organization } from '#/account/organization/organizationQuery'
+
 import { MemberInviteStatus } from '#/account/organization/membersInviteQuery'
+import { useOrganizationMemberDetailQuery } from '#/account/organization/membersQuery'
+import { type Organization } from '#/account/organization/organizationQuery'
+import Alert from '#/components/common/alert'
+import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 
 interface OrgInviteAcceptedBannerProps {
   username: string

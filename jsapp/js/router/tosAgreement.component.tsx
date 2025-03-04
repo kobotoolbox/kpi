@@ -1,7 +1,8 @@
 import React from 'react'
-import styles from './tosAgreement.module.scss'
-import BasicLayout from './basicLayout.component'
+
 import TOSForm from '#/tos/tosForm.component'
+import BasicLayout from './basicLayout.component'
+import styles from './tosAgreement.module.scss'
 
 /**
  * This is a route blocker component to be used for accounts that have not

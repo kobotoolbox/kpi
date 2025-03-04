@@ -1,35 +1,35 @@
 import React from 'react'
-import { stores } from '#/stores'
-import sessionStore from '#/stores/session'
+
+import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
-import { actions } from '#/actions'
 import bem from '#/bem'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
+import { ASSET_TYPES } from '#/constants'
+import { stores } from '#/stores'
+import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
-import { ASSET_TYPES } from '#/constants'
-import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import './sharingForm.scss'
-// parts
-import CopyTeamPermissions from './copyTeamPermissions.component'
-import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import PublicShareSettings from './publicShareSettings.component'
-import UserPermissionRow from './userPermissionRow.component'
-import { parseBackendData, parseUserWithPermsList } from './permParser'
-import type { UserWithPerms } from './permParser'
-import type {
-  AssignablePermission,
-  AssetResponse,
-  PermissionBase,
-  PermissionResponse,
-  AssignablePermissionPartialLabel,
-} from '#/dataInterface'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import AssetName from '#/components/common/assetName'
+import type {
+  AssetResponse,
+  AssignablePermission,
+  AssignablePermissionPartialLabel,
+  PermissionBase,
+  PermissionResponse,
+} from '#/dataInterface'
+import CopyTeamPermissions from './copyTeamPermissions.component'
+import { parseBackendData, parseUserWithPermsList } from './permParser'
+import type { UserWithPerms } from './permParser'
+import PublicShareSettings from './publicShareSettings.component'
+import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import UserPermissionRow from './userPermissionRow.component'
 
 interface SharingFormProps {
   assetUid: string

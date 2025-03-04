@@ -1,21 +1,15 @@
-// Libraries
 import React from 'react'
+
 import alertify from 'alertifyjs'
 import bem from '#/bem'
-
-// Partial components
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import Button from '#/components/common/button'
-
-// Stores, hooks and utilities
-import { actions } from '../../actions'
-import envStore from '#/envStore'
-import { notify, escapeHtml } from '#/utils'
-import pageState from '#/pageState.store'
-
-// Constants and types
-import { MODAL_TYPES } from '../../constants'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { ExternalServiceHookResponse, PaginatedResponse } from '#/dataInterface'
+import envStore from '#/envStore'
+import pageState from '#/pageState.store'
+import { escapeHtml, notify } from '#/utils'
+import { actions } from '../../actions'
+import { MODAL_TYPES } from '../../constants'
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html'
 

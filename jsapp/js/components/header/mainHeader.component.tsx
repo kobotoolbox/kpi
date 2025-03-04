@@ -1,8 +1,21 @@
 import React from 'react'
+
 import { observer } from 'mobx-react'
-import sessionStore from '#/stores/session'
 import assetStore from '#/assetStore'
+import { getAssetIcon } from '#/assetUtils'
 import bem from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import HeaderTitleEditor from '#/components/header/headerTitleEditor'
+import OrganizationBadge from '#/components/header/organizationBadge.component'
+import SearchBox from '#/components/header/searchBox'
+import myLibraryStore from '#/components/library/myLibraryStore'
+import { userCan } from '#/components/permissions/utils'
+import type { AssetResponse } from '#/dataInterface'
+import type { IconName } from '#/k-icons'
+import pageState from '#/pageState.store'
+import { router, withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
 import {
   getLoginUrl,
   isAnyFormRoute,
@@ -10,24 +23,12 @@ import {
   isMyLibraryRoute,
   isPublicCollectionsRoute,
 } from '#/router/routerUtils'
-import { getAssetIcon } from '#/assetUtils'
-import HeaderTitleEditor from '#/components/header/headerTitleEditor'
-import SearchBox from '#/components/header/searchBox'
-import myLibraryStore from '#/components/library/myLibraryStore'
-import { userCan } from '#/components/permissions/utils'
+import sessionStore from '#/stores/session'
 import AccountMenu from './accountMenu'
-import type { AssetResponse } from '#/dataInterface'
-import { withRouter, router } from '#/router/legacy'
-import type { WithRouterProps } from '#/router/legacy'
-import Icon from '#/components/common/icon'
-import type { IconName } from '#/k-icons'
+import GitRev from './gitRev.component'
+import styles from './mainHeader.module.scss'
 import MainHeaderBase from './mainHeaderBase.component'
 import MainHeaderLogo from './mainHeaderLogo.component'
-import GitRev from './gitRev.component'
-import pageState from '#/pageState.store'
-import styles from './mainHeader.module.scss'
-import Button from '#/components/common/button'
-import OrganizationBadge from '#/components/header/organizationBadge.component'
 
 interface MainHeaderProps extends WithRouterProps {
   assetUid: string | null

@@ -1,12 +1,13 @@
 import React, { useContext } from 'react'
-import styles from './keywordSearchFieldsEditor.module.scss'
+
 import TagsInput from 'react-tagsinput'
 import Icon from '#/components/common/icon'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import type { AdditionalFields } from '#/components/processing/analysis/constants'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import TransxSelector from '#/components/processing/transxSelector'
-import type { LanguageCode } from '#/components/languages/languagesStore'
-import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import styles from './keywordSearchFieldsEditor.module.scss'
 
 interface KeywordSearchFieldsEditorProps {
   questionUuid: string

@@ -1,8 +1,7 @@
-import Button from './button'
-
+import { describe, expect, it, jest } from '@jest/globals'
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, jest } from '@jest/globals'
 import userEvent from '@testing-library/user-event'
+import Button from './button'
 
 const user = userEvent.setup()
 

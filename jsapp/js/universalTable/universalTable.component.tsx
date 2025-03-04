@@ -1,28 +1,21 @@
-// Libraries
-import type React from 'react'
-import { useState, useRef, useCallback, type CSSProperties, useEffect } from 'react'
-import cx from 'classnames'
+import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
+
 import {
+  type CellContext,
+  type Column,
+  type ColumnPinningPosition,
+  type PaginationState,
+  type TableOptions,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  type CellContext,
-  type Column,
-  type PaginationState,
-  type TableOptions,
-  type ColumnPinningPosition,
 } from '@tanstack/react-table'
-import { useViewportSize } from '#/hooks/useViewportSize'
-
-// Partial components
-import LoadingSpinner from '#/components/common/loadingSpinner'
+import cx from 'classnames'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
-
-// Utilities
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { useViewportSize } from '#/hooks/useViewportSize'
 import { generateUuid } from '#/utils'
-
-// Styles
 import styles from './universalTable.module.scss'
 
 export interface UniversalTableColumn<DataItem> {

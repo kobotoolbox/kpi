@@ -1,8 +1,9 @@
 import $ from 'jquery'
+
 import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
-import type { PaginatedResponse } from '#/dataInterface'
 import { ROOT_URL } from '#/constants'
+import type { PaginatedResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 
 export interface ProjectView {

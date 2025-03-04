@@ -1,19 +1,19 @@
-import Reflux from 'reflux'
 import clonedeep from 'lodash.clonedeep'
-import assetStore from '#/assetStore'
+import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { getRouteAssetUid } from '#/router/routerUtils'
+import assetStore from '#/assetStore'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
 import {
-  VALIDATION_STATUS_ID_PROP,
-  SUBMISSION_ACTIONS_ID,
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
+  SUBMISSION_ACTIONS_ID,
+  VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import { getAllDataColumns } from '#/components/submissions/tableUtils'
-import type { SubmissionResponse, AssetTableSettings, AssetSettings, TableSortBySetting } from '#/dataInterface'
-import { userCan } from '#/components/permissions/utils'
+import type { AssetSettings, AssetTableSettings, SubmissionResponse, TableSortBySetting } from '#/dataInterface'
+import { getRouteAssetUid } from '#/router/routerUtils'
 
 export interface TableStoreData {
   overrides: AssetTableSettings

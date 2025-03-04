@@ -1,23 +1,24 @@
 import React, { useState, useContext } from 'react'
-import Icon from '#/components/common/icon'
-import styles from './analysisQuestionEditor.module.scss'
-import commonStyles from '../responseForms/common.module.scss'
-import TextBox from '#/components/common/textBox'
+
+import clonedeep from 'lodash.clonedeep'
+import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import TextBox from '#/components/common/textBox'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   getQuestionsFromSchema,
   updateSurveyQuestions,
 } from '#/components/processing/analysis/utils'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
-import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
-import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
-import SelectXFieldsEditor from './selectXFieldsEditor.component'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import clonedeep from 'lodash.clonedeep'
-import { handleApiFail } from '#/api'
 import type { FailResponse } from '#/dataInterface'
+import AnalysisQuestionsContext from '../analysisQuestions.context'
+import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
+import commonStyles from '../responseForms/common.module.scss'
+import styles from './analysisQuestionEditor.module.scss'
+import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
+import SelectXFieldsEditor from './selectXFieldsEditor.component'
 
 interface AnalysisQuestionEditorProps {
   uuid: string

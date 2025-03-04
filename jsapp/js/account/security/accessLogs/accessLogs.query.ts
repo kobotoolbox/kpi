@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import { fetchGet, fetchPost } from '#/api'
 import { QueryKeys } from '#/query/queryKeys'
 import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 

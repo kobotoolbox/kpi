@@ -1,44 +1,45 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+
+import alertify from 'alertifyjs'
+import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import Select from 'react-select'
 import debounce from 'lodash.debounce'
 import DocumentTitle from 'react-document-title'
-import cx from 'classnames'
-import SurveyScope from '../models/surveyScope'
-import { cascadeMixin } from './cascadeMixin'
-import AssetNavigator from './assetNavigator'
-import alertify from 'alertifyjs'
-import MetadataEditor from '#/components/metadataEditor'
-import { escapeHtml } from '../utils'
-import { QuestionTypeName, ASSET_TYPES, AVAILABLE_FORM_STYLES, update_states, NAME_MAX_LENGTH } from '#/constants'
-import { ROUTES } from '#/router/routerConstants'
+import ReactDOM from 'react-dom'
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import Select from 'react-select'
+import assetUtils from '#/assetUtils'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
-import bem, { makeBem } from '#/bem'
-import { stores } from '../stores'
-import { actions } from '../actions'
-import dkobo_xlform from '../../xlform/src/_xlform.init'
-import { dataInterface } from '../dataInterface'
-import assetUtils from '#/assetUtils'
-import FormLockedMessage from '#/components/locking/formLockedMessage'
 import {
-  hasAssetRestriction,
+  getFormBuilderAssetType,
+  koboMatrixParser,
+  surveyToValidJson,
+  unnullifyTranslations,
+} from '#/components/formBuilder/formBuilderUtils'
+import FormLockedMessage from '#/components/locking/formLockedMessage'
+import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
+import {
   hasAssetAnyLocking,
+  hasAssetRestriction,
   isAssetAllLocked,
   isAssetLockable,
 } from '#/components/locking/lockingUtils'
-import { LockingRestrictionName, LOCKING_UI_CLASSNAMES } from '#/components/locking/lockingConstants'
-import {
-  koboMatrixParser,
-  surveyToValidJson,
-  getFormBuilderAssetType,
-  unnullifyTranslations,
-} from '#/components/formBuilder/formBuilderUtils'
+import MetadataEditor from '#/components/metadataEditor'
+import { ASSET_TYPES, AVAILABLE_FORM_STYLES, NAME_MAX_LENGTH, QuestionTypeName, update_states } from '#/constants'
 import envStore from '#/envStore'
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import Icon from '#/components/common/icon'
-import Button from '#/components/common/button'
+import { ROUTES } from '#/router/routerConstants'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
+import { actions } from '../actions'
+import { dataInterface } from '../dataInterface'
+import SurveyScope from '../models/surveyScope'
+import { stores } from '../stores'
+import { escapeHtml } from '../utils'
+import AssetNavigator from './assetNavigator'
+import { cascadeMixin } from './cascadeMixin'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')

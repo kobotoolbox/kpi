@@ -1,4 +1,5 @@
 import React from 'react'
+
 import type { StoryObj } from '@storybook/react'
 import AriaText from '#/components/common/ariaText'
 

@@ -1,18 +1,12 @@
-// Libraries
 import React, { useState, useEffect } from 'react'
+
 import cx from 'classnames'
-
-// Partial components
-import TextBox from '#/components/common/textBox'
+import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
-
-// Utils
+import TextBox from '#/components/common/textBox'
 import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
-
-// Styles
 import styles from './apiTokenSection.module.scss'
-import securityStyles from '#/account/security/securityRoute.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '*'.repeat(40)
 

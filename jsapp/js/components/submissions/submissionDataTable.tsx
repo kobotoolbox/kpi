@@ -1,24 +1,25 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
+import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
-import { formatTimeDate, formatDate } from '#/utils'
-import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import {
   DISPLAY_GROUP_TYPES,
-  getSubmissionDisplayData,
-  getMediaAttachment,
   DisplayGroup,
+  getMediaAttachment,
+  getSubmissionDisplayData,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
-import { META_QUESTION_TYPES, QUESTION_TYPES, SCORE_ROW_TYPE, RANK_LEVEL_TYPE } from '#/constants'
-import type { AnyRowTypeName, QuestionTypeName, MetaQuestionTypeName } from '#/constants'
+import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
+import type { AnyRowTypeName, MetaQuestionTypeName, QuestionTypeName } from '#/constants'
+import { formatDate, formatTimeDate } from '#/utils'
 import './submissionDataTable.scss'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import AudioPlayer from '#/components/common/audioPlayer'
-import { goToProcessing } from '#/components/processing/routes.utils'
-import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
 import SimpleTable from '#/components/common/SimpleTable'
+import AudioPlayer from '#/components/common/audioPlayer'
+import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
+import { goToProcessing } from '#/components/processing/routes.utils'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')

@@ -1,7 +1,6 @@
 import React from 'react'
+
 import { Navigate, Route } from 'react-router-dom'
-import RequireAuth from '#/router/requireAuth'
-import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
 import { OrganizationUserRole } from '#/account/organization/organizationQuery'
 import {
   ACCOUNT_ROUTES,
@@ -9,11 +8,13 @@ import {
   AddOnsRoute,
   ChangePasswordRoute,
   DataStorage,
-  PlansRoute,
-  SecurityRoute,
   MembersRoute,
   OrganizationSettingsRoute,
+  PlansRoute,
+  SecurityRoute,
 } from '#/account/routes.constants'
+import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
+import RequireAuth from '#/router/requireAuth'
 
 export default function routes() {
   return (

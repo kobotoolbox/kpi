@@ -1,16 +1,17 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
-import mixins from '../mixins'
 import bem from '#/bem'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import { searches } from '../searches'
-import pageState from '#/pageState.store'
-import { COMMON_QUERIES, DEPLOYMENT_CATEGORIES } from '#/constants'
 import AssetName from '#/components/common/assetName'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan } from '#/components/permissions/utils'
+import { COMMON_QUERIES, DEPLOYMENT_CATEGORIES } from '#/constants'
+import pageState from '#/pageState.store'
+import mixins from '../mixins'
+import { searches } from '../searches'
 
 /**
  * A list of projects grouped by status (deployed, draft, archived). It's meant

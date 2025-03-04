@@ -1,49 +1,43 @@
-// Libraries
 import React from 'react'
-import Select from 'react-select'
-import alertify from 'alertifyjs'
-import bem from '#/bem'
-import cx from 'classnames'
 
-// Partial components
-import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import alertify from 'alertifyjs'
+import cx from 'classnames'
+import Select from 'react-select'
+import { actions } from '#/actions'
+import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
 import Checkbox from '#/components/common/checkbox'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import TextBox from '#/components/common/textBox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
-import Button from '#/components/common/button'
-
-// Stores, hooks and utilities
-import { actions } from '#/actions'
-import { formatTimeDate } from '#/utils'
+import {
+  DEFAULT_EXPORT_SETTINGS,
+  EXPORT_FORMATS,
+  EXPORT_MULTIPLE_OPTIONS,
+  EXPORT_TYPES,
+  type ExportMultiOption,
+  type ExportTypeDefinition,
+} from '#/components/projectDownloads/exportsConstants'
+import exportsStore from '#/components/projectDownloads/exportsStore'
 import {
   type ExportFormatOption,
   getContextualDefaultExportFormat,
   getExportFormatOptions,
 } from '#/components/projectDownloads/exportsUtils'
-import { getSurveyFlatPaths, getFlatQuestionsList, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
-import exportsStore from '#/components/projectDownloads/exportsStore'
-import { userCan } from '#/components/permissions/utils'
-
-// Constants and types
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import {
-  EXPORT_TYPES,
-  DEFAULT_EXPORT_SETTINGS,
-  EXPORT_FORMATS,
-  EXPORT_MULTIPLE_OPTIONS,
-  type ExportTypeDefinition,
-  type ExportMultiOption,
-} from '#/components/projectDownloads/exportsConstants'
 import type {
+  AssetResponse,
   ExportSetting,
   ExportSettingRequest,
   ExportSettingSettings,
   PaginatedResponse,
-  AssetResponse,
 } from '#/dataInterface'
+import { formatTimeDate } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import Icon from '#/components/common/icon'
-import Button from '#/components/common/button'
+
 import UpdatePasswordForm from '#/account/security/password/updatePasswordForm.component'
-import styles from './invalidatedPassword.module.scss'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import BasicLayout from './basicLayout.component'
+import styles from './invalidatedPassword.module.scss'
 
 /**
  * This is a route blocker component to be used for accounts marked by admin

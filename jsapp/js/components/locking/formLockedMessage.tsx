@@ -1,7 +1,8 @@
 import React from 'react'
+
 import bem from '#/bem'
+import { getFormFeatures, isAssetAllLocked, isAssetLocked } from '#/components/locking/lockingUtils'
 import { ASSET_TYPES } from '#/constants'
-import { isAssetLocked, isAssetAllLocked, getFormFeatures } from '#/components/locking/lockingUtils'
 import type { AssetResponse } from '#/dataInterface'
 
 interface FormLockedMessageProps {

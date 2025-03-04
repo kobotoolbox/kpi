@@ -1,12 +1,13 @@
-import styles from '#/account/addOns/addOnList.module.scss'
 import React, { useMemo, useState } from 'react'
-import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-import KoboSelect3 from '#/components/special/koboAccessibleSelect'
-import BillingButton from '#/account/plans/billingButton.component'
-import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
-import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
-import { isChangeScheduled } from '#/account/stripe.utils'
+
+import styles from '#/account/addOns/addOnList.module.scss'
 import type { Organization } from '#/account/organization/organizationQuery'
+import BillingButton from '#/account/plans/billingButton.component'
+import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
+import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
+import type { Product, SubscriptionInfo } from '#/account/stripe.types'
+import { isChangeScheduled } from '#/account/stripe.utils'
+import KoboSelect3 from '#/components/special/koboAccessibleSelect'
 
 interface OneTimeAddOnRowProps {
   products: Product[]

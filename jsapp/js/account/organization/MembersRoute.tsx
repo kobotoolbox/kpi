@@ -1,34 +1,26 @@
-// Libraries
 import React from 'react'
 
-// Partial components
-import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
-import LoadingSpinner from '#/components/common/loadingSpinner'
+import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import InviteModal from '#/account/organization/InviteModal'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import ActionIcon from '#/components/common/ActionIcon'
+import ButtonNew from '#/components/common/ButtonNew'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import envStore from '#/envStore'
+import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
+import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
+import { formatDate } from '#/utils'
+import InviteeActionsDropdown from './InviteeActionsDropdown'
 import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
-import ButtonNew from '#/components/common/ButtonNew'
-import { Divider, Group, Stack, Text, Title, Box } from '@mantine/core'
-import InviteModal from '#/account/organization/InviteModal'
-
-// Stores, hooks and utilities
-import envStore from '#/envStore'
-import subscriptionStore from '#/account/subscriptionStore'
-import { formatDate } from '#/utils'
-import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 import useOrganizationMembersQuery from './membersQuery'
-import { useDisclosure } from '@mantine/hooks'
-
-// Constants and types
 import type { OrganizationMember, OrganizationMemberListItem } from './membersQuery'
-import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
-
-// Styles
 import styles from './membersRoute.module.scss'
-import ActionIcon from '#/components/common/ActionIcon'
-import InviteeActionsDropdown from './InviteeActionsDropdown'
+import { OrganizationUserRole, useOrganizationQuery } from './organizationQuery'
 
 export default function MembersRoute() {
   const orgQuery = useOrganizationQuery()

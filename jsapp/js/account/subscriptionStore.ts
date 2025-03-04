@@ -1,8 +1,8 @@
 import { makeAutoObservable } from 'mobx'
-import { handleApiFail, fetchGet } from '#/api'
+import { PlanNames, type Product, type SubscriptionInfo } from '#/account/stripe.types'
+import { fetchGet, handleApiFail } from '#/api'
 import { ACTIVE_STRIPE_STATUSES, ROOT_URL } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import { PlanNames, type Product, type SubscriptionInfo } from '#/account/stripe.types'
 import envStore from '#/envStore'
 
 const PRODUCTS_URL = '/api/v2/stripe/products/'

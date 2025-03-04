@@ -1,43 +1,38 @@
-import Reflux from 'reflux'
-import alertify from 'alertifyjs'
 import type { RouterState } from '@remix-run/router'
-import { router } from '#/router/legacy'
-import { getCurrentPath } from '#/router/routerUtils'
+import alertify from 'alertifyjs'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import { destroyConfirm } from '#/alertify'
+import assetStore from '#/assetStore'
 import {
-  getSurveyFlatPaths,
-  getAssetProcessingRows,
-  isAssetProcessingActivated,
-  getAssetAdvancedFeatures,
   findRowByXpath,
-  getRowName,
-  getRowNameByXpath,
+  getAssetAdvancedFeatures,
+  getAssetProcessingRows,
   getFlatQuestionsList,
   getLanguageIndex,
+  getRowName,
+  getRowNameByXpath,
+  getSurveyFlatPaths,
+  isAssetProcessingActivated,
 } from '#/assetUtils'
 import type { SurveyFlatPaths } from '#/assetUtils'
-import assetStore from '#/assetStore'
-import { actions } from '#/actions'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import processingActions from '#/components/processing/processingActions'
 import type { ProcessingDataResponse } from '#/components/processing/processingActions'
-import type {
-  FailResponse,
-  SubmissionResponse,
-  AssetResponse,
-  GetProcessingSubmissionsResponse,
-} from '#/dataInterface'
-import type { LanguageCode } from '#/components/languages/languagesStore'
-import { QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE } from '#/constants'
-import { destroyConfirm } from '#/alertify'
 import {
+  ProcessingTab,
+  getCurrentProcessingRouteParts,
+  getProcessingRouteParts,
   isAnyProcessingRoute,
   isAnyProcessingRouteActive,
-  getProcessingRouteParts,
-  getCurrentProcessingRouteParts,
-  ProcessingTab,
 } from '#/components/processing/routes.utils'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
-import { getExponentialDelayTime, removeDefaultUuidPrefix } from '#/utils'
+import { type AnyRowTypeName, QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
+import type { AssetResponse, FailResponse, GetProcessingSubmissionsResponse, SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { router } from '#/router/legacy'
+import { getCurrentPath } from '#/router/routerUtils'
+import { getExponentialDelayTime, removeDefaultUuidPrefix } from '#/utils'
 
 export enum StaticDisplays {
   Data = 'Data',

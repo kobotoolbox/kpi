@@ -1,10 +1,11 @@
 import React from 'react'
+
 import { observer } from 'mobx-react'
 import autoBind from 'react-autobind'
 import { RouterProvider } from 'react-router-dom'
 import { actions } from '#/actions'
-import permConfig from '#/components/permissions/permConfig'
 import LoadingSpinner from '#/components/common/loadingSpinner'
+import permConfig from '#/components/permissions/permConfig'
 import { isRootRoute, redirectToLogin } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import router from './router'

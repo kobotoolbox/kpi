@@ -1,5 +1,6 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+
+import { ComponentMeta, ComponentStory } from '@storybook/react'
 import InlineMessage from '#/components/common/inlineMessage'
 
 export default {

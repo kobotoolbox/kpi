@@ -1,12 +1,12 @@
-import {
-  applyValidityRules,
-  isPartialByUsersValid,
-  isPartialByResponsesValid,
-  getFormData,
-} from './userAssetPermsEditor.utils'
+import constants from '#/constants'
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
-import constants from '#/constants'
+import {
+  applyValidityRules,
+  getFormData,
+  isPartialByResponsesValid,
+  isPartialByUsersValid,
+} from './userAssetPermsEditor.utils'
 
 /**
  * This is `UserAssetPermsEditorState` with all possible properties having falsy

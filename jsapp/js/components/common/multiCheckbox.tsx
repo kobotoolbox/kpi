@@ -1,4 +1,5 @@
 import React from 'react'
+
 import bem, { makeBem } from '#/bem'
 import Checkbox from '#/components/common/checkbox'
 import './multiCheckbox.scss'

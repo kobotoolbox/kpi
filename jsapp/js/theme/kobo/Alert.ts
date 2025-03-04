@@ -1,6 +1,6 @@
 import { Alert } from '@mantine/core'
-import classes from './Alert.module.css'
 import { AlertType } from '#/components/common/alert'
+import classes from './Alert.module.css'
 
 declare module '@mantine/core' {
   export interface AlertProps {

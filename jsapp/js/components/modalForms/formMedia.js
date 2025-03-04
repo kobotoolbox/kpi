@@ -1,16 +1,16 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
-import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
-import InlineMessage from '#/components/common/inlineMessage'
 import { actions } from '#/actions'
 import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import envStore from '#/envStore'
+import TextBox from '#/components/common/textBox'
 import { ASSET_FILE_TYPES, MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
-
-import { truncateString, truncateUrl, notify } from '#/utils'
+import envStore from '#/envStore'
+import { notify, truncateString, truncateUrl } from '#/utils'
 import './formMedia.scss'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'

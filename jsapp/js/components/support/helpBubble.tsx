@@ -1,12 +1,13 @@
 import React from 'react'
+
 import bem, { makeBem } from '#/bem'
+import Icon from '#/components/common/icon'
 import { KEY_CODES } from '#/constants'
 import envStore from '#/envStore'
-import Icon from '#/components/common/icon'
 import './helpBubble.scss'
+import { observer } from 'mobx-react'
 import type { InAppMessage } from './helpBubbleStore'
 import helpBubbleStore from './helpBubbleStore'
-import { observer } from 'mobx-react'
 
 bem.HelpBubble = makeBem(null, 'help-bubble')
 bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button')

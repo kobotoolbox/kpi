@@ -1,8 +1,8 @@
-import Reflux from 'reflux'
 import clonedeep from 'lodash.clonedeep'
-import dkobo_xlform from '../xlform/src/_xlform.init'
+import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { stores } from '#/stores'
+import dkobo_xlform from '../xlform/src/_xlform.init'
 
 const surveyCompanionStore = Reflux.createStore({
   init() {

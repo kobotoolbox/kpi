@@ -1,4 +1,5 @@
 import React from 'react'
+
 import bem, { makeBem } from '#/bem'
 
 bem.KoboModal__footer = makeBem(bem.KoboModal, 'footer', 'footer')

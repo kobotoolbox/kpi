@@ -1,12 +1,13 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
-import Checkbox from '#/components/common/checkbox'
-import TextBox from '#/components/common/textBox'
-import Icon from '#/components/common/icon'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import Select from 'react-select'
-import { QuestionTypeName, META_QUESTION_TYPES, SURVEY_DETAIL_ATTRIBUTES, FUNCTION_TYPE } from '#/constants'
 import bem, { makeBem } from '#/bem'
+import Checkbox from '#/components/common/checkbox'
+import Icon from '#/components/common/icon'
+import TextBox from '#/components/common/textBox'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
 import envStore from '#/envStore'
 import './metadataEditor.scss'
 

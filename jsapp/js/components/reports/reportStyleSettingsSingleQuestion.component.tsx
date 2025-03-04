@@ -1,26 +1,20 @@
-// Libraries
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
 
-// Partial components
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import bem from '#/bem'
-import Modal from '#/components/common/modal'
-import ReportTypeEditor from './reportTypeEditor.component'
-import ReportColorsEditor from './reportColorsEditor.component'
 import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
 } from '#/components/reports/reportsModalTabs.component'
-
-// Utilities
-import { actions } from '#/actions'
-import { handleApiFail } from '#/api'
-
-// Types & constants
-import type { ReportStyleName, ReportStyle } from './reportsConstants'
-import type { ReportsState } from './reports'
 import type { FailResponse } from '#/dataInterface'
+import ReportColorsEditor from './reportColorsEditor.component'
+import ReportTypeEditor from './reportTypeEditor.component'
+import type { ReportsState } from './reports'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportStyleSettingsSingleQuestionProps {
   parentState: ReportsState

@@ -1,16 +1,17 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
-import Reflux from 'reflux'
-import bem from '#/bem'
-import assetStore from '#/assetStore'
+import reactMixin from 'react-mixin'
 import { NavLink } from 'react-router-dom'
-import mixins from '../mixins'
+import Reflux from 'reflux'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { ROUTES } from '#/router/routerConstants'
-import { withRouter } from '#/router/legacy'
 import { userCan } from '#/components/permissions/utils'
-import { checkFeatureFlag, FeatureFlag } from '#/featureFlags'
+import { FeatureFlag, checkFeatureFlag } from '#/featureFlags'
+import { withRouter } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import mixins from '../mixins'
 
 export function getFormDataTabs(assetUid) {
   return [

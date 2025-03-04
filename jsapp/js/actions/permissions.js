@@ -3,14 +3,15 @@
  */
 
 import Reflux from 'reflux'
-import RefluxPromise from '#/libs/reflux-promise'
-Reflux.use(RefluxPromise(window.Promise))
-import { dataInterface } from '#/dataInterface'
-import { notify } from '#/utils'
-import { ANON_USERNAME_URL } from '#/users/utils'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import permConfig from '#/components/permissions/permConfig'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { INVALID_PERMS_ERROR, validateBackendPermissions } from '#/components/permissions/validatePermissions'
+import { dataInterface } from '#/dataInterface'
+import RefluxPromise from '#/libs/reflux-promise'
+import { ANON_USERNAME_URL } from '#/users/utils'
+import { notify } from '#/utils'
+
+Reflux.use(RefluxPromise(window.Promise))
 
 export const permissionsActions = Reflux.createActions({
   getConfig: { children: ['completed', 'failed'] },

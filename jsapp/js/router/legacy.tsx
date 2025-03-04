@@ -1,9 +1,9 @@
 /** Don't use anything here for new components */
-import type { FC } from 'react'
-import React from 'react'
-import type { Params, Location, NavigateFunction } from 'react-router-dom'
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import React, { type FC } from 'react'
+
 import type { Router } from '@remix-run/router'
+import type { Location, NavigateFunction, Params } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 // https://stackoverflow.com/a/70754791/443457
 /**

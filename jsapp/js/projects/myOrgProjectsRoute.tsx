@@ -1,22 +1,16 @@
-// Libraries
 import React, { useState, useEffect } from 'react'
 
-// Partial components
-import UniversalProjectsRoute from './universalProjectsRoute'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-
-// Stores, hooks and utilities
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-
-// Constants and types
+import { endpoints } from '#/api.endpoints'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { ROOT_URL } from '#/constants'
 import {
-  ORG_VIEW,
-  HOME_ORDERABLE_FIELDS,
   HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,
+  HOME_ORDERABLE_FIELDS,
+  ORG_VIEW,
 } from './projectViews/constants'
-import { ROOT_URL } from '#/constants'
-import { endpoints } from '#/api.endpoints'
+import UniversalProjectsRoute from './universalProjectsRoute'
 
 /**
  * Component responsible for rendering organization projects route

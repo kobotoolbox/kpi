@@ -1,22 +1,14 @@
-// Libraries
 import React from 'react'
 
-// Partial components
 import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
 import KoboSelect from '#/components/common/koboSelect'
-
-// Stores and utilities
-import { generateUuid } from '#/utils'
-import { isFilterConditionValueRequired } from './utils'
+import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
-
-// Constants and types
+import { generateUuid } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
-
-// Styles
 import styles from './projectsFilterEditor.module.scss'
+import { isFilterConditionValueRequired } from './utils'
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition

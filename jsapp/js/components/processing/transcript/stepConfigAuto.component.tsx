@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react'
+
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
+import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import {
   getAttachmentForProcessing,
   secondsToTranscriptionEstimate,
 } from '#/components/processing/transcript/transcript.utils'
-import assetStore from '#/assetStore'
 import { getAudioDuration } from '#/utils'
 
 /** Until the estimate is loaded we display dot dot dot. */

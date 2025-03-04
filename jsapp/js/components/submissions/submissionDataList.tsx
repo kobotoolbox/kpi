@@ -1,9 +1,10 @@
 import React from 'react'
-import bem, { makeBem } from '#/bem'
+
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import bem, { makeBem } from '#/bem'
 import { getRowData } from '#/components/submissions/submissionUtils'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import './submissionDataList.scss'
 import singleProcessingStore from '../processing/singleProcessingStore'
 

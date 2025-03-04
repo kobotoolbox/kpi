@@ -1,20 +1,12 @@
-// Libraries
 import React from 'react'
 
-// Partial components
-import Button from '#/components/common/button'
-
-// Stores, hooks and utilities
+import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
+import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
-import customViewStore from '#/projects/customViewStore'
-
-// Constants and types
-import type { AssetResponse, ProjectViewAsset, DeploymentResponse } from '#/dataInterface'
 import { ASSET_TYPES } from '#/constants'
-import { archiveAsset, unarchiveAsset, deleteAsset, manageAssetSharing } from '#/assetQuickActions'
-
-// Styles
+import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from '#/dataInterface'
+import customViewStore from '#/projects/customViewStore'
 import styles from './projectActions.module.scss'
 
 interface ProjectQuickActionsProps {

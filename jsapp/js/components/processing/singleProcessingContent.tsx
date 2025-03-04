@@ -1,13 +1,14 @@
 import React from 'react'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
+
+import classNames from 'classnames'
 import AnalysisTab from '#/components/processing/analysis/analysisTab.component'
+import { goToTabRoute, isProcessingRouteActive } from '#/components/processing/routes.utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import TranscriptTab from '#/components/processing/transcript/transcriptTab.component'
 import TranslationsTab from '#/components/processing/translations/translationsTab.component'
 import protectorHelpers from '#/protector/protectorHelpers'
-import { goToTabRoute, isProcessingRouteActive } from '#/components/processing/routes.utils'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import styles from './singleProcessingContent.module.scss'
-import classNames from 'classnames'
 
 /**
  * Displays main content part of Single Processing route. It consists of tabs

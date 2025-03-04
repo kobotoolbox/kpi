@@ -1,13 +1,14 @@
 import React from 'react'
-import bem from '#/bem'
+
 import { actions } from '#/actions'
-import sessionStore from '#/stores/session'
 import assetUtils from '#/assetUtils'
+import bem from '#/bem'
 import { ASSET_TYPES } from '#/constants'
-import { notify, formatTime } from '#/utils'
+import sessionStore from '#/stores/session'
+import { formatTime, notify } from '#/utils'
 import './assetInfoBox.scss'
-import type { AssetResponse, AccountResponse } from '#/dataInterface'
 import Button from '#/components/common/button'
+import type { AccountResponse, AssetResponse } from '#/dataInterface'
 
 interface AssetInfoBoxProps {
   asset: AssetResponse

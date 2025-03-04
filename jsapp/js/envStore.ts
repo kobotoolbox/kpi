@@ -1,6 +1,6 @@
-import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import { makeAutoObservable } from 'mobx'
 import { fetchGet } from '#/api'
+import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
 
 const ENV_ENDPOINT = '/environment/'

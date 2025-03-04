@@ -1,23 +1,14 @@
-// Libraries
-import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 
-// Partial components
-import MemberRemoveModal from './MemberRemoveModal'
 import { Menu } from '@mantine/core'
-
-// Stores, hooks and utilities
-import { useSession } from '#/stores/useSession'
-import { getSimpleMMOLabel } from './organization.utils'
-import envStore from '#/envStore'
 import subscriptionStore from '#/account/subscriptionStore'
-
-// Constants and types
-import { OrganizationUserRole } from './organizationQuery'
-
-// Styles
+import envStore from '#/envStore'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'
+import { useSession } from '#/stores/useSession'
+import MemberRemoveModal from './MemberRemoveModal'
+import { getSimpleMMOLabel } from './organization.utils'
+import { OrganizationUserRole } from './organizationQuery'
 
 interface MemberActionsDropdownProps {
   target: ReactNode

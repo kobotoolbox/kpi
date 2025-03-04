@@ -1,12 +1,12 @@
-import autoBind from 'react-autobind'
 import React from 'react'
+import autoBind from 'react-autobind'
+
 import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
 import { MODAL_TYPES, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import Button from '#/components/common/button'
-import { truncateString } from '#/utils'
-// import {hashHistory} from 'react-router';
 import type { SubmissionAttachment } from '#/dataInterface'
+import { truncateString } from '#/utils'
 import './mediaCell.scss'
 import Icon from '#/components/common/icon'
 import type { IconName } from '#/k-icons'

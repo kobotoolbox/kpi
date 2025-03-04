@@ -1,10 +1,10 @@
 import React from 'react'
+
 import { observer } from 'mobx-react'
 import bem, { makeBem } from '#/bem'
+import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
-
-import envStore from '#/envStore'
 import './accessDenied.scss'
 
 bem.AccessDenied = makeBem(null, 'access-denied')

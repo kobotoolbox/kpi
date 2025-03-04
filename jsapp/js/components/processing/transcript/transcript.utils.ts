@@ -1,6 +1,6 @@
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { getMediaAttachment, getQuestionXPath, getRowData } from '#/components/submissions/submissionUtils'
 import type { AssetContent, SubmissionAttachment } from '#/dataInterface'
-import { getQuestionXPath, getRowData, getMediaAttachment } from '#/components/submissions/submissionUtils'
 import { convertSecondsToMinutes } from '#/utils'
 
 /**

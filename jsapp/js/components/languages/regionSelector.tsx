@@ -1,7 +1,8 @@
 import React from 'react'
+
 import bem, { makeBem } from '#/bem'
-import Icon from '#/components/common/icon'
 import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import './regionSelector.scss'

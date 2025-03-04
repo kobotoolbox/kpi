@@ -1,10 +1,11 @@
 import React from 'react'
-import Button from '#/components/common/button'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import HeaderLanguageAndDate from './headerLanguageAndDate.component'
+
 import { destroyConfirm } from '#/alertify'
+import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 export default function StepViewer() {
   function openEditor() {

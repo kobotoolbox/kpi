@@ -1,6 +1,6 @@
 import $ from 'jquery'
-import type { FailResponse } from '#/dataInterface'
 import { ROOT_URL } from '#/constants'
+import type { FailResponse } from '#/dataInterface'
 
 /**
  * A language code is a string (type alias), but it is more helpful to pass it

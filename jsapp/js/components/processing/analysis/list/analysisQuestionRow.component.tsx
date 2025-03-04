@@ -1,32 +1,33 @@
 import React, { useCallback, useContext, useRef } from 'react'
+
+import classnames from 'classnames'
+import type { Identifier, XYCoord } from 'dnd-core'
+import { useDrag, useDrop } from 'react-dnd'
+import { handleApiFail } from '#/api'
+import assetStore from '#/assetStore'
+import Icon from '#/components/common/icon'
+import InlineMessage from '#/components/common/inlineMessage'
+import { userCan } from '#/components/permissions/utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { DND_TYPES } from '#/constants'
+import type { FailResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
+import type { AnalysisQuestionBase } from '../constants'
 import AnalysisQuestionEditor from '../editors/analysisQuestionEditor.component'
-import TextResponseForm from '../responseForms/textResponseForm.component'
+import CommonHeader from '../responseForms/commonHeader.component'
+import IntegerResponseForm from '../responseForms/integerResponseForm.component'
 import KeywordSearchResponseForm from '../responseForms/keywordSearchResponseForm.component'
 import SelectMultipleResponseForm from '../responseForms/selectMultipleResponseForm.component'
 import SelectOneResponseForm from '../responseForms/selectOneResponseForm.component'
 import TagsResponseForm from '../responseForms/tagsResponseForm.component'
-import IntegerResponseForm from '../responseForms/integerResponseForm.component'
-import CommonHeader from '../responseForms/commonHeader.component'
-import styles from './analysisQuestionRow.module.scss'
-import type { AnalysisQuestionBase } from '../constants'
-import Icon from '#/components/common/icon'
-import InlineMessage from '#/components/common/inlineMessage'
-import { useDrag, useDrop } from 'react-dnd'
-import type { Identifier, XYCoord } from 'dnd-core'
-import { DND_TYPES } from '#/constants'
+import TextResponseForm from '../responseForms/textResponseForm.component'
 import {
   findQuestion,
   getQuestionsFromSchema,
-  updateSurveyQuestions,
   hasManagePermissionsToCurrentAsset,
+  updateSurveyQuestions,
 } from '../utils'
-import classnames from 'classnames'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { handleApiFail } from '#/api'
-import type { FailResponse } from '#/dataInterface'
-import assetStore from '#/assetStore'
-import { userCan } from '#/components/permissions/utils'
+import styles from './analysisQuestionRow.module.scss'
 
 export interface AnalysisQuestionRowProps {
   uuid: string

@@ -1,14 +1,15 @@
 import React, { Suspense } from 'react'
+
 import { actions } from '#/actions'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import AccessDenied from '#/router/accessDenied'
-import { withRouter } from './legacy'
-import { userCan, userCanPartially } from '#/components/permissions/utils'
 import assetStore from '#/assetStore'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { PermissionCodename } from '#/components/permissions/permConstants'
-import type { WithRouterProps } from '#/router/legacy'
-import type { AssetResponse, FailResponse } from '#/dataInterface'
+import { userCan, userCanPartially } from '#/components/permissions/utils'
 import { decodeURLParamWithSlash } from '#/components/processing/routes.utils'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
+import AccessDenied from '#/router/accessDenied'
+import type { WithRouterProps } from '#/router/legacy'
+import { withRouter } from './legacy'
 
 interface PermProtectedRouteProps extends WithRouterProps {
   /** One of PATHS */

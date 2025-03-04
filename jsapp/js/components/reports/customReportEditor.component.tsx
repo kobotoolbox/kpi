@@ -1,22 +1,16 @@
-// Libraries
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
-
-// Partial components
-import bem from '#/bem'
-import Modal from '#/components/common/modal'
-import Checkbox from '#/components/common/checkbox'
-import Button from '#/components/common/button'
-import TextBox from '#/components/common/textBox'
-
-// Utilities
 import { actions } from '#/actions'
-import { getReportRowTranslatedLabel } from './reports.utils'
 import { handleApiFail } from '#/api'
-
-// Types
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import Modal from '#/components/common/modal'
+import TextBox from '#/components/common/textBox'
 import type { CustomReportSettings, ReportsResponse } from '#/components/reports/reportsConstants'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
+import { getReportRowTranslatedLabel } from './reports.utils'
 
 interface CustomReportEditorProps {
   reportData: ReportsResponse[]

@@ -1,6 +1,6 @@
-import autoBind from 'react-autobind'
 import React from 'react'
 
+import autoBind from 'react-autobind'
 import bem, { makeBem } from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
 import KoboImage from '#/components/common/koboImage'

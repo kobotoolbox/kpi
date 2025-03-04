@@ -1,7 +1,8 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
-import KoboPrompt from './koboPrompt'
+
+import { ComponentMeta, ComponentStory } from '@storybook/react'
 import { IconNames } from '#/k-icons'
+import KoboPrompt from './koboPrompt'
 
 export default {
   title: 'common/KoboPrompt',

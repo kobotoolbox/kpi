@@ -1,27 +1,21 @@
-// Libraries
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
 
-// Partial components
-import Radio from '#/components/common/radio'
-import Modal from '#/components/common/modal'
-import ReportTypeEditor from './reportTypeEditor.component'
-import ReportColorsEditor from './reportColorsEditor.component'
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
+import bem from '#/bem'
 import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
+import Radio from '#/components/common/radio'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
 } from '#/components/reports/reportsModalTabs.component'
-
-// Utilities
-import bem from '#/bem'
-import { actions } from '#/actions'
-import { handleApiFail } from '#/api'
-
-// Types & constants
 import type { FailResponse, LabelValuePair } from '#/dataInterface'
-import type { ReportStyle, ReportStyleName } from './reportsConstants'
+import ReportColorsEditor from './reportColorsEditor.component'
+import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportStyleSettingsProps {
   parentState: ReportsState

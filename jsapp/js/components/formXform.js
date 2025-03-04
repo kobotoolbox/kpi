@@ -1,7 +1,8 @@
 import React from 'react'
-import { dataInterface } from '#/dataInterface'
+
 import bem from '#/bem'
 import CenteredMessage from '#/components/common/centeredMessage.component'
+import { dataInterface } from '#/dataInterface'
 
 export default class FormXform extends React.Component {
   constructor(props) {

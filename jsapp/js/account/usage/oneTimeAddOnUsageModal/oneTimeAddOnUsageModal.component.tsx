@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
+
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
-import styles from './oneTimeAddOnUsageModal.module.scss'
 import { OneTimeAddOn, RecurringInterval, USAGE_TYPE } from '../../stripe.types'
 import { useLimitDisplay } from '../../stripe.utils'
 import OneTimeAddOnList from './oneTimeAddOnList/oneTimeAddOnList.component'
+import styles from './oneTimeAddOnUsageModal.module.scss'
 
 interface OneTimeAddOnUsageModalProps {
   type: USAGE_TYPE

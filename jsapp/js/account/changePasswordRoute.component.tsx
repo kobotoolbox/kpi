@@ -1,15 +1,16 @@
 import React from 'react'
-import DocumentTitle from 'react-document-title'
+
 import { observer } from 'mobx-react'
-import sessionStore from '#/stores/session'
+import DocumentTitle from 'react-document-title'
 import bem, { makeBem } from '#/bem'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
+import sessionStore from '#/stores/session'
 import './accountSettings.scss'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
 import styles from './changePasswordRoute.module.scss'
 import UpdatePasswordForm from './security/password/updatePasswordForm.component'
-import Button from '#/components/common/button'
-import Avatar from '#/components/common/avatar'
 
 bem.AccountSettings = makeBem(null, 'account-settings')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')

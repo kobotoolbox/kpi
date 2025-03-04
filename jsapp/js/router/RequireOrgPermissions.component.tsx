@@ -1,8 +1,8 @@
-import type React from 'react'
-import { Suspense, useEffect } from 'react'
+import { type default as React, Suspense, useEffect } from 'react'
+
 import { useNavigate } from 'react-router-dom'
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { useOrganizationQuery, OrganizationUserRole } from '#/account/organization/organizationQuery'
 
 interface Props {
   children: React.ReactNode

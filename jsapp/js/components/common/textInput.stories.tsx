@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
 import { TextInput, TextInputProps } from '@mantine/core'
+import type { Meta, StoryObj } from '@storybook/react'
 import Icon from './icon'
 
 const inputSizes: Array<TextInputProps['size']> = ['sm', 'md', 'lg']

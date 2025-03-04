@@ -1,16 +1,17 @@
 import React from 'react'
-import Checkbox from '#/components/common/checkbox'
-import TextBox from '#/components/common/textBox'
+
 import { actions } from '#/actions'
 import bem from '#/bem'
-import permConfig from './permConfig'
-import { ANON_USERNAME_URL } from '#/users/utils'
+import Checkbox from '#/components/common/checkbox'
+import TextBox from '#/components/common/textBox'
+import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import { ROOT_URL } from '#/constants'
-import type { PermissionCodename } from './permConstants'
 import type { PermissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { ANON_USERNAME_URL } from '#/users/utils'
 import AnonymousSubmission from '../anonymousSubmission.component'
-import NewFeatureDialog from '#/components/newFeatureDialog.component'
+import permConfig from './permConfig'
+import type { PermissionCodename } from './permConstants'
 
 const HELP_ARTICLE_ANON_SUBMISSIONS_URL = 'managing_permissions.html'
 

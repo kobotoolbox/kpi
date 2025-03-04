@@ -1,96 +1,97 @@
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
-import enketoHandler from '#/enketoHandler'
-import Checkbox from '#/components/common/checkbox'
-import { actions } from '#/actions'
-import bem from '#/bem'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import { stores } from '#/stores'
-import pageState from '#/pageState.store'
-import type { PageStateStoreState } from '#/pageState.store'
+import { DebounceInput } from 'react-debounce-input'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
-import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
+import { actions } from '#/actions'
+import type { SurveyFlatPaths } from '#/assetUtils'
+import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import bem from '#/bem'
+import Checkbox from '#/components/common/checkbox'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import {
+  getMediaAttachment,
+  getRepeatGroupAnswers,
+  getSupplementalDetailsContent,
+} from '#/components/submissions/submissionUtils'
+import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
+import TableBulkOptions from '#/components/submissions/tableBulkOptions'
+import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
+import {
+  CELLS_WIDTH_OVERRIDES,
+  DATA_TABLE_SETTING,
+  DATA_TABLE_SETTINGS,
+  DEFAULT_DATA_CELL_WIDTH,
+  SUBMISSION_ACTIONS_ID,
+  SortValues,
+  TABLE_MEDIA_TYPES,
+  VALIDATION_STATUS_ID_PROP,
+} from '#/components/submissions/tableConstants'
+import tableStore from '#/components/submissions/tableStore'
+import type { TableStoreData } from '#/components/submissions/tableStore'
+import {
+  buildFilterQuery,
+  getBackgroundAudioQuestionName,
+  getColumnHXLTags,
+  getColumnLabel,
+  isTableColumnFilterableByDropdown,
+  isTableColumnFilterableByTextInput,
+} from '#/components/submissions/tableUtils'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
 } from '#/components/submissions/validationStatus.constants'
 import {
-  ValidationStatusAdditionalName,
+  VALIDATION_STATUS_NO_OPTION,
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_SHOW_ALL_OPTION,
-  VALIDATION_STATUS_NO_OPTION,
+  ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
-import { DebounceInput } from 'react-debounce-input'
+import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
 import {
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  GROUP_TYPES_BEGIN,
-  META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   EnketoActions,
+  GROUP_TYPES_BEGIN,
+  META_QUESTION_TYPES,
+  MODAL_TYPES,
+  QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import enketoHandler from '#/enketoHandler'
+import pageState from '#/pageState.store'
+import type { PageStateStoreState } from '#/pageState.store'
+import { stores } from '#/stores'
 import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
-import type { SurveyFlatPaths } from '#/assetUtils'
-import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from '#/assetUtils'
-import {
-  getRepeatGroupAnswers,
-  getMediaAttachment,
-  getSupplementalDetailsContent,
-} from '#/components/submissions/submissionUtils'
-import TableBulkOptions from '#/components/submissions/tableBulkOptions'
-import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
-import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
-import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import {
-  SortValues,
-  SUBMISSION_ACTIONS_ID,
-  VALIDATION_STATUS_ID_PROP,
-  DATA_TABLE_SETTING,
-  DATA_TABLE_SETTINGS,
-  TABLE_MEDIA_TYPES,
-  DEFAULT_DATA_CELL_WIDTH,
-  CELLS_WIDTH_OVERRIDES,
-} from '#/components/submissions/tableConstants'
-import {
-  getColumnLabel,
-  getColumnHXLTags,
-  getBackgroundAudioQuestionName,
-  buildFilterQuery,
-  isTableColumnFilterableByTextInput,
-  isTableColumnFilterableByDropdown,
-} from '#/components/submissions/tableUtils'
-import tableStore from '#/components/submissions/tableStore'
-import type { TableStoreData } from '#/components/submissions/tableStore'
 import './table.scss'
-import MediaCell from './mediaCell'
-import AudioCell from './audioCell'
-import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
+import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
-import TextModalCell from '#/components/submissions/textModalCell.component'
+import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import type {
-  FailResponse,
-  AssetResponse,
-  AssetTableSettings,
-  SubmissionResponse,
-  PaginatedResponse,
-  GetSubmissionsOptions,
-  ValidationStatusResponse,
-  SurveyChoice,
-  SurveyRow,
-} from '#/dataInterface'
-import type {
+  DataTableSelectedRows,
+  ReactTableInstance,
+  ReactTableState,
   SubmissionPageName,
   TableColumn,
-  ReactTableState,
-  ReactTableInstance,
-  DataTableSelectedRows,
 } from '#/components/submissions/table.types'
-import Button from '#/components/common/button'
+import TextModalCell from '#/components/submissions/textModalCell.component'
+import type {
+  AssetResponse,
+  AssetTableSettings,
+  FailResponse,
+  GetSubmissionsOptions,
+  PaginatedResponse,
+  SubmissionResponse,
+  SurveyChoice,
+  SurveyRow,
+  ValidationStatusResponse,
+} from '#/dataInterface'
+import AudioCell from './audioCell'
+import MediaCell from './mediaCell'
 
 const DEFAULT_PAGE_SIZE = 30
 

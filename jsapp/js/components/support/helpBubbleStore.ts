@@ -1,8 +1,8 @@
 import throttle from 'lodash.throttle'
 import { makeAutoObservable, when } from 'mobx'
-import type { PaginatedResponse, FailResponse } from '#/dataInterface'
 import { handleApiFail } from '#/api'
 import { ROOT_URL } from '#/constants'
+import type { FailResponse, PaginatedResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 
 const FETCH_MESSAGES_LOOP_TIME = 1 * 60 * 1000 // 1 minute

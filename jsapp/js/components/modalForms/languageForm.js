@@ -1,10 +1,11 @@
 import React from 'react'
+
 import autoBind from 'react-autobind'
 import bem from '#/bem'
-import TextBox from '#/components/common/textBox'
 import Button from '#/components/common/button'
-import { getLangAsObject } from '#/utils'
+import TextBox from '#/components/common/textBox'
 import { toTitleCase } from '#/textUtils'
+import { getLangAsObject } from '#/utils'
 
 /*
 Properties:

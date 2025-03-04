@@ -1,14 +1,14 @@
-import Reflux from 'reflux'
 import type { RouterState } from '@remix-run/router'
-import assetUtils from '#/assetUtils'
-import { getCurrentPath, getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
+import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { ORDER_DIRECTIONS, ASSETS_TABLE_COLUMNS } from '#/components/assetsTable/assetsTableConstants'
-import type { OrderDirection } from '#/projects/projectViews/constants'
-import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from '#/dataInterface'
-import { ROUTES } from '#/router/routerConstants'
-import { router } from '#/router/legacy'
+import assetUtils from '#/assetUtils'
+import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
 import type { AssetTypeName } from '#/constants'
+import type { AssetResponse, AssetsResponse, MetadataResponse, SearchAssetsPredefinedParams } from '#/dataInterface'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import { router } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { getCurrentPath, getRouteAssetUid, isAnyLibraryItemRoute } from '#/router/routerUtils'
 
 interface SingleCollectionStoreData {
   isFetchingData: boolean

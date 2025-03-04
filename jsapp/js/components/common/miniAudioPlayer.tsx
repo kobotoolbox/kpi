@@ -1,7 +1,8 @@
 import React, { createRef } from 'react'
+
 import bem, { makeBem } from '#/bem'
-import Icon from '#/components/common/icon'
 import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import { formatSeconds, generateUuid, notify } from '#/utils'
 import '#/components/common/miniAudioPlayer.scss'
 

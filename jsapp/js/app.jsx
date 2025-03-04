@@ -3,28 +3,29 @@
  */
 
 import React from 'react'
+
 import DocumentTitle from 'react-document-title'
-import { Outlet } from 'react-router-dom'
 import reactMixin from 'react-mixin'
+import { Outlet } from 'react-router-dom'
 import Reflux from 'reflux'
 import '#/surveyCompanionStore' // importing it so it exists
-import {} from '#/bemComponents' // importing it so it exists
 import bem from '#/bem'
-import mixins from '#/mixins'
-import MainHeader from '#/components/header/mainHeader.component'
+import {} from '#/bemComponents' // importing it so it exists
+import BigModal from '#/components/bigModal/bigModal'
 import Drawer from '#/components/drawer'
 import FormViewSideTabs from '#/components/formViewSideTabs'
-import ProjectTopTabs from '#/project/projectTopTabs.component'
-import BigModal from '#/components/bigModal/bigModal'
-import ToasterConfig from './toasterConfig'
-import { withRouter, routerGetAssetId, router } from './router/legacy'
-import { Tracking } from './router/useTracking'
-import InvalidatedPassword from '#/router/invalidatedPassword.component'
-import { RootContextProvider } from '#/rootContextProvider.component'
-import TOSAgreement from '#/router/tosAgreement.component'
-import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import MainHeader from '#/components/header/mainHeader.component'
 import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
+import mixins from '#/mixins'
 import pageState from '#/pageState.store'
+import ProjectTopTabs from '#/project/projectTopTabs.component'
+import { RootContextProvider } from '#/rootContextProvider.component'
+import InvalidatedPassword from '#/router/invalidatedPassword.component'
+import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import TOSAgreement from '#/router/tosAgreement.component'
+import { router, routerGetAssetId, withRouter } from './router/legacy'
+import { Tracking } from './router/useTracking'
+import ToasterConfig from './toasterConfig'
 
 import '@mantine/core/styles.css'
 import { MantineProvider } from '@mantine/core'

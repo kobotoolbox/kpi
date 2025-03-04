@@ -1,11 +1,12 @@
 import React from 'react'
+
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import StepBegin from './stepBegin.component'
 import StepConfig from './stepConfig.component'
 import StepConfigAuto from './stepConfigAuto.component'
 import StepEditor from './stepEditor.component'
 import StepSingleViewer from './stepSingleViewer.component'
-import type { LanguageCode } from '#/components/languages/languagesStore'
 
 interface TranslationsTabState {
   selectedTranslation?: LanguageCode

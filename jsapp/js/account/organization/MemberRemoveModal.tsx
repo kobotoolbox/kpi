@@ -1,17 +1,14 @@
-// Partial components
+import subscriptionStore from '#/account/subscriptionStore'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboModal from '#/components/modals/koboModal'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
 import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
-
-// Stores, hooks and utilities
-import { getSimpleMMOLabel } from './organization.utils'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
-import subscriptionStore from '#/account/subscriptionStore'
-import { useRemoveOrganizationMember } from './membersQuery'
 import { notify } from '#/utils'
+import { useRemoveOrganizationMember } from './membersQuery'
+import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {
   username: string

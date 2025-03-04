@@ -1,12 +1,13 @@
 import React from 'react'
+
 import DocumentTitle from 'react-document-title'
 import bem from '#/bem'
-import publicCollectionsStore from './publicCollectionsStore'
 import AssetsTable from '#/components/assetsTable/assetsTable'
-import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
-import type { PublicCollectionsStoreData } from './publicCollectionsStore'
+import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
 import type { OrderDirection } from '#/projects/projectViews/constants'
+import publicCollectionsStore from './publicCollectionsStore'
+import type { PublicCollectionsStoreData } from './publicCollectionsStore'
 
 export default class PublicCollectionsRoute extends React.Component<{}, PublicCollectionsStoreData> {
   private unlisteners: Function[] = []

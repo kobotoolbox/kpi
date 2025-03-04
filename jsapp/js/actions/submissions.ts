@@ -3,16 +3,16 @@
  */
 
 import Reflux from 'reflux'
-import { dataInterface } from '#/dataInterface'
-import { notify, matchUuid, addDefaultUuidPrefix } from '#/utils'
 import { ROOT_URL } from '#/constants'
+import { dataInterface } from '#/dataInterface'
 import type {
+  BulkSubmissionsRequest,
+  FailResponse,
   GetSubmissionsOptions,
   PaginatedResponse,
   SubmissionResponse,
-  FailResponse,
-  BulkSubmissionsRequest,
 } from '#/dataInterface'
+import { addDefaultUuidPrefix, matchUuid, notify } from '#/utils'
 
 const submissionsActions = Reflux.createActions({
   getSubmission: { children: ['completed', 'failed'] },

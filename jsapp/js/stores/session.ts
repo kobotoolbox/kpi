@@ -1,12 +1,12 @@
 import { action, makeAutoObservable } from 'mobx'
-import { ANON_USERNAME } from '#/users/utils'
-import { dataInterface } from '#/dataInterface'
-import type { AccountResponse, FailResponse } from '#/dataInterface'
-import { log, currentLang } from '#/utils'
-import type { Json } from '#/components/common/common.interfaces'
-import type { ProjectViewsSettings } from '#/projects/customViewStore'
 import { fetchPost, handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { Json } from '#/components/common/common.interfaces'
+import { dataInterface } from '#/dataInterface'
+import type { AccountResponse, FailResponse } from '#/dataInterface'
+import type { ProjectViewsSettings } from '#/projects/customViewStore'
+import { ANON_USERNAME } from '#/users/utils'
+import { currentLang, log } from '#/utils'
 
 class SessionStore {
   currentAccount: AccountResponse | { username: string; date_joined: string } = {

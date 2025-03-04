@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react'
-import type { Transx } from '#/components/processing/singleProcessingStore'
-import bodyStyles from '../processingBody.module.scss'
+
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
+import type { Transx } from '#/components/processing/singleProcessingStore'
 import TransxDate from '#/components/processing/transxDate.component'
+import bodyStyles from '../processingBody.module.scss'
 import styles from './transxDisplay.module.scss'
 
 interface TransxDisplayProps {

@@ -1,10 +1,11 @@
 import React from 'react'
-import bem from '#/bem'
+
 import { getFlatQuestionsList, renderQuestionTypeIcon } from '#/assetUtils'
-import { ANY_ROW_TYPE_NAMES } from '#/constants'
 import type { FlatQuestion } from '#/assetUtils'
-import type { AssetResponse } from '#/dataInterface'
+import bem from '#/bem'
 import Button from '#/components/common/button'
+import { ANY_ROW_TYPE_NAMES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 
 interface AssetContentSummaryProps {
   asset: AssetResponse

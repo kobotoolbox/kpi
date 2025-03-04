@@ -1,29 +1,19 @@
-// Libraries
 import React from 'react'
-import cx from 'classnames'
 
-// Partial components
+import cx from 'classnames'
+import securityStyles from '#/account/security/securityRoute.module.scss'
+import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfaActions'
+import mfaActions from '#/actions/mfaActions'
 import Button from '#/components/common/button'
-import ToggleSwitch from '#/components/common/toggleSwitch'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-
-// Reflux
-import type { MfaUserMethodsResponse, MfaActivatedResponse } from '#/actions/mfaActions'
-import mfaActions from '#/actions/mfaActions'
-
-// Constants and utils
+import ToggleSwitch from '#/components/common/toggleSwitch'
 import { MODAL_TYPES } from '#/constants'
-import { formatTime, formatDate } from '#/utils'
-
-// Stores
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-
-// Styles
+import { formatDate, formatTime } from '#/utils'
 import styles from './mfaSection.module.scss'
-import securityStyles from '#/account/security/securityRoute.module.scss'
 
 interface SecurityState {
   isMfaAvailable?: boolean

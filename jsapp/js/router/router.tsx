@@ -1,18 +1,19 @@
 import React, { Suspense } from 'react'
+
 import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
-import App from '#/app'
-import { ROUTES, PROJECTS_ROUTES } from './routerConstants'
 import accountRoutes from '#/account/routes'
-import projectsRoutes from '#/projects/routes'
-import RequireAuth from './requireAuth'
+import App from '#/app'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
+import AssetRoute from '#/components/library/assetRoute'
 import MyLibraryRoute from '#/components/library/myLibraryRoute'
 import PublicCollectionsRoute from '#/components/library/publicCollectionsRoute'
-import AssetRoute from '#/components/library/assetRoute'
-import processingRoutes from '#/components/processing/routes'
-import PermProtectedRoute from '#/router/permProtectedRoute'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import processingRoutes from '#/components/processing/routes'
+import projectsRoutes from '#/projects/routes'
+import PermProtectedRoute from '#/router/permProtectedRoute'
 import { injectRouter } from './legacy'
+import RequireAuth from './requireAuth'
+import { PROJECTS_ROUTES, ROUTES } from './routerConstants'
 
 const Reports = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/reports/reports'))
 const FormLanding = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formLanding/formLanding'))

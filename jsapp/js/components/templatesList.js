@@ -5,15 +5,16 @@
  */
 
 import React from 'react'
-import Reflux from 'reflux'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
+import Reflux from 'reflux'
+import { getAssetOwnerDisplayName } from '#/assetUtils'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import sessionStore from '#/stores/session'
-import { dataInterface } from '../dataInterface'
 import { formatTime } from '#/utils'
-import { getAssetOwnerDisplayName } from '#/assetUtils'
+import { dataInterface } from '../dataInterface'
 import './templatesList.scss'
 
 class TemplatesList extends React.Component {

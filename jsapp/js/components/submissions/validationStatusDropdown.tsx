@@ -1,6 +1,7 @@
 import React from 'react'
-import bem from '#/bem'
+
 import Select, { components, OptionProps, SingleValueProps, DropdownIndicatorProps } from 'react-select'
+import bem from '#/bem'
 import {
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL,

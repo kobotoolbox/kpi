@@ -1,24 +1,16 @@
-// Libraries
 import React from 'react'
-import { observer } from 'mobx-react'
-import zip from 'lodash.zip'
-import isEqual from 'lodash.isequal'
+
 import Chart from 'chart.js/auto'
-import type { ChartType, ChartDataset, ChartConfiguration } from 'chart.js/auto'
+import type { ChartConfiguration, ChartDataset, ChartType } from 'chart.js/auto'
 import clonedeep from 'lodash.clonedeep'
+import isEqual from 'lodash.isequal'
+import zip from 'lodash.zip'
+import { observer } from 'mobx-react'
 import bem from '#/bem'
-
-// Stores
-import sessionStore from '#/stores/session'
-
-// Partial components
-import ReportTable from './reportTable.component'
 import Button from '#/components/common/button'
-
-// Constants
-import { CHART_STYLES, CHART_COLOR_SETS } from './reportsConstants'
-
-// Types
+import sessionStore from '#/stores/session'
+import ReportTable from './reportTable.component'
+import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
 
 export type PreparedTable = Array<[string | undefined, number | undefined, number | undefined]>

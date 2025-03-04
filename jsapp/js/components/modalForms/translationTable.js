@@ -1,18 +1,19 @@
 import React from 'react'
+
+import alertify from 'alertifyjs'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-textarea-autosize'
-import LanguageForm from '#/components/modalForms/languageForm'
-import alertify from 'alertifyjs'
-import bem from '#/bem'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { LockingRestrictionName } from '#/components/locking/lockingConstants'
+import { hasAssetRestriction, hasRowRestriction } from '#/components/locking/lockingUtils'
+import LanguageForm from '#/components/modalForms/languageForm'
+import { GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import pageState from '#/pageState.store'
 import { stores } from '#/stores'
 import { getLangString, notify } from '#/utils'
-import { LockingRestrictionName } from '#/components/locking/lockingConstants'
-import { MODAL_TYPES, QUESTION_TYPES, GROUP_TYPES_BEGIN } from '#/constants'
-import { hasRowRestriction, hasAssetRestriction } from '#/components/locking/lockingUtils'
-import pageState from '#/pageState.store'
-import Button from '#/components/common/button'
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),

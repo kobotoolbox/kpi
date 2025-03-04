@@ -1,15 +1,16 @@
 import React from 'react'
+
+import autoBind from 'react-autobind'
 import ReactDOM from 'react-dom'
 import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
 import Reflux from 'reflux'
-import { stores } from '#/stores'
 import bem from '#/bem'
-import { searches } from '#/searches'
 import AssetName from '#/components/common/assetName'
-import { COMMON_QUERIES, ASSET_TYPES } from '#/constants'
-import { ListSearch, ListTagFilter, ListCollectionFilter, ListExpandToggle } from '#/components/list'
+import { ListCollectionFilter, ListExpandToggle, ListSearch, ListTagFilter } from '#/components/list'
+import { ASSET_TYPES, COMMON_QUERIES } from '#/constants'
 import pageState from '#/pageState.store'
+import { searches } from '#/searches'
+import { stores } from '#/stores'
 
 class AssetNavigatorListView extends React.Component {
   constructor(props) {

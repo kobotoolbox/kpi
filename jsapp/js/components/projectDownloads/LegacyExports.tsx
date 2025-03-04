@@ -1,20 +1,13 @@
-// Libraries
 import React from 'react'
 import bem from '#/bem'
-
-// Partial components
 import InlineMessage from '#/components/common/inlineMessage'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
-
-// Stores, hooks and utilities
-import exportsStore from '#/components/projectDownloads/exportsStore'
-
-// Constants and types
 import {
   EXPORT_TYPES,
   type ExportTypeDefinition,
   type ExportTypeName,
 } from '#/components/projectDownloads/exportsConstants'
+import exportsStore from '#/components/projectDownloads/exportsStore'
 import { type AssetResponse } from '#/dataInterface'
 
 interface LegacyExportsProps {
