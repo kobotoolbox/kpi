@@ -41,7 +41,7 @@
     }
   },
   "organizeImports": {
-    "enabled": false // TODO: depends on standardized `#jsapp/*` internal TS alias imports for import distance calculation.
+    "enabled": true
   },
   "linter": {
     "enabled": false, // TODO: for later.
