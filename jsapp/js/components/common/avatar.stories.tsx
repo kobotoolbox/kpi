@@ -1,12 +1,12 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 
 import Avatar from './avatar'
 import type { AvatarSize } from './avatar'
 
 const avatarSizes: AvatarSize[] = ['s', 'm']
 
-export default {
+const meta: Meta<typeof Avatar> = {
   title: 'common/Avatar',
   component: Avatar,
   argTypes: {
@@ -16,32 +16,35 @@ export default {
     },
     username: { type: 'string' },
     isUsernameVisible: { type: 'boolean' },
-    hasFullName: {
-      type: 'boolean',
-      description: 'Allows testing `fullName` being empty string or not existing',
+    fullName: {
+      options: ['Josh Johnson', 'Captain Person McPerson the Third', undefined],
+      control: { type: 'select' },
+      description: 'This is optional and component renders differently when it is `undefined`',
     },
-    fullName: { type: 'string', if: { arg: 'hasFullName', truthy: true } },
-    hasEmail: {
-      type: 'boolean',
-      description: 'Allows testing `email` being empty string or not existing',
+    email: {
+      options: ['josh@example.com', 'captain@example.com', undefined],
+      control: { type: 'select' },
+      description: 'This is optional and component renders differently when it is `undefined`',
     },
-    email: { type: 'string', if: { arg: 'hasEmail', truthy: true } },
     isEmpty: {
       type: 'boolean',
     },
   },
-} as ComponentMeta<typeof Avatar>
-
-const Template: ComponentStory<typeof Avatar> = (args) => <Avatar {...args} />
-
-export const Simple = Template.bind({})
-Simple.args = {
-  size: avatarSizes[0],
-  username: 'leszek',
-  isUsernameVisible: true,
 }
 
-export const Full: StoryObj<typeof Avatar> = {
+export default meta
+
+type Story = StoryObj<typeof Avatar>
+
+export const Simple: Story = {
+  args: {
+    size: avatarSizes[0],
+    username: 'leszek',
+    isUsernameVisible: true,
+  },
+}
+
+export const Full: Story = {
   render: () => (
     <Avatar
       size='m'
@@ -184,12 +187,15 @@ const bulkUsernames = [
   'Roberto',
   'Peng',
 ]
-export const BulkColorsTest = () => (
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-    {bulkUsernames.map((username) => (
-      <div key={username}>
-        <Avatar size='m' username={username} />
-      </div>
-    ))}
-  </div>
-)
+
+export const BulkColorsTest: Story = {
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+      {bulkUsernames.map((username) => (
+        <div key={username}>
+          <Avatar size='m' username={username} />
+        </div>
+      ))}
+    </div>
+  ),
+}

@@ -1,6 +1,4 @@
-import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
-import { IconNames } from 'jsapp/fonts/k-icons'
+import type { Meta, StoryObj } from '@storybook/react'
 import type { IconName } from 'jsapp/fonts/k-icons'
 import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
 import Icon from './icon'
@@ -46,7 +44,7 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
   'left-start',
 ] as const
 
-export default {
+const meta: Meta<typeof Button> = {
   title: 'common/Button',
   component: Button,
   argTypes: {
@@ -59,72 +57,6 @@ export default {
       description: 'Size of button',
       options: buttonSizes,
       control: 'radio',
-    },
-    leftSectionS: {
-      description: 'Icon on the beginning',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'s'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'sm' },
-    },
-    leftSectionM: {
-      description: 'Icon on the beginning',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'m'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'md' },
-    },
-    leftSectionL: {
-      description: 'Icon on the beginning',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'l'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'lg' },
-    },
-    rightSectionS: {
-      description: 'Icon on the end',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'s'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'sm' },
-    },
-    rightSectionM: {
-      description: 'Icon on the end',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'m'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'md' },
-    },
-    rightSectionL: {
-      description: 'Icon on the end',
-      options: Object.keys(IconNames),
-      mapping: Object.keys(IconNames)
-        .map((key) => [key, <Icon name={key as IconNames} size={'l'} />] as const)
-        .reduce((o, [k, v]) => {
-          return { ...o, [k]: v }
-        }, {}),
-      control: { type: 'select' },
-      if: { arg: 'size', eq: 'lg' },
     },
     tooltip: {
       description: 'Tooltip text',
@@ -147,60 +79,82 @@ export default {
       control: 'boolean',
     },
   },
-} as ComponentMeta<typeof Button>
+}
 
-const Template: ComponentStory<typeof Button> = ({
-  leftSectionS,
-  leftSectionM,
-  leftSectionL,
-  rightSectionS,
-  rightSectionM,
-  rightSectionL,
-  ...args
-}: any) => (
-  <Button
-    {...{
-      ...args,
-      leftSection: leftSectionS ?? leftSectionM ?? leftSectionL,
-      rightSection: rightSectionS ?? rightSectionM ?? rightSectionL,
+export default meta
+
+type Story = StoryObj<typeof Button>
+
+export const Primary: Story = {
+  args: {
+    variant: 'filled',
+    size: 'lg',
+    children: 'Click me',
+  },
+}
+
+export const Secondary: Story = {
+  args: {
+    variant: 'light',
+    size: 'lg',
+    children: 'Click me',
+  },
+}
+
+export const Danger: Story = {
+  args: {
+    variant: 'danger',
+    size: 'lg',
+    children: 'Click me',
+  },
+}
+
+export const SecondaryDanger: Story = {
+  args: {
+    variant: 'danger-secondary',
+    size: 'lg',
+    children: 'Click me',
+  },
+}
+
+export const Text: Story = {
+  args: {
+    variant: 'transparent',
+    size: 'lg',
+    children: 'Click me',
+  },
+}
+
+/**
+ * This story demonstrates how to use the `leftSection` and `rightSection` props to render icons.
+ *
+ * Note: remember to **use the same size** for the icon as you use for the Button itself.
+ */
+export const WithIcon = () => (
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(6, auto)',
+      gridAutoFlow: 'row',
+      gridGap: '30px 15px',
+      justifyItems: 'start',
+      padding: '10px',
     }}
-  />
+  >
+    <Button variant='filled' size='sm' leftSection={<Icon name='download' size='s' />}>
+      Download
+    </Button>
+    <Button variant='light' size='md' leftSection={<Icon name='file' size='m' />}>
+      XLSForm file
+    </Button>
+    <Button variant='danger' size='lg' rightSection={<Icon name='trash' size='l' />}>
+      Delete
+    </Button>
+    <Button variant='danger-secondary' size='sm' leftSection={<Icon name='close' size='s' />}>
+      Close this window
+    </Button>
+  </div>
 )
-
-export const Primary = Template.bind({})
-Primary.args = {
-  variant: 'filled',
-  size: 'lg',
-  children: 'Click me',
-}
-
-export const Secondary = Template.bind({})
-Secondary.args = {
-  variant: 'light',
-  size: 'lg',
-  children: 'Click me',
-}
-
-export const Danger = Template.bind({})
-Danger.args = {
-  variant: 'danger',
-  size: 'lg',
-  children: 'Click me',
-}
-
-export const SecondaryDanger = Template.bind({})
-SecondaryDanger.args = {
-  variant: 'danger-secondary',
-  size: 'lg',
-  children: 'Click me',
-}
-
-export const Text = Template.bind({})
-Text.args = {
-  variant: 'transparent',
-  size: 'lg',
-  children: 'Click me',
-}
 
 const demoButtons: Array<{ label?: string; leftSectionName?: IconName }> = [
   {
