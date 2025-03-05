@@ -1,22 +1,19 @@
-// Libraries
 import React, { useState } from 'react'
-// Partial components
-import Alert from 'js/components/common/alert'
-import { Modal, Button, Stack, Text, Group, FocusTrap } from '@mantine/core'
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
-// Stores, hooks and utilities
+
+import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import {
   MemberInviteStatus,
   useOrgMemberInviteQuery,
   usePatchMemberInvite,
-} from 'js/account/organization/membersInviteQuery'
-import { getSimpleMMOLabel } from 'js/account/organization/organization.utils'
-import envStore from 'jsapp/js/envStore'
-import subscriptionStore from 'jsapp/js/account/subscriptionStore'
-import { notify } from 'jsapp/js/utils'
-import { useSession } from 'jsapp/js/stores/useSession'
-// Constants and types
-import { endpoints } from 'jsapp/js/api.endpoints'
+} from '#/account/organization/membersInviteQuery'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import { endpoints } from '#/api.endpoints'
+import Alert from '#/components/common/alert'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import envStore from '#/envStore'
+import { useSession } from '#/stores/useSession'
+import { notify } from '#/utils'
 
 /**
  * Displays a modal to a user that got an invitation for joining an organization. There is a possibility to accept or
@@ -88,7 +85,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   let title: React.ReactNode = null
 
   // Case 1: loading data.
-  if (orgMemberInviteQuery.isLoading || awaitingDataRefresh) {
+  if (orgMemberInviteQuery.isLoading) {
     content = <LoadingSpinner />
   }
   // Case 2: failed to get the invitation data from API.
@@ -139,7 +136,8 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
     content = <Alert type='error'>{miscError}</Alert>
   }
   // Case 3: got the invite, its status is pending, so we display form
-  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending) {
+  // We also continue displaying this content while we wait for data to refresh following acceptance
+  else if (orgMemberInviteQuery.data?.status === MemberInviteStatus.pending || awaitingDataRefresh) {
     title = t('Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##').replace(
       '##TEAM_OR_ORGANIZATION_NAME##',
       orgName,
@@ -162,7 +160,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='light'
             size='lg'
             onClick={handleDeclineInvite}
-            loading={userResponseType === MemberInviteStatus.declined && patchMemberInvite.isPending}
+            loading={userResponseType === MemberInviteStatus.declined}
           >
             {t('Decline')}
           </Button>
@@ -171,7 +169,9 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
             variant='filled'
             size='lg'
             onClick={handleAcceptInvite}
-            loading={userResponseType === MemberInviteStatus.accepted && patchMemberInvite.isPending}
+            // We don't use RQ loading state here because we also want spinner to display during
+            // timeout while we give backend time for data transfer
+            loading={userResponseType === MemberInviteStatus.accepted}
           >
             {t('Accept')}
           </Button>

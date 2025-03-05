@@ -1,34 +1,35 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
-import Reflux from 'reflux'
-import bem from 'js/bem'
-import { dataInterface } from 'js/dataInterface'
-import sessionStore from 'js/stores/session'
-import PopoverMenu from 'js/popoverMenu'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import InlineMessage from 'js/components/common/inlineMessage'
-import CollectMethodSelector from 'js/project/collectMethodSelector.component'
-import mixins from 'js/mixins'
-import { actions } from 'js/actions'
-import DocumentTitle from 'react-document-title'
-import CopyToClipboard from 'react-copy-to-clipboard'
-import { MODAL_TYPES, COLLECTION_METHODS } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import { formatTime, notify } from 'utils'
-import { buildUserUrl, ANON_USERNAME } from 'js/users/utils'
-import { Link } from 'react-router-dom'
-import { withRouter } from 'js/router/legacy'
-import envStore from 'js/envStore'
-import { userCan, userCanRemoveSharedProject } from 'js/components/permissions/utils'
-import permConfig from 'js/components/permissions/permConfig'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from 'js/constants'
-import AnonymousSubmission from 'js/components/anonymousSubmission.component'
-import NewFeatureDialog from 'js/components/newFeatureDialog.component'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+
 import { Stack } from '@mantine/core'
+import autoBind from 'react-autobind'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import DocumentTitle from 'react-document-title'
+import reactMixin from 'react-mixin'
+import { Link } from 'react-router-dom'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import NewFeatureDialog from '#/components/newFeatureDialog.component'
+import permConfig from '#/components/permissions/permConfig'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
+import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
+import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { dataInterface } from '#/dataInterface'
+import envStore from '#/envStore'
+import mixins from '#/mixins'
+import pageState from '#/pageState.store'
+import PopoverMenu from '#/popoverMenu'
+import CollectMethodSelector from '#/project/collectMethodSelector.component'
+import { withRouter } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import sessionStore from '#/stores/session'
+import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
+import { formatTime, notify } from '#/utils'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
@@ -330,16 +331,15 @@ class FormLanding extends React.Component {
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>
-                  {t('Click on')} <i className='k-icon k-icon-more-vertical' /> {t('to open settings.')}
-                </li>
+                <li>{t('Select the option "Manually enter project details"')}</li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;
                   {t('and your username and password')}
                 </li>
-                <li>{t('Open "Get Blank Form" and select this project. ')}</li>
-                <li>{t('Open "Enter Data."')}</li>
+                <li>{t('Select "Download form" and select this project')}</li>
+                <li>{t('Select "Start New Form"')}</li>
+                <li>{t('Select this project from the list of downloaded projects')}</li>
               </ol>
             )}
           </Stack>

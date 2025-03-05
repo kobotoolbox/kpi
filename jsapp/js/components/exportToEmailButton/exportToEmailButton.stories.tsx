@@ -1,5 +1,4 @@
 import type { Meta, StoryFn } from '@storybook/react'
-
 import ExportToEmailButton from './exportToEmailButton.component'
 
 export default {

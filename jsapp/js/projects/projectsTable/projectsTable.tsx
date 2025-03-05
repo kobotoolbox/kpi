@@ -1,19 +1,13 @@
-// Libraries
 import React from 'react'
-import InfiniteScroll from 'react-infinite-scroller'
+
 import cx from 'classnames'
-
-// Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import ProjectsTableRow from './projectsTableRow'
-import ProjectsTableHeader from './projectsTableHeader'
-
-// Constants and types
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
-import type { ProjectFieldName, OrderDirection } from 'js/projects/projectViews/constants'
-
-// Styles
+import InfiniteScroll from 'react-infinite-scroller'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
+import type { OrderDirection, ProjectFieldName } from '#/projects/projectViews/constants'
 import styles from './projectsTable.module.scss'
+import ProjectsTableHeader from './projectsTableHeader'
+import ProjectsTableRow from './projectsTableRow'
 import rowStyles from './projectsTableRow.module.scss'
 
 const SCROLL_PARENT_ID = 'projects-table-is-using-infinite_scroll-successfully'

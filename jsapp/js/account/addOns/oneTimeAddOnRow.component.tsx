@@ -1,12 +1,13 @@
-import styles from 'js/account/addOns/addOnList.module.scss'
 import React, { useMemo, useState } from 'react'
-import type { Product, SubscriptionInfo } from 'js/account/stripe.types'
-import KoboSelect3 from 'js/components/special/koboAccessibleSelect'
-import BillingButton from 'js/account/plans/billingButton.component'
-import { postCheckout, postCustomerPortal } from 'js/account/stripe.api'
-import { useDisplayPrice } from 'js/account/plans/useDisplayPrice.hook'
-import { isChangeScheduled } from 'js/account/stripe.utils'
-import type { Organization } from 'js/account/organization/organizationQuery'
+
+import styles from '#/account/addOns/addOnList.module.scss'
+import type { Organization } from '#/account/organization/organizationQuery'
+import BillingButton from '#/account/plans/billingButton.component'
+import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
+import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
+import type { Product, SubscriptionInfo } from '#/account/stripe.types'
+import { isChangeScheduled } from '#/account/stripe.utils'
+import KoboSelect3 from '#/components/special/koboAccessibleSelect'
 
 interface OneTimeAddOnRowProps {
   products: Product[]
@@ -96,31 +97,33 @@ export const OneTimeAddOnRow = ({
   }
 
   const priceTableCells = (
-    <>
+    <div className={styles.purchase}>
       <div className={styles.oneTimePrice}>
         {selectedPrice.recurring?.interval === 'year' ? selectedPrice.human_readable_price : displayPrice}
       </div>
-      <div className={styles.buy}>
-        {isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label={t('Manage')}
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickManage}
-            isFullWidth
-          />
-        )}
-        {!isSubscribedAddOnPrice && (
-          <BillingButton
-            size={'m'}
-            label={t('Buy now')}
-            isDisabled={Boolean(selectedPrice) && isBusy}
-            onClick={onClickBuy}
-            isFullWidth
-          />
-        )}
+      <div className={styles.buyContainer}>
+        <div className={styles.buy}>
+          {isSubscribedAddOnPrice && (
+            <BillingButton
+              size={'m'}
+              label={t('Manage')}
+              isDisabled={Boolean(selectedPrice) && isBusy}
+              onClick={onClickManage}
+              isFullWidth
+            />
+          )}
+          {!isSubscribedAddOnPrice && (
+            <BillingButton
+              size={'m'}
+              label={t('Buy now')}
+              isDisabled={Boolean(selectedPrice) && isBusy}
+              onClick={onClickBuy}
+              isFullWidth
+            />
+          )}
+        </div>
       </div>
-    </>
+    </div>
   )
 
   return (

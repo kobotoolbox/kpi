@@ -17,8 +17,6 @@
   table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
-  width: 100%;
-  max-width: plan.$plans-page-max-width;
 
   tr {
     border-top: 1px solid colors.$kobo-light-storm;
@@ -99,7 +97,8 @@
   width: 200px;
 }
 
-.mobileView {
+.mobileView,
+.purchase{
   display: flex;
   vertical-align: center;
   flex: 1;
@@ -124,9 +123,13 @@
   .productName {
     display: table-cell;
     width: 40%;
+    margin-right: 12px;
   }
 
-  .fullScreen,
+  .fullScreen {
+    display: table-cell;
+  }
+
   .price {
     display: table-cell;
     width: 30%;
@@ -137,31 +140,24 @@
   }
 
   .oneTimePrice,
-  .buy {
-    display: table-cell;
-    vertical-align: middle;
-    justify-content: center;
-  }
-
-  .oneTimePrice {
+  .buyContainer {
     width: 50%;
   }
 
   .oneTime {
     justify-content: center;
-
-    :last-child {
-      margin-left: 8px;
-    }
-  }
-
-  .productName {
-    margin-right: 12px;
   }
 
   .buy {
     width: 140px;
     padding-left: 20px;
+    float: right;
+  }
+
+  .purchase {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

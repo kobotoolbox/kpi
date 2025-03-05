@@ -1,8 +1,8 @@
-import { FailResponse, PaginatedResponse } from 'js/dataInterface'
-import { fetchGet, fetchPost, fetchPatch, handleApiFail } from 'jsapp/js/api'
-import sessionStore from 'js/stores/session'
-import { buildUserUrl, getUsernameFromUrl } from 'js/users/utils'
-import { notify } from 'js/utils'
+import { fetchGet, fetchPatch, fetchPost, handleApiFail } from '#/api'
+import { FailResponse, PaginatedResponse } from '#/dataInterface'
+import sessionStore from '#/stores/session'
+import { buildUserUrl, getUsernameFromUrl } from '#/users/utils'
+import { notify } from '#/utils'
 
 const INVITE_URL = '/api/v2/project-ownership/invites/'
 

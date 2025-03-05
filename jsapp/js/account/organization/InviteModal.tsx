@@ -1,16 +1,21 @@
-import type { ModalProps } from '@mantine/core'
-import { Group, Modal, Stack, Text, TextInput, Loader } from '@mantine/core'
-import ButtonNew from 'jsapp/js/components/common/ButtonNew'
-import { Select } from 'jsapp/js/components/common/Select'
-import { useSendMemberInvite } from './membersInviteQuery'
 import { useState } from 'react'
-import { OrganizationUserRole } from './organizationQuery'
-import userExistence from 'js/users/userExistence.store'
+
+import type { ModalProps } from '@mantine/core'
+import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
-import { checkEmailPattern, notify } from 'js/utils'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import ButtonNew from '#/components/common/ButtonNew'
+import { Select } from '#/components/common/Select'
+import envStore from '#/envStore'
+import userExistence from '#/users/userExistence.store'
+import { checkEmailPattern, notify } from '#/utils'
+import { useSendMemberInvite } from './membersInviteQuery'
+import { OrganizationUserRole } from './organizationQuery'
 
 export default function InviteModal(props: ModalProps) {
   const inviteQuery = useSendMemberInvite()
+  const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
   const [role, setRole] = useState<string | null>(null)
 
@@ -68,8 +73,8 @@ export default function InviteModal(props: ModalProps) {
       <Stack>
         <Text>
           {t(
-            'Enter the username or email address of the person you wish to invite to your team. They will receive an invitation in their inbox.',
-          )}
+            'Enter the username or email address of the person you wish to invite to your ##TEAM_OR_ORGANIZATION##. They will receive an invitation in their inbox.',
+          ).replace('##TEAM_OR_ORGANIZATION##', mmoLabel)}
         </Text>
         <Group align={'flex-start'} w='100%' gap='xs'>
           <TextInput

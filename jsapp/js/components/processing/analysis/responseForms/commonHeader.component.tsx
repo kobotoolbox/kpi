@@ -1,21 +1,22 @@
 import React, { useState, useContext } from 'react'
+
 import clonedeep from 'lodash.clonedeep'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import commonStyles from './common.module.scss'
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context'
+import { handleApiFail } from '#/api'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboPrompt from '#/components/modals/koboPrompt'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   getQuestionsFromSchema,
-  updateSurveyQuestions,
   hasManagePermissionsToCurrentAsset,
-} from 'js/components/processing/analysis/utils'
-import KoboPrompt from 'js/components/modals/koboPrompt'
-import type { AnalysisQuestionInternal } from '../constants'
+  updateSurveyQuestions,
+} from '#/components/processing/analysis/utils'
+import type { FailResponse } from '#/dataInterface'
 import singleProcessingStore from '../../singleProcessingStore'
-import type { FailResponse } from 'js/dataInterface'
-import { handleApiFail } from 'js/api'
+import type { AnalysisQuestionInternal } from '../constants'
+import commonStyles from './common.module.scss'
 
 interface ResponseFormHeaderProps {
   uuid: string

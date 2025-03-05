@@ -128,9 +128,17 @@ class InAppMessageSerializer(serializers.ModelSerializer):
         except Transfer.DoesNotExist:
             return value
 
+        # If the recipient's org is an MMO, the new owner is the organization
+        recipient = transfer.invite.recipient
+        new_owner = (
+            recipient.organization.name
+            if recipient.organization.is_mmo
+            else recipient.username
+        )
+
         value = value.replace('##username##', user.username)
         value = value.replace('##project_name##', transfer.asset.name)
         value = value.replace('##previous_owner##', transfer.invite.sender.username)
-        value = value.replace('##new_owner##', transfer.invite.recipient.username)
+        value = value.replace('##new_owner##', new_owner)
 
         return value

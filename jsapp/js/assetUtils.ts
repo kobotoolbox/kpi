@@ -4,37 +4,38 @@
  */
 
 import React from 'react'
-import permConfig from 'js/components/permissions/permConfig'
-import { ANON_USERNAME_URL } from 'js/users/utils'
-import envStore from 'js/envStore'
-import sessionStore from 'js/stores/session'
-import type { AssetTypeName, AnyRowTypeName, QuestionTypeName } from 'js/constants'
-import assetStore from 'js/assetStore'
+
+import assetStore from '#/assetStore'
+import permConfig from '#/components/permissions/permConfig'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
+import type { AnyRowTypeName, AssetTypeName, QuestionTypeName } from '#/constants'
 import {
+  ACCESS_TYPES,
   ASSET_TYPES,
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
-  SCORE_ROW_TYPE,
+  META_QUESTION_TYPES,
+  QUESTION_TYPES,
   RANK_LEVEL_TYPE,
-  ACCESS_TYPES,
   ROOT_URL,
+  SCORE_ROW_TYPE,
   SUPPLEMENTAL_DETAILS_PROP,
   XML_VALUES_OPTION_VALUE,
-} from 'js/constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
+} from '#/constants'
 import type {
+  AnalysisFormJsonField,
   AssetContent,
   AssetResponse,
-  ProjectViewAsset,
-  SurveyRow,
-  SurveyChoice,
   PermissionResponse,
-  AnalysisFormJsonField,
-} from 'js/dataInterface'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import { QUAL_NOTE_TYPE } from 'js/components/processing/analysis/constants'
+  ProjectViewAsset,
+  SurveyChoice,
+  SurveyRow,
+} from '#/dataInterface'
+import envStore from '#/envStore'
+import type { IconName } from '#/k-icons'
+import sessionStore from '#/stores/session'
+import { ANON_USERNAME_URL } from '#/users/utils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.

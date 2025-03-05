@@ -1,22 +1,14 @@
-// Libraries
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { observer } from 'mobx-react-lite'
+
 import cx from 'classnames'
-
-// Partial components
-import Icon from 'js/components/common/icon'
-import KoboDropdown from 'js/components/common/koboDropdown'
-
-// Stores and hooks
-import projectViewsStore from './projectViewsStore'
-import { useOrganizationQuery, OrganizationUserRole } from 'js/account/organization/organizationQuery'
-
-// Constants
-import { PROJECTS_ROUTES } from 'js/router/routerConstants'
+import { observer } from 'mobx-react-lite'
+import { useNavigate } from 'react-router-dom'
+import { OrganizationUserRole, useOrganizationQuery } from '#/account/organization/organizationQuery'
+import Icon from '#/components/common/icon'
+import KoboDropdown from '#/components/common/koboDropdown'
+import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { HOME_VIEW, ORG_VIEW } from './constants'
-
-// Styles
+import projectViewsStore from './projectViewsStore'
 import styles from './viewSwitcher.module.scss'
 
 interface ViewSwitcherProps {

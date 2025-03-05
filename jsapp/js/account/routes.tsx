@@ -1,19 +1,20 @@
 import React from 'react'
+
 import { Navigate, Route } from 'react-router-dom'
-import RequireAuth from 'js/router/requireAuth'
-import { RequireOrgPermissions } from 'js/router/RequireOrgPermissions.component'
-import { OrganizationUserRole } from 'js/account/organization/organizationQuery'
+import { OrganizationUserRole } from '#/account/organization/organizationQuery'
 import {
   ACCOUNT_ROUTES,
   AccountSettings,
   AddOnsRoute,
   ChangePasswordRoute,
   DataStorage,
-  PlansRoute,
-  SecurityRoute,
   MembersRoute,
   OrganizationSettingsRoute,
-} from 'js/account/routes.constants'
+  PlansRoute,
+  SecurityRoute,
+} from '#/account/routes.constants'
+import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
+import RequireAuth from '#/router/requireAuth'
 
 export default function routes() {
   return (

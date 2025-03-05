@@ -1,18 +1,21 @@
-import React from 'react'
-import type { RefObject } from 'react'
-import InfiniteScroll from 'react-infinite-scroller'
-import debounce from 'lodash.debounce'
-import bem, { makeBem } from 'js/bem'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import envStore from 'js/envStore'
-import { observer } from 'mobx-react'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
 import './languageSelector.scss'
+
+import React from 'react'
+
+import debounce from 'lodash.debounce'
+import { observer } from 'mobx-react'
+import type { RefObject } from 'react'
+
+import InfiniteScroll from 'react-infinite-scroller'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import envStore from '#/envStore'
 import LanguagesListStore from './languagesListStore'
-import { LanguageDisplayLabel } from './languagesUtils'
 import languagesStore from './languagesStore'
 import type { DetailedLanguage, LanguageCode, ListLanguage } from './languagesStore'
+import { LanguageDisplayLabel } from './languagesUtils'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1')
@@ -163,26 +166,21 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
     }
   }
 
-  fetchSuggestedLanguages() {
+  async fetchSuggestedLanguages() {
     this.setState({ suggestedLanguages: undefined })
     if (this.props.suggestedLanguages) {
-      this.props.suggestedLanguages.forEach(async (languageCode) => {
-        try {
-          const language = await languagesStore.getLanguage(languageCode)
-          // Just a safe check if suggested languages list didn't change while we
-          // waited for the response.
-          const isAlreadyAdded = Boolean(
-            this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code),
-          )
-          if (this.props.suggestedLanguages?.includes(language.code) && !isAlreadyAdded) {
-            const newLanguages = this.state.suggestedLanguages || []
-            newLanguages.push(language)
-            this.setState({ suggestedLanguages: newLanguages })
+      const languages = await Promise.all(
+        this.props.suggestedLanguages.map(async (languageCode) => {
+          try {
+            return await languagesStore.getLanguage(languageCode)
+          } catch (error) {
+            console.error(`Language ${languageCode} not found 2`)
+            return null
           }
-        } catch (error) {
-          console.error(`Language ${languageCode} not found 2`)
-        }
-      })
+        }),
+      )
+      const suggestedLanguages = languages.filter((language) => language !== null)
+      this.setState({ suggestedLanguages })
     }
   }
 
@@ -231,7 +229,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
 
   /**
    * We need to filter out some languages from the list, so we use this neat
-   * little alias to `this.store.suggestedLanguages`.
+   * little alias to `this.state.suggestedLanguages`.
    */
   get suggestedLanguages() {
     return (

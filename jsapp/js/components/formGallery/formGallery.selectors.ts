@@ -1,6 +1,6 @@
-import type { FlatQuestion } from 'jsapp/js/assetUtils'
-import type { SubmissionResponse, SubmissionAttachment } from 'js/dataInterface'
-import type { Json } from 'jsapp/js/components/common/common.interfaces'
+import type { FlatQuestion } from '#/assetUtils'
+import type { Json } from '#/components/common/common.interfaces'
+import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 
 const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml']
 

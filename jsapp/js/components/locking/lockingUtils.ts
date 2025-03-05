@@ -1,19 +1,19 @@
-import { getRowName } from 'js/assetUtils'
-import { AssetTypeName } from 'js/constants'
+import { getRowName } from '#/assetUtils'
+import { AssetTypeName } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
 import {
-  QUESTION_RESTRICTIONS,
-  GROUP_RESTRICTIONS,
-  FORM_RESTRICTIONS,
-  LOCK_ALL_RESTRICTION_NAMES,
-  LOCK_ALL_PROP_NAME,
-  LOCKING_PROFILE_PROP_NAME,
-  LOCKING_PROFILES_PROP_NAME,
-  type LockingRestrictionName,
   type AssetLockingProfileDefinition,
+  FORM_RESTRICTIONS,
+  GROUP_RESTRICTIONS,
   type IndexedAssetLockingProfileDefinition,
+  LOCKING_PROFILES_PROP_NAME,
+  LOCKING_PROFILE_PROP_NAME,
+  LOCK_ALL_PROP_NAME,
+  LOCK_ALL_RESTRICTION_NAMES,
   type LockingRestrictionDefinition,
+  type LockingRestrictionName,
+  QUESTION_RESTRICTIONS,
 } from './lockingConstants'
-import type { AssetContent } from 'js/dataInterface'
 
 /**
  * Should be used with QUESTION_RESTRICTIONS or GROUP_RESTRICTIONS

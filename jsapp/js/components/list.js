@@ -1,16 +1,17 @@
 import React from 'react'
+
+import autoBind from 'react-autobind'
 import ReactDOM from 'react-dom'
 import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
-import Reflux from 'reflux'
 import Select from 'react-select'
-import Checkbox from 'js/components/common/checkbox'
-import bem from 'js/bem'
+import Reflux from 'reflux'
+import bem from '#/bem'
+import Checkbox from '#/components/common/checkbox'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import pageState from '#/pageState.store'
 import { actions } from '../actions'
 import { searches } from '../searches'
 import { stores } from '../stores'
-import { ASSET_TYPES, ACCESS_TYPES } from 'js/constants'
-import pageState from 'js/pageState.store'
 
 export class ListSearch extends React.Component {
   constructor(props) {

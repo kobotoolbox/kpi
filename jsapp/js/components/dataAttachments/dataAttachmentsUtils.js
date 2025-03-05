@@ -1,4 +1,4 @@
-import assetUtils from 'js/assetUtils'
+import assetUtils from '#/assetUtils'
 
 /* Figure out what columns need to be 'checked' or 'unchecked'
  *

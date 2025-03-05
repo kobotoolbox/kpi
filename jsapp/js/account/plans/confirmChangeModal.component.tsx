@@ -1,19 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-// `cx()` is just an alias for `classNames()` - see https://github.com/JedWatson/classnames
-import cx from 'classnames'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalContent from 'js/components/modals/koboModalContent'
-import KoboModalFooter from 'js/components/modals/koboModalFooter'
-import type { Price, PriceWithProduct, Product, SubscriptionInfo } from 'js/account/stripe.types'
-import { ChangePlanStatus } from 'js/account/stripe.types'
-import { changeSubscription } from 'js/account/stripe.api'
-import { isAddonProduct, processChangePlanResponse } from 'js/account/stripe.utils'
-import { formatDate, notify } from 'js/utils'
+
+import cx from 'classnames' // `cx()` is just an alias for `classNames()` - see https://github.com/JedWatson/classnames
+import BillingButton from '#/account/plans/billingButton.component'
+import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
+import { changeSubscription } from '#/account/stripe.api'
+import type { Price, PriceWithProduct, Product, SubscriptionInfo } from '#/account/stripe.types'
+import { ChangePlanStatus } from '#/account/stripe.types'
+import { isAddonProduct, processChangePlanResponse } from '#/account/stripe.utils'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalContent from '#/components/modals/koboModalContent'
+import KoboModalFooter from '#/components/modals/koboModalFooter'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import { formatDate, notify } from '#/utils'
 import styles from './confirmChangeModal.module.scss'
-import BillingButton from 'js/account/plans/billingButton.component'
-import { useDisplayPrice } from 'js/account/plans/useDisplayPrice.hook'
 
 export interface ConfirmChangeProps {
   newPrice: Price | null
