@@ -662,7 +662,6 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, 'characters')
         assert limit == 1234
 
-
     def test_get_current_billing_dates_by_org(self):
         forty_five_days_ago = timezone.now() - relativedelta(days=45)
         # 1 active, 1 canceled, 1 with no subscription
@@ -672,17 +671,16 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         canceled_subscription.status = 'canceled'
         canceled_subscription.ended_at = forty_five_days_ago
         canceled_subscription.save()
-        active_subscription = generate_plan_subscription(self.second_organization, metadata={})
+        active_subscription = generate_plan_subscription(
+            self.second_organization, metadata={}
+        )
         third_org = baker.make(
             Organization, id='10987654321', name='third test organization'
         )
         billing_dates_by_org = get_current_billing_period_dates_by_org()
         now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
         first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
-        first_of_next_month = (
-            first_of_this_month
-            + relativedelta(months=1)
-        )
+        first_of_next_month = first_of_this_month + relativedelta(months=1)
         # third_org has no subscription, use the first/last of the month
         assert billing_dates_by_org[third_org.id]['start'] == first_of_this_month
         assert billing_dates_by_org[third_org.id]['end'] == first_of_next_month

@@ -68,5 +68,3 @@ def get_users_over_90_percent_of_submission_limit():
 def get_users_over_100_percent_of_submission_limit():
     results = get_users_within_range_of_usage_limit(usage_type='submission', minimum=1)
     return [user.extra_details.uid for user in results]
-
-

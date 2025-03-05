@@ -97,7 +97,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             f'kobo.apps.mass_emails.user_queries.{method_to_patch}'
         )
         full_limit_method_to_patch = (
-            f'kobo.apps.mass_emails.user_queries.get_organization_plan_limits'
+            'kobo.apps.mass_emails.user_queries.get_organization_plan_limits'
         )
         with patch(full_usage_method_to_patch) as patched_usage_method:
             with patch(full_limit_method_to_patch) as patched_limit_method:

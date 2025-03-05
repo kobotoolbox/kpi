@@ -38,46 +38,37 @@ def get_active_subscription_billing_dates_by_org(
 ):
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
-    first_of_next_month = (
-        first_of_this_month
-        + relativedelta(months=1)
-    )
+    first_of_next_month = first_of_this_month + relativedelta(months=1)
     orgs = Organization.objects.prefetch_related('djstripe_customers')
     if organizations is not None:
         orgs = orgs.filter(id__in=[org.id for org in organizations])
     all_active_plans = (
         orgs.filter(
-        djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-    )
-    .values(
-        org_id=F('id'),
-        anchor=F(
-            'djstripe_customers__subscriptions__billing_cycle_anchor'
-        ),
-        start=F(
-            'djstripe_customers__subscriptions__current_period_start'
-        ),
-        end=F(
-            'djstripe_customers__subscriptions__current_period_end'
-        ),
-        interval=F(
-            'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
-        ),
-        start_date=F('djstripe_customers__subscriptions__start_date'),
-
-    )
-    .annotate(
-        # find the most recent one
-        most_recent=Window(
-            expression=Max('start_date'),
-            partition_by=F('org_id'),
-            order_by='org_id',
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+        )
+        .values(
+            org_id=F('id'),
+            anchor=F('djstripe_customers__subscriptions__billing_cycle_anchor'),
+            start=F('djstripe_customers__subscriptions__current_period_start'),
+            end=F('djstripe_customers__subscriptions__current_period_end'),
+            interval=F(
+                'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
+            ),
+            start_date=F('djstripe_customers__subscriptions__start_date'),
+        )
+        .annotate(
+            # find the most recent one
+            most_recent=Window(
+                expression=Max('start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(
+            Q(start_date=F('most_recent'))
+            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
         )
     )
-    .filter(
-        Q(start_date=F('most_recent'))
-        | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-    ))
     results = {}
     for res in all_active_plans:
         dates = {}
@@ -259,8 +250,12 @@ def get_current_billing_period_dates_by_org():
     )
     results = {}
     for org in Organization.objects.all():
-        results[org.id] = all_active_billing_dates.get(org.id) or all_canceled_billing_dates.get(org.id) or {
-            'start': first_of_this_month,
-            'end': first_of_next_month,
-        }
+        results[org.id] = (
+            all_active_billing_dates.get(org.id)
+            or all_canceled_billing_dates.get(org.id)
+            or {
+                'start': first_of_this_month,
+                'end': first_of_next_month,
+            }
+        )
     return results
