@@ -1,11 +1,12 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import Icon from './icon'
 import { IconNames } from 'jsapp/fonts/k-icons'
 import type { IconColor } from './icon'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
-export default {
+
+const meta: Meta<typeof Icon> = {
   title: 'common/Icon',
   component: Icon,
   argTypes: {
@@ -13,21 +14,30 @@ export default {
       options: iconColors,
       control: { type: 'select' },
     },
+    name: {
+      options: Object.keys(IconNames),
+      control: { type: 'select' },
+    },
   },
-} as ComponentMeta<typeof Icon>
+}
 
-const Template: ComponentStory<typeof Icon> = (args) => <Icon {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = { color: iconColors[0] }
+type Story = StoryObj<typeof Icon>
 
-export const AllIcons = () => (
-  <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-    {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((icon) => (
-      <div style={{ flex: '1 1 200px' }}>
-        <Icon name={icon} size='l' />
-        {icon}
-      </div>
-    ))}
-  </div>
-)
+export const Primary: Story = {
+  args: { color: iconColors[0], name: IconNames['skip-logic'] },
+}
+
+export const AllIcons: Story = {
+  render: () => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+      {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((icon) => (
+        <div key={icon} style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Icon name={icon} size='l' />
+          {icon}
+        </div>
+      ))}
+    </div>
+  ),
+}
