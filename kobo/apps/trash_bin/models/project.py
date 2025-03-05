@@ -85,10 +85,9 @@ class ProjectTrash(BaseTrash):
                         ).values_list('invite_id', flat=True)
                     ).update(status=InviteStatusChoices.CANCELLED)
 
-                if not settings.TESTING:
-                    kc_updated = XForm.objects.filter(**kc_filter_params).update(
-                        **kc_update_params
-                    )
-                    assert updated >= kc_updated
+                kc_updated = XForm.all_objects.filter(**kc_filter_params).update(
+                    **kc_update_params
+                )
+                assert updated >= kc_updated
 
         return queryset, updated

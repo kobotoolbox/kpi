@@ -163,26 +163,21 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
     }
   }
 
-  fetchSuggestedLanguages() {
+  async fetchSuggestedLanguages() {
     this.setState({ suggestedLanguages: undefined })
     if (this.props.suggestedLanguages) {
-      this.props.suggestedLanguages.forEach(async (languageCode) => {
-        try {
-          const language = await languagesStore.getLanguage(languageCode)
-          // Just a safe check if suggested languages list didn't change while we
-          // waited for the response.
-          const isAlreadyAdded = Boolean(
-            this.state.suggestedLanguages?.find((stateLanguage) => stateLanguage.code === language.code),
-          )
-          if (this.props.suggestedLanguages?.includes(language.code) && !isAlreadyAdded) {
-            const newLanguages = this.state.suggestedLanguages || []
-            newLanguages.push(language)
-            this.setState({ suggestedLanguages: newLanguages })
+      const languages = await Promise.all(
+        this.props.suggestedLanguages.map(async (languageCode) => {
+          try {
+            return await languagesStore.getLanguage(languageCode)
+          } catch (error) {
+            console.error(`Language ${languageCode} not found 2`)
+            return null
           }
-        } catch (error) {
-          console.error(`Language ${languageCode} not found 2`)
-        }
-      })
+        }),
+      )
+      const suggestedLanguages = languages.filter((language) => language !== null)
+      this.setState({ suggestedLanguages })
     }
   }
 
@@ -231,7 +226,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
 
   /**
    * We need to filter out some languages from the list, so we use this neat
-   * little alias to `this.store.suggestedLanguages`.
+   * little alias to `this.state.suggestedLanguages`.
    */
   get suggestedLanguages() {
     return (
