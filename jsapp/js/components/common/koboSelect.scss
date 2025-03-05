@@ -90,10 +90,11 @@ $k-select-menu-padding: 6px;
   @include mixins.buttonReset;
   font-weight: 400;
   position: relative;
+  color: colors.$kobo-dark-blue;
 
   &:hover,
   &.k-select__option--selected {
-    color: colors.$kobo-gray-800;
+    color: colors.$kobo-dark-blue;
     background-color: colors.$kobo-gray-200;
   }
 
@@ -114,7 +115,6 @@ $k-select-menu-padding: 6px;
   justify-content: space-between;
   width: 100%;
   height: $k-select-option-height;
-  color: colors.$kobo-gray-700;
   padding: 0 #{16px - 2px};
   text-align: initial;
 }
@@ -122,6 +122,7 @@ $k-select-menu-padding: 6px;
 .k-select__menu-message {
   font-style: italic;
   margin: 0;
+  color: colors.$kobo-gray-800;
 }
 
 .k-select__error {

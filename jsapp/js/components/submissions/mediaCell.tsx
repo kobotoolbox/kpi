@@ -9,6 +9,7 @@ import { truncateString } from 'js/utils'
 import type { SubmissionAttachment } from 'js/dataInterface'
 import './mediaCell.scss'
 import Icon from 'js/components/common/icon'
+import DeletedAttachment from './deletedAttachment.component'
 import type { IconName } from 'jsapp/fonts/k-icons'
 import pageState from 'js/pageState.store'
 
@@ -138,6 +139,10 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
           </bem.MediaCellIconWrapper>
         </bem.MediaCell>
       )
+    }
+
+    if (this.props.mediaAttachment.is_deleted) {
+      return <DeletedAttachment />
     }
 
     return (
