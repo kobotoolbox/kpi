@@ -1,15 +1,15 @@
+import constants from '#/constants'
+import { ANON_USERNAME } from '#/users/utils'
+import permConfig from './permConfig'
 import {
-  parseFormData,
   buildFormData,
   parseBackendData,
-  removeImpliedPerms,
+  parseFormData,
   parseUserWithPermsList,
+  removeImpliedPerms,
   sortParseBackendOutput,
 } from './permParser'
-import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
-import constants from 'js/constants'
-import { ANON_USERNAME } from 'js/users/utils'
 
 describe('permParser', () => {
   beforeEach(() => {

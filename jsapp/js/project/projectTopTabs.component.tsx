@@ -1,18 +1,19 @@
-import classnames from 'classnames'
 import React, { useEffect, useState } from 'react'
+
+import classnames from 'classnames'
 import { useNavigate } from 'react-router-dom'
-import { ROUTES } from 'js/router/routerConstants'
-import { userCan, userCanPartially } from 'js/components/permissions/utils'
+import assetStore from '#/assetStore'
+import { userCan, userCanPartially } from '#/components/permissions/utils'
+import type { AssetResponse } from '#/dataInterface'
+import { ROUTES } from '#/router/routerConstants'
 import {
   getRouteAssetUid,
   isAnyFormDataRoute,
-  isFormLandingRoute,
   isAnyFormSettingsRoute,
+  isFormLandingRoute,
   isFormSummaryRoute,
-} from 'js/router/routerUtils'
-import assetStore from 'js/assetStore'
-import sessionStore from 'js/stores/session'
-import type { AssetResponse } from 'js/dataInterface'
+} from '#/router/routerUtils'
+import sessionStore from '#/stores/session'
 import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {

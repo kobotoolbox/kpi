@@ -1,13 +1,7 @@
-// Libraries
 import React from 'react'
 
-// Partial components
-import KoboSelect from 'js/components/common/koboSelect'
-
-// Constants
-import { CollectionMethodName, COLLECTION_METHODS } from 'js/constants'
-
-// Styles
+import KoboSelect from '#/components/common/koboSelect'
+import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
 import styles from './collectMethodSelector.module.scss'
 
 interface CollectMethodSelectorProps {

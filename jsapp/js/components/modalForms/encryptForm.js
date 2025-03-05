@@ -1,15 +1,16 @@
-import autoBind from 'react-autobind'
 import React from 'react'
+
+import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
-import TextBox from 'js/components/common/textBox'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { MODAL_TYPES } from 'js/constants'
-import { stores } from 'js/stores'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import { MODAL_TYPES } from '#/constants'
+import pageState from '#/pageState.store'
+import { stores } from '#/stores'
 
 class EncryptForm extends React.Component {
   constructor(props) {

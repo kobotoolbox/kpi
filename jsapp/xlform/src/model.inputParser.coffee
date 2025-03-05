@@ -2,7 +2,7 @@ _ = require 'underscore'
 cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'
 $configs = require './model.configs'
-formBuilderUtils = require '../../js/components/formBuilder/formBuilderUtils'
+formBuilderUtils = require '#/components/formBuilder/formBuilderUtils'
 
 module.exports = do ->
   inputParser = {}

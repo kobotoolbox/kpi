@@ -1,16 +1,18 @@
+import './validationStatusDropdown.scss'
+
 import React from 'react'
-import bem from 'js/bem'
+
 import Select, { components, OptionProps, SingleValueProps, DropdownIndicatorProps } from 'react-select'
+import bem from '#/bem'
 import {
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_OPTIONS_WITH_SHOW_ALL,
   ValidationStatusAdditionalName,
-} from 'js/components/submissions/validationStatus.constants'
+} from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
-} from 'js/components/submissions/validationStatus.constants'
-import './validationStatusDropdown.scss'
+} from '#/components/submissions/validationStatus.constants'
 
 interface ValidationStatusDropdownProps {
   /** Calls back with `value`, not option object */

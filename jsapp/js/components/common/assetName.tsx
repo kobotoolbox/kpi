@@ -1,8 +1,10 @@
-import React from 'react'
-import { getAssetDisplayName } from 'js/assetUtils'
-import { hasLongWords } from 'js/textUtils'
-import type { AssetResponse, ProjectViewAsset } from 'js/dataInterface'
 import './assetName.scss'
+
+import React from 'react'
+
+import { getAssetDisplayName } from '#/assetUtils'
+import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
+import { hasLongWords } from '#/textUtils'
 
 interface AssetNameProps {
   asset: AssetResponse | ProjectViewAsset

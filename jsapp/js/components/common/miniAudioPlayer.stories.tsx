@@ -1,5 +1,6 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import MiniAudioPlayer from './miniAudioPlayer'
 
 export default {

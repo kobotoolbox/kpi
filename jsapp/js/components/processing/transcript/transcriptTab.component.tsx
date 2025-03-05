@@ -1,5 +1,6 @@
 import React from 'react'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import StepBegin from './stepBegin.component'
 import StepConfig from './stepConfig.component'
 import StepConfigAuto from './stepConfigAuto.component'

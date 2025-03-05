@@ -1,10 +1,11 @@
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import HeaderLanguageAndDate from './headerLanguageAndDate.component'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import Button from '#/components/common/button'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 export default function StepEditor() {
   function discardDraft() {

@@ -1,9 +1,11 @@
-import React from 'react'
-import bem from 'js/bem'
-import PopoverMenu from 'js/popoverMenu'
-import Checkbox from 'js/components/common/checkbox'
-import Icon from 'js/components/common/icon'
 import './tableBulkCheckbox.scss'
+
+import React from 'react'
+
+import bem from '#/bem'
+import Checkbox from '#/components/common/checkbox'
+import Icon from '#/components/common/icon'
+import PopoverMenu from '#/popoverMenu'
 
 interface TableBulkCheckboxProps {
   visibleRowsCount: number

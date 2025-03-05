@@ -1,14 +1,15 @@
 import React from 'react'
-import autoBind from 'react-autobind'
+
 import { observer } from 'mobx-react'
-import KoboTagsInput from 'js/components/common/koboTagsInput'
-import bem from 'js/bem'
-import sessionStore from 'js/stores/session'
-import { actions } from 'js/actions'
-import { notify } from 'utils'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-import pageState from 'js/pageState.store'
+import autoBind from 'react-autobind'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import KoboTagsInput from '#/components/common/koboTagsInput'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import pageState from '#/pageState.store'
+import sessionStore from '#/stores/session'
+import { notify } from '#/utils'
 
 /**
  * @param {Object} asset - Modal asset.

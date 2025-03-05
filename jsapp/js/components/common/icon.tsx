@@ -1,7 +1,8 @@
-import React from 'react'
-// Using this type ensures we only have existing icon names
-import type { IconName } from 'jsapp/fonts/k-icons'
 import './icon.scss'
+
+import React from 'react'
+
+import type { IconName } from '#/k-icons'
 
 /**
  * Check out `icon.scss` file for exact pixel values.

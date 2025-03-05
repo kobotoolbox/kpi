@@ -1,9 +1,11 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import bem, { makeBem } from 'js/bem'
-import { KEY_CODES, KeyNames } from 'js/constants'
-import koboDropdownActions from './koboDropdownActions'
 import './koboDropdown.scss'
+
+import React from 'react'
+
+import ReactDOM from 'react-dom'
+import bem, { makeBem } from '#/bem'
+import { KEY_CODES, KeyNames } from '#/constants'
+import koboDropdownActions from './koboDropdownActions'
 
 export type KoboDropdownPlacement = 'down-center' | 'down-left' | 'down-right' | 'up-center' | 'up-left' | 'up-right'
 

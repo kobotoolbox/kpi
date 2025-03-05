@@ -1,15 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react'
-import useWhen from 'js/hooks/useWhen.hook'
-import subscriptionStore from 'js/account/subscriptionStore'
-import type { Price, Product, SubscriptionInfo, OneTimeAddOn } from 'js/account/stripe.types'
-import { isAddonProduct } from 'js/account/stripe.utils'
+
+import { OneTimeAddOnRow } from '#/account/addOns/oneTimeAddOnRow.component'
+import type { Organization } from '#/account/organization/organizationQuery'
+import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/stripe.types'
+import { isAddonProduct } from '#/account/stripe.utils'
+import subscriptionStore from '#/account/subscriptionStore'
+import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
+import type { BadgeColor } from '#/components/common/badge'
+import Badge from '#/components/common/badge'
+import useWhen from '#/hooks/useWhen.hook'
+import { formatDate } from '#/utils'
 import styles from './addOnList.module.scss'
-import { OneTimeAddOnRow } from 'jsapp/js/account/addOns/oneTimeAddOnRow.component'
-import type { BadgeColor } from 'jsapp/js/components/common/badge'
-import Badge from 'jsapp/js/components/common/badge'
-import { formatDate } from 'js/utils'
-import { OneTimeAddOnsContext } from 'jsapp/js/account/useOneTimeAddonList.hook'
-import type { Organization } from 'js/account/organization/organizationQuery'
 
 /**
  * A table of add-on products along with dropdowns to purchase them.

@@ -1,6 +1,7 @@
 import type React from 'react'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
+
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 
 interface Props {
   children: React.ReactNode
