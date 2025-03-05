@@ -23,7 +23,7 @@ def get_users_within_range_of_usage_limit(
     storage_limits_by_org = get_organization_plan_limits(usage_type='storage')
     storage_usage_by_user = get_storage_usage_by_user_id()
     owner_by_org = {
-        org.id: org.owner.organization_user.user.id
+        org.id: org.owner_user_object.pk
         for org in Organization.objects.filter(owner__isnull=False)
     }
     storage_limits_by_owner = {
