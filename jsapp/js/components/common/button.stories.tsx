@@ -149,50 +149,19 @@ export const Text: Story = {
   },
 }
 
-/**
- * This story demonstrates how to use the `leftSection` and `rightSection` props to render icons.
- *
- * Note: remember to **use the same size** for the icon as you use for the Button itself.
- */
-export const WithIcon = () => (
-  <div
-    style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(6, auto)',
-      gridAutoFlow: 'row',
-      gridGap: '30px 15px',
-      justifyItems: 'start',
-      padding: '10px',
-    }}
-  >
-    <Button variant='filled' size='sm' leftIcon='download'>
-      Download
-    </Button>
-    <Button variant='light' size='md' leftIcon='file'>
-      XLSForm file
-    </Button>
-    <Button variant='danger' size='lg' rightIcon='trash'>
-      Delete
-    </Button>
-    <Button variant='danger-secondary' size='sm' leftIcon='close'>
-      Close this window
-    </Button>
-  </div>
-)
-
-const demoButtons: Array<{ label?: string; leftSectionName?: IconName }> = [
+const demoButtons: Array<{ label?: string; leftIconName?: IconName }> = [
   {
     label: 'Click me',
-    leftSectionName: undefined,
+    leftIconName: undefined,
   },
   {
     label: 'Click me',
-    leftSectionName: 'document',
+    leftIconName: 'document',
   },
   //// For button without text use ActionIcon instead!
   // {
   //   label: undefined,
-  //   leftSectionName: 'document',
+  //   leftIconName: 'document',
   // },
 ]
 
@@ -216,12 +185,12 @@ export const AllButtons = () => (
   >
     {buttonVariants.map((variant) =>
       buttonSizes.map((size) =>
-        demoButtons.map(({ label, leftSectionName }) => {
+        demoButtons.map(({ label, leftIconName }) => {
           const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
             variant,
             size: size,
-            leftIcon: leftSectionName,
-            onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
+            leftIcon: leftIconName,
+            onClick: () => console.info('Clicked!', variant, size, label, leftIconName),
             tooltip: label,
           }
           return (
