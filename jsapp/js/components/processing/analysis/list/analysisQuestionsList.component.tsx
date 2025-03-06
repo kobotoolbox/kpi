@@ -1,10 +1,11 @@
 import React, { useCallback, useContext } from 'react'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
-import styles from './analysisQuestionsList.module.scss'
-import AnalysisQuestionRow from './analysisQuestionRow.component'
+
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import singleProcessingStore from '../../singleProcessingStore'
+import AnalysisQuestionsContext from '../analysisQuestions.context'
+import AnalysisQuestionRow from './analysisQuestionRow.component'
+import styles from './analysisQuestionsList.module.scss'
 
 /**
  * Renders a list of questions (`AnalysisQuestionRow`s to be precise).

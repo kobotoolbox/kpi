@@ -1,11 +1,11 @@
-import react from 'eslint-plugin-react'
+import { fixupPluginRules } from '@eslint/compat'
 import eslint from '@eslint/js'
+import reactQuery from '@tanstack/eslint-plugin-query'
+import importPlugin from 'eslint-plugin-import'
+import react from 'eslint-plugin-react'
+import storybook from 'eslint-plugin-storybook'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import reactQuery from '@tanstack/eslint-plugin-query'
-import storybook from 'eslint-plugin-storybook'
-import importPlugin from 'eslint-plugin-import'
-import { fixupPluginRules } from '@eslint/compat'
 
 const JS = `js,mjs,cjs,es6,jsx,mjsx`
 const TS = `mjsx,ts,tsx,mtsx`

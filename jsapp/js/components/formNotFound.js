@@ -1,6 +1,7 @@
 import React from 'react'
-import bem from 'js/bem'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
+
+import bem from '#/bem'
+import CenteredMessage from '#/components/common/centeredMessage.component'
 
 export default class FormNotFound extends React.Component {
   render() {

@@ -5,42 +5,43 @@
  * - project landing page (see: https://github.com/kobotoolbox/kpi/issues/2758)
  * - projects listing row (see: https://github.com/kobotoolbox/kpi/issues/2758)
  */
+import './assetActionButtons.scss'
 
 import React from 'react'
-import autoBind from 'react-autobind'
+
 import debounce from 'lodash.debounce'
-import PopoverMenu from 'js/popoverMenu'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import assetUtils from 'js/assetUtils'
-import { ASSET_TYPES, ACCESS_TYPES } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import mixins from 'js/mixins'
-import type { AssetResponse, AssetDownloads } from 'js/dataInterface'
-import { isAnyLibraryItemRoute, getRouteAssetUid, isAnyFormRoute } from 'js/router/routerUtils'
-import managedCollectionsStore from 'js/components/library/managedCollectionsStore'
-import type { ManagedCollectionsStoreData } from 'js/components/library/managedCollectionsStore'
-import './assetActionButtons.scss'
-import { withRouter } from 'jsapp/js/router/legacy'
-import type { WithRouterProps } from 'jsapp/js/router/legacy'
+import autoBind from 'react-autobind'
+import { Link } from 'react-router-dom'
+import { actions } from '#/actions'
 import {
   archiveAsset,
-  deleteAsset,
-  unarchiveAsset,
   cloneAsset,
   cloneAssetAsSurvey,
   cloneAssetAsTemplate,
-  manageAssetSharing,
-  replaceAssetForm,
-  modifyAssetTags,
+  deleteAsset,
   manageAssetLanguages,
   manageAssetSettings,
-} from 'jsapp/js/assetQuickActions'
-import { userCan } from 'js/components/permissions/utils'
-import { Link } from 'react-router-dom'
-import Button from 'js/components/common/button'
-import type { ButtonType } from 'js/components/common/button'
-import type { IconName } from 'jsapp/fonts/k-icons'
+  manageAssetSharing,
+  modifyAssetTags,
+  replaceAssetForm,
+  unarchiveAsset,
+} from '#/assetQuickActions'
+import assetUtils from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import type { ButtonType } from '#/components/common/button'
+import managedCollectionsStore from '#/components/library/managedCollectionsStore'
+import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
+import { userCan } from '#/components/permissions/utils'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import type { AssetDownloads, AssetResponse } from '#/dataInterface'
+import type { IconName } from '#/k-icons'
+import mixins from '#/mixins'
+import PopoverMenu from '#/popoverMenu'
+import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { getRouteAssetUid, isAnyFormRoute, isAnyLibraryItemRoute } from '#/router/routerUtils'
 
 interface AssetActionButtonsProps extends WithRouterProps {
   asset: AssetResponse

@@ -1,5 +1,5 @@
-import type { DependencyList, EffectCallback } from 'react'
-import { useEffect } from 'react'
+import { type DependencyList, type EffectCallback, useEffect } from 'react'
+
 import { when } from 'mobx'
 
 // React hook to run an effect when a mobx value changes.

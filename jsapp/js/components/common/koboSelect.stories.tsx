@@ -1,6 +1,7 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
-import KoboSelect from 'js/components/common/koboSelect'
+
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import KoboSelect from '#/components/common/koboSelect'
 
 export default {
   title: 'commonDeprecated/KoboSelect',

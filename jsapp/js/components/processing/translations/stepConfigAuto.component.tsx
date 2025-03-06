@@ -1,12 +1,13 @@
 import React from 'react'
+
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import Button from 'js/components/common/button'
-import RegionSelector from 'js/components/languages/regionSelector'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import RegionSelector from '#/components/languages/regionSelector'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 
 export default function StepConfigAuto() {
   /** Changes the draft region, preserving the other draft properties. */

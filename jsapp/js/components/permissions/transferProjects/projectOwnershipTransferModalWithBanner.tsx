@@ -1,16 +1,10 @@
-// Libraries
 import React, { useState, useEffect } from 'react'
+
 import { useSearchParams } from 'react-router-dom'
-
-// Partial components
-import TransferProjectsInvite from './transferProjectsInvite.component'
 import ProjectTransferInviteBanner from './projectTransferInviteBanner'
-
-// Stores, hooks and utilities
-import { isInviteForLoggedInUser, type TransferStatuses } from './transferProjects.api'
-
-// Constants and types
 import type { TransferInviteState } from './projectTransferInviteBanner'
+import { type TransferStatuses, isInviteForLoggedInUser } from './transferProjects.api'
+import TransferProjectsInvite from './transferProjectsInvite.component'
 
 /**
  * This is a glue component that displays a modal from `TransferProjectsInvite`

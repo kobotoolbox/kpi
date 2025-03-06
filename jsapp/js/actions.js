@@ -7,19 +7,19 @@
  * from `jsapp/js/stores.js`
  */
 
+import * as Sentry from '@sentry/react'
 import alertify from 'alertifyjs'
 import Reflux from 'reflux'
-import RefluxPromise from './libs/reflux-promise'
-import { dataInterface } from './dataInterface'
-import { permissionsActions } from './actions/permissions'
-import libraryActions from './actions/library'
-import submissionsActions from './actions/submissions'
-import formMediaActions from './actions/mediaActions'
-import exportsActions from './actions/exportsActions'
+import { replaceSupportEmail } from '#/textUtils'
+import { notify } from '#/utils'
 import dataShareActions from './actions/dataShareActions'
-import { notify } from 'js/utils'
-import { replaceSupportEmail } from 'js/textUtils'
-import * as Sentry from '@sentry/react'
+import exportsActions from './actions/exportsActions'
+import libraryActions from './actions/library'
+import formMediaActions from './actions/mediaActions'
+import { permissionsActions } from './actions/permissions'
+import submissionsActions from './actions/submissions'
+import { dataInterface } from './dataInterface'
+import RefluxPromise from './libs/reflux-promise'
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise))

@@ -1,13 +1,14 @@
 import React from 'react'
+
+import cx from 'classnames'
+import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
+import KoboAccessibleSelect from '#/components/special/koboAccessibleSelect'
+import { addRequiredToLabel } from '#/textUtils'
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
-import { addRequiredToLabel } from 'js/textUtils'
 import envStore from '../envStore'
+import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
 import styles from './accountFieldsEditor.module.scss'
-import cx from 'classnames'
-import KoboAccessibleSelect from 'js/components/special/koboAccessibleSelect'
-import type { UserFieldName, AccountFieldsValues, AccountFieldsErrors } from './account.constants'
-import { ORGANIZATION_TYPES, type OrganizationTypeName } from 'jsapp/js/account/organization/organizationQuery'
 
 const ORGANIZATION_TYPE_SELECT_OPTIONS = Object.keys(ORGANIZATION_TYPES).map((typeName) => {
   return {

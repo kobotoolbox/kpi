@@ -94,12 +94,9 @@ const commonOptions = {
   resolve: {
     extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
     alias: {
-      app: path.join(__dirname, '../app'),
-      jsapp: path.join(__dirname, '../jsapp'),
-      js: path.join(__dirname, '../jsapp/js'),
-      scss: path.join(__dirname, '../jsapp/scss'),
-      utils: path.join(__dirname, '../jsapp/js/utils'),
-      test: path.join(__dirname, '../test'),
+      '#': path.join(__dirname, '..', 'jsapp', 'js'), // TODO: someday rename "js" to "src".
+      js: path.join(__dirname, '..', 'jsapp', 'js'), // within scss files only, sass-loader doesn't handle # char.
+      scss: path.join(__dirname, '..', 'jsapp', 'scss'), // within scss files only.
     },
     // HACKFIX: needed because of https://github.com/react-dnd/react-dnd/issues/3423
     fallback: {
@@ -117,7 +114,7 @@ const commonOptions = {
   ],
 }
 
-module.exports = function (options) {
+module.exports = (options) => {
   options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
     if (lodash.isArray(objValue)) {
       return objValue.concat(srcValue)

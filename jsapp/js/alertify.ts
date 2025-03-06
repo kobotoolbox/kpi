@@ -1,10 +1,11 @@
 // This is a collection of DRY wrappers for alertifyjs.
-import alertify from 'alertifyjs'
-import { KeyNames } from 'js/constants'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import { escapeHtml } from 'js/utils'
 import type { ReactElement } from 'react'
+
+import alertify from 'alertifyjs'
 import ReactDOMServer from 'react-dom/server'
+import { KeyNames } from '#/constants'
+import type { IconName } from '#/k-icons'
+import { escapeHtml } from '#/utils'
 
 interface MultiConfirmButton {
   label: string

@@ -1,5 +1,5 @@
-import { fetchGet, handleApiFail } from 'js/api'
-import type { FailResponse } from 'js/dataInterface'
+import { fetchGet, handleApiFail } from '#/api'
+import type { FailResponse } from '#/dataInterface'
 
 export interface UserResponse {
   url: string

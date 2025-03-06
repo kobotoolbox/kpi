@@ -1,19 +1,21 @@
-import { useState } from 'react'
 import '../../../scss/components/_kobo.form-view.scss'
+
+import { useState } from 'react'
+
+import cx from 'classnames'
+import { useParams } from 'react-router-dom'
+import PaginatedQueryUniversalTable from '#/universalTable/paginatedQueryUniversalTable.component'
+import type { UniversalTableColumn } from '#/universalTable/universalTable.component'
+import { formatTime } from '#/utils'
 import type { KoboSelectOption } from '../common/koboSelect'
 import KoboSelect from '../common/koboSelect'
-import type { UniversalTableColumn } from 'jsapp/js/universalTable/universalTable.component'
-import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component'
-import type { ActivityLogsItem } from './activity.constants'
-import { useActivityLogsFilterOptionsQuery, useActivityLogsQuery, useExportActivityLogs } from './activityLogs.query'
-import styles from './formActivity.module.scss'
-import cx from 'classnames'
-import { formatTime } from 'jsapp/js/utils'
+import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component'
 import KoboModal from '../modals/koboModal'
 import KoboModalHeader from '../modals/koboModalHeader'
+import type { ActivityLogsItem } from './activity.constants'
+import { useActivityLogsFilterOptionsQuery, useActivityLogsQuery, useExportActivityLogs } from './activityLogs.query'
 import { ActivityMessage } from './activityMessage.component'
-import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component'
-import { useParams } from 'react-router-dom'
+import styles from './formActivity.module.scss'
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table

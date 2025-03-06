@@ -1,7 +1,8 @@
-import sessionStore from './session'
 import { useEffect, useState } from 'react'
+
 import { reaction } from 'mobx'
 import type { AccountResponse } from '../dataInterface'
+import sessionStore from './session'
 
 /**
  * Hook to use the session store in functional components.

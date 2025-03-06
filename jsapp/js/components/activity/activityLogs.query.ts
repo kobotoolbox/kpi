@@ -1,11 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { FailResponse, LabelValuePair, PaginatedResponse } from 'js/dataInterface'
+import { fetchGet, fetchPost } from '#/api'
+import { endpoints } from '#/api.endpoints'
+import type { FailResponse, LabelValuePair, PaginatedResponse } from '#/dataInterface'
+import { QueryKeys } from '#/query/queryKeys'
+import type { PaginatedQueryHookParams } from '#/universalTable/paginatedQueryUniversalTable.component'
 import { AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS } from './activity.constants'
-import type { AuditActions, ActivityLogsItem } from './activity.constants'
-import { QueryKeys } from 'js/query/queryKeys'
-import { fetchGet, fetchPost } from 'jsapp/js/api'
-import { endpoints } from 'jsapp/js/api.endpoints'
-import type { PaginatedQueryHookParams } from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component'
+import type { ActivityLogsItem, AuditActions } from './activity.constants'
 
 /**
  * Fetches the activity logs from the server.

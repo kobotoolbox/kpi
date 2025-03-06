@@ -1,5 +1,6 @@
 import React from 'react'
-import { ROUTES } from 'js/router/routerConstants'
+
+import { ROUTES } from '#/router/routerConstants'
 
 export const ChangePasswordRoute = React.lazy(
   () => import(/* webpackPrefetch: true */ './changePasswordRoute.component'),

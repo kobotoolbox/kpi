@@ -1,26 +1,27 @@
 import React from 'react'
+
 import alertify from 'alertifyjs'
-import { PROJECT_SETTINGS_CONTEXTS, MODAL_TYPES, ASSET_TYPES } from './constants'
-import { ROUTES } from 'js/router/routerConstants'
-import { dataInterface } from 'js/dataInterface'
-import { stores } from './stores'
-import assetStore from 'js/assetStore'
-import type { AssetStoreData } from 'js/assetStore'
-import { actions } from './actions'
-import { log, notify, escapeHtml, join } from 'js/utils'
-import type { AssetResponse, CreateImportRequest, ImportResponse, DeploymentResponse } from 'js/dataInterface'
-import { getRouteAssetUid } from 'js/router/routerUtils'
-import { router, routerGetAssetId, routerIsActive } from 'js/router/legacy'
+import type { DropFilesEventHandler } from 'react-dropzone'
 import {
   archiveAsset,
-  unarchiveAsset,
-  deleteAsset,
   cloneAssetAsTemplate,
-  removeAssetSharing,
+  deleteAsset,
   deployAsset,
-} from 'js/assetQuickActions'
-import type { DropFilesEventHandler } from 'react-dropzone'
-import pageState from 'js/pageState.store'
+  removeAssetSharing,
+  unarchiveAsset,
+} from '#/assetQuickActions'
+import assetStore from '#/assetStore'
+import type { AssetStoreData } from '#/assetStore'
+import { dataInterface } from '#/dataInterface'
+import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
+import pageState from '#/pageState.store'
+import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { getRouteAssetUid } from '#/router/routerUtils'
+import { escapeHtml, join, log, notify } from '#/utils'
+import { actions } from './actions'
+import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
+import { stores } from './stores'
 
 const IMPORT_CHECK_INTERVAL = 1000
 

@@ -1,14 +1,15 @@
 import React from 'react'
-import bem from 'js/bem'
+
+import assetUtils from '#/assetUtils'
+import bem from '#/bem'
+import AssetName from '#/components/common/assetName'
+import Icon from '#/components/common/icon'
+import { ASSET_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { formatTime } from '#/utils'
 import AssetActionButtons from './assetActionButtons'
-import AssetName from 'js/components/common/assetName'
-import { formatTime } from 'js/utils'
-import type { AssetResponse } from 'js/dataInterface'
-import { ASSET_TYPES } from 'js/constants'
-import assetUtils from 'js/assetUtils'
 import type { AssetsTableContextName } from './assetsTableConstants'
 import { ASSETS_TABLE_CONTEXTS } from './assetsTableConstants'
-import Icon from 'js/components/common/icon'
 
 interface AssetsTableRowProps {
   asset: AssetResponse

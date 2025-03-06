@@ -1,4 +1,4 @@
-@use 'js/components/common/icon';
+@use '#/components/common/icon';
 
 .root {
   font-weight: 500;

@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useReducer } from 'react'
-import ReactSelect from 'react-select'
-import type { AssetResponse, PaginatedResponse, SubmissionResponse } from 'js/dataInterface'
-import { dataInterface } from 'js/dataInterface'
-import bem, { makeBem } from 'js/bem'
-import Button from 'jsapp/js/components/common/button'
-import { getFlatQuestionsList } from 'jsapp/js/assetUtils'
 import './formGallery.component.scss'
+
+import React, { useEffect, useMemo, useReducer } from 'react'
+
+import ReactSelect from 'react-select'
+import { getFlatQuestionsList } from '#/assetUtils'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 

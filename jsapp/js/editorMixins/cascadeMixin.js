@@ -2,12 +2,13 @@
 // See: https://github.com/kobotoolbox/kpi/issues/3923
 
 import React from 'react'
-import ReactDOM from 'react-dom'
-import bem, { makeBem } from 'js/bem'
-import dkobo_xlform from '../../xlform/src/_xlform.init'
+
 import last from 'lodash.last'
-import envStore from 'js/envStore'
-import Button from 'js/components/common/button'
+import ReactDOM from 'react-dom'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import envStore from '#/envStore'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
 
 bem.CascadePopup = makeBem(null, 'cascade-popup')
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message')

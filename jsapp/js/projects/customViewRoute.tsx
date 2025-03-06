@@ -1,13 +1,9 @@
-// Libraries
 import React from 'react'
+
 import { useParams } from 'react-router-dom'
-
-// Partial components
+import { ROOT_URL } from '#/constants'
+import { DEFAULT_EXCLUDED_FIELDS, DEFAULT_ORDERABLE_FIELDS, DEFAULT_VISIBLE_FIELDS } from './projectViews/constants'
 import UniversalProjectsRoute from './universalProjectsRoute'
-
-// Constants and types
-import { DEFAULT_VISIBLE_FIELDS, DEFAULT_ORDERABLE_FIELDS, DEFAULT_EXCLUDED_FIELDS } from './projectViews/constants'
-import { ROOT_URL } from 'js/constants'
 
 /**
  * Component responsible for rendering a custom project view route (`#/projects/<vid>`).

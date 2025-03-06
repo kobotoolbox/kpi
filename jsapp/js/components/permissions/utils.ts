@@ -1,33 +1,33 @@
 import clonedeep from 'lodash.clonedeep'
-import sessionStore from 'js/stores/session'
-import permConfig from './permConfig'
-import { buildUserUrl, ANON_USERNAME_URL } from 'js/users/utils'
+import { isSelfOwned } from '#/assetUtils'
 import type {
   AssetResponse,
-  PartialPermissionFilter,
-  PartialPermissionFilterByUsers,
-  PartialPermissionFilterByResponses,
   PartialPermission,
+  PartialPermissionFilter,
+  PartialPermissionFilterByResponses,
+  PartialPermissionFilterByUsers,
   PermissionResponse,
   ProjectViewAsset,
   SubmissionResponse,
-} from 'js/dataInterface'
-import { isSelfOwned } from 'jsapp/js/assetUtils'
+} from '#/dataInterface'
+import sessionStore from '#/stores/session'
+import { ANON_USERNAME_URL, buildUserUrl } from '#/users/utils'
+import permConfig from './permConfig'
 import type {
-  PermissionCodename,
   CheckboxNameAll,
-  CheckboxNamePartialByUsers,
-  PartialByUsersListName,
   CheckboxNamePartialByResponses,
+  CheckboxNamePartialByUsers,
   PartialByResponsesQuestionName,
   PartialByResponsesValueName,
+  PartialByUsersListName,
+  PermissionCodename,
 } from './permConstants'
 import {
-  CHECKBOX_PERM_PAIRS,
   CHECKBOX_LABELS,
+  CHECKBOX_PERM_PAIRS,
   PARTIAL_BY_MULTIPLE_LABEL,
-  PARTIAL_BY_USERS_LABEL,
   PARTIAL_BY_RESPONSES_LABEL,
+  PARTIAL_BY_USERS_LABEL,
 } from './permConstants'
 
 /** For `.find`-ing the permissions */

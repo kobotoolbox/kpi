@@ -1,35 +1,36 @@
-import React from 'react'
-import { stores } from 'js/stores'
-import sessionStore from 'js/stores/session'
-import assetStore from 'js/assetStore'
-import type { AssetStoreData } from 'js/assetStore'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-import InlineMessage from 'js/components/common/inlineMessage'
-import { userCan } from 'js/components/permissions/utils'
-import { replaceBracketsWithLink } from 'js/textUtils'
-import { ANON_USERNAME, ANON_USERNAME_URL } from 'js/users/utils'
-import { ASSET_TYPES } from 'js/constants'
-import { TransferStatuses } from 'js/components/permissions/transferProjects/transferProjects.api'
 import './sharingForm.scss'
-// parts
-import CopyTeamPermissions from './copyTeamPermissions.component'
-import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import PublicShareSettings from './publicShareSettings.component'
-import UserPermissionRow from './userPermissionRow.component'
-import { parseBackendData, parseUserWithPermsList } from './permParser'
-import type { UserWithPerms } from './permParser'
+
+import React from 'react'
+
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import type { AssetStoreData } from '#/assetStore'
+import bem from '#/bem'
+import AssetName from '#/components/common/assetName'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
+import { userCan } from '#/components/permissions/utils'
+import { ASSET_TYPES } from '#/constants'
 import type {
-  AssignablePermission,
   AssetResponse,
+  AssignablePermission,
+  AssignablePermissionPartialLabel,
   PermissionBase,
   PermissionResponse,
-  AssignablePermissionPartialLabel,
-} from 'js/dataInterface'
-import { ACCOUNT_ROUTES } from 'js/account/routes.constants'
-import AssetName from 'js/components/common/assetName'
+} from '#/dataInterface'
+import { stores } from '#/stores'
+import sessionStore from '#/stores/session'
+import { replaceBracketsWithLink } from '#/textUtils'
+import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
+import CopyTeamPermissions from './copyTeamPermissions.component'
+import { parseBackendData, parseUserWithPermsList } from './permParser'
+import type { UserWithPerms } from './permParser'
+import PublicShareSettings from './publicShareSettings.component'
+import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import UserPermissionRow from './userPermissionRow.component'
 
 interface SharingFormProps {
   assetUid: string

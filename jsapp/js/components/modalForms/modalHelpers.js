@@ -1,6 +1,7 @@
 import React from 'react'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+
+import Button from '#/components/common/button'
+import pageState from '#/pageState.store'
 
 export function renderBackButton(isDisabled = false) {
   if (pageState.hasPreviousModal()) {

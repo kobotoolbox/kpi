@@ -1,5 +1,6 @@
 import React from 'react'
-import Button from 'js/components/common/button'
+
+import Button from '#/components/common/button'
 import styles from './projectActions.module.scss'
 
 const NO_PROJECT_SELECTED = t('No project selected')
