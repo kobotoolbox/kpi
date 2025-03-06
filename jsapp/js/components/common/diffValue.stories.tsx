@@ -1,6 +1,7 @@
 import React from 'react'
+
 import type { StoryObj } from '@storybook/react'
-import DiffValue from 'js/components/common/diffValue.component'
+import DiffValue from '#/components/common/diffValue.component'
 
 export default {
   title: 'Common/Diff Value',

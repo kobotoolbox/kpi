@@ -1,11 +1,12 @@
 import React from 'react'
+
 import isEqual from 'lodash.isequal'
-import KoboSelect from 'js/components/common/koboSelect'
-import type { KoboSelectType, KoboSelectOption } from 'js/components/common/koboSelect'
-import { getLanguageDisplayLabel } from 'js/components/languages/languagesUtils'
-import languagesStore from 'js/components/languages/languagesStore'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import type { ButtonSize } from 'js/components/common/button'
+import type { ButtonSize } from '#/components/common/button'
+import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption, KoboSelectType } from '#/components/common/koboSelect'
+import languagesStore from '#/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { getLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 
 interface TransxSelectorProps {
   /** A list of selectable languages. */

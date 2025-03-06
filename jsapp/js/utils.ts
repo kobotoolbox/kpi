@@ -7,12 +7,12 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import moment from 'moment'
-import type { Toast, ToastOptions } from 'react-hot-toast'
-import { toast } from 'react-hot-toast'
-import { Cookies } from 'react-cookie'
 import * as Sentry from '@sentry/react'
 import random from 'lodash.random'
+import moment from 'moment'
+import { Cookies } from 'react-cookie'
+import type { Toast, ToastOptions } from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 

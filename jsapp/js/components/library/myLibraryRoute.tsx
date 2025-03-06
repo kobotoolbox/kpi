@@ -1,19 +1,21 @@
 import React from 'react'
+
+import type { DragEvent } from 'react'
+
 import DocumentTitle from 'react-document-title'
 import Dropzone from 'react-dropzone'
-import bem from 'js/bem'
-import mixins from 'js/mixins'
-import { validFileTypes } from 'js/utils'
-import myLibraryStore from './myLibraryStore'
-import AssetsTable from 'js/components/assetsTable/assetsTable'
-import { MODAL_TYPES } from 'js/constants'
-import { ROOT_BREADCRUMBS } from 'js/components/library/libraryConstants'
-import { AssetsTableContextName } from 'js/components/assetsTable/assetsTableConstants'
-import pageState from 'js/pageState.store'
-import type { MyLibraryStoreData } from './myLibraryStore'
-import type { OrderDirection } from 'js/projects/projectViews/constants'
 import type { FileWithPreview } from 'react-dropzone'
-import type { DragEvent } from 'react'
+import bem from '#/bem'
+import AssetsTable from '#/components/assetsTable/assetsTable'
+import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
+import { MODAL_TYPES } from '#/constants'
+import mixins from '#/mixins'
+import pageState from '#/pageState.store'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import { validFileTypes } from '#/utils'
+import myLibraryStore from './myLibraryStore'
+import type { MyLibraryStoreData } from './myLibraryStore'
 
 export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreData> {
   private unlisteners: Function[] = []

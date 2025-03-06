@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { AssetContent } from 'js/dataInterface'
-import { QUESTION_TYPES } from 'js/constants'
-import { getAttachmentForProcessing } from 'js/components/processing/transcript/transcript.utils'
+
+import AudioPlayer from '#/components/common/audioPlayer'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { getAttachmentForProcessing } from '#/components/processing/transcript/transcript.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
 import styles from './sidebarSubmissionMedia.module.scss'
 
 interface SidebarSubmissionMediaProps {

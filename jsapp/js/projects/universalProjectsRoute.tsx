@@ -1,35 +1,31 @@
-// Libraries
 import React, { useState, useEffect } from 'react'
-import { observer } from 'mobx-react-lite'
+
 import { toJS } from 'mobx'
+import { observer } from 'mobx-react-lite'
 import Dropzone from 'react-dropzone'
-
-// Partial components
-import ProjectsFilter from './projectViews/projectsFilter'
-import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
-import ViewSwitcher from './projectViews/viewSwitcher'
-import ProjectsTable from 'js/projects/projectsTable/projectsTable'
-import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty'
-import ProjectQuickActions from './projectsTable/projectQuickActions'
-import ProjectBulkActions from './projectsTable/projectBulkActions'
-import LimitNotifications from 'js/components/usageLimits/limitNotifications.component'
-import Icon from 'js/components/common/icon'
-import ProjectOwnershipTransferModalWithBanner from 'js/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner'
-import Button from 'js/components/common/button'
-import OrgInviteModalWrapper from 'js/account/organization/invites/OrgInviteModalWrapper'
-import OrgInviteAcceptedBanner from 'js/account/organization/invites/OrgInviteAcceptedBanner'
-
-// Stores, hooks and utilities
-import customViewStore from './customViewStore'
-import { validFileTypes, notify } from 'js/utils'
-import { dropImportXLSForms } from 'js/dropzone.utils'
-import { handleApiFail, fetchPostUrl } from 'js/api'
-import projectViewsStore from './projectViews/projectViewsStore'
-import { useSession } from 'jsapp/js/stores/useSession'
+import OrgInviteAcceptedBanner from '#/account/organization/invites/OrgInviteAcceptedBanner'
+import OrgInviteModalWrapper from '#/account/organization/invites/OrgInviteModalWrapper'
+import { fetchPostUrl, handleApiFail } from '#/api'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import ProjectOwnershipTransferModalWithBanner from '#/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner'
+import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
+import { dropImportXLSForms } from '#/dropzone.utils'
+import ProjectsTable from '#/projects/projectsTable/projectsTable'
+import { useSession } from '#/stores/useSession'
+import { notify, validFileTypes } from '#/utils'
 import { useOrganizationQuery } from '../account/organization/organizationQuery'
+import customViewStore from './customViewStore'
+import projectViewsStore from './projectViews/projectViewsStore'
+import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
+import ProjectsFilter from './projectViews/projectsFilter'
+import ViewSwitcher from './projectViews/viewSwitcher'
+import ProjectBulkActions from './projectsTable/projectBulkActions'
+import ProjectQuickActions from './projectsTable/projectQuickActions'
+import ProjectQuickActionsEmpty from './projectsTable/projectQuickActionsEmpty'
 
 // Constants and types
-import type { ProjectsFilterDefinition, ProjectFieldName } from './projectViews/constants'
+import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 
 // Styles
 import styles from './projectViews.module.scss'

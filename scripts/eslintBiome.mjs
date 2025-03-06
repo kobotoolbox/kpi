@@ -1,5 +1,5 @@
-import fetch from 'node-fetch'
 import { load } from 'cheerio'
+import fetch from 'node-fetch'
 
 const URL = 'https://biomejs.dev/linter/rules-sources'
 

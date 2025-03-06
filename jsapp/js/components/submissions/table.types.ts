@@ -1,5 +1,5 @@
 import type { Column } from 'react-table'
-import type { SurveyRow, SubmissionResponse } from 'js/dataInterface'
+import type { SubmissionResponse, SurveyRow } from '#/dataInterface'
 
 export type SubmissionPageName = 'next' | 'prev'
 

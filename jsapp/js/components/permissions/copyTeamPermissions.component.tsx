@@ -1,16 +1,17 @@
 import React from 'react'
-import bem from 'js/bem'
+
+import alertify from 'alertifyjs'
 import classNames from 'classnames'
 import type { SingleValue } from 'react-select'
-import alertify from 'alertifyjs'
-import { stores } from '../../stores'
-import assetStore from 'js/assetStore'
-import type { AssetStoreData } from 'js/assetStore'
+import assetStore from '#/assetStore'
+import type { AssetStoreData } from '#/assetStore'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import { escapeHtml, notify } from '#/utils'
 import { actions } from '../../actions'
-import { notify, escapeHtml } from 'js/utils'
-import Button from 'js/components/common/button'
-import KoboSelect from 'js/components/common/koboSelect'
-import type { KoboSelectOption } from 'js/components/common/koboSelect'
+import { stores } from '../../stores'
 
 interface CopyTeamPermissionsProps {
   assetUid: string

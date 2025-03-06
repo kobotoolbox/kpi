@@ -1,23 +1,24 @@
 import React, { useState, useContext } from 'react'
-import Icon from 'js/components/common/icon'
-import styles from './analysisQuestionEditor.module.scss'
-import commonStyles from '../responseForms/common.module.scss'
-import TextBox from 'js/components/common/textBox'
-import Button from 'js/components/common/button'
+
+import clonedeep from 'lodash.clonedeep'
+import { handleApiFail } from '#/api'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import TextBox from '#/components/common/textBox'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   getQuestionsFromSchema,
   updateSurveyQuestions,
-} from 'js/components/processing/analysis/utils'
+} from '#/components/processing/analysis/utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import type { FailResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
-import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
+import commonStyles from '../responseForms/common.module.scss'
+import styles from './analysisQuestionEditor.module.scss'
+import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor.component'
 import SelectXFieldsEditor from './selectXFieldsEditor.component'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import clonedeep from 'lodash.clonedeep'
-import { handleApiFail } from 'js/api'
-import type { FailResponse } from 'js/dataInterface'
 
 interface AnalysisQuestionEditorProps {
   uuid: string

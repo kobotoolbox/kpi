@@ -1,27 +1,28 @@
 import React, { Suspense } from 'react'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
-import { actions } from '../actions'
-import bem from 'js/bem'
-import mixins from '../mixins'
 import DocumentTitle from 'react-document-title'
-import SharingForm from './permissions/sharingForm.component'
-import ProjectSettings from './modalForms/projectSettings'
-import FormMedia from './modalForms/formMedia'
+import reactMixin from 'react-mixin'
+import bem from '#/bem'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import TransferProjects from '#/components/permissions/transferProjects/transferProjects.component'
+import { withRouter } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
-import FormMap from './map/map'
+import mixins from '../mixins'
 import RESTServices from './RESTServices'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { ROUTES } from 'js/router/routerConstants'
-import { withRouter } from 'js/router/legacy'
-import TransferProjects from 'js/components/permissions/transferProjects/transferProjects.component'
+import FormMap from './map/map'
+import FormMedia from './modalForms/formMedia'
+import ProjectSettings from './modalForms/projectSettings'
+import SharingForm from './permissions/sharingForm.component'
 
 const ConnectProjects = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/dataAttachments/connectProjects'),
+  () => import(/* webpackPrefetch: true */ '#/components/dataAttachments/connectProjects'),
 )
-const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ 'js/components/submissions/table'))
+const DataTable = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/submissions/table'))
 const ProjectDownloads = React.lazy(
-  () => import(/* webpackPrefetch: true */ 'js/components/projectDownloads/ProjectDownloads'),
+  () => import(/* webpackPrefetch: true */ '#/components/projectDownloads/ProjectDownloads'),
 )
 const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
 

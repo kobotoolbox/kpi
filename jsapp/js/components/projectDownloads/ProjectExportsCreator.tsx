@@ -1,49 +1,43 @@
-// Libraries
 import React from 'react'
-import Select from 'react-select'
+
 import alertify from 'alertifyjs'
-import bem from 'js/bem'
 import cx from 'classnames'
-
-// Partial components
-import MultiCheckbox, { type MultiCheckboxItem } from 'js/components/common/multiCheckbox'
-import Checkbox from 'js/components/common/checkbox'
-import TextBox from 'js/components/common/textBox'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import ExportTypeSelector from 'js/components/projectDownloads/ExportTypeSelector'
-import Button from 'js/components/common/button'
-
-// Stores, hooks and utilities
-import { actions } from 'js/actions'
-import { formatTimeDate } from 'js/utils'
+import Select from 'react-select'
+import { actions } from '#/actions'
+import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
+import TextBox from '#/components/common/textBox'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
+import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
+import {
+  DEFAULT_EXPORT_SETTINGS,
+  EXPORT_FORMATS,
+  EXPORT_MULTIPLE_OPTIONS,
+  EXPORT_TYPES,
+  type ExportMultiOption,
+  type ExportTypeDefinition,
+} from '#/components/projectDownloads/exportsConstants'
+import exportsStore from '#/components/projectDownloads/exportsStore'
 import {
   type ExportFormatOption,
   getContextualDefaultExportFormat,
   getExportFormatOptions,
-} from 'js/components/projectDownloads/exportsUtils'
-import { getSurveyFlatPaths, getFlatQuestionsList, injectSupplementalRowsIntoListOfRows } from 'js/assetUtils'
-import { getColumnLabel } from 'js/components/submissions/tableUtils'
-import exportsStore from 'js/components/projectDownloads/exportsStore'
-import { userCan } from 'js/components/permissions/utils'
-
-// Constants and types
-import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from 'js/constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import {
-  EXPORT_TYPES,
-  DEFAULT_EXPORT_SETTINGS,
-  EXPORT_FORMATS,
-  EXPORT_MULTIPLE_OPTIONS,
-  type ExportTypeDefinition,
-  type ExportMultiOption,
-} from 'js/components/projectDownloads/exportsConstants'
+} from '#/components/projectDownloads/exportsUtils'
+import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type {
+  AssetResponse,
   ExportSetting,
   ExportSettingRequest,
   ExportSettingSettings,
   PaginatedResponse,
-  AssetResponse,
-} from 'jsapp/js/dataInterface'
+} from '#/dataInterface'
+import { formatTimeDate } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 

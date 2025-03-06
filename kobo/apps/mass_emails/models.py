@@ -3,12 +3,18 @@ from collections.abc import Callable
 from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.mass_emails.user_queries import get_inactive_users
+from kobo.apps.mass_emails.user_queries import (
+    get_inactive_users,
+    get_users_over_90_percent_of_storage_limit,
+    get_users_over_100_percent_of_storage_limit,
+)
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 USER_QUERIES: dict[str, Callable] = {
-    'users_inactive_for_a_year': get_inactive_users,
+    'users_above_90_percent_storage': get_users_over_90_percent_of_storage_limit,
+    'users_above_100_percent_storage': get_users_over_100_percent_of_storage_limit,
+    'users_inactive_for_365_days': get_inactive_users,
 }
 USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 
@@ -28,8 +34,8 @@ class MassEmailConfig(AbstractTimeStampedModel):
         blank=True,
         help_text='Available placeholders:<br />'
         '##username##<br />'
-        "##full_name## - user\'s full name<br />"
-        "##plan_name## - user\'s current subscription plan",
+        "##full_name## - user's full name<br />"
+        "##plan_name## - user's current subscription plan",
     )
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES

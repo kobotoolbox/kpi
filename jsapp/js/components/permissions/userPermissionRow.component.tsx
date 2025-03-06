@@ -1,16 +1,17 @@
 import React from 'react'
+
 import alertify from 'alertifyjs'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { escapeHtml } from 'js/utils'
-import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
+import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import { escapeHtml } from '#/utils'
 import permConfig from './permConfig'
-import type { PermissionBase, PermissionResponse } from 'js/dataInterface'
 import type { AssignablePermsMap } from './sharingForm.component'
-import { getPermLabel, getFriendlyPermName } from './utils'
-import Button from 'js/components/common/button'
-import Avatar from 'js/components/common/avatar'
+import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import { getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
   assetUid: string

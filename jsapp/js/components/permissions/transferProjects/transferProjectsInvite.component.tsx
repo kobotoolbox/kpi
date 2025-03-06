@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import KoboModal from 'js/components/modals/koboModal'
-import KoboModalHeader from 'js/components/modals/koboModalHeader'
-import KoboModalFooter from 'js/components/modals/koboModalFooter'
-import Button from 'js/components/common/button'
-import Icon from 'js/components/common/icon'
-import cx from 'classnames'
 
+import cx from 'classnames'
+import { useSearchParams } from 'react-router-dom'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboModal from '#/components/modals/koboModal'
+import KoboModalFooter from '#/components/modals/koboModalFooter'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import { TransferStatuses, acceptInvite, declineInvite, getAssetFromInviteUid } from './transferProjects.api'
 import styles from './transferProjectsInvite.module.scss'
-import { acceptInvite, declineInvite, getAssetFromInviteUid, TransferStatuses } from './transferProjects.api'
 
 interface DisplayDetails {
   assetName: string

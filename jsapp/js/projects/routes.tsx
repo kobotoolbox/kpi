@@ -1,8 +1,9 @@
 import React from 'react'
+
 import { Navigate, Route } from 'react-router-dom'
-import RequireAuth from 'js/router/requireAuth'
-import { PROJECTS_ROUTES } from 'js/router/routerConstants'
-import { RequireOrgPermissions } from 'js/router/RequireOrgPermissions.component'
+import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
+import RequireAuth from '#/router/requireAuth'
+import { PROJECTS_ROUTES } from '#/router/routerConstants'
 import { OrganizationUserRole } from '../account/organization/organizationQuery'
 
 const MyProjectsRoute = React.lazy(() => import(/* webpackPrefetch: true */ './myProjectsRoute'))

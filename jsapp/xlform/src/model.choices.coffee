@@ -1,7 +1,7 @@
 _ = require 'underscore'
 base = require './model.base'
 $modelUtils = require './model.utils'
-txtid = require('js/utils').txtid
+txtid = require('#/utils').txtid
 
 module.exports = do ->
 

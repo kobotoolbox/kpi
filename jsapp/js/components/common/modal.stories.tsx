@@ -1,7 +1,7 @@
 import type { ModalProps } from '@mantine/core'
-import { Button, Center, Modal, Stack, Text, Group } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
+import { Button, Center, Group, Modal, Stack, Text } from '@mantine/core'
 import { useArgs } from '@storybook/preview-api'
+import type { Meta, StoryObj } from '@storybook/react'
 
 const RenderModal = ({ ...args }: ModalProps) => {
   const [{ opened }, updateArgs] = useArgs()

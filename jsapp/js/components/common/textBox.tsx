@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react'
-import TextareaAutosize from 'react-textarea-autosize'
-import styles from './textBox.module.scss'
+
 import classnames from 'classnames'
-import type { ButtonSize } from 'js/components/common/button'
-import { ButtonToIconMap } from 'js/components/common/button'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import TextareaAutosize from 'react-textarea-autosize'
+import type { ButtonSize } from '#/components/common/button'
+import { ButtonToIconMap } from '#/components/common/button'
+import type { IconName } from '#/k-icons'
 import Icon from './icon'
+import styles from './textBox.module.scss'
 
 export type TextBoxType = 'email' | 'number' | 'password' | 'text-multiline' | 'text' | 'url'
 

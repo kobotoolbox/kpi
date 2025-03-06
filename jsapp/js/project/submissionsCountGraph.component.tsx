@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import classNames from 'classnames'
-import moment from 'moment'
+
 import Chart from 'chart.js/auto'
 import type { ChartConfiguration } from 'chart.js/auto'
-import type { FailResponse } from 'js/dataInterface'
-import { fetchGet, handleApiFail } from 'js/api'
-import { formatDate } from 'js/utils'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
+import classNames from 'classnames'
+import moment from 'moment'
+import { fetchGet, handleApiFail } from '#/api'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { FailResponse } from '#/dataInterface'
+import { formatDate } from '#/utils'
 import styles from './submissionsCountGraph.module.scss'
 
 interface DailySubmissionCounts {

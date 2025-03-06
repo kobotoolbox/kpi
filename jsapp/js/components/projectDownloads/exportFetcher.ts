@@ -1,6 +1,6 @@
-import { actions } from 'js/actions'
-import envStore from 'js/envStore'
-import { getExponentialDelayTime } from 'jsapp/js/utils'
+import { actions } from '#/actions'
+import envStore from '#/envStore'
+import { getExponentialDelayTime } from '#/utils'
 
 /**
  * Responsible for handling interval fetch calls.
