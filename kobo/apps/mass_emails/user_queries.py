@@ -25,6 +25,7 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     :return: A queryset of inactive users
     """
     # Calculate the user inactivity threshold date
+    days = days or 365
     inactivity_threshold = now() - timedelta(days=days)
 
     # Identify users who have not logged in within the given period
@@ -38,10 +39,10 @@ def get_inactive_users(days: int = 365) -> QuerySet:
         Q(date_created__gt=inactivity_threshold) |
         Q(instances__date_modified__gt=inactivity_threshold) |
         Q(instances__date_created__gt=inactivity_threshold)
-    ).values_list('user', flat=True).distinct()
+    ).values_list('user', flat=True)
 
     # Exclude active users from the inactive list
-    return inactive_users.exclude(id__in=active_users)
+    return inactive_users.exclude(id__in=set(active_users))
 
 
 def get_users_within_range_of_usage_limit(
