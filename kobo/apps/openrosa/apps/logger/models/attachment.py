@@ -8,6 +8,8 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
 
+from kobo.apps.kobo_auth.models import User
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
 from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
@@ -57,6 +59,23 @@ class Attachment(models.Model, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default='')
     deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+
+    xform = models.ForeignKey(
+        XForm,
+        related_name='attachments',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+    user = models.ForeignKey(
+        User,
+        related_name='attachments',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
@@ -166,6 +185,11 @@ class Attachment(models.Model, AudioTranscodingMixin):
             # Cache the file size in the database to avoid expensive calls to
             # the storage engine when running reports
             self.media_file_size = self.media_file.size
+
+        # Denormalize xform and user
+        if self.instance and self.instance.xform:
+            self.xform = self.instance.xform
+            self.user = self.instance.xform.user
 
         super().save(*args, **kwargs)
 
