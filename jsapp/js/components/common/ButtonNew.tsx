@@ -4,18 +4,10 @@ import { IconName } from 'jsapp/fonts/k-icons'
 import { forwardRef } from 'react'
 import Icon, { IconSize } from './icon'
 
-/** To be used for buttons with both icon and text. */
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
   sm: 'xs',
   md: 's',
   lg: 'm',
-}
-
-/** To be used for icon-only buttons. */
-const ButtonToIconAloneMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
-  sm: 'm',
-  md: 'l',
-  lg: 'l',
 }
 
 export interface ButtonProps extends ButtonPropsMantine {
@@ -23,6 +15,7 @@ export interface ButtonProps extends ButtonPropsMantine {
   tooltipProps?: Partial<Omit<TooltipProps, 'label'>>
 
   // Standard way of using icons with deterministic sizes.
+  // Note: never use Button with just an icon and no text - if you need that, use `ActionIcon` instead.
   leftIcon?: IconName
   rightIcon?: IconName
   leftSection?: never
@@ -31,7 +24,7 @@ export interface ButtonProps extends ButtonPropsMantine {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ tooltip, tooltipProps, leftIcon, rightIcon, ...others }, ref) => {
-    const iconSize = (others.children ? ButtonToIconMap : ButtonToIconAloneMap)[others.size ?? 'sm']
+    const iconSize = ButtonToIconMap[others.size ?? 'sm']
     const leftSection = leftIcon && <Icon name={leftIcon} size={iconSize} />
     const rightSection = rightIcon && <Icon name={rightIcon} size={iconSize} />
 
