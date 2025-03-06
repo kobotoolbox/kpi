@@ -42,7 +42,9 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     ).values_list('user', flat=True)
 
     # Exclude active users from the inactive list
-    return inactive_users.exclude(id__in=set(active_users))
+    return inactive_users.exclude(
+        Q(id__in=set(active_users)) | Q(username='AnonymousUser')
+    )
 
 
 def get_users_within_range_of_usage_limit(
