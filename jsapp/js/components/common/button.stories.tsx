@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import type { IconName } from 'jsapp/fonts/k-icons'
+import { type IconName, IconNames } from 'jsapp/fonts/k-icons'
 import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
 import Icon from './icon'
 import '@mantine/core/styles.css'
@@ -77,6 +77,28 @@ const meta: Meta<typeof Button> = {
     fullWidth: {
       description: 'Makes the button take 100% width of the container',
       control: 'boolean',
+    },
+    leftSection: {
+      description:
+        'For preview only, here\'s a full list of existing icons to be rendered in size "m". In practice, anything *could* be rendered in the left section, but we *should* agree on using only icons.',
+      options: [undefined, ...Object.values(IconNames)],
+      mapping: Object.fromEntries(
+        Object.values(IconNames).map((iconName) => [iconName, <Icon name={iconName} size='m' />]),
+      ),
+      control: {
+        type: 'select', // Type 'select' is automatically inferred when 'options' is defined
+      },
+    },
+    rightSection: {
+      description:
+        'For preview only, here\'s a full list of existing icons to be rendered in size "m". In practice, anything *could* be rendered in the left section, but we *should* agree on using only icons.',
+      options: [undefined, ...Object.values(IconNames)],
+      mapping: Object.fromEntries(
+        Object.values(IconNames).map((iconName) => [iconName, <Icon name={iconName} size='m' />]),
+      ),
+      control: {
+        type: 'select', // Type 'select' is automatically inferred when 'options' is defined
+      },
     },
   },
 }
