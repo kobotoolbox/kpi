@@ -78,26 +78,28 @@ const meta: Meta<typeof Button> = {
       description: 'Makes the button take 100% width of the container',
       control: 'boolean',
     },
-    leftSection: {
-      description:
-        'For preview only, here\'s a full list of existing icons to be rendered in size "m". In practice, anything *could* be rendered in the left section, but we *should* agree on using only icons.',
+    leftIcon: {
+      description: 'id of an icon',
       options: [undefined, ...Object.values(IconNames)],
-      mapping: Object.fromEntries(
-        Object.values(IconNames).map((iconName) => [iconName, <Icon name={iconName} size='m' />]),
-      ),
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
       },
     },
-    rightSection: {
-      description:
-        'For preview only, here\'s a full list of existing icons to be rendered in size "m". In practice, anything *could* be rendered in the left section, but we *should* agree on using only icons.',
+    rightIcon: {
+      description: 'id of an icon',
       options: [undefined, ...Object.values(IconNames)],
-      mapping: Object.fromEntries(
-        Object.values(IconNames).map((iconName) => [iconName, <Icon name={iconName} size='m' />]),
-      ),
       control: {
         type: 'select', // Type 'select' is automatically inferred when 'options' is defined
+      },
+    },
+    leftSection: {
+      table: {
+        disable: true,
+      },
+    },
+    rightSection: {
+      table: {
+        disable: true,
       },
     },
   },
@@ -163,16 +165,16 @@ export const WithIcon = () => (
       padding: '10px',
     }}
   >
-    <Button variant='filled' size='sm' leftSection={<Icon name='download' size='s' />}>
+    <Button variant='filled' size='sm' leftIcon='download'>
       Download
     </Button>
-    <Button variant='light' size='md' leftSection={<Icon name='file' size='m' />}>
+    <Button variant='light' size='md' leftIcon='file'>
       XLSForm file
     </Button>
-    <Button variant='danger' size='lg' rightSection={<Icon name='trash' size='l' />}>
+    <Button variant='danger' size='lg' rightIcon='trash'>
       Delete
     </Button>
-    <Button variant='danger-secondary' size='sm' leftSection={<Icon name='close' size='s' />}>
+    <Button variant='danger-secondary' size='sm' leftIcon='close'>
       Close this window
     </Button>
   </div>
@@ -218,7 +220,7 @@ export const AllButtons = () => (
           const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
             variant,
             size: size,
-            leftSection: leftSectionName ? <Icon name={leftSectionName} size={size[0] as any} /> : undefined,
+            leftIcon: leftSectionName,
             onClick: () => console.info('Clicked!', variant, size, label, leftSectionName),
             tooltip: label,
           }
