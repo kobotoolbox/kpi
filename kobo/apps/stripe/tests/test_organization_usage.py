@@ -16,6 +16,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization, OrganizationUser
+from kobo.apps.organizations.utils import get_billing_dates
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.tests.utils import (
     generate_free_plan,
@@ -89,7 +90,8 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         self.expected_submissions_multi = self.expected_submissions_single * self.user_count
 
     def tearDown(self):
-        cache.clear()
+        #cache.clear()
+        pass
 
     def test_usage_for_plans_with_org_access(self):
         """
@@ -186,7 +188,8 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         self.detail_url = f'{url}{self.org_id}/service_usage/'
 
     def tearDown(self):
-        cache.clear()
+        #cache.clear()
+        pass
 
     def test_default_plan_period(self):
         """
@@ -768,6 +771,24 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             billing_dates_by_org[self.organization.id]['end']
             == active_sub.current_period_end
         )
+
+    def test_get_billing_dates(self):
+        # ensure we're not making more queries than we would need for
+        # a single organization. Number of queries based off former implementation of
+        # get_billing_dates
+        with self.assertNumQueries(2):
+            get_billing_dates(self.organization)
+
+        sub = generate_plan_subscription(self.organization)
+        with self.assertNumQueries(1):
+            get_billing_dates(self.organization)
+
+        sub.status = 'canceled'
+        sub.ended_at = timezone.now() - timedelta(days=3)
+        sub.save()
+
+        with self.assertNumQueries(2):
+            get_billing_dates(self.organization)
 
 
 @override_settings(STRIPE_ENABLED=True)

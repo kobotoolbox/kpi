@@ -8,58 +8,22 @@ from zoneinfo import ZoneInfo
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils import get_billing_dates_after_canceled_subscription
+from kobo.apps.stripe.utils import get_current_billing_period_dates_by_org
 from kpi.models.object_permission import ObjectPermission
 
 
 def get_billing_dates(organization: Union['Organization', None]):
     """Returns start and end dates of an organization's billing cycle."""
-
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = (
         first_of_this_month
         + relativedelta(months=1)
     )
-
-    # @TODO Validate if the condition is still needed, organization is always
-    #   present now.
-    # If no organization, just use the calendar month
     if not organization:
         return first_of_this_month, first_of_next_month
-    # If no active subscription, check for canceled subscription
-    if not (billing_details := organization.active_subscription_billing_details()):
-        if not (
-            canceled_subscription_anchor
-            := organization.canceled_subscription_billing_cycle_anchor()
-        ):
-            return first_of_this_month, first_of_next_month
-        return get_billing_dates_after_canceled_subscription(
-            canceled_subscription_anchor
-        )
-
-    if not billing_details.get('billing_cycle_anchor'):
-        return first_of_this_month, first_of_next_month
-
-    if billing_details.get('recurring_interval') == 'month':
-        period_start = billing_details.get('current_period_start').replace(
-            tzinfo=ZoneInfo('UTC')
-        )
-        period_end = billing_details.get('current_period_end').replace(
-            tzinfo=ZoneInfo('UTC')
-        )
-        return period_start, period_end
-
-    if billing_details.get('recurring_interval') == 'year':
-        period_start = billing_details.get('current_period_start').replace(
-            tzinfo=ZoneInfo('UTC')
-        )
-        period_end = billing_details.get('current_period_end').replace(
-            tzinfo=ZoneInfo('UTC')
-        )
-        return period_start, period_end
-
-    return first_of_this_month, first_of_next_month
+    return get_current_billing_period_dates_by_org([organization]).get(organization.id,
+                                                                       (first_of_this_month, first_of_next_month))
 
 
 def get_real_owner(user: User) -> User:

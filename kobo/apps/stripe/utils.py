@@ -82,9 +82,12 @@ def get_active_subscription_billing_dates_by_org(
     return results
 
 
-def get_billing_dates_for_orgs_with_canceled_subscriptions():
+def get_billing_dates_for_orgs_with_canceled_subscriptions(orgs: list[Organization] = None):
+    all_orgs = Organization.objects.prefetch_related('djstripe_customers')
+    if orgs is not None:
+        all_orgs = all_orgs.filter(id__in=[org.id for org in orgs])
     all_cancellation_dates = (
-        Organization.objects.prefetch_related('djstripe_customers')
+        all_orgs
         .filter(
             djstripe_customers__subscriptions__status='canceled',
         )
@@ -240,22 +243,51 @@ def get_billing_dates_after_canceled_subscription(
     return period_start, period_end
 
 
-def get_current_billing_period_dates_by_org():
+def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
+
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = first_of_this_month + relativedelta(months=1)
-    all_active_billing_dates = get_active_subscription_billing_dates_by_org()
-    all_canceled_billing_dates = (
-        get_billing_dates_for_orgs_with_canceled_subscriptions()
-    )
+    all_active_billing_dates = get_active_subscription_billing_dates_by_org(orgs)
+
     results = {}
-    for org in Organization.objects.all():
-        results[org.id] = (
-            all_active_billing_dates.get(org.id)
-            or all_canceled_billing_dates.get(org.id)
-            or {
+    already_seen = []
+    remaining_orgs = []
+    for org_id, dates in all_active_billing_dates.items():
+        results[org_id] = dates
+        already_seen.append(org_id)
+
+    if orgs is not None:
+        remaining_orgs = [org for org in orgs if org.id not in already_seen]
+        if len(remaining_orgs) == 0:
+            return results
+        else:
+            all_canceled_billing_dates = (
+                get_billing_dates_for_orgs_with_canceled_subscriptions(orgs=remaining_orgs)
+            )
+    else:
+        all_canceled_billing_dates = get_billing_dates_for_orgs_with_canceled_subscriptions()
+
+    for org_id, dates in all_canceled_billing_dates.items():
+        results[org_id] = dates
+        already_seen.append(org_id)
+
+    if orgs is not None:
+        remaining_orgs = [org for org in remaining_orgs if org.id not in already_seen]
+        if len(remaining_orgs) == 0:
+            return results
+        else:
+            for remaining_org in remaining_orgs:
+                results[remaining_org.id] = {
+                    'start': first_of_this_month,
+                    'end': first_of_next_month
+                }
+            return results
+
+
+    for org in Organization.objects.filter(~Q(id__in=already_seen)):
+        results[org.id] =  {
                 'start': first_of_this_month,
                 'end': first_of_next_month,
-            }
-        )
+        }
     return results
