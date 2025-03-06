@@ -64,7 +64,7 @@ def get_submissions_for_current_billing_period_by_user_id():
 
 
 class ServiceUsageCalculator(CachedClass):
-    CACHE_TTL = 1
+    CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
 
     def __init__(
         self,
@@ -106,7 +106,6 @@ class ServiceUsageCalculator(CachedClass):
     )
     def get_nlp_usage_counters(self):
         NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
-        breakpoint()
 
         nlp_tracking = (
             NLPUsageCounter.objects.only(

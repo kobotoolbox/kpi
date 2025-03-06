@@ -13,7 +13,7 @@ from kpi.models.object_permission import ObjectPermission
 
 
 def get_billing_dates(organization: Union['Organization', None]):
-    """Returns start and end dates of an organization's billing cycle."""
+    """Returns start and end dates of an organization's current billing cycle."""
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = (
@@ -22,8 +22,13 @@ def get_billing_dates(organization: Union['Organization', None]):
     )
     if not organization:
         return first_of_this_month, first_of_next_month
-    return get_current_billing_period_dates_by_org([organization]).get(organization.id,
-                                                                       (first_of_this_month, first_of_next_month))
+    calculated_dates = get_current_billing_period_dates_by_org([organization]).get(
+        organization.id
+    )
+    if calculated_dates is None:
+        return first_of_this_month, first_of_next_month
+    else:
+        return calculated_dates['start'], calculated_dates['end']
 
 
 def get_real_owner(user: User) -> User:

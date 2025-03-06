@@ -82,13 +82,14 @@ def get_active_subscription_billing_dates_by_org(
     return results
 
 
-def get_billing_dates_for_orgs_with_canceled_subscriptions(orgs: list[Organization] = None):
+def get_billing_dates_for_orgs_with_canceled_subscriptions(
+    orgs: list[Organization] = None,
+):
     all_orgs = Organization.objects.prefetch_related('djstripe_customers')
     if orgs is not None:
         all_orgs = all_orgs.filter(id__in=[org.id for org in orgs])
     all_cancellation_dates = (
-        all_orgs
-        .filter(
+        all_orgs.filter(
             djstripe_customers__subscriptions__status='canceled',
         )
         .values('id')
@@ -263,10 +264,14 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
             return results
         else:
             all_canceled_billing_dates = (
-                get_billing_dates_for_orgs_with_canceled_subscriptions(orgs=remaining_orgs)
+                get_billing_dates_for_orgs_with_canceled_subscriptions(
+                    orgs=remaining_orgs
+                )
             )
     else:
-        all_canceled_billing_dates = get_billing_dates_for_orgs_with_canceled_subscriptions()
+        all_canceled_billing_dates = (
+            get_billing_dates_for_orgs_with_canceled_subscriptions()
+        )
 
     for org_id, dates in all_canceled_billing_dates.items():
         results[org_id] = dates
@@ -280,14 +285,13 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
             for remaining_org in remaining_orgs:
                 results[remaining_org.id] = {
                     'start': first_of_this_month,
-                    'end': first_of_next_month
+                    'end': first_of_next_month,
                 }
             return results
 
-
     for org in Organization.objects.filter(~Q(id__in=already_seen)):
-        results[org.id] =  {
-                'start': first_of_this_month,
-                'end': first_of_next_month,
+        results[org.id] = {
+            'start': first_of_this_month,
+            'end': first_of_next_month,
         }
     return results

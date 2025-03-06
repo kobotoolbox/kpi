@@ -90,8 +90,7 @@ class OrganizationServiceUsageAPIMultiUserTestCase(BaseServiceUsageTestCase):
         self.expected_submissions_multi = self.expected_submissions_single * self.user_count
 
     def tearDown(self):
-        #cache.clear()
-        pass
+        cache.clear()
 
     def test_usage_for_plans_with_org_access(self):
         """
@@ -188,8 +187,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         self.detail_url = f'{url}{self.org_id}/service_usage/'
 
     def tearDown(self):
-        #cache.clear()
-        pass
+        cache.clear()
 
     def test_default_plan_period(self):
         """
