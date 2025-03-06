@@ -770,13 +770,17 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             == active_sub.current_period_end
         )
 
-    def test_get_billing_dates(self):
+    def test_queries_for_billing_dates_for_single_org(self):
         # ensure we're not making more queries than we would need for
         # a single organization. Number of queries based off former implementation of
         # get_billing_dates
+
+        # if no subscriptions, there will be 2 queries (one to look for active subs,
+        # one to look for canceled subs)
         with self.assertNumQueries(2):
             get_billing_dates(self.organization)
 
+        # with an active plan, should return after the first query
         sub = generate_plan_subscription(self.organization)
         with self.assertNumQueries(1):
             get_billing_dates(self.organization)
@@ -785,8 +789,25 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         sub.ended_at = timezone.now() - timedelta(days=3)
         sub.save()
 
+        # with a canceled plan, will take 2 queries
         with self.assertNumQueries(2):
             get_billing_dates(self.organization)
+
+    def test_get_billing_dates_for_list_of_orgs(self):
+        now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
+        first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
+        first_of_next_month = first_of_this_month + relativedelta(months=1)
+        third_org = baker.make(
+            Organization, id='10987654321', name='third test organization'
+        )
+        results = get_current_billing_period_dates_by_org(
+            [self.organization, self.second_organization]
+        )
+        assert results.get(third_org.id) is None
+        assert results[self.organization.id]['start'] == first_of_this_month
+        assert results[self.organization.id]['end'] == first_of_next_month
+        assert results[self.second_organization.id]['start'] == first_of_this_month
+        assert results[self.second_organization.id]['end'] == first_of_next_month
 
 
 @override_settings(STRIPE_ENABLED=True)

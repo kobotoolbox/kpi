@@ -249,6 +249,7 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = first_of_this_month + relativedelta(months=1)
+    # check 1: look for active subscriptions
     all_active_billing_dates = get_active_subscription_billing_dates_by_org(orgs)
 
     results = {}
@@ -258,11 +259,16 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
         results[org_id] = dates
         already_seen.append(org_id)
 
+    # check 2: look for canceled subscriptions
     if orgs is not None:
+        # if we're only looking for a specific list of orgs and we already have
+        # dates for all of them, return
         remaining_orgs = [org for org in orgs if org.id not in already_seen]
         if len(remaining_orgs) == 0:
             return results
         else:
+            # only look for canceled subscriptions for orgs in the list
+            # we didn't get active subs for
             all_canceled_billing_dates = (
                 get_billing_dates_for_orgs_with_canceled_subscriptions(
                     orgs=remaining_orgs
@@ -274,20 +280,19 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
         )
 
     for org_id, dates in all_canceled_billing_dates.items():
-        results[org_id] = dates
+        # prioritize active subscriptions over canceled ones
+        results[org_id] = results.get(org_id) or dates
         already_seen.append(org_id)
 
+    # default: beginning of this month and beginning of next month
     if orgs is not None:
         remaining_orgs = [org for org in remaining_orgs if org.id not in already_seen]
-        if len(remaining_orgs) == 0:
-            return results
-        else:
-            for remaining_org in remaining_orgs:
-                results[remaining_org.id] = {
-                    'start': first_of_this_month,
-                    'end': first_of_next_month,
-                }
-            return results
+        for remaining_org in remaining_orgs:
+            results[remaining_org.id] = {
+                'start': first_of_this_month,
+                'end': first_of_next_month,
+            }
+        return results
 
     for org in Organization.objects.filter(~Q(id__in=already_seen)):
         results[org.id] = {

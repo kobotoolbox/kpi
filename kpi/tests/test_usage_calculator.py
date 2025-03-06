@@ -275,7 +275,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
 
-    def test_submission_counters_all_orgs(self):
+    def test_submission_counters_current_period_all_orgs(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)
         five_days_ago = timezone.now() - relativedelta(days=5)
