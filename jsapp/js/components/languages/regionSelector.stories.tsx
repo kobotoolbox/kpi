@@ -1,17 +1,23 @@
 import React from 'react'
-import type { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import RegionSelector from './regionSelector'
 
-export default {
+const meta: Meta<typeof RegionSelector> = {
   title: 'common/RegionSelector',
   component: RegionSelector,
-  argTypes: {},
-} as ComponentMeta<typeof RegionSelector>
+  argTypes: {
+    rootLanguage: { control: 'text' },
+    isDisabled: { control: 'boolean' },
+  },
+}
 
-const Template: ComponentStory<typeof RegionSelector> = (args) => <RegionSelector {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  rootLanguage: 'en',
-  isDisabled: false,
+type Story = StoryObj<typeof RegionSelector>
+
+export const Primary: Story = {
+  args: {
+    rootLanguage: 'en',
+    isDisabled: false,
+  },
 }

@@ -1,34 +1,36 @@
 import React from 'react'
-import { ComponentStory, ComponentMeta } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import KoboPrompt from './koboPrompt'
 import { IconNames } from 'jsapp/fonts/k-icons'
 
-export default {
+const meta: Meta<typeof KoboPrompt> = {
   title: 'common/KoboPrompt',
   component: KoboPrompt,
   argTypes: {
     titleIcon: {
-      options: IconNames,
+      options: Object.keys(IconNames),
       control: { type: 'select' },
     },
   },
-} as ComponentMeta<typeof KoboPrompt>
+}
 
-const Template: ComponentStory<typeof KoboPrompt> = (args) => (
-  <KoboPrompt {...args}>This is just some basic prompt example with single button.</KoboPrompt>
-)
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  title: 'Have a nice day!',
-  titleIcon: 'information',
-  titleIconColor: 'blue',
-  isOpen: true,
-  buttons: [
-    {
-      type: 'primary',
-      label: 'ok, thanks',
-      onClick: () => {},
-    },
-  ],
+type Story = StoryObj<typeof KoboPrompt>
+
+export const Primary: Story = {
+  args: {
+    title: 'Have a nice day!',
+    titleIcon: IconNames.information,
+    titleIconColor: 'blue',
+    isOpen: true,
+    buttons: [
+      {
+        type: 'primary',
+        label: 'ok, thanks',
+        onClick: () => {},
+      },
+    ],
+  },
+  render: (args) => <KoboPrompt {...args}>This is just some basic prompt example with single button.</KoboPrompt>,
 }
