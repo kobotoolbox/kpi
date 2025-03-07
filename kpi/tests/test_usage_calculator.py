@@ -1,5 +1,7 @@
+import datetime
 import os.path
 import uuid
+from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -20,6 +22,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.usage_calculator import (
     ServiceUsageCalculator,
     get_storage_usage_by_user_id,
+    get_submissions_for_current_billing_period_by_user_id,
 )
 
 
@@ -114,7 +117,13 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             total_mt_characters=counter_2['google_mt_characters'],
         )
 
-    def add_submissions(self, count=2, asset=None, username='anotheruser'):
+    def add_submissions(
+        self,
+        count=2,
+        asset=None,
+        username='anotheruser',
+        date_override: datetime.datetime = None,
+    ):
         """
         Add one or more submissions to an asset (TWO by default)
         """
@@ -143,6 +152,8 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 ],
                 '_submitted_by': username,
             }
+            if date_override:
+                submission['_submission_time'] = date_override.isoformat()
             # increment the attachment ID for each attachment created
             submissions.append(submission)
 
@@ -263,3 +274,44 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         submission_counters = calculator.get_submission_counters()
         assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
+
+    def test_submission_counters_current_period_all_orgs(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        five_days_ago = timezone.now() - relativedelta(days=5)
+        one_month_from_five_days_ago = five_days_ago + relativedelta(months=1)
+        mock_billing_periods = {
+            # someuser is on a yearly cycle
+            self.someuser.organization.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            },
+            # anotheruser is on a monthly cycle
+            self.anotheruser.organization.id: {
+                'start': five_days_ago,
+                'end': one_month_from_five_days_ago,
+            },
+        }
+        asset_2 = self._create_asset(self.someuser)
+
+        # mock a submission for someuser from 3 months ago (in range)
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self.add_submissions(
+            count=1, asset=asset_2, username='someuser', date_override=three_months_ago
+        )
+        # mock a submission for someuser from a year ago (out of range)
+        one_year_ago = timezone.now() - relativedelta(years=1)
+        self.add_submissions(
+            count=1, asset=asset_2, username='someuser', date_override=one_year_ago
+        )
+        # mock a submission for another user from 3 months ago (out of range)
+        self.add_submissions(count=1, date_override=three_months_ago)
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            submissions_by_user = (
+                get_submissions_for_current_billing_period_by_user_id()
+            )
+        assert submissions_by_user[self.someuser.id] == 1
+        assert submissions_by_user[self.anotheruser.id] == 5
