@@ -1,5 +1,4 @@
-import json
-import os
+import uuid
 from datetime import timedelta
 
 from ddt import data, ddt, unpack
@@ -8,13 +7,14 @@ from django.utils.timezone import now
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_inactive_users
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kpi.models import Asset
 
 
 @ddt
 class InactiveUserTest(TestCase):
     """
-    Tests for identifying inactive users based on login, xform modifications,
+    Tests for identifying inactive users based on login, asset modifications,
     and submissions
     """
     @classmethod
@@ -22,63 +22,57 @@ class InactiveUserTest(TestCase):
         cls.old_date = now() - timedelta(days=400)
         cls.recent_date = now()
 
-        # Load XML and JSON for xform creation
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
-                '..',
-                'fixtures',
-                'water_translated_form.xml'
-            )
-        ) as f:
-            cls.test_form_xml = f.read()
-
-        cls.test_form_json = json.dumps({
-            'default_language': 'default',
-            'id_string': 'Water_2011_03_17',
-            'children': [],
-            'name': 'Water_2011_03_17',
-            'title': 'Water_2011_03_17',
-            'type': 'survey'
-        })
-
     def _create_user(self, username, last_login):
         """
         Helper function to create a user
         """
         return User.objects.create(username=username, last_login=last_login)
 
-    def _create_xform(self, user, created_at, modified_at):
+    def _create_asset(self, user, created_at, modified_at):
         """
-        Helper function to create an XForm for a given user
+        Helper function to create an Asset for a given user
         """
-        xform = XForm.objects.create(
-            xml=self.test_form_xml, user=user, json=self.test_form_json
+        content_source_asset = {
+            'survey': [
+                {
+                    'type': 'audio',
+                    'label': 'q1',
+                    'required': 'false',
+                    '$kuid': 'abcd',
+                },
+                {
+                    'type': 'file',
+                    'label': 'q2',
+                    'required': 'false',
+                    '$kuid': 'efgh',
+                },
+            ]
+        }
+        asset = Asset.objects.create(
+            content=content_source_asset, owner=user, asset_type='survey'
         )
-        xform.date_created = created_at
-        xform.date_modified = modified_at
-        xform.save(update_fields=['date_created', 'date_modified'])
-        return xform
+        asset.deploy(backend='mock', active=True)
+        Asset.objects.filter(id=asset.id).update(
+            date_created=created_at, date_modified=modified_at
+        )
+        return asset
 
-    def _create_submission(self, user, xform, created_at, modified_at):
+    def _create_submission(self, user, asset, created_at, modified_at):
         """
-        Helper function to create a submission (Instance) for a given XForm
+        Helper function to create a submission (Instance) for a given Asset
         """
-        with open(
-            os.path.join(
-                os.path.dirname(__file__),
-                '..',
-                'fixtures',
-                'water_translated_submission.xml'
-            )
-        ) as f:
-            xml = f.read()
-
-        submission = Instance.objects.create(xml=xml, user=user, xform=xform)
-        submission.date_created = created_at
-        submission.date_modified = modified_at
-        submission.save(update_fields=['date_created', 'date_modified'])
-        return submission
+        uuid_ = uuid.uuid4()
+        submission_data = {
+            'q1': 'answer',
+            'q2': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_uuid': str(uuid_),
+            '_submitted_by': user.username,
+        }
+        asset.deployment.mock_submissions([submission_data])
+        Instance.objects.filter(uuid=uuid_).update(
+            date_created=created_at, date_modified=modified_at
+        )
 
     @data(
         ('user_old_login', 'old_date', True),
@@ -100,13 +94,31 @@ class InactiveUserTest(TestCase):
     @unpack
     def test_inactive_users_based_on_form_activity(self, date, expected):
         """
-        Test users with inactive/active XForm modification dates
+        Test users with inactive/active Asset modification dates
         """
-        user = self._create_user('active_xform', self.old_date)
-        self._create_xform(user, getattr(self, date), getattr(self, date))
+        user = self._create_user('active_asset', self.old_date)
+        self._create_asset(user, getattr(self, date), getattr(self, date))
 
         inactive_users = get_inactive_users()
         self.assertEqual(expected, user in inactive_users)
+
+    def test_inactive_users_after_form_edit_without_redeployment(self):
+        user = self._create_user('active_asset', self.old_date)
+        asset = self._create_asset(user, self.old_date, self.old_date)
+
+        # Ensure user is in the inactive list
+        inactive_users = get_inactive_users()
+        self.assertEqual(True, user in inactive_users)
+
+        # Edit the asset without redeploying
+        Asset.objects.filter(id=asset.id).update(
+            name='updated_asset', date_modified=self.recent_date
+        )
+        asset.refresh_from_db()
+
+        # Ensure the user is no longer in the inactive list
+        inactive_users = get_inactive_users()
+        self.assertEqual(False, user in inactive_users)
 
     @data(
         ('old_date', True),
@@ -118,9 +130,9 @@ class InactiveUserTest(TestCase):
         Test users with inactive/active submission dates
         """
         user = self._create_user('active_submission', self.old_date)
-        xform = self._create_xform(user, self.old_date, self.old_date)
+        asset = self._create_asset(user, self.old_date, self.old_date)
         self._create_submission(
-            user, xform, getattr(self, date), getattr(self, date)
+            user, asset, getattr(self, date), getattr(self, date)
         )
 
         inactive_users = get_inactive_users()
