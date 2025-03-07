@@ -7,11 +7,15 @@ Coding Style Guidelines for Frontend
 Automatic Linting Rules
 ---------------------------------------
 
-Kobotoolbox uses [Biome](https://biomejs.dev/) mainly for formatting, and [ESLint](https://typescript-eslint.io/) exclusively for linting.
-- formatting: consistent whitespaces and other style of code.
-- linting: identifying bugs and anti-patterns.
 
-Kobotoolbox has plans to adopt [oxlint](https://oxc.rs/docs/guide/usage/linter.html) in the future. It's an upcoming performant competitor to ESlint, but isn't type-aware yet and thus limited in it's capacity.
+Kobotoolbox uses automated tools to assist developers in three ways:
+- formatting: enforce consistent code style.
+- organize imports: enforce consistent import statement order sorted by "distance" and natural ordering.
+- linting: enforce fixing common errors and writing modern code.
+
+Kobotoolbox uses the fast [Biome](https://biomejs.dev/) for all three, although it's linter is not type-aware. and [ESLint](https://typescript-eslint.io/) for linting only. There are plans to adopt [oxlint](https://oxc.rs/docs/guide/usage/linter.html) in the future, it's an upcoming performant competitor to ESlint, but isn't type-aware yet and thus limited in it's capacity.
+
+Kobotoolbox is in progress of gradually adopting Biome. Please find TODOs in [`./biome.jsonc`](./biome.jsonc).
 
 
 
