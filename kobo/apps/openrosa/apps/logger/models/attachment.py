@@ -189,7 +189,7 @@ class Attachment(models.Model, AudioTranscodingMixin):
         # Denormalize xform and user
         if self.instance and self.instance.xform:
             self.xform = self.instance.xform
-            self.user = self.instance.xform.user
+            self.user = self.instance.user
 
         super().save(*args, **kwargs)
 
