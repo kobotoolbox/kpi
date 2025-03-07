@@ -210,7 +210,7 @@
     "test": "jest --config ./jsapp/jest/unit.config.ts",
     "test-watch": "jest --config ./jsapp/jest/unit.config.ts --watch",
     "lint": "npm run lint:biome && npm run lint:eslint && npm run lint:types && npm run lint:css && npm run lint:coffee",
-    "lint:biome": "biome format",
+    "lint:biome": "biome check",
     "lint:eslint": "eslint 'jsapp/js/'",
     "lint:eslint-summary": "npm run lint -- --ext .js,.jsx,.ts,.tsx --format compact | grep '(@' | grep ' - ' | sed -r 's/.* (\\w+ -) .*(\\(@.*)$/\\1 \\2/' | sort | uniq -c | sort -nr",
     "lint:types": "tsc -p tsconfig.json --noEmit",

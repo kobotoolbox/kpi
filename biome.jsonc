@@ -44,9 +44,93 @@
     "enabled": true
   },
   "linter": {
-    "enabled": false, // TODO: for later.
+    "enabled": true,
     "rules": {
-      "recommended": false // Workaround: see https://github.com/biomejs/biome-vscode/issues/491#issuecomment-2643675948
+      "recommended": true,
+      // Note: amount of cases are written as of May 7, 2025, commit 87af38ed5.
+      "correctness": {
+        "noEmptyPattern": "off", // Recommended rule. TODO: review 5 cases and enable.
+        "noInnerDeclarations": "off", // Recommended rule. TODO: review 22 cases and enable.
+        "noInvalidUseBeforeDeclaration": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noSwitchDeclarations": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noUnsafeOptionalChaining": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "useExhaustiveDependencies": "off", // Recommended rule. TODO: review 101 cases and enable.
+        "useJsxKeyInIterable": "off" // Recommended rule. TODO: review 17 cases and enable.
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off", // Recommended rule. TODO: review 40 cases and enable.
+        "noAssignInExpressions": "off", // Recommended rule. TODO: review 4 cases and enable.
+        "noConfusingVoidType": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noControlCharactersInRegex": "off", // Recommended rule. TODO: review 4 cases and enable.
+        "noDoubleEquals": "off", // Recommended rule. TODO: review 14 cases and enable.
+        "noEmptyInterface": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "noExplicitAny": "off", // Recommended rule. TODO: review 129 cases and enable.
+        "noImplicitAnyLet": "off", // Recommended rule. TODO: review 42 cases and enable.
+        "noMisleadingCharacterClass": "off", // Recommended rule. TODO: review 1 case and enable.
+        "noPrototypeBuiltins": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "noRedeclare": "off", // Recommended rule. TODO: review 1 case and enable.
+        "noRedundantUseStrict": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noShadowRestrictedNames": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "useIsArray": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "useValidTypeof": "off" // Recommended rule. TODO: review 3 cases and enable.
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off" // Recommended rule. TODO: review 11 cases and enable.
+      },
+      "complexity": {
+        "noBannedTypes": "off", // Recommended rule. TODO: review 144 cases and enable.
+        "noExtraBooleanCast": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "noForEach": "off", // Recommended rule. TODO: review 217 cases and enable.
+        "noUselessConstructor": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "noUselessFragments": "off", // Recommended rule. TODO: review 4 cases and enable.
+        "noUselessSwitchCase": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noUselessTernary": "off", // Recommended rule. TODO: review 4 cases and enable.
+        "noUselessThisAlias": "off", // Recommended rule. TODO: review 7 cases and enable.
+        "useArrowFunction": "off", // Recommended rule. TODO: review 245 cases and enable.
+        "useLiteralKeys": "off", // Recommended rule. TODO: review 28 cases and enable.
+        "useOptionalChain": "off", // Recommended rule. TODO: review 36 cases and enable.
+        "useRegexLiterals": "off" // Recommended rule. TODO: review 1 cases and enable.
+      },
+      "performance": {
+        "noAccumulatingSpread": "off", // Recommended rule. TODO: review 7 cases and enable.
+        "noDelete": "off" // Recommended rule. TODO: review 17 cases and enable.
+      },
+      "a11y": {
+        "noBlankTarget": "off", // Not a problem for modern browsers; see 2021 update, see https://mathiasbynens.github.io/rel-noopener/#recommendations.
+        "noLabelWithoutControl": "off", // Recommended rule. TODO: review 63 cases and enable.
+        "noNoninteractiveTabindex": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "noPositiveTabindex": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "noSvgWithoutTitle": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "useAltText": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "useAriaPropsForRole": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "useButtonType": "off", // Recommended rule. TODO: review 31 cases and enable.
+        "useFocusableInteractive": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "useIframeTitle": "off", // Recommended rule. TODO: review 4 cases and enable.
+        "useKeyWithClickEvents": "off", // Recommended rule. TODO: review 24 cases and enable.
+        "useKeyWithMouseEvents": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "useMediaCaption": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "useSemanticElements": "off", // Recommended rule. TODO: review 5 cases and enable.
+        "useValidAnchor": "off" // Recommended rule. TODO: review 4 cases and enable.
+      },
+      "style": {
+        "noArguments": "off", // Recommended rule. TODO: review 6 cases and enable.
+        "noCommaOperator": "off", // Recommended rule. TODO: review 7 cases and enable.
+        "noInferrableTypes": "off", // Recommended rule. TODO: review 5 cases and enable.
+        "noNonNullAssertion": "off", // Recommended rule. TODO: review 50 cases and enable.
+        "noParameterAssign": "off", // Recommended rule. TODO: review 31 cases and enable.
+        "noUnusedTemplateLiteral": "off", // Recommended rule. TODO: review 5 cases and enable.
+        "noUselessElse": "off", // Recommended rule. TODO: review 167 cases and enable.
+        "noVar": "off", // Recommended rule. TODO: review 234 cases and enable.
+        "useConst": "off", // Recommended rule. TODO: review 108 cases and enable.
+        "useDefaultParameterLast": "off", // Recommended rule. TODO: review 1 cases and enable.
+        "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "useImportType": "off", // Recommended rule. TODO: review 64 cases and enable.
+        "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "useNumberNamespace": "off", // Recommended rule. TODO: review 35 cases and enable.
+        "useShorthandFunctionType": "off", // Recommended rule. TODO: review 9 cases and enable.
+        "useSingleVarDeclarator": "off", // Recommended rule. TODO: review 35 cases and enable.
+        "useTemplate": "off" // Recommended rule. TODO: review 103 cases and enable.
+      }
     }
   }
 }
