@@ -6,8 +6,8 @@ from django.db import migrations, models
 
 import kobo.apps.openrosa.apps.logger.models.attachment
 import kobo.apps.openrosa.apps.logger.models.xform
-import kpi.deployment_backends.kc_access.storage
 import kpi.fields.file
+from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 
 
 class Migration(migrations.Migration):
@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
             field=kpi.fields.file.ExtendedFileField(
                 db_index=True,
                 max_length=380,
-                storage=kpi.deployment_backends.kc_access.storage.KobocatFileSystemStorage(),
+                storage=KobocatFileSystemStorage(),
                 upload_to=kobo.apps.openrosa.apps.logger.models.attachment.upload_to,
             ),
         ),
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
             field=kpi.fields.file.ExtendedFileField(
                 max_length=380,
                 null=True,
-                storage=kpi.deployment_backends.kc_access.storage.KobocatFileSystemStorage(),
+                storage=KobocatFileSystemStorage(),
                 upload_to=kobo.apps.openrosa.apps.logger.models.xform.upload_to,
             ),
         ),

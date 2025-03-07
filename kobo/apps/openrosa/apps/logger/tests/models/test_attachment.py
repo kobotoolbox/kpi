@@ -90,7 +90,7 @@ class TestAttachment(TestBase):
                 os.path.dirname(
                     os.path.dirname(os.path.abspath(__file__))
                 ),
-                "Water_Translated_2011_03_10.xml",
+                'Water_Translated_2011_03_10.xml',
             )
         )
         xml = f.read()
