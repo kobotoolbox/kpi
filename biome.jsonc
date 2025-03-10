@@ -115,6 +115,7 @@
       },
       "style": {
         "noArguments": "off", // Recommended rule. TODO: review 6 cases and enable.
+        "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
         "noCommaOperator": "off", // Recommended rule. TODO: review 7 cases and enable.
         "noInferrableTypes": "off", // Recommended rule. TODO: review 5 cases and enable.
         "noNonNullAssertion": "off", // Recommended rule. TODO: review 50 cases and enable.
