@@ -58,12 +58,12 @@ export function isAddonProduct(product: Product) {
 }
 
 export function processCheckoutResponse(data: Checkout) {
-  if (!data?.url) {
+  if (data?.url) {
+    window.location.assign(data.url)
+  } else {
     notify.error(t('There has been an issue, please try again later.'), {
       duration: 10000,
     })
-  } else {
-    window.location.assign(data.url)
   }
 }
 

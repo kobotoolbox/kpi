@@ -48,7 +48,7 @@ const commonOptions = {
         exclude: /node_modules/,
         // Find TypeScript errors on CI and local builds
         // Allow skipping to save resources.
-        use: !process.env.SKIP_TS_CHECK ? [swcLoader, 'ts-loader'] : [swcLoader],
+        use: process.env.SKIP_TS_CHECK ? [swcLoader] : [swcLoader, 'ts-loader'],
       },
       {
         test: /\.css$/,

@@ -213,7 +213,9 @@ class ConnectProjects extends React.Component {
       },
     }
 
-    if (!this.state.isShared) {
+    if (this.state.isShared) {
+      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
+    } else {
       let dialog = alertify.dialog('confirm')
       let opts = {
         title: `${t('Privacy Notice')}`,
@@ -228,8 +230,6 @@ class ConnectProjects extends React.Component {
         oncancel: dialog.destroy,
       }
       dialog.set(opts).show()
-    } else {
-      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
     }
   }
 
