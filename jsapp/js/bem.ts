@@ -51,7 +51,7 @@ interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
  *
  * @deprecated Use CSS Modules and regular HTML tags.
  */
-export function makeBem(parent: BemInstance | null, name: string, htmlTagName: string = 'div'): BemInstance {
+export function makeBem(parent: BemInstance | null, name: string, htmlTagName = 'div'): BemInstance {
   class BemComponent extends React.Component<BemComponentProps, {}> {
     static blockName: string = parent ? parent.blockName : name
 
