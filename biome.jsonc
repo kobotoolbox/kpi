@@ -126,7 +126,6 @@
         "useAsConstAssertion": "error", // Enable all safely fixable rules.
         "useCollapsedElseIf": "error", // Enable all safely fixable rules.
         "useDefaultParameterLast": "off", // Recommended rule. TODO: review 1 cases and enable.
-        "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
         "useExportType": "error", // Enable all safely fixable rules.
         "useImportType": "off", // Recommended rule. TODO: review 64 cases and enable.
         "useNamingConvention": "off", // TODO: Enable all safely fixable rules.
