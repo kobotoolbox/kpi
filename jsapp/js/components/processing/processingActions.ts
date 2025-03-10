@@ -168,14 +168,12 @@ const processingActions: ProcessingActionsDefinition = Reflux.createActions({
  * un-activation automagically - e.g. when you delete last translation for given
  * language, backend will un-activate that language in asset.
  */
-interface ActivateAssetFn {
-  (
-    assetUid: string,
-    enableTranscript?: boolean,
-    /** To enable translations, pass array of languages (empty works too). */
-    enableTranslations?: string[],
-  ): void
-}
+type ActivateAssetFn = (
+  assetUid: string,
+  enableTranscript?: boolean,
+  /** To enable translations, pass array of languages (empty works too). */
+  enableTranslations?: string[],
+) => void
 interface ActivateAssetDefinition extends ActivateAssetFn {
   listen: (fn: ActivateAssetFn) => void
   completed: ListenableCallback<AssetResponse>
@@ -207,9 +205,7 @@ processingActions.activateAsset.listen((assetUid, enableTranscript, enableTransl
  * This simply returns the processing data for all questions for given
  * submission.
  */
-interface GetProcessingDataFn {
-  (assetUid: string, submissionEditId: string): void
-}
+type GetProcessingDataFn = (assetUid: string, submissionEditId: string) => void
 interface GetProcessingDataDefinition extends GetProcessingDataFn {
   listen: (fn: GetProcessingDataFn) => void
   started: ListenableCallback<() => void>
@@ -284,9 +280,13 @@ function setTranscriptInnerMethod(
  * `advanced_features` are enabled for given language before sending transcript
  * - to avoid rejection.
  */
-interface SetTranscriptFn {
-  (assetUid: string, xpath: string, submissionEditId: string, languageCode: LanguageCode, value: string): void
-}
+type SetTranscriptFn = (
+  assetUid: string,
+  xpath: string,
+  submissionEditId: string,
+  languageCode: LanguageCode,
+  value: string,
+) => void
 interface SetTranscriptDefinition extends SetTranscriptFn {
   listen: (fn: SetTranscriptFn) => void
   completed: ListenableCallback<ProcessingDataResponse>
@@ -347,9 +347,7 @@ processingActions.setTranscript.failed.listen(() => {
  * given language for all the submissions, it also removes that language from
  * `advanced_feature` (i.e. makes it "not enabled").
  */
-interface DeleteTranscriptFn {
-  (assetUid: string, xpath: string, submissionEditId: string): void
-}
+type DeleteTranscriptFn = (assetUid: string, xpath: string, submissionEditId: string) => void
 interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
   listen: (fn: DeleteTranscriptFn) => void
   completed: ListenableCallback<ProcessingDataResponse>
@@ -395,9 +393,13 @@ processingActions.deleteTranscript.failed.listen(() => {
  * Note: if user sends the same request multiple times, Back end will respond
  * with initial request status instead of making a completely new call.
  */
-interface RequestAutoTranscriptionFn {
-  (assetUid: string, xpath: string, submissionEditId: string, languageCode?: string, regionCode?: string | null): void
-}
+type RequestAutoTranscriptionFn = (
+  assetUid: string,
+  xpath: string,
+  submissionEditId: string,
+  languageCode?: string,
+  regionCode?: string | null,
+) => void
 interface RequestAutoTranscriptionDefinition extends RequestAutoTranscriptionFn {
   listen: (fn: RequestAutoTranscriptionFn) => void
   completed: ListenableCallback<{
@@ -528,9 +530,13 @@ function setTranslationInnerMethod(
  * `advanced_features` are enabled for given language before sending translation
  * - to avoid rejection.
  */
-interface SetTranslationFn {
-  (assetUid: string, xpath: string, submissionEditId: string, languageCode: LanguageCode, value: string): void
-}
+type SetTranslationFn = (
+  assetUid: string,
+  xpath: string,
+  submissionEditId: string,
+  languageCode: LanguageCode,
+  value: string,
+) => void
 interface SetTranslationDefinition extends SetTranslationFn {
   listen: (fn: SetTranslationFn) => void
   completed: ListenableCallback<TransxObject[]>
@@ -591,9 +597,12 @@ processingActions.setTranslation.failed.listen(() => {
  * given language for all the submissions, it also removes that language from
  * `advanced_feature` (i.e. makes it "not enabled").
  */
-interface DeleteTranslationFn {
-  (assetUid: string, xpath: string, submissionEditId: string, languageCode: LanguageCode): void
-}
+type DeleteTranslationFn = (
+  assetUid: string,
+  xpath: string,
+  submissionEditId: string,
+  languageCode: LanguageCode,
+) => void
 interface DeleteTranslationDefinition extends DeleteTranslationFn {
   listen: (fn: DeleteTranslationFn) => void
   completed: ListenableCallback<ProcessingDataResponse>
@@ -627,9 +636,12 @@ processingActions.deleteTranslation.failed.listen(() => {
  * time consuming as transcripts, but we also use `in_progress` callback here,
  * as it's needed for text longer than ~30k characters.
  */
-interface RequestAutoTranslationFn {
-  (assetUid: string, xpath: string, submissionEditId: string, languageCode: string): void
-}
+type RequestAutoTranslationFn = (
+  assetUid: string,
+  xpath: string,
+  submissionEditId: string,
+  languageCode: string,
+) => void
 interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   listen: (fn: RequestAutoTranslationFn) => void
   completed: ListenableCallback<{
