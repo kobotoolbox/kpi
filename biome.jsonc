@@ -69,7 +69,6 @@
         "noPrototypeBuiltins": "off", // Recommended rule. TODO: review 3 cases and enable.
         "noReactSpecificProps": "off", // We use React.
         "noRedeclare": "off", // Recommended rule. TODO: review 1 case and enable.
-        "noRedundantUseStrict": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noShadowRestrictedNames": "off", // Recommended rule. TODO: review 2 cases and enable.
         "useIsArray": "off", // Recommended rule. TODO: review 3 cases and enable.
         "useValidTypeof": "off" // Recommended rule. TODO: review 3 cases and enable.
