@@ -884,7 +884,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
               const labels: string[] = []
-              values.forEach(function (valueItem: string) {
+              values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,
                 )
@@ -1220,7 +1220,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   bulkSelectAllRows(isChecked: boolean) {
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       if (isChecked) {
         s[r._id] = true
       } else {
@@ -1255,7 +1255,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   bulkSelectAll() {
     // make sure all rows on current page are selected
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       s[r._id] = true
     })
 

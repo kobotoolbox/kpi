@@ -144,7 +144,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       $els.each(function () {
         $(this).prop('checked', false)
       })
-      $els.change(function () {
+      $els.change(() => {
         ok_button.disabled = false
         $els.each(function () {
           if (!$(this).prop('checked')) {

@@ -171,9 +171,7 @@ export default Object.assign(
 
     preventClosingTab() {
       this.setState({ preventNavigatingOut: true })
-      $(window).on('beforeunload.noclosetab', function () {
-        return UNSAVED_CHANGES_WARNING
-      })
+      $(window).on('beforeunload.noclosetab', () => UNSAVED_CHANGES_WARNING)
     },
 
     unpreventClosingTab() {
@@ -370,7 +368,7 @@ export default Object.assign(
         ooo.showAllOpen = !!this.state.multioptionsExpanded
         ooo.showAllAvailable = (() => {
           var hasSelect = false
-          this.app.survey.forEachRow(function (row) {
+          this.app.survey.forEachRow((row) => {
             if (row._isSelectQuestion()) {
               hasSelect = true
             }

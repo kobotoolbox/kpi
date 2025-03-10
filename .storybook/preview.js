@@ -41,6 +41,4 @@ export const parameters = {
   },
 }
 
-window.t = function (str) {
-  return str
-}
+window.t = (str) => str

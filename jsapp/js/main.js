@@ -52,7 +52,7 @@ moment.locale(currentLang())
 const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]')
 if (gaTokenEl !== null && gaTokenEl.content) {
   window.dataLayer = window.dataLayer || []
-  window.gtag = function () {
+  window.gtag = () => {
     window.dataLayer.push(arguments)
   }
   window.gtag('js', new Date())

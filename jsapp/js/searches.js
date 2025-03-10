@@ -208,13 +208,7 @@ function SearchContext(opts = {}) {
 
       if ('tags' in searchParams) {
         if (searchParams.tags && searchParams.tags.length > 0) {
-          paramGroups.push(
-            searchParams.tags
-              .map(function (t) {
-                return `tags__name__iexact:"${t.value}"`
-              })
-              .join(' AND '),
-          )
+          paramGroups.push(searchParams.tags.map((t) => `tags__name__iexact:"${t.value}"`).join(' AND '))
         }
         delete searchParams.tags
       }
@@ -239,11 +233,7 @@ function SearchContext(opts = {}) {
       }
       paramGroups = paramGroups.concat(values(searchParams))
       if (paramGroups.length > 1) {
-        queryData.q = paramGroups
-          .map(function (s) {
-            return `(${s})`
-          })
-          .join(' AND ')
+        queryData.q = paramGroups.map((s) => `(${s})`).join(' AND ')
       } else if (paramGroups.length === 1) {
         queryData.q = paramGroups[0]
       }
@@ -251,15 +241,13 @@ function SearchContext(opts = {}) {
     },
   }))
 
-  const splitResultsToCategorized = function (results) {
-    return {
-      Deployed: results.filter((asset) => asset.deployment_status === 'deployed'),
-      Draft: results.filter((asset) => asset.deployment_status === 'draft'),
-      Archived: results.filter((asset) => asset.deployment_status === 'archived'),
-    }
-  }
+  const splitResultsToCategorized = (results) => ({
+    Deployed: results.filter((asset) => asset.deployment_status === 'deployed'),
+    Draft: results.filter((asset) => asset.deployment_status === 'draft'),
+    Archived: results.filter((asset) => asset.deployment_status === 'archived'),
+  })
 
-  const assetsHash = function (assets) {
+  const assetsHash = (assets) => {
     if (assets.length < 1) {
       return false
     }
@@ -271,7 +259,7 @@ function SearchContext(opts = {}) {
     return SparkMD5.hash(assetVersionIds.join(''))
   }
 
-  search.listen(function (_opts = {}) {
+  search.listen((_opts = {}) => {
     /*
     search will query whatever values are in the store
     and will pass the values back to the store to be reflected
@@ -307,12 +295,12 @@ function SearchContext(opts = {}) {
     }
     latestSearchData = { params: qData, dataObject: dataObject }
     var req = actions.search.assets(qData, {
-      onComplete: function (searchData, response) {
+      onComplete: (searchData, response) => {
         search.completed(dataObject, response, {
           cacheAsDefaultSearch: _opts.cacheAsDefaultSearch,
         })
       },
-      onFailed: function (searchData, response) {
+      onFailed: (searchData, response) => {
         search.failed(response, dataObject)
       },
     })
@@ -331,20 +319,20 @@ function SearchContext(opts = {}) {
       })
     }
   })
-  search.refresh.listen(function () {
+  search.refresh.listen(() => {
     actions.search.assets(latestSearchData.params, {
-      onComplete: function (searchData, response) {
+      onComplete: (searchData, response) => {
         search.completed(latestSearchData.dataObject, response, {
           cacheAsDefaultSearch: false,
         })
       },
-      onFailed: function (searchData, response) {
+      onFailed: (searchData, response) => {
         search.failed(response, latestSearchData.dataObject)
       },
     })
   })
 
-  search.completed.listen(function (searchParams, data, _opts) {
+  search.completed.listen((searchParams, data, _opts) => {
     data.results = data.results.map(parsed)
     data.results.forEach(stores.allAssets.registerAsset)
 
@@ -383,7 +371,7 @@ function SearchContext(opts = {}) {
     }
     searchStore.update(newState)
   })
-  search.failed.listen(function (/*searchData, response*/) {
+  search.failed.listen((/*searchData, response*/) => {
     // if (xhr.searchAborted) {
     //   log('search was canceled because a new search came up')
     // }
@@ -391,7 +379,7 @@ function SearchContext(opts = {}) {
     //   searchState: 'failed',
     // })
   })
-  search.cancel.listen(function () {
+  search.cancel.listen(() => {
     if (jqxhrs.search) {
       jqxhrs.search.abort()
     }
@@ -439,7 +427,7 @@ function SearchContext(opts = {}) {
         }
       }
     },
-    searchDefault: function () {
+    searchDefault: () => {
       searchStore.quietUpdate(
         Object.assign(
           {
@@ -454,11 +442,9 @@ function SearchContext(opts = {}) {
         cacheAsDefaultSearch: true,
       })
     },
-    getSearchActions: function () {
-      return {
-        search: search,
-      }
-    },
+    getSearchActions: () => ({
+      search: search,
+    }),
   }
 }
 

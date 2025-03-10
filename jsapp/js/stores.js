@@ -27,7 +27,7 @@ const cookies = new Cookies()
 function changes(orig_obj, new_obj) {
   var out = {},
     any = false
-  Object.keys(new_obj).forEach(function (key) {
+  Object.keys(new_obj).forEach((key) => {
     if (orig_obj[key] !== new_obj[key]) {
       out[key] = new_obj[key]
       any = true
@@ -202,9 +202,7 @@ stores.allAssets = Reflux.createStore({
       this.byUid[asset.uid].deleted = 'true'
       this.trigger(this.data)
       window.setTimeout(() => {
-        this.data = this.data.filter(function (item) {
-          return item.uid !== asset.uid
-        })
+        this.data = this.data.filter((item) => item.uid !== asset.uid)
         this.trigger(this.data)
       }, 500)
     }
@@ -238,7 +236,7 @@ stores.allAssets = Reflux.createStore({
     this.data = response.results
     this.trigger(this.data)
   },
-  onListAssetsFailed: function (searchData, response) {
+  onListAssetsFailed: (searchData, response) => {
     let iconStyle = 'warning'
     let opts = {}
     if (response?.responseJSON?.detail === t('Your query is too short')) {

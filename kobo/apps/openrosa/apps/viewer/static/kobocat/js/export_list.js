@@ -1,19 +1,17 @@
-var fhExportList = (function () {
+var fhExportList = (() => {
   var _progress_url
   var _bNothingToRefresh = false
   var _refreshAfter = 5000 // time to refresh after in ms
 
   return {
-    init: function (progress_url, refreshAfter) {
+    init: (progress_url, refreshAfter) => {
       _progress_url = progress_url
       _refreshAfter = typeof refreshAfter !== 'undefined' ? refreshAfter : _refreshAfter
     },
 
-    getAllComplete: function () {
-      return _bNothingToRefresh
-    },
+    getAllComplete: () => _bNothingToRefresh,
 
-    refreshExports: function (export_id) {
+    refreshExports: (export_id) => {
       var export_id = typeof export_id !== 'undefined' ? export_id : null
       var selector = 'a[class=refresh-export-progress]'
       var progress_elements, params
@@ -30,7 +28,7 @@ var fhExportList = (function () {
       /// lets see if we have any elements to process
       if (progress_elements.length > 0) {
         /// build array of export ids to pass to url
-        _.each(progress_elements, function (item) {
+        _.each(progress_elements, (item) => {
           var anchor = $(item)
           var parent = anchor.parent()
           var statusElm = $(parent.children('span.status')[0])
@@ -52,9 +50,9 @@ var fhExportList = (function () {
           data: params,
           traditional: true, // used to get jquery to send each id as a separate query as used by django
         })
-          .success(function (data) {
+          .success((data) => {
             // foreach export_id update the status
-            _.each(data, function (status) {
+            _.each(data, (status) => {
               var anchor = $('a[class=updating]a[data-export=' + status.export_id + ']')
               var parent = anchor.parent()
               var statusElm = $(parent.children('span.status')[0])
@@ -85,8 +83,8 @@ var fhExportList = (function () {
               }
             })
           })
-          .error(function () {
-            _.each(progress_elements, function (item) {
+          .error(() => {
+            _.each(progress_elements, (item) => {
               var anchor = $(item)
               var parent = anchor.parent()
               var statusElm = $(parent.children('span.status')[0])
@@ -100,7 +98,7 @@ var fhExportList = (function () {
       }
     },
 
-    autoRefresh: function () {
+    autoRefresh: () => {
       if (!_bNothingToRefresh) {
         fhExportList.refreshExports()
         setTimeout(fhExportList.autoRefresh, _refreshAfter)
@@ -109,7 +107,7 @@ var fhExportList = (function () {
   }
 })()
 
-$(document).ready(function () {
+$(document).ready(() => {
   fhExportList.init(progress_url, 8000)
   setTimeout(fhExportList.autoRefresh, 5000)
 

@@ -99,7 +99,7 @@ class MapSettings extends React.Component {
     autoBind(this)
 
     const geoQuestions = []
-    props.asset.content.survey.forEach(function (question) {
+    props.asset.content.survey.forEach((question) => {
       if (question.type && question.type === 'geopoint') {
         geoQuestions.push({
           value: question.name || question.$autoname,

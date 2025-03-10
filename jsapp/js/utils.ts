@@ -186,8 +186,8 @@ declare global {
   }
 }
 
-export const log = (function () {
-  const innerLogFn = function (...args: any[]) {
+export const log = (() => {
+  const innerLogFn = (...args: any[]) => {
     console.log.apply(console, args)
     return args[0]
   }

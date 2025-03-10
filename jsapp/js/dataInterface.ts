@@ -1037,12 +1037,12 @@ export const dataInterface: DataInterface = {
     const d = $.Deferred()
     $ajax({ url: `${ROOT_URL}/accounts/logout/`, method: 'POST' })
       .done(d.resolve)
-      .fail(function (/*resp, etype, emessage*/) {
+      .fail((/*resp, etype, emessage*/) => {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface
           .selfProfile()
-          .done(function (data: { message?: string }) {
+          .done((data: { message?: string }) => {
             if (data.message === 'user is not logged in') {
               d.resolve(data)
             } else {
