@@ -28,7 +28,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
 
   // Obtaining error message number
   if (props.errorMessage) {
-    errorNumber = parseInt(props.errorMessage.replace(/[^\d].*/, ''))
+    errorNumber = Number.parseInt(props.errorMessage.replace(/[^\d].*/, ''))
   } else {
     errorNumber = 404
   }
@@ -57,7 +57,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
     }
   }
 
-  let messageHtml = replaceBracketsWithLink(messageText, envStore.data.support_url)
+  const messageHtml = replaceBracketsWithLink(messageText, envStore.data.support_url)
 
   return (
     <bem.AccessDenied>

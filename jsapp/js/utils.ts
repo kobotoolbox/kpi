@@ -7,7 +7,7 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import * as Sentry from '@sentry/react'
+import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
@@ -186,8 +186,8 @@ declare global {
   }
 }
 
-export const log = (function () {
-  const innerLogFn = function (...args: any[]) {
+export const log = (() => {
+  const innerLogFn = (...args: any[]) => {
     console.log.apply(console, args)
     return args[0]
   }
@@ -359,7 +359,7 @@ export function truncateFile(str: string, length: number) {
 /**
  * Truncates a floating point number to a fixed number of decimal places (default 2)
  */
-export const truncateNumber = (decimal: number, decimalPlaces = 2) => parseFloat(decimal.toFixed(decimalPlaces))
+export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.parseFloat(decimal.toFixed(decimalPlaces))
 
 /**
  * Standard method for converting seconds to minutes for billing purposes

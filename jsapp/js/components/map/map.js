@@ -60,7 +60,7 @@ export class FormMap extends React.Component {
 
     const survey = props.asset.content.survey
     let hasGeoPoint = false
-    survey.forEach(function (s) {
+    survey.forEach((s) => {
       if (s.type === QUESTION_TYPES.geopoint.id) {
         hasGeoPoint = true
       }
@@ -99,7 +99,7 @@ export class FormMap extends React.Component {
   componentDidMount() {
     const fields = []
     const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
-    this.props.asset.content.survey.forEach(function (q) {
+    this.props.asset.content.survey.forEach((q) => {
       if (fieldTypes.includes(q.type)) {
         fields.push(q)
       }
@@ -147,7 +147,7 @@ export class FormMap extends React.Component {
     const map = this.state.map
 
     // remove layers from controls if they are no longer in asset files
-    controls._layers.forEach(function (controlLayer) {
+    controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
         const layerMatch = data.results.filter((result) => result.name === controlLayer.name)
         if (!layerMatch.length) {
@@ -158,7 +158,7 @@ export class FormMap extends React.Component {
     })
 
     // add new layers to controls (if they haven't been added already)
-    data.results.forEach(function (layer) {
+    data.results.forEach((layer) => {
       if (layer.file_type !== 'map_layer') {
         return false
       }
@@ -187,7 +187,7 @@ export class FormMap extends React.Component {
           // unzip the KMZ file in the browser
           // and feed the resulting text to map and controls
           fetch(layer.content)
-            .then(function (response) {
+            .then((response) => {
               if (response.status === 200 || response.status === 0) {
                 return Promise.resolve(response.blob())
               } else {
@@ -195,9 +195,7 @@ export class FormMap extends React.Component {
               }
             })
             .then(JSZip.loadAsync)
-            .then(function (zip) {
-              return zip.file('doc.kml').async('string')
-            })
+            .then((zip) => zip.file('doc.kml').async('string'))
             .then(function success(kml) {
               overlayLayer = omnivore.kml.parse(kml)
               controls.addOverlay(overlayLayer, layer.name)
@@ -207,8 +205,8 @@ export class FormMap extends React.Component {
       }
 
       if (overlayLayer) {
-        overlayLayer.on('ready', function () {
-          overlayLayer.eachLayer(function (l) {
+        overlayLayer.on('ready', () => {
+          overlayLayer.eachLayer((l) => {
             const fprops = l.feature.properties
             const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
             if (name) {
@@ -251,7 +249,7 @@ export class FormMap extends React.Component {
     // See: https://github.com/kobotoolbox/kpi/issues/3913
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
-    this.props.asset.content.survey.forEach(function (row) {
+    this.props.asset.content.survey.forEach((row) => {
       if (
         typeof row.label !== 'undefined' &&
         row.label !== null &&
@@ -282,7 +280,7 @@ export class FormMap extends React.Component {
       .done((data) => {
         const results = data.results
         if (selectedQuestion) {
-          results.forEach(function (row, i) {
+          results.forEach((row, i) => {
             if (row[selectedQuestion]) {
               const coordsArray = row[selectedQuestion].split(' ')
               results[i]._geolocation[0] = coordsArray[0]
@@ -327,7 +325,6 @@ export class FormMap extends React.Component {
     return colorSet
   }
   buildMarkers(map) {
-    const _this = this
     const prepPoints = []
     const viewby = this.props.viewby || undefined
     const colorSet = this.calcColorSet()
@@ -346,7 +343,7 @@ export class FormMap extends React.Component {
         currentQuestionChoices = choices.filter((ch) => ch.list_name === question.select_from_list_name)
       }
 
-      Object.keys(mapMarkers).map(function (m) {
+      Object.keys(mapMarkers).map((m) => {
         let choice
         if (question && question.type === 'select_one') {
           choice = currentQuestionChoices.find((ch) => ch.name === m || ch.$autoname === m)
@@ -362,16 +359,14 @@ export class FormMap extends React.Component {
 
       if (colorSet !== undefined && colorSet !== 'a' && question && question.type === 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
-        mM.sort(function (a, b) {
+        mM.sort((a, b) => {
           const aIndex = currentQuestionChoices.findIndex((ch) => ch.name === a.value)
           const bIndex = currentQuestionChoices.findIndex((ch) => ch.name === b.value)
           return aIndex - bIndex
         })
       } else {
         // sort by occurrence count
-        mM.sort(function (a, b) {
-          return a.count - b.count
-        }).reverse()
+        mM.sort((a, b) => a.count - b.count).reverse()
       }
 
       // move elements with no data in submission for the disaggregated question to end of marker list
@@ -385,27 +380,27 @@ export class FormMap extends React.Component {
       this.setState({ markerMap: false })
     }
 
-    this.state.submissions.forEach(function (item) {
+    this.state.submissions.forEach((item) => {
       let markerProps = {}
       if (checkLatLng(item._geolocation)) {
         if (viewby && mM) {
-          const vb = _this.nameOfFieldInGroup(viewby)
+          const vb = this.nameOfFieldInGroup(viewby)
           const itemId = item[vb]
           let index = mM.findIndex((m) => m.value === itemId)
 
           // spread indexes to use full colorset gamut if necessary
           if (colorSet !== undefined && colorSet !== 'a') {
-            index = _this.calculateIconIndex(index, mM)
+            index = this.calculateIconIndex(index, mM)
           }
 
           markerProps = {
-            icon: _this.buildIcon(index + 1),
+            icon: this.buildIcon(index + 1),
             sId: item._id,
             typeId: mapMarkers[itemId].id,
           }
         } else {
           markerProps = {
-            icon: _this.buildIcon(),
+            icon: this.buildIcon(),
             sId: item._id,
             typeId: null,
           }
@@ -423,7 +418,7 @@ export class FormMap extends React.Component {
         markers = L.markerClusterGroup({
           maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
-          iconCreateFunction: function (cluster) {
+          iconCreateFunction: (cluster) => {
             const childCount = cluster.getChildCount()
 
             let markerClass = 'marker-cluster marker-cluster-'
@@ -501,7 +496,7 @@ export class FormMap extends React.Component {
     const vb = this.nameOfFieldInGroup(viewby)
     let idcounter = 1
 
-    data.forEach(function (listitem) {
+    data.forEach((listitem) => {
       const m = listitem[vb]
 
       if (markerMap[m] === undefined) {
@@ -517,7 +512,7 @@ export class FormMap extends React.Component {
 
   buildHeatMap(map) {
     const heatmapPoints = []
-    this.state.submissions.forEach(function (item) {
+    this.state.submissions.forEach((item) => {
       if (checkLatLng(item._geolocation)) {
         heatmapPoints.push([item._geolocation[0], item._geolocation[1], 1])
       }
@@ -607,7 +602,7 @@ export class FormMap extends React.Component {
   launchSubmissionModal(evt) {
     const td = this.state.submissions
     const ids = []
-    td.forEach(function (r) {
+    td.forEach((r) => {
       ids.push(r._id)
     })
 
@@ -641,7 +636,7 @@ export class FormMap extends React.Component {
     this.setState({ isFullscreen: !this.state.isFullscreen })
 
     const map = this.state.map
-    setTimeout(function () {
+    setTimeout(() => {
       map.invalidateSize()
     }, 300)
   }
@@ -660,18 +655,18 @@ export class FormMap extends React.Component {
 
     if (!filteredByMarker) {
       filteredByMarker = [id]
-    } else if (!filteredByMarker.includes(id)) {
-      filteredByMarker.push(id)
-    } else {
+    } else if (filteredByMarker.includes(id)) {
       filteredByMarker = filteredByMarker.filter((l) => l !== id)
+    } else {
+      filteredByMarker.push(id)
     }
 
     this.setState({ filteredByMarker: filteredByMarker })
-    markers.eachLayer(function (layer) {
-      if (!filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.add(unselectedClass)
-      } else {
+    markers.eachLayer((layer) => {
+      if (filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.remove(unselectedClass)
+      } else {
+        layer._icon.classList.add(unselectedClass)
       }
     })
   }
@@ -679,7 +674,7 @@ export class FormMap extends React.Component {
   resetFilterByMarker() {
     const markers = this.state.markers
     this.setState({ filteredByMarker: false })
-    markers.eachLayer(function (layer) {
+    markers.eachLayer((layer) => {
       layer._icon.classList.remove('unselected')
     })
   }
@@ -707,7 +702,7 @@ export class FormMap extends React.Component {
     let label = t('Disaggregate by survey responses')
 
     if (viewby) {
-      fields.forEach(function (f) {
+      fields.forEach((f) => {
         if (viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label[langIndex]}`
         }
@@ -756,7 +751,7 @@ export class FormMap extends React.Component {
             m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
-            className={!this.state.markersVisible ? 'active' : ''}
+            className={this.state.markersVisible ? '' : 'active'}
           >
             <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
@@ -784,7 +779,7 @@ export class FormMap extends React.Component {
             <bem.PopoverMenu__link
               key={'all'}
               onClick={this.filterMap}
-              className={!viewby ? 'active see-all' : 'see-all'}
+              className={viewby ? 'see-all' : 'active see-all'}
             >
               {t('-- See all data --')}
             </bem.PopoverMenu__link>

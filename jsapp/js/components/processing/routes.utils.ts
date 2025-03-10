@@ -1,7 +1,7 @@
 // This is a collection of various utility functions related to processing
 // routes and navigation.
 
-import { generatePath, matchPath, useNavigate } from 'react-router-dom'
+import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
 import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'

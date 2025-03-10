@@ -49,7 +49,7 @@ class TableSettings extends React.Component {
   }
 
   onLabelChange(value) {
-    this.setState({ translationIndex: parseInt(value) })
+    this.setState({ translationIndex: Number.parseInt(value) })
   }
 
   onUpdateSettingsFailed() {

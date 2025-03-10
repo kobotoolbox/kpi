@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { BaseProduct, Price, SubscriptionChangeType, SubscriptionInfo } from '#/account/stripe.types'
-import Badge, { BadgeColor } from '#/components/common/badge'
+import { type BaseProduct, type Price, SubscriptionChangeType, type SubscriptionInfo } from '#/account/stripe.types'
+import Badge, { type BadgeColor } from '#/components/common/badge'
 import { formatDate } from '#/utils'
 
 interface UpdateBadgeProps {

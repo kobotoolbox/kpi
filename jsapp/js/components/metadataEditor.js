@@ -171,7 +171,7 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES['start-geopoint'],
     ]
 
-    let backgroundAudioProp = this.getMetaProperty(QuestionTypeName['background-audio'])
+    const backgroundAudioProp = this.getMetaProperty(QuestionTypeName['background-audio'])
 
     return (
       <bem.FormBuilderMeta>

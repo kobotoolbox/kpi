@@ -110,10 +110,10 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   onButtonClick() {
-    if (!this.state.isPlaying) {
-      this.start()
-    } else {
+    if (this.state.isPlaying) {
       this.stop()
+    } else {
+      this.start()
     }
 
     this.setState({

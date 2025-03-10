@@ -213,9 +213,11 @@ class ConnectProjects extends React.Component {
       },
     }
 
-    if (!this.state.isShared) {
-      let dialog = alertify.dialog('confirm')
-      let opts = {
+    if (this.state.isShared) {
+      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
+    } else {
+      const dialog = alertify.dialog('confirm')
+      const opts = {
         title: `${t('Privacy Notice')}`,
         message: t(
           'This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.',
@@ -228,8 +230,6 @@ class ConnectProjects extends React.Component {
         oncancel: dialog.destroy,
       }
       dialog.set(opts).show()
-    } else {
-      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
     }
   }
 
@@ -277,7 +277,7 @@ class ConnectProjects extends React.Component {
    */
 
   generateFilteredAssetList() {
-    let attachedSourceUids = []
+    const attachedSourceUids = []
     this.state.attachedSources.forEach((item) => {
       attachedSourceUids.push(item.sourceUid)
     })
@@ -307,7 +307,7 @@ class ConnectProjects extends React.Component {
 
   renderSelect() {
     if (this.state.sharingEnabledAssets !== null) {
-      let sharingEnabledAssets = this.generateFilteredAssetList()
+      const sharingEnabledAssets = this.generateFilteredAssetList()
 
       return (
         <bem.KoboSelect__wrapper

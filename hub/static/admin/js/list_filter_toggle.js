@@ -1,13 +1,12 @@
 /* FORK from https://gist.github.com/abyx/1017597 */
-window.addEventListener('load', function () {
-  ;(function ($) {
+window.addEventListener('load', () => {
+  ;(($) => {
     ListFilterCollapsePrototype = {
       bindToggle: function () {
-        const that = this
-        this.$filterTitle.click(function (e) {
+        this.$filterTitle.click((e) => {
           e.preventDefault()
-          const hidden = that.$list.hasClass('filtered')
-          that._toggleFilterPanel(hidden)
+          const hidden = this.$list.hasClass('filtered')
+          this._toggleFilterPanel(hidden)
         })
       },
       init: function (filterEl) {
@@ -46,7 +45,7 @@ window.addEventListener('load', function () {
 
     ListFilterCollapse.prototype = ListFilterCollapsePrototype
 
-    $(document).ready(function ($) {
+    $(document).ready(($) => {
       $('#changelist-filter').each(function () {
         const collapser = new ListFilterCollapse(this)
       })

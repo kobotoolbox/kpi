@@ -146,10 +146,10 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
 
 export function isAssignable(permCodename: PermissionCodename, assignablePerms: AssignablePermsMap) {
   const permDef = permConfig.getPermissionByCodename(permCodename)
-  if (!permDef) {
-    return false
-  } else {
+  if (permDef) {
     return assignablePerms.has(permDef.url)
+  } else {
+    return false
   }
 }
 

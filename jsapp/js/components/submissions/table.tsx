@@ -357,12 +357,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Callback for dropdown.
    */
   onValidationStatusChange(sid: string, newValidationStatus: ValidationStatusOptionName) {
-    const _this = this
-
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
-      actions.resources.removeSubmissionValidationStatus(_this.props.asset.uid, sid)
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, sid)
     } else {
-      actions.resources.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, sid, {
         'validation_status.uid': newValidationStatus,
       })
     }
@@ -571,7 +569,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
-        let currentOption: ValidationStatusOption =
+        const currentOption: ValidationStatusOption =
           VALIDATION_STATUS_OPTIONS.find((item) => item.value === filter?.value) || VALIDATION_STATUS_SHOW_ALL_OPTION
 
         return (
@@ -884,7 +882,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
               const labels: string[] = []
-              values.forEach(function (valueItem: string) {
+              values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,
                 )
@@ -1030,7 +1028,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
     if (sid) {
-      const subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid))
+      const subIndex = this.state.submissions.findIndex((x) => x._id === Number.parseInt(sid))
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions
         newData[subIndex]._validation_status = result || {}
@@ -1119,7 +1117,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   submissionModalProcessing(
     sid: string,
     submissions: SubmissionResponse[],
-    isDuplicated: boolean = false,
+    isDuplicated = false,
     duplicatedSubmission: SubmissionResponse | null = null,
   ) {
     const ids = submissions.map((item) => item._id)
@@ -1220,7 +1218,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   bulkSelectAllRows(isChecked: boolean) {
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       if (isChecked) {
         s[r._id] = true
       } else {
@@ -1255,7 +1253,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   bulkSelectAll() {
     // make sure all rows on current page are selected
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       s[r._id] = true
     })
 

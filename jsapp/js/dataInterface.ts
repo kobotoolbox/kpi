@@ -22,15 +22,15 @@ import type { HookAuthLevelName, HookExportTypeName } from './components/RESTSer
 import type { Json } from './components/common/common.interfaces'
 import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
-import {
-  type ExportFormatName,
-  type ExportMultiOptionName,
-  type ExportStatusName,
-  type ExportTypeName,
+import type {
+  ExportFormatName,
+  ExportMultiOptionName,
+  ExportStatusName,
+  ExportTypeName,
 } from './components/projectDownloads/exportsConstants'
 import { COMMON_QUERIES, ROOT_URL } from './constants'
 import type { ProjectViewsSettings } from './projects/customViewStore'
-import { type LangString } from './utils'
+import type { LangString } from './utils'
 
 interface AssetsRequestData {
   q?: string
@@ -1037,12 +1037,12 @@ export const dataInterface: DataInterface = {
     const d = $.Deferred()
     $ajax({ url: `${ROOT_URL}/accounts/logout/`, method: 'POST' })
       .done(d.resolve)
-      .fail(function (/*resp, etype, emessage*/) {
+      .fail((/*resp, etype, emessage*/) => {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface
           .selfProfile()
-          .done(function (data: { message?: string }) {
+          .done((data: { message?: string }) => {
             if (data.message === 'user is not logged in') {
               d.resolve(data)
             } else {

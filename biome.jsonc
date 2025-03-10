@@ -28,6 +28,7 @@
     "lineEnding": "lf" // Default.
   },
   "javascript": {
+    "jsxRuntime": "reactClassic", // TODO: check babel and typescript and use the transparent runtime.
     "formatter": {
       "arrowParentheses": "always", // Default.
       "bracketSameLine": false, // Default.
@@ -54,6 +55,7 @@
         "noInvalidUseBeforeDeclaration": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noSwitchDeclarations": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUnsafeOptionalChaining": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noUnusedImports": "error", // Enable all safely fixable rules.
         "useExhaustiveDependencies": "off", // Recommended rule. TODO: review 101 cases and enable.
         "useJsxKeyInIterable": "off" // Recommended rule. TODO: review 17 cases and enable.
       },
@@ -63,7 +65,6 @@
         "noConfusingVoidType": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noControlCharactersInRegex": "off", // Recommended rule. TODO: review 4 cases and enable.
         "noDoubleEquals": "off", // Recommended rule. TODO: review 14 cases and enable.
-        "noEmptyInterface": "off", // Recommended rule. TODO: review 1 cases and enable.
         "noExplicitAny": "off", // Recommended rule. TODO: review 129 cases and enable.
         "noImplicitAnyLet": "off", // Recommended rule. TODO: review 42 cases and enable.
         "noPrototypeBuiltins": "off", // Recommended rule. TODO: review 3 cases and enable.
@@ -84,12 +85,9 @@
         "noUselessFragments": "off", // Recommended rule. TODO: review 4 cases and enable.
         "noUselessSwitchCase": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUselessTernary": "off", // Recommended rule. TODO: review 4 cases and enable.
-        "noUselessThisAlias": "off", // Recommended rule. TODO: review 7 cases and enable.
-        "useArrowFunction": "off", // Recommended rule. TODO: review 245 cases and enable.
         "noUselessUndefinedInitialization": "error", // Enable all safely fixable rules.
         "useLiteralKeys": "off", // Recommended rule. TODO: review 28 cases and enable.
-        "useOptionalChain": "off", // Recommended rule. TODO: review 36 cases and enable.
-        "useRegexLiterals": "off" // Recommended rule. TODO: review 1 cases and enable.
+        "useOptionalChain": "off" // Recommended rule. TODO: review 36 cases and enable.
       },
       "performance": {
         "noAccumulatingSpread": "off", // Recommended rule. TODO: review 7 cases and enable.
@@ -114,9 +112,10 @@
       },
       "style": {
         "noArguments": "off", // Recommended rule. TODO: review 6 cases and enable.
-        "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
         "noCommaOperator": "off", // Recommended rule. TODO: review 7 cases and enable.
-        "noInferrableTypes": "off", // Recommended rule. TODO: review 5 cases and enable.
+        "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
+        "noInferrableTypes": "error", // Enable all safely fixable rules.
+        "noNegationElse": "error", // Enable all safely fixable rules.
         "noNonNullAssertion": "off", // Recommended rule. TODO: review 50 cases and enable.
         "noParameterAssign": "off", // Recommended rule. TODO: review 31 cases and enable.
         "noUnusedTemplateLiteral": "off", // Recommended rule. TODO: review 5 cases and enable.
@@ -124,16 +123,13 @@
         "noVar": "off", // Recommended rule. TODO: review 234 cases and enable.
         "noYodaExpression": "error", // Enable all safely fixable rules.
         "useAsConstAssertion": "error", // Enable all safely fixable rules.
-        "useConst": "off", // Recommended rule. TODO: review 108 cases and enable.
+        "useCollapsedElseIf": "error", // Enable all safely fixable rules.
         "useDefaultParameterLast": "off", // Recommended rule. TODO: review 1 cases and enable.
-        "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
         "useExportType": "error", // Enable all safely fixable rules.
-        "useImportType": "off", // Recommended rule. TODO: review 64 cases and enable.
         "useNamingConvention": "off", // TODO: Enable all safely fixable rules.
         "useNodeAssertStrict": "error", // Enable all safely fixable rules.
         "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
-        "useNumberNamespace": "off", // Recommended rule. TODO: review 35 cases and enable.
-        "useShorthandFunctionType": "off", // Recommended rule. TODO: review 9 cases and enable.
+        "useSelfClosingElements": "error", // Enable all safely fixable rules.
         "useSingleVarDeclarator": "off", // Recommended rule. TODO: review 35 cases and enable.
         "useTemplate": "off", // Recommended rule. TODO: review 103 cases and enable.
         "useWhile": "error" // Enable all safely fixable rules.

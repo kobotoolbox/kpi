@@ -48,7 +48,7 @@ class MapColorPicker extends React.Component {
   }
 
   colorRows(set, length = 10) {
-    let colorRows = []
+    const colorRows = []
     for (let i = 1; i < length; i++) {
       colorRows.push(<span key={i} className={`map-marker map-marker-${set}${i}`} />)
     }
@@ -99,7 +99,7 @@ class MapSettings extends React.Component {
     autoBind(this)
 
     const geoQuestions = []
-    props.asset.content.survey.forEach(function (question) {
+    props.asset.content.survey.forEach((question) => {
       if (question.type && question.type === 'geopoint') {
         geoQuestions.push({
           value: question.name || question.$autoname,
@@ -119,7 +119,7 @@ class MapSettings extends React.Component {
       defaultActiveTab = TABS.get('overlays').id
     }
 
-    let mapStyles = Object.assign({}, this.props.asset.map_styles)
+    const mapStyles = Object.assign({}, this.props.asset.map_styles)
     if (this.props.overridenStyles) {
       Object.assign(mapStyles, this.props.overridenStyles)
     }
@@ -154,7 +154,7 @@ class MapSettings extends React.Component {
   }
 
   saveMapSettings(newSettings) {
-    let assetUid = this.props.asset.uid
+    const assetUid = this.props.asset.uid
     if (userCan('change_asset', this.props.asset)) {
       actions.map.setMapStyles(assetUid, newSettings)
     } else {
@@ -168,19 +168,19 @@ class MapSettings extends React.Component {
   // user input handling
 
   onGeoPointQuestionChange(evt) {
-    let settings = this.state.mapSettings
+    const settings = this.state.mapSettings
     settings.selectedQuestion = evt.target.value
     this.setState({ mapSettings: settings })
   }
 
   onQueryLimitChange(evt) {
-    let settings = this.state.mapSettings
+    const settings = this.state.mapSettings
     settings.querylimit = evt.target.value
     this.setState({ mapSettings: settings })
   }
 
   onColorChange(val) {
-    let settings = this.state.mapSettings
+    const settings = this.state.mapSettings
     settings.colorSet = val
     this.setState({ mapSettings: settings })
   }
@@ -198,8 +198,7 @@ class MapSettings extends React.Component {
   }
 
   dropFiles(files, rejectedFiles) {
-    let uid = this.props.asset.uid,
-      _this = this,
+    const uid = this.props.asset.uid,
       description = this.state.layerName
 
     if (!description) {
@@ -208,11 +207,11 @@ class MapSettings extends React.Component {
     }
 
     files.map((file) => {
-      let metadata = {
+      const metadata = {
         type: file.name.split('.').pop(),
         size: file.size,
       }
-      let data = {
+      const data = {
         content: file,
         description: description,
         file_type: 'map_layer',
@@ -221,7 +220,7 @@ class MapSettings extends React.Component {
       dataInterface
         .uploadAssetFile(uid, data)
         .done(() => {
-          _this.setState({ layerName: '' })
+          this.setState({ layerName: '' })
           actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer')
         })
         .fail((jqxhr) => {
@@ -237,11 +236,11 @@ class MapSettings extends React.Component {
   }
 
   deleteFile(evt) {
-    let el = $(evt.target).closest('[data-uid]').get(0),
+    const el = $(evt.target).closest('[data-uid]').get(0),
       uid = el.getAttribute('data-uid'),
       dialog = alertify.dialog('confirm')
 
-    let opts = {
+    const opts = {
       title: t('Delete File'),
       // TODO: Split this into two independent translation strings without HTML
       message: t(
@@ -262,7 +261,7 @@ class MapSettings extends React.Component {
   }
 
   render() {
-    let asset = this.props.asset,
+    const asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
       activeTab = this.state.activeModalTab,
       queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
