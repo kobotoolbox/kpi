@@ -18,7 +18,7 @@ def get_inactive_users(days: int = 365) -> QuerySet:
 
     A user is considered inactive if:
     - They have not logged in within the given period (or never logged in).
-    - They have not modified or created an XForm within the given period.
+    - They have not modified or created an asset within the given period.
     - They have not modified or have a submission within the given period.
 
     :param days: int: Number of days to determine inactivity (default: 365 days)
@@ -31,7 +31,8 @@ def get_inactive_users(days: int = 365) -> QuerySet:
 
     # Identify users who have not logged in within the given period
     inactive_users = User.objects.filter(
-        Q(last_login__lt=inactivity_threshold) | Q(last_login__isnull=True)
+        Q(last_login__lt=inactivity_threshold) |
+        (Q(last_login__isnull=True) & Q(date_joined__lt=inactivity_threshold))
     )
 
     # Find users who have active projects within the given period
