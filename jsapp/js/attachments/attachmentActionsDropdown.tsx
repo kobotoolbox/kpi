@@ -7,7 +7,7 @@ import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
-import { getFeatureFlags } from '#/featureFlags'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { downloadUrl, notify } from '#/utils'
 import { useRemoveAttachment } from './attachmentsQuery'
 
@@ -39,8 +39,8 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   // TODO: remove this when feature is ready. For now we hide the whole thing by not rendering anything.
-  const { removingAttachmentsEnabled } = getFeatureFlags()
-  if (removingAttachmentsEnabled === false) {
+  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
+  if (!isFeatureEnabled) {
     return null
   }
 
