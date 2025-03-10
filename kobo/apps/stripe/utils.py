@@ -3,7 +3,6 @@ from math import ceil, floor, inf
 from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.db.models.functions import Coalesce
-from djstripe.models.core import Product
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -32,9 +31,13 @@ def get_organization_plan_limits(
     usage_type: UsageType, organizations: list[Organization] = None
 ):
     orgs = Organization.objects.prefetch_related('djstripe_customers')
-    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
     if organizations is not None:
         orgs = orgs.filter(id__in=[org.id for org in organizations])
+    if not settings.STRIPE_ENABLED:
+        return {org.id: inf for org in orgs}
+    else:
+        from djstripe.models.core import Product
+    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
     all_owner_plans = (
         orgs.filter(
             djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
