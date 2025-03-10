@@ -78,6 +78,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
   }
   // Comparison helpers, for letter matching
   const closestAscii = (str: string) => {
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: TODO: investigate, test, and solve or explain.
     const combining = /[\u0300-\u036F]/g
     return str.normalize('NFKD').replace(combining, '')
   }

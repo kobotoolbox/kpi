@@ -1,5 +1,4 @@
 /* global viewUtils */
-'use strict'
 
 /*
     Options:

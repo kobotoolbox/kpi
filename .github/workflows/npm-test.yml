@@ -54,7 +54,7 @@ jobs:
         run: npm install
 
       # Check for Biome formatting errors
-      - name: Check Biome formatting
+      - name: Check Biome formatting, import order and linter
         run: npm run lint:biome
 
       # Check for TypeScript errors
