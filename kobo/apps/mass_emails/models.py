@@ -4,6 +4,7 @@ from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    get_all_users,
     get_users_over_90_percent_of_storage_limit,
     get_users_over_100_percent_of_storage_limit,
 )
@@ -11,6 +12,7 @@ from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 USER_QUERIES: dict[str, Callable] = {
+    'all_users': get_all_users,
     'users_above_90_percent_storage': get_users_over_90_percent_of_storage_limit,
     'users_above_100_percent_storage': get_users_over_100_percent_of_storage_limit,
 }
@@ -45,7 +47,9 @@ class MassEmailConfig(AbstractTimeStampedModel):
 
 
 class MassEmailJob(AbstractTimeStampedModel):
-    email_config = models.ForeignKey(MassEmailConfig, on_delete=models.PROTECT)
+    email_config = models.ForeignKey(
+        MassEmailConfig, on_delete=models.PROTECT, related_name='jobs'
+    )
     uid = KpiUidField(uid_prefix='mej')
 
     def __str__(self):
@@ -54,7 +58,9 @@ class MassEmailJob(AbstractTimeStampedModel):
 
 class MassEmailRecord(AbstractTimeStampedModel):
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    email_job = models.ForeignKey(MassEmailJob, on_delete=models.PROTECT)
+    email_job = models.ForeignKey(
+        MassEmailJob, on_delete=models.PROTECT, related_name='records'
+    )
     status = models.CharField(choices=EmailStatus.choices, null=True, blank=True)
     uid = KpiUidField(uid_prefix='mer')
 
