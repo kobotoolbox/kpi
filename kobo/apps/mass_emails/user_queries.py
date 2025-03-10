@@ -21,6 +21,9 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     - They have not modified or created an asset within the given period.
     - They have not modified or have a submission within the given period.
 
+    Note: Users created within the given period who never logged in are not
+    considered inactive.
+
     :param days: int: Number of days to determine inactivity (default: 365 days)
 
     :return: A queryset of inactive users
