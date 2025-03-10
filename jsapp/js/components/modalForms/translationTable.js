@@ -249,12 +249,10 @@ export class TranslationTable extends React.Component {
   isRowLabelLocked(rowType, rowName) {
     if (rowType === GROUP_TYPES_BEGIN.begin_group) {
       return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.group_label_edit)
+    } else if (Object.keys(QUESTION_TYPES).includes(rowType)) {
+      return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.question_label_edit)
     } else {
-      if (Object.keys(QUESTION_TYPES).includes(rowType)) {
-        return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.question_label_edit)
-      } else {
-        return false
-      }
+      return false
     }
   }
 
