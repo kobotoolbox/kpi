@@ -1,17 +1,13 @@
-import React, { useState } from 'react'
-import bem from '#/bem'
-import Button from '#/components/common/button'
+import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
+import { useState } from 'react'
+import ActionIcon from '#/components/common/ActionIcon'
+import Button from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
-import KoboDropdown from '#/components/common/koboDropdown'
-import KoboModal from '#/components/modals/koboModal'
-import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalFooter from '#/components/modals/koboModalFooter'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
-import { downloadUrl, generateUuid, notify } from '#/utils'
+import { downloadUrl, notify } from '#/utils'
 import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
@@ -36,22 +32,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
 
-  const toggleDeleteModal = () => {
-    setIsDeleteModalOpen(!isDeleteModalOpen)
-  }
-
-  let attachmentTypeName = t('attachment')
-  if (props.questionType === QuestionTypeName.audio) {
-    attachmentTypeName = t('audio recording')
-  } else if (props.questionType === QuestionTypeName.video) {
-    attachmentTypeName = t('video recording')
-  } else if (props.questionType === QuestionTypeName.image) {
-    attachmentTypeName = t('image')
-  } else if (props.questionType === QuestionTypeName['background-audio']) {
-    attachmentTypeName = t('background audio recording')
-  }
-
-  async function confirmDelete() {
+  async function handleConfirmDelete() {
     setIsDeletePending(true)
 
     try {
@@ -66,7 +47,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
       // 4. Upon finishing, Data Table updates the submission in the list
       // We would need to do something similar here.
 
-      toggleDeleteModal()
+      setIsDeleteModalOpen(false)
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
       props.onDeleted()
     } catch (e) {
@@ -80,61 +61,74 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     downloadUrl(props.attachment.download_url)
   }
 
-  const userCanChange = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
+  let attachmentTypeName = t('attachment')
+  if (props.questionType === QuestionTypeName.audio) {
+    attachmentTypeName = t('audio recording')
+  } else if (props.questionType === QuestionTypeName.video) {
+    attachmentTypeName = t('video recording')
+  } else if (props.questionType === QuestionTypeName.image) {
+    attachmentTypeName = t('image')
+  } else if (props.questionType === QuestionTypeName['background-audio']) {
+    attachmentTypeName = t('background audio recording')
+  }
 
-  const uniqueDropdownName = `attachment-actions-${generateUuid()}`
-
-  // TODO: use mantine dropdown and mantine modal
+  const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
 
   return (
     <>
-      <KoboDropdown
-        name={uniqueDropdownName}
-        placement='down-right'
-        hideOnMenuClick
-        triggerContent={<Button type='text' size='s' startIcon='more' />}
-        menuContent={
-          <bem.KoboSelect__menu>
-            <bem.KoboSelect__option onClick={requestDownloadFile}>
-              <Icon name='download' />
-              <label>{t('Download')}</label>
-            </bem.KoboSelect__option>
+      {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
+      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
+        <Menu.Target>
+          <span style={{ position: 'relative' }}>
+            <ActionIcon size='md' variant='transparent' iconName='more' />
+          </span>
+        </Menu.Target>
 
-            <bem.KoboSelect__option onClick={toggleDeleteModal} disabled={!userCanChange}>
-              <Icon name='trash' />
-              <label>{t('Delete')}</label>
-            </bem.KoboSelect__option>
-          </bem.KoboSelect__menu>
-        }
-      />
+        <Menu.Dropdown>
+          <Menu.Item onClick={requestDownloadFile}>
+            <Icon name='download' /> {t('Download')}
+          </Menu.Item>
+          <Menu.Item variant='danger' onClick={() => setIsDeleteModalOpen(true)} disabled={!userCanChangeSubmission}>
+            <Icon name='trash' /> {t('Delete')}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
 
-      <KoboModal isOpen={isDeleteModalOpen} onRequestClose={toggleDeleteModal} size='medium'>
-        <KoboModalHeader onRequestCloseByX={toggleDeleteModal}>
-          {t('Delete ##attachment_type##').replace('##attachment_type##', attachmentTypeName)}
-        </KoboModalHeader>
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+        }}
+        title={t('Delete ##attachment_type##').replace('##attachment_type##', attachmentTypeName)}
+      >
+        {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
+        <FocusTrap.InitialFocus />
 
-        <KoboModalContent>
+        <Stack>
           <p>
             {t('Are you sure you want to delete this ##attachment_type##?').replace(
               '##attachment_type##',
               attachmentTypeName,
             )}
           </p>
-        </KoboModalContent>
 
-        <KoboModalFooter>
-          <Button type='secondary' size='l' onClick={toggleDeleteModal} label={t('Cancel')} />
+          <Group justify='flex-end'>
+            <Button variant='light' size='lg' onClick={() => setIsDeleteModalOpen(false)}>
+              {t('Cancel')}
+            </Button>
 
-          <Button
-            type='danger'
-            size='l'
-            onClick={confirmDelete}
-            label={t('Delete')}
-            isDisabled={!userCanChange}
-            isPending={isDeletePending}
-          />
-        </KoboModalFooter>
-      </KoboModal>
+            <Button
+              variant='danger'
+              size='lg'
+              onClick={handleConfirmDelete}
+              loading={isDeletePending}
+              disabled={!userCanChangeSubmission}
+            >
+              {t('Delete')}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </>
   )
 }
