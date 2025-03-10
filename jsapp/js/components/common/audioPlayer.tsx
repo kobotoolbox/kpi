@@ -112,10 +112,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onSeekChange(newTime: string) {
-    this.audioInterface.currentTime = parseInt(newTime)
+    this.audioInterface.currentTime = Number.parseInt(newTime)
 
     this.setState({
-      currentTime: parseInt(newTime),
+      currentTime: Number.parseInt(newTime),
     })
   }
 

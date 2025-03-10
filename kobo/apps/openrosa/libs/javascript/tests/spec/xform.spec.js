@@ -295,8 +295,8 @@ describe('Formhub Form', () => {
         }),
         fieldId = 'age'
 
-      expect(FH.DataSet.GetSortValue(model, fieldId, parseInt)).toEqual(23)
-      expect(FH.DataSet.GetSortValue(model, fieldId, parseFloat)).toEqual(23)
+      expect(FH.DataSet.GetSortValue(model, fieldId, Number.parseInt)).toEqual(23)
+      expect(FH.DataSet.GetSortValue(model, fieldId, Number.parseFloat)).toEqual(23)
     })
 
     it('should return 0 if value is not a number', () => {
@@ -306,8 +306,8 @@ describe('Formhub Form', () => {
         }),
         fieldId = 'age'
 
-      expect(FH.DataSet.GetSortValue(model, fieldId, parseInt)).toEqual(0)
-      expect(FH.DataSet.GetSortValue(model, fieldId, parseFloat)).toEqual(0)
+      expect(FH.DataSet.GetSortValue(model, fieldId, Number.parseInt)).toEqual(0)
+      expect(FH.DataSet.GetSortValue(model, fieldId, Number.parseFloat)).toEqual(0)
     })
   })
 })

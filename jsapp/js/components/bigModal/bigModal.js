@@ -31,7 +31,7 @@ import MFAModals from './mfaModals'
 function getSubmissionTitle(props) {
   let title = t('Success!')
   const p = props.params
-  const sid = parseInt(p.sid)
+  const sid = Number.parseInt(p.sid)
 
   if (!p.isDuplicated) {
     title = t('Submission Record')

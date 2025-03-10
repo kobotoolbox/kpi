@@ -93,7 +93,7 @@ export async function getSubscriptionInterval() {
  */
 function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | AccountLimit = false) {
   const limits: Partial<AccountLimit> = {}
-  const quantity = getAdjustedQuantityForPrice(parseInt(metadata['quantity']), metadata.transform_quantity)
+  const quantity = getAdjustedQuantityForPrice(Number.parseInt(metadata['quantity']), metadata.transform_quantity)
   for (const [key, value] of Object.entries(metadata)) {
     // if we need to compare limits, make sure we're not overwriting a higher limit from somewhere else
     if (limitsToCompare) {
@@ -106,7 +106,7 @@ function getLimitsForMetadata(metadata: PriceMetadata, limitsToCompare: false | 
     }
     // only use metadata needed for limit calculations
     if (key in DEFAULT_LIMITS && value !== null) {
-      const numericValue = parseInt(value as string)
+      const numericValue = Number.parseInt(value as string)
       limits[key as keyof AccountLimit] = value === Limits.unlimited ? Limits.unlimited : numericValue * quantity
     }
   }

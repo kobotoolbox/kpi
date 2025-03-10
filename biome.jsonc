@@ -130,7 +130,6 @@
         "useNamingConvention": "off", // TODO: Enable all safely fixable rules.
         "useNodeAssertStrict": "error", // Enable all safely fixable rules.
         "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
-        "useNumberNamespace": "off", // Recommended rule. TODO: review 35 cases and enable.
         "useShorthandFunctionType": "off", // Recommended rule. TODO: review 9 cases and enable.
         "useSingleVarDeclarator": "off", // Recommended rule. TODO: review 35 cases and enable.
         "useTemplate": "off", // Recommended rule. TODO: review 103 cases and enable.

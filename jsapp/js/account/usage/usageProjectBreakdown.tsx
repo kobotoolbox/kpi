@@ -67,9 +67,9 @@ const ProjectBreakdown = () => {
   }
 
   const calculateRange = (): string => {
-    const totalProjects = parseInt(projectData.count)
+    const totalProjects = Number.parseInt(projectData.count)
     let startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1
-    if (parseInt(projectData.count) === 0) {
+    if (Number.parseInt(projectData.count) === 0) {
       startRange = 0
     }
     const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects)
@@ -84,7 +84,7 @@ const ProjectBreakdown = () => {
         setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
       } else if (buttonType === 'forward' && projectData.next) {
         setCurrentPage((prevPage) =>
-          Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)),
+          Math.min(prevPage + 1, Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)),
         )
       }
     } catch (error) {
@@ -93,7 +93,7 @@ const ProjectBreakdown = () => {
   }
 
   const isActiveBack = currentPage > 1
-  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)
+  const isActiveForward = currentPage < Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)
 
   const usageName: ProjectFieldDefinition = {
     name: 'name',
@@ -185,7 +185,7 @@ const ProjectBreakdown = () => {
             </th>
           </tr>
         </thead>
-        {parseInt(projectData.count) === 0 ? (
+        {Number.parseInt(projectData.count) === 0 ? (
           <tbody>
             <tr>
               <td colSpan={7} style={{ border: 'none' }}>
