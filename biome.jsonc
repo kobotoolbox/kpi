@@ -113,8 +113,9 @@
       },
       "style": {
         "noArguments": "off", // Recommended rule. TODO: review 6 cases and enable.
-        "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
         "noCommaOperator": "off", // Recommended rule. TODO: review 7 cases and enable.
+        "noImplicitBoolean": "off", // Enable all safely fixable rules, except this for a cleaner look.
+        "noInferrableTypes": "error", // Enable all safely fixable rules.
         "noNonNullAssertion": "off", // Recommended rule. TODO: review 50 cases and enable.
         "noParameterAssign": "off", // Recommended rule. TODO: review 31 cases and enable.
         "noUnusedTemplateLiteral": "off", // Recommended rule. TODO: review 5 cases and enable.
