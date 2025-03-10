@@ -127,7 +127,6 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       selectedCount = requestObj.submission_ids.length
     }
     let msg
-    let onshow
     msg = t(
       'You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.',
     ).replace('##count##', String(selectedCount))
@@ -135,9 +134,9 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
     this.closeCurrentDialog() // just for safety sake
     this.currentDialog = alertify.dialog('confirm')
-    onshow = () => {
-      let ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
-      let $els = $('.alertify-toggle input')
+    const onshow = () => {
+      const ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
+      const $els = $('.alertify-toggle input')
 
       ok_button.disabled = true
 

@@ -60,7 +60,7 @@ export function makeBem(parent: BemInstance | null, name: string, htmlTagName = 
     }
 
     render() {
-      let classNames: string[] = []
+      const classNames: string[] = []
 
       // Keep existing className attribute if given (either string or array)
       if (typeof this.props.className === 'string') {

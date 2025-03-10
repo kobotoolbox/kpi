@@ -72,7 +72,7 @@ export default Object.assign(
       if (this.state.isNewAsset) {
         this.launchAppForSurveyContent()
       } else {
-        let uid = this.props.params.assetid || this.props.params.uid
+        const uid = this.props.params.assetid || this.props.params.uid
         stores.allAssets.whenLoaded(uid, (originalAsset) => {
           // Store asset object is mutable and there is no way to predict all the
           // bugs that come from this fact. Form Builder code is already changing
@@ -265,10 +265,10 @@ export default Object.assign(
 
       let surveyJSON = surveyToValidJson(this.app.survey)
       if (this.state.asset) {
-        let surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
+        const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
         surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content)
       }
-      let params = { content: surveyJSON }
+      const params = { content: surveyJSON }
 
       if (this.state.name) {
         params.name = this.state.name
@@ -336,8 +336,8 @@ export default Object.assign(
             }
 
             alertify.defaults.theme.ok = 'ajs-cancel'
-            let dialog = alertify.dialog('alert')
-            let opts = {
+            const dialog = alertify.dialog('alert')
+            const opts = {
               title: t('Error saving form'),
               message: errorMsg,
               label: t('Dismiss'),
@@ -435,7 +435,7 @@ export default Object.assign(
       // so we need to make sure this stays untouched
       const rawAssetContent = Object.freeze(clonedeep(assetContent))
 
-      let isEmptySurvey =
+      const isEmptySurvey =
         assetContent &&
         assetContent.settings &&
         Object.keys(assetContent.settings).length === 0 &&
@@ -493,8 +493,8 @@ export default Object.assign(
 
     safeNavigateToRoute(route) {
       if (this.needsSave()) {
-        let dialog = alertify.dialog('confirm')
-        let opts = {
+        const dialog = alertify.dialog('confirm')
+        const opts = {
           title: UNSAVED_CHANGES_WARNING,
           message: '',
           labels: { ok: t('Yes, leave form'), cancel: t('Cancel') },
@@ -573,7 +573,7 @@ export default Object.assign(
     // rendering methods
 
     renderFormBuilderHeader() {
-      let { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = this.buttonStates()
+      const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = this.buttonStates()
 
       return (
         <bem.FormBuilderHeader>
@@ -743,7 +743,7 @@ export default Object.assign(
     },
 
     renderAside() {
-      let { styleValue, hasSettings } = this.buttonStates()
+      const { styleValue, hasSettings } = this.buttonStates()
 
       const isAsideVisible = this.state.asideLayoutSettingsVisible || this.state.asideLibrarySearchVisible
 
@@ -836,7 +836,7 @@ export default Object.assign(
     },
 
     renderAssetLabel() {
-      let assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label
+      const assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label
 
       // Case 1: there is no asset yet (creting a new) or asset is not locked
       if (!this.state.asset || !hasAssetAnyLocking(this.state.asset.content)) {

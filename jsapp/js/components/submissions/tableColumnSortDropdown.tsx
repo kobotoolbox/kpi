@@ -33,7 +33,7 @@ interface TableColumnSortDropdownProps {
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   function renderTrigger() {
-    let sortIcon = ['k-icon']
+    const sortIcon = ['k-icon']
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
       sortIcon.push('k-icon-sort-ascending')
     }

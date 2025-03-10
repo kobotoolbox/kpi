@@ -15,9 +15,9 @@ const surveyCompanionStore = Reflux.createStore({
       // `asset` is the library item being added to `survey`
       // be careful not to mutate it, becuase it's kept in a store and not
       // re-fetched from the server each time it's loaded
-      let assetCopy = clonedeep(asset)
+      const assetCopy = clonedeep(asset)
       // `loadDict()` will mutate its first argument; see `inputParser.parse()`
-      let _s = dkobo_xlform.model.Survey.loadDict(assetCopy.content, survey)
+      const _s = dkobo_xlform.model.Survey.loadDict(assetCopy.content, survey)
       survey.insertSurvey(_s, position, groupId)
     })
   },

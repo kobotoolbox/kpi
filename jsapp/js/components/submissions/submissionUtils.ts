@@ -150,7 +150,7 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
 }
 
 function addXpathNode(parentGroup: DisplayGroup, repeatIndex: number | null, currentRowData: any) {
-  let nodePath = []
+  const nodePath = []
   let childIndex = null
   if (repeatIndex !== null) {
     childIndex = repeatIndex + 1
@@ -235,8 +235,8 @@ export function getSubmissionDisplayData(
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
-            let nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
-            let itemObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_repeat, rowLabel, rowName, nodePath)
+            const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
+            const itemObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_repeat, rowLabel, rowName, nodePath)
             parentGroup.addChild(itemObj)
             /*
              * Start whole process again starting at this place in survey,
@@ -279,8 +279,8 @@ export function getSubmissionDisplayData(
         row.type === GROUP_TYPES_BEGIN.begin_score ||
         row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
-        let nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
-        let rowObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_regular, rowLabel, rowName, nodePath)
+        const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
+        const rowObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_regular, rowLabel, rowName, nodePath)
         parentGroup.addChild(rowObj)
         /*
          * Start whole process again starting at this place in survey,
@@ -307,11 +307,11 @@ export function getSubmissionDisplayData(
         }
 
         // Begin constructing xpath for matching media attachments
-        let xpath: string[] = []
+        const xpath: string[] = []
 
         // Build xpath array from existing nodes in parent group
         parentGroup.xpathNodes.forEach((node) => {
-          let nodeCount = node.childIndex !== null ? `[${node.childIndex}]` : ''
+          const nodeCount = node.childIndex !== null ? `[${node.childIndex}]` : ''
           xpath.push(`${node.path}` + nodeCount)
         })
 
@@ -328,7 +328,7 @@ export function getSubmissionDisplayData(
         // add current rowname to end
         xpath.push(rowName)
 
-        let rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
+        const rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
         parentGroup.addChild(rowObj)
 
         const rowxpath = flatPaths[rowName]

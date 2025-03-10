@@ -88,7 +88,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
   constructor(props: SubmissionModalProps) {
     super(props)
-    let translations = this.props.asset.content?.translations
+    const translations = this.props.asset.content?.translations
     let translationOptions: TranslationOption[] = []
 
     if (translations && translations.length > 1) {
@@ -190,7 +190,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         if (this.props.ids && sid) {
           const c = this.props.ids.findIndex((k) => k === parseInt(sid))
-          let tableInfo = this.props.tableInfo || false
+          const tableInfo = this.props.tableInfo || false
           if (this.props.ids[c - 1]) {
             prev = this.props.ids[c - 1]
           }
@@ -263,8 +263,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    * there is no indication that app is doing anything in the meantime (bad UX).
    */
   deleteSubmission() {
-    let dialog = alertify.dialog('confirm')
-    let opts = {
+    const dialog = alertify.dialog('confirm')
+    const opts = {
       title: t('Delete submission?'),
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: { ok: t('Delete'), cancel: t('Cancel') },
@@ -394,7 +394,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onLanguageChange(newValue: string | null) {
-    let index = this.state.translationOptions.findIndex((x) => x.value === newValue)
+    const index = this.state.translationOptions.findIndex((x) => x.value === newValue)
     this.setState({
       translationIndex: index || 0,
     })

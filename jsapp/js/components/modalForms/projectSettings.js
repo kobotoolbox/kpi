@@ -216,7 +216,7 @@ class ProjectSettings extends React.Component {
    */
 
   onAnyFieldChange(fieldName, newFieldValue) {
-    let newStateObj = clonedeep(this.state)
+    const newStateObj = clonedeep(this.state)
 
     // Set Value
     newStateObj.fields[fieldName] = newFieldValue
