@@ -87,6 +87,7 @@
         "noUselessTernary": "off", // Recommended rule. TODO: review 4 cases and enable.
         "noUselessThisAlias": "off", // Recommended rule. TODO: review 7 cases and enable.
         "useArrowFunction": "off", // Recommended rule. TODO: review 245 cases and enable.
+        "noUselessUndefinedInitialization": "error", // Enable all safely fixable rules.
         "useLiteralKeys": "off", // Recommended rule. TODO: review 28 cases and enable.
         "useOptionalChain": "off", // Recommended rule. TODO: review 36 cases and enable.
         "useRegexLiterals": "off" // Recommended rule. TODO: review 1 cases and enable.
