@@ -1,22 +1,24 @@
 import React, { useState } from 'react'
-import Icon from '#/components/common/icon'
+import bem from '#/bem'
 import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import KoboModal from '#/components/modals/koboModal'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
 import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
-import bem from '#/bem'
-import { QuestionTypeName, MetaQuestionTypeName } from '#/constants'
-import * as utils from '#/utils'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
+import { QuestionTypeName } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import { downloadUrl, generateUuid, notify } from '#/utils'
+import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
   questionType: AnyRowTypeName
   attachmentUrl: string
+  attachmentUid: string
   submissionData: SubmissionResponse
   /**
    * Being called after attachment was deleted succesfully. Is meant to be used
@@ -33,6 +35,7 @@ interface AttachmentActionsDropdownProps {
 export default function AttachmentActionsDropdown(props: AttachmentActionsDropdownProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
+  const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
 
   const toggleDeleteModal = () => {
     setIsDeleteModalOpen(!isDeleteModalOpen)
@@ -49,15 +52,14 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     attachmentTypeName = t('background audio recording')
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     setIsDeletePending(true)
 
-    // TODO: replace the timeout with actual API call that will delete
-    // the attachment.
-    console.log('confirmDelete')
-    setTimeout(() => {
+    try {
+      await removeAttachmentMutation.mutateAsync(props.attachmentUid)
+
       // TODO: Upon finishing we need to have the submission data being updated
-      // both here in Submission Modal and in Data Table.
+      // both in Submission Modal and in Data Table.
       // Validation status changing in Submission Modal works like this:
       // 1. Does the call (both Submission Modal and Data Table listens to same call)
       // 2. Call finishes and returns a fresh SubmissionResponse
@@ -65,30 +67,24 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
       // 4. Upon finishing, Data Table updates the submission in the list
       // We would need to do something similar here.
 
-      // TODO: We would need to confirm from Back-end how would the deleted
-      // attachment be marked
-      onAttachmentDeleted()
-    }, 2000)
-  }
-
-  /**
-   * Stops pending animation, closes confirmation prompt and displays
-   * a notification. Also let the parent know through prop callback.
-   */
-  function onAttachmentDeleted() {
-    setIsDeletePending(false)
-    toggleDeleteModal()
-    utils.notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
-    props.onDeleted()
+      setIsDeletePending(false)
+      toggleDeleteModal()
+      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
+      props.onDeleted()
+    } catch (e) {
+      notify(t('An error occurred while removing the attachment'), 'error')
+    }
   }
 
   function requestDownloadFile() {
-    utils.downloadUrl(props.attachmentUrl)
+    downloadUrl(props.attachmentUrl)
   }
 
   const userCanChange = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
 
-  const uniqueDropdownName = `attachment-actions-${utils.generateUuid()}`
+  const uniqueDropdownName = `attachment-actions-${generateUuid()}`
+
+  // TODO: use mantine dropdown and mantine modal
 
   return (
     <>

@@ -198,13 +198,11 @@ export interface SubmissionResponse {
   __version__: string
   _attachments: SubmissionAttachment[]
   _geolocation: number[] | null[]
-  _id: number
   _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
   _tags: string[]
-  _uuid: string
   _validation_status: {
     timestamp?: number
     uid?: ValidationStatusName
@@ -216,6 +214,10 @@ export interface SubmissionResponse {
   _xform_id_string: string
   deviceid?: string
   end?: string
+  // `meta/rootUuid` is persistent across edits while `_uuid` is not;
+  // use the persistent identifier if present.
+  _id: number
+  _uuid: string
   'formhub/uuid': string
   'meta/instanceID': string
   'meta/rootUuid': string

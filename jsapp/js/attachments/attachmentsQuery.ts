@@ -8,7 +8,7 @@ import { endpoints } from '#/api.endpoints'
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
  */
-function removeAttachment(assetUid: string, submissionId: string, attachmentUid: string) {
+function removeAttachment(assetUid: string, submissionRootUuid: string, attachmentUid: string) {
   // TODO: remove this when BE is ready. For now we mock the delete request
   return new Promise<void>((resolve, reject) => {
     setTimeout(() => {
@@ -23,15 +23,15 @@ function removeAttachment(assetUid: string, submissionId: string, attachmentUid:
 
   return fetchDelete(
     endpoints.ATTACHMENT_DETAIL_URL.replace(':asset_uid', assetUid)
-      .replace(':submission_id', submissionId)
+      .replace(':submission_id', submissionRootUuid)
       .replace(':attachment_uid', attachmentUid),
   )
 }
 
-export function useRemoveAttachmentMutation(assetUid: string, submissionId: string) {
+export function useRemoveAttachment(assetUid: string, submissionRootUuid: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, submissionId, attachmentUid),
+    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, submissionRootUuid, attachmentUid),
     onSettled: () => {
       // TODO: successful removal of single attachment should cause a refresh of UI that uses submission data
       // TODO: when we migrate Data Table code to use query, we need to make sure we invalidate things here:
