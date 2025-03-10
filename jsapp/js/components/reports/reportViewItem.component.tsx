@@ -173,7 +173,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
     }
 
-    maxPercentage = maxPercentage < 85 ? (parseInt(String(maxPercentage / 10), 10) + 1) * 10 : 100
+    maxPercentage = maxPercentage < 85 ? (Number.parseInt(String(maxPercentage / 10), 10) + 1) * 10 : 100
 
     const opts: ChartConfiguration = {
       type: chartJsType,

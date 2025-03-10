@@ -28,7 +28,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
 
   // Obtaining error message number
   if (props.errorMessage) {
-    errorNumber = parseInt(props.errorMessage.replace(/[^\d].*/, ''))
+    errorNumber = Number.parseInt(props.errorMessage.replace(/[^\d].*/, ''))
   } else {
     errorNumber = 404
   }

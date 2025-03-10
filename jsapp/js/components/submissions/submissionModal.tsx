@@ -189,7 +189,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         let next = -1
 
         if (this.props.ids && sid) {
-          const c = this.props.ids.findIndex((k) => k === parseInt(sid))
+          const c = this.props.ids.findIndex((k) => k === Number.parseInt(sid))
           const tableInfo = this.props.tableInfo || false
           if (this.props.ids[c - 1]) {
             prev = this.props.ids[c - 1]

@@ -1028,7 +1028,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
     if (sid) {
-      const subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid))
+      const subIndex = this.state.submissions.findIndex((x) => x._id === Number.parseInt(sid))
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions
         newData[subIndex]._validation_status = result || {}

@@ -246,9 +246,9 @@ export async function updateResponseAndReducer(
   // only convert it to/from actual integer when talking with Back end.
   let actualResponse: string | string[] | number | null = response
   if (analysisQuestionType === 'qual_integer') {
-    const actualResponseAsNumber = parseInt(String(response))
+    const actualResponseAsNumber = Number.parseInt(String(response))
     if (Number.isInteger(actualResponseAsNumber)) {
-      actualResponse = parseInt(String(response))
+      actualResponse = Number.parseInt(String(response))
     } else {
       if (String(response) !== '') {
         // This really shouldn't happen!

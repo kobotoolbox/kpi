@@ -359,7 +359,7 @@ export function truncateFile(str: string, length: number) {
 /**
  * Truncates a floating point number to a fixed number of decimal places (default 2)
  */
-export const truncateNumber = (decimal: number, decimalPlaces = 2) => parseFloat(decimal.toFixed(decimalPlaces))
+export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.parseFloat(decimal.toFixed(decimalPlaces))
 
 /**
  * Standard method for converting seconds to minutes for billing purposes

@@ -88,7 +88,7 @@ export const PlanContainer = ({
     ) {
       // prioritize the submission limit from the price over the submission limit from the product
       setSubmissionQuantity(
-        parseInt(product.price.metadata.submission_limit) || parseInt(product.metadata.submission_limit),
+        Number.parseInt(product.price.metadata.submission_limit) || Number.parseInt(product.metadata.submission_limit),
       )
     }
   }, [isSubscribedProduct, activeSubscriptions, product])
@@ -173,10 +173,10 @@ export const PlanContainer = ({
   const submissionOptions = useMemo((): KoboSelectOption[] => {
     const options = []
     const submissionsPerUnit = product.price.metadata?.submission_limit || product.metadata?.submission_limit
-    const maxPlanQuantity = parseInt(product.price.metadata?.max_purchase_quantity || '1')
+    const maxPlanQuantity = Number.parseInt(product.price.metadata?.max_purchase_quantity || '1')
     if (submissionsPerUnit) {
       for (let i = 1; i <= maxPlanQuantity; i++) {
-        const submissionCount = parseInt(submissionsPerUnit) * i
+        const submissionCount = Number.parseInt(submissionsPerUnit) * i
         options.push({
           label: '##submissions## submissions /month'.replace('##submissions##', submissionCount.toLocaleString()),
           value: submissionCount.toString(),
@@ -190,7 +190,7 @@ export const PlanContainer = ({
     if (value === null) {
       return
     }
-    const submissions = parseInt(value)
+    const submissions = Number.parseInt(value)
     if (submissions) {
       setSubmissionQuantity(submissions)
     }
@@ -199,8 +199,8 @@ export const PlanContainer = ({
   const asrMinutes = useMemo(
     () =>
       (adjustedQuantity *
-        (parseInt(product.metadata?.asr_seconds_limit || '0') ||
-          parseInt(product.price.metadata?.asr_seconds_limit || '0'))) /
+        (Number.parseInt(product.metadata?.asr_seconds_limit || '0') ||
+          Number.parseInt(product.price.metadata?.asr_seconds_limit || '0'))) /
       60,
     [adjustedQuantity, product],
   )
@@ -208,8 +208,8 @@ export const PlanContainer = ({
   const mtCharacters = useMemo(
     () =>
       adjustedQuantity *
-      (parseInt(product.metadata?.mt_characters_limit || '0') ||
-        parseInt(product.price.metadata?.mt_characters_limit || '0')),
+      (Number.parseInt(product.metadata?.mt_characters_limit || '0') ||
+        Number.parseInt(product.price.metadata?.mt_characters_limit || '0')),
     [adjustedQuantity, product],
   )
 
