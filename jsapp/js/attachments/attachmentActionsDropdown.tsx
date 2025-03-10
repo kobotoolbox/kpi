@@ -7,6 +7,7 @@ import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import { getFeatureFlags } from '#/featureFlags'
 import { downloadUrl, notify } from '#/utils'
 import { useRemoveAttachment } from './attachmentsQuery'
 
@@ -31,6 +32,17 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
+
+  // Safety check, ideally parent component should not render this component if attachment is deleted.
+  if (props.attachment.is_deleted) {
+    return null
+  }
+
+  // TODO: remove this when feature is ready. For now we hide the whole thing by not rendering anything.
+  const { removingAttachmentsEnabled } = getFeatureFlags()
+  if (removingAttachmentsEnabled === false) {
+    return null
+  }
 
   async function handleConfirmDelete() {
     setIsDeletePending(true)
