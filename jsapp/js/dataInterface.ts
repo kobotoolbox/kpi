@@ -159,6 +159,8 @@ export interface SubmissionAttachment {
   instance: number
   xform: number
   id: number
+  /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
+  is_deleted?: boolean
 }
 
 interface SubmissionSupplementalDetails {
