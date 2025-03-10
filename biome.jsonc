@@ -67,6 +67,7 @@
         "noExplicitAny": "off", // Recommended rule. TODO: review 129 cases and enable.
         "noImplicitAnyLet": "off", // Recommended rule. TODO: review 42 cases and enable.
         "noPrototypeBuiltins": "off", // Recommended rule. TODO: review 3 cases and enable.
+        "noReactSpecificProps": "off", // We use React.
         "noRedeclare": "off", // Recommended rule. TODO: review 1 case and enable.
         "noRedundantUseStrict": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noShadowRestrictedNames": "off", // Recommended rule. TODO: review 2 cases and enable.
