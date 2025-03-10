@@ -20,8 +20,9 @@ templates_placeholders = {
 
 
 def render_template(template, data):
+    rendered = template
     for placeholder, value in templates_placeholders.items():
-        rendered = template.replace(placeholder, data[value])
+        rendered = rendered.replace(placeholder, data[value])
     return rendered
 
 
@@ -50,7 +51,7 @@ def send_emails(email_config_uid: str):
         return
 
     if email_config.jobs_count == 0:
-        create_email_records(pending_config)
+        create_email_records(email_config)
 
     from_email = settings.DEFAULT_FROM_EMAIL
     logging.info(
