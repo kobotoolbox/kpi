@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useState } from 'react'
 
 import BillingButton from '#/account/plans/billingButton.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
-import { PlanNames, Product, SubscriptionChangeType } from '#/account/stripe.types'
+import { SubscriptionChangeType } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import styles from '#/account/usage/yourPlan.module.scss'
 import Badge, { BadgeColor } from '#/components/common/badge'

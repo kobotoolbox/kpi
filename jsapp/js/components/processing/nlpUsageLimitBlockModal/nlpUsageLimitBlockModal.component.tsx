@@ -1,6 +1,4 @@
 import React from 'react'
-
-import cx from 'classnames'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'

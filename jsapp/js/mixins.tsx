@@ -21,7 +21,6 @@ import { getRouteAssetUid } from '#/router/routerUtils'
 import { escapeHtml, join, log, notify } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
-import { stores } from './stores'
 
 const IMPORT_CHECK_INTERVAL = 1000
 

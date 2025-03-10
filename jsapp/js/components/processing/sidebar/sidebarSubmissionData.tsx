@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
-import type { AssetContent, AssetResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {
