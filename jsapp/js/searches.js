@@ -45,7 +45,6 @@ const initialState = Object.assign(
 )
 
 function SearchContext(opts = {}) {
-  var ctx = this
   var debounceTime = opts.debounceTime || 500
   var jqxhrs = {}
 
@@ -55,7 +54,7 @@ function SearchContext(opts = {}) {
 
   let latestSearchData
 
-  const searchStore = (ctx.store = Reflux.createStore({
+  const searchStore = (this.store = Reflux.createStore({
     init() {
       this.filterParams = {}
       this.state = {

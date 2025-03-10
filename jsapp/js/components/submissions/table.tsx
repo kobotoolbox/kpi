@@ -357,12 +357,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Callback for dropdown.
    */
   onValidationStatusChange(sid: string, newValidationStatus: ValidationStatusOptionName) {
-    const _this = this
-
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
-      actions.resources.removeSubmissionValidationStatus(_this.props.asset.uid, sid)
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, sid)
     } else {
-      actions.resources.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, sid, {
         'validation_status.uid': newValidationStatus,
       })
     }

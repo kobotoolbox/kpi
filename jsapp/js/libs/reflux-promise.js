@@ -11,7 +11,6 @@ function createFunctions(Reflux, PromiseFactory) {
    *   Otherwise, the promise is for next child action completion.
    */
   function triggerPromise() {
-    var me = this
     var args = arguments
 
     var canHandlePromise = this.children.indexOf('completed') >= 0 && this.children.indexOf('failed') >= 0
@@ -19,29 +18,29 @@ function createFunctions(Reflux, PromiseFactory) {
     var createdPromise = new PromiseFactory((resolve, reject) => {
       // If `listenAndPromise` is listening
       // patch `promise` w/ context-loaded resolve/reject
-      if (me.willCallPromise) {
+      if (this.willCallPromise) {
         _.nextTick(() => {
-          var previousPromise = me.promise
-          me.promise = (inputPromise) => {
+          var previousPromise = this.promise
+          this.promise = (inputPromise) => {
             inputPromise.then(resolve, reject)
             // Back to your regularly schedule programming.
-            me.promise = previousPromise
-            return me.promise.apply(me, arguments)
+            this.promise = previousPromise
+            return this.promise.apply(this, arguments)
           }
-          me.trigger.apply(me, args)
+          this.trigger.apply(this, args)
         })
         return
       }
 
       if (canHandlePromise) {
-        var removeSuccess = me.completed.listen(() => {
+        var removeSuccess = this.completed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
           resolve(args.length > 1 ? args : args[0])
         })
 
-        var removeFailed = me.failed.listen(() => {
+        var removeFailed = this.failed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
@@ -50,7 +49,7 @@ function createFunctions(Reflux, PromiseFactory) {
       }
 
       _.nextTick(() => {
-        me.trigger.apply(me, args)
+        this.trigger.apply(this, args)
       })
 
       if (!canHandlePromise) {
@@ -72,8 +71,6 @@ function createFunctions(Reflux, PromiseFactory) {
    * @param {Object} p The promise to attach to
    */
   function promise(p) {
-    var me = this
-
     var canHandlePromise = this.children.indexOf('completed') >= 0 && this.children.indexOf('failed') >= 0
 
     if (!canHandlePromise) {
@@ -81,8 +78,8 @@ function createFunctions(Reflux, PromiseFactory) {
     }
 
     p.then(
-      (response) => me.completed(response),
-      (error) => me.failed(error),
+      (response) => this.completed(response),
+      (error) => this.failed(error),
     )
   }
 
@@ -93,7 +90,6 @@ function createFunctions(Reflux, PromiseFactory) {
    * @param {Function} callback The callback to register as event handler
    */
   function listenAndPromise(callback, bindContext) {
-    var me = this
     bindContext = bindContext || this
     this.willCallPromise = (this.willCallPromise || 0) + 1
 
@@ -104,12 +100,12 @@ function createFunctions(Reflux, PromiseFactory) {
 
       var args = arguments,
         returnedPromise = callback.apply(bindContext, args)
-      return me.promise.call(me, returnedPromise)
+      return this.promise.call(this, returnedPromise)
     }, bindContext)
 
     return () => {
-      me.willCallPromise--
-      removeListen.call(me)
+      this.willCallPromise--
+      removeListen.call(this)
     }
   }
 

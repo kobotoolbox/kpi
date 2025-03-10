@@ -325,7 +325,6 @@ export class FormMap extends React.Component {
     return colorSet
   }
   buildMarkers(map) {
-    const _this = this
     const prepPoints = []
     const viewby = this.props.viewby || undefined
     const colorSet = this.calcColorSet()
@@ -385,23 +384,23 @@ export class FormMap extends React.Component {
       let markerProps = {}
       if (checkLatLng(item._geolocation)) {
         if (viewby && mM) {
-          const vb = _this.nameOfFieldInGroup(viewby)
+          const vb = this.nameOfFieldInGroup(viewby)
           const itemId = item[vb]
           let index = mM.findIndex((m) => m.value === itemId)
 
           // spread indexes to use full colorset gamut if necessary
           if (colorSet !== undefined && colorSet !== 'a') {
-            index = _this.calculateIconIndex(index, mM)
+            index = this.calculateIconIndex(index, mM)
           }
 
           markerProps = {
-            icon: _this.buildIcon(index + 1),
+            icon: this.buildIcon(index + 1),
             sId: item._id,
             typeId: mapMarkers[itemId].id,
           }
         } else {
           markerProps = {
-            icon: _this.buildIcon(),
+            icon: this.buildIcon(),
             sId: item._id,
             typeId: null,
           }

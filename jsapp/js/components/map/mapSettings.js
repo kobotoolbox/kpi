@@ -199,7 +199,6 @@ class MapSettings extends React.Component {
 
   dropFiles(files, rejectedFiles) {
     let uid = this.props.asset.uid,
-      _this = this,
       description = this.state.layerName
 
     if (!description) {
@@ -221,7 +220,7 @@ class MapSettings extends React.Component {
       dataInterface
         .uploadAssetFile(uid, data)
         .done(() => {
-          _this.setState({ layerName: '' })
+          this.setState({ layerName: '' })
           actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer')
         })
         .fail((jqxhr) => {

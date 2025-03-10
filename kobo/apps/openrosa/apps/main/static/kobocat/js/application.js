@@ -19,10 +19,9 @@ $(document).ready(() => {
 
   // Copy code blocks in docs
   $('.copy-code').focus(function () {
-    var el = this
     // push select to event loop for chrome :{o
     setTimeout(() => {
-      $(el).select()
+      $(this).select()
     }, 0)
   })
 
