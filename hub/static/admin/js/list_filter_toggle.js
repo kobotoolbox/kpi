@@ -3,11 +3,10 @@ window.addEventListener('load', () => {
   ;(($) => {
     ListFilterCollapsePrototype = {
       bindToggle: function () {
-        const that = this
         this.$filterTitle.click((e) => {
           e.preventDefault()
-          const hidden = that.$list.hasClass('filtered')
-          that._toggleFilterPanel(hidden)
+          const hidden = this.$list.hasClass('filtered')
+          this._toggleFilterPanel(hidden)
         })
       },
       init: function (filterEl) {

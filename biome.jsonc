@@ -84,7 +84,6 @@
         "noUselessFragments": "off", // Recommended rule. TODO: review 4 cases and enable.
         "noUselessSwitchCase": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUselessTernary": "off", // Recommended rule. TODO: review 4 cases and enable.
-        "noUselessThisAlias": "off", // Recommended rule. TODO: review 7 cases and enable.
         "noUselessUndefinedInitialization": "error", // Enable all safely fixable rules.
         "useLiteralKeys": "off", // Recommended rule. TODO: review 28 cases and enable.
         "useOptionalChain": "off", // Recommended rule. TODO: review 36 cases and enable.
