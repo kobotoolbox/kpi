@@ -1117,7 +1117,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   submissionModalProcessing(
     sid: string,
     submissions: SubmissionResponse[],
-    isDuplicated: boolean = false,
+    isDuplicated = false,
     duplicatedSubmission: SubmissionResponse | null = null,
   ) {
     const ids = submissions.map((item) => item._id)

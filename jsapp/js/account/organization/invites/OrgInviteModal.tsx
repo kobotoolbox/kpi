@@ -43,7 +43,7 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-  async function handleSuccessfulInviteResponse(message: string, refreshData: boolean = false) {
+  async function handleSuccessfulInviteResponse(message: string, refreshData = false) {
     // After a one-second delay to allow for initial backend data transfers,
     // refresh session to refresh org data and project list
     if (refreshData) {
