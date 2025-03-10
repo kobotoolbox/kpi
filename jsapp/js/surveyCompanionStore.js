@@ -11,7 +11,7 @@ const surveyCompanionStore = Reflux.createStore({
   addExternalItemAtPosition({ position, survey, uid, groupId }) {
     // `survey` is what's currently open in the form builder
     // `uid` identifies the library item being added to `survey`
-    stores.allAssets.whenLoaded(uid, function (asset) {
+    stores.allAssets.whenLoaded(uid, (asset) => {
       // `asset` is the library item being added to `survey`
       // be careful not to mutate it, becuase it's kept in a store and not
       // re-fetched from the server each time it's loaded

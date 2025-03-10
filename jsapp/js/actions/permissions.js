@@ -155,7 +155,7 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
 })
 
 // copies permissions from one asset to other
-permissionsActions.copyPermissionsFrom.listen(function (sourceUid, targetUid) {
+permissionsActions.copyPermissionsFrom.listen((sourceUid, targetUid) => {
   dataInterface
     .copyPermissionsFrom(sourceUid, targetUid)
     .done(() => {

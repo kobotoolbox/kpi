@@ -1,4 +1,4 @@
-describe('Create Form', function () {
+describe('Create Form', () => {
   before(() => {
     cy.fixture('accounts')
       .then((accounts) => accounts.project_creator)
@@ -7,7 +7,7 @@ describe('Create Form', function () {
       })
   })
 
-  it('Creates a Form', function () {
+  it('Creates a Form', () => {
     cy.contains('NEW').should('exist').click()
 
     cy.contains('Build from scratch').should('exist').click()

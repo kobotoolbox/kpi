@@ -97,7 +97,7 @@ export function deleteAsset(
         $(this).prop('checked', false)
       })
 
-      $els.change(function () {
+      $els.change(() => {
         okBtn.removeAttribute('disabled')
         $els.each(function () {
           if (!$(this).prop('checked')) {

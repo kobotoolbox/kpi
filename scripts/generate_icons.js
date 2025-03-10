@@ -61,7 +61,7 @@ webfontsGenerator(
       eot: {},
     },
   },
-  function (error) {
+  (error) => {
     if (error) {
       throw new Error('Fail!', error)
     } else {

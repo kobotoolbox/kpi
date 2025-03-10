@@ -16,13 +16,13 @@ function createFunctions(Reflux, PromiseFactory) {
 
     var canHandlePromise = this.children.indexOf('completed') >= 0 && this.children.indexOf('failed') >= 0
 
-    var createdPromise = new PromiseFactory(function (resolve, reject) {
+    var createdPromise = new PromiseFactory((resolve, reject) => {
       // If `listenAndPromise` is listening
       // patch `promise` w/ context-loaded resolve/reject
       if (me.willCallPromise) {
-        _.nextTick(function () {
+        _.nextTick(() => {
           var previousPromise = me.promise
-          me.promise = function (inputPromise) {
+          me.promise = (inputPromise) => {
             inputPromise.then(resolve, reject)
             // Back to your regularly schedule programming.
             me.promise = previousPromise
@@ -34,14 +34,14 @@ function createFunctions(Reflux, PromiseFactory) {
       }
 
       if (canHandlePromise) {
-        var removeSuccess = me.completed.listen(function () {
+        var removeSuccess = me.completed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
           resolve(args.length > 1 ? args : args[0])
         })
 
-        var removeFailed = me.failed.listen(function () {
+        var removeFailed = me.failed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
@@ -49,7 +49,7 @@ function createFunctions(Reflux, PromiseFactory) {
         })
       }
 
-      _.nextTick(function () {
+      _.nextTick(() => {
         me.trigger.apply(me, args)
       })
 
@@ -60,7 +60,7 @@ function createFunctions(Reflux, PromiseFactory) {
 
     // Ensure that the promise does trigger "Uncaught (in promise)" errors in console if no error handler is added
     // See: https://github.com/reflux/reflux-promise/issues/4
-    createdPromise.catch(function () {})
+    createdPromise.catch(() => {})
 
     return createdPromise
   }
@@ -81,12 +81,8 @@ function createFunctions(Reflux, PromiseFactory) {
     }
 
     p.then(
-      function (response) {
-        return me.completed(response)
-      },
-      function (error) {
-        return me.failed(error)
-      },
+      (response) => me.completed(response),
+      (error) => me.failed(error),
     )
   }
 
@@ -101,7 +97,7 @@ function createFunctions(Reflux, PromiseFactory) {
     bindContext = bindContext || this
     this.willCallPromise = (this.willCallPromise || 0) + 1
 
-    var removeListen = this.listen(function () {
+    var removeListen = this.listen(() => {
       if (!callback) {
         throw new Error('Expected a function returning a promise but got ' + callback)
       }
@@ -111,7 +107,7 @@ function createFunctions(Reflux, PromiseFactory) {
       return me.promise.call(me, returnedPromise)
     }, bindContext)
 
-    return function () {
+    return () => {
       me.willCallPromise--
       removeListen.call(me)
     }
@@ -128,7 +124,7 @@ function createFunctions(Reflux, PromiseFactory) {
  * Sets up reflux with Promise functionality
  */
 export default function (promiseFactory) {
-  return function (Reflux) {
+  return (Reflux) => {
     const { triggerPromise, promise, listenAndPromise } = createFunctions(Reflux, promiseFactory)
     Reflux.PublisherMethods.triggerAsync = triggerPromise
     Reflux.PublisherMethods.promise = promise

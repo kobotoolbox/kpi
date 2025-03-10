@@ -107,7 +107,7 @@ export function getColumnLabel(
     let gLabels = questionPath.join(' / ')
 
     if (showLabels) {
-      const gT = questionPath.map(function (g) {
+      const gT = questionPath.map((g) => {
         const x = asset.content?.survey?.find((o) => o.name === g || o.$autoname === g)
         if (x?.label && x.label[translationIndex]) {
           return x.label[translationIndex]
@@ -167,11 +167,7 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
 
   if (submissions) {
     // Gather unique columns from all provided submissions and add them to output
-    const dataKeys = Object.keys(
-      submissions.reduce(function (result, obj) {
-        return Object.assign(result, obj)
-      }, {}),
-    )
+    const dataKeys = Object.keys(submissions.reduce((result, obj) => Object.assign(result, obj), {}))
     output = [...new Set([...output, ...dataKeys])]
   }
 

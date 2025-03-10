@@ -1,4 +1,4 @@
-describe('Create questions', function () {
+describe('Create questions', () => {
   before(() => {
     cy.fixture('accounts')
       .then((accounts) => accounts.question_creator)
@@ -7,7 +7,7 @@ describe('Create questions', function () {
       })
   })
 
-  it('Creates questions', function () {
+  it('Creates questions', () => {
     cy.fixture('questions').then((data) => {
       // Click the asset name to load its form summary page
       cy.get('[data-cy="asset"]').click()

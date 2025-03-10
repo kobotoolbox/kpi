@@ -42,9 +42,7 @@ import { ANON_USERNAME_URL } from '#/users/utils'
  * NOTE: Behavior should match KpiTaggableManager.add()
  */
 export function cleanupTags(tags: string[]) {
-  return tags.map(function (tag) {
-    return tag.trim().replace(/ /g, '-')
-  })
+  return tags.map((tag) => tag.trim().replace(/ /g, '-'))
 }
 
 /**
