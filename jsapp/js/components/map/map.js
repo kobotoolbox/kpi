@@ -655,18 +655,18 @@ export class FormMap extends React.Component {
 
     if (!filteredByMarker) {
       filteredByMarker = [id]
-    } else if (!filteredByMarker.includes(id)) {
-      filteredByMarker.push(id)
-    } else {
+    } else if (filteredByMarker.includes(id)) {
       filteredByMarker = filteredByMarker.filter((l) => l !== id)
+    } else {
+      filteredByMarker.push(id)
     }
 
     this.setState({ filteredByMarker: filteredByMarker })
     markers.eachLayer((layer) => {
-      if (!filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.add(unselectedClass)
-      } else {
+      if (filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.remove(unselectedClass)
+      } else {
+        layer._icon.classList.add(unselectedClass)
       }
     })
   }
@@ -751,7 +751,7 @@ export class FormMap extends React.Component {
             m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
-            className={!this.state.markersVisible ? 'active' : ''}
+            className={this.state.markersVisible ? '' : 'active'}
           >
             <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
@@ -779,7 +779,7 @@ export class FormMap extends React.Component {
             <bem.PopoverMenu__link
               key={'all'}
               onClick={this.filterMap}
-              className={!viewby ? 'active see-all' : 'see-all'}
+              className={viewby ? 'see-all' : 'active see-all'}
             >
               {t('-- See all data --')}
             </bem.PopoverMenu__link>

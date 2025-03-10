@@ -130,27 +130,23 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       case SCORE_ROW_TYPE:
       case RANK_LEVEL_TYPE:
         choice = this.findChoice(item.listName, item.data)
-        if (!choice) {
-          console.error(`Choice not found for "${item.listName}" and "${item.data}".`)
-          // fallback to raw data to display anything meaningful
-          return item.data
-        } else {
+        if (choice) {
           return (
             <bem.SubmissionDataTable__value>
               {choice.label?.[this.props.translationIndex] || choice.name}
             </bem.SubmissionDataTable__value>
           )
+        } else {
+          console.error(`Choice not found for "${item.listName}" and "${item.data}".`)
+          // fallback to raw data to display anything meaningful
+          return item.data
         }
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
             {item.data.split(' ').map((answer, answerIndex) => {
               choice = this.findChoice(item.listName, answer)
-              if (!choice) {
-                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
-                // fallback to raw data to display anything meaningful
-                return answer
-              } else {
+              if (choice) {
                 return (
                   <li key={answerIndex}>
                     <bem.SubmissionDataTable__value>
@@ -158,6 +154,10 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                     </bem.SubmissionDataTable__value>
                   </li>
                 )
+              } else {
+                console.error(`Choice not found for "${item.listName}" and "${answer}".`)
+                // fallback to raw data to display anything meaningful
+                return answer
               }
             })}
           </ul>

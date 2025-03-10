@@ -161,10 +161,10 @@ export const PlanContainer = ({
     getListItem(type, name).map((listItem) => {
       if (listItem.icon && name === 'Professional') {
         items.push({ icon: 'positive_pro', label: listItem.item })
-      } else if (!listItem.icon) {
-        items.push({ icon: 'negative', label: listItem.item })
-      } else {
+      } else if (listItem.icon) {
         items.push({ icon: 'positive', label: listItem.item })
+      } else {
+        items.push({ icon: 'negative', label: listItem.item })
       }
     })
     return renderFeaturesList(items, featureTitle)

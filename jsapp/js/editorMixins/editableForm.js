@@ -69,7 +69,9 @@ export default Object.assign(
     componentDidMount() {
       this.loadAsideSettings()
 
-      if (!this.state.isNewAsset) {
+      if (this.state.isNewAsset) {
+        this.launchAppForSurveyContent()
+      } else {
         let uid = this.props.params.assetid || this.props.params.uid
         stores.allAssets.whenLoaded(uid, (originalAsset) => {
           // Store asset object is mutable and there is no way to predict all the
@@ -96,8 +98,6 @@ export default Object.assign(
             })
           }, 0)
         })
-      } else {
-        this.launchAppForSurveyContent()
       }
 
       this.listenTo(stores.surveyState, this.surveyStateChanged)
@@ -357,9 +357,7 @@ export default Object.assign(
 
     buttonStates() {
       var ooo = {}
-      if (!this.app) {
-        ooo.allButtonsDisabled = true
-      } else {
+      if (this.app) {
         ooo.previewDisabled = true
         if (this.app && this.app.survey) {
           ooo.previewDisabled = this.app.survey.rows.length < 1
@@ -378,6 +376,8 @@ export default Object.assign(
         ooo.name = this.state.name
         ooo.hasSettings = this.state.backRoute === ROUTES.FORMS
         ooo.styleValue = this.state.settings__style
+      } else {
+        ooo.allButtonsDisabled = true
       }
       if (this.state.isNewAsset) {
         ooo.saveButtonText = t('create')
@@ -444,9 +444,7 @@ export default Object.assign(
       let survey = null
 
       try {
-        if (!assetContent) {
-          survey = dkobo_xlform.model.Survey.create()
-        } else {
+        if (assetContent) {
           survey = dkobo_xlform.model.Survey.loadDict(assetContent)
           if (_state.files && _state.files.length > 0) {
             survey.availableFiles = _state.files
@@ -454,6 +452,8 @@ export default Object.assign(
           if (isEmptySurvey) {
             survey.surveyDetails.importDefaults()
           }
+        } else {
+          survey = dkobo_xlform.model.Survey.create()
         }
       } catch (err) {
         _state.surveyLoadError = err.message
@@ -492,9 +492,7 @@ export default Object.assign(
     // navigating out of form builder
 
     safeNavigateToRoute(route) {
-      if (!this.needsSave()) {
-        this.props.router.navigate(route)
-      } else {
+      if (this.needsSave()) {
         let dialog = alertify.dialog('confirm')
         let opts = {
           title: UNSAVED_CHANGES_WARNING,
@@ -506,6 +504,8 @@ export default Object.assign(
           oncancel: dialog.destroy,
         }
         dialog.set(opts).show()
+      } else {
+        this.props.router.navigate(route)
       }
     },
 

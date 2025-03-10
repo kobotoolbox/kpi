@@ -86,13 +86,7 @@ mfaActions.getMfaAvailability.listen(() => {
   when(() => envStore.isReady).then(() => {
     const hasMfaList = envStore.data.mfa_has_availability_list
     const perUserAvailability = envStore.data.mfa_per_user_availability
-    if (!envStore.data.stripe_public_key) {
-      // If Stripe isn't enabled on the site, don't restrict MFA access
-      mfaActions.getMfaAvailability.completed({
-        isMfaAvailable: !hasMfaList || perUserAvailability,
-        isPlansMessageVisible: false,
-      })
-    } else {
+    if (envStore.data.stripe_public_key) {
       hasActiveSubscription()
         .then((response) => {
           const isMfaAvailable = hasMfaList ? response || perUserAvailability : response
@@ -103,6 +97,12 @@ mfaActions.getMfaAvailability.listen(() => {
           notify(errorText, 'error')
           mfaActions.getMfaAvailability.failed({ isMfaAvailable: false, isPlansMessageVisible: false })
         })
+    } else {
+      // If Stripe isn't enabled on the site, don't restrict MFA access
+      mfaActions.getMfaAvailability.completed({
+        isMfaAvailable: !hasMfaList || perUserAvailability,
+        isPlansMessageVisible: false,
+      })
     }
   })
 })

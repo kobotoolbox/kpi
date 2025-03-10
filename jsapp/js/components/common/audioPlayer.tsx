@@ -100,10 +100,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onPlayStatusChange() {
-    if (!this.state.isPlaying) {
-      this.audioInterface.play()
-    } else {
+    if (this.state.isPlaying) {
       this.audioInterface.pause()
+    } else {
+      this.audioInterface.play()
     }
 
     this.setState({
