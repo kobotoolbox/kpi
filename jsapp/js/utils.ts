@@ -7,7 +7,7 @@
  * NOTE: We have other utils files related to asset, submissions, etc.
  */
 
-import * as Sentry from '@sentry/react'
+import type * as Sentry from '@sentry/react'
 import random from 'lodash.random'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'

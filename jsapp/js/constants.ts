@@ -1,4 +1,4 @@
-import { IconName } from '#/k-icons'
+import type { IconName } from '#/k-icons'
 
 /**
  * A list of all shareable constants for the application.

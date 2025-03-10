@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
 import { UsageContext, useUsage } from '#/account/usage/useUsage.hook'

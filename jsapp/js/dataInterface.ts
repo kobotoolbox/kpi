@@ -22,15 +22,15 @@ import type { HookAuthLevelName, HookExportTypeName } from './components/RESTSer
 import type { Json } from './components/common/common.interfaces'
 import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
-import {
-  type ExportFormatName,
-  type ExportMultiOptionName,
-  type ExportStatusName,
-  type ExportTypeName,
+import type {
+  ExportFormatName,
+  ExportMultiOptionName,
+  ExportStatusName,
+  ExportTypeName,
 } from './components/projectDownloads/exportsConstants'
 import { COMMON_QUERIES, ROOT_URL } from './constants'
 import type { ProjectViewsSettings } from './projects/customViewStore'
-import { type LangString } from './utils'
+import type { LangString } from './utils'
 
 interface AssetsRequestData {
   q?: string

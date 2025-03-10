@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import classnames from 'classnames'
-import { FreeTierOverride, PlanState } from '#/account/plans/plan.component'
+import type { FreeTierOverride, PlanState } from '#/account/plans/plan.component'
 import styles from '#/account/plans/plan.module.scss'
 import { PlanButton } from '#/account/plans/planButton.component'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
-import { Price, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
+import type { Price, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
 import {
   getAdjustedQuantityForPrice,
   getSubscriptionsForProductId,
@@ -13,7 +13,7 @@ import {
   isDowngrade,
 } from '#/account/stripe.utils'
 import Icon from '#/components/common/icon'
-import KoboSelect, { KoboSelectOption } from '#/components/common/koboSelect'
+import KoboSelect, { type KoboSelectOption } from '#/components/common/koboSelect'
 
 interface PlanContainerProps {
   product: SinglePricedProduct

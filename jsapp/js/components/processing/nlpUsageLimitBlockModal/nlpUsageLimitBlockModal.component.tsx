@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
-import { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'
+import type { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboModalFooter from '#/components/modals/koboModalFooter'

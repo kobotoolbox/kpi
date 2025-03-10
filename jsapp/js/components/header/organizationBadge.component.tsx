@@ -1,5 +1,5 @@
 import { useOrganizationQuery } from '#/account/organization/organizationQuery'
-import Badge, { BadgeColor } from '#/components/common/badge'
+import Badge, { type BadgeColor } from '#/components/common/badge'
 import styles from './organizationBadge.module.scss'
 
 interface OrganizationBadgeProps {
