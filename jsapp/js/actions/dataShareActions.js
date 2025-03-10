@@ -2,7 +2,6 @@
  * Dynamic data attachment related actions
  */
 
-import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import { dataInterface } from '#/dataInterface'

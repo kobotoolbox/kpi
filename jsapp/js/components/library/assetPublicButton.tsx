@@ -2,7 +2,6 @@ import React from 'react'
 
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
-import bem from '#/bem'
 import Button from '#/components/common/button'
 import { ASSET_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'

@@ -9,7 +9,6 @@ import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
 import { ProductsContext } from '#/account/useProducts.hook'
 import { USAGE_WARNING_RATIO } from '#/constants'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
-import { convertSecondsToMinutes } from '#/utils'
 
 interface SubscribedState {
   subscribedProduct: null | SubscriptionInfo

@@ -18,7 +18,7 @@
 import { Cookies } from 'react-cookie'
 import { toast } from 'react-hot-toast'
 import Reflux from 'reflux'
-import { log, notify } from '#/utils'
+import { notify } from '#/utils'
 import { actions } from './actions'
 import { parseTags } from './assetParserUtils'
 

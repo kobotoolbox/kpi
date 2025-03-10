@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 
 import { useNavigate } from 'react-router-dom'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
-import { actions } from '#/actions'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'

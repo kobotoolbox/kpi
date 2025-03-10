@@ -8,7 +8,6 @@ import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
 import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
-import { PROCESSING_QUESTION_TYPES } from '#/components/processing/processingUtils'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import {
   DISPLAY_GROUP_TYPES,
@@ -18,7 +17,7 @@ import {
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
-import type { AnyRowTypeName, MetaQuestionTypeName, QuestionTypeName } from '#/constants'
+import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
 

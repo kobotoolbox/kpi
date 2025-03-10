@@ -28,6 +28,7 @@
     "lineEnding": "lf" // Default.
   },
   "javascript": {
+    "jsxRuntime": "reactClassic", // TODO: check babel and typescript and use the transparent runtime.
     "formatter": {
       "arrowParentheses": "always", // Default.
       "bracketSameLine": false, // Default.
@@ -54,6 +55,7 @@
         "noInvalidUseBeforeDeclaration": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noSwitchDeclarations": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUnsafeOptionalChaining": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "noUnusedImports": "error", // Enable all safely fixable rules.
         "useExhaustiveDependencies": "off", // Recommended rule. TODO: review 101 cases and enable.
         "useJsxKeyInIterable": "off" // Recommended rule. TODO: review 17 cases and enable.
       },

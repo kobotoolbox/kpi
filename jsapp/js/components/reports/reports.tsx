@@ -26,7 +26,6 @@ import ReportStyleSettingsSingleQuestion from './reportStyleSettingsSingleQuesti
 import { getDataWithResponses } from './reports.utils'
 import {
   type AssetResponseReportStyles,
-  CHART_STYLES,
   type CustomReportSettings,
   DEFAULT_MINIMAL_REPORT_STYLE,
   type ReportsPaginatedResponse,
