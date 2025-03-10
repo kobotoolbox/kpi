@@ -3,7 +3,7 @@ from django.core import mail
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
-from ..tasks import send_emails
+from ..tasks import create_email_records, send_emails
 
 
 class TestCeleryTask(BaseTestCase):
@@ -35,10 +35,23 @@ class TestCeleryTask(BaseTestCase):
             user=user2, email_job=job_B, status=EmailStatus.ENQUEUED
         )
 
-        send_emails()
-
+        send_emails(config_A.uid)
         outbox_summary = [(message.to, message.subject) for message in mail.outbox]
         assert ([user1.email], 'Subject A') in outbox_summary
         assert ([user2.email], 'Subject A') not in outbox_summary
+
+        send_emails(config_B.uid)
+        outbox_summary = [(message.to, message.subject) for message in mail.outbox]
         assert ([user1.email], 'Subject B') in outbox_summary
         assert ([user2.email], 'Subject B') in outbox_summary
+
+    def test_create_records(self):
+        config_A = MassEmailConfig.objects.create(
+            name='Config A', subject='Subject A', template='Template', query='all_users'
+        )
+        create_email_records(config_A)
+        records = MassEmailRecord.objects.all()
+        assert len(records) == 3
+        assert {'someuser', 'anotheruser', 'adminuser'} == {
+            r.user.username for r in records
+        }

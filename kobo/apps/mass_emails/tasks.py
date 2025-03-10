@@ -12,8 +12,8 @@ from kpi.utils.mailer import EmailMessage, Mailer
 from kobo.apps.mass_emails.models import (
     EmailStatus,
     MassEmailConfig,
-    MassEmailRecord,
     MassEmailJob,
+    MassEmailRecord,
     USER_QUERIES
 )
 
@@ -73,7 +73,7 @@ def create_email_records(email_config):
     job = MassEmailJob.objects.create(
         email_config=email_config,
     )
-    users = []
+    users = USER_QUERIES[email_config.query]()
     for user in users:
         MassEmailRecord.objects.create(
             user=user,
@@ -83,56 +83,46 @@ def create_email_records(email_config):
 
 
 @celery_app.task
-def send_emails():
-    # If a config has no jobs, attempt to create their jobs
-    configs_job_counts = MassEmailConfig.objects.annotate(jobs_count=Count('jobs'))
-    for pending_config in configs_job_counts.filter(jobs_count=0):
-        create_email_records(pending_config)
-
-    configs_records = MassEmailConfig.objects.annotate(
+def send_emails(email_config_uid: str):
+    email_config = MassEmailConfig.objects.annotate(
+        jobs_count=Count('jobs'),
         records=Count(
             'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
-        )
-    ).all()
-    configs_count = len(configs_records)
-    if configs_count == 0:
+        ),
+    ).get(uid=email_config_uid)
+    if email_config is None:
         return
 
-    emails_per_config = ceil(settings.MAX_MASS_EMAILS_PER_DAY / configs_count)
-    from_email = settings.DEFAULT_FROM_EMAIL
-    emails_remaining = settings.MAX_MASS_EMAILS_PER_DAY
-    for email_config in configs_records:
-        logging.info(
-            f'Processing MassEmailConfig(uid={email_config.uid}, '
-            f'name={email_config.name}, subject={email_config.subject})'
-        )
-        for job in email_config.jobs.all():
-            records = job.records.filter(status=EmailStatus.ENQUEUED)[
-                :emails_per_config
-            ]
-            for record in records:
-                logging.info(
-                    f'Processing MassEmailRecord(uid={record.uid}, user={record.user})'
-                )
-                emails_remaining -= 1
-                if emails_remaining == 0:
-                    break
-                data = {
-                    'username': record.user.username,
-                    'full_name': record.user.first_name + ' ' + record.user.last_name,
-                    'plan_name': 'Test plan',
-                }
-                content = render_template(email_config.template, data)
-                message = EmailMessage(
-                    to=record.user.email,
-                    subject=email_config.subject,
-                    plain_text_content_or_template=content,
-                    html_content_or_template=content,
-                )
-                sent = Mailer.send(message)
-                if sent:
-                    record.status = EmailStatus.SENT
-                else:
-                    record.status = EmailStatus.FAILED
+    if email_config.jobs_count == 0:
+        create_email_records(pending_config)
 
-                record.save()
+    from_email = settings.DEFAULT_FROM_EMAIL
+    logging.info(
+        f'Processing MassEmailConfig(uid={email_config.uid}, '
+        f'name={email_config.name}, subject={email_config.subject})'
+    )
+    for job in email_config.jobs.all():
+        records = job.records.filter(status=EmailStatus.ENQUEUED)[
+            : settings.MAX_MASS_EMAILS_PER_DAY
+        ]
+        for record in records:
+            logging.info(f'Processing MassEmailRecord({record})')
+            data = {
+                'username': record.user.username,
+                'full_name': record.user.first_name + ' ' + record.user.last_name,
+                'plan_name': 'Test plan',
+            }
+            content = render_template(email_config.template, data)
+            message = EmailMessage(
+                to=record.user.email,
+                subject=email_config.subject,
+                plain_text_content_or_template=content,
+                html_content_or_template=content,
+            )
+            sent = Mailer.send(message)
+            if sent:
+                record.status = EmailStatus.SENT
+            else:
+                record.status = EmailStatus.FAILED
+
+            record.save()

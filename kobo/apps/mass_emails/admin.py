@@ -9,7 +9,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'date_modified')
     fields = ('name', 'subject', 'template', 'query')
-    actions = ['enqueue_mass_emails']
+    actions = ['enqueue_mass_emails', 'send_emails']
 
     @admin.action(description='Add to daily send queue')
     def enqueue_mass_emails(self, request, queryset):
@@ -33,3 +33,8 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
                 f'Emails for {config.name} have been scheduled for tomorrow',
                 level=messages.SUCCESS,
             )
+
+    @admin.action(description='Send emails')
+    def send_emails(self, request, queryset):
+        for email_config in queryset:
+            send_emails.delay(email_config.uid)
