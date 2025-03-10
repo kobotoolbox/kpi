@@ -50,7 +50,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    minimum=minimum, maximum=maximum
+                    usage_type='storage', minimum=minimum, maximum=maximum
                 )
         aslist = list(results.order_by('username'))
         assert aslist == list(
@@ -77,10 +77,30 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    minimum=minimum, maximum=maximum
+                    usage_type='storage', minimum=minimum, maximum=maximum
                 )
 
         # result should always be empty no matter what min/max were given if user has
         # infinite storage
         aslist = list(results)
         assert aslist == []
+
+    @data(
+        ('storage', 'get_storage_usage_by_user_id'),
+        ('submission', 'get_submissions_for_current_billing_period_by_user_id'),
+    )
+    @unpack
+    def test_users_in_range_of_usage_limit_calls_correct_usage_method(
+        self, usage_type, method_to_patch
+    ):
+        full_usage_method_to_patch = (
+            f'kobo.apps.mass_emails.user_queries.{method_to_patch}'
+        )
+        full_limit_method_to_patch = (
+            'kobo.apps.mass_emails.user_queries.get_organization_plan_limits'
+        )
+        with patch(full_usage_method_to_patch) as patched_usage_method:
+            with patch(full_limit_method_to_patch) as patched_limit_method:
+                get_users_within_range_of_usage_limit(usage_type=usage_type)
+        patched_usage_method.assert_called_once()
+        patched_limit_method.assert_called_once_with(usage_type=usage_type)
