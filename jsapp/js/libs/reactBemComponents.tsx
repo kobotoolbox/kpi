@@ -94,10 +94,10 @@ const reactCreateBemElement = (base: string, el = 'div') => {
 }
 
 export function bemComponents(obj: { [key: string]: [string, string?] | string }) {
-  let keys = Object.keys(obj)
+  const keys = Object.keys(obj)
   return Object.freeze(
     keys.reduce((hsh: any, key) => {
-      let val = obj[key]
+      const val = obj[key]
       if (val instanceof Array) {
         hsh[key] = reactCreateBemElement.apply(null, val)
       } else {

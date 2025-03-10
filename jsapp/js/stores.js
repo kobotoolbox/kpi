@@ -238,7 +238,7 @@ stores.allAssets = Reflux.createStore({
   },
   onListAssetsFailed: (searchData, response) => {
     let iconStyle = 'warning'
-    let opts = {}
+    const opts = {}
     if (response?.responseJSON?.detail === t('Your query is too short')) {
       iconStyle = 'empty'
       opts.id = 'query_too_short' // de-dupe and make dismissable on success

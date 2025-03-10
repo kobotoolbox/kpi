@@ -149,14 +149,14 @@ export class TranslationSettings extends React.Component {
     }
   }
   prepareTranslations(content) {
-    let translated = content.translated
-    let translationsLength = content.translations.length
-    let survey = content.survey
-    let choices = content.choices
+    const translated = content.translated
+    const translationsLength = content.translations.length
+    const survey = content.survey
+    const choices = content.choices
 
     // append null values to translations for each survey row
     for (let i = 0, len = survey.length; i < len; i++) {
-      let row = survey[i]
+      const row = survey[i]
       for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j]
         if (row[property] && row[property].length < translationsLength) {
@@ -176,13 +176,13 @@ export class TranslationSettings extends React.Component {
     return content
   }
   deleteTranslations(content, langIndex) {
-    let translated = content.translated
-    let translationsLength = content.translations.length
-    let survey = content.survey
-    let choices = content.choices
+    const translated = content.translated
+    const translationsLength = content.translations.length
+    const survey = content.survey
+    const choices = content.choices
 
     for (let i = 0, len = survey.length; i < len; i++) {
-      let row = survey[i]
+      const row = survey[i]
       for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j]
         if (row[property]) {
@@ -429,7 +429,7 @@ export class TranslationSettings extends React.Component {
       return <LoadingSpinner />
     }
 
-    let translations = this.state.translations
+    const translations = this.state.translations
     if (translations.length === 0) {
       return this.renderEmptyMessage()
     } else if (translations.length === 1 && translations[0] === null) {

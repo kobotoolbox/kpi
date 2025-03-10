@@ -243,8 +243,8 @@ class KoboMatrix extends React.Component {
     // warn only if existing column type is one of (Select One, Select Many)
     // and new type is NOT one of (Select One, Select Many)
     if (['select_one', 'select_many'].includes(prevType) && !['select_one', 'select_many'].includes(newType)) {
-      let dialog = alertify.dialog('confirm')
-      let opts = {
+      const dialog = alertify.dialog('confirm')
+      const opts = {
         title: t('Change column type?'),
         message: t(
           'Are you sure you want to change the type? This action is irreversible, your existing option choices will be erased.',
@@ -387,8 +387,8 @@ class KoboMatrix extends React.Component {
   }
 
   deleteRow(rowKuid) {
-    let dialog = alertify.dialog('confirm')
-    let opts = {
+    const dialog = alertify.dialog('confirm')
+    const opts = {
       title: t('Delete row?'),
       message: t('Are you sure you want to delete this row? This action cannot be undone.'),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
@@ -405,8 +405,8 @@ class KoboMatrix extends React.Component {
   deleteColumn() {
     const colKuid = this.state.expandedColKuid
     var data = this.state.data
-    let dialog = alertify.dialog('confirm')
-    let opts = {
+    const dialog = alertify.dialog('confirm')
+    const opts = {
       title: t('Delete column?'),
       message: t('Are you sure you want to delete this column? This action cannot be undone.'),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
@@ -452,7 +452,7 @@ class KoboMatrix extends React.Component {
         <bem.MatrixCols m={'header'}>
           <bem.MatrixCols__col m={'label'} key={'label'} />
           {cols.map((colKuid, n) => {
-            let col = data.get(colKuid)
+            const col = data.get(colKuid)
             return (
               <bem.MatrixCols__col key={n} m={'header'} className={expandedCol === colKuid ? 'active' : ''}>
                 <bem.MatrixCols__colattr m={'label'}>{col.get('label')}</bem.MatrixCols__colattr>
@@ -515,7 +515,7 @@ class KoboMatrix extends React.Component {
                   </div>
                   {choices.map((choice) => {
                     if (choice.get('list_name') === this.getCol(expandedCol, 'select_from_list_name')) {
-                      let ch = choice.get('$kuid')
+                      const ch = choice.get('$kuid')
                       return (
                         <div className='matrix-cols__options--row' key={ch}>
                           <span>
@@ -578,8 +578,8 @@ class KoboMatrix extends React.Component {
                   let contents = []
 
                   if (_listName) {
-                    let list = this.getListDetails(_listName)
-                    let listStyleChar = '🔘'
+                    const list = this.getListDetails(_listName)
+                    const listStyleChar = '🔘'
                     list.forEach((item) => {
                       contents.push(`${listStyleChar} ${item.label}`)
                     })

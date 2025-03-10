@@ -128,9 +128,9 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
     currentPlan.schedule.phases?.length &&
     currentPlan.schedule.phases.length > 1
   ) {
-    let nextPhaseItem = currentPlan.schedule.phases[1].items[0]
+    const nextPhaseItem = currentPlan.schedule.phases[1].items[0]
     for (const product of products) {
-      let price = product.prices.find((price) => price.id === nextPhaseItem.price)
+      const price = product.prices.find((price) => price.id === nextPhaseItem.price)
       if (price) {
         nextProduct = product
         date = convertUnixTimestampToUtc(currentPlan.schedule.phases[0].end_date!)

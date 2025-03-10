@@ -17,7 +17,7 @@ function OneTimeAddOnList(props: OneTimeAddOnList) {
   const formattedAddOns = useMemo(
     () =>
       props.oneTimeAddOns.map((addon) => {
-        let productName =
+        const productName =
           productsContext.products.find((product) => product.id === addon.product)?.name ?? 'One-Time Addon'
 
         let remainingLimit = 0

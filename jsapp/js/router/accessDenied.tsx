@@ -57,7 +57,7 @@ const AccessDenied = (props: AccessDeniedProps) => {
     }
   }
 
-  let messageHtml = replaceBracketsWithLink(messageText, envStore.data.support_url)
+  const messageHtml = replaceBracketsWithLink(messageText, envStore.data.support_url)
 
   return (
     <bem.AccessDenied>

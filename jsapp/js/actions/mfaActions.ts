@@ -93,7 +93,7 @@ mfaActions.getMfaAvailability.listen(() => {
           mfaActions.getMfaAvailability.completed({ isMfaAvailable, isPlansMessageVisible: !isMfaAvailable })
         })
         .catch(() => {
-          let errorText = t('An error occurred while checking subscription status')
+          const errorText = t('An error occurred while checking subscription status')
           notify(errorText, 'error')
           mfaActions.getMfaAvailability.failed({ isMfaAvailable: false, isPlansMessageVisible: false })
         })

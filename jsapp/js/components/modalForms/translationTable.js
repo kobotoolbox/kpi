@@ -68,7 +68,7 @@ export class TranslationTable extends React.Component {
     // add choice options to translation table
     if (choices && choices.length) {
       choices.forEach((choice) => {
-        let isLabelLocked = lockedChoiceLists.includes(choice.list_name)
+        const isLabelLocked = lockedChoiceLists.includes(choice.list_name)
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
@@ -160,16 +160,16 @@ export class TranslationTable extends React.Component {
   }
 
   saveChanges() {
-    let content = this.props.asset.content,
+    const content = this.props.asset.content,
       rows = this.state.tableData,
       langIndex = this.props.langIndex
     for (var i = 0, len = rows.length; i < len; i++) {
-      let item = content[rows[i].contentProp].find(
+      const item = content[rows[i].contentProp].find(
         (o) =>
           (o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name) &&
           o.list_name === rows[i].listName,
       )
-      let itemProp = rows[i].itemProp
+      const itemProp = rows[i].itemProp
 
       if (item[itemProp][langIndex] !== rows[i].value) {
         item[itemProp][langIndex] = rows[i].value
@@ -213,7 +213,7 @@ export class TranslationTable extends React.Component {
   }
 
   onLanguageChange(lang, index) {
-    let content = this.props.asset.content,
+    const content = this.props.asset.content,
       langString = getLangString(lang)
 
     content.translations[index] = langString

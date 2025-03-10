@@ -112,7 +112,7 @@ function SearchContext(opts = {}) {
         // deleting a draft, the `deleted: true` attribute is missing from the
         // leftover removed asset
       } else if (catList && sourceResults && sourceResults.length === 0) {
-        let updateObj = catList
+        const updateObj = catList
         for (const item in updateObj) {
           // This fix is only relevant to removing the last asset so
           // we can indiscriminately pick the only asset in store lists
@@ -251,7 +251,7 @@ function SearchContext(opts = {}) {
       return false
     }
 
-    let assetVersionIds = assets.map((asset) => asset.version_id)
+    const assetVersionIds = assets.map((asset) => asset.version_id)
     // Sort alphabetically, same as backend sort
     assetVersionIds.sort()
 
@@ -477,7 +477,7 @@ var commonMethods = {
     this.searchValue()
   },
   searchChangeEvent(evt) {
-    let searchString = evt.target.value.trim()
+    const searchString = evt.target.value.trim()
     // don't trigger search on identical strings (e.g. multiple spaces)
     if (this.searchStore.state.searchString !== searchString) {
       this.quietUpdateStore({

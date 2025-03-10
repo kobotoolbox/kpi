@@ -569,7 +569,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
-        let currentOption: ValidationStatusOption =
+        const currentOption: ValidationStatusOption =
           VALIDATION_STATUS_OPTIONS.find((item) => item.value === filter?.value) || VALIDATION_STATUS_SHOW_ALL_OPTION
 
         return (
