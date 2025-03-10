@@ -130,6 +130,7 @@
         "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
         "useExportType": "error", // Enable all safely fixable rules.
         "useImportType": "off", // Recommended rule. TODO: review 64 cases and enable.
+        "useNamingConvention": "off", // TODO: Enable all safely fixable rules.
         "useNodeAssertStrict": "error", // Enable all safely fixable rules.
         "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
         "useNumberNamespace": "off", // Recommended rule. TODO: review 35 cases and enable.
