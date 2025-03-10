@@ -16,6 +16,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
+from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
@@ -43,6 +44,7 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, models.Model, AudioTranscodingMixin):
+    uid = KpiUidField(uid_prefix='at')
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
