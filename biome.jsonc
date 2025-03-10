@@ -123,6 +123,7 @@
         "noUnusedTemplateLiteral": "off", // Recommended rule. TODO: review 5 cases and enable.
         "noUselessElse": "off", // Recommended rule. TODO: review 167 cases and enable.
         "noVar": "off", // Recommended rule. TODO: review 234 cases and enable.
+        "noYodaExpression": "error", // Enable all safely fixable rules.
         "useConst": "off", // Recommended rule. TODO: review 108 cases and enable.
         "useDefaultParameterLast": "off", // Recommended rule. TODO: review 1 cases and enable.
         "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
