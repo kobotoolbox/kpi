@@ -243,7 +243,7 @@ export function readParameters(str) {
     separator = ','
   }
   const otherSeparators = ';, '.replace(separator, '')
-  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=')
+  const cleanStr = str.replace(/ *= */g, '=')
   const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'))
 
   parts.forEach((part) => {
