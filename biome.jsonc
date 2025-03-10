@@ -128,6 +128,7 @@
         "useConst": "off", // Recommended rule. TODO: review 108 cases and enable.
         "useDefaultParameterLast": "off", // Recommended rule. TODO: review 1 cases and enable.
         "useEnumInitializers": "off", // Recommended rule. TODO: review 2 cases and enable.
+        "useExportType": "error", // Enable all safely fixable rules.
         "useImportType": "off", // Recommended rule. TODO: review 64 cases and enable.
         "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 3 cases and enable.
         "useNumberNamespace": "off", // Recommended rule. TODO: review 35 cases and enable.
