@@ -4,6 +4,7 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
+import AttachmentActionsDropdown from '#/attachments/attachmentActionsDropdown'
 import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
 import AudioPlayer from '#/components/common/audioPlayer'
@@ -235,6 +236,20 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             <a href={attachment.download_url} target='_blank'>
               {filename}
             </a>
+          )}
+
+          {type !== null && (
+            <AttachmentActionsDropdown
+              asset={this.props.asset}
+              questionType={type}
+              attachment={attachment}
+              submissionData={this.props.submissionData}
+              onDeleted={() => {
+                // We're letting know upstream that the attachment was deleted
+                // this.props.onAttachmentDeleted(attachment)
+                console.log('xxx attachment deleted')
+              }}
+            />
           )}
         </>
       )

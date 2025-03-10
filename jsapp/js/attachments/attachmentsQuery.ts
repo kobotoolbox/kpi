@@ -12,8 +12,9 @@ function removeAttachment(assetUid: string, submissionRootUuid: string, attachme
   // TODO: remove this when BE is ready. For now we mock the delete request
   return new Promise<void>((resolve, reject) => {
     setTimeout(() => {
+      const randomNumber = Math.random()
       // 1/3 of the time we fail:
-      if (Math.random() < 1 / 3) {
+      if (randomNumber < 1 / 3) {
         reject(new Error('MOCK Remove attachment failed'))
       } else {
         resolve()

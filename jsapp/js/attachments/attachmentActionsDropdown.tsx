@@ -10,15 +10,14 @@ import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { downloadUrl, generateUuid, notify } from '#/utils'
 import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
   questionType: AnyRowTypeName
-  attachmentUrl: string
-  attachmentUid: string
+  attachment: SubmissionAttachment
   submissionData: SubmissionResponse
   /**
    * Being called after attachment was deleted succesfully. Is meant to be used
@@ -56,7 +55,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     setIsDeletePending(true)
 
     try {
-      await removeAttachmentMutation.mutateAsync(props.attachmentUid)
+      await removeAttachmentMutation.mutateAsync(String(props.attachment.id))
 
       // TODO: Upon finishing we need to have the submission data being updated
       // both in Submission Modal and in Data Table.
@@ -67,17 +66,18 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
       // 4. Upon finishing, Data Table updates the submission in the list
       // We would need to do something similar here.
 
-      setIsDeletePending(false)
       toggleDeleteModal()
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
       props.onDeleted()
     } catch (e) {
       notify(t('An error occurred while removing the attachment'), 'error')
+    } finally {
+      setIsDeletePending(false)
     }
   }
 
   function requestDownloadFile() {
-    downloadUrl(props.attachmentUrl)
+    downloadUrl(props.attachment.download_url)
   }
 
   const userCanChange = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
