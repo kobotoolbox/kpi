@@ -178,14 +178,12 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     if (cycle.current) {
       // CYCLE
       jumpToNextPrefixMatch(eventKey)
+    } else if (matchesBeginningOf(buffer.current, optionRef.current.label)) {
+      // Stay on the current option if it still matches.
+      // *do nothing*
     } else {
-      // MATCH
-      //   Stay on the current option if it still matches.
-      //   Otherwise, try to cycle to a better match.
-
-      if (!matchesBeginningOf(buffer.current, optionRef.current.label)) {
-        jumpToNextPrefixMatch(buffer.current)
-      }
+      // try to cycle to a better match.
+      jumpToNextPrefixMatch(buffer.current)
     }
   }
 
