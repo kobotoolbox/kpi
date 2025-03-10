@@ -93,8 +93,11 @@ def send_emails(email_config_uid: str):
     ).get(uid=email_config_uid)
     if email_config is None:
         return
+    
+    if email_config.jobs_count > 1:
+        raise NotImplementedError
 
-    if email_config.jobs_count == 0:
+    if email_config.jobs_count == 0: # Create job if no job exists
         create_email_records(email_config)
 
     from_email = settings.DEFAULT_FROM_EMAIL
