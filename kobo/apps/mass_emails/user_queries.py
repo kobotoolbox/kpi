@@ -8,6 +8,10 @@ from kobo.apps.stripe.utils import get_organization_plan_limits
 from kpi.utils.usage_calculator import get_storage_usage_by_user_id
 
 
+def get_all_users():
+    return User.objects.exclude(email__isnull=True).exclude(email__exact='')
+
+
 def get_users_within_range_of_usage_limit(
     minimum: float = 0, maximum: float = inf
 ) -> QuerySet:

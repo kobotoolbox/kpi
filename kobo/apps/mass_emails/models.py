@@ -4,6 +4,7 @@ from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    get_all_users,
     get_users_over_90_percent_of_storage_limit,
     get_users_over_100_percent_of_storage_limit,
 )
@@ -11,6 +12,7 @@ from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 USER_QUERIES: dict[str, Callable] = {
+    'all_users': get_all_users,
     'users_above_90_percent_storage': get_users_over_90_percent_of_storage_limit,
     'users_above_100_percent_storage': get_users_over_100_percent_of_storage_limit,
 }
