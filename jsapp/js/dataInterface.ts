@@ -1359,6 +1359,13 @@ export const dataInterface: DataInterface = {
     })
   },
 
+  removeAllPermissions(permUrl: string): JQuery.jqXHR<any> {
+    return $ajax({
+      url: `${permUrl}delete-all/`,
+      method: 'DELETE',
+    })
+  },
+
   copyPermissionsFrom(sourceUid: string, targetUid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${targetUid}/permission-assignments/clone/`,

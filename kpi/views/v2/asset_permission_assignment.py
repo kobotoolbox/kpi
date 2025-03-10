@@ -1,5 +1,6 @@
 # coding: utf-8
 
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from rest_framework import exceptions, renderers, status
@@ -130,6 +131,16 @@ class AssetPermissionAssignmentViewSet(
     >
     >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/  # noqa: E501
 
+    **Remove all permission assignments**
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/
+
 
     **Assign all permissions at once**
 
@@ -244,9 +255,10 @@ class AssetPermissionAssignmentViewSet(
     def delete_all(self, request, *args, **kwargs):
         object_permission = self.get_object()
         user = object_permission.user
-        response = self.destroy(request, *args, **kwargs)
-        if response.status_code == status.HTTP_204_NO_CONTENT:
-            self.asset.remove_perm(user, PERM_ADD_SUBMISSIONS)
+        with transaction.atomic():
+            response = self.destroy(request, *args, **kwargs)
+            if response.status_code == status.HTTP_204_NO_CONTENT:
+                self.asset.remove_perm(user, PERM_ADD_SUBMISSIONS)
         return response
 
     def destroy(self, request, *args, **kwargs):
