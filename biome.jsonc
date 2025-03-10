@@ -66,7 +66,6 @@
         "noEmptyInterface": "off", // Recommended rule. TODO: review 1 cases and enable.
         "noExplicitAny": "off", // Recommended rule. TODO: review 129 cases and enable.
         "noImplicitAnyLet": "off", // Recommended rule. TODO: review 42 cases and enable.
-        "noMisleadingCharacterClass": "off", // Recommended rule. TODO: review 1 case and enable.
         "noPrototypeBuiltins": "off", // Recommended rule. TODO: review 3 cases and enable.
         "noRedeclare": "off", // Recommended rule. TODO: review 1 case and enable.
         "noRedundantUseStrict": "off", // Recommended rule. TODO: review 2 cases and enable.
