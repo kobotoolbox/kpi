@@ -3,17 +3,17 @@ import { useCallback } from 'react'
 import { when } from 'mobx'
 import prettyBytes from 'pretty-bytes'
 import {
-  BaseProduct,
-  ChangePlan,
+  type BaseProduct,
+  type ChangePlan,
   ChangePlanStatus,
-  Checkout,
-  LimitAmount,
+  type Checkout,
+  type LimitAmount,
   Limits,
-  Price,
-  Product,
+  type Price,
+  type Product,
   SubscriptionChangeType,
-  SubscriptionInfo,
-  TransformQuantity,
+  type SubscriptionInfo,
+  type TransformQuantity,
   USAGE_TYPE,
 } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'

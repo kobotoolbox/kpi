@@ -2,7 +2,7 @@ import { useContext, useEffect, useReducer, useState } from 'react'
 
 import { when } from 'mobx'
 import { getAccountLimits } from '#/account/stripe.api'
-import { SubscriptionInfo, UsageLimitTypes } from '#/account/stripe.types'
+import { type SubscriptionInfo, UsageLimitTypes } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
 import { UsageContext } from '#/account/usage/useUsage.hook'
 import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'

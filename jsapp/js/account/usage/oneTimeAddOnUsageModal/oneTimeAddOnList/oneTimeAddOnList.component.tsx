@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from 'react'
 
-import { OneTimeAddOn, USAGE_TYPE } from '#/account/stripe.types'
+import { type OneTimeAddOn, USAGE_TYPE } from '#/account/stripe.types'
 import { useLimitDisplay } from '#/account/stripe.utils'
 import { ProductsContext } from '#/account/useProducts.hook'
 import styles from './oneTimeAddOnList.module.scss'

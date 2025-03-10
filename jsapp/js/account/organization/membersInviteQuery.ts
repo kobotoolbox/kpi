@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FetchDataOptions, fetchDeleteUrl, fetchGet, fetchPatchUrl, fetchPost } from '#/api'
+import { type FetchDataOptions, fetchDeleteUrl, fetchGet, fetchPatchUrl, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'
 import type { FailResponse } from '#/dataInterface'
