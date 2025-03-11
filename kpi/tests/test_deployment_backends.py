@@ -124,6 +124,18 @@ class MockDeployment(TestCase):
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.get_data(new_key), new_value)
 
+    def test_save_to_db_without_date_modified(self):
+        last_modified = self.asset.date_modified
+        self.asset.deployment.save_to_db({'key': 'value'}, update_date_modified=False)
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.date_modified, last_modified)
+
+    def test_save_to_db_with_date_modified(self):
+        last_modified = self.asset.date_modified
+        self.asset.deployment.save_to_db({'key': 'value'})
+        self.asset.refresh_from_db()
+        self.assertGreater(self.asset.date_modified, last_modified)
+
     def test_save_data(self):
 
         deployment_data = self.asset.deployment.get_data()
