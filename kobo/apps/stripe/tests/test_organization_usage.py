@@ -1,5 +1,6 @@
 import timeit
 from datetime import datetime, timedelta
+from math import inf
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -559,6 +560,12 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         )
         for org in other_orgs:
             assert all_limits[org.id] == 6000
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_get_organization_plan_limits_stripe_disabled_returns_inf(self):
+        all_limits = get_organization_plan_limits('submission')
+        for org in Organization.objects.all():
+            assert all_limits[org.id] == inf
 
     def test_get_organization_plan_limits_prioritizes_price_metadata(self):
         product_metadata = {
