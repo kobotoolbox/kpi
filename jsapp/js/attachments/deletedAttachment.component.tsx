@@ -9,7 +9,6 @@ export default function DeletedAttachment() {
   return (
     // We include the `deletedAttachment` class name so it's easier to style
     // this for parent component.
-    // TODO: get a better gray
-    <Center className='deletedAttachment' c='gray' fz='md' fs='italic'>{t('Deleted')}</Center>
+    <Center className='deletedAttachment' c='gray.3' fz='md' fs='italic'>{t('Deleted')}</Center>
   )
 }
