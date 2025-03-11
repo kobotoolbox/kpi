@@ -441,10 +441,10 @@ class BaseDeploymentBackend(abc.ABC):
         updates.pop('_stored_data_key', None)
         fields_to_update = {
             '_deployment_data': UpdateJSONFieldAttributes('_deployment_data', updates),
-        '_deployment_status': self.asset.deployment_status,
+            '_deployment_status': self.asset.deployment_status,
         }
         if update_date_modified:
-            fields_to_update['date_modified']=now
+            fields_to_update['date_modified'] = now
 
         self.asset.__class__.objects.filter(id=self.asset.pk).update(**fields_to_update)
         if update_date_modified:
