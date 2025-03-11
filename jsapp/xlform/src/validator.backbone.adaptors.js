@@ -1,7 +1,6 @@
 /* global _ */
 /* global Backbone */
 /* global viewUtils */
-'use strict'
 
 _.extend(Backbone.Validation.validators, {
   invalidChars: function (value, attr, customValue) {
