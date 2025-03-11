@@ -425,7 +425,7 @@ class BaseDeploymentBackend(abc.ABC):
     def rename_enketo_id_key(self, previous_owner_username: str):
         pass
 
-    def save_to_db(self, updates: dict):
+    def save_to_db(self, updates: dict, update_date_modified=True):
         """
         Persist values from deployment data into the DB.
         `updates` is a dictionary of properties to update.
@@ -440,16 +440,16 @@ class BaseDeploymentBackend(abc.ABC):
 
         # never save `_stored_data_key` attribute
         updates.pop('_stored_data_key', None)
+        fields_to_update = {
+            '_deployment_data': UpdateJSONFieldAttributes('_deployment_data', updates),
+            '_deployment_status': self.asset.deployment_status,
+        }
+        if update_date_modified:
+            fields_to_update['date_modified'] = now
 
-        self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=UpdateJSONFieldAttributes(
-                '_deployment_data',
-                updates=updates,
-            ),
-            date_modified=now,
-            _deployment_status=self.asset.deployment_status
-        )
-        self.asset.date_modified = now
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(**fields_to_update)
+        if update_date_modified:
+            self.asset.date_modified = now
 
     @abc.abstractmethod
     def set_active(self, active: bool):
