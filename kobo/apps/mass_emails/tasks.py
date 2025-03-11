@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models import Count, Q
+from django.utils.translation import gettext
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
@@ -67,10 +68,14 @@ def send_emails(email_config_uid: str):
         ]
         for record in records:
             logging.info(f'Processing MassEmailRecord({record})')
+            org_user = record.user.organization.organization_users.get(user=record.user)
+            plan_name = org_user.active_subscription_status
+            if plan_name == '' or plan_name is None:
+                plan_name = gettext('Community Plan')
             data = {
                 'username': record.user.username,
                 'full_name': record.user.first_name + ' ' + record.user.last_name,
-                'plan_name': 'Test plan',
+                'plan_name': plan_name,
             }
             content = render_template(email_config.template, data)
             message = EmailMessage(
