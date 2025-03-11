@@ -17,7 +17,7 @@ from kpi.utils.usage_calculator import (
 
 
 def get_all_users():
-    return User.objects.exclude(Q(email__isnull=True | email__exact=''))
+    return User.objects.exclude(Q(email__isnull=True) | Q(email__exact=''))
 
 
 def get_inactive_users(days: int = 365) -> QuerySet:
