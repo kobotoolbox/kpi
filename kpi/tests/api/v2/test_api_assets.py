@@ -1784,60 +1784,27 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
     def test_asset_deployment_validation_error(self):
         bad_content = {
-            'schema': '1',
             'survey': [
-                {
-                    'name': 'start',
-                    'type': 'start',
-                    '$kuid': 'O23MoETkI',
-                    '$xpath': 'start',
-                    '$autoname': 'start',
-                },
-                {
-                    'name': 'end',
-                    'type': 'end',
-                    '$kuid': '9rvIvjnrP',
-                    '$xpath': 'end',
-                    '$autoname': 'end',
-                },
                 {
                     'name': 'Enter_a_float_number',
                     'type': 'decimal',
-                    '$kuid': 'e2v7ZTcDw',
                     'label': ['Enter a float number'],
-                    '$xpath': 'Enter_a_float_number',
-                    'required': False,
-                    '$autoname': 'Enter_a_float_number',
                 },
                 {
                     'name': 'What_s_your_name',
                     'type': 'text',
-                    '$kuid': 'w8nnstZ1r',
                     'label': ["What's your name?"],
-                    '$xpath': 'What_s_your_name',
-                    'required': False,
-                    '$autoname': 'What_s_your_name',
                 },
                 {
                     'name': 'Enter_an_int_number',
                     'type': 'integer',
-                    '$kuid': 'hpw7EKED0',
-                    '$xpath': 'Enter_an_int_number',
-                    'required': False,
-                    '$autoname': 'Enter_an_int_number',
                 },
                 {
                     'name': 'Enter_a_time',
                     'type': 'time',
-                    '$kuid': 'rwf9XqdlC',
                     'label': ['Enter a time'],
-                    '$xpath': 'Enter_a_time',
-                    'required': False,
-                    '$autoname': 'Enter_a_time',
                 },
-            ],
-            'choices': [],
-            'settings': {},
+            ]
         }
         assets_url = reverse(self._get_endpoint('asset-list'))
         asset_response = self.client.post(
@@ -1845,10 +1812,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
             {'content': bad_content, 'asset_type': 'survey'},
             format='json',
         )
-        asset = Asset.objects.get(uid=asset_response.data.get('uid'))
+        asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -1863,6 +1830,78 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.assertEqual(
             deploy_response.data['error'],
             "The survey element named 'Enter_an_int_number' has no label or hint.",
+        )
+
+    def test_asset_redeployment_validation_error(self):
+        content = {
+            'survey': [
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    'label': ['Enter a float number'],
+                },
+                {
+                    'name': 'What_s_your_name',
+                    'type': 'text',
+                    'label': ["What's your name?"],
+                },
+                {
+                    'name': 'Enter_an_int_number',
+                    'type': 'integer',
+                    'label': ['Enter an int number'],
+                },
+                {
+                    'name': 'Enter_a_time',
+                    'type': 'time',
+                    'label': ['Enter a time'],
+                },
+            ]
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset_uid = asset_response.data.get('uid')
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        assert deploy_response.status_code == status.HTTP_200_OK
+
+        # make `content` a bad content, and redeploy
+        del content['survey'][0]['label']
+        asset_url = f'{assets_url}{asset_uid}/'
+
+        updated_asset_response = self.client.patch(
+            asset_url,
+            {'content': content},
+            format='json',
+        )
+        version_id = updated_asset_response.data['version_id']
+
+        redeploy_response = self.client.patch(
+            deployment_url,
+            {
+                'version_id': version_id,
+                'active': True,
+            },
+        )
+
+        assert redeploy_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            str(redeploy_response.data['error'])
+            == "The survey element named 'Enter_a_float_number' has no label or hint."
         )
 
     def test_asset_deployment_with_sheet_name_Settings(self):  # noqa
