@@ -13,7 +13,7 @@ Kobotoolbox uses automated tools to assist developers in three ways:
 - organize imports: enforce consistent import statement order sorted by "distance" and natural ordering.
 - linting: enforce fixing common errors and writing modern code.
 
-Kobotoolbox uses the fast [Biome](https://biomejs.dev/) for all three, although it's linter is not type-aware. and [ESLint](https://typescript-eslint.io/) for linting only. There are plans to adopt [oxlint](https://oxc.rs/docs/guide/usage/linter.html) in the future, it's an upcoming performant competitor to ESlint, but isn't type-aware yet and thus limited in it's capacity.
+Kobotoolbox uses the fast [Biome](https://biomejs.dev/) for all three, although it's linter is not type-aware, and [ESLint](https://typescript-eslint.io/) for linting only. There are plans to adopt [oxlint](https://oxc.rs/docs/guide/usage/linter.html) in the future, it's an upcoming performant competitor to ESlint, but isn't type-aware yet and thus limited in it's capacity.
 
 Kobotoolbox is in progress of gradually adopting Biome. Please find TODOs in [`./biome.jsonc`](./biome.jsonc).
 
