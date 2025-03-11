@@ -124,6 +124,9 @@ class MockDeployment(TestCase):
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.get_data(new_key), new_value)
 
+    def test_save_to_db_without_date_modified(self):
+        self.asset.deployment.save_to_db({'key':'value'}, update_date_modified=False)
+
     def test_save_data(self):
 
         deployment_data = self.asset.deployment.get_data()
