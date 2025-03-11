@@ -17,7 +17,6 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.fields.file import ExtendedFileField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
-from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from .instance import Instance
 
@@ -42,7 +41,7 @@ class AttachmentDefaultManager(models.Manager):
         return super().get_queryset().filter(deleted_at__isnull=True)
 
 
-class Attachment(AbstractTimeStampedModel, models.Model, AudioTranscodingMixin):
+class Attachment(models.Model, AudioTranscodingMixin):
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
@@ -77,6 +76,9 @@ class Attachment(AbstractTimeStampedModel, models.Model, AudioTranscodingMixin):
         blank=True,
         db_index=True,
     )
+
+    date_created = models.DateTimeField(null=True, blank=True)
+    date_modified = models.DateTimeField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
