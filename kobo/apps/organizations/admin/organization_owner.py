@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import transaction
 from organizations.base_admin import BaseOrganizationOwnerAdmin, BaseOwnerInline
 
@@ -50,4 +50,10 @@ class OrgOwnerAdmin(BaseOrganizationOwnerAdmin):
                     lambda: transfer_member_data_ownership_to_org.delay(
                         old_user_id
                     )
+                )
+
+                self.message_user(
+                    request,
+                    'The organization ownership transfer is in progress',
+                    messages.INFO,
                 )
