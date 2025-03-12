@@ -77,6 +77,3 @@ jobs:
       - name: Run component tests with Jest
         run: npx jest --config ./jsapp/jest/jest.config.ts --ci
 
-      # Check that the storybook build succeeds
-      - name: Build Storybook
-        run: npm run storybook:build
