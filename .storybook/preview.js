@@ -1,4 +1,4 @@
-import 'jsapp/scss/main.scss'
+import 'scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
 
