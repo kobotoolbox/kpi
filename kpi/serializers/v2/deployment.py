@@ -76,9 +76,18 @@ class DeploymentSerializer(serializers.Serializer):
             return deployment
 
         self._raise_unless_current_version(asset, validated_data)
-        asset.deploy(
-            backend=deployment.backend,
-            active=validated_data.get('active', deployment.active),
-        )
+
+        try:
+            asset.deploy(
+                backend=deployment.backend,
+                active=validated_data.get('active', deployment.active),
+            )
+        except (
+            DuplicateWorksheetName,
+            EnketoValidateError,
+            PyXFormError,
+            ODKValidateError,
+        ) as e:
+            raise serializers.ValidationError({'error': str(e)})
 
         return deployment
