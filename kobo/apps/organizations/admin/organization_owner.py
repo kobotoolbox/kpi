@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.db import transaction
 from organizations.base_admin import BaseOrganizationOwnerAdmin, BaseOwnerInline
 
-from ..models import OrganizationOwner, OrganizationUser
+from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
+from ..models import OrganizationOwner
 
 
 class OwnerInline(BaseOwnerInline):
@@ -33,3 +35,19 @@ class OrgOwnerAdmin(BaseOrganizationOwnerAdmin):
         if obj is not None and obj.pk:
             return ['organization']
         return []
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            old_user_id = OrganizationOwner.objects.filter(
+                pk=obj.pk
+            ).values_list('organization_user__user_id', flat=True)[0]
+
+        with transaction.atomic():
+            super().save_model(request, obj, form, change)
+
+            if change:
+                transaction.on_commit(
+                    lambda: transfer_member_data_ownership_to_org.delay(
+                        old_user_id
+                    )
+                )
