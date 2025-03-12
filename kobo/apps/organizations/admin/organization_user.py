@@ -1,7 +1,8 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
-from django.db.models import Count
+from django.db.models import Count, Subquery
+from django.urls import resolve, Resolver404
 from django.utils.safestring import mark_safe
 from django_request_cache import cache_for_request
 from import_export import resources
@@ -13,7 +14,7 @@ from organizations.base_admin import BaseOrganizationUserAdmin
 
 from kobo.apps.kobo_auth.shortcuts import User
 from ..forms import OrgUserAdminForm
-from ..models import Organization, OrganizationUser
+from ..models import Organization, OrganizationOwner, OrganizationUser
 from ..tasks import transfer_member_data_ownership_to_org
 from ..utils import revoke_org_asset_perms
 
@@ -177,19 +178,34 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
         return False
 
     def get_search_results(self, request, queryset, search_term):
+
         auto_complete = request.path == '/admin/autocomplete/'
         app_label = request.GET.get('app_label')
         model_name = request.GET.get('model_name')
+        field_name = request.GET.get('field_name')
         if (
             auto_complete
             and app_label == 'organizations'
             and model_name == 'organizationowner'
+            and field_name == 'organization_user'
         ):
-            queryset = (
-                queryset.annotate(user_count=Count('organization__organization_users'))
-                .filter(user_count__lte=1)
-                .order_by('user__username')
+
+            relative_referrer = request.META.get('HTTP_REFERER', '').replace(
+                settings.KOBOFORM_URL, ''
             )
+            try:
+                resolver = resolve(relative_referrer)
+            except Resolver404:
+                pass
+            else:
+                if organization_owner_id := resolver.kwargs.get('object_id'):
+                    queryset = queryset.filter(
+                        organization=Subquery(
+                            OrganizationOwner.objects.filter(
+                                id=organization_owner_id
+                            ).values('organization_user__organization')[:1]
+                        )
+                    ).order_by('user__username')
 
         return super().get_search_results(request, queryset, search_term)
 
