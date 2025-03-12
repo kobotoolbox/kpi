@@ -103,7 +103,6 @@ class Transfer(AbstractTimeStampedModel):
 
             global_status.save()
 
-            self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
             self._update_invite_status()
 
@@ -327,7 +326,6 @@ class Transfer(AbstractTimeStampedModel):
             invite.status = InviteStatusChoices.COMPLETE
 
         if previous_status != invite.status:
-            invite.date_modified = timezone.now()
             invite.save(update_fields=['status', 'date_modified'])
             if invite.status == InviteStatusChoices.FAILED:
                 send_email_to_admins.delay(invite.uid)
