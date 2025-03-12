@@ -34,7 +34,7 @@ jobs:
 
   does-docker-in-ci:
     steps:
-      name: 'Try running docker in CI'
+    - name: 'Try running docker in CI'
       run: |
         docker run --rm -d --name enketo-redis --publish 6379:6379 --publish 6380:6379 redis
         docker ps
