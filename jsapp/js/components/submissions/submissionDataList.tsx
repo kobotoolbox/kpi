@@ -24,9 +24,7 @@ interface SubmissionDataListProps {
   hideGroups?: boolean
 }
 
-interface SubmissionDataListState {}
-
-export default class SubmissionDataList extends React.Component<SubmissionDataListProps, SubmissionDataListState> {
+export default class SubmissionDataList extends React.Component<SubmissionDataListProps> {
   constructor(props: SubmissionDataListProps) {
     super(props)
     this.state = {}

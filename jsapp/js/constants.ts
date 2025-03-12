@@ -1,4 +1,4 @@
-import { IconName } from '#/k-icons'
+import type { IconName } from '#/k-icons'
 
 /**
  * A list of all shareable constants for the application.
@@ -30,7 +30,7 @@ export function createEnum(values: string[]): IEnum {
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
-  let rootPathEl = document.head.querySelector<HTMLMetaElement>('meta[name=kpi-root-path]')
+  const rootPathEl = document.head.querySelector<HTMLMetaElement>('meta[name=kpi-root-path]')
   let rootPath = ''
   if (rootPathEl === null) {
     // @ts-expect-error: ℹ️ global 'expect' indicates we're in a unit test

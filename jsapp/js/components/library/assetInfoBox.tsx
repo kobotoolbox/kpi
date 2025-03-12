@@ -35,14 +35,14 @@ export default class AssetInfoBox extends React.Component<AssetInfoBoxProps, Ass
   }
 
   componentDidMount() {
-    if (!assetUtils.isSelfOwned(this.props.asset)) {
+    if (assetUtils.isSelfOwned(this.props.asset)) {
+      this.setState({ ownerData: sessionStore.currentAccount })
+    } else {
       this.unlisteners.push(
         actions.misc.getUser.completed.listen(this.onGetUserCompleted.bind(this)),
         actions.misc.getUser.failed.listen(this.onGetUserFailed.bind(this)),
       )
       actions.misc.getUser(this.props.asset.owner)
-    } else {
-      this.setState({ ownerData: sessionStore.currentAccount })
     }
   }
 

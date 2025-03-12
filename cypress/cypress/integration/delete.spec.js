@@ -1,4 +1,4 @@
-describe('Delete Project.', function () {
+describe('Delete Project.', () => {
   before(() => {
     cy.fixture('accounts')
       .then((accounts) => accounts.project_deleter)
@@ -7,7 +7,7 @@ describe('Delete Project.', function () {
       })
   })
 
-  it('Cancels deleting a project', function () {
+  it('Cancels deleting a project', () => {
     // Select the project to activate the "project actions" buttons,
     // then click the 'delete' button.
     cy.get('[data-field="checkbox"] .checkbox__input')

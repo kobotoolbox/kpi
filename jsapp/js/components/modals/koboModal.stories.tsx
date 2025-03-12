@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import Button from '../common/button'
 import KoboModal from './koboModal'
 import KoboModalContent from './koboModalContent'

@@ -77,11 +77,11 @@ class TableStore extends Reflux.Store {
     const newSettings: AssetSettings = clonedeep(asset?.settings) || {}
 
     // settings object doesn't even have DATA_TABLE_SETTING, we can pass newTableSettings
-    if (!newSettings[DATA_TABLE_SETTING]) {
+    if (newSettings[DATA_TABLE_SETTING]) {
+      newSettings[DATA_TABLE_SETTING] = Object.assign(newSettings[DATA_TABLE_SETTING], newTableSettings)
+    } else {
       newSettings[DATA_TABLE_SETTING] = newTableSettings
       // settings exist, so we merge them
-    } else {
-      newSettings[DATA_TABLE_SETTING] = Object.assign(newSettings[DATA_TABLE_SETTING], newTableSettings)
     }
 
     // Case 1: user can save, so we call the endpoint

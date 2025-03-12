@@ -578,7 +578,7 @@ class FormLanding extends React.Component {
     )
   }
   renderLanguages(canEdit) {
-    let translations = this.state.content.translations
+    const translations = this.state.content.translations
 
     return (
       <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>

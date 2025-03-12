@@ -11,37 +11,36 @@ function createFunctions(Reflux, PromiseFactory) {
    *   Otherwise, the promise is for next child action completion.
    */
   function triggerPromise() {
-    var me = this
     var args = arguments
 
     var canHandlePromise = this.children.indexOf('completed') >= 0 && this.children.indexOf('failed') >= 0
 
-    var createdPromise = new PromiseFactory(function (resolve, reject) {
+    var createdPromise = new PromiseFactory((resolve, reject) => {
       // If `listenAndPromise` is listening
       // patch `promise` w/ context-loaded resolve/reject
-      if (me.willCallPromise) {
-        _.nextTick(function () {
-          var previousPromise = me.promise
-          me.promise = function (inputPromise) {
+      if (this.willCallPromise) {
+        _.nextTick(() => {
+          var previousPromise = this.promise
+          this.promise = (inputPromise) => {
             inputPromise.then(resolve, reject)
             // Back to your regularly schedule programming.
-            me.promise = previousPromise
-            return me.promise.apply(me, arguments)
+            this.promise = previousPromise
+            return this.promise.apply(this, arguments)
           }
-          me.trigger.apply(me, args)
+          this.trigger.apply(this, args)
         })
         return
       }
 
       if (canHandlePromise) {
-        var removeSuccess = me.completed.listen(function () {
+        var removeSuccess = this.completed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
           resolve(args.length > 1 ? args : args[0])
         })
 
-        var removeFailed = me.failed.listen(function () {
+        var removeFailed = this.failed.listen(() => {
           var args = Array.prototype.slice.call(arguments)
           removeSuccess()
           removeFailed()
@@ -49,8 +48,8 @@ function createFunctions(Reflux, PromiseFactory) {
         })
       }
 
-      _.nextTick(function () {
-        me.trigger.apply(me, args)
+      _.nextTick(() => {
+        this.trigger.apply(this, args)
       })
 
       if (!canHandlePromise) {
@@ -60,7 +59,7 @@ function createFunctions(Reflux, PromiseFactory) {
 
     // Ensure that the promise does trigger "Uncaught (in promise)" errors in console if no error handler is added
     // See: https://github.com/reflux/reflux-promise/issues/4
-    createdPromise.catch(function () {})
+    createdPromise.catch(() => {})
 
     return createdPromise
   }
@@ -72,8 +71,6 @@ function createFunctions(Reflux, PromiseFactory) {
    * @param {Object} p The promise to attach to
    */
   function promise(p) {
-    var me = this
-
     var canHandlePromise = this.children.indexOf('completed') >= 0 && this.children.indexOf('failed') >= 0
 
     if (!canHandlePromise) {
@@ -81,12 +78,8 @@ function createFunctions(Reflux, PromiseFactory) {
     }
 
     p.then(
-      function (response) {
-        return me.completed(response)
-      },
-      function (error) {
-        return me.failed(error)
-      },
+      (response) => this.completed(response),
+      (error) => this.failed(error),
     )
   }
 
@@ -97,23 +90,22 @@ function createFunctions(Reflux, PromiseFactory) {
    * @param {Function} callback The callback to register as event handler
    */
   function listenAndPromise(callback, bindContext) {
-    var me = this
     bindContext = bindContext || this
     this.willCallPromise = (this.willCallPromise || 0) + 1
 
-    var removeListen = this.listen(function () {
+    var removeListen = this.listen(() => {
       if (!callback) {
         throw new Error('Expected a function returning a promise but got ' + callback)
       }
 
       var args = arguments,
         returnedPromise = callback.apply(bindContext, args)
-      return me.promise.call(me, returnedPromise)
+      return this.promise.call(this, returnedPromise)
     }, bindContext)
 
-    return function () {
-      me.willCallPromise--
-      removeListen.call(me)
+    return () => {
+      this.willCallPromise--
+      removeListen.call(this)
     }
   }
 
@@ -128,7 +120,7 @@ function createFunctions(Reflux, PromiseFactory) {
  * Sets up reflux with Promise functionality
  */
 export default function (promiseFactory) {
-  return function (Reflux) {
+  return (Reflux) => {
     const { triggerPromise, promise, listenAndPromise } = createFunctions(Reflux, promiseFactory)
     Reflux.PublisherMethods.triggerAsync = triggerPromise
     Reflux.PublisherMethods.promise = promise

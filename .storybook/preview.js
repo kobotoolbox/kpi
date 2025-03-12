@@ -1,4 +1,4 @@
-import 'jsapp/scss/main.scss'
+import 'scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
 
@@ -41,6 +41,4 @@ export const parameters = {
   },
 }
 
-window.t = function (str) {
-  return str
-}
+window.t = (str) => str

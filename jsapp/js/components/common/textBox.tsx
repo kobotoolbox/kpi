@@ -114,7 +114,7 @@ export default function TextBox(props: TextBoxProps) {
     rootClassNames.push(props.className)
   }
 
-  let size: TextBoxSize = props.size || DefaultSize
+  const size: TextBoxSize = props.size || DefaultSize
   switch (size) {
     case 'l':
       rootClassNames.push(styles.sizeL)

@@ -331,13 +331,7 @@ export default function Plan(props: PlanProps) {
     }
     setIsBusy(true)
     if (activeSubscriptions.length) {
-      if (!isDowngrade(activeSubscriptions, price, quantity)) {
-        // if the user is upgrading prices, send them to the customer portal
-        // this will immediately change their subscription
-        postCustomerPortal(orgQuery.data.id, price.id, quantity)
-          .then(processCheckoutResponse)
-          .catch(() => setIsBusy(false))
-      } else {
+      if (isDowngrade(activeSubscriptions, price, quantity)) {
         // if the user is downgrading prices, open a confirmation dialog and downgrade from kpi
         // this will downgrade the subscription at the end of the current billing period
         setConfirmModal({
@@ -346,6 +340,12 @@ export default function Plan(props: PlanProps) {
           currentSubscription: activeSubscriptions[0],
           quantity: quantity,
         })
+      } else {
+        // if the user is upgrading prices, send them to the customer portal
+        // this will immediately change their subscription
+        postCustomerPortal(orgQuery.data.id, price.id, quantity)
+          .then(processCheckoutResponse)
+          .catch(() => setIsBusy(false))
       }
     } else {
       // just send the user to the checkout page

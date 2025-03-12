@@ -8,12 +8,12 @@ import { UNSAVED_CHANGES_WARNING } from '#/protector/protectorConstants'
 class ProtectorHelpers {
   /** Safeguards the callback function with a confirm if protection is on. */
   safeExecute(shouldProtect: boolean, callback: Function) {
-    if (!shouldProtect) {
-      callback()
-    } else {
+    if (shouldProtect) {
       if (confirm(UNSAVED_CHANGES_WARNING)) {
         callback()
       }
+    } else {
+      callback()
     }
   }
 }
