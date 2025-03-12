@@ -79,7 +79,7 @@ class DataAttachmentColumnsForm extends React.Component {
   onBulkSelect(evt) {
     evt.preventDefault()
 
-    let newList = this.state.columnsToDisplay.map((item) => {
+    const newList = this.state.columnsToDisplay.map((item) => {
       return { label: item.label, checked: true }
     })
     this.setState({ columnsToDisplay: newList })
@@ -87,7 +87,7 @@ class DataAttachmentColumnsForm extends React.Component {
   onBulkDeselect(evt) {
     evt.preventDefault()
 
-    let newList = this.state.columnsToDisplay.map((item) => {
+    const newList = this.state.columnsToDisplay.map((item) => {
       return { label: item.label, checked: false }
     })
     this.setState({ columnsToDisplay: newList })

@@ -63,10 +63,10 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
 
     let specificSettings: { [rowName: string]: ReportStyle } | undefined
 
-    if (!this.props.parentState.currentCustomReport) {
-      specificSettings = this.props.parentState.reportStyles?.specified
-    } else {
+    if (this.props.parentState.currentCustomReport) {
       specificSettings = this.props.parentState.currentCustomReport.specified
+    } else {
+      specificSettings = this.props.parentState.reportStyles?.specified
     }
 
     if (
@@ -110,14 +110,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       return
     }
 
-    if (!customReport) {
-      const parentReportStyles = this.props.parentState.reportStyles
-      if (parentReportStyles) {
-        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle
-        actions.reports.setStyle(assetUid, parentReportStyles)
-        this.setState({ isPending: true })
-      }
-    } else {
+    if (customReport) {
       // TODO FIXME: we are mutating parent state data here (we shouldn't!)
       const parentReportCustom = this.props.parentState.asset?.report_custom
 
@@ -136,6 +129,13 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
         }
 
         actions.reports.setCustom(assetUid, parentReportCustom, customReport.crid)
+        this.setState({ isPending: true })
+      }
+    } else {
+      const parentReportStyles = this.props.parentState.reportStyles
+      if (parentReportStyles) {
+        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle
+        actions.reports.setStyle(assetUid, parentReportStyles)
         this.setState({ isPending: true })
       }
     }

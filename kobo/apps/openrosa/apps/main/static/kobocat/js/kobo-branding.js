@@ -1,5 +1,5 @@
-$(document).ready(function () {
-  $(document).on('click', '.header-bar__top-level-menu-button', function () {
+$(document).ready(() => {
+  $(document).on('click', '.header-bar__top-level-menu-button', () => {
     $('.top-level-menu').toggleClass('is-active')
   })
 

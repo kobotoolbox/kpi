@@ -101,10 +101,7 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   render() {
-    if (!envStore.data.asr_mt_features_enabled) {
-      // We hide button for users that don't have access to the feature.
-      return null
-    } else {
+    if (envStore.data.asr_mt_features_enabled) {
       return (
         <Button
           type='primary'
@@ -115,6 +112,9 @@ export default class TransxAutomaticButton extends React.Component<
           isPending={singleProcessingStore.data.isFetchingData || this.state.isLoading}
         />
       )
+    } else {
+      // We hide button for users that don't have access to the feature.
+      return null
     }
   }
 }

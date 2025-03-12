@@ -34,7 +34,7 @@ export function surveyToValidJson(survey) {
  * @return {string} fixed surveyDataJSON
  */
 export function unnullifyTranslations(surveyDataJSON, assetContent) {
-  let surveyData = JSON.parse(surveyDataJSON)
+  const surveyData = JSON.parse(surveyDataJSON)
 
   let translatedProps = []
   if (assetContent.translated) {
@@ -243,7 +243,7 @@ export function readParameters(str) {
     separator = ','
   }
   const otherSeparators = ';, '.replace(separator, '')
-  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=')
+  const cleanStr = str.replace(/ *= */g, '=')
   const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'))
 
   parts.forEach((part) => {
@@ -261,7 +261,7 @@ export function readParameters(str) {
 }
 
 export function writeParameters(obj) {
-  let params = []
+  const params = []
   Object.keys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       let value = obj[key]
