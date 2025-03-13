@@ -13,7 +13,11 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
   component: AttachmentActionsDropdown,
   argTypes: {
     asset: { control: 'object' },
-    submissionData: { control: 'object' },
+    submissionData: {
+      control: 'object',
+      description:
+        'To see what happens when attachment is deleted, please add `is_deleted=true` flag to the attachment object in the data.',
+    },
     attachmentId: { control: 'number' },
     onDeleted: { action: 'onDeleted' },
   },
