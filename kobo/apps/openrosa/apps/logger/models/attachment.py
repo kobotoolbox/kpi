@@ -6,6 +6,7 @@ from urllib.parse import quote as urlquote
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from kobo.apps.kobo_auth.models import User
@@ -200,12 +201,15 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         # Denormalize xform and user
         if (
             values := Instance.objects.select_related('xform')
-            .filter(id=self.instance.id)
+            .filter(pk=self.instance_id)
             .values('xform_id', 'xform__user_id')
             .first()
         ):
             self.xform_id = values['xform_id']
             self.user_id = values['xform__user_id']
+
+        if not self.pk:
+            self.date_created = self.date_modified = timezone.now()
 
         super().save(*args, **kwargs)
 
