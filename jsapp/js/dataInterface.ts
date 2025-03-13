@@ -210,7 +210,7 @@ export interface SubmissionResponse {
     color?: string
     label?: string
   }
-  _version_: string
+  _version_?: string
   _xform_id_string: string
   deviceid?: string
   end?: string
@@ -636,7 +636,14 @@ export interface AssetResponse extends AssetRequestObject {
   }
   deployment__active: boolean
   deployment__data_download_links?: {
-    [key in ExportTypeName]: string | undefined
+    csv_legacy: string
+    csv: string
+    geojson?: string
+    kml_legacy: string
+    spss_labels?: string
+    xls_legacy: string
+    xls: string
+    zip_legacy: string
   }
   deployment__submission_count: number
   deployment_status: 'archived' | 'deployed' | 'draft'

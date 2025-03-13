@@ -240,9 +240,8 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
           {type !== null && (
             <AttachmentActionsDropdown
               asset={this.props.asset}
-              questionType={type}
-              attachment={attachment}
               submissionData={this.props.submissionData}
+              attachmentId={attachment.id}
               onDeleted={() => {
                 // We're letting know upstream that the attachment was deleted
                 // this.props.onAttachmentDeleted(attachment)

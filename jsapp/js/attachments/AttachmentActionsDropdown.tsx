@@ -5,17 +5,15 @@ import Button from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
-import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { downloadUrl, notify } from '#/utils'
 import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
-  questionType: AnyRowTypeName
-  attachment: SubmissionAttachment
   submissionData: SubmissionResponse
+  attachmentId: number
   /**
    * Being called after attachment was deleted succesfully. Is meant to be used
    * by parent component to reflect this change in the data it holds, and
@@ -32,15 +30,20 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
+  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
-  // Safety check, ideally parent component should not render this component if attachment is deleted.
-  if (props.attachment.is_deleted) {
+  // TODO: remove this when feature is ready. For now we hide the whole thing by not rendering anything.
+  if (!isFeatureEnabled) {
     return null
   }
 
-  // TODO: remove this when feature is ready. For now we hide the whole thing by not rendering anything.
-  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
-  if (!isFeatureEnabled) {
+  const attachment = props.submissionData._attachments.find((a) => a.id === props.attachmentId)
+  if (!attachment) {
+    return null
+  }
+
+  // Safety check, ideally parent component should not render this component if attachment is deleted.
+  if (attachment.is_deleted) {
     return null
   }
 
@@ -48,7 +51,8 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     setIsDeletePending(true)
 
     try {
-      await removeAttachmentMutation.mutateAsync(String(props.attachment.id))
+      // We use `!` to assert that the attachment exists, because this code would be unreachable without it.
+      await removeAttachmentMutation.mutateAsync(String(attachment!.id))
 
       // TODO: Upon finishing we need to have the submission data being updated
       // both in Submission Modal and in Data Table.
@@ -70,17 +74,20 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   function requestDownloadFile() {
-    downloadUrl(props.attachment.download_url)
+    // We use `!` to assert that the attachment exists, because this code would be unreachable without it.
+    downloadUrl(attachment!.download_url)
   }
 
+  // We find the question that the attachment belongs to, to determine the text to display in the modal.
+  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
   let attachmentTypeName = t('attachment')
-  if (props.questionType === QuestionTypeName.audio) {
+  if (questionType === QuestionTypeName.audio) {
     attachmentTypeName = t('audio recording')
-  } else if (props.questionType === QuestionTypeName.video) {
+  } else if (questionType === QuestionTypeName.video) {
     attachmentTypeName = t('video recording')
-  } else if (props.questionType === QuestionTypeName.image) {
+  } else if (questionType === QuestionTypeName.image) {
     attachmentTypeName = t('image')
-  } else if (props.questionType === QuestionTypeName['background-audio']) {
+  } else if (questionType === QuestionTypeName['background-audio']) {
     attachmentTypeName = t('background audio recording')
   }
 
@@ -125,7 +132,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           </p>
 
           <Group justify='flex-end'>
-            <Button variant='light' size='lg' onClick={() => setIsDeleteModalOpen(false)}>
+            <Button variant='light' size='lg' onClick={() => setIsDeleteModalOpen(false)} disabled={isDeletePending}>
               {t('Cancel')}
             </Button>
 
