@@ -16,6 +16,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
+from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
@@ -43,12 +44,9 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
-    uid = models.CharField(
-        max_length=23,
-        null=True,
-        blank=True,
-        db_index=True,
-    )
+    # Mimic KpiUidField behaviour with _null=True until TASK-1534 is completed
+    # TODO: update uid to generate_unique_id('att') for new attachments
+    uid = KpiUidField(uid_prefix='att', _null=True)
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
