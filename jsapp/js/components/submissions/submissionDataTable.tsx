@@ -4,7 +4,7 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
-import AttachmentActionsDropdown from '#/attachments/attachmentActionsDropdown'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
 import AudioPlayer from '#/components/common/audioPlayer'
