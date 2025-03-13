@@ -1,5 +1,3 @@
-window.alert('added');
-
 document.addEventListener('DOMContentLoaded', function () {
   const orgLink = document.querySelector('.field-organization .readonly a');
 
