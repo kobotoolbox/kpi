@@ -72,6 +72,7 @@ def render_template(template, data):
 
 
 def create_job(email_config):
+    logging.info(f'Creating job for {email_config=}')
     job = MassEmailJob.objects.create(
         email_config=email_config,
     )
@@ -88,9 +89,13 @@ def create_job(email_config):
 
 
 @celery_app.task
-def send_emails(email_config_uid: str):
-    email_config = MassEmailConfig.objects.get(uid=email_config_uid)
-    if email_config.jobs.count() == 0:
+def send_emails(email_config_uid: str, should_create_job: bool = False):
+    email_config = MassEmailConfig.objects.annotate(
+        enqueued_records_count=Count(
+            'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
+        )
+    ).get(uid=email_config_uid)
+    if email_config.enqueued_records_count == 0 and should_create_job:
         create_job(email_config)
 
     jobs = email_config.jobs.annotate(
@@ -111,10 +116,18 @@ def send_emails(email_config_uid: str):
         f'Processing MassEmailConfig(uid={email_config.uid}, '
         f'name={email_config.name}, subject={email_config.subject})'
     )
+    active_configs_count = (
+        MassEmailConfig.objects.annotate(
+            enqueued=Count(
+                'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
+            )
+        )
+        .filter(enqueued__gt=0)
+        .count()
+    )
+    emails_count = ceil(settings.MAX_MASS_EMAILS_PER_DAY / active_configs_count)
     for job in email_config.jobs.all():
-        records = job.records.filter(status=EmailStatus.ENQUEUED)[
-            : settings.MAX_MASS_EMAILS_PER_DAY
-        ]
+        records = job.records.filter(status=EmailStatus.ENQUEUED)[:emails_count]
         for record in records:
             logging.info(f'Processing MassEmailRecord({record})')
             org_user = record.user.organization.organization_users.get(user=record.user)
