@@ -1,7 +1,8 @@
 from django.contrib import admin, messages
 
+from kpi.exceptions import ExecutionBlockedException
 from .models import MassEmailConfig, MassEmailRecord, EmailStatus
-from .tasks import enqueue_mass_email_records
+from .tasks import enqueue_mass_email_records, send_emails
 
 
 @admin.register(MassEmailConfig)
@@ -37,4 +38,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
     @admin.action(description='Send emails')
     def send_emails(self, request, queryset):
         for email_config in queryset:
-            send_emails.delay(email_config.uid, should_create_job=True)
+            try:
+                send_emails.delay(email_config.uid, should_create_job=True)
+            except ExecutionBlockedException:
+                pass

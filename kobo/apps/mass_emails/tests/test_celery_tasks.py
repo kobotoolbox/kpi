@@ -1,6 +1,8 @@
 from django.core import mail
+from django.core.cache import cache
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.exceptions import ExecutionBlockedException
 from kpi.tests.base_test_case import BaseTestCase
 from ..models import (
     USER_QUERIES,
@@ -14,6 +16,10 @@ from ..tasks import create_job, render_template, send_emails
 
 class TestCeleryTask(BaseTestCase):
     fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
 
     def test_send_emails_task(self):
         config_A = MassEmailConfig.objects.create(
@@ -81,7 +87,7 @@ class TestCeleryTask(BaseTestCase):
 
         send_emails(config_A.uid, should_create_job=False)
         assert MassEmailJob.objects.count() == 0
-
+        cache.clear()
         send_emails(config_A.uid, should_create_job=True)
         assert MassEmailJob.objects.count() == 1
 
@@ -104,3 +110,14 @@ class TestCeleryTask(BaseTestCase):
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
+
+    def test_send_emails_runs_only_once_daily(self):
+        config_A = MassEmailConfig.objects.create(
+            name='Config A',
+            subject='Subject A',
+            template='Template',
+            query='users_inactive_for_365_days',
+        )
+        send_emails(config_A.uid)
+        with self.assertRaises(ExecutionBlockedException):
+            send_emails(config_A.uid)
