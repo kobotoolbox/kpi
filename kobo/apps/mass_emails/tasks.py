@@ -1,10 +1,13 @@
+from datetime import date
 from math import ceil
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Count, Q
 from django.utils.translation import gettext
 
 from kobo.celery import celery_app
+from kpi.exceptions import ExecutionBlockedException
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 from .models import (
@@ -48,6 +51,12 @@ def create_job(email_config):
 
 @celery_app.task
 def send_emails(email_config_uid: str, should_create_job: bool = False):
+    today = date.today().isoformat()
+    cache_key = f'MassEmailConfig_Lock_{today}_{email_config_uid}'
+    if cache.get(cache_key) == 'Locked':
+        raise ExecutionBlockedException
+    cache.set(cache_key, 'Locked', 60*60*24) # 1 day lock
+
     email_config = MassEmailConfig.objects.annotate(
         enqueued_records_count=Count(
             'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)

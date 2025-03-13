@@ -223,3 +223,7 @@ class XPathNotFoundException(Exception):
 
 class XlsFormatException(Exception):
     pass
+
+
+class ExecutionBlockedException(Exception):
+    pass
