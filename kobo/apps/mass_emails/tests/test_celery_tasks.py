@@ -47,7 +47,10 @@ class TestCeleryTask(BaseTestCase):
 
     def test_create_records(self):
         config_A = MassEmailConfig.objects.create(
-            name='Config A', subject='Subject A', template='Template', query='all_users'
+            name='Config A',
+            subject='Subject A',
+            template='Template',
+            query='users_inactive_for_365_days',
         )
         create_job(config_A)
         records = MassEmailRecord.objects.all()
@@ -58,15 +61,16 @@ class TestCeleryTask(BaseTestCase):
 
     def test_send_emails_without_job(self):
         config_A = MassEmailConfig.objects.create(
-            name='Config A', subject='Subject A', template='Template', query='all_users'
+            name='Config A',
+            subject='Subject A',
+            template='Template',
+            query='users_inactive_for_365_days',
         )
-
-        send_emails(config_A.uid)
-        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
-
         user1 = User.objects.get(username='someuser')
         user2 = User.objects.get(username='anotheruser')
         user3 = User.objects.get(username='adminuser')
+        send_emails(config_A.uid)
+        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
 
         assert len(outbox_summary) == 3
         assert {
