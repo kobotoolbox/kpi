@@ -4,8 +4,8 @@ from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
-    get_inactive_users,
     get_all_users,
+    get_inactive_users,
     get_users_over_90_percent_of_storage_limit,
     get_users_over_90_percent_of_submission_limit,
     get_users_over_100_percent_of_storage_limit,

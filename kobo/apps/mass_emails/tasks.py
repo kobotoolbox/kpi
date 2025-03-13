@@ -106,7 +106,7 @@ def send_emails(email_config_uid: str):
             break
     if current_job is None:
         return
-    
+
     logging.info(
         f'Processing MassEmailConfig(uid={email_config.uid}, '
         f'name={email_config.name}, subject={email_config.subject})'
