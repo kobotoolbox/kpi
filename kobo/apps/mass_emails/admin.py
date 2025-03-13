@@ -16,4 +16,4 @@ class MassEmailConfig(admin.ModelAdmin):
     @admin.action(description='Send emails')
     def send_emails(self, request, queryset):
         for email_config in queryset:
-            send_emails.delay(email_config.uid)
+            send_emails.delay(email_config.uid, should_create_job=True)

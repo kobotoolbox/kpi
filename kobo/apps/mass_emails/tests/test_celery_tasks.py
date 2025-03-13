@@ -2,7 +2,13 @@ from django.core import mail
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
-from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
+from ..models import (
+    USER_QUERIES,
+    EmailStatus,
+    MassEmailConfig,
+    MassEmailJob,
+    MassEmailRecord,
+)
 from ..tasks import create_job, render_template, send_emails
 
 
@@ -45,7 +51,10 @@ class TestCeleryTask(BaseTestCase):
         assert (user1.email, 'Subject B') in outbox_summary
         assert (user2.email, 'Subject B') in outbox_summary
 
-    def test_create_records(self):
+        # Should not create more jobs than what we already have
+        assert MassEmailJob.objects.count() == 2
+
+    def test_create_job(self):
         config_A = MassEmailConfig.objects.create(
             name='Config A',
             subject='Subject A',
@@ -54,10 +63,11 @@ class TestCeleryTask(BaseTestCase):
         )
         create_job(config_A)
         records = MassEmailRecord.objects.all()
+
+        expected_users = USER_QUERIES['users_inactive_for_365_days']()
+        user_names = {user.username for user in expected_users}
         assert len(records) == 3
-        assert {'someuser', 'anotheruser', 'adminuser'} == {
-            r.user.username for r in records
-        }
+        assert user_names == {r.user.username for r in records}
 
     def test_send_emails_without_job(self):
         config_A = MassEmailConfig.objects.create(
@@ -66,18 +76,18 @@ class TestCeleryTask(BaseTestCase):
             template='Template',
             query='users_inactive_for_365_days',
         )
-        user1 = User.objects.get(username='someuser')
-        user2 = User.objects.get(username='anotheruser')
-        user3 = User.objects.get(username='adminuser')
-        send_emails(config_A.uid)
-        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
+        expected_users = USER_QUERIES['users_inactive_for_365_days']()
+        expected_outbox = {(user.email, 'Subject A') for user in expected_users}
 
+        send_emails(config_A.uid, should_create_job=False)
+        assert MassEmailJob.objects.count() == 0
+
+        send_emails(config_A.uid, should_create_job=True)
+        assert MassEmailJob.objects.count() == 1
+
+        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
         assert len(outbox_summary) == 3
-        assert {
-            (user1.email, 'Subject A'),
-            (user2.email, 'Subject A'),
-            (user3.email, 'Subject A'),
-        } == set(outbox_summary)
+        assert expected_outbox == set(outbox_summary)
 
     def test_template_render(self):
         data = {
