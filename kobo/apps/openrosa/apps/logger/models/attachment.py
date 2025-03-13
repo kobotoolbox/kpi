@@ -198,9 +198,14 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             self.media_file_size = self.media_file.size
 
         # Denormalize xform and user
-        if self.instance and self.instance.xform:
-            self.xform = self.instance.xform
-            self.user = self.instance.user
+        if (
+            values := Instance.objects.select_related('xform')
+            .filter(self.instance_id)
+            .values('xform_id', 'xform__user_id')
+            .first()
+        ):
+            self.xform_id = values['xform_id']
+            self.user_id = values['xform__user_id']
 
         super().save(*args, **kwargs)
 
