@@ -30,6 +30,9 @@ class OrgOwnerAdmin(BaseOrganizationOwnerAdmin):
     ]
     autocomplete_fields = ['organization_user', 'organization']
 
+    class Media:
+        js = ['admin/js/organization_user_autocomplete.js']
+
     def get_readonly_fields(self, request, obj=None):
 
         if obj is not None and obj.pk:
