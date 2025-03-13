@@ -33,7 +33,7 @@ def add_validation_status_to_instance(
         validation_status = get_validation_status(validation_status_uid, username)
         if validation_status:
             instance.validation_status = validation_status
-            instance.save(update_fields=['validation_status'])
+            instance.save(update_fields=['validation_status', 'date_modified'])
             success = instance.parsed_instance.update_mongo(asynchronous=False)
 
     return success
@@ -108,7 +108,7 @@ def get_validation_status(validation_status_uid: str, username: str) -> dict:
 
 def remove_validation_status_from_instance(instance: Instance) -> bool:
     instance.validation_status = {}
-    instance.save(update_fields=['validation_status'])
+    instance.save(update_fields=['validation_status', 'date_modified'])
     return instance.parsed_instance.update_mongo(asynchronous=False)
 
 

@@ -186,19 +186,21 @@ class OrgUserAdmin(ImportExportModelAdmin, BaseOrganizationUserAdmin):
         return False
 
     def get_search_results(self, request, queryset, search_term):
+
         auto_complete = request.path == '/admin/autocomplete/'
         app_label = request.GET.get('app_label')
         model_name = request.GET.get('model_name')
+        field_name = request.GET.get('field_name')
         if (
             auto_complete
             and app_label == 'organizations'
             and model_name == 'organizationowner'
+            and field_name == 'organization_user'
         ):
-            queryset = (
-                queryset.annotate(user_count=Count('organization__organization_users'))
-                .filter(user_count__lte=1)
-                .order_by('user__username')
-            )
+            if organization_id := request.GET.get('organization_id'):
+                queryset = queryset.filter(
+                    organization_id=organization_id
+                ).order_by('user__username')
 
         return super().get_search_results(request, queryset, search_term)
 
