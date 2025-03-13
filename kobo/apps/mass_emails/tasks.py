@@ -71,37 +71,42 @@ def render_template(template, data):
     return rendered
 
 
-def create_email_records(email_config):
+def create_job(email_config):
     job = MassEmailJob.objects.create(
         email_config=email_config,
     )
     users = USER_QUERIES[email_config.query]()
-    for user in users:
-        MassEmailRecord.objects.create(
+    records = [
+        MassEmailRecord(
             user=user,
             email_job=job,
             status=EmailStatus.ENQUEUED,
         )
+        for user in users
+    ]
+    MassEmailRecord.objects.bulk_create(records)
 
 
 @celery_app.task
 def send_emails(email_config_uid: str):
-    email_config = MassEmailConfig.objects.annotate(
-        jobs_count=Count('jobs'),
-        records=Count(
-            'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
+    email_config = MassEmailConfig.objects.get(uid=email_config_uid)
+    if email_config.jobs.count() == 0:
+        create_job(email_config)
+
+    jobs = email_config.jobs.annotate(
+        pending_records=Count(
+            'records', filter=Q(records__status=EmailStatus.ENQUEUED)
         ),
-    ).get(uid=email_config_uid)
-    if email_config is None:
+    ).order_by('date_created')
+    current_job = None
+    for job in jobs:
+        # Take the first job that has pending records
+        if job.pending_records > 0:
+            current_job = job
+            break
+    if current_job is None:
         return
     
-    if email_config.jobs_count > 1:
-        raise NotImplementedError
-
-    if email_config.jobs_count == 0: # Create job if no job exists
-        create_email_records(email_config)
-
-    from_email = settings.DEFAULT_FROM_EMAIL
     logging.info(
         f'Processing MassEmailConfig(uid={email_config.uid}, '
         f'name={email_config.name}, subject={email_config.subject})'
