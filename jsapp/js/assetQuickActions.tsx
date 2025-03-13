@@ -69,13 +69,7 @@ export function deleteAsset(
     )
   }
 
-  if (!deployed) {
-    if (asset.asset_type !== ASSET_TYPES.survey.id) {
-      msg = t('You are about to permanently delete this item from your library.')
-    } else {
-      msg = t('You are about to permanently delete this draft.')
-    }
-  } else {
+  if (deployed) {
     msg = `${t('You are about to permanently delete this form.')}`
     if (asset.deployment__submission_count !== 0) {
       msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`
@@ -97,7 +91,7 @@ export function deleteAsset(
         $(this).prop('checked', false)
       })
 
-      $els.change(function () {
+      $els.change(() => {
         okBtn.removeAttribute('disabled')
         $els.each(function () {
           if (!$(this).prop('checked')) {
@@ -106,6 +100,10 @@ export function deleteAsset(
         })
       })
     }
+  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
+    msg = t('You are about to permanently delete this item from your library.')
+  } else {
+    msg = t('You are about to permanently delete this draft.')
   }
   const opts = {
     title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
@@ -477,10 +475,10 @@ export function deployAsset(
     console.error('Asset not supplied or not of type "survey".')
     return
   }
-  if (!asset.has_deployment) {
-    _deployAssetFirstTime(asset, callback)
-  } else {
+  if (asset.has_deployment) {
     _redeployAsset(asset, callback)
+  } else {
+    _deployAssetFirstTime(asset, callback)
   }
 }
 

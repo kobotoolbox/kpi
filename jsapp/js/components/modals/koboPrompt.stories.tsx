@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { ComponentMeta, ComponentStory } from '@storybook/react'
 import { IconNames } from '#/k-icons'
 import KoboPrompt from './koboPrompt'
 

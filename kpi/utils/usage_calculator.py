@@ -1,4 +1,6 @@
+from datetime import datetime
 from json import dumps, loads
+from zoneinfo import ZoneInfo
 
 from django.apps import apps
 from django.conf import settings
@@ -8,7 +10,9 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
+from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
+from kobo.apps.stripe.utils import get_current_billing_period_dates_by_org
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -20,6 +24,43 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
         bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0)
     )
     return {res['user']: res['bytes_sum'] for res in xform_query}
+
+
+def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
+    all_sub_counters = DailyXFormSubmissionCounter.objects.values(
+        'counter', 'user_id', 'date'
+    )
+    result = {}
+    midnight = datetime.min.time().replace(tzinfo=ZoneInfo('UTC'))
+    for counter_row in all_sub_counters:
+        # filter down to submissions after the billing start date
+        # can't do this in the ORM query because the billing start date is calculated
+        # in python and varies per user
+        user_id = counter_row['user_id']
+        current_user_total = result.get(counter_row['user_id'], 0)
+        # convert date to datetime to compare to the stuff in billing_dates_by_owner
+        counter_time = datetime.combine(counter_row['date'], midnight)
+        current_billing_start = date_ranges_by_user[user_id]['start']
+        current_billing_end = date_ranges_by_user[user_id]['end']
+        if current_billing_start <= counter_time < current_billing_end:
+            current_user_total += counter_row['counter']
+        result[user_id] = current_user_total
+    return result
+
+
+def get_submissions_for_current_billing_period_by_user_id():
+    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
+    owner_by_org = {
+        org.id: org.owner.organization_user.user.id
+        for org in Organization.objects.filter(owner__isnull=False)
+    }
+    current_billing_dates_by_owner = {
+        owner_by_org[org_id]: dates
+        for org_id, dates in current_billing_dates_by_org.items()
+    }
+    return get_submission_counts_in_date_range_by_user_id(
+        current_billing_dates_by_owner
+    )
 
 
 class ServiceUsageCalculator(CachedClass):

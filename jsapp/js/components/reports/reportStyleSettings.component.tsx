@@ -100,7 +100,7 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
 
   onTranslationIndexChange(newIndex: string) {
     const newStyle = clonedeep(this.state.reportStyle)
-    newStyle.translationIndex = parseInt(newIndex)
+    newStyle.translationIndex = Number.parseInt(newIndex)
     this.setState({ reportStyle: newStyle })
   }
 

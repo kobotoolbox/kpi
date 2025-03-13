@@ -226,7 +226,7 @@ export default function UniversalTable<DataItem>(props: UniversalTableProps<Data
   // guess if there is a horizontal scrollbar
   useEffect(() => {
     const columnsWidth = table.getTotalSize()
-    let containerWidth = Infinity
+    let containerWidth = Number.POSITIVE_INFINITY
     if (tableContainerRef.current) {
       containerWidth = tableContainerRef.current.offsetWidth
     }

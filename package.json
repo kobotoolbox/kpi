@@ -224,8 +224,9 @@
     "generate-icons": "node ./scripts/generate_icons.js",
     "copy-fonts": "python3 ./scripts/copy_fonts.py && npm run generate-icons",
     "hint": "node ./scripts/hints.js",
-    "storybook": "storybook dev -p 6006 --no-open",
-    "build-storybook": "storybook build",
+    "storybook": "npm run storybook:watch",
+    "storybook:watch": "storybook dev -p 6006 --no-open",
+    "storybook:build": "storybook build",
     "jest": "jest --config ./jsapp/jest/jest.config.ts",
     "jest-watch": "jest --config ./jsapp/jest/jest.config.ts --watch"
   },

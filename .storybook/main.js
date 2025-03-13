@@ -34,11 +34,9 @@ module.exports = {
       resolve: {
         extensions: ['.jsx', '.js', '.coffee', '.ts', '.tsx', '.scss'],
         alias: {
-          app: path.join(__dirname, '../app'),
-          jsapp: path.join(__dirname, '../jsapp'),
+          '#': path.join(__dirname, '../jsapp/js'),
           js: path.join(__dirname, '../jsapp/js'),
           scss: path.join(__dirname, '../jsapp/scss'),
-          utils: path.join(__dirname, '../jsapp/js/utils'),
         },
       },
     })

@@ -2,7 +2,6 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import classNames from 'classnames'
-import type { SingleValue } from 'react-select'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import bem from '#/bem'

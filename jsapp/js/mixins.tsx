@@ -21,7 +21,6 @@ import { getRouteAssetUid } from '#/router/routerUtils'
 import { escapeHtml, join, log, notify } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
-import { stores } from './stores'
 
 const IMPORT_CHECK_INTERVAL = 1000
 
@@ -379,7 +378,14 @@ const mixins: MixinsObject = {
                   if (!isLibrary && multipleFiles) {
                     this.searchDefault()
                     // No message shown for multiple files when successful, to avoid overloading screen
-                  } else if (!assetUid) {
+                  } else if (assetUid) {
+                    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && routerIsActive(ROUTES.FORMS)) {
+                      actions.resources.loadAsset({ id: assetUid })
+                    } else if (!isLibrary) {
+                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid))
+                    }
+                    notify(t('XLS Import completed'))
+                  } else {
                     // TODO: use a more specific error message here
                     notify.error(
                       t(
@@ -389,13 +395,6 @@ const mixins: MixinsObject = {
                     if (params.assetUid) {
                       router!.navigate(ROUTES.FORM.replace(':uid', params.assetUid))
                     }
-                  } else {
-                    if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && routerIsActive(ROUTES.FORMS)) {
-                      actions.resources.loadAsset({ id: assetUid })
-                    } else if (!isLibrary) {
-                      router!.navigate(ROUTES.FORM.replace(':uid', assetUid))
-                    }
-                    notify(t('XLS Import completed'))
                   }
                 } else if (importData.status === 'processing') {
                   // If the import task didn't complete immediately, inform the user accordingly.
