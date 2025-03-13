@@ -23,8 +23,6 @@ class AbstractTimeStampedModel(models.Model):
 
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields', None)
-        if update_fields is None or 'date_modified' not in update_fields:
+        if update_fields is None or 'date_modified' in update_fields:
             self.date_modified = timezone.now()
-            if update_fields:
-                update_fields.append('date_modified')
         super().save(*args, **kwargs)
