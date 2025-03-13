@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
@@ -697,4 +698,28 @@ export default {
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true)
   return flatPaths[rowName]
+}
+
+/**
+ * In given submission data, it finds provided attachment, sets its `is_deleted`
+ * flag to `true` and then returns the updated submission data.
+ */
+export function markAttachmentAsDeleted(
+  submissionData: SubmissionResponse,
+  targetAttachmentId: number,
+): SubmissionResponse {
+  const data = clonedeep(submissionData)
+  const targetAttachment = data._attachments.find((a) => a.id === targetAttachmentId)
+
+  data._attachments.forEach((attachment) => {
+    if (
+      attachment.id === targetAttachment?.id &&
+      attachment.question_xpath === targetAttachment?.question_xpath &&
+      attachment.filename === targetAttachment?.filename
+    ) {
+      attachment.is_deleted = true
+    }
+  })
+
+  return data
 }

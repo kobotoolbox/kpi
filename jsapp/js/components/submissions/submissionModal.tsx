@@ -14,7 +14,7 @@ import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
-import { getMediaAttachment } from '#/components/submissions/submissionUtils'
+import { getMediaAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
 import type { SubmissionPageName } from '#/components/submissions/table.types'
 import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
@@ -435,6 +435,22 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     return undefined
   }
 
+  handleDeletedAttachment(attachmentId: number) {
+    if (this.state.submission) {
+      // Override the attachment object in memory to mark it as deleted (without
+      // making an API call for fresh submission data)
+      this.setState({
+        submission: markAttachmentAsDeleted(this.state.submission, attachmentId),
+      })
+
+      // Prompt table to refresh submission list
+      actions.resources.refreshTableSubmissions()
+      // TODO: IDEA: instead of doing this for every deleted attachment, mark
+      // state here as something like `isRefreshTableUponClosingNeeded`, and add
+      // some `onBeforeClose` functionality to the `bigModal`…
+    }
+  }
+
   /**
    * Displays language and validation status dropdowns.
    */
@@ -726,6 +742,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           submissionData={this.state.submission}
           translationIndex={this.state.translationIndex}
           showXMLNames={this.state.showXMLNames}
+          onAttachmentDeleted={this.handleDeletedAttachment.bind(this)}
         />
       </>
     )

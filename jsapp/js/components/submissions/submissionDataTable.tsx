@@ -33,6 +33,7 @@ interface SubmissionDataTableProps {
   submissionData: SubmissionResponse
   translationIndex: number
   showXMLNames?: boolean
+  onAttachmentDeleted: (attachmentId: number) => void
 }
 
 /**
@@ -253,9 +254,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
                 // We would need to do something similar here.
 
                 // We're letting know upstream that the attachment was deleted
-                // this.props.onAttachmentDeleted(attachment)
-
-                console.log('xxx attachment deleted')
+                this.props.onAttachmentDeleted(attachment.id)
               }}
             />
           )}

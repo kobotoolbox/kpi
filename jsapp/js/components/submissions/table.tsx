@@ -183,7 +183,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
-      actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions.bind(this)),
+      // Note: this action is not async, so we don't need to listen for `completed`
+      actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
       actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed.bind(this)),
       actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted.bind(this)),
