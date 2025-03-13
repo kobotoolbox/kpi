@@ -31,4 +31,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (releases)"
-        content: ":warn: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits[0].message) }}](${{ github.event.compare }})"
+        content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [${{ toJson(github.event.commits[0].message.split(\n)[0]) }}](${{ github.event.compare }})"
