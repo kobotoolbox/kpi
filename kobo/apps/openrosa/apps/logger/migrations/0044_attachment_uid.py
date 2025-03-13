@@ -9,7 +9,6 @@ import kpi.fields.kpi_uid
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('logger', '0043_attachment_date_created_attachment_date_modified'),
     ]
 
