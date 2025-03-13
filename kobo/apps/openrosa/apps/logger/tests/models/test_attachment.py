@@ -95,11 +95,9 @@ class TestAttachment(TestBase):
         )
         xml = f.read()
         f.close()
-        xform = XForm.objects.create(xml=xml, user=self.user)
-
+        xform = XForm.objects.create(xml=xml, user=user)
         instance = Instance.objects.all()[0]
         instance.xform = xform
-        instance.user = user
         instance.save()
 
         media_file = os.path.join(
@@ -116,5 +114,5 @@ class TestAttachment(TestBase):
         )
 
         attachment.refresh_from_db()
-        self.assertEqual(attachment.user, user)
-        self.assertEqual(attachment.xform, xform)
+        self.assertEqual(attachment.user_id, user.id)
+        self.assertEqual(attachment.xform_id, xform.id)
