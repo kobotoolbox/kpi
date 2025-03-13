@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -e
+set +x
+
+
+echo -e '\n\n# Run CI jobs locally'
+echo 'Disclaimer: local environment may differ from Github Actions environment.'
+
+
+echo -e '\n\n### Step: Setup Node'
+echo 'Disclaimer: CI runs matrix on v20.17.0 and 22. Please eyeball if your local version matches.'
+node -v
+echo 'Disclaimer: CI caches node_modules, skipping locally.'
+
+echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'
+npm install
+
+echo -e '\n\n### Step: Check Biome formatting, import order and linter'
+npm run lint:biome
+
+echo -e '\n\n### Step: Check TypeScript'
+npm run lint:types
+
+echo -e '\n\n### Step: Build Prod'
+SKIP_TS_CHECK=true npm run build
+
+echo -e '\n\n### Step: Check ESLint, errors only'
+npm run lint:eslint -- --quiet
+
+echo -e '\n\n### Step: Run unit tests and xlform tests'
+npx jest --config ./jsapp/jest/unit.config.ts --ci
+
+echo -e '\n\n### Step: Run component tests with Jest'
+npx jest --config ./jsapp/jest/jest.config.ts --ci
+
+
+echo -e '\n\n## Job: Darker'
+
+echo -e '\n\n### Step: Set up Python'
+echo 'Disclaimer: CI installs Python 3.10. Please eyeball if your local env has 3.10.'
+python --version
+
+echo -e '\n\n### Step: Install pip dependencies'
+python -m pip install darker[isort] flake8 flake8-quotes isort --quiet
+
+echo -e '\n\n### Step: Run Darker'
+echo 'Disclaimer: CI runs Darker only on the last commit.. I think?'
+darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub
+
+
+echo -e '\n\n## Job: Pytest'
+
+echo -e '\n\n### Step: Set up Python'
+echo 'Disclaimer: CI installs Python 3.10. Please eyeball if your local env has 3.10.'
+python --version
+
+echo -e '\n\n### Step: Install pip-tools'
+python -m pip install pip-tools==7.\*
+
+echo -e '\n\n### Step: Update Debian package lists'
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+
+echo -e '\n\n### Step: Install Debian dependencies'
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
+
+echo -e '\n\n### Step: Install Python dependencies'
+pip-sync dependencies/pip/dev_requirements.txt
+
+echo -e '\n\n### Step: Update translations'
+git submodule init && git submodule update --remote && python manage.py compilemessages
+
+echo -e '\n\n### Step: Test back-end code'
+pytest --cov=hub --cov=kobo --cov=kpi -ra
+
+echo -e '\n\n### Step: Run coveralls for back-end code'
+echo 'Disclaimer: CI uses external action, skipping locally.'
+
+
+echo -e '\n\n# End. If you see this, everything succeeded.'
