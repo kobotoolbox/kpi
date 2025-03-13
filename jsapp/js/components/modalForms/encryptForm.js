@@ -120,7 +120,7 @@ class EncryptForm extends React.Component {
           <bem.FormModal__item>
             <label>{t('Submission URL')}</label>
             <TextBox
-              value={!this.state.clearEncryption ? this.state.submissionURL : ''}
+              value={this.state.clearEncryption ? '' : this.state.submissionURL}
               onChange={this.onSubmissionURLChange}
             />
           </bem.FormModal__item>
@@ -129,10 +129,7 @@ class EncryptForm extends React.Component {
         <bem.FormView__cell m='encrypt-key'>
           <bem.FormModal__item>
             <label>{t('Public key')}</label>
-            <TextBox
-              value={!this.state.clearEncryption ? this.state.publicKey : ''}
-              onChange={this.onPublicKeyChange}
-            />
+            <TextBox value={this.state.clearEncryption ? '' : this.state.publicKey} onChange={this.onPublicKeyChange} />
           </bem.FormModal__item>
         </bem.FormView__cell>
 

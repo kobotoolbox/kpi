@@ -13,9 +13,7 @@ export type PaginatedQueryHookParams = {
   offset: number
 } & PaginatedQueryHookData
 
-interface PaginatedQueryHook<DataItem> {
-  (params: PaginatedQueryHookParams): UseQueryResult<PaginatedResponse<DataItem>>
-}
+type PaginatedQueryHook<DataItem> = (params: PaginatedQueryHookParams) => UseQueryResult<PaginatedResponse<DataItem>>
 
 interface PaginatedQueryUniversalTableProps<DataItem> {
   queryHook: PaginatedQueryHook<DataItem>
