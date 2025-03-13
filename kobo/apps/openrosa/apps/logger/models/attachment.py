@@ -200,7 +200,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         # Denormalize xform and user
         if (
             values := Instance.objects.select_related('xform')
-            .filter(self.instance_id)
+            .filter(id=self.instance.id)
             .values('xform_id', 'xform__user_id')
             .first()
         ):
