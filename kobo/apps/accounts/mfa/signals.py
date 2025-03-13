@@ -25,4 +25,4 @@ def deactivate_mfa_method_for_user(**kwargs):
         pass
     else:
         mfa_method.is_active = False
-        mfa_method.save(update_fields=['is_active'])
+        mfa_method.save(update_fields=['is_active', 'date_modified'])

@@ -205,14 +205,24 @@ class AssetFile(AbstractTimeStampedModel, AbstractFormMedia):
         self.set_mimetype()
         return self.metadata['mimetype']
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
         if self.pk is None:
             self.set_filename()
             self.set_md5_hash()
             self.set_mimetype()
 
-        return super().save(force_insert, force_update, using, update_fields)
+        return super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
     def set_filename(self):
         if not self.metadata.get('filename'):
