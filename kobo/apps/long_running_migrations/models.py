@@ -58,7 +58,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
 
         self.status = LongRunningMigrationStatus.IN_PROGRESS
         self.attempts += 1
-        self.save(update_fields=['status', 'attempts'])
+        self.save(update_fields=['status', 'attempts', 'date_modified'])
 
         try:
             module.run()
@@ -66,11 +66,11 @@ class LongRunningMigration(AbstractTimeStampedModel):
             # Log the error and update the status to 'failed'
             logging.error(f'LongRunningMigration.execute(): {str(e)}')
             self.status = LongRunningMigrationStatus.FAILED
-            self.save(update_fields=['status'])
+            self.save(update_fields=['status', 'date_modified'])
             return
 
         self.status = LongRunningMigrationStatus.COMPLETED
-        self.save(update_fields=['status'])
+        self.save(update_fields=['status', 'date_modified'])
 
     def save(self, **kwargs):
 
