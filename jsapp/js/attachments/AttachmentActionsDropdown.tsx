@@ -53,16 +53,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     try {
       // We use `!` to assert that the attachment exists, because this code would be unreachable without it.
       await removeAttachmentMutation.mutateAsync(String(attachment!.id))
-
-      // TODO: Upon finishing we need to have the submission data being updated
-      // both in Submission Modal and in Data Table.
-      // Validation status changing in Submission Modal works like this:
-      // 1. Does the call (both Submission Modal and Data Table listens to same call)
-      // 2. Call finishes and returns a fresh SubmissionResponse
-      // 3. Upon finishing, Submission Modal updates the submission from props
-      // 4. Upon finishing, Data Table updates the submission in the list
-      // We would need to do something similar here.
-
       setIsDeleteModalOpen(false)
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
       props.onDeleted()
