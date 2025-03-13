@@ -145,7 +145,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self._xform = publish_xls_form(xlsx_file, self.asset.owner)
         self._xform.downloadable = active
         self._xform.kpi_asset_uid = self.asset.uid
-        self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform.save(
+            update_fields=['downloadable', 'kpi_asset_uid', 'date_modified']
+        )
 
         self.store_data(
             {

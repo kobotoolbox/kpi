@@ -135,8 +135,11 @@ class AssetWithoutPendingDeletedManager(models.Manager):
         # (and the default Django create() does not allow that)
         created = self.model(**kwargs)
         self._for_write = True
-        created.save(force_insert=True, using=self.db,
-                     update_parent_languages=update_parent_languages)
+        created.save(
+            force_insert=True,
+            using=self.db,
+            update_parent_languages=update_parent_languages,
+        )
 
         if tag_string:
             created.tag_string = tag_string
