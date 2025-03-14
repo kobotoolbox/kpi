@@ -46,7 +46,7 @@ class AttachmentDefaultManager(models.Manager):
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
     # Mimic KpiUidField behaviour with _null=True until TASK-1534 is completed
-    # TODO: update uid to generate_unique_id('att') for new attachments
+    # TODO: remove _null=True when TASK-1534 is complete
     uid = KpiUidField(uid_prefix='att', _null=True)
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
