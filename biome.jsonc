@@ -9,8 +9,7 @@
       "*-min.js",
       "bootstrap*.js",
       "jquery*.js",
-      "kobo/apps/openrosa/apps/logger/fixtures/*",
-      "kobo/apps/organizations/static/*"
+      "kobo/apps/openrosa/apps/logger/fixtures/*"
     ]
   },
   "vcs": {
