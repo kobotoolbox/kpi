@@ -4,6 +4,7 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
 import AudioPlayer from '#/components/common/audioPlayer'
@@ -234,6 +235,29 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             <a href={attachment.download_url} target='_blank'>
               {filename}
             </a>
+          )}
+
+          {type !== null && (
+            <AttachmentActionsDropdown
+              asset={this.props.asset}
+              submissionData={this.props.submissionData}
+              attachmentId={attachment.id}
+              onDeleted={() => {
+                // TODO: Upon finishing we need to have the submission data being updated
+                // both in Submission Modal and in Data Table.
+                // Validation status changing in Submission Modal works like this:
+                // 1. Does the call (both Submission Modal and Data Table listens to same call)
+                // 2. Call finishes and returns a fresh SubmissionResponse
+                // 3. Upon finishing, Submission Modal updates the submission from props
+                // 4. Upon finishing, Data Table updates the submission in the list
+                // We would need to do something similar here.
+
+                // We're letting know upstream that the attachment was deleted
+                // this.props.onAttachmentDeleted(attachment)
+
+                console.log('xxx attachment deleted')
+              }}
+            />
           )}
         </>
       )

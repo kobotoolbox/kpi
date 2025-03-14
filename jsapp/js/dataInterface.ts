@@ -159,6 +159,8 @@ export interface SubmissionAttachment {
   instance: number
   xform: number
   id: number
+  /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
+  is_deleted?: boolean
 }
 
 interface SubmissionSupplementalDetails {
@@ -196,13 +198,11 @@ export interface SubmissionResponse {
   __version__: string
   _attachments: SubmissionAttachment[]
   _geolocation: number[] | null[]
-  _id: number
   _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
   _tags: string[]
-  _uuid: string
   _validation_status: {
     timestamp?: number
     uid?: ValidationStatusName
@@ -210,10 +210,14 @@ export interface SubmissionResponse {
     color?: string
     label?: string
   }
-  _version_: string
+  _version_?: string
   _xform_id_string: string
   deviceid?: string
   end?: string
+  // `meta/rootUuid` is persistent across edits while `_uuid` is not;
+  // use the persistent identifier if present.
+  _id: number
+  _uuid: string
   'formhub/uuid': string
   'meta/instanceID': string
   'meta/rootUuid': string
@@ -632,7 +636,14 @@ export interface AssetResponse extends AssetRequestObject {
   }
   deployment__active: boolean
   deployment__data_download_links?: {
-    [key in ExportTypeName]: string | undefined
+    csv_legacy: string
+    csv: string
+    geojson?: string
+    kml_legacy: string
+    spss_labels?: string
+    xls_legacy: string
+    xls: string
+    zip_legacy: string
   }
   deployment__submission_count: number
   deployment_status: 'archived' | 'deployed' | 'draft'
