@@ -33,7 +33,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
   const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
-  const attachment = props.submissionData._attachments.find((a) => a.id === props.attachmentId)
+  const attachment = props.submissionData._attachments.find((item) => item.id === props.attachmentId)
   if (!attachment) {
     return null
   }
