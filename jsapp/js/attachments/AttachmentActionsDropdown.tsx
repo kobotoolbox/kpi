@@ -1,4 +1,4 @@
-import { Flex, FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
+import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
 import { useState } from 'react'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
@@ -90,18 +90,14 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item onClick={requestDownloadFile}>
-            <Flex align='center' gap='xs'>
-              <Icon name='download' /> <span>{t('Download')}</span>
-            </Flex>
+          <Menu.Item onClick={requestDownloadFile} leftSection={<Icon name='download' />}>
+            {t('Download')}
           </Menu.Item>
           {isFeatureEnabled && userCanChangeSubmission && (
             <>
               <Menu.Divider />
-              <Menu.Item onClick={() => setIsDeleteModalOpen(true)}>
-                <Flex align='center' gap='xs'>
-                  <Icon name='trash' /> <span>{t('Delete')}</span>
-                </Flex>
+              <Menu.Item onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
+                {t('Delete')}
               </Menu.Item>
             </>
           )}
