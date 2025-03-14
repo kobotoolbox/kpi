@@ -86,7 +86,13 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   return (
     <>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
+      <Menu
+        withinPortal={false}
+        closeOnClickOutside
+        closeOnItemClick
+        position='bottom-end'
+        styles={{ dropdown: { alignSelf: 'flex-start' } }}
+      >
         <Menu.Target>
           <span style={{ position: 'relative' }}>
             <ActionIcon size='md' variant='transparent' iconName='more' />
