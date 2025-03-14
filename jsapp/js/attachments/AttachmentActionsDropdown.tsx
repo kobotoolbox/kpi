@@ -93,10 +93,10 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           <Menu.Item onClick={requestDownloadFile}>
             <Icon name='download' /> {t('Download')}
           </Menu.Item>
-          {isFeatureEnabled && (
+          {isFeatureEnabled && userCanChangeSubmission && (
             <>
               <Menu.Divider />
-              <Menu.Item onClick={() => setIsDeleteModalOpen(true)} disabled={!userCanChangeSubmission}>
+              <Menu.Item onClick={() => setIsDeleteModalOpen(true)}>
                 <Icon name='trash' /> {t('Delete')}
               </Menu.Item>
             </>
