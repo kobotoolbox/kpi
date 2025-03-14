@@ -58,22 +58,27 @@ echo -e '\n\n### Step: Install pip-tools'
 python -m pip install pip-tools==7.\*
 
 echo -e '\n\n### Step: Update Debian package lists'
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+DEBIAN_FRONTEND=noninteractive apt-get -qq -y update
 
 echo -e '\n\n### Step: Install Debian dependencies'
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
+DEBIAN_FRONTEND=noninteractive apt-get -qq -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
 
 echo -e '\n\n### Step: Install Python dependencies'
-pip-sync dependencies/pip/dev_requirements.txt
+pip-sync -q dependencies/pip/dev_requirements.txt
 
 echo -e '\n\n### Step: Update translations'
 git submodule init && git submodule update --remote && python manage.py compilemessages
 
 echo -e '\n\n### Step: Test back-end code'
-pytest --cov=hub --cov=kobo --cov=kpi -ra
+echo 'Disclaimer: CI uses pytest with coverage option, skipping locally.'
+# Speed-up pytest by running tests in parallel
+pytest -q --disable-warnings -n auto || true
+# Run only the last failed tests sequentially.
+# Tests that previously failed due to concurrency should pass now.
+# If they still fail, it indicates genuine test failures.
+pytest -q --disable-warnings --lf -rf
 
 echo -e '\n\n### Step: Run coveralls for back-end code'
 echo 'Disclaimer: CI uses external action, skipping locally.'
-
 
 echo -e '\n\n# End. If you see this, everything succeeded.'
