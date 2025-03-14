@@ -6,6 +6,7 @@ from urllib.parse import quote as urlquote
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from kobo.apps.kobo_auth.models import User
@@ -16,6 +17,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
+from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
@@ -43,6 +45,9 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
+    # Mimic KpiUidField behaviour with _null=True until TASK-1534 is completed
+    # TODO: remove _null=True when TASK-1534 is complete
+    uid = KpiUidField(uid_prefix='att', _null=True)
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
@@ -194,9 +199,17 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             self.media_file_size = self.media_file.size
 
         # Denormalize xform and user
-        if self.instance and self.instance.xform:
-            self.xform = self.instance.xform
-            self.user = self.instance.user
+        if (
+            values := Instance.objects.select_related('xform')
+            .filter(pk=self.instance_id)
+            .values('xform_id', 'xform__user_id')
+            .first()
+        ):
+            self.xform_id = values['xform_id']
+            self.user_id = values['xform__user_id']
+
+        if not self.pk:
+            self.date_created = self.date_modified = timezone.now()
 
         super().save(*args, **kwargs)
 
