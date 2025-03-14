@@ -8,6 +8,7 @@ import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { downloadUrl, notify } from '#/utils'
+import styles from './AttachmentActionsDropdown.module.scss'
 import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
@@ -31,11 +32,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
   const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
-
-  // TODO: remove this when feature is ready. For now we hide the whole thing by not rendering anything.
-  if (!isFeatureEnabled) {
-    return null
-  }
 
   const attachment = props.submissionData._attachments.find((a) => a.id === props.attachmentId)
   if (!attachment) {
@@ -84,15 +80,9 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
 
   return (
-    <>
+    <span className={styles.attachmentActionsDropdown}>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <Menu
-        withinPortal={false}
-        closeOnClickOutside
-        closeOnItemClick
-        position='bottom-end'
-        styles={{ dropdown: { alignSelf: 'flex-start' } }}
-      >
+      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
         <Menu.Target>
           <span style={{ position: 'relative' }}>
             <ActionIcon size='md' variant='transparent' iconName='more' />
@@ -103,9 +93,14 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           <Menu.Item onClick={requestDownloadFile}>
             <Icon name='download' /> {t('Download')}
           </Menu.Item>
-          <Menu.Item variant='danger' onClick={() => setIsDeleteModalOpen(true)} disabled={!userCanChangeSubmission}>
-            <Icon name='trash' /> {t('Delete')}
-          </Menu.Item>
+          {isFeatureEnabled && (
+            <>
+              <Menu.Divider />
+              <Menu.Item onClick={() => setIsDeleteModalOpen(true)} disabled={!userCanChangeSubmission}>
+                <Icon name='trash' /> {t('Delete')}
+              </Menu.Item>
+            </>
+          )}
         </Menu.Dropdown>
       </Menu>
 
@@ -144,6 +139,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           </Group>
         </Stack>
       </Modal>
-    </>
+    </span>
   )
 }
