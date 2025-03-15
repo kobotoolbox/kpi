@@ -113,7 +113,7 @@ class Command(BaseCommand):
                 continue
 
             for soft_deleted_attachment in soft_deleted_attachments:
-                # Avoid fetching Instance object once again
+                # Avoid fetching the Instance object once again
                 soft_deleted_attachment.instance = instance
                 pre_delete_attachment(
                     soft_deleted_attachment, only_update_counters=True
