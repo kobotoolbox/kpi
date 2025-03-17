@@ -90,7 +90,13 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item onClick={requestDownloadFile} leftSection={<Icon name='download' />}>
+          {/* TODO: once we get this button to `save as`, remove this target target='_blank' */}
+          <Menu.Item
+            component='a'
+            href={attachment!.download_url}
+            target='_blank'
+            leftSection={<Icon name='download' />}
+          >
             {t('Download')}
           </Menu.Item>
           {isFeatureEnabled && userCanChangeSubmission && (
