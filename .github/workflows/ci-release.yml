@@ -1,6 +1,8 @@
 name: CI of releases
 
-on: pull_request
+on:
+  push:
+    branches: [ 'kalvis/ci-alert-pretty' ]
 
 jobs:
   darker:
