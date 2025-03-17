@@ -8,7 +8,7 @@ def add_long_running_migration(apps, schema_editor):
         'long_running_migrations', 'LongRunningMigration'
     )  # noqa
     LongRunningMigration.objects.create(
-        name='0005_back_fill_logger_instance_root_uuid'
+        name='0006_cleanup_orphaned_xform_in_trash'
     )
 
 
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             'long_running_migrations',
-            '0004_back_fill_asset_search_field_for_owner_label',
+            '0005_backfill_logger_instance_root_uuid',
         ),
     ]
 
