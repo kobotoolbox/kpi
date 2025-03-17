@@ -43,12 +43,11 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     return null
   }
 
-  async function handleConfirmDelete() {
+  const handleConfirmDelete = async () => {
     setIsDeletePending(true)
 
     try {
-      // We use `!` to assert that the attachment exists, because this code would be unreachable without it.
-      await removeAttachmentMutation.mutateAsync(String(attachment!.id))
+      await removeAttachmentMutation.mutateAsync(String(attachment.id))
       setIsDeleteModalOpen(false)
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
       props.onDeleted()
@@ -59,9 +58,8 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     }
   }
 
-  function requestDownloadFile() {
-    // We use `!` to assert that the attachment exists, because this code would be unreachable without it.
-    downloadUrl(attachment!.download_url)
+  const requestDownloadFile = () => {
+    downloadUrl(attachment.download_url)
   }
 
   // We find the question that the attachment belongs to, to determine the text to display in the modal.
