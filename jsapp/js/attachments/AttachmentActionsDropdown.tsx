@@ -102,7 +102,11 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
           {isFeatureEnabled && userCanChangeSubmission && (
             <>
               <Menu.Divider />
-              <Menu.Item onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
+              <Menu.Item
+                variant='danger'
+                onClick={() => setIsDeleteModalOpen(true)}
+                leftSection={<Icon name='trash' />}
+              >
                 {t('Delete')}
               </Menu.Item>
             </>
