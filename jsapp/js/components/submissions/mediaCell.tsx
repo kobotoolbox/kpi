@@ -3,12 +3,14 @@ import './mediaCell.scss'
 import React from 'react'
 
 import autoBind from 'react-autobind'
+import { actions } from '#/actions'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import { MODAL_TYPES, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { SubmissionAttachment } from '#/dataInterface'
+import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import pageState from '#/pageState.store'
 import { truncateString } from '#/utils'
@@ -35,9 +37,8 @@ interface MediaCellProps {
   submissionIndex: number
   /** Total submissions for text questions. */
   submissionTotal: number
-  assetUid: string
-  xpath: string
-  submissionUuid: string
+  submissionData: SubmissionResponse
+  asset: AssetResponse
 }
 
 /**
@@ -74,10 +75,12 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         mediaName: this.props.mediaName,
         customModalHeader: this.renderMediaModalCustomHeader(
           this.getQuestionIcon(),
-          this.props.mediaAttachment?.download_url,
+          this.props.mediaAttachment,
           this.props.mediaName,
           this.props.submissionIndex,
           this.props.submissionTotal,
+          this.props.submissionData,
+          this.props.asset,
         ),
       })
     }
@@ -85,15 +88,17 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
 
   renderMediaModalCustomHeader(
     questionIcon: IconName,
-    mediaURL: string,
+    attachment: SubmissionAttachment,
     mediaName: string,
     submissionIndex: number,
     submissionTotal: number,
+    submissionData: SubmissionResponse,
+    asset: AssetResponse,
   ) {
     let titleText = null
 
-    // mediaURL only exists if there are attachments, otherwise assume only text
-    if (mediaURL) {
+    // `download_url` only exists if there are attachments, otherwise assume only text
+    if (attachment.download_url) {
       titleText = truncateString(mediaName, 30)
     } else {
       titleText = t('Submission ##submissionIndex## of ##submissionTotal##')
@@ -114,15 +119,16 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         </bem.TableMediaPreviewHeader__title>
 
         <bem.TableMediaPreviewHeader__options>
-          {mediaURL && (
-            <a
-              // TODO: once we get this button to `save as`, remove this target
-              target='_blank'
-              href={mediaURL}
-            >
-              <Button type='secondary' size='s' startIcon='download' label={t('download')} />
-            </a>
-          )}
+          <AttachmentActionsDropdown
+            asset={asset}
+            submissionData={submissionData}
+            attachmentId={attachment.id}
+            onDeleted={() => {
+              // Trigger refresh on the Data Table and close the modal
+              actions.resources.refreshTableSubmissions()
+              pageState.hideModal()
+            }}
+          />
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     )

@@ -861,9 +861,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     mediaName={row.value}
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
-                    assetUid={this.props.asset.uid}
-                    xpath={q.$xpath}
-                    submissionUuid={row.original._uuid}
+                    submissionData={row.original}
+                    asset={this.props.asset}
                   />
                 )
               }

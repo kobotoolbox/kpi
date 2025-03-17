@@ -383,7 +383,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private fetchSubmissionData(): void {
+  fetchSubmissionData(): void {
     this.isSubmissionLoaded = false
     this.data.submissionData = undefined
     this.trigger(this.data)
