@@ -90,7 +90,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         </Menu.Target>
 
         <Menu.Dropdown>
-          {/* TODO: once we get this button to `save as`, remove this target target='_blank' */}
+          {/* TODO: once we get this button to be able to "save as", we can remove `target` */}
           <Menu.Item
             component='a'
             href={attachment!.download_url}
