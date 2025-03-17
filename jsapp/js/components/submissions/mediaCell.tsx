@@ -55,6 +55,8 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
   // event handling
   getQuestionIcon(): IconName {
     switch (this.props.questionType) {
+      case QUESTION_TYPES.file.id:
+        return 'qt-file'
       case QUESTION_TYPES.image.id:
         return 'qt-photo'
       case QUESTION_TYPES.video.id:
@@ -149,6 +151,10 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
 
     return (
       <bem.MediaCell>
+        {this.props.questionType === QUESTION_TYPES.file.id && (
+          <bem.MediaCell__text>{this.props.mediaName}</bem.MediaCell__text>
+        )}
+
         <bem.MediaCellIconWrapper>
           <Button type='text' size='s' startIcon={this.getQuestionIcon()} onClick={this.launchMediaModal.bind(this)} />
         </bem.MediaCellIconWrapper>
