@@ -28,8 +28,6 @@ jobs:
       id: title
       env:
         MESSAGE: ${{ github.event.commits[0].message }}
-      run: echo "${MESSAGE}" | head -1
-      run: echo "fragment=`echo "${MESSAGE}" | head -1`"
       run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
 
     - name: Send a stream message
