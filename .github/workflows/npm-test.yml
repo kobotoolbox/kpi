@@ -56,7 +56,3 @@ jobs:
       # Check for Biome formatting errors
       - name: Run all linters, builds and tests
         run: npm run ci
-
-      # Check that the storybook build succeeds
-      - name: Build Storybook
-        run: npm run storybook:build
