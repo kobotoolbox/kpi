@@ -38,15 +38,28 @@ def upload_to(attachment, filename):
     return generate_attachment_filename(attachment.instance, filename)
 
 
+class AttachmentDeleteStatus(models.TextChoices):
+
+    DELETED = 'deleted'
+    SOFT_DELETED = 'soft-deleted'
+    PENDING_DELETE = 'pending-delete'
+
+
 class AttachmentDefaultManager(models.Manager):
 
     def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
+        # ToDo remove "deleted_at__isnull=True, " from filter when
+        #   TASK-1534 is completed
+        return (
+            super()
+            .get_queryset()
+            .filter(deleted_at__isnull=True, delete_status__isnull=True)
+        )
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
     # Mimic KpiUidField behaviour with _null=True until TASK-1534 is completed
-    # TODO: update uid to generate_unique_id('att') for new attachments
+    # TODO: remove _null=True when TASK-1534 is complete
     uid = KpiUidField(uid_prefix='att', _null=True)
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
@@ -65,6 +78,9 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default='')
     deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    delete_status = models.CharField(
+        choices=AttachmentDeleteStatus.choices, db_index=True, null=True, max_length=20
+    )
 
     xform = models.ForeignKey(
         XForm,

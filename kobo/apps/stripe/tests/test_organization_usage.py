@@ -1,3 +1,4 @@
+import calendar
 import timeit
 from datetime import datetime, timedelta
 from math import inf
@@ -302,6 +303,22 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         current_billing_period_end = current_billing_period_start + relativedelta(
             months=1
         )
+        # if the beginning of billing period is the last day of a month,
+        # we need to be sure that the end of billing period is also the last
+        # day of the following month.
+        last_day_of_previous_month = calendar.monthrange(
+            current_billing_period_start.year,
+            current_billing_period_start.month,
+        )[1]
+        if last_day_of_previous_month == current_billing_period_start.day:
+            last_day_of_billing_period = calendar.monthrange(
+                current_billing_period_end.year,
+                current_billing_period_end.month,
+            )[1]
+            current_billing_period_end = current_billing_period_end.replace(
+                day=last_day_of_billing_period
+            )
+
         response = self.client.get(self.detail_url)
 
         assert (
