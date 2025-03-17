@@ -8,8 +8,8 @@ echo 'Disclaimer: local environment may differ from Github Actions environment.'
 
 
 echo -e '\n\n### Step: Setup Node'
-echo 'Disclaimer: CI runs matrix on v20.17.0 and 22. Please eyeball if your local version matches.'
-node -v
+echo 'Disclaimer: CI installs a matrix of v20.17.0 and 22, this script checks against v20.17.0.'
+npm run hint
 echo 'Disclaimer: CI caches node_modules, this script does not.'
 
 echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'

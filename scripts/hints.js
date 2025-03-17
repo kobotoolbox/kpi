@@ -125,4 +125,6 @@ if (process.version !== ok_node) {
   console.warn(`${blu}
   --------------------------------------------------------------
   `)
+
+  process.exit(1)
 }
