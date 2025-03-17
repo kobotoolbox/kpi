@@ -26,14 +26,29 @@ class TestOldEmailRecordMarkAsFailed(TestCase):
         user = User.objects.create(username='testuser')
         email_config = MassEmailConfig.objects.create(name='testconfig')
         email_job = MassEmailJob.objects.create(email_config=email_config)
-        email_record = MassEmailRecord.objects.create(
+
+        # Create an 'enqueued' record older than the threshold date
+        old_email_record = MassEmailRecord.objects.create(
             user=user,
             email_job=email_job,
             status=EmailStatus.ENQUEUED,
-            date_created=now() - timedelta(weeks=2)
+            date_created=now() - timedelta(days=12)
+        )
+
+        # Create an 'enqueued' record newer than the threshold date
+        recent_email_record = MassEmailRecord.objects.create(
+            user=user,
+            email_job=email_job,
+            status=EmailStatus.ENQUEUED,
+            date_created=now() - timedelta(days=5)
         )
 
         mark_old_enqueued_mass_email_record_as_failed()
 
-        email_record.refresh_from_db()
-        self.assertEqual(email_record.status, EmailStatus.FAILED)
+        # Ensure that the status of the old email record is updated to 'failed'
+        old_email_record.refresh_from_db()
+        self.assertEqual(old_email_record.status, EmailStatus.FAILED)
+
+        # Ensure that the status of the recent email record is not updated
+        recent_email_record.refresh_from_db()
+        self.assertEqual(recent_email_record.status, EmailStatus.ENQUEUED)
