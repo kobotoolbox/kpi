@@ -44,6 +44,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    - name: test fail
+      run: exit 1
     - name: Install pip-tools
       run: python -m pip install pip-tools==7.\*
     - name: Update Debian package lists
