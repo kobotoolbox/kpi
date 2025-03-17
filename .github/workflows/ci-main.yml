@@ -2,7 +2,7 @@ name: CI of main
 
 on:
   push:
-    branches: [ 'kalvis/ci-alert-pretty' ]
+    branches: [ main ]
 
 jobs:
   darker:
@@ -30,10 +30,7 @@ jobs:
       id: title
       env:
         MESSAGE: ${{ github.event.commits[0].message }}
-      run: |
-        echo "fragment=`echo "${MESSAGE}" | head -1`"
-        echo "fragment=`echo "${{ github.event.commits[0].message }}" | head -1`"
-        echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
+      run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
 
     - name: Send a stream message
       uses: zulip/github-actions-zulip/send-message@v1
@@ -44,4 +41,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: ":boom: @/*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"
+        content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"

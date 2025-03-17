@@ -38,6 +38,7 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-build-${{ env.cache-name }}-node-v${{ steps.resolved-node-version.outputs.NODE_VERSION }}-${{ hashFiles('**/package-lock.json', 'patches/**/*.patch') }}
+
       # Cache hit:  If the cache key matches,
       #             /node_modules/ will have been copied from a previous run.
       #   (Run the post-install step, `npm run copy-fonts`)
@@ -51,9 +52,6 @@ jobs:
       - name: Install JavaScript dependencies (npm install)
         if: steps.cache-nodemodules.outputs.cache-hit != 'true'
         run: npm install
-
-      - name: test fail
-        run: exit 1
 
       # Check for Biome formatting errors
       - name: Check Biome formatting, import order and linter
