@@ -15,23 +15,8 @@ echo 'Disclaimer: CI caches node_modules, this script does not.'
 echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'
 npm install
 
-echo -e '\n\n### Step: Check Biome formatting, import order and linter'
-npm run lint:biome
-
-echo -e '\n\n### Step: Check TypeScript'
-npm run lint:types
-
-echo -e '\n\n### Step: Build Prod'
-SKIP_TS_CHECK=true npm run build
-
-echo -e '\n\n### Step: Check ESLint, errors only'
-npm run lint:eslint -- --quiet
-
-echo -e '\n\n### Step: Run unit tests and xlform tests'
-npx jest --config ./jsapp/jest/unit.config.ts --ci
-
-echo -e '\n\n### Step: Run component tests with Jest'
-npx jest --config ./jsapp/jest/jest.config.ts --ci
+echo -e '\n\n### Step: Run all linters, builds and tests'
+npm run ci
 
 
 echo -e '\n\n## Job: Darker'
