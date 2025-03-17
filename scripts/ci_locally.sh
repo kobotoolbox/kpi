@@ -10,7 +10,7 @@ echo 'Disclaimer: local environment may differ from Github Actions environment.'
 echo -e '\n\n### Step: Setup Node'
 echo 'Disclaimer: CI runs matrix on v20.17.0 and 22. Please eyeball if your local version matches.'
 node -v
-echo 'Disclaimer: CI caches node_modules, skipping locally.'
+echo 'Disclaimer: CI caches node_modules, this script does not.'
 
 echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'
 npm install
@@ -70,7 +70,7 @@ echo -e '\n\n### Step: Update translations'
 git submodule init && git submodule update --remote && python manage.py compilemessages
 
 echo -e '\n\n### Step: Test back-end code'
-echo 'Disclaimer: CI uses pytest with coverage option, skipping locally.'
+echo 'Disclaimer: CI uses pytest with coverage option, this script does not.'
 # Speed-up pytest by running tests in parallel
 pytest -q --disable-warnings -n auto || true
 # Run only the last failed tests sequentially.
@@ -79,6 +79,6 @@ pytest -q --disable-warnings -n auto || true
 pytest -q --disable-warnings --lf -rf
 
 echo -e '\n\n### Step: Run coveralls for back-end code'
-echo 'Disclaimer: CI uses external action, skipping locally.'
+echo 'Disclaimer: CI uses external action, this script does not.'
 
 echo -e '\n\n# End. If you see this, everything succeeded.'
