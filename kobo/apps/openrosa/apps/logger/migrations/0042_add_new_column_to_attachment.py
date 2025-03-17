@@ -9,13 +9,6 @@ import kpi.fields.kpi_uid
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('logger', '0042_attachment_user_attachment_xform'),
-        ('logger', '0043_attachment_date_created_attachment_date_modified'),
-        ('logger', '0044_attachment_uid'),
-        ('logger', '0045_add_delete_status_in_attachment'),
-    ]
-
     dependencies = [
         ('logger', '0041_add_root_uuid_field_to_instance'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
