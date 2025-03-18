@@ -1,4 +1,4 @@
-name: ci
+name: CI of main
 
 on:
   push:
@@ -22,6 +22,16 @@ jobs:
       - pytest
       - npm-test
     steps:
+
+    # References:
+    # - https://stackoverflow.com/questions/73402042/github-action-expressions-split-string
+    # - https://unix.stackexchange.com/questions/205022/bash-assigning-the-first-line-of-a-variable-to-a-variable#388712
+    - name: Split commit message title
+      id: title
+      env:
+        MESSAGE: ${{ github.event.commits[0].message }}
+      run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
+
     - name: Send a stream message
       uses: zulip/github-actions-zulip/send-message@v1
       with:
@@ -31,4 +41,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (main)"
-        content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(github.event.commits[0].message) }}](${{ github.event.compare }})"
+        content: ":boom: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }})"
