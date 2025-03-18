@@ -3,7 +3,7 @@
 
 .media-cell {
   @include mixins.centerRowFlex;
-  justify-content: center;
+  justify-content: space-between;
 
   .icon-wrapper {
     .icon-wrapper__icon {

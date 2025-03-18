@@ -150,10 +150,8 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     }
 
     return (
-      <bem.MediaCell>
-        {this.props.questionType === QUESTION_TYPES.file.id && (
-          <bem.MediaCell__text>{this.props.mediaName}</bem.MediaCell__text>
-        )}
+      <bem.MediaCell m={`question-type-${this.props.questionType}`}>
+        <bem.MediaCell__text>{this.props.mediaName}</bem.MediaCell__text>
 
         <bem.MediaCellIconWrapper>
           <Button type='text' size='s' startIcon={this.getQuestionIcon()} onClick={this.launchMediaModal.bind(this)} />
