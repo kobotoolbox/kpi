@@ -2,10 +2,18 @@
 set -e
 set +x
 
+# Detect who is the owner, permissions are not the same depending on the host
+# (e.g.: linux = kobo, macOs = root)
+WHOAMI=$(whoami)
+OWNER=$(ls -ld . | awk '{print $3}')
+GOSU_USER=""
+
+if [ "$WHOAMI" != "$OWNER" ]; then
+    GOSU_USER=$OWNER
+fi
 
 echo -e '\n\n# Run CI jobs locally'
 echo 'Disclaimer: local environment may differ from Github Actions environment.'
-
 
 echo -e '\n\n### Step: Setup Node'
 echo 'Disclaimer: CI installs a matrix of v20.17.0 and 22, this script checks against v20.17.0.'
@@ -21,35 +29,18 @@ npm run ci
 
 echo -e '\n\n## Job: Darker'
 
-echo -e '\n\n### Step: Set up Python'
-echo 'Disclaimer: CI installs Python 3.10. Please eyeball if your local env has 3.10.'
-python --version
-
-echo -e '\n\n### Step: Install pip dependencies'
-python -m pip install darker[isort] flake8 flake8-quotes isort --quiet
-
 echo -e '\n\n### Step: Run Darker'
-echo 'Disclaimer: CI runs Darker only on the last commit.. I think?'
-darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub
+echo 'Disclaimer: CI runs Darker only on the last commit and the remote branch'
 
+if [ -n "$GOSU_USER" ]; then
+    CURRENT_BRANCH=$(gosu "$GOSU_USER" git rev-parse --abbrev-ref HEAD)
+else
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+fi
+
+darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH"
 
 echo -e '\n\n## Job: Pytest'
-
-echo -e '\n\n### Step: Set up Python'
-echo 'Disclaimer: CI installs Python 3.10. Please eyeball if your local env has 3.10.'
-python --version
-
-echo -e '\n\n### Step: Install pip-tools'
-python -m pip install pip-tools==7.\*
-
-echo -e '\n\n### Step: Update Debian package lists'
-DEBIAN_FRONTEND=noninteractive apt-get -qq -y update
-
-echo -e '\n\n### Step: Install Debian dependencies'
-DEBIAN_FRONTEND=noninteractive apt-get -qq -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
-
-echo -e '\n\n### Step: Install Python dependencies'
-pip-sync -q dependencies/pip/dev_requirements.txt
 
 echo -e '\n\n### Step: Update translations'
 git submodule init && git submodule update --remote && python manage.py compilemessages
