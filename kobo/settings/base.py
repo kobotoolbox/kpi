@@ -1845,7 +1845,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'text/csv',
     'application/xml',
     'application/zip',
-    'application/x-zip-compressed'
+    'application/x-zip-compressed',
+    'application/geo+json',
 ]
 
 LOG_DELETION_BATCH_SIZE = 1000

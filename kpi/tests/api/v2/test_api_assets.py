@@ -1626,7 +1626,7 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
         json_response = response.json()
         expected_response = {
             'metadata': ['Only `image`, `audio`, `video`, `text/csv`, '
-                         '`application/xml`, `application/zip` '
+                         '`application/xml`, `application/zip`, `application/geo+json` '
                          'MIME types are allowed']
         }
         assert json_response == expected_response
