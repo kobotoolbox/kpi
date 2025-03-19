@@ -19,7 +19,7 @@ def run():
     )
     for xform_batch in chunked(xforms, CHUNK_SIZE):
         for xform in xform_batch:
-            # If asset still exists, odds are great that the project deletion
+            # If asset still exists, the odds are great that the project deletion
             # is still pending
             if xform.asset.pk is not None:
                 continue
