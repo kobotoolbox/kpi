@@ -44,10 +44,12 @@ run_parallel_pytest() {
 echo -e '\n\n# Run CI jobs locally'
 echo 'Disclaimer: local environment may differ from Github Actions environment.'
 
-echo -e '\n\n### Step: Setup Node'
-echo 'Disclaimer: CI installs a matrix of v20.17.0 and 22, this script checks against v20.17.0.'
-npm run hint
-echo 'Disclaimer: CI caches node_modules, this script does not.'
+# Uncomment lines below until this comment (https://github.com/kobotoolbox/kpi/pull/5593#discussion_r1999067788)
+# is addressed.
+# echo -e '\n\n### Step: Setup Node'
+# echo 'Disclaimer: CI installs a matrix of v20.17.0 and 22, this script checks against v20.17.0.'
+# npm run hint
+# echo 'Disclaimer: CI caches node_modules, this script does not.'
 
 echo -e '\n\n### Step: Install JavaScript dependencies (npm install)'
 npm install
