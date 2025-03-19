@@ -104,6 +104,99 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
     return result
 
 
+def get_organization_nlp_plan_limits(organizations: list[Organization] = None):
+    orgs = Organization.objects.prefetch_related('djstripe_customers')
+    if organizations is not None:
+        orgs = orgs.filter(id__in=[org.id for org in organizations])
+    if not settings.STRIPE_ENABLED:
+        return {org.id: {'characters': inf, 'seconds': inf} for org in orgs}
+    else:
+        from djstripe.models.core import Product
+    all_owner_plans = (
+        orgs.filter(
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
+        )
+        .values(
+            org_id=F('id'),
+            # prefer price metadata over product metadata
+            characters_limit=Coalesce(
+                F(
+                    f'djstripe_customers__subscriptions__items__price__metadata__mt_characters_limit'  # noqa
+                ),
+                F(
+                    f'djstripe_customers__subscriptions__items__price__product__metadata__mt_characters_limit'  # noqa
+                ),
+            ),
+            seconds_limit=Coalesce(
+                F(
+                    f'djstripe_customers__subscriptions__items__price__metadata__asr_seconds_limit'  # noqa
+                ),
+                F(
+                    f'djstripe_customers__subscriptions__items__price__product__metadata__asr_seconds_limit'  # noqa
+                ),
+            ),
+            start_date=F('djstripe_customers__subscriptions__start_date'),
+            product_type=F(
+                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
+            ),
+        )
+        .annotate(
+            # find the most recent one
+            most_recent=Window(
+                expression=Max('start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(
+            Q(start_date=F('most_recent'))
+            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
+        )
+    )
+    subscriptions = {
+        res['org_id']: {
+            'characters': res['characters_limit'],
+            'seconds': res['seconds_limit'],
+        }
+        for res in all_owner_plans
+        if not (res['product_type'] == 'addon' and res['limit'] is None)
+    }
+
+    # Anyone who does not have a subscription is on the free tier plan by default
+    default_plan = (
+        Product.objects.filter(
+            prices__unit_amount=0, prices__recurring__interval='month'
+        )
+        .values(
+            seconds_limit=F('metadata__asr_seconds_limit'),
+            characters_limit=F('metadata__mt_characters_limit'),
+        )
+        .first()
+    )
+    default_limits = (
+        {
+            'characters': default_plan['characters_limit'],
+            'seconds': default_plan['seconds_limit'],
+        }
+        if default_plan
+        else {'characters': 'unlimited', 'seconds': 'unlimited'}
+    )
+
+    def get_limits(org):
+        limits = subscriptions.get(org.id, default_limits)
+        if limits['characters'] == 'unlimited':
+            limits['characters'] = inf
+        else:
+            limits['characters'] = int(limits['characters'])
+        if limits['seconds'] == 'unlimited':
+            limits['seconds'] = inf
+        else:
+            limits['characters'] = int(limits['characters'])
+        return limits
+
+    return {org.id: get_limits(org) for org in orgs}
+
+
 def get_organization_plan_limits(
     usage_type: UsageType, organizations: list[Organization] = None
 ):
