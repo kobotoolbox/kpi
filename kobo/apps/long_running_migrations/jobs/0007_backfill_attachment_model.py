@@ -48,7 +48,7 @@ def run():
                 attachment.date_modified = attachment.deleted_at
                 attachment.delete_status = AttachmentDeleteStatus.SOFT_DELETED
 
-        Attachment.objects.bulk_update(
+        Attachment.all_objects.bulk_update(
             attachment_batch,
             fields=[
                 'xform_id',

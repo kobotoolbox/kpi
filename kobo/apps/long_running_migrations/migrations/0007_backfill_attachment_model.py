@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             'long_running_migrations',
-            '0006_fix_not_deleted_xform_from_trash_bin',
+            '0006_cleanup_orphaned_xform_in_trash',
         ),
     ]
 
