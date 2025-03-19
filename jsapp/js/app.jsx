@@ -3,7 +3,6 @@
  */
 import '#/bemComponents' // importing it so it exists
 import '#/surveyCompanionStore' // importing it so it exists
-import '@mantine/core/styles.css'
 
 import React from 'react'
 
