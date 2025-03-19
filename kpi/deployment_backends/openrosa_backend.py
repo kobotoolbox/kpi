@@ -627,7 +627,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 logging.warning(
                     f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
                 )
-            self.save_to_db({'enketo_id': enketo_id})
+            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
         if self.xform.require_auth:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
@@ -656,6 +656,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             fields=['_id'],
             skip_count=True,
         )
+
+        if settings.TESTING:
+            # `all_submissions` is a list in testing environment,
+            # but a generator on production.
+            all_submissions = iter(all_submissions)
+
         try:
             next(all_submissions)
         except StopIteration:
@@ -1212,7 +1218,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         pk = self.backend_response['formid']
         xform = (
-            XForm.objects.filter(pk=pk)
+            XForm.all_objects.filter(pk=pk)
             .only(
                 'user__username',
                 'id_string',
