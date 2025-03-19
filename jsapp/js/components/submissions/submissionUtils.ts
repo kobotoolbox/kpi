@@ -484,27 +484,42 @@ export function getRepeatGroupAnswers(
   responseData: SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
   targetKey: string,
-): string[] {
-  const answers: string[] = []
+): React.ReactNode[] {
+  const answers: React.ReactNode[] = []
 
-  // Goes through nested groups from key, looking for answers.
-  const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
+  // This function is a detective. It goes through nested groups from key, looking for answers.
+  const lookForAnswers = (data: SubmissionResponse, levelIndex: number, responseIndex?: number) => {
     const levelKey = targetKey
       .split('/')
       .slice(0, levelIndex + 1)
       .join('/')
-
     const targetKeyData = data[targetKey]
     const levelKeyData = data[levelKey]
+
+    const levelParentKey = targetKey.split('/').slice(0, levelIndex).join('/')
 
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
       if (targetKeyData !== undefined && typeof targetKeyData !== 'object') {
-        answers.push(String(targetKeyData))
+        // To find the attachment, we need to build a question path that includes response number in it. For example, if
+        // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
+        // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
+        // works for them too :fingers_crossed:.
+        const responseNumber = responseIndex ? responseIndex + 1 : undefined
+        const attachmentPath = appendTextToPathLevel(targetKey, levelParentKey, `[${responseNumber}]`)
+
+        // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
+        const attachment = getMediaAttachment(responseData, String(targetKeyData), attachmentPath)
+        // If we've found the attachment, and it is deleted, we don't want to display it
+        if (typeof attachment === 'object' && attachment?.is_deleted) {
+          answers.push(<DeletedAttachment />)
+        } else {
+          answers.push(String(targetKeyData))
+        }
       }
     } else if (levelKeyData !== null && typeof levelKeyData === 'object' && Array.isArray(levelKeyData)) {
-      levelKeyData.forEach((item: SubmissionResponse) => {
-        lookForAnswers(item, levelIndex + 1)
+      levelKeyData.forEach((item: SubmissionResponse, itemIndex: number) => {
+        lookForAnswers(item, levelIndex + 1, itemIndex)
       })
     }
   }
@@ -697,4 +712,19 @@ export default {
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true)
   return flatPaths[rowName]
+}
+
+/**
+ * Inserts given string immediately after the specified level in the path.
+ * @param path - The original path string.
+ * @param level - The level after which `stringToAdd` should be inserted.
+ * @returns The updated path string.
+ */
+function appendTextToPathLevel(path: string, level: string, stringToAdd: string): string {
+  const parts = path.split('/')
+  const index = parts.indexOf(level)
+  if (index !== -1) {
+    parts[index] = `${parts[index]}${stringToAdd}`
+  }
+  return parts.join('/')
 }
