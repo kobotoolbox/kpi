@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from stripe import Subscription
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -103,176 +104,128 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
 
     return result
 
+def _get_limit_key(usage_type: UsageType):
+    return f'{USAGE_LIMIT_MAP[usage_type]}_limit'
 
-def get_organization_plan_limits(
-    usage_type: UsageType, organizations: list[Organization] = None
+def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
+    limit_key = _get_limit_key(usage_type)
+    return f'items__price__metadata__{limit_key}', f'items__price__product__metadata__{limit_key}'
+
+def _get_most_recent_subscription_limits(organizations: list[Organization] = None, addons: bool = False):
+    if not settings.STRIPE_ENABLED:
+        if organizations is not None:
+            return {org.id: inf for org in organizations}
+        else:
+            return {org.id: inf for org in Organization.objects.all()}
+
+    from djstripe.models.billing import Subscription
+
+    orgs = Organization.objects.all()
+    org_filter = Q()
+    if organizations is not None:
+        orgs = orgs.filter(id__in=[org.id for org in organizations])
+        org_filter = Q(customer__subscriber_id__in=[org.id for org in orgs])
+
+    price_storage_key, product_storage_key = _get_subscription_metadata_fields_for_usage_type('storage')
+    price_submission_key, product_submission_key = _get_subscription_metadata_fields_for_usage_type('submission')
+    price_characters_key, product_characters_key = _get_subscription_metadata_fields_for_usage_type('characters')
+    price_seconds_key, product_seconds_key = _get_subscription_metadata_fields_for_usage_type('seconds')
+
+    active_subscriptions = Subscription.objects.filter(
+            org_filter
+            & Q(status__in=ACTIVE_STRIPE_STATUSES)
+    )
+    if addons:
+        active_subscriptions = active_subscriptions.filter(items__price__product__metadata__product_type='addon')
+    else:
+        active_subscriptions = active_subscriptions.exclude(items__price__product__metadata__product_type='addon')
+
+    most_recent_full_plans = (active_subscriptions
+        .values(
+            org_id=F('customer__subscriber_id'),
+            storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
+            submission_limit=Coalesce(F(price_submission_key), F(product_submission_key)),
+            seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
+            characters_limit=Coalesce(F(price_characters_key), F(product_characters_key)),
+            start_date=F('start_date')
+        )
+        .annotate(
+            # find the most recent one
+            most_recent=Window(
+                expression=Max('start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(
+            Q(start_date=F('most_recent'))
+            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
+        )
+    )
+    return most_recent_full_plans
+
+
+def get_organization_plan_limits(organizations: list[Organization] = None
 ):
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
     if not settings.STRIPE_ENABLED:
-        return {org.id: inf for org in orgs}
-    else:
-        from djstripe.models.core import Product
-    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-    all_owner_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
-        )
-        .values(
-            org_id=F('id'),
-            # prefer price metadata over product metadata
-            limit=Coalesce(
-                F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'  # noqa
-                ),
-                F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'  # noqa
-                ),
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-            product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
-            ),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    subscriptions = {
-        res['org_id']: res['limit']
-        for res in all_owner_plans
-        if not (res['product_type'] == 'addon' and res['limit'] is None)
-    }
-
-    # Anyone who does not have a subscription is on the free tier plan by default
-    default_plan = (
-        Product.objects.filter(
-            prices__unit_amount=0, prices__recurring__interval='month'
-        )
-        .values(limit=F(f'metadata__{limit_key}'))
-        .first()
-    )
-    default_limit = default_plan['limit'] if default_plan else 'unlimited'
-
-    def get_limit(org):
-        limit = subscriptions.get(org.id, default_limit)
-        if limit == 'unlimited':
-            limit = inf
+        if organizations is not None:
+            return {org.id: inf for org in organizations}
         else:
-            limit = int(limit)
-        return limit
+            return {org.id: inf for org in Organization.objects.all()}
 
-    return {org.id: get_limit(org) for org in orgs}
+    from djstripe.models.core import Product
 
-
-def get_organization_nlp_plan_limits(organizations: list[Organization] = None):
-    """
-    Simultaneously get limits for NLP characters and seconds for given organizations,
-    or all organizations if not list is provided
-
-    Separated from get_organization_plan_limits because it looks for 2 limits at once
-    Returns dict in the form of org_id: {'characters': <limit>, 'seconds':<limit>}
-    """
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
+    orgs = Organization.objects.all()
     if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
-    if not settings.STRIPE_ENABLED:
-        return {org.id: {'characters': inf, 'seconds': inf} for org in orgs}
-    else:
-        from djstripe.models.core import Product
-    all_owner_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
-        )
-        .values(
-            org_id=F('id'),
-            # prefer price metadata over product metadata
-            characters_limit=Coalesce(
-                F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__mt_characters_limit'  # noqa
-                ),
-                F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__mt_characters_limit'  # noqa
-                ),
-            ),
-            seconds_limit=Coalesce(
-                F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__asr_seconds_limit'  # noqa
-                ),
-                F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__asr_seconds_limit'  # noqa
-                ),
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-            product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
-            ),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    subscriptions = {
-        res['org_id']: {
-            'characters': res['characters_limit'],
-            'seconds': res['seconds_limit'],
-        }
-        for res in all_owner_plans
-        if not (res['product_type'] == 'addon' and res['limit'] is None)
-    }
+        orgs = organizations
+    all_org_ids = [org.id for org in orgs]
 
+    plans_excluding_addons = _get_most_recent_subscription_limits(organizations)
+    plans_excluding_addons_by_org = { row['org_id']: {
+        f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
+    } for row in plans_excluding_addons}
+    addon_plans = _get_most_recent_subscription_limits(organizations, True)
+    addons_plans_by_org = { row['org_id']: {
+        f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
+    } for row in addon_plans}
+
+    storage_limit = _get_limit_key('storage')
+    submission_limit = _get_limit_key('submission')
+    characters_limit = _get_limit_key('characters')
+    seconds_limit = _get_limit_key('seconds')
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
         Product.objects.filter(
             prices__unit_amount=0, prices__recurring__interval='month'
         )
         .values(
-            seconds_limit=F('metadata__asr_seconds_limit'),
-            characters_limit=F('metadata__mt_characters_limit'),
+            storage_limit=F(f'metadata__{storage_limit}'),
+            submission_limit=F(f'metadata__{submission_limit}'),
+            characters_limit=F(f'metadata__{characters_limit}'),
+            seconds_limit=F(f'metadata__{seconds_limit}'),
         )
         .first()
-    )
-    default_limits = (
-        {
-            'characters': default_plan['characters_limit'],
-            'seconds': default_plan['seconds_limit'],
-        }
-        if default_plan
-        else {'characters': 'unlimited', 'seconds': 'unlimited'}
-    )
+    ) or {}
+    default_plan = {
+        f'{usage_type}_limit': default_plan.get(f'{usage_type}_limit', 'unlimited')
+        for usage_type in ['characters', 'seconds', 'submission', 'storage']
+    }
 
-    def get_limits(org):
-        limits = subscriptions.get(org.id, default_limits)
-        if limits['characters'] == 'unlimited':
-            limits['characters'] = inf
-        else:
-            limits['characters'] = int(limits['characters'])
-        if limits['seconds'] == 'unlimited':
-            limits['seconds'] = inf
-        else:
-            limits['characters'] = int(limits['characters'])
-        return limits
+    results = {}
+    for org in all_org_ids:
+        all_org_limits = {}
+        for usage_type in ['characters', 'seconds', 'submission', 'storage']:
+            non_addon_limit = plans_excluding_addons_by_org.get(org.id, {}).get(f'{usage_type}_limit', 0)
+            addon_limit = addons_plans_by_org.get(org.id, {}).get(f'{usage_type}_limit', 0)
+            if non_addon_limit == "unlimited" or addon_limit == "unlimited":
+                all_org_limits[f'{usage_type}_limit'] = inf
+            elif non_addon_limit > 0 or addon_limit > 0:
+                all_org_limits[f'{usage_type}_limit'] = max(non_addon_limit, addon_limit)
+            else:
+                all_org_limits[f'{usage_type}_limit'] = default_plan[f'{usage_type}_limit']
+        results[org.id] = all_org_limits
 
-    return {org.id: get_limits(org) for org in orgs}
+    return results
 
 
 def get_organization_plan_limit(
@@ -283,7 +236,7 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    return get_organization_plan_limits(usage_type, [organization]).get(organization.id)
+    return get_organization_plan_limits([organization]).get(organization.id, {}).get(f'{usage_type}_limit')
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
