@@ -709,7 +709,7 @@ export function markAttachmentAsDeleted(
   targetAttachmentId: number,
 ): SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = data._attachments.find((a) => a.id === targetAttachmentId)
+  const targetAttachment = data._attachments.find((item) => item.id === targetAttachmentId)
 
   data._attachments.forEach((attachment) => {
     if (
