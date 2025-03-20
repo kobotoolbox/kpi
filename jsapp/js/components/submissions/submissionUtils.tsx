@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
@@ -728,4 +729,28 @@ function appendTextToPathLevel(path: string, level: string, stringToAdd: string)
     parts[index] = `${parts[index]}${stringToAdd}`
   }
   return parts.join('/')
+}
+
+/**
+ * In given submission data, it finds provided attachment, sets its `is_deleted`
+ * flag to `true` and then returns the updated submission data.
+ */
+export function markAttachmentAsDeleted(
+  submissionData: SubmissionResponse,
+  targetAttachmentId: number,
+): SubmissionResponse {
+  const data = clonedeep(submissionData)
+  const targetAttachment = data._attachments.find((item) => item.id === targetAttachmentId)
+
+  data._attachments.forEach((attachment) => {
+    if (
+      attachment.id === targetAttachment?.id &&
+      attachment.question_xpath === targetAttachment?.question_xpath &&
+      attachment.filename === targetAttachment?.filename
+    ) {
+      attachment.is_deleted = true
+    }
+  })
+
+  return data
 }
