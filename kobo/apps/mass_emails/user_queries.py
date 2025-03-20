@@ -65,6 +65,16 @@ def get_inactive_users(days: int = 365) -> QuerySet:
 
 
 def get_users_within_range_of_nlp_usage_limit(minimum: float = 0, maximum: float = inf):
+    """
+    Returns all users whose NLP usage is between minimum and maximum percent of their
+    limits. This includes both limits on seconds and on characters. If users are within
+    the range for either measurement, they will be included.
+
+    :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
+    :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
+    """
+    minimum = minimum or 0
+    maximum = maximum or inf
     limits_by_org = get_organization_nlp_plan_limits()
     if settings.STRIPE_ENABLED:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
@@ -84,8 +94,6 @@ def get_users_within_range_of_nlp_usage_limit(minimum: float = 0, maximum: float
     }
     user_ids = []
     for user_id, usage in usage_by_user.items():
-        if user_id not in limits_by_owner.keys():
-            continue
 
         seconds_limit = limits_by_owner[user_id]['seconds']['total_usage_limit']
         characters_limit = limits_by_owner[user_id]['characters']['total_usage_limit']

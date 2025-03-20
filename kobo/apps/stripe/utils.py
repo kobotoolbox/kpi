@@ -104,7 +104,85 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
     return result
 
 
+def get_organization_plan_limits(
+    usage_type: UsageType, organizations: list[Organization] = None
+):
+    orgs = Organization.objects.prefetch_related('djstripe_customers')
+    if organizations is not None:
+        orgs = orgs.filter(id__in=[org.id for org in organizations])
+    if not settings.STRIPE_ENABLED:
+        return {org.id: inf for org in orgs}
+    else:
+        from djstripe.models.core import Product
+    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+    all_owner_plans = (
+        orgs.filter(
+            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
+        )
+        .values(
+            org_id=F('id'),
+            # prefer price metadata over product metadata
+            limit=Coalesce(
+                F(
+                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'  # noqa
+                ),
+                F(
+                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'  # noqa
+                ),
+            ),
+            start_date=F('djstripe_customers__subscriptions__start_date'),
+            product_type=F(
+                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
+            ),
+        )
+        .annotate(
+            # find the most recent one
+            most_recent=Window(
+                expression=Max('start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(
+            Q(start_date=F('most_recent'))
+            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
+        )
+    )
+    subscriptions = {
+        res['org_id']: res['limit']
+        for res in all_owner_plans
+        if not (res['product_type'] == 'addon' and res['limit'] is None)
+    }
+
+    # Anyone who does not have a subscription is on the free tier plan by default
+    default_plan = (
+        Product.objects.filter(
+            prices__unit_amount=0, prices__recurring__interval='month'
+        )
+        .values(limit=F(f'metadata__{limit_key}'))
+        .first()
+    )
+    default_limit = default_plan['limit'] if default_plan else 'unlimited'
+
+    def get_limit(org):
+        limit = subscriptions.get(org.id, default_limit)
+        if limit == 'unlimited':
+            limit = inf
+        else:
+            limit = int(limit)
+        return limit
+
+    return {org.id: get_limit(org) for org in orgs}
+
+
 def get_organization_nlp_plan_limits(organizations: list[Organization] = None):
+    """
+    Simultaneously get limits for NLP characters and seconds for given organizations,
+    or all organizations if not list is provided
+
+    Separated from get_organization_plan_limits because it looks for 2 limits at once
+    Returns dict in the form of org_id: {'characters': <limit>, 'seconds':<limit>}
+    """
     orgs = Organization.objects.prefetch_related('djstripe_customers')
     if organizations is not None:
         orgs = orgs.filter(id__in=[org.id for org in organizations])
@@ -195,77 +273,6 @@ def get_organization_nlp_plan_limits(organizations: list[Organization] = None):
         return limits
 
     return {org.id: get_limits(org) for org in orgs}
-
-
-def get_organization_plan_limits(
-    usage_type: UsageType, organizations: list[Organization] = None
-):
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
-    if not settings.STRIPE_ENABLED:
-        return {org.id: inf for org in orgs}
-    else:
-        from djstripe.models.core import Product
-    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-    all_owner_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
-        )
-        .values(
-            org_id=F('id'),
-            # prefer price metadata over product metadata
-            limit=Coalesce(
-                F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'  # noqa
-                ),
-                F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'  # noqa
-                ),
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-            product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
-            ),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    subscriptions = {
-        res['org_id']: res['limit']
-        for res in all_owner_plans
-        if not (res['product_type'] == 'addon' and res['limit'] is None)
-    }
-
-    # Anyone who does not have a subscription is on the free tier plan by default
-    default_plan = (
-        Product.objects.filter(
-            prices__unit_amount=0, prices__recurring__interval='month'
-        )
-        .values(limit=F(f'metadata__{limit_key}'))
-        .first()
-    )
-    default_limit = default_plan['limit'] if default_plan else 'unlimited'
-
-    def get_limit(org):
-        limit = subscriptions.get(org.id, default_limit)
-        if limit == 'unlimited':
-            limit = inf
-        else:
-            limit = int(limit)
-        return limit
-
-    return {org.id: get_limit(org) for org in orgs}
 
 
 def get_organization_plan_limit(
