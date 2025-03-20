@@ -205,10 +205,11 @@
   "scripts": {
     "preinstall": "npm run hint",
     "postinstall": "patch-package && npm run copy-fonts",
-    "build": "npm run build:app && npm run build:storybook",
-    "build:app": "npm run hint build && webpack --config webpack/prod.config.js",
-    "build:storybook": "npm run hint build && webpack --config webpack/prod.config.js",
+    "build": "npm run hint build && npm run build:app && npm run build:storybook",
+    "build:app": "webpack --config webpack/prod.config.js",
+    "build:storybook": "webpack --config webpack/prod.config.js",
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
+    "watch:storybook:": "storybook dev -p 6006 --no-open",
     "ci": "npm run lint && SKIP_TS_CHECK=true npm run build && npm run test",
     "test": "npm run test:unit && npm run test:component",
     "test:unit": "jest --config ./jsapp/jest/unit.config.ts",
@@ -230,7 +231,6 @@
     "copy-fonts": "python3 ./scripts/copy_fonts.py && npm run generate-icons",
     "hint": "node ./scripts/hints.js",
     "storybook": "npm run storybook:watch",
-    "storybook:watch": "storybook dev -p 6006 --no-open",
     "jest": "jest --config ./jsapp/jest/jest.config.ts",
     "jest-watch": "jest --config ./jsapp/jest/jest.config.ts --watch"
   },

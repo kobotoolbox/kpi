@@ -54,5 +54,29 @@ jobs:
         run: npm install
 
       # Check for Biome formatting errors
-      - name: Run all linters, builds and tests
-        run: npm run ci
+      - name: Check Biome formatting, import order and linter
+        run: npm run lint:biome
+
+      # Check for TypeScript errors
+      - name: Check TypeScript
+        run: npm run lint:types
+
+      # Check that the full build succeeds
+      - name: Build Production
+        run: SKIP_TS_CHECK=true npm run build:app
+
+      # Check for ESLint messages (errors only)
+      - name: Check ESLint, errors only
+        run: npm run lint:eslint -- --quiet
+
+      # Run the Unit test suite (formbuilder and helpers)
+      - name: Run unit tests and xlform tests
+        run: npx jest --config ./jsapp/jest/unit.config.ts --ci
+
+      # Run the Jest test suite (React components)
+      - name: Run component tests with Jest
+        run: npx jest --config ./jsapp/jest/jest.config.ts --ci
+
+      # Check that the storybook build succeeds
+      - name: Build Storybook
+        run: npm run build:storybook
