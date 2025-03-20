@@ -506,7 +506,7 @@ export function getRepeatGroupAnswers(
         // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
         // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
         // works for them too :fingers_crossed:.
-        const responseNumber = responseIndex ? responseIndex + 1 : undefined
+        const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
         const attachmentPath = appendTextToPathLevel(targetKey, levelParentKey, `[${responseNumber}]`)
 
         // TODO: In future we could render something similar to `MediaCell` for each response/attachment here

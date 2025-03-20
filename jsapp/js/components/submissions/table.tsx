@@ -821,7 +821,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               // display a list of answers from a repeat group question
               return (
                 <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
+                  {repeatGroupAnswers}
                 </span>
               )
             } else {
