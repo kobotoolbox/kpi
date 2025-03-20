@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import AudioPlayer from '#/components/common/audioPlayer'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { getAttachmentForProcessing } from '#/components/processing/transcript/transcript.utils'
 import { QUESTION_TYPES } from '#/constants'
-import type { AssetContent } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import styles from './sidebarSubmissionMedia.module.scss'
 
 interface SidebarSubmissionMediaProps {
-  assetContent: AssetContent | undefined
+  asset: AssetResponse | undefined
 }
 
 export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProps) {
@@ -16,11 +16,11 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
   const [store] = useState(() => singleProcessingStore)
 
   // We need `assetContent` to proceed.
-  if (!props.assetContent) {
+  if (!props.asset?.content) {
     return null
   }
 
-  const attachment = getAttachmentForProcessing(props.assetContent)
+  const attachment = getAttachmentForProcessing(props.asset.content)
   if (typeof attachment === 'string') {
     return null
   }
@@ -36,19 +36,27 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
           `}
           key='audio'
         >
-          <AudioPlayer mediaURL={attachment.download_url} filename={attachment.filename} />
-        </section>
-      )
-    case QUESTION_TYPES.video.id:
-      return (
-        <section
-          className={`
-            ${styles.mediaWrapper}
-            ${styles.mediaWrapperVideo}
-          `}
-          key='video'
-        >
-          <video className={styles.videoPreview} src={attachment.download_url} controls />
+          <AudioPlayer
+            mediaURL={attachment.download_url}
+            filename={attachment.filename}
+            rightHeaderSection={
+              store.data.submissionData && (
+                <AttachmentActionsDropdown
+                  asset={props.asset}
+                  submissionData={store.data.submissionData}
+                  attachmentId={attachment.id}
+                  onDeleted={() => {
+                    // TODO: this might be done with a bit more elegant UX, as calling the function causes a whole page
+                    // spinner to appear. I feel like redoing `singleProcessingStore` in a `react-query` way would
+                    // be the way to go. Alternatively we could use `markAttachmentAsDeleted` function and simply
+                    // override memoized value in store - but given how big and complex the store (and NLP view) is, we
+                    // could end up with unexpected bugs.
+                    store.fetchSubmissionData()
+                  }}
+                />
+              )
+            }
+          />
         </section>
       )
     default:

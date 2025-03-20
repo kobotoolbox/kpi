@@ -88,13 +88,17 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Item onClick={requestDownloadFile} leftSection={<Icon name='download' />}>
+          <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
             {t('Download')}
           </Menu.Item>
           {isFeatureEnabled && userCanChangeSubmission && (
             <>
               <Menu.Divider />
-              <Menu.Item onClick={() => setIsDeleteModalOpen(true)} leftSection={<Icon name='trash' />}>
+              <Menu.Item
+                variant='danger'
+                onClick={() => setIsDeleteModalOpen(true)}
+                leftSection={<Icon name='trash' />}
+              >
                 {t('Delete')}
               </Menu.Item>
             </>
