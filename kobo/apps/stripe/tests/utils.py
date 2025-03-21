@@ -14,7 +14,8 @@ def generate_free_plan():
         'submission_limit': '5000',
         'asr_seconds_limit': '600',
         'mt_characters_limit': '6000',
-        'storage_bytes_limit': '1000000000',
+        'storage_bytes_limit': '1000',
+        'default_free_plan': 'true',
     }
 
     product = baker.make(Product, active=True, metadata=product_metadata)

@@ -8,7 +8,6 @@ from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from stripe import Subscription
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -36,6 +35,11 @@ def get_default_add_on_limits():
 def get_active_subscription_billing_dates_by_org(
     organizations: list[Organization] = None,
 ):
+    """
+    Retrieve the current billing cycle for provided organizations. Does not include
+    the billing cycle for storage addons, as they are not measured monthly. If no
+    list of organizations is provided, retrieves details for all organizations.
+    """
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = first_of_this_month + relativedelta(months=1)
@@ -45,6 +49,8 @@ def get_active_subscription_billing_dates_by_org(
     all_active_plans = (
         orgs.filter(
             djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+        ).exclude(
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='addon',
         )
         .values(
             org_id=F('id'),
@@ -91,7 +97,7 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
     all_cancellation_dates = (
         all_orgs.filter(
             djstripe_customers__subscriptions__status='canceled',
-        )
+        ).exclude(djstripe_customers__subscriptions__items__price__product__metadata__product_type='addon',)
         .values('id')
         .annotate(
             anchor=Max(F('djstripe_customers__subscriptions__ended_at')),
@@ -122,6 +128,8 @@ def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
     if organizations is not None:
         orgs = orgs.filter(id__in=[org.id for org in organizations])
         org_filter = Q(customer__subscriber_id__in=[org.id for org in orgs])
+    from djstripe.models.billing import Subscription
+
     active_subscriptions = Subscription.objects.filter(
             org_filter
             & Q(status__in=ACTIVE_STRIPE_STATUSES)
@@ -132,8 +140,6 @@ def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
         org_id=F('customer__subscriber_id'),
         storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
         plan_start_date=F('start_date'),
-        current_period_start=F('current_period_start'),
-        current_period_end=F('current_period_start'),
     ).annotate(
         # find the most recent one
         most_recent=Window(
@@ -146,6 +152,7 @@ def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
         Q(plan_start_date=F('most_recent'))
         | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
     ))
+    return addons
 
 
 def _get_most_recent_subscription_limits(organizations: list[Organization] = None):
@@ -190,8 +197,6 @@ def _get_most_recent_subscription_limits(organizations: list[Organization] = Non
             seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
             characters_limit=Coalesce(F(price_characters_key), F(product_characters_key)),
             plan_start_date=F('start_date'),
-            current_period_start=F('current_period_start'),
-            current_period_end=F('current_period_start'),
         )
         .annotate(
             # find the most recent one
@@ -228,12 +233,8 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
         f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
     } for row in plans_excluding_addons}
 
-
-
-    addon_plans = _get_most_recent_subscription_limits(organizations, True)
-    addons_plans_by_org = { row['org_id']: {
-        f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
-    } for row in addon_plans}
+    addon_plans = _get_most_recent_storage_addon_limits(organizations)
+    addons_plans_by_org = { row['org_id']: {'storage_limit': row['storage_limit']} for row in addon_plans}
 
     storage_limit = _get_limit_key('storage')
     submission_limit = _get_limit_key('submission')
@@ -256,37 +257,32 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
     for usage_type in ['characters', 'seconds', 'submission', 'storage']:
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
-        if default_limit is None or default_limit == 'unlimited':
-            default_plan_limits[limit_key] = inf
+        if default_limit is None:
+            default_plan_limits[limit_key] = "unlimited"
         else:
-            default_plan_limits[limit_key] = int(default_limit)
+            default_plan_limits[limit_key] = default_limit
+
 
     results = {}
     for org_id in all_org_ids:
         all_org_limits = {}
-        for usage_type in ['characters', 'seconds', 'submission']:
+        for usage_type in ['characters', 'seconds', 'submission', 'storage']:
             limit = plans_excluding_addons_by_org.get(org_id, {}).get(f'{usage_type}_limit')
             if limit is None:
                 limit = default_plan_limits[f'{usage_type}_limit']
-
-
-
-        # deal with storage
-        if include_storage_addons:
-            non_addon_limit = plans_excluding_addons_by_org.get(org_id, {}).get('storage_bytes_limit')
-            addon_limit = addons_plans_by_org.get(org_id, {}).get('storage_bytes_limit')
-        for usage_type in ['characters', 'seconds', 'submission']:
-            non_addon_limit = plans_excluding_addons_by_org.get(org_id, {}).get(f'{usage_type}_limit') or 0
-            addon_limit = addons_plans_by_org.get(org_id, {}).get(f'{usage_type}_limit') or 0
-            if non_addon_limit == "unlimited" or addon_limit == "unlimited":
-                all_org_limits[f'{usage_type}_limit'] = inf
+            if limit == "unlimited":
+                limit = inf
             else:
-                non_addon_limit = int(non_addon_limit)
-                addon_limit = int(addon_limit)
-                if non_addon_limit > 0 or addon_limit > 0:
-                    all_org_limits[f'{usage_type}_limit'] = max(non_addon_limit, addon_limit)
+                limit = int(limit)
+            if usage_type == 'storage' and include_storage_addons:
+                addon_limit = addons_plans_by_org.get(org_id, {}).get('storage_limit') or 0
+                if addon_limit == "unlimited":
+                    addon_limit = inf
                 else:
-                    all_org_limits[f'{usage_type}_limit'] = default_plan_limits[f'{usage_type}_limit']
+                    addon_limit = int(addon_limit)
+                if addon_limit > limit:
+                    limit = addon_limit
+            all_org_limits[f'{usage_type}_limit'] = limit
         results[org_id] = all_org_limits
 
     return results
@@ -300,7 +296,8 @@ def get_organization_plan_limit(
     will fall back to infinite value if no subscription or
     default free tier plan found.
     """
-    return get_organization_plan_limits([organization]).get(organization.id, {}).get(f'{usage_type}_limit')
+    include_storage_addons = usage_type == 'storage'
+    return get_organization_plan_limits([organization], include_storage_addons).get(organization.id, {}).get(f'{usage_type}_limit')
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
