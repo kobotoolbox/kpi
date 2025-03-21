@@ -111,7 +111,53 @@ def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
     limit_key = _get_limit_key(usage_type)
     return f'items__price__metadata__{limit_key}', f'items__price__product__metadata__{limit_key}'
 
-def _get_most_recent_subscription_limits(organizations: list[Organization] = None, addons: bool = False):
+def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
+    """
+    Return the most storage recurring addon limit and current billing period for
+    every organization in organizations, if present (or all organizations with
+    recurring storage addons if no list is provided)
+    """
+    orgs = Organization.objects.all()
+    org_filter = Q()
+    if organizations is not None:
+        orgs = orgs.filter(id__in=[org.id for org in organizations])
+        org_filter = Q(customer__subscriber_id__in=[org.id for org in orgs])
+    active_subscriptions = Subscription.objects.filter(
+            org_filter
+            & Q(status__in=ACTIVE_STRIPE_STATUSES)
+            & Q(items__price__product__metadata__product_type='addon')
+    )
+    price_storage_key, product_storage_key = _get_subscription_metadata_fields_for_usage_type('storage')
+    addons = (active_subscriptions.values(
+        org_id=F('customer__subscriber_id'),
+        storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
+        plan_start_date=F('start_date'),
+        current_period_start=F('current_period_start'),
+        current_period_end=F('current_period_start'),
+    ).annotate(
+        # find the most recent one
+        most_recent=Window(
+            expression=Max('plan_start_date'),
+            partition_by=F('org_id'),
+            order_by='org_id',
+        )
+    )
+    .filter(
+        Q(plan_start_date=F('most_recent'))
+        | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
+    ))
+
+
+def _get_most_recent_subscription_limits(organizations: list[Organization] = None):
+    """
+    Return the most recent limits and current billing period for given organizations
+    based on their most recent active plan (not counting addons), if a plan exists.
+    If no organization list is provided, information will be fetched for all
+    organizations with active plans.
+
+    Makes the assumption that any product that isn't an addon or addon_onetime includes
+    limits for all four usage types (storage, submissions, seconds, and characters)
+    """
     if not settings.STRIPE_ENABLED:
         if organizations is not None:
             return {org.id: inf for org in organizations}
@@ -134,11 +180,7 @@ def _get_most_recent_subscription_limits(organizations: list[Organization] = Non
     active_subscriptions = Subscription.objects.filter(
             org_filter
             & Q(status__in=ACTIVE_STRIPE_STATUSES)
-    )
-    if addons:
-        active_subscriptions = active_subscriptions.filter(items__price__product__metadata__product_type='addon')
-    else:
-        active_subscriptions = active_subscriptions.exclude(items__price__product__metadata__product_type='addon')
+    ).exclude(items__price__product__metadata__product_type='addon')
 
     most_recent_full_plans = (active_subscriptions
         .values(
@@ -147,26 +189,27 @@ def _get_most_recent_subscription_limits(organizations: list[Organization] = Non
             submission_limit=Coalesce(F(price_submission_key), F(product_submission_key)),
             seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
             characters_limit=Coalesce(F(price_characters_key), F(product_characters_key)),
-            start_date=F('start_date')
+            plan_start_date=F('start_date'),
+            current_period_start=F('current_period_start'),
+            current_period_end=F('current_period_start'),
         )
         .annotate(
             # find the most recent one
             most_recent=Window(
-                expression=Max('start_date'),
+                expression=Max('plan_start_date'),
                 partition_by=F('org_id'),
                 order_by='org_id',
             )
         )
         .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
+            Q(plan_start_date=F('most_recent'))
+            | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
         )
     )
     return most_recent_full_plans
 
 
-def get_organization_plan_limits(organizations: list[Organization] = None
-):
+def get_organization_plan_limits(organizations: list[Organization] = None, include_storage_addons=True):
     if not settings.STRIPE_ENABLED:
         if organizations is not None:
             return {org.id: inf for org in organizations}
@@ -184,6 +227,9 @@ def get_organization_plan_limits(organizations: list[Organization] = None
     plans_excluding_addons_by_org = { row['org_id']: {
         f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
     } for row in plans_excluding_addons}
+
+
+
     addon_plans = _get_most_recent_subscription_limits(organizations, True)
     addons_plans_by_org = { row['org_id']: {
         f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
@@ -196,7 +242,7 @@ def get_organization_plan_limits(organizations: list[Organization] = None
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
         Product.objects.filter(
-            prices__unit_amount=0, prices__recurring__interval='month'
+            metadata__default_free_plan='true'
         )
         .values(
             storage_limit=F(f'metadata__{storage_limit}'),
@@ -206,24 +252,35 @@ def get_organization_plan_limits(organizations: list[Organization] = None
         )
         .first()
     ) or {}
-    default_plan = {
-        f'{usage_type}_limit': default_plan.get(f'{usage_type}_limit', 'unlimited')
-        for usage_type in ['characters', 'seconds', 'submission', 'storage']
-    }
+    default_plan_limits = {}
+    for usage_type in ['characters', 'seconds', 'submission', 'storage']:
+        limit_key = f'{usage_type}_limit'
+        default_limit = default_plan.get(limit_key)
+        if default_limit is None or default_limit == 'unlimited':
+            default_plan_limits[limit_key] = inf
+        else:
+            default_plan_limits[limit_key] = int(default_limit)
 
     results = {}
-    for org in all_org_ids:
+    for org_id in all_org_ids:
         all_org_limits = {}
-        for usage_type in ['characters', 'seconds', 'submission', 'storage']:
-            non_addon_limit = plans_excluding_addons_by_org.get(org.id, {}).get(f'{usage_type}_limit', 0)
-            addon_limit = addons_plans_by_org.get(org.id, {}).get(f'{usage_type}_limit', 0)
+        # deal with storage
+        if include_storage_addons:
+            non_addon_limit = plans_excluding_addons_by_org.get(org_id, {}).get('storage_bytes_limit')
+            addon_limit = addons_plans_by_org.get(org_id, {}).get('storage_bytes_limit')
+        for usage_type in ['characters', 'seconds', 'submission']:
+            non_addon_limit = plans_excluding_addons_by_org.get(org_id, {}).get(f'{usage_type}_limit') or 0
+            addon_limit = addons_plans_by_org.get(org_id, {}).get(f'{usage_type}_limit') or 0
             if non_addon_limit == "unlimited" or addon_limit == "unlimited":
                 all_org_limits[f'{usage_type}_limit'] = inf
-            elif non_addon_limit > 0 or addon_limit > 0:
-                all_org_limits[f'{usage_type}_limit'] = max(non_addon_limit, addon_limit)
             else:
-                all_org_limits[f'{usage_type}_limit'] = default_plan[f'{usage_type}_limit']
-        results[org.id] = all_org_limits
+                non_addon_limit = int(non_addon_limit)
+                addon_limit = int(addon_limit)
+                if non_addon_limit > 0 or addon_limit > 0:
+                    all_org_limits[f'{usage_type}_limit'] = max(non_addon_limit, addon_limit)
+                else:
+                    all_org_limits[f'{usage_type}_limit'] = default_plan_limits[f'{usage_type}_limit']
+        results[org_id] = all_org_limits
 
     return results
 
