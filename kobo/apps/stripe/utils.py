@@ -264,6 +264,13 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
     results = {}
     for org_id in all_org_ids:
         all_org_limits = {}
+        for usage_type in ['characters', 'seconds', 'submission']:
+            limit = plans_excluding_addons_by_org.get(org_id, {}).get(f'{usage_type}_limit')
+            if limit is None:
+                limit = default_plan_limits[f'{usage_type}_limit']
+
+
+
         # deal with storage
         if include_storage_addons:
             non_addon_limit = plans_excluding_addons_by_org.get(org_id, {}).get('storage_bytes_limit')
