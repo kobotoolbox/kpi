@@ -585,7 +585,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         limit = get_organization_plan_limit(self.organization, usage_type)
         assert limit == float('inf')
 
-    def test_get_addon_suscription_default_limits(self):
+    def test_get_addon_subscription_default_limits(self):
         generate_free_plan()
         product_metadata = {
             'product_type': 'addon',
