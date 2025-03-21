@@ -257,7 +257,9 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
       (product) => product.metadata['default_free_plan'] === 'true'
     );
     if (!freeProduct) {
-      throw "Stripe-enabled instances must have a default free plan product configured.";
+      throw new Error(
+        'Stripe-enabled instances must have a default free plan product configured.'
+      );
     }
     metadata = {
       ...freeProduct.metadata,
