@@ -253,12 +253,12 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
     await when(() => !!products.length);
     // the user has no subscription, so get limits from the free monthly product
     hasFreeTier = true;
-    const freeProduct = products.filter((product) =>
-      product.prices.filter(
-        (price) =>
-          price.unit_amount === 0 && price.recurring?.interval === 'month'
-      )
-    )[0];
+    const freeProduct = products.find(
+      (product) => product.metadata['default_free_plan'] === 'true'
+    );
+    if (!freeProduct) {
+      throw "Stripe-enabled instances must have a default free plan product configured.";
+    }
     metadata = {
       ...freeProduct.metadata,
       ...freeProduct.prices[0].metadata,
