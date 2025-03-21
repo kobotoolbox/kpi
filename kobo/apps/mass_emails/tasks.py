@@ -6,7 +6,6 @@ from django.utils.timezone import now
 from kobo.celery import celery_app
 from kobo.apps.mass_emails.models import (
     EmailStatus,
-    MassEmailConfig,
     MassEmailRecord,
     MassEmailJob,
     USER_QUERIES
