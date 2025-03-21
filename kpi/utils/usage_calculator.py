@@ -1,6 +1,4 @@
-from datetime import datetime
 from json import dumps, loads
-from zoneinfo import ZoneInfo
 
 from django.apps import apps
 from django.conf import settings
@@ -27,25 +25,63 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
 
 
 def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
-    all_sub_counters = DailyXFormSubmissionCounter.objects.values(
-        'counter', 'user_id', 'date'
+    filters = Q()
+    for user_id, date_range in date_ranges_by_user.items():
+        filters |= Q(
+            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        )
+    all_sub_counters = (
+        DailyXFormSubmissionCounter.objects.values('counter', 'user_id', 'date')
+        .filter(filters)
+        .annotate(total=Sum('counter'))
     )
-    result = {}
-    midnight = datetime.min.time().replace(tzinfo=ZoneInfo('UTC'))
-    for counter_row in all_sub_counters:
-        # filter down to submissions after the billing start date
-        # can't do this in the ORM query because the billing start date is calculated
-        # in python and varies per user
-        user_id = counter_row['user_id']
-        current_user_total = result.get(counter_row['user_id'], 0)
-        # convert date to datetime to compare to the stuff in billing_dates_by_owner
-        counter_time = datetime.combine(counter_row['date'], midnight)
-        current_billing_start = date_ranges_by_user[user_id]['start']
-        current_billing_end = date_ranges_by_user[user_id]['end']
-        if current_billing_start <= counter_time < current_billing_end:
-            current_user_total += counter_row['counter']
-        result[user_id] = current_user_total
-    return result
+    return {row['user_id']: row['total'] for row in all_sub_counters}
+
+
+def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user):
+    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+    filters = Q()
+    for user_id, date_range in date_ranges_by_user.items():
+        filters |= Q(
+            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        )
+    results = (
+        NLPUsageCounter.objects.only(
+            'user_id', 'date', 'total_asr_seconds', 'total_mt_characters'
+        )
+        .filter(filters)
+        .values('user_id')
+        .annotate(
+            asr_seconds_current_period=Coalesce(
+                Sum('total_asr_seconds'),
+                0,
+            ),
+            mt_characters_current_period=Coalesce(
+                Sum('total_mt_characters'),
+                0,
+            ),
+        )
+    )
+    return {
+        row['user_id']: {
+            'total_asr_seconds': row['asr_seconds_current_period'],
+            'total_mt_characters': row['mt_characters_current_period'],
+        }
+        for row in results
+    }
+
+
+def get_nlp_usage_for_current_billing_period_by_user_id():
+    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
+    owner_by_org = {
+        org.id: org.owner.organization_user.user.id
+        for org in Organization.objects.filter(owner__isnull=False)
+    }
+    current_billing_dates_by_owner = {
+        owner_by_org[org_id]: dates
+        for org_id, dates in current_billing_dates_by_org.items()
+    }
+    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
 
 
 def get_submissions_for_current_billing_period_by_user_id():

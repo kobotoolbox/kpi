@@ -21,6 +21,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.usage_calculator import (
     ServiceUsageCalculator,
+    get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
     get_submissions_for_current_billing_period_by_user_id,
 )
@@ -83,38 +84,46 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         )
         self._deployment = self.asset.deployment
 
-    def add_nlp_trackers(self):
-        """
-        Add nlp data to an asset
-        """
-        # this month
-        today = timezone.now().date()
+    def _add_nlp_trackers(
+        self,
+        user: User,
+        asset: Asset,
+        date: datetime.datetime,
+        characters: int,
+        seconds: int,
+    ):
         counter_1 = {
-            'google_asr_seconds': 4586,
-            'google_mt_characters': 5473,
+            'google_asr_seconds': seconds,
+            'google_mt_characters': characters,
         }
         NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
-            date=today,
+            user_id=user.id,
+            asset_id=asset.pk,
+            date=date,
             counters=counter_1,
             total_asr_seconds=counter_1['google_asr_seconds'],
             total_mt_characters=counter_1['google_mt_characters'],
         )
 
-        # last month
+    def _add_standard_nlp_trackers(self):
+        """
+        Add some standard nlp data to self.asset
+        """
+        today = timezone.now().date()
+        self._add_nlp_trackers(
+            user=self.anotheruser,
+            asset=self.asset,
+            date=today,
+            seconds=4586,
+            characters=5473,
+        )
         last_month = today - relativedelta(months=1)
-        counter_2 = {
-            'google_asr_seconds': 142,
-            'google_mt_characters': 1253,
-        }
-        NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
+        self._add_nlp_trackers(
+            user=self.anotheruser,
+            asset=self.asset,
             date=last_month,
-            counters=counter_2,
-            total_asr_seconds=counter_2['google_asr_seconds'],
-            total_mt_characters=counter_2['google_mt_characters'],
+            seconds=142,
+            characters=1253,
         )
 
     def add_submissions(
@@ -176,13 +185,13 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     def setUp(self):
         super().setUp()
         self._create_and_set_asset()
-        self.add_nlp_trackers()
+        self._add_standard_nlp_trackers()
         self.add_submissions(count=5)
 
     def test_disable_cache(self):
         calculator = ServiceUsageCalculator(self.anotheruser, disable_cache=True)
         nlp_usage_A = calculator.get_nlp_usage_counters()
-        self.add_nlp_trackers()
+        self._add_standard_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
             2 * nlp_usage_A['asr_seconds_current_period']
@@ -315,3 +324,55 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             )
         assert submissions_by_user[self.someuser.id] == 1
         assert submissions_by_user[self.anotheruser.id] == 5
+
+    def test_nlp_usage_current_period_all_orgs(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        five_days_ago = timezone.now() - relativedelta(days=5)
+        one_month_from_five_days_ago = five_days_ago + relativedelta(months=1)
+        mock_billing_periods = {
+            # someuser is on a yearly cycle
+            self.someuser.organization.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            },
+            # anotheruser is on a monthly cycle
+            self.anotheruser.organization.id: {
+                'start': five_days_ago,
+                'end': one_month_from_five_days_ago,
+            },
+        }
+        asset_2 = self._create_asset(self.someuser)
+
+        # mock nlp data for someuser from 3 months ago (in range)
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self._add_nlp_trackers(
+            user=self.someuser,
+            asset=asset_2,
+            date=three_months_ago,
+            seconds=1000,
+            characters=1000,
+        )
+
+        # mock nlp data for someuser from a year ago (out of range)
+        one_year_ago = timezone.now() - relativedelta(years=1)
+        self._add_nlp_trackers(
+            user=self.someuser,
+            asset=asset_2,
+            date=one_year_ago,
+            seconds=1000,
+            characters=1000,
+        )
+
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            nlp_usage = get_nlp_usage_for_current_billing_period_by_user_id()
+        assert nlp_usage[self.someuser.id]['total_asr_seconds'] == 1000
+        assert nlp_usage[self.someuser.id]['total_mt_characters'] == 1000
+
+        # anotheruser's nlp usage is set up in self.setUp() and already has
+        # entries both in and out of range
+        assert nlp_usage[self.anotheruser.id]['total_asr_seconds'] == 4586
+        assert nlp_usage[self.anotheruser.id]['total_mt_characters'] == 5473
