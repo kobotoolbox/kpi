@@ -508,7 +508,7 @@ export function getRepeatGroupAnswers(
         // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
         // works for them too :fingers_crossed:.
         const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
-        const attachmentPath = appendTextToPathLevel(targetKey, levelParentKey, `[${responseNumber}]`)
+        const attachmentPath = appendTextToPathAtLevel(targetKey, levelParentKey, `[${responseNumber}]`)
 
         // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
         const attachment = getMediaAttachment(responseData, String(targetKeyData), attachmentPath)
@@ -722,7 +722,7 @@ export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
  * @param level - The level after which `stringToAdd` should be inserted.
  * @returns The updated path string.
  */
-function appendTextToPathLevel(path: string, level: string, stringToAdd: string): string {
+function appendTextToPathAtLevel(path: string, level: string, stringToAdd: string): string {
   const parts = path.split('/')
   const index = parts.indexOf(level)
   if (index !== -1) {
