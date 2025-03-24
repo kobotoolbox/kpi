@@ -155,8 +155,8 @@ class MassEmailSender:
         )
         try:
             sent = Mailer.send(message)
-        except:
-            logging.exception(f'Error when attempting to send record {record}')
+        except Exception as e:
+            logging.exception(f'Error when attempting to send record {record}: {e}')
             sent = False
         if sent:
             record.status = EmailStatus.SENT
