@@ -8,6 +8,7 @@ interface GenericDefinition extends Function {
   started: GenericCallbackDefinition
   completed: GenericCallbackDefinition
   failed: GenericFailedDefinition
+  listen: (callback: () => void) => Function
 }
 
 interface GenericFailedDefinition extends Function {

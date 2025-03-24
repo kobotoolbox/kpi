@@ -24,6 +24,7 @@ interface AudioPlayerProps {
   filename?: string
   mediaURL: string
   'data-cy'?: string
+  rightHeaderSection?: React.ReactNode
 }
 
 interface AudioPlayerState {
@@ -128,6 +129,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
               <Icon name='file-audio' size='m' />
             </bem.AudioPlayer__nameIcon>
             <label>{this.name}</label>
+
+            {this.props.rightHeaderSection && (
+              <div className='audio-player__name__right-section'>{this.props.rightHeaderSection}</div>
+            )}
           </bem.AudioPlayer__name>
         )}
         <bem.AudioPlayer__controls>

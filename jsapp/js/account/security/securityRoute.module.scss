@@ -37,6 +37,7 @@ h2.securityHeaderText {
 
 .securityHeaderActions {
   @include mixins.centerRowFlex;
+  gap: var(--mantine-spacing-md);
 }
 
 // Shared styles for sections

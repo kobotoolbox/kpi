@@ -1839,13 +1839,6 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  getSubmissionsQuery(uid: string, query = ''): JQuery.jqXHR<any> {
-    return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}`,
-      method: 'GET',
-    })
-  },
-
   deleteSubmission(uid: string, sid: string): JQuery.jqXHR<any> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
