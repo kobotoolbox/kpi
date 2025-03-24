@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from math import inf
-from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -21,8 +20,8 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
     get_organization_limit,
-    get_organization_limits,
-    get_organization_plan_limits,
+    get_organization_subscription_limits,
+    get_subscription_limits,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
 
@@ -43,7 +42,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         self.newuser = baker.make(User, username='newuser')
         self.organization.add_user(self.anotheruser, is_admin=True)
 
-    def test_get_organization_limits(self):
+    def test_get_organization_subscription_limits(self):
         free_plan = generate_free_plan()
         product_metadata = {
             'mt_characters_limit': '1234',
@@ -53,7 +52,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
-        # create a second plan where we append (not add) 1 to all the limits
+        # create a second plan for org2 where we append (not add) 1 to all the limits
         second_product_metadata = {
             key: f'{value}1' if key.endswith('limit') else value
             for key, value in product_metadata.items()
@@ -62,7 +61,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(
             self.second_organization, metadata=second_product_metadata
         )
-        all_limits = get_organization_limits()
+        all_limits = get_organization_subscription_limits()
         assert all_limits[self.organization.id]['characters_limit'] == 1234
         assert all_limits[self.second_organization.id]['characters_limit'] == 12341
         assert all_limits[self.organization.id]['seconds_limit'] == 5678
@@ -91,23 +90,12 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
     @override_settings(STRIPE_ENABLED=False)
     def test_get_organization_limits_stripe_disabled_returns_inf(self):
-        all_limits = get_organization_limits()
+        all_limits = get_organization_subscription_limits()
         for org in Organization.objects.all():
             for usage_type in ['submission', 'storage', 'seconds', 'characters']:
                 assert all_limits[org.id][f'{usage_type}_limit'] == inf
 
-    @data(True, False)
-    def test_get_organization_limits_include_storage_addons(self, include_addons):
-        with patch(
-            'kobo.apps.stripe.utils.get_organization_storage_addon_limits'
-        ) as get_addons:
-            get_organization_limits(include_storage_addons=include_addons)
-        if include_addons:
-            get_addons.assert_called_once()
-        else:
-            get_addons.assert_not_called()
-
-    def test_get_organization_plan_limits_prioritizes_price_metadata(self):
+    def test_get_subscription_limits_prioritizes_price_metadata(self):
         product_metadata = {
             'mt_characters_limit': '1',
             'asr_seconds_limit': '1',
@@ -125,12 +113,12 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(
             self.organization, metadata=product_metadata, price_metadata=price_metadata
         )
-        limits = get_organization_plan_limits([self.organization.id]).first()
+        limits = get_subscription_limits([self.organization.id]).first()
         for usage_type in ['submission', 'storage', 'seconds', 'characters']:
             assert limits[f'{usage_type}_limit'] == '2'
 
-    def test_get_organization_plan_limits_takes_most_recent_active_plan(self):
-        product_metadata = {
+    def test_get_subscription_limits_takes_most_recent_active_subscriptions(self):
+        plan_product_metadata = {
             'mt_characters_limit': '1',
             'asr_seconds_limit': '1',
             'submission_limit': '1',
@@ -139,47 +127,40 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'plan_type': 'enterprise',
         }
 
-        generate_plan_subscription(self.organization, metadata=product_metadata)
+        addon_product_metadata = {'product_type': 'addon', 'storage_bytes_limit': '10'}
 
-        # create an earlier subscription
-        product_metadata['mt_characters_limit'] = '5678'
+        generate_plan_subscription(self.organization, metadata=plan_product_metadata)
+        generate_plan_subscription(self.organization, metadata=addon_product_metadata)
+
+        # create an earlier plan with a different characters limit
+        plan_product_metadata['mt_characters_limit'] = '5678'
         generate_plan_subscription(
-            self.organization, metadata=product_metadata, age_days=1
+            self.organization, metadata=plan_product_metadata, age_days=1
         )
 
-        # mock a canceled subscription
-        product_metadata['mt_characters_limit'] = '91011'
+        # create an earlier addon with a different storage limit
+        addon_product_metadata['storage_bytes_limit'] = '5678'
         generate_plan_subscription(
-            self.organization, metadata=product_metadata, status='canceled'
+            self.organization, metadata=addon_product_metadata, age_days=1
         )
-        limit = get_organization_plan_limits([self.organization.id]).first()[
-            'characters_limit'
-        ]
 
-        assert limit == '1'
+        # mock a canceled plan
+        plan_product_metadata['mt_characters_limit'] = '91011'
+        generate_plan_subscription(
+            self.organization, metadata=plan_product_metadata, status='canceled'
+        )
+        # mock a canceled addon
+        addon_product_metadata['storage_bytes_limit'] = '91011'
+        generate_plan_subscription(
+            self.organization, metadata=addon_product_metadata, status='canceled'
+        )
 
-    def test_get_organization_plan_limits_only_includes_full_plans(self):
-        plan_metadata = {
-            'mt_characters_limit': '1',
-            'asr_seconds_limit': '1',
-            'submission_limit': '1',
-            'storage_bytes_limit': '1',
-            'product_type': 'plan',
-            'plan_type': 'enterprise',
-        }
-        addon_metadata = {
-            **plan_metadata,
-            'storage_bytes_limit': '3000',
-            'product_type': 'addon',
-        }
-        generate_plan_subscription(self.organization, metadata=plan_metadata)
-        generate_plan_subscription(self.organization, metadata=addon_metadata)
+        limits = get_subscription_limits([self.organization.id])
+        plan_limits = limits.filter(product_type='plan').first()
+        addon_limits = limits.filter(product_type='addon').first()
 
-        limit = get_organization_plan_limits([self.organization.id]).first()[
-            'storage_limit'
-        ]
-
-        assert limit == '1'
+        assert plan_limits['characters_limit'] == '1'
+        assert addon_limits['storage_limit'] == '10'
 
     @data(
         # has a regular plan, use plan limit

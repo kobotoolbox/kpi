@@ -260,13 +260,13 @@ def get_organization_limit(
     """
     include_storage_addons = usage_type == 'storage'
     return (
-        get_organization_limits([organization], include_storage_addons)
+        get_organization_subscription_limits([organization], include_storage_addons)
         .get(organization.id, {})
         .get(f'{usage_type}_limit')
     )
 
 
-def get_organization_limits(
+def get_organization_subscription_limits(
     organizations: list[Organization] = None, include_storage_addons: bool = True
 ) -> dict[str, dict[str, float]]:
     """
@@ -274,11 +274,10 @@ def get_organization_limits(
 
     To determine an organization's limits:
     1. If Stripe is not enabled, everyone has infinite amounts of everything.
-    2. Otherwise, get the most recent active plan (not including storage addons)
-    3. Get the most recent storage addon, if requested
-    4. If there is an active plan, set the limits to the limits of the plan
-    5. If there is no active plan, set the limits to the limits of the default plan
-    6. If there is a storage addon, update the storage limit to
+    2. Otherwise, get the most recent active plans and storage addons
+    3. If there is an active plan, set the limits to the limits of the plan
+    4. If there is no active plan, set the limits to the limits of the default plan
+    5. If there is a storage addon, update the storage limit to
      max(storage addon, existing limit)
 
     Example result:
@@ -316,23 +315,18 @@ def get_organization_limits(
     from djstripe.models.core import Product
 
     # get regular plan limits
-    plans_excluding_addons = get_organization_plan_limits(all_org_ids)
-    plans_excluding_addons_by_org = {
-        row['org_id']: {
-            f'{usage_type}_limit': row[f'{usage_type}_limit']
-            for usage_type in ['characters', 'seconds', 'submission', 'storage']
-        }
-        for row in plans_excluding_addons
-    }
-
-    # get storage addons
-    addons_plans_by_org = {}
-    if include_storage_addons:
-        addon_plans = get_organization_storage_addon_limits(organizations)
-        addons_plans_by_org = {
-            row['org_id']: {'storage_limit': row['storage_limit']}
-            for row in addon_plans
-        }
+    subscription_limits = get_subscription_limits(all_org_ids)
+    subscription_limits_by_org_id = {}
+    for row in subscription_limits:
+        row_limits = subscription_limits_by_org_id.get(row['org_id'], {})
+        if row['product_type'] == 'plan':
+            row_limits = {
+                f'{usage_type}_limit': row[f'{usage_type}_limit']
+                for usage_type in ['characters', 'seconds', 'submission', 'storage']
+            }
+        elif row['product_type'] == 'addon':
+            row_limits['addon_storage_limit'] = row['storage_limit']
+        subscription_limits_by_org_id[row['org_id']] = row_limits
 
     storage_limit = _get_limit_key('storage')
     submission_limit = _get_limit_key('submission')
@@ -363,10 +357,12 @@ def get_organization_limits(
     for org_id in all_org_ids:
         all_org_limits = {}
         for usage_type in ['characters', 'seconds', 'submission', 'storage']:
-            plan_limit = plans_excluding_addons_by_org.get(org_id, {}).get(
+            plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
                 f'{usage_type}_limit'
             )
-            addon_limit = addons_plans_by_org.get(org_id, {}).get('storage_limit')
+            addon_limit = subscription_limits_by_org_id.get(org_id, {}).get(
+                'addon_storage_limit'
+            )
             default_limit = default_plan_limits[f'{usage_type}_limit']
             limit = determine_limit(
                 usage_type,
@@ -381,12 +377,12 @@ def get_organization_limits(
     return results
 
 
-def get_organization_plan_limits(organization_ids: list[str]) -> QuerySet:
+def get_subscription_limits(organization_ids: list[str]) -> QuerySet:
     """
     Return the most recent limits for all usage types for given organizations based on
-    their most recent plan (not counting addons), if a plan exists. If no organization
-    list is provided, information will be fetched for all organizations with active
-    plans.
+    their most recent subscriptions. If they have both a regular plan and an addon,
+    returns a row for both. If no organization list is provided, information will be
+    fetched for all subscriptions.
 
     Only works when Stripe is enabled.
     """
@@ -416,7 +412,7 @@ def get_organization_plan_limits(organization_ids: list[str]) -> QuerySet:
     active_subscriptions = Subscription.objects.filter(
         org_filter
         & Q(status__in=ACTIVE_STRIPE_STATUSES)
-        & Q(items__price__product__metadata__product_type='plan')
+        & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
     )
 
     most_recent_full_plans = (
@@ -430,71 +426,41 @@ def get_organization_plan_limits(organization_ids: list[str]) -> QuerySet:
             characters_limit=Coalesce(
                 F(price_characters_key), F(product_characters_key)
             ),
-            plan_start_date=F('start_date'),
+            sub_start_date=F('start_date'),
+            product_type=F('items__price__product__metadata__product_type'),
         )
         .annotate(
             # find the most recent one
-            most_recent=Window(
-                expression=Max('plan_start_date'),
+            most_recent_plan=Window(
+                expression=Max('sub_start_date', filter=Q(product_type='plan')),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            ),
+            most_recent_addon=Window(
+                expression=Max('sub_start_date', filter=Q(product_type='addon')),
                 partition_by=F('org_id'),
                 order_by='org_id',
             )
         )
         .filter(
-            Q(plan_start_date=F('most_recent'))
-            | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
+            # most recent full plan
+            (Q(sub_start_date=F('most_recent_plan')) & Q(product_type='plan'))
+            # most recent addon
+            | (Q(sub_start_date=F('most_recent_addon')) & Q(product_type='addon'))
+            # handle dates being null
+            | (
+                Q(sub_start_date__isnull=True)
+                & Q(most_recent_addon__isnull=True)
+                & Q(product_type='plan')
+            )
+            | (
+                Q(sub_start_date__isnull=True)
+                & Q(most_recent_addon__isnull=True)
+                & Q(product_type='addon')
+            )
         )
     )
     return most_recent_full_plans
-
-
-def get_organization_storage_addon_limits(
-    organizations: list[Organization],
-) -> QuerySet:
-    """
-    Return the most storage recurring addon limit for every organization in
-    organizations, if present, or all organizations with
-    recurring storage addons if no list is provided
-    """
-
-    if not settings.STRIPE_ENABLED:
-        raise NotImplementedError('Cannot get organization addons with stripe disabled')
-
-    orgs = Organization.objects.all()
-    org_filter = Q()
-    if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
-        org_filter = Q(customer__subscriber_id__in=[org.id for org in orgs])
-    from djstripe.models.billing import Subscription
-
-    active_subscriptions = Subscription.objects.filter(
-        org_filter
-        & Q(status__in=ACTIVE_STRIPE_STATUSES)
-        & Q(items__price__product__metadata__product_type='addon')
-    )
-    price_storage_key, product_storage_key = (
-        _get_subscription_metadata_fields_for_usage_type('storage')
-    )
-    addons = (
-        active_subscriptions.values(
-            org_id=F('customer__subscriber_id'),
-            storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
-            plan_start_date=F('start_date'),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('plan_start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(plan_start_date=F('most_recent'))
-            | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    return addons
 
 
 def determine_limit(
