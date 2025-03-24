@@ -547,6 +547,11 @@ CONSTANCE_CONFIG = {
         ),
         'i18n_text_jsonfield_schema',
     ),
+    'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY': (
+        7,
+        'Number of days before enqueued mass email records are marked as failed.',
+        'positive_int',
+    ),
     'PROJECT_OWNERSHIP_RESUME_THRESHOLD': (
         10,
         'Number of minutes asynchronous tasks can be idle before being '
@@ -685,7 +690,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'USE_TEAM_LABEL',
         'ACCESS_LOG_LIFESPAN',
         'PROJECT_HISTORY_LOG_LIFESPAN',
-        'ORGANIZATION_INVITE_EXPIRY'
+        'ORGANIZATION_INVITE_EXPIRY',
+        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY'
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1286,6 +1292,12 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every day at midnight UTC
+    'mass-email-record-mark-as-failed': {
+        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed', # noqa
+        'schedule': crontab(minute=0, hour=0),
+        'options': {'queue': 'kpi_low_priority_queue'}
+    },
 
 }
 
@@ -1845,7 +1857,8 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'text/csv',
     'application/xml',
     'application/zip',
-    'application/x-zip-compressed'
+    'application/x-zip-compressed',
+    'application/geo+json',
 ]
 
 LOG_DELETION_BATCH_SIZE = 1000

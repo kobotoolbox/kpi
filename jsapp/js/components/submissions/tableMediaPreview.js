@@ -45,6 +45,13 @@ class TableMediaPreview extends React.Component {
 
   renderPreviewByType() {
     switch (this.props.questionType) {
+      case QUESTION_TYPES.file.id:
+        return (
+          <bem.TableMediaPreview__text>
+            {this.props.mediaName}
+            <br />({this.props.mediaAttachment?.mimetype})
+          </bem.TableMediaPreview__text>
+        )
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image>
