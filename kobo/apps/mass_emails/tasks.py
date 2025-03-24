@@ -98,36 +98,40 @@ class MassEmailSender:
             logging.info('Setting up MassEmailConfig limits for the current day')
             self.limits = {}
             if self.total_records < MAX_EMAILS:
-                for config in self.configs:
-                    self.limits[config.id] = config.enqueued_records_count
+                for email_config in self.configs:
+                    self.limits[email_config.id] = email_config.enqueued_records_count
             else:
                 total_limits = 0
-                for config in self.configs:
+                for email_config in self.configs:
                     if total_limits >= MAX_EMAILS:
                         break
                     config_limit = ceil(
-                        config.enqueued_records_count / self.total_records * MAX_EMAILS
+                        email_config.enqueued_records_count
+                        / self.total_records
+                        * MAX_EMAILS
                     )
                     if total_limits + config_limit > MAX_EMAILS:
                         config_limit = MAX_EMAILS - total_limits
-                    self.limits[config.id] = config_limit
+                    self.limits[email_config.id] = config_limit
                     total_limits += config_limit
         else:
             self.limits = json.loads(serialized_data)
 
     def send_day_emails(self):
-        for config in self.configs:
-            limit = self.limits.get(config.id)
+        for email_config in self.configs:
+            limit = self.limits.get(email_config.id)
             if not limit:
                 continue
             records = MassEmailRecord.objects.filter(
                 status=EmailStatus.ENQUEUED,
-                email_job__email_config=config,
+                email_job__email_config=email_config,
             )[:limit]
-            logging.info(f'Processing {limit} records for MassEmailConfig({config})')
+            logging.info(
+                f'Processing {limit} records for MassEmailConfig({email_config})'
+            )
             for record in records:
-                self.send_email(config, record)
-            self.limits[config.id] = 0
+                self.send_email(email_config, record)
+            self.limits[email_config.id] = 0
             self.update_day_limits()
 
     def send_email(self, email_config, record):
