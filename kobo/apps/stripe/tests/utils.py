@@ -35,6 +35,7 @@ def generate_free_plan():
         unit_amount=0,
         product=product,
     )
+    return product
 
 
 def generate_plan_subscription(
@@ -85,6 +86,7 @@ def generate_plan_subscription(
         billing_cycle_anchor=created_date - period_offset,
         current_period_end=created_date + period_offset,
         current_period_start=created_date - period_offset,
+        start_date=created_date,
     )
 
 
