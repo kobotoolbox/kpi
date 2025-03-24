@@ -323,10 +323,10 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         instance = self.xform.instances.first()
         attachment = instance.attachments.first()
 
-        # Validate previous attachment has been replaced but file still exists
+        # Validate previous attachment has been replaced but the file still exists
         soft_deleted_attachment_qs = Attachment.all_objects.filter(
             instance=instance,
-            deleted_at__isnull=False
+            delete_status__isnull=False
         )
         self.assertEqual(soft_deleted_attachment_qs.count(), 1)
         soft_deleted_attachment = soft_deleted_attachment_qs.first()
