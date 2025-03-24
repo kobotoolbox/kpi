@@ -5,7 +5,6 @@ from django.db import models
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
     get_inactive_users,
-
 )
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel

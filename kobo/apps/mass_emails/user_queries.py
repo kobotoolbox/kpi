@@ -1,8 +1,6 @@
 from datetime import timedelta
 from math import inf
 
-from django.apps import apps
-from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 
@@ -10,9 +8,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.utils import (
-    get_organization_plan_limits,
-)
+from kobo.apps.stripe.utils import get_organization_plan_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_storage_usage_by_user_id,
@@ -80,7 +76,9 @@ def get_users_within_range_of_usage_limit(
     minimum = minimum or 0
     maximum = maximum or inf
     include_storage_addons = 'storage' in usage_types
-    limits_by_org = get_organization_plan_limits(include_storage_addons=include_storage_addons)
+    limits_by_org = get_organization_plan_limits(
+        include_storage_addons=include_storage_addons
+    )
     usage_by_type_by_user = {}
     for usage_type in usage_types:
         usage_by_type_by_user = usage_method_by_type[usage_type]()
@@ -101,9 +99,7 @@ def get_users_within_range_of_usage_limit(
     return User.objects.filter(id__in=user_ids)
 
 def get_users_over_90_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit(
-        ['storage'], minimum=0.9, maximum=1
-    )
+    results = get_users_within_range_of_usage_limit(['storage'], minimum=0.9, maximum=1)
     return [user.extra_details.uid for user in results]
 
 

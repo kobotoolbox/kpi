@@ -49,7 +49,8 @@ def get_active_subscription_billing_dates_by_org(
     all_active_plans = (
         orgs.filter(
             djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-        ).exclude(
+        )
+        .exclude(
             djstripe_customers__subscriptions__items__price__product__metadata__product_type='addon',
         )
         .values(
@@ -97,7 +98,10 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
     all_cancellation_dates = (
         all_orgs.filter(
             djstripe_customers__subscriptions__status='canceled',
-        ).exclude(djstripe_customers__subscriptions__items__price__product__metadata__product_type='addon',)
+        )
+        .exclude(
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='addon',
+        )
         .values('id')
         .annotate(
             anchor=Max(F('djstripe_customers__subscriptions__ended_at')),
@@ -110,12 +114,18 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
 
     return result
 
+
 def _get_limit_key(usage_type: UsageType):
     return f'{USAGE_LIMIT_MAP[usage_type]}_limit'
 
+
 def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
     limit_key = _get_limit_key(usage_type)
-    return f'items__price__metadata__{limit_key}', f'items__price__product__metadata__{limit_key}'
+    return (
+        f'items__price__metadata__{limit_key}',
+        f'items__price__product__metadata__{limit_key}',
+    )
+
 
 def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
     """
@@ -131,27 +141,32 @@ def _get_most_recent_storage_addon_limits(organizations: list[Organization]):
     from djstripe.models.billing import Subscription
 
     active_subscriptions = Subscription.objects.filter(
-            org_filter
-            & Q(status__in=ACTIVE_STRIPE_STATUSES)
-            & Q(items__price__product__metadata__product_type='addon')
+        org_filter
+        & Q(status__in=ACTIVE_STRIPE_STATUSES)
+        & Q(items__price__product__metadata__product_type='addon')
     )
-    price_storage_key, product_storage_key = _get_subscription_metadata_fields_for_usage_type('storage')
-    addons = (active_subscriptions.values(
-        org_id=F('customer__subscriber_id'),
-        storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
-        plan_start_date=F('start_date'),
-    ).annotate(
-        # find the most recent one
-        most_recent=Window(
-            expression=Max('plan_start_date'),
-            partition_by=F('org_id'),
-            order_by='org_id',
+    price_storage_key, product_storage_key = (
+        _get_subscription_metadata_fields_for_usage_type('storage')
+    )
+    addons = (
+        active_subscriptions.values(
+            org_id=F('customer__subscriber_id'),
+            storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
+            plan_start_date=F('start_date'),
+        )
+        .annotate(
+            # find the most recent one
+            most_recent=Window(
+                expression=Max('plan_start_date'),
+                partition_by=F('org_id'),
+                order_by='org_id',
+            )
+        )
+        .filter(
+            Q(plan_start_date=F('most_recent'))
+            | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
         )
     )
-    .filter(
-        Q(plan_start_date=F('most_recent'))
-        | (Q(plan_start_date__isnull=True) & Q(most_recent__isnull=True))
-    ))
     return addons
 
 
@@ -179,23 +194,34 @@ def _get_most_recent_subscription_limits(organizations: list[Organization] = Non
         orgs = orgs.filter(id__in=[org.id for org in organizations])
         org_filter = Q(customer__subscriber_id__in=[org.id for org in orgs])
 
-    price_storage_key, product_storage_key = _get_subscription_metadata_fields_for_usage_type('storage')
-    price_submission_key, product_submission_key = _get_subscription_metadata_fields_for_usage_type('submission')
-    price_characters_key, product_characters_key = _get_subscription_metadata_fields_for_usage_type('characters')
-    price_seconds_key, product_seconds_key = _get_subscription_metadata_fields_for_usage_type('seconds')
+    price_storage_key, product_storage_key = (
+        _get_subscription_metadata_fields_for_usage_type('storage')
+    )
+    price_submission_key, product_submission_key = (
+        _get_subscription_metadata_fields_for_usage_type('submission')
+    )
+    price_characters_key, product_characters_key = (
+        _get_subscription_metadata_fields_for_usage_type('characters')
+    )
+    price_seconds_key, product_seconds_key = (
+        _get_subscription_metadata_fields_for_usage_type('seconds')
+    )
 
     active_subscriptions = Subscription.objects.filter(
-            org_filter
-            & Q(status__in=ACTIVE_STRIPE_STATUSES)
+        org_filter & Q(status__in=ACTIVE_STRIPE_STATUSES)
     ).exclude(items__price__product__metadata__product_type='addon')
 
-    most_recent_full_plans = (active_subscriptions
-        .values(
+    most_recent_full_plans = (
+        active_subscriptions.values(
             org_id=F('customer__subscriber_id'),
             storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
-            submission_limit=Coalesce(F(price_submission_key), F(product_submission_key)),
+            submission_limit=Coalesce(
+                F(price_submission_key), F(product_submission_key)
+            ),
             seconds_limit=Coalesce(F(price_seconds_key), F(product_seconds_key)),
-            characters_limit=Coalesce(F(price_characters_key), F(product_characters_key)),
+            characters_limit=Coalesce(
+                F(price_characters_key), F(product_characters_key)
+            ),
             plan_start_date=F('start_date'),
         )
         .annotate(
@@ -214,7 +240,9 @@ def _get_most_recent_subscription_limits(organizations: list[Organization] = Non
     return most_recent_full_plans
 
 
-def get_organization_plan_limits(organizations: list[Organization] = None, include_storage_addons=True):
+def get_organization_plan_limits(
+    organizations: list[Organization] = None, include_storage_addons=True
+):
     if not settings.STRIPE_ENABLED:
         if organizations is not None:
             return {org.id: inf for org in organizations}
@@ -229,12 +257,18 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
     all_org_ids = [org.id for org in orgs]
 
     plans_excluding_addons = _get_most_recent_subscription_limits(organizations)
-    plans_excluding_addons_by_org = { row['org_id']: {
-        f'{usage_type}_limit':  row[f'{usage_type}_limit'] for usage_type in ['characters', 'seconds', 'submission', 'storage']
-    } for row in plans_excluding_addons}
+    plans_excluding_addons_by_org = {
+        row['org_id']: {
+            f'{usage_type}_limit': row[f'{usage_type}_limit']
+            for usage_type in ['characters', 'seconds', 'submission', 'storage']
+        }
+        for row in plans_excluding_addons
+    }
 
     addon_plans = _get_most_recent_storage_addon_limits(organizations)
-    addons_plans_by_org = { row['org_id']: {'storage_limit': row['storage_limit']} for row in addon_plans}
+    addons_plans_by_org = {
+        row['org_id']: {'storage_limit': row['storage_limit']} for row in addon_plans
+    }
 
     storage_limit = _get_limit_key('storage')
     submission_limit = _get_limit_key('submission')
@@ -242,9 +276,7 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
     seconds_limit = _get_limit_key('seconds')
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
-        Product.objects.filter(
-            metadata__default_free_plan='true'
-        )
+        Product.objects.filter(metadata__default_free_plan='true')
         .values(
             storage_limit=F(f'metadata__{storage_limit}'),
             submission_limit=F(f'metadata__{submission_limit}'),
@@ -258,7 +290,7 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
         if default_limit is None:
-            default_plan_limits[limit_key] = "unlimited"
+            default_plan_limits[limit_key] = 'unlimited'
         else:
             default_plan_limits[limit_key] = default_limit
 
@@ -267,16 +299,20 @@ def get_organization_plan_limits(organizations: list[Organization] = None, inclu
     for org_id in all_org_ids:
         all_org_limits = {}
         for usage_type in ['characters', 'seconds', 'submission', 'storage']:
-            limit = plans_excluding_addons_by_org.get(org_id, {}).get(f'{usage_type}_limit')
+            limit = plans_excluding_addons_by_org.get(org_id, {}).get(
+                f'{usage_type}_limit'
+            )
             if limit is None:
                 limit = default_plan_limits[f'{usage_type}_limit']
-            if limit == "unlimited":
+            if limit == 'unlimited':
                 limit = inf
             else:
                 limit = int(limit)
             if usage_type == 'storage' and include_storage_addons:
-                addon_limit = addons_plans_by_org.get(org_id, {}).get('storage_limit') or 0
-                if addon_limit == "unlimited":
+                addon_limit = (
+                    addons_plans_by_org.get(org_id, {}).get('storage_limit') or 0
+                )
+                if addon_limit == 'unlimited':
                     addon_limit = inf
                 else:
                     addon_limit = int(addon_limit)
@@ -297,7 +333,11 @@ def get_organization_plan_limit(
     default free tier plan found.
     """
     include_storage_addons = usage_type == 'storage'
-    return get_organization_plan_limits([organization], include_storage_addons).get(organization.id, {}).get(f'{usage_type}_limit')
+    return (
+        get_organization_plan_limits([organization], include_storage_addons)
+        .get(organization.id, {})
+        .get(f'{usage_type}_limit')
+    )
 
 
 def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):

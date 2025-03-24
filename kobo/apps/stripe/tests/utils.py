@@ -2,7 +2,15 @@ from typing import Literal
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem, PaymentIntent, Charge
+from djstripe.models import (
+    Charge,
+    Customer,
+    PaymentIntent,
+    Price,
+    Product,
+    Subscription,
+    SubscriptionItem,
+)
 from model_bakery import baker
 
 from kobo.apps.organizations.models import Organization
@@ -84,27 +92,28 @@ def generate_mmo_subscription(organization: Organization, customer: Customer = N
     product_metadata = {'mmo_enabled': 'true', 'plan_type': 'enterprise'}
     return generate_plan_subscription(organization, product_metadata, customer)
 
+
 def _create_one_time_addon_product(limit_metadata=None):
     metadata = {
-            'product_type': 'addon_onetime',
-            'valid_tags': 'all',
-            **(limit_metadata or {}),
+        'product_type': 'addon_onetime',
+        'valid_tags': 'all',
+        **(limit_metadata or {}),
     }
     product = baker.make(
         Product,
         active=True,
         metadata=metadata,
     )
-    price = baker.make(
-        Price, active=True, product=product, type='one_time'
-    )
+    price = baker.make(Price, active=True, product=product, type='one_time')
     price.save()
     product.default_price = price
     product.save()
     return product
 
-def _create_payment(customer, price, product, payment_status='succeeded', refunded=False
-    ):
+
+def _create_payment(
+    customer, price, product, payment_status='succeeded', refunded=False
+):
     payment_total = 2000
     payment_intent = baker.make(
         PaymentIntent,
@@ -134,6 +143,7 @@ def _create_payment(customer, price, product, payment_status='succeeded', refund
         **(product.metadata or {}),
     }
     charge.save()
+
 
 def _create_customer_from_org(organization: Organization):
     customer = baker.make(Customer, subscriber=organization, livemode=False)

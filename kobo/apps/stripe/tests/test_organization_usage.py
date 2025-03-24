@@ -1,7 +1,6 @@
 import calendar
 import timeit
 from datetime import datetime, timedelta
-from math import inf
 from zoneinfo import ZoneInfo
 
 import pytest

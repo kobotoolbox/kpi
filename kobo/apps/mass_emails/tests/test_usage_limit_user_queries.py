@@ -2,11 +2,17 @@ from math import inf
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
-from django.apps import apps
+
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit, \
-    get_users_within_range_of_nlp_usage_limit
-from kobo.apps.stripe.tests.utils import _create_one_time_addon_product, _create_customer_from_org, _create_payment
+from kobo.apps.mass_emails.user_queries import (
+    get_users_within_range_of_nlp_usage_limit,
+    get_users_within_range_of_usage_limit,
+)
+from kobo.apps.stripe.tests.utils import (
+    _create_customer_from_org,
+    _create_one_time_addon_product,
+    _create_payment,
+)
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -128,7 +134,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'seconds': {
                     'total_usage_limit': 1000,
                     'total_remaining': 1000,
-                }
+                },
             }
         }
 
@@ -160,9 +166,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         user = User.objects.get(username='someuser')
         user_org = user.organization
         user_customer = _create_customer_from_org(user_org)
-        add_on = _create_one_time_addon_product({
-            'asr_seconds_limit':100,
-            'mt_characters_limit':100})
+        add_on = _create_one_time_addon_product(
+            {'asr_seconds_limit': 100, 'mt_characters_limit': 100}
+        )
         usage_limits = {
             user_org.id: {
                 'characters': {
@@ -172,7 +178,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'seconds': {
                     'total_usage_limit': 1000,
                     'total_remaining': 1000,
-                }
+                },
             }
         }
 
@@ -195,7 +201,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
 
         assert user in results
 
-        _create_payment(customer=user_customer, product=add_on, price=add_on.default_price)
+        _create_payment(
+            customer=user_customer, product=add_on, price=add_on.default_price
+        )
 
         with patch(
             'kobo.apps.mass_emails.user_queries.get_organization_nlp_plan_limits',
@@ -215,7 +223,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         (None, 0.9, ['anotheruser']),
     )
     @unpack
-    def test_users_within_range_of_nlp_usage_limit(self, minimum, maximum, expected_users):
+    def test_users_within_range_of_nlp_usage_limit(
+        self, minimum, maximum, expected_users
+    ):
         user1 = User.objects.create_user(
             username='fred', password='fred', email='fred@fred.com'
         )
@@ -235,7 +245,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'seconds': {
                     'total_usage_limit': 1000,
                     'total_remaining': 1000,
-                }
+                },
             },
             user2org.id: {
                 'characters': {
@@ -245,7 +255,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'seconds': {
                     'total_usage_limit': 1000,
                     'total_remaining': 1000,
-                }
+                },
             },
             user3org.id: {
                 'characters': {
@@ -255,21 +265,21 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'seconds': {
                     'total_usage_limit': 1000,
                     'total_remaining': 1000,
-                }
+                },
             },
         }
 
         nlp_usage_by_user_id = {
             user1.id: {
-                'total_asr_seconds': 1001, # over full usage
+                'total_asr_seconds': 1001,  # over full usage
                 'total_mt_characters': 10,
             },
             user2.id: {
-                'total_asr_seconds': 900, # 90%
+                'total_asr_seconds': 900,  # 90%
                 'total_mt_characters': 10,
             },
             user3.id: {
-                'total_asr_seconds': 750, # 75%
+                'total_asr_seconds': 750,  # 75%
                 'total_mt_characters': 10,
             },
         }
@@ -282,7 +292,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 'kobo.apps.mass_emails.user_queries.get_nlp_usage_for_current_billing_period_by_user_id',
                 return_value=nlp_usage_by_user_id,
             ):
-                results = get_users_within_range_of_nlp_usage_limit(minimum=minimum, maximum=maximum)
+                results = get_users_within_range_of_nlp_usage_limit(
+                    minimum=minimum, maximum=maximum
+                )
         aslist = list(results.order_by('username'))
         assert aslist == list(
             User.objects.filter(username__in=expected_users).order_by('username')
