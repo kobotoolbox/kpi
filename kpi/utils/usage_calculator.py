@@ -38,52 +38,6 @@ def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
-def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user):
-    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
-    filters = Q()
-    for user_id, date_range in date_ranges_by_user.items():
-        filters |= Q(
-            user_id=user_id, date__range=[date_range['start'], date_range['end']]
-        )
-    results = (
-        NLPUsageCounter.objects.only(
-            'user_id', 'date', 'total_asr_seconds', 'total_mt_characters'
-        )
-        .filter(filters)
-        .values('user_id')
-        .annotate(
-            asr_seconds_current_period=Coalesce(
-                Sum('total_asr_seconds'),
-                0,
-            ),
-            mt_characters_current_period=Coalesce(
-                Sum('total_mt_characters'),
-                0,
-            ),
-        )
-    )
-    return {
-        row['user_id']: {
-            'total_asr_seconds': row['asr_seconds_current_period'],
-            'total_mt_characters': row['mt_characters_current_period'],
-        }
-        for row in results
-    }
-
-
-def get_nlp_usage_for_current_billing_period_by_user_id():
-    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
-    owner_by_org = {
-        org.id: org.owner.organization_user.user.id
-        for org in Organization.objects.filter(owner__isnull=False)
-    }
-    current_billing_dates_by_owner = {
-        owner_by_org[org_id]: dates
-        for org_id, dates in current_billing_dates_by_org.items()
-    }
-    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
-
-
 def get_submissions_for_current_billing_period_by_user_id():
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {

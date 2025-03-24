@@ -37,13 +37,6 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             status='active',
         )
 
-    def _create_customer_with_subscription(self, user):
-        organization = baker.make(Organization)
-        organization.add_user(user, is_admin=True)
-        customer = baker.make(Customer, subscriber=organization)
-        baker.make(Subscription, customer=customer, status='active')
-        return customer
-
     def _create_product(self, metadata=None):
         if not metadata:
             metadata = {
@@ -61,15 +54,11 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.product.save()
 
-    def _create_payment(
-        self, payment_status='succeeded', refunded=False, customer=None
-    ):
-        if customer is None:
-            customer = self.customer
+    def _create_payment(self, payment_status='succeeded', refunded=False):
         payment_total = 2000
         self.payment_intent = baker.make(
             PaymentIntent,
-            customer=customer,
+            customer=self.customer,
             status=payment_status,
             payment_method_types=['card'],
             livemode=False,
@@ -79,7 +68,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.charge = baker.prepare(
             Charge,
-            customer=customer,
+            customer=self.customer,
             refunded=refunded,
             created=timezone.now(),
             payment_intent=self.payment_intent,
@@ -91,7 +80,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         self.charge.metadata = {
             'price_id': self.price.id,
-            'organization_id': customer.subscriber.id,
+            'organization_id': self.organization.id,
             **(self.product.metadata or {}),
         }
         self.charge.save()
@@ -198,58 +187,3 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         assert total_limit == limit * 3
         assert remaining == limit * 2
-
-    @data(True, False)
-    def test_get_multiple_organization_totals(self, get_org_subset):
-        limit = 2000
-        usage_limit_key = f'mt_characters_limit'
-        self._create_product(
-            metadata={
-                'product_type': 'addon_onetime',
-                usage_limit_key: limit,
-                'valid_tags': 'all',
-            }
-        )
-        self._create_payment()
-        another_user = User.objects.get(username='anotheruser')
-        second_customer = self._create_customer_with_subscription(user=another_user)
-        self._create_payment(customer=second_customer)
-        third_user = User.objects.get(username='adminuser')
-        third_customer = self._create_customer_with_subscription(user=third_user)
-        self._create_payment(customer=third_customer)
-
-        # either pass just the first two orgs, or nothing to get all orgs
-        orgs = (
-            [self.organization, second_customer.subscriber] if get_org_subset else None
-        )
-        results = PlanAddOn.get_all_organization_totals(orgs)
-
-        # if we didn't pass a specified list of orgs, get data for all orgs
-        expected_orgs = (
-            orgs
-            if orgs is not None
-            else [
-                self.organization,
-                second_customer.subscriber,
-                third_customer.subscriber,
-            ]
-        )
-
-        expected_results = {
-            org.id: {
-                'characters': {
-                    'total_usage_limit': 2000,
-                    'total_remaining': 2000,
-                },
-                'seconds': {
-                    'total_usage_limit': 0,
-                    'total_remaining': 0,
-                },
-                'submission': {
-                    'total_usage_limit': 0,
-                    'total_remaining': 0,
-                },
-            }
-            for org in expected_orgs
-        }
-        assert results == expected_results

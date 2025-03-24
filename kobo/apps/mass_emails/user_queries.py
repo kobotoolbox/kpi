@@ -65,7 +65,7 @@ def get_users_within_range_of_usage_limit(
     of their plan limit for the given usage types. Any user who is within the limit
     for any usage type will be returned.
 
-    :param usage_type: UsageType. 'storage' or 'submissions'
+    :param usage_type: UsageType. 'submission' or 'storage'
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
     :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
     """
@@ -97,22 +97,22 @@ def get_users_within_range_of_usage_limit(
     return User.objects.filter(id__in=user_ids)
 
 def get_users_over_90_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit('storage', minimum=0.9, maximum=1)
+    results = get_users_within_range_of_usage_limit(usage_type='storage', minimum=0.9, maximum=1)
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_100_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit('storage', minimum=1)
+    results = get_users_within_range_of_usage_limit(usage_type='storage', minimum=1)
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_90_percent_of_submission_limit():
     results = get_users_within_range_of_usage_limit(
-        'submission', minimum=0.9, maximum=1
+        usage_type='submission', minimum=0.9, maximum=1
     )
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_100_percent_of_submission_limit():
-    results = get_users_within_range_of_usage_limit('submission', minimum=1)
+    results = get_users_within_range_of_usage_limit(usage_type='submission', minimum=1)
     return [user.extra_details.uid for user in results]
