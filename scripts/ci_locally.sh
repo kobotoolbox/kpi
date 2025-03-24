@@ -63,12 +63,26 @@ echo -e '\n\n## Job: Darker'
 echo -e '\n\n### Step: Run Darker'
 echo 'Disclaimer: CI runs Darker only on the last commit and the remote branch'
 
+# darker still exits with code 1 even with no errors on changes
+# To avoid this:
+# - capture the output
+# - exit with darker exit code only if the output is not empty
+set +e
 if [ -n "$GOSU_USER" ]; then
     CURRENT_BRANCH=$(gosu "$GOSU_USER" git rev-parse --abbrev-ref HEAD)
-    gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH"
+    darker_output=$(gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
 else
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH"
+    darker_output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
+fi
+darker_status=$?
+set -e
+
+if [[ -n "$darker_output" ]]; then
+    echo "$darker_output"
+    exit $darker_status
+else
+    echo "✅ done!"
 fi
 
 echo -e '\n\n## Job: Pytest'
