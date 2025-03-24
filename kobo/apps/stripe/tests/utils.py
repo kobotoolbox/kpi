@@ -145,6 +145,7 @@ def _create_payment(
         **(product.metadata or {}),
     }
     charge.save()
+    return charge
 
 
 def _create_customer_from_org(organization: Organization):

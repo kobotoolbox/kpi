@@ -16,6 +16,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.models import PlanAddOn
+from kobo.apps.stripe.tests.utils import _create_payment
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -55,35 +56,8 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.product.save()
 
     def _create_payment(self, payment_status='succeeded', refunded=False):
-        payment_total = 2000
-        self.payment_intent = baker.make(
-            PaymentIntent,
-            customer=self.customer,
-            status=payment_status,
-            payment_method_types=['card'],
-            livemode=False,
-            amount=payment_total,
-            amount_capturable=payment_total,
-            amount_received=payment_total,
-        )
-        self.charge = baker.prepare(
-            Charge,
-            customer=self.customer,
-            refunded=refunded,
-            created=timezone.now(),
-            payment_intent=self.payment_intent,
-            paid=True,
-            status=payment_status,
-            livemode=False,
-            amount_refunded=0 if refunded else payment_total,
-            amount=payment_total,
-        )
-        self.charge.metadata = {
-            'price_id': self.price.id,
-            'organization_id': self.organization.id,
-            **(self.product.metadata or {}),
-        }
-        self.charge.save()
+        charge = _create_payment(customer=self.customer, price=self.price, product=self.product, payment_status=payment_status, refunded=refunded)
+        self.charge = charge
 
     def test_no_addons(self):
         response = self.client.get(self.url)
