@@ -456,6 +456,10 @@ def get_organization_storage_addon_limits(
     organizations, if present, or all organizations with
     recurring storage addons if no list is provided
     """
+
+    if not settings.STRIPE_ENABLED:
+        raise NotImplementedError('Cannot get organization addons with stripe disabled')
+
     orgs = Organization.objects.all()
     org_filter = Q()
     if organizations is not None:
