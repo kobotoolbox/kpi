@@ -16,7 +16,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.models import PlanAddOn
-from kobo.apps.stripe.tests.utils import _create_payment
+from kobo.apps.stripe.tests.utils import _create_payment, _create_one_time_addon_product
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -45,15 +45,9 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
                 'submission_limit': 2000,
                 'valid_tags': 'all',
             }
-        self.product = baker.make(
-            Product,
-            active=True,
-            metadata=metadata,
-        )
-        self.price = baker.make(
-            Price, active=True, product=self.product, type='one_time'
-        )
-        self.product.save()
+        product = _create_one_time_addon_product(limit_metadata=metadata)
+        self.product = product
+        self.price = product.default_price
 
     def _create_payment(self, payment_status='succeeded', refunded=False):
         charge = _create_payment(customer=self.customer, price=self.price, product=self.product, payment_status=payment_status, refunded=refunded)
