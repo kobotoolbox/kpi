@@ -33,14 +33,6 @@ submissionsActions.getSubmissions.listen((options: GetSubmissionsOptions) => {
   dataInterface
     .getSubmissions(options.uid, options.pageSize, options.page, options.sort, options.fields, options.filter)
     .done((response: PaginatedResponse<SubmissionResponse>) => {
-      // TEMP CODE
-      response.results.forEach((submission) => {
-        submission._attachments.forEach((attachment) => {
-          attachment.is_deleted = true
-        })
-      })
-      // END TEMP CODE
-
       submissionsActions.getSubmissions.completed(response, options)
     })
     .fail((response: FailResponse) => {
