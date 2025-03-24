@@ -44,6 +44,8 @@ class MassEmailConfig(AbstractTimeStampedModel):
     query = models.CharField(
         null=True, blank=True, max_length=100, choices=USER_QUERY_CHOICES
     )
+    frequency = models.IntegerField(default=-1)
+    live = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -66,6 +68,13 @@ class MassEmailRecord(AbstractTimeStampedModel):
     )
     status = models.CharField(choices=EmailStatus.choices, null=True, blank=True)
     uid = KpiUidField(uid_prefix='mer')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email_job', 'user'], name='unique_user_per_email_job'
+            )
+        ]
 
     def __str__(self):
         return f'{self.email_job.email_config} send to {self.user.username}'
