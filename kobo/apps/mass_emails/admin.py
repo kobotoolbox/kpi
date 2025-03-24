@@ -1,8 +1,7 @@
 from django.contrib import admin, messages
 
-from kpi.exceptions import ExecutionBlockedException
-from .models import MassEmailConfig, MassEmailRecord, EmailStatus
-from .tasks import enqueue_mass_email_records, send_emails
+from .models import EmailStatus, MassEmailConfig, MassEmailRecord
+from .tasks import enqueue_mass_email_records
 
 
 @admin.register(MassEmailConfig)
@@ -10,7 +9,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'date_modified')
     fields = ('name', 'subject', 'template', 'query')
-    actions = ['enqueue_mass_emails', 'send_emails']
+    actions = ['enqueue_mass_emails']
 
     @admin.action(description='Add to daily send queue')
     def enqueue_mass_emails(self, request, queryset):
@@ -34,11 +33,3 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
                 f'Emails for {config.name} have been scheduled for tomorrow',
                 level=messages.SUCCESS,
             )
-
-    @admin.action(description='Send emails')
-    def send_emails(self, request, queryset):
-        for email_config in queryset:
-            try:
-                send_emails.delay(email_config.uid, should_create_job=True)
-            except ExecutionBlockedException:
-                pass

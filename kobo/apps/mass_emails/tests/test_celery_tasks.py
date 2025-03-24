@@ -1,17 +1,15 @@
+from datetime import datetime
+from unittest.mock import patch
+
+import pytz
 from django.core import mail
 from django.core.cache import cache
+from django.test import override_settings
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kpi.exceptions import ExecutionBlockedException
 from kpi.tests.base_test_case import BaseTestCase
-from ..models import (
-    USER_QUERIES,
-    EmailStatus,
-    MassEmailConfig,
-    MassEmailJob,
-    MassEmailRecord,
-)
-from ..tasks import create_job, render_template, send_emails
+from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
+from ..tasks import MassEmailSender, render_template, send_emails
 
 
 class TestCeleryTask(BaseTestCase):
@@ -20,104 +18,72 @@ class TestCeleryTask(BaseTestCase):
     def setUp(self):
         super().setUp()
         cache.clear()
+        self.template = """
+        Username: ##username##
+        Full name: ##full_name##
+        Plan name: ##plan_name##
+        """
+        self.configs = []
+        self.jobs = []
+        self.user1 = User.objects.get(username='someuser')
+        self.user2 = User.objects.get(username='anotheruser')
+        self.user3 = User.objects.get(username='adminuser')
 
-    def test_send_emails_task(self):
-        config_A = MassEmailConfig.objects.create(
-            name='Config A', subject='Subject A', template='Template'
-        )
-        config_B = MassEmailConfig.objects.create(
-            name='Config B', subject='Subject B', template='Template'
-        )
-        job_A = MassEmailJob.objects.create(email_config=config_A)
-        job_B = MassEmailJob.objects.create(email_config=config_B)
+        for i in range(0, 100):
+            config = MassEmailConfig.objects.create(
+                name=f'Config {i}', subject=f'Subject {i}', template=self.template
+            )
+            job = MassEmailJob.objects.create(email_config=config)
+            self.configs.append(config)
+            self.jobs.append(job)
+            MassEmailRecord.objects.create(
+                user=self.user1, email_job=job, status=EmailStatus.ENQUEUED
+            )
+            MassEmailRecord.objects.create(
+                user=self.user2, email_job=job, status=EmailStatus.ENQUEUED
+            )
+            MassEmailRecord.objects.create(
+                user=self.user3, email_job=job, status=EmailStatus.ENQUEUED
+            )
 
-        user1 = User.objects.get(username='someuser')
-        user2 = User.objects.get(username='anotheruser')
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=310)
+    def test_daily_limits_less_than_max(self):
+        sender = MassEmailSender()
+        assert len(sender.limits) == 100
+        assert sum(sender.limits.values()) == 300
 
-        MassEmailRecord.objects.create(
-            user=user1, email_job=job_A, status=EmailStatus.ENQUEUED
-        )
-        MassEmailRecord.objects.create(
-            user=user2, email_job=job_A, status=EmailStatus.SENT
-        )
-        MassEmailRecord.objects.create(
-            user=user1, email_job=job_B, status=EmailStatus.ENQUEUED
-        )
-        MassEmailRecord.objects.create(
-            user=user2, email_job=job_B, status=EmailStatus.ENQUEUED
-        )
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=180)
+    def test_daily_limits_more_than_max(self):
+        sender = MassEmailSender()
+        assert len(sender.limits) == 90
+        assert sum(sender.limits.values()) == 180
 
-        send_emails(config_A.uid)
-        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
-        assert (user1.email, 'Subject A') in outbox_summary
-        assert (user2.email, 'Subject A') not in outbox_summary
-
-        send_emails(config_B.uid)
-        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
-        assert (user1.email, 'Subject B') in outbox_summary
-        assert (user2.email, 'Subject B') in outbox_summary
-
-        # Should not create more jobs than what we already have
-        assert MassEmailJob.objects.count() == 2
-
-    def test_create_job(self):
-        config_A = MassEmailConfig.objects.create(
-            name='Config A',
-            subject='Subject A',
-            template='Template',
-            query='users_inactive_for_365_days',
-        )
-        create_job(config_A)
-        records = MassEmailRecord.objects.all()
-
-        expected_users = USER_QUERIES['users_inactive_for_365_days']()
-        user_names = {user.username for user in expected_users}
-        assert len(records) == 3
-        assert user_names == {r.user.username for r in records}
-
-    def test_send_emails_without_job(self):
-        config_A = MassEmailConfig.objects.create(
-            name='Config A',
-            subject='Subject A',
-            template='Template',
-            query='users_inactive_for_365_days',
-        )
-        expected_users = USER_QUERIES['users_inactive_for_365_days']()
-        expected_outbox = {(user.email, 'Subject A') for user in expected_users}
-
-        send_emails(config_A.uid, should_create_job=False)
-        assert MassEmailJob.objects.count() == 0
-        cache.clear()
-        send_emails(config_A.uid, should_create_job=True)
-        assert MassEmailJob.objects.count() == 1
-
-        outbox_summary = [(message.to[0], message.subject) for message in mail.outbox]
-        assert len(outbox_summary) == 3
-        assert expected_outbox == set(outbox_summary)
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=10)
+    @patch('django.utils.timezone.now')
+    @patch('kobo.apps.mass_emails.tasks.now')  # Unfortunately we have to mock both
+    def test_send_emails_limits(self, now_mock, now_mock_B):
+        now_mock.return_value = datetime(2025, 1, 1, 0, 0, 0, 0, pytz.UTC)
+        now_mock_B.return_value = now_mock.return_value
+        send_emails()
+        assert len(mail.outbox) == 10
+        now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
+        now_mock_B.return_value = now_mock.return_value
+        send_emails()
+        assert len(mail.outbox) == 20
+        now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
+        now_mock_B.return_value = now_mock.return_value
+        send_emails()
+        assert len(mail.outbox) == 20
 
     def test_template_render(self):
         data = {
             'username': 'Test Username',
             'full_name': 'Test Full Name',
             'plan_name': 'Test Plan Name',
+            'date_created': 'date_created',
         }
-        template = """
-        Username: ##username##
-        Full name: ##full_name##
-        Plan name: ##plan_name##
-        """
-        rendered = render_template(template, data)
+
+        rendered = render_template(self.template, data)
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
-
-    def test_send_emails_runs_only_once_daily(self):
-        config_A = MassEmailConfig.objects.create(
-            name='Config A',
-            subject='Subject A',
-            template='Template',
-            query='users_inactive_for_365_days',
-        )
-        send_emails(config_A.uid)
-        with self.assertRaises(ExecutionBlockedException):
-            send_emails(config_A.uid)

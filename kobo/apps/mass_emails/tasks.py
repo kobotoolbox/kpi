@@ -1,29 +1,30 @@
-from datetime import timedelta, date
+import json
+from datetime import datetime, time, timedelta
 from math import ceil
 
 from constance import config
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, Q
-from django.utils.timezone import now
+from django.utils.timezone import get_current_timezone, localdate, now
 from django.utils.translation import gettext
 
-from kobo.celery import celery_app
-from kpi.exceptions import ExecutionBlockedException
-from kpi.utils.log import logging
-from kpi.utils.mailer import EmailMessage, Mailer
 from kobo.apps.mass_emails.models import (
+    USER_QUERIES,
     EmailStatus,
     MassEmailConfig,
     MassEmailJob,
     MassEmailRecord,
-    USER_QUERIES
 )
+from kobo.celery import celery_app
+from kpi.utils.log import logging
+from kpi.utils.mailer import EmailMessage, Mailer
 
 templates_placeholders = {
     '##username##': 'username',
     '##full_name##': 'full_name',
     '##plan_name##': 'plan_name',
+    '##date_created##': 'date_created',
 }
 
 
@@ -73,91 +74,104 @@ def render_template(template, data):
     return rendered
 
 
-def create_job(email_config):
-    logging.info(f'Creating job for {email_config=}')
-    job = MassEmailJob.objects.create(
-        email_config=email_config,
-    )
-    users = USER_QUERIES[email_config.query]()
-    records = [
-        MassEmailRecord(
-            user=user,
-            email_job=job,
-            status=EmailStatus.ENQUEUED,
-        )
-        for user in users
-    ]
-    MassEmailRecord.objects.bulk_create(records)
+class MassEmailSender:
 
-
-@celery_app.task
-def send_emails(email_config_uid: str, should_create_job: bool = False):
-    today = date.today().isoformat()
-    cache_key = f'MassEmailConfig_Lock_{today}_{email_config_uid}'
-    if cache.get(cache_key) == 'Locked':
-        raise ExecutionBlockedException
-    cache.set(cache_key, 'Locked', 60*60*24) # 1 day lock
-
-    email_config = MassEmailConfig.objects.annotate(
-        enqueued_records_count=Count(
-            'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
-        )
-    ).get(uid=email_config_uid)
-    if email_config.enqueued_records_count == 0 and should_create_job:
-        create_job(email_config)
-
-    jobs = email_config.jobs.annotate(
-        pending_records=Count(
-            'records', filter=Q(records__status=EmailStatus.ENQUEUED)
-        ),
-    ).order_by('date_created')
-    current_job = None
-    for job in jobs:
-        # Take the first job that has pending records
-        if job.pending_records > 0:
-            current_job = job
-            break
-    if current_job is None:
-        return
-
-    logging.info(
-        f'Processing MassEmailConfig(uid={email_config.uid}, '
-        f'name={email_config.name}, subject={email_config.subject})'
-    )
-    active_configs_count = (
-        MassEmailConfig.objects.annotate(
-            enqueued=Count(
-                'jobs__records', filter=Q(jobs__records__status=EmailStatus.ENQUEUED)
+    def __init__(self):
+        self.today = localdate()
+        self.cache_key = f'mass_emails_{self.today.isoformat()}_email_limits'
+        self.total_records = MassEmailRecord.objects.filter(
+            status=EmailStatus.ENQUEUED
+        ).count()
+        self.configs = MassEmailConfig.objects.annotate(
+            enqueued_records_count=Count(
+                'jobs__records',
+                filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
             )
         )
-        .filter(enqueued__gt=0)
-        .count()
-    )
-    emails_count = ceil(settings.MAX_MASS_EMAILS_PER_DAY / active_configs_count)
-    for job in email_config.jobs.all():
-        records = job.records.filter(status=EmailStatus.ENQUEUED)[:emails_count]
-        for record in records:
-            logging.info(f'Processing MassEmailRecord({record})')
-            org_user = record.user.organization.organization_users.get(user=record.user)
-            plan_name = org_user.active_subscription_status
-            if plan_name == '' or plan_name is None:
-                plan_name = gettext('Community Plan')
-            data = {
-                'username': record.user.username,
-                'full_name': record.user.first_name + ' ' + record.user.last_name,
-                'plan_name': plan_name,
-            }
-            content = render_template(email_config.template, data)
-            message = EmailMessage(
-                to=record.user.email,
-                subject=email_config.subject,
-                plain_text_content_or_template=content,
-                html_content_or_template=content,
-            )
-            sent = Mailer.send(message)
-            if sent:
-                record.status = EmailStatus.SENT
+        logging.info(f'Found {self.total_records} enqueued records')
+        self.get_day_limits()
+
+    def get_day_limits(self):
+        MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
+        serialized_data = cache.get(self.cache_key)
+        if not serialized_data:
+            logging.info('Setting up MassEmailConfig limits for the current day')
+            self.limits = {}
+            if self.total_records < MAX_EMAILS:
+                for config in self.configs:
+                    self.limits[config.id] = config.enqueued_records_count
             else:
-                record.status = EmailStatus.FAILED
+                total_limits = 0
+                for config in self.configs:
+                    if total_limits >= MAX_EMAILS:
+                        break
+                    config_limit = ceil(
+                        config.enqueued_records_count / self.total_records * MAX_EMAILS
+                    )
+                    if total_limits + config_limit > MAX_EMAILS:
+                        config_limit = MAX_EMAILS - total_limits
+                    self.limits[config.id] = config_limit
+                    total_limits += config_limit
+        else:
+            self.limits = json.loads(serialized_data)
 
-            record.save()
+    def send_day_emails(self):
+        for config in self.configs:
+            limit = self.limits.get(config.id)
+            if not limit:
+                continue
+            records = MassEmailRecord.objects.filter(
+                status=EmailStatus.ENQUEUED,
+                email_job__email_config=config,
+            )[:limit]
+            logging.info(f'Processing {limit} records for MassEmailConfig({config})')
+            for record in records:
+                self.send_email(config, record)
+            self.limits[config.id] = 0
+            self.update_day_limits()
+
+    def send_email(self, email_config, record):
+        logging.info(f'Processing MassEmailRecord({record})')
+        org_user = record.user.organization.organization_users.get(user=record.user)
+        plan_name = org_user.active_subscription_status
+        if plan_name == '' or plan_name is None:
+            plan_name = gettext('Community Plan')
+        data = {
+            'username': record.user.username,
+            'full_name': record.user.first_name + ' ' + record.user.last_name,
+            'plan_name': plan_name,
+            'date_created': record.date_created.strftime('%Y-%m-%d %H:%M'),
+        }
+        content = render_template(email_config.template, data)
+        message = EmailMessage(
+            to=record.user.email,
+            subject=email_config.subject,
+            plain_text_content_or_template=content,
+            html_content_or_template=content,
+        )
+        try:
+            sent = Mailer.send(message)
+        except Exception as e:
+            logging.exception(f'Error when attempting to send record {record}')
+            sent = False
+        if sent:
+            record.status = EmailStatus.SENT
+        else:
+            record.status = EmailStatus.FAILED
+
+        record.save()
+
+    def update_day_limits(self):
+        today_dt = datetime.combine(
+            self.today, time(0, 0, 0, 0, get_current_timezone())
+        )
+        timedelta_to_midnight = (today_dt + timedelta(days=1)) - now()
+        TTL = timedelta_to_midnight.total_seconds()
+        serialized_data = json.dumps(self.limits)
+        cache.set(self.cache_key, serialized_data, TTL)
+
+
+@celery_app.task(time_limit=3600)  # 1 hour limit
+def send_emails():
+    sender = MassEmailSender()
+    sender.send_day_emails()
