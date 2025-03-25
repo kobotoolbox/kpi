@@ -12,20 +12,16 @@ interface RepeatGroupCellProps {
  */
 export default function RepeatGroupCell(props: RepeatGroupCellProps) {
   const repeatGroupAnswers = getRepeatGroupAnswers(props.submissionData, props.rowName)
-  if (repeatGroupAnswers) {
-    const elementsToRender: React.ReactNode[] = []
-    repeatGroupAnswers.forEach((answer, index) => {
-      if (index !== 0) {
-        elementsToRender.push(', ')
-      }
-      elementsToRender.push(answer)
-    })
-    return (
-      <div className={styles.repeatGroupCell} dir='auto'>
-        {elementsToRender}
-      </div>
-    )
-  } else {
-    return null
-  }
+  if (!repeatGroupAnswers) return null
+
+  return (
+    <div className={styles.repeatGroupCell} dir='auto'>
+      {repeatGroupAnswers.map((answer, i) => (
+        <>
+          {i > 0 && ', '}
+          {answer}
+        </>
+      ))}
+    </div>
+  )
 }
