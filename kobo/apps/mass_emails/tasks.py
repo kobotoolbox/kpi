@@ -1,6 +1,6 @@
-import json
 from datetime import datetime, time, timedelta
 from math import ceil
+from typing import Optional
 
 from constance import config
 from django.conf import settings
@@ -78,7 +78,7 @@ class MassEmailSender:
 
     def __init__(self):
         self.today = localdate()
-        self.cache_key = f'mass_emails_{self.today.isoformat()}_email_limits'
+        self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_limits'
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -91,31 +91,55 @@ class MassEmailSender:
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
+    def cache_limit_value(self, email_config: Optional[MassEmailConfig], limit: int):
+        if email_config is None:
+            self.total_limit = limit
+            cache_key = f'{self.cache_key_prefix}_total'
+        else:
+            self.limits[email_config.id] = limit
+            cache_key = f'{self.cache_key_prefix}_{email_config.id}'
+
+        tomorrow = datetime.combine(
+            self.today, time(0, 0, 0, 0, get_current_timezone())
+        ) + timedelta(days=1)
+        timedelta_to_midnight = tomorrow - now()
+        TTL = timedelta_to_midnight.total_seconds()
+
+        cache.set(cache_key, limit, TTL)
+
     def get_day_limits(self):
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
-        serialized_data = cache.get(self.cache_key)
-        if not serialized_data:
+        self.limits = {}
+        self.total_limit = cache.get(f'{self.cache_key_prefix}_total')
+
+        if self.total_limit is not None:
+            for email_config in self.configs:
+                stored_limit = cache.get(f'{self.cache_key_prefix}_{email_config.id}')
+                self.limits[email_config.id] = stored_limit
+        else:
             logging.info('Setting up MassEmailConfig limits for the current day')
-            self.limits = {}
+            MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
             if self.total_records < MAX_EMAILS:
                 for email_config in self.configs:
-                    self.limits[email_config.id] = email_config.enqueued_records_count
+                    self.cache_limit_value(
+                        email_config, email_config.enqueued_records_count
+                    )
+                self.cache_limit_value(None, self.total_records)
             else:
-                total_limits = 0
+                total_limit = 0
                 for email_config in self.configs:
-                    if total_limits >= MAX_EMAILS:
+                    if total_limit >= MAX_EMAILS:
                         break
                     config_limit = ceil(
                         email_config.enqueued_records_count
                         / self.total_records
                         * MAX_EMAILS
                     )
-                    if total_limits + config_limit > MAX_EMAILS:
+                    if total_limit + config_limit > MAX_EMAILS:
                         config_limit = MAX_EMAILS - total_limits
-                    self.limits[email_config.id] = config_limit
-                    total_limits += config_limit
-        else:
-            self.limits = json.loads(serialized_data)
+                    self.cache_limit_value(email_config, config_limit)
+                    total_limit += config_limit
+                self.cache_limit_value(None, MAX_EMAILS)
 
     def send_day_emails(self):
         for email_config in self.configs:
@@ -131,8 +155,8 @@ class MassEmailSender:
             )
             for record in records:
                 self.send_email(email_config, record)
-            self.limits[email_config.id] = 0
-            self.update_day_limits()
+                self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
+                self.cache_limit_value(None, self.total_limit - 1)
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
@@ -164,15 +188,6 @@ class MassEmailSender:
             record.status = EmailStatus.FAILED
 
         record.save()
-
-    def update_day_limits(self):
-        today_dt = datetime.combine(
-            self.today, time(0, 0, 0, 0, get_current_timezone())
-        )
-        timedelta_to_midnight = (today_dt + timedelta(days=1)) - now()
-        TTL = timedelta_to_midnight.total_seconds()
-        serialized_data = json.dumps(self.limits)
-        cache.set(self.cache_key, serialized_data, TTL)
 
 
 @celery_app.task(time_limit=3600)  # 1 hour limit

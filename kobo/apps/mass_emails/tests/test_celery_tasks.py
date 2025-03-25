@@ -49,14 +49,16 @@ class TestCeleryTask(BaseTestCase):
     @override_settings(MAX_MASS_EMAILS_PER_DAY=310)
     def test_daily_limits_less_than_max(self):
         sender = MassEmailSender()
+        assert sender.total_limit == 300
         assert len(sender.limits) == 100
         assert sum(sender.limits.values()) == 300
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=180)
     def test_daily_limits_more_than_max(self):
         sender = MassEmailSender()
-        assert len(sender.limits) == 90
+        assert sender.total_limit == 180
         assert sum(sender.limits.values()) == 180
+        assert list(sender.limits.values())[0] == 2
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=10)
     @patch('django.utils.timezone.now')
@@ -70,10 +72,14 @@ class TestCeleryTask(BaseTestCase):
         now_mock_B.return_value = now_mock.return_value
         send_emails()
         assert len(mail.outbox) == 20
-        now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
-        now_mock_B.return_value = now_mock.return_value
+        # Calling send_emails on the same day:
         send_emails()
         assert len(mail.outbox) == 20
+
+        # Test if limits end up witht he correct value
+        sender = MassEmailSender()
+        assert sum([0 if l is None else l for l in sender.limits.values()]) == 0
+        assert sender.total_limit == 0
 
     def test_template_render(self):
         data = {
