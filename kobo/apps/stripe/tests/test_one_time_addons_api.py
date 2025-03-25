@@ -1,14 +1,6 @@
 from ddt import data, ddt
 from django.urls import reverse
-from django.utils import timezone
-from djstripe.models import (
-    Charge,
-    Customer,
-    PaymentIntent,
-    Price,
-    Product,
-    Subscription,
-)
+from djstripe.models import Customer, Subscription
 from model_bakery import baker
 from rest_framework import status
 
@@ -50,7 +42,13 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         self.price = product.default_price
 
     def _create_payment(self, payment_status='succeeded', refunded=False):
-        charge = _create_payment(customer=self.customer, price=self.price, product=self.product, payment_status=payment_status, refunded=refunded)
+        charge = _create_payment(
+            customer=self.customer,
+            price=self.price,
+            product=self.product,
+            payment_status=payment_status,
+            refunded=refunded
+        )
         self.charge = charge
 
     def test_no_addons(self):

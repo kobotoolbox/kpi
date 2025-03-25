@@ -131,6 +131,7 @@ def get_current_billing_period_dates_based_on_canceled_plans(
 
     return result
 
+
 def get_billing_dates_after_canceled_subscription(
     canceled_subscription_anchor: datetime,
 ):
@@ -351,7 +352,6 @@ def get_organization_subscription_limits(
             default_plan_limits[limit_key] = 'unlimited'
         else:
             default_plan_limits[limit_key] = default_limit
-
 
     results = {}
     for org_id in all_org_ids:

@@ -57,6 +57,7 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     active_users = set(active_asset_owners) | set(active_submission_owners)
     return inactive_users.exclude(Q(id__in=active_users) | Q(username='AnonymousUser'))
 
+
 def get_users_within_range_of_usage_limit(
     usage_type: UsageType, minimum: float = 0, maximum: float = inf
 ) -> QuerySet:
@@ -96,8 +97,11 @@ def get_users_within_range_of_usage_limit(
             user_ids.append(user_id)
     return User.objects.filter(id__in=user_ids)
 
+
 def get_users_over_90_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit(usage_type='storage', minimum=0.9, maximum=1)
+    results = get_users_within_range_of_usage_limit(
+        usage_type='storage', minimum=0.9, maximum=1
+    )
     return [user.extra_details.uid for user in results]
 
 
