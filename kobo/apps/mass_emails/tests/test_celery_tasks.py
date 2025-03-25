@@ -78,7 +78,7 @@ class TestCeleryTask(BaseTestCase):
 
         # Test if limits end up witht he correct value
         sender = MassEmailSender()
-        assert sum([0 if l is None else l for l in sender.limits.values()]) == 0
+        assert sum([0 if lim is None else lim for lim in sender.limits.values()]) == 0
         assert sender.total_limit == 0
 
     def test_template_render(self):
