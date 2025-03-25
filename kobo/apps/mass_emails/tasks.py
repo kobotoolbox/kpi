@@ -70,7 +70,8 @@ def mark_old_enqueued_mass_email_record_as_failed():
 def render_template(template, data):
     rendered = template
     for placeholder, value in templates_placeholders.items():
-        rendered = rendered.replace(placeholder, data[value])
+        if value in data:
+            rendered = rendered.replace(placeholder, data[value])
     return rendered
 
 
@@ -78,7 +79,7 @@ class MassEmailSender:
 
     def __init__(self):
         self.today = localdate()
-        self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_limits'
+        self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -154,9 +155,9 @@ class MassEmailSender:
                 f'Processing {limit} records for MassEmailConfig({email_config})'
             )
             for record in records:
-                self.send_email(email_config, record)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
+                self.send_email(email_config, record)
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')

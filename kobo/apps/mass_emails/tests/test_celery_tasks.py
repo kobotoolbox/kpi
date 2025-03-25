@@ -86,7 +86,6 @@ class TestCeleryTask(BaseTestCase):
             'username': 'Test Username',
             'full_name': 'Test Full Name',
             'plan_name': 'Test Plan Name',
-            'date_created': 'date_created',
         }
 
         rendered = render_template(self.template, data)
