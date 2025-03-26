@@ -345,7 +345,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * @returns {object} one of ValidationStatusOption
    */
   getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) => option.value === originalRow._validation_status?.uid)
+    const foundOption = VALIDATION_STATUS_OPTIONS.find(
+      (option) => 'uid' in originalRow._validation_status && option.value === originalRow._validation_status.uid,
+    )
 
     // If submission doesn't have a validation status, we return the no option option :)
     return foundOption || VALIDATION_STATUS_NO_OPTION
