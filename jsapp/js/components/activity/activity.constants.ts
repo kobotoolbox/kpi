@@ -4,29 +4,33 @@
  */
 export enum AuditActions {
   'add-media' = 'add-media',
+  'add-submission' = 'add-submission',
   'allow-anonymous-submissions' = 'allow-anonymous-submissions',
-  'archive' = 'archive',
+  archive = 'archive',
   'clone-permissions' = 'clone-permissions',
   'connect-project' = 'connect-project',
   'delete-media' = 'delete-media',
   'delete-service' = 'delete-service',
-  'deploy' = 'deploy',
+  'delete-submission' = 'delete-submission',
+  deploy = 'deploy',
   'disable-sharing' = 'disable-sharing',
   'disallow-anonymous-submissions' = 'disallow-anonymous-submissions',
   'disconnect-project' = 'disconnect-project',
   'enable-sharing' = 'enable-sharing',
-  'export' = 'export',
+  export = 'export',
   'modify-imported-fields' = 'modify-imported-fields',
   'modify-service' = 'modify-service',
   'modify-sharing' = 'modify-sharing',
+  'modify-submission' = 'modify-submission',
+  'modify-qa-data' = 'modify-qa-data',
   'modify-user-permissions' = 'modify-user-permissions',
-  'redeploy' = 'redeploy',
+  redeploy = 'redeploy',
   'register-service' = 'register-service',
   'replace-form' = 'replace-form',
   'share-data-publicly' = 'share-data-publicly',
   'share-form-publicly' = 'share-form-publicly',
-  'transfer' = 'transfer',
-  'unarchive' = 'unarchive',
+  transfer = 'transfer',
+  unarchive = 'unarchive',
   'unshare-data-publicly' = 'unshare-data-publicly',
   'unshare-form-publicly' = 'unshare-form-publicly',
   'update-content' = 'update-content',
@@ -35,199 +39,203 @@ export enum AuditActions {
   'update-qa' = 'update-qa',
 }
 
-type AuditActionTypes = {
-  [P in AuditActions]: {
-    name: AuditActions;
-    label: string;
-    message: string;
-    order: number;
-  };
-};
+interface AuditActionDefinition {
+  name: AuditActions
+  label: string
+  message: string
+  /** This is the order at which the filtering dropdown should display the actions options. */
+  order: number
+}
 
-export const AUDIT_ACTION_TYPES: AuditActionTypes = {
-  'add-media': {
-    order: 10,
-    name: AuditActions['add-media'],
-    label: t('add media attachment'),
-    message: t('##username## added a media attachment'),
-  },
-  'allow-anonymous-submissions': {
-    order: 16,
-    name: AuditActions['allow-anonymous-submissions'],
-    label: t('enable anonymous submissions'),
-    message: t('##username## enabled anonymous submissions'),
-  },
-  'archive': {
-    order: 4,
-    name: AuditActions['archive'],
-    label: t('archive project'),
-    message: t('##username## archived project'),
-  },
-  'clone-permissions': {
-    order: 13,
-    name: AuditActions['clone-permissions'],
-    label: t('clone permissions'),
-    message: t('##username## cloned permissions from another project'),
-  },
-  'connect-project': {
-    order: 24,
-    name: AuditActions['connect-project'],
-    label: t('connect project data'),
-    message: t('##username## connected project data with another project'),
-  },
-  'delete-media': {
-    order: 11,
-    name: AuditActions['delete-media'],
-    label: t('remove media attachment'),
-    message: t('##username## removed a media attachment'),
-  },
-  'delete-service': {
-    order: 29,
-    name: AuditActions['delete-service'],
-    label: t('delete a REST service'),
-    message: t('##username## deleted a REST service'),
-  },
-  'deploy': {
-    order: 2,
-    name: AuditActions['deploy'],
-    label: t('deploy project'),
-    message: t('##username## deployed project'),
-  },
-  'disable-sharing': {
-    order: 23,
-    name: AuditActions['disable-sharing'],
-    label: t('disable data sharing'),
-    message: t('##username## disabled data sharing'),
-  },
-  'disallow-anonymous-submissions': {
-    order: 19,
-    name: AuditActions['disallow-anonymous-submissions'],
-    label: t('disable anonymous submissions'),
-    message: t('##username## disallowed anonymous submissions'),
-  },
-  'disconnect-project': {
-    order: 26,
-    name: AuditActions['disconnect-project'],
-    label: t('disconnect project'),
-    message: t('##username## disconnected project from another project'),
-  },
-  'enable-sharing': {
-    order: 21,
-    name: AuditActions['enable-sharing'],
-    label: t('enable data sharing'),
-    message: t('##username## enabled data sharing'),
-  },
-  'export': {
-    order: 9,
-    name: AuditActions['export'],
-    label: t('export data'),
-    message: t('##username## exported data'),
-  },
-  'modify-imported-fields': {
-    order: 25,
-    name: AuditActions['modify-imported-fields'],
-    label: t('change imported fields'),
-    message: t('##username## changed imported fields from another project'),
-  },
-  'modify-service': {
-    order: 28,
-    name: AuditActions['modify-service'],
-    label: t('modify a REST service'),
-    message: t('##username## modified a REST service'),
-  },
-  'modify-sharing': {
-    order: 22,
-    name: AuditActions['modify-sharing'],
-    label: t('modify data sharing'),
-    message: t('##username## modified data sharing'),
-  },
-  'modify-user-permissions': {
-    order: 12,
-    name: AuditActions['modify-user-permissions'],
-    label: t('update permissions'),
-    message: t('##username## updated permissions of ##username2##'),
-  },
-  'redeploy': {
-    order: 3,
-    name: AuditActions['redeploy'],
-    label: t('redeploy project'),
-    message: t('##username## redeployed project'),
-  },
-  'register-service': {
-    order: 27,
-    name: AuditActions['register-service'],
-    label: t('register a new REST service'),
-    message: t('##username## registered a new REST service'),
-  },
-  'replace-form': {
-    order: 6,
-    name: AuditActions['replace-form'],
-    label: t('upload new form'),
-    message: t('##username## uploaded a new form'),
-  },
-  'share-data-publicly': {
-    order: 15,
-    name: AuditActions['share-data-publicly'],
-    label: t('share data publicly'),
-    message: t('##username## shared data publicly'),
-  },
-  'share-form-publicly': {
-    order: 14,
-    name: AuditActions['share-form-publicly'],
-    label: t('make project public'),
-    message: t('##username## made the project publicly accessible'),
-  },
-  'transfer': {
-    order: 20,
-    name: AuditActions['transfer'],
-    label: t('transfer project ownership'),
-    message: t('##username## transferred project ownership to ##username2##'),
-  },
-  'unarchive': {
-    order: 5,
-    name: AuditActions['unarchive'],
-    label: t('unarchive project'),
-    message: t('##username## unarchived project'),
-  },
-  'unshare-data-publicly': {
-    order: 18,
-    name: AuditActions['unshare-data-publicly'],
-    label: t('disable sharing data publicly'),
-    message: t('##username## disabled sharing data publicly'),
-  },
-  'unshare-form-publicly': {
-    order: 17,
-    name: AuditActions['unshare-form-publicly'],
-    label: t('disable making project public'),
-    message: t('##username## disabled making project publicly accessible'),
-  },
-  'update-content': {
-    order: 7,
-    name: AuditActions['update-content'],
-    label: t('edit form'),
-    message: t('##username## edited the form in the form builder'),
-  },
-  'update-name': {
-    order: 0,
+/**
+ * An ordered (the order matters!) list of audit action types.
+ */
+// biome-ignore format: the array should not be formatted, as it makes it harder to read
+const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
+  {
     name: AuditActions['update-name'],
     label: t('change name'),
     message: t('##username## changed project name'),
   },
-  'update-settings': {
-    order: 1,
+  {
     name: AuditActions['update-settings'],
     label: t('update settings'),
     message: t('##username## updated project settings'),
   },
-  'update-qa': {
-    order: 8,
+  {
+    name: AuditActions['deploy'],
+    label: t('deploy project'),
+    message: t('##username## deployed project'),
+  },
+  {
+    name: AuditActions['redeploy'],
+    label: t('redeploy project'),
+    message: t('##username## redeployed project'),
+  },
+  {
+    name: AuditActions['archive'],
+    label: t('archive project'),
+    message: t('##username## archived project'),
+  },
+  {
+    name: AuditActions['unarchive'],
+    label: t('unarchive project'),
+    message: t('##username## unarchived project'),
+  },
+  {
+    name: AuditActions['replace-form'],
+    label: t('upload new form'),
+    message: t('##username## uploaded a new form'),
+  },
+  {
+    name: AuditActions['update-content'],
+    label: t('edit form'),
+    message: t('##username## edited the form in the form builder'),
+  },
+  {
     name: AuditActions['update-qa'],
     label: t('modify qualitative analysis questions'),
     message: t('##username## modified qualitative analysis questions'),
   },
-};
+  {
+    name: AuditActions['modify-qa-data'],
+    label: t('edit qualitative analysis data'),
+    message: t('##username## edited qualitative analysis data'),
+  },
+  {
+    name: AuditActions['export'],
+    label: t('export data'),
+    message: t('##username## exported data'),
+  },
+  {
+    name: AuditActions['add-media'],
+    label: t('add media attachment'),
+    message: t('##username## added a media attachment'),
+  },
+  {
+    name: AuditActions['delete-media'],
+    label: t('remove media attachment'),
+    message: t('##username## removed a media attachment'),
+  },
+  {
+    name: AuditActions['modify-user-permissions'],
+    label: t('update permissions'),
+    message: t('##username## updated permissions of ##username2##'),
+  },
+  {
+    name: AuditActions['clone-permissions'],
+    label: t('clone permissions'),
+    message: t('##username## cloned permissions from another project'),
+  },
+  {
+    name: AuditActions['share-form-publicly'],
+    label: t('make project public'),
+    message: t('##username## made the project publicly accessible'),
+  },
+  {
+    name: AuditActions['share-data-publicly'],
+    label: t('share data publicly'),
+    message: t('##username## shared data publicly'),
+  },
+  {
+    name: AuditActions['allow-anonymous-submissions'],
+    label: t('enable anonymous submissions'),
+    message: t('##username## enabled anonymous submissions'),
+  },
+  {
+    name: AuditActions['unshare-form-publicly'],
+    label: t('disable making project public'),
+    message: t('##username## disabled making project publicly accessible'),
+  },
+  {
+    name: AuditActions['unshare-data-publicly'],
+    label: t('disable sharing data publicly'),
+    message: t('##username## disabled sharing data publicly'),
+  },
+  {
+    name: AuditActions['disallow-anonymous-submissions'],
+    label: t('disable anonymous submissions'),
+    message: t('##username## disallowed anonymous submissions'),
+  },
+  {
+    name: AuditActions['transfer'],
+    label: t('transfer project ownership'),
+    message: t('##username## transferred project ownership to ##username2##'),
+  },
+  {
+    name: AuditActions['enable-sharing'],
+    label: t('enable data sharing'),
+    message: t('##username## enabled data sharing'),
+  },
+  {
+    name: AuditActions['modify-sharing'],
+    label: t('modify data sharing'),
+    message: t('##username## modified data sharing'),
+  },
+  {
+    name: AuditActions['disable-sharing'],
+    label: t('disable data sharing'),
+    message: t('##username## disabled data sharing'),
+  },
+  {
+    name: AuditActions['connect-project'],
+    label: t('connect project data'),
+    message: t('##username## connected project data with another project'),
+  },
+  {
+    name: AuditActions['modify-imported-fields'],
+    label: t('change imported fields'),
+    message: t('##username## changed imported fields from another project'),
+  },
+  {
+    name: AuditActions['disconnect-project'],
+    label: t('disconnect project'),
+    message: t('##username## disconnected project from another project'),
+  },
+  {
+    name: AuditActions['register-service'],
+    label: t('register a new REST service'),
+    message: t('##username## registered a new REST service'),
+  },
+  {
+    name: AuditActions['modify-service'],
+    label: t('modify a REST service'),
+    message: t('##username## modified a REST service'),
+  },
+  {
+    name: AuditActions['delete-service'],
+    label: t('delete a REST service'),
+    message: t('##username## deleted a REST service'),
+  },
+  {
+    name: AuditActions['add-submission'],
+    label: t('add submission'),
+    message: t('##username## added a submission'),
+  },
+  {
+    name: AuditActions['modify-submission'],
+    label: t('edit submission'),
+    message: t('##username## edited a submission'),
+  },
+  {
+    name: AuditActions['delete-submission'],
+    label: t('delete a submission'),
+    message: t('##username## deleted a submission'),
+  },
+]
 
-export const FALLBACK_MESSAGE = '##username## did action ##action##';
+type AuditActionTypes = {
+  [P in AuditActions]: AuditActionDefinition
+}
+
+export const AUDIT_ACTION_TYPES: AuditActionTypes = _AUDIT_ACTION_TYPES.reduce((acc, action, index) => {
+  acc[action.name] = { ...action, order: index } as AuditActionDefinition
+  return acc
+}, {} as AuditActionTypes)
+
+export const FALLBACK_MESSAGE = '##username## did action ##action##'
+
+export const HIDDEN_AUDIT_ACTIONS = [AuditActions['add-submission']]
 
 /**
  * All possible log item types.
@@ -249,28 +257,28 @@ export enum AuditSubTypes {
 
 export interface ActivityLogsItem {
   /** User url. E.g. "https://kf.beta.kbtdev.org/api/v2/users/<username>/" */
-  user: string;
-  user_uid: string;
-  username: string;
+  user: string
+  user_uid: string
+  username: string
   /** Date string in ISO 8601. E.g. "2024-10-04T14:04:18Z" */
-  date_created: string;
-  action: AuditActions;
-  log_type: AuditTypes;
+  date_created: string
+  action: AuditActions
+  log_type: AuditTypes
   metadata: {
     /** E.g. "Firefox (Ubuntu)" */
-    source: string;
-    asset_uid: string;
+    source: string
+    asset_uid: string
     /** E.g. "71.235.120.86" */
-    ip_address: string;
-    log_subtype: AuditSubTypes;
-    old_name?: string;
-    new_name?: string;
-    latest_deployed_version_id?: string;
-    latest_version_id?: string;
-    version_uid?: string;
-    username?: string;
+    ip_address: string
+    log_subtype: AuditSubTypes
+    old_name?: string
+    new_name?: string
+    latest_deployed_version_id?: string
+    latest_version_id?: string
+    version_uid?: string
+    username?: string
     permissions?: {
-      username: string;
-    };
-  };
+      username: string
+    }
+  }
 }

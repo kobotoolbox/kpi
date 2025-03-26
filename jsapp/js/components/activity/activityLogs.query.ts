@@ -1,14 +1,14 @@
 import {keepPreviousData, useQuery} from '@tanstack/react-query';
+import {AUDIT_ACTION_TYPES, HIDDEN_AUDIT_ACTIONS} from './activity.constants';
+import type {ActivityLogsItem, AuditActions} from './activity.constants';
+import {endpoints} from 'jsapp/js/api.endpoints';
 import type {
   FailResponse,
   LabelValuePair,
   PaginatedResponse,
-} from 'js/dataInterface';
-import {AUDIT_ACTION_TYPES} from './activity.constants';
-import type {AuditActions, ActivityLogsItem} from './activity.constants';
-import {QueryKeys} from 'js/query/queryKeys';
-import {fetchGet} from 'jsapp/js/api';
-import {endpoints} from 'jsapp/js/api.endpoints';
+} from 'jsapp/js/dataInterface';
+import {fetchGet, fetchPost} from 'jsapp/js/api';
+import {QueryKeys} from 'jsapp/js/query/queryKeys';
 import type {PaginatedQueryHookParams} from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 
 /**
@@ -27,13 +27,18 @@ const getActivityLogs = async ({
   limit: number;
   offset: number;
 }) => {
+  // Filter out unwanted actions (e.g. UI doesn't support them yet).
+  let q = `NOT action:'${HIDDEN_AUDIT_ACTIONS.join(',')}'`;
+  // Alternatively filter by only single selected action.
+  if (actionFilter !== '') {
+    q = `action:${actionFilter}`;
+  }
+
   const params = new URLSearchParams({
     limit: limit.toString(),
     offset: offset.toString(),
+    q: q,
   });
-  if (actionFilter) {
-    params.append('q', `action:${actionFilter}`);
-  }
 
   const endpointUrl = endpoints.ASSET_HISTORY.replace(':asset_uid', assetUid);
 
@@ -70,6 +75,7 @@ const getFilterOptions = async (
 
   return filterOptions.actions
     .map((key) => AUDIT_ACTION_TYPES[key])
+    .filter((auditAction) => !HIDDEN_AUDIT_ACTIONS.includes(auditAction.name))
     .sort((a, b) => a.order - b.order)
     .map((auditAction) => {
       return {
@@ -83,20 +89,16 @@ const getFilterOptions = async (
  * Starts the exporting process of the activity logs.
  * @returns {Promise<void>} The promise that starts the export
  */
-const startActivityLogsExport = async () =>
-  new Promise<void>((resolve, reject) => {
-    // Simulates backend export process.
-    setTimeout(() => {
-      if (Math.random() > 0.5) {
-        resolve();
-      } else {
-        const failResponse: FailResponse = {
-          status: 500,
-          statusText: 'Mocked error',
-        };
-        reject(failResponse);
-      }
-    }, 500);
+export const startActivityLogsExport = (assetUid: string) =>
+  fetchPost(endpoints.ASSET_HISTORY_EXPORT.replace(':asset_uid', assetUid), {
+    notifyAboutError: false,
+  }).catch((error) => {
+    const failResponse: FailResponse = {
+      status: 500,
+      statusText:
+        error.message || t('An error occurred while exporting the logs'),
+    };
+    throw failResponse;
   });
 
 /**
