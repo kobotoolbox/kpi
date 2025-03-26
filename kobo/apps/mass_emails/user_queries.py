@@ -63,8 +63,7 @@ def get_users_within_range_of_usage_limit(
 ) -> QuerySet:
     """
     Returns all users whose usage is between minimum and maximum percent
-    of their plan limit for the given usage types. Any user who is within the limit
-    for any usage type will be returned.
+    of their plan limit for the given usage type.
 
     :param usage_type: UsageType. 'submission' or 'storage'
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
