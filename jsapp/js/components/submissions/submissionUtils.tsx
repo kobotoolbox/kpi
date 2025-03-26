@@ -22,6 +22,7 @@ import type {
   SubmissionAttachment,
   SubmissionResponse,
   SubmissionResponseValue,
+  SubmissionResponseValueObject,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
@@ -479,7 +480,7 @@ function isRowFromCurrentGroupLevel(
   }
 }
 
-const isSubmissionResponse = (data: any): data is SubmissionResponse => {
+const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseValueObject => {
   if (data === null) return false
   if (typeof data !== 'object') return false
   if (Array.isArray(data)) return false
@@ -515,7 +516,7 @@ export function getRepeatGroupAnswers(
       .slice(0, currentDepth + 1)
       .join('/')
 
-    if (!isSubmissionResponse(data)) return []
+    if (!isSubmissionResponseValueObject(data)) return []
 
     const submissionResponseValue = data[currentPath]
     if (!submissionResponseValue) return []
