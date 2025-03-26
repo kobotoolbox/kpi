@@ -69,6 +69,13 @@ def get_users_within_range_of_usage_limit(
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
     :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
     """
+
+    # cheat so that we don't fetch information twice if we're looking for nlp usage
+    nlp_usage = None
+    def get_nlp_usage_for_current_billing_period_by_user_id():
+        if nlp_usage is not None:
+            pass
+
     usage_method_by_type = {
         'submission': get_submissions_for_current_billing_period_by_user_id,
         'storage': get_storage_usage_by_user_id,

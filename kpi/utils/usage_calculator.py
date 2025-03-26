@@ -52,6 +52,40 @@ def get_submissions_for_current_billing_period_by_user_id():
         current_billing_dates_by_owner
     )
 
+def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user):
+    filters = Q()
+    for user_id, date_range in date_ranges_by_user.items():
+        filters |= Q(
+            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        )
+    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+
+    nlp_tracking = (
+        NLPUsageCounter.objects.only(
+            'date', 'total_asr_seconds', 'total_mt_characters'
+        )
+        .filter(filters)
+        .aggregate(
+            asr_seconds_current_period=Coalesce(
+                Sum('total_asr_seconds', filter=self.current_period_filter),
+                0,
+            ),
+            mt_characters_current_period=Coalesce(
+                Sum('total_mt_characters', filter=self.current_period_filter),
+                0,
+            ),
+            asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
+            mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+        )
+    )
+
+    total_nlp_usage = {}
+    for nlp_key, count in nlp_tracking.items():
+        total_nlp_usage[nlp_key] = count if count is not None else 0
+
+    return total_nlp_usage
+    pass
+
 
 class ServiceUsageCalculator(CachedClass):
     CACHE_TTL = settings.ENDPOINT_CACHE_DURATION
