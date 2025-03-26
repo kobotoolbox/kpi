@@ -315,11 +315,11 @@ def get_organizations_subscription_limits(
 
     from djstripe.models.core import Product
 
-    # get regular plan limits
-    subscription_limits = get_subscription_limits(all_org_ids)
-    subscription_limits_by_org_id = {}
+    # get paid subscription limits
+    subscription_limits = get_paid_subscription_limits(all_org_ids)
+    all_paid_subscription_limits_by_org_id = {}
     for row in subscription_limits:
-        row_limits = subscription_limits_by_org_id.get(row['org_id'], {})
+        row_limits = all_paid_subscription_limits_by_org_id.get(row['org_id'], {})
         if row['product_type'] == 'plan':
             row_limits = {
                 f'{usage_type}_limit': row[f'{usage_type}_limit']
@@ -327,7 +327,7 @@ def get_organizations_subscription_limits(
             }
         elif row['product_type'] == 'addon':
             row_limits['addon_storage_limit'] = row['storage_limit']
-        subscription_limits_by_org_id[row['org_id']] = row_limits
+        all_paid_subscription_limits_by_org_id[row['org_id']] = row_limits
 
     storage_limit = _get_limit_key('storage')
     submission_limit = _get_limit_key('submission')
@@ -357,10 +357,10 @@ def get_organizations_subscription_limits(
     for org_id in all_org_ids:
         all_org_limits = {}
         for usage_type in ['characters', 'seconds', 'submission', 'storage']:
-            plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
+            plan_limit = all_paid_subscription_limits_by_org_id.get(org_id, {}).get(
                 f'{usage_type}_limit'
             )
-            addon_limit = subscription_limits_by_org_id.get(org_id, {}).get(
+            addon_limit = all_paid_subscription_limits_by_org_id.get(org_id, {}).get(
                 'addon_storage_limit'
             )
             default_limit = default_plan_limits[f'{usage_type}_limit']
@@ -376,8 +376,13 @@ def get_organizations_subscription_limits(
 
     return results
 
+def get_organizations_addons_limit():
+    if not settings.STRIPE_ENABLED:
+        raise NotImplementedError('Cannot get organization plans with stripe disabled')
 
-def get_subscription_limits(organization_ids: list[str]) -> QuerySet:
+    pass
+
+def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
     """
     Return the most recent limits for all usage types for given organizations based on
     their most recent subscriptions. If they have both a regular plan and an addon,

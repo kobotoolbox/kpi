@@ -121,6 +121,12 @@ class PlanAddOn(models.Model):
         return add_on_created
 
     @staticmethod
+    def get_organizations_totals(
+        organizations: list['Organization']
+    ):
+        pass
+
+    @staticmethod
     def get_organization_totals(
         organization: 'Organization', usage_type: UsageType
     ) -> (int, int):

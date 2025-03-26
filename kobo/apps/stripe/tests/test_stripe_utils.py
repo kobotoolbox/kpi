@@ -21,7 +21,7 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_for_active_plans,
     get_organization_subscription_limit,
     get_organizations_subscription_limits,
-    get_subscription_limits,
+    get_paid_subscription_limits,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
 
@@ -113,7 +113,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(
             self.organization, metadata=product_metadata, price_metadata=price_metadata
         )
-        limits = get_subscription_limits([self.organization.id]).first()
+        limits = get_paid_subscription_limits([self.organization.id]).first()
         for usage_type in ['submission', 'storage', 'seconds', 'characters']:
             assert limits[f'{usage_type}_limit'] == '2'
 
@@ -155,7 +155,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             self.organization, metadata=addon_product_metadata, status='canceled'
         )
 
-        limits = get_subscription_limits([self.organization.id])
+        limits = get_paid_subscription_limits([self.organization.id])
         plan_limits = limits.filter(product_type='plan').first()
         addon_limits = limits.filter(product_type='addon').first()
 

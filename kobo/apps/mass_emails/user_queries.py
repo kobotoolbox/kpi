@@ -65,7 +65,7 @@ def get_users_within_range_of_usage_limit(
     Returns all users whose usage is between minimum and maximum percent
     of their plan limit for the given usage type.
 
-    :param usage_type: UsageType. 'submission' or 'storage'
+    :param usage_types: list[UsageType].
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
     :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
     """
@@ -74,7 +74,7 @@ def get_users_within_range_of_usage_limit(
     def get_nlp_usage_method(cached_nlp_usage, nlp_usage_type):
         if cached_nlp_usage == {}:
             cached_nlp_usage.update(get_nlp_usage_for_current_billing_period_by_user_id())
-        result = {user_id: usages[nlp_usage_type] for user_id, usages in nlp_usage.items()}
+        result = {userid: usages[nlp_usage_type] for userid, usages in nlp_usage.items()}
         return lambda: result
 
     nlp_usage = {}
@@ -101,7 +101,6 @@ def get_users_within_range_of_usage_limit(
     user_ids = set()
 
     for usage_type in usage_types:
-
         usage_by_user = usage_method_by_type[usage_type]()
         for user_id, usage in usage_by_user.items():
             limit = limits_by_owner.get(user_id,{}).get(f'{usage_type}_limit', inf)
