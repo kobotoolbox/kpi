@@ -14,6 +14,7 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import type {AnyRowTypeName} from 'js/constants';
 import type {
@@ -668,14 +669,12 @@ export function getSupplementalDetailsContent(
   submission: SubmissionResponse,
   path: string
 ): string | null {
-  let pathArray;
   const pathParts = getSupplementalPathParts(path);
+  let pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath];
 
   if (pathParts.type === 'transcript') {
-    pathArray = path.split('/');
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the last element of the path.
-    pathArray.pop();
     pathArray.push('transcript');
     const transcriptObj = get(submission, pathArray, '');
     if (
@@ -687,10 +686,8 @@ export function getSupplementalDetailsContent(
   }
 
   if (pathParts.type === 'translation') {
-    pathArray = path.split('/');
     // The last element is `translation_<language code>`, but we don't want
     // the underscore to be there.
-    pathArray.pop();
     pathArray.push('translation');
     pathArray.push(pathParts.languageCode || '??');
 
@@ -705,9 +702,7 @@ export function getSupplementalDetailsContent(
   }
 
   if (pathParts.type === 'qual') {
-    pathArray = path.split('/');
     // The last element is some random uuid, but we look for `qual`.
-    pathArray.pop();
     pathArray.push('qual');
     const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, []);
     const foundResponse = qualResponses.find(
