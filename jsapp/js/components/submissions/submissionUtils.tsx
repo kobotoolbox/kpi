@@ -528,7 +528,7 @@ export function getRepeatGroupAnswers(
       // Each level could contain an array of repeat group responses - if we are looking for a nested repeat group, we
       // might need to go deeper - here we verify if we are at the right depth of the path.
       if (levelKey === targetKey) {
-        // Here we are at the right level, so `levelKeyData` should an actual response to a question that is inside
+        // Here we are at the right level, so `levelKeyData` should be an actual response to a question that is inside
         // a repeat group.
 
         // To find the attachment, we need to build a question path that includes response number in it. For example, if
@@ -549,9 +549,10 @@ export function getRepeatGroupAnswers(
           return [String(levelKeyData)]
         }
       } else if (Array.isArray(levelKeyData)) {
-        // In context of looking into nested repeat groups, the only structure that is interesting for us is an array
+        // ^ In context of looking into nested repeat groups, the only structure that is interesting for us is an array
         // (of objects). In some rare cases it might not be (different form versions using identical name for different
         // rows - see full explanation at the top of the function).
+
         // Here we go recursively into each item of the array, looking for answers.
         return levelKeyData.flatMap((item: SubmissionResponseValue, itemIndex: number) =>
           lookForAnswers(item, levelIndex + 1, itemIndex),
