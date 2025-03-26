@@ -19,8 +19,8 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_based_on_canceled_plans,
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
-    get_organization_limit,
-    get_organization_subscription_limits,
+    get_organization_subscription_limit,
+    get_organizations_subscription_limits,
     get_subscription_limits,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
@@ -61,7 +61,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(
             self.second_organization, metadata=second_product_metadata
         )
-        all_limits = get_organization_subscription_limits()
+        all_limits = get_organizations_subscription_limits()
         assert all_limits[self.organization.id]['characters_limit'] == 1234
         assert all_limits[self.second_organization.id]['characters_limit'] == 12341
         assert all_limits[self.organization.id]['seconds_limit'] == 5678
@@ -90,7 +90,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
     @override_settings(STRIPE_ENABLED=False)
     def test_get_organization_limits_stripe_disabled_returns_inf(self):
-        all_limits = get_organization_subscription_limits()
+        all_limits = get_organizations_subscription_limits()
         for org in Organization.objects.all():
             for usage_type in ['submission', 'storage', 'seconds', 'characters']:
                 assert all_limits[org.id][f'{usage_type}_limit'] == inf
@@ -193,9 +193,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
     def test_get_plan_community_limit(self):
         generate_free_plan()
-        limit = get_organization_limit(self.organization, 'seconds')
+        limit = get_organization_subscription_limit(self.organization, 'seconds')
         assert limit == 600
-        limit = get_organization_limit(self.organization, 'characters')
+        limit = get_organization_subscription_limit(self.organization, 'characters')
         assert limit == 6000
 
     @data('characters', 'seconds')
@@ -207,7 +207,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'plan_type': 'enterprise',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_limit(self.organization, usage_type)
+        limit = get_organization_subscription_limit(self.organization, usage_type)
         assert limit == 1234
 
     # Currently submissions and storage are the only usage types that can be
@@ -221,7 +221,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'plan_type': 'enterprise',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_limit(self.organization, usage_type)
+        limit = get_organization_subscription_limit(self.organization, usage_type)
         assert limit == float('inf')
 
     def test_get_addon_subscription_default_limits(self):
@@ -230,9 +230,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'product_type': 'addon',
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_limit(self.organization, 'seconds')
+        limit = get_organization_subscription_limit(self.organization, 'seconds')
         assert limit == 600
-        limit = get_organization_limit(self.organization, 'characters')
+        limit = get_organization_subscription_limit(self.organization, 'characters')
         assert limit == 6000
 
     def test_get_addon_subscription_limits(self):
@@ -242,7 +242,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             'storage_bytes_limit': 1234,
         }
         generate_plan_subscription(self.organization, metadata=product_metadata)
-        limit = get_organization_limit(self.organization, 'storage')
+        limit = get_organization_subscription_limit(self.organization, 'storage')
         assert limit == 1234
 
     def test_get_current_billing_dates_by_org(self):

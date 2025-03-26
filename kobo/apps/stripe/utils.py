@@ -251,7 +251,7 @@ def get_default_add_on_limits():
     }
 
 
-def get_organization_limit(
+def get_organization_subscription_limit(
     organization: Organization, usage_type: UsageType
 ) -> int | float:
     """
@@ -261,13 +261,13 @@ def get_organization_limit(
     """
     include_storage_addons = usage_type == 'storage'
     return (
-        get_organization_subscription_limits([organization], include_storage_addons)
+        get_organizations_subscription_limits([organization], include_storage_addons)
         .get(organization.id, {})
         .get(f'{usage_type}_limit')
     )
 
 
-def get_organization_subscription_limits(
+def get_organizations_subscription_limits(
     organizations: list[Organization] = None, include_storage_addons: bool = True
 ) -> dict[str, dict[str, float]]:
     """

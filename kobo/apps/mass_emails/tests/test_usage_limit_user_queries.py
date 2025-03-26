@@ -42,7 +42,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # org plan limits and storage usage are tested more thoroughly elsewhere
         # and are hard to set up, so just patch responses
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organization_subscription_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -69,7 +69,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         usage_limits = {user1org.id: {'storage_limit': inf}}
         storage_by_user_id = {user1.id: 1000000000}
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organization_subscription_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -97,7 +97,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             f'kobo.apps.mass_emails.user_queries.{method_to_patch}'
         )
         full_limit_method_to_patch = (
-            'kobo.apps.mass_emails.user_queries.get_organization_subscription_limits'
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits'
         )
         with patch(full_usage_method_to_patch) as patched_usage_method:
             with patch(full_limit_method_to_patch) as patched_limit_method:

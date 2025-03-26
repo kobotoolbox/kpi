@@ -8,7 +8,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.utils import get_organization_subscription_limits
+from kobo.apps.stripe.utils import get_organizations_subscription_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_storage_usage_by_user_id,
@@ -76,7 +76,7 @@ def get_users_within_range_of_usage_limit(
     minimum = minimum or 0
     maximum = maximum or inf
     include_storage_addons = usage_type == 'storage'
-    limits_by_org = get_organization_subscription_limits(
+    limits_by_org = get_organizations_subscription_limits(
         include_storage_addons=include_storage_addons
     )
     usage_by_user = usage_method_by_type[usage_type]()
