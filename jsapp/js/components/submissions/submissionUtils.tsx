@@ -558,7 +558,6 @@ export function getRepeatGroupAnswers(
   return lookForAnswers(responseData)
 }
 
-
 /**
  * Filters data for items inside the group
  */
