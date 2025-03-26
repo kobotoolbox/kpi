@@ -119,7 +119,6 @@ class MassEmailSender:
                 self.limits[email_config.id] = stored_limit
         else:
             logging.info('Setting up MassEmailConfig limits for the current day')
-            MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
             if self.total_records < MAX_EMAILS:
                 for email_config in self.configs:
                     self.cache_limit_value(
