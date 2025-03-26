@@ -127,19 +127,19 @@ class MassEmailSender:
                     )
                 self.cache_limit_value(None, self.total_records)
             else:
-                total_limit = 0
+                day_limit = 0
                 for email_config in self.configs:
-                    if total_limit >= MAX_EMAILS:
+                    if day_limit >= MAX_EMAILS:
                         break
                     config_limit = ceil(
                         email_config.enqueued_records_count
                         / self.total_records
                         * MAX_EMAILS
                     )
-                    if total_limit + config_limit > MAX_EMAILS:
-                        config_limit = MAX_EMAILS - total_limits
+                    if day_limit + config_limit > MAX_EMAILS:
+                        config_limit = MAX_EMAILS - day_limit
                     self.cache_limit_value(email_config, config_limit)
-                    total_limit += config_limit
+                    day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
     def send_day_emails(self):
@@ -162,9 +162,12 @@ class MassEmailSender:
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = org_user.active_subscription_status
-        if plan_name == '' or plan_name is None:
-            plan_name = gettext('Community Plan')
+        if settings.STRIPE_ENABLED:
+            plan_name = org_user.active_subscription_status
+            if plan_name == '' or plan_name is None:
+                plan_name = gettext('Community Plan')
+        else:
+            plan_name = gettext('Not available')
         data = {
             'username': record.user.username,
             'full_name': record.user.first_name + ' ' + record.user.last_name,
