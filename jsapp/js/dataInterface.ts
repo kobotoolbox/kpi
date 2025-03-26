@@ -173,8 +173,6 @@ interface SubmissionSupplementalDetails {
   }
 }
 
-type RepeatGroupResponseValue = Array<{ [questionName: string]: SubmissionResponseValue }>
-
 /**
  * Value of a property found in `SubmissionResponse`, it can be either a built
  * in submission property (e.g. `_geolocation`) or a response to a form question
@@ -192,15 +190,22 @@ export type SubmissionResponseValue =
   | {}
   | SubmissionAttachment[]
   | SubmissionSupplementalDetails
-  | RepeatGroupResponseValue
+  // These are responses to questions from repeat group
+  | SubmissionResponseValueObject[]
   // This is needed because some of `SubmissionResponse` properties are optional
   | undefined
 
-export interface SubmissionResponse {
-  // `SubmissionResponseValue` covers all possible values (responses to form
-  // questions and other submission properties)
-  [propName: string]: SubmissionResponseValue
-  // Below are all known properties of submission response:
+/**
+ * A list of responses to form questions
+ */
+export interface SubmissionResponseValueObject {
+  [questionName: string]: SubmissionResponseValue
+}
+
+/**
+ * A list of responses to form questions plus some submission metadata
+ */
+export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
   _attachments: SubmissionAttachment[]
   _geolocation: number[] | null[]
