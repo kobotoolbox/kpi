@@ -5,6 +5,7 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import { actions } from '#/actions'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -147,6 +148,11 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
           </bem.MediaCellIconWrapper>
         </bem.MediaCell>
       )
+    }
+    ;(this.props.mediaAttachment as SubmissionAttachment).download_url = 'http://kalvis.lv/404'
+    ;(this.props.mediaAttachment as SubmissionAttachment).is_deleted = true
+    if (this.props.mediaAttachment.is_deleted) {
+      return <DeletedAttachment title={this.props.mediaAttachment.filename} />
     }
 
     return (
