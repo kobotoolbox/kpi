@@ -1,48 +1,46 @@
-import {useState} from 'react';
 import '../../../scss/components/_kobo.form-view.scss';
+
+import {useState} from 'react';
+
+import cx from 'classnames';
+import {useParams} from 'react-router-dom';
 import type {KoboSelectOption} from '../common/koboSelect';
 import KoboSelect from '../common/koboSelect';
-import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
-import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
+import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
+import KoboModal from '../modals/koboModal';
+import KoboModalHeader from '../modals/koboModalHeader';
 import type {ActivityLogsItem} from './activity.constants';
 import {
   useActivityLogsFilterOptionsQuery,
   useActivityLogsQuery,
   useExportActivityLogs,
 } from './activityLogs.query';
-import styles from './formActivity.module.scss';
-import cx from 'classnames';
-import {formatTime} from 'jsapp/js/utils';
-import KoboModal from '../modals/koboModal';
-import KoboModalHeader from '../modals/koboModalHeader';
 import {ActivityMessage} from './activityMessage.component';
-import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component';
-import {useParams} from 'react-router-dom';
-import {FeatureFlag, useFeatureFlag} from 'jsapp/js/featureFlags';
+import styles from './formActivity.module.scss';
+import type {UniversalTableColumn} from 'jsapp/js/universalTable/universalTable.component';
+import {formatTime} from 'jsapp/js/utils';
+import PaginatedQueryUniversalTable from 'jsapp/js/universalTable/paginatedQueryUniversalTable.component';
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table
  * of actions that users did on the project.
  */
 export default function FormActivity() {
-  const exportActivityLogsEnabled = useFeatureFlag(
-    FeatureFlag.exportActivityLogsEnabled
-  );
-
   const [selectedFilterOption, setSelectedFilterOption] =
     useState<KoboSelectOption | null>(null);
 
   const exportData = useExportActivityLogs();
 
+  // You can't get to this route without having a project uid in the URL.
   const {uid} = useParams();
+  const assetUid = uid as string;
+
   const queryData = {
-    assetUid: uid as string,
+    assetUid: assetUid,
     actionFilter: selectedFilterOption?.value || '',
   };
 
-  const {data: filterOptions} = useActivityLogsFilterOptionsQuery(
-    uid as string
-  );
+  const {data: filterOptions} = useActivityLogsFilterOptionsQuery(assetUid);
 
   const handleFilterChange = (value: string | null) => {
     setSelectedFilterOption(
@@ -95,12 +93,11 @@ export default function FormActivity() {
             placeholder={t('Filter by')}
             options={filterOptions || []}
           />
-          {exportActivityLogsEnabled && (
-            <ExportToEmailButton
-              label={t('Export all data')}
-              exportFunction={exportData}
-            />
-          )}
+
+          <ExportToEmailButton
+            label={t('Export all data')}
+            exportFunction={() => exportData(assetUid)}
+          />
         </div>
       </div>
       <div className={styles.tableContainer}>
