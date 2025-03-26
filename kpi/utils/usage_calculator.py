@@ -61,30 +61,42 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user):
     NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
 
     nlp_tracking = (
-        NLPUsageCounter.objects.only(
-            'date', 'total_asr_seconds', 'total_mt_characters'
+        NLPUsageCounter.objects.values(
+            'user_id'
         )
         .filter(filters)
-        .aggregate(
+        .annotate(
             asr_seconds_current_period=Coalesce(
-                Sum('total_asr_seconds', filter=self.current_period_filter),
+                Sum('total_asr_seconds'),
                 0,
             ),
             mt_characters_current_period=Coalesce(
-                Sum('total_mt_characters', filter=self.current_period_filter),
+                Sum('total_mt_characters'),
                 0,
             ),
-            asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-            mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
         )
     )
+    results = {}
+    for row in nlp_tracking:
+        results[row['user_id']] = {
+            'seconds': row['asr_seconds_current_period'],
+            'characters': row['mt_characters_current_period']
+        }
+    return results
 
-    total_nlp_usage = {}
-    for nlp_key, count in nlp_tracking.items():
-        total_nlp_usage[nlp_key] = count if count is not None else 0
-
-    return total_nlp_usage
-    pass
+def get_nlp_usage_for_current_billing_period_by_user_id():
+    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
+    owner_by_org = {
+        org.id: org.owner.organization_user.user.id
+        for org in Organization.objects.filter(owner__isnull=False)
+    }
+    current_billing_dates_by_owner = {
+        owner_by_org[org_id]: dates
+        for org_id, dates in current_billing_dates_by_org.items()
+    }
+    return get_nlp_usage_in_date_range_by_user_id(
+        current_billing_dates_by_owner
+    )
 
 
 class ServiceUsageCalculator(CachedClass):

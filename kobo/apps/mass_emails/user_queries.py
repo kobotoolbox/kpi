@@ -12,7 +12,7 @@ from kobo.apps.stripe.utils import get_organizations_subscription_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_storage_usage_by_user_id,
-    get_submissions_for_current_billing_period_by_user_id,
+    get_submissions_for_current_billing_period_by_user_id, get_nlp_usage_for_current_billing_period_by_user_id,
 )
 
 
@@ -59,7 +59,7 @@ def get_inactive_users(days: int = 365) -> QuerySet:
 
 
 def get_users_within_range_of_usage_limit(
-    usage_type: UsageType, minimum: float = 0, maximum: float = inf
+    usage_types: list[UsageType], minimum: float = 0, maximum: float = inf
 ) -> QuerySet:
     """
     Returns all users whose usage is between minimum and maximum percent
@@ -71,58 +71,75 @@ def get_users_within_range_of_usage_limit(
     """
 
     # cheat so that we don't fetch information twice if we're looking for nlp usage
-    nlp_usage = None
-    def get_nlp_usage_for_current_billing_period_by_user_id():
-        if nlp_usage is not None:
-            pass
+    def get_nlp_usage_method(cached_nlp_usage, nlp_usage_type):
+        if cached_nlp_usage == {}:
+            cached_nlp_usage.update(get_nlp_usage_for_current_billing_period_by_user_id())
+        result = {user_id: usages[nlp_usage_type] for user_id, usages in nlp_usage.items()}
+        return lambda: result
 
+    nlp_usage = {}
     usage_method_by_type = {
         'submission': get_submissions_for_current_billing_period_by_user_id,
         'storage': get_storage_usage_by_user_id,
+        'seconds': get_nlp_usage_method(nlp_usage, 'seconds'),
+        'characters': get_nlp_usage_method(nlp_usage, 'characters')
     }
     minimum = minimum or 0
     maximum = maximum or inf
-    include_storage_addons = usage_type == 'storage'
+
+    include_storage_addons = 'storage' in usage_types
     limits_by_org = get_organizations_subscription_limits(
         include_storage_addons=include_storage_addons
     )
-    usage_by_user = usage_method_by_type[usage_type]()
-
     owner_by_org = {
         org.id: org.owner_user_object.pk
         for org in Organization.objects.filter(owner__isnull=False)
     }
     limits_by_owner = {
-        owner_by_org[org_id]: limit[f'{usage_type}_limit']
-        for org_id, limit in limits_by_org.items()
+        owner_by_org[org_id]: limits for org_id, limits in limits_by_org.items()
     }
-    user_ids = []
-    for user_id, usage in usage_by_user.items():
-        limit = limits_by_owner.get(user_id, inf)
-        if minimum * limit <= usage < maximum * limit:
-            user_ids.append(user_id)
+    user_ids = set()
+
+    for usage_type in usage_types:
+
+        usage_by_user = usage_method_by_type[usage_type]()
+        for user_id, usage in usage_by_user.items():
+            limit = limits_by_owner.get(user_id,{}).get(f'{usage_type}_limit', inf)
+            if minimum * limit <= usage < maximum * limit:
+                user_ids.add(user_id)
     return User.objects.filter(id__in=user_ids)
 
 
 def get_users_over_90_percent_of_storage_limit():
     results = get_users_within_range_of_usage_limit(
-        usage_type='storage', minimum=0.9, maximum=1
+        usage_types=['storage'], minimum=0.9, maximum=1
     )
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_100_percent_of_storage_limit():
-    results = get_users_within_range_of_usage_limit(usage_type='storage', minimum=1)
+    results = get_users_within_range_of_usage_limit(usage_types=['storage'], minimum=1)
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_90_percent_of_submission_limit():
     results = get_users_within_range_of_usage_limit(
-        usage_type='submission', minimum=0.9, maximum=1
+        usage_types=['submission'], minimum=0.9, maximum=1
     )
     return [user.extra_details.uid for user in results]
 
 
 def get_users_over_100_percent_of_submission_limit():
-    results = get_users_within_range_of_usage_limit(usage_type='submission', minimum=1)
+    results = get_users_within_range_of_usage_limit(usage_types=['submission'], minimum=1)
     return [user.extra_details.uid for user in results]
+
+
+def get_users_over_90_percent_of_nlp_limits():
+    results = get_users_within_range_of_usage_limit(usage_types=['characters', 'seconds'], minimum=0.9, maximum=1)
+    return [user.extra_details.uid for user in results]
+
+
+def get_users_over_100_percent_of_nlp_limits():
+    results = get_users_within_range_of_usage_limit(usage_types=['characters', 'seconds'], minimum=1)
+    return [user.extra_details.uid for user in results]
+
