@@ -480,29 +480,49 @@ function isRowFromCurrentGroupLevel(
 }
 
 /**
- * Returns an array of answers
+ * Returns an array of answers. Will return empty array if no answers found.
  */
 export function getRepeatGroupAnswers(
+  /**
+   * `SubmissionResponse` structure might not reflect current form structure, e.g. a question path `foo/bar` in v1 of
+   * the form might be a `select_one` question, but in v2 it might be a `group` with more questions inside. It is a rare
+   * case, but we need to be wary of this when looking for answers.
+   */
   responseData: SubmissionResponse,
-  /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
+  /** Path to a response, includes groups e.g. group_person/group_pets/group_pet/pet_name. */
   targetKey: string,
 ): React.ReactNode[] {
-  const answers: React.ReactNode[] = []
+  // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
+  // answers. We are traversing `SubmissionResponse` and it's values (might be nested arrays), going one path level and
+  // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
+  const lookForAnswers = (
+    data: SubmissionResponse | SubmissionResponseValue,
+    levelIndex: number,
+    responseIndex?: number,
+  ): Array<JSX.Element | string> => {
+    // What we are looking for here is a non empty object that is not an array
+    if (
+      data !== null &&
+      typeof data === 'object' &&
+      targetKey in data &&
+      !Array.isArray(data) &&
+      Object.keys(data).length > 0
+    ) {
+      const levelKey = targetKey
+        .split('/')
+        .slice(0, levelIndex + 1)
+        .join('/')
+      const levelKeyData = data[levelKey]
 
-  // This function is a detective. It goes through nested groups from key, looking for answers.
-  const lookForAnswers = (data: SubmissionResponse, levelIndex: number, responseIndex?: number) => {
-    const levelKey = targetKey
-      .split('/')
-      .slice(0, levelIndex + 1)
-      .join('/')
-    const targetKeyData = data[targetKey]
-    const levelKeyData = data[levelKey]
+      const levelParentKey = targetKey.split('/').slice(0, levelIndex).join('/')
 
-    const levelParentKey = targetKey.split('/').slice(0, levelIndex).join('/')
+      // Each level could be an array of repeat group responses - if we are looking for a nested repeat group, we might
+      // need to go deeper.
+      if (levelKey === targetKey) {
+        //// // It shouldn't happen that `targetKey` doesn't exist in the data, but for safety sake let's check it.
+        //// if (levelKeyData === undefined) return [] // TODO: Why it would be undefined and why are we skipping it then?
+        //// if (typeof levelKeyData === 'object') return [] // TODO: Why it would be object and why are we skipping it then?
 
-    // Each level could be an array of repeat group answers or object with questions.
-    if (levelKey === targetKey) {
-      if (targetKeyData !== undefined && typeof targetKeyData !== 'object') {
         // To find the attachment, we need to build a question path that includes response number in it. For example, if
         // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
         // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
@@ -511,24 +531,30 @@ export function getRepeatGroupAnswers(
         const attachmentPath = appendTextToPathAtLevel(targetKey, levelParentKey, `[${responseNumber}]`)
 
         // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
-        const attachment = getMediaAttachment(responseData, String(targetKeyData), attachmentPath)
+        const attachment = getMediaAttachment(responseData, String(levelKeyData), attachmentPath)
+
         // If we've found the attachment, and it is deleted, we don't want to display it
         if (typeof attachment === 'object' && attachment?.is_deleted) {
-          answers.push(<DeletedAttachment />)
+          return [<DeletedAttachment />]
         } else {
-          answers.push(String(targetKeyData))
+          return [String(levelKeyData)]
         }
+      } else {
+        // In context of looking into nested repeat groups, the only structure that is interesting for us is an array of
+        // objects. In some rare cases it might not be (different form versions using identical name for different rows
+        // - see full explanation at the top of the function).
+        if (!Array.isArray(levelKeyData)) return [] // TODO: Why it would not be array and why are we skipping it then?
+
+        return levelKeyData.flatMap((item: SubmissionResponseValue, itemIndex: number) =>
+          lookForAnswers(item, levelIndex + 1, itemIndex),
+        )
       }
-    } else if (levelKeyData !== null && typeof levelKeyData === 'object' && Array.isArray(levelKeyData)) {
-      levelKeyData.forEach((item: SubmissionResponse, itemIndex: number) => {
-        lookForAnswers(item, levelIndex + 1, itemIndex)
-      })
+    } else {
+      return []
     }
   }
 
-  lookForAnswers(responseData, 0)
-
-  return answers
+  return lookForAnswers(responseData, 0)
 }
 
 /**
