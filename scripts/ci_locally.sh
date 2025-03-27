@@ -42,7 +42,11 @@ run_parallel_pytest() {
 }
 
 echo -e '\n\n# Run CI jobs locally'
-echo 'Disclaimer: local environment may differ from Github Actions environment.'
+echo 'Disclaimer: local container enviroment may differ from Github Actions environment.'
+echo 'This script is expected to be run from a container, for example like this:'
+echo '   cd kobo-install'
+echo '   ./run.py'
+echo '   ./run.py -cf exec kpi ./scripts/ci_locally.sh'
 
 # Uncomment lines below until this comment (https://github.com/kobotoolbox/kpi/pull/5593#discussion_r1999067788)
 # is addressed.
