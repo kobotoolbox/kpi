@@ -1,4 +1,4 @@
-from djstripe.models import Product, Price
+from djstripe.models import Price, Product
 from model_bakery import baker
 
 from kobo.apps.stripe.utils import get_default_plan_name
@@ -7,6 +7,8 @@ from kpi.tests.kpi_test_case import BaseTestCase
 
 class UtilsTestCase(BaseTestCase):
     def test_get_default_plan_name(self):
+        assert get_default_plan_name() is None
+
         product = baker.prepare(
             Product,
             metadata={'product_type': 'plan', 'default_free_plan': 'true'},

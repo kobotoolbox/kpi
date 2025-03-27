@@ -106,6 +106,16 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
     return result
 
 
+def get_default_plan_name() -> Optional[str]:
+    default_plan = (
+        Product.objects.filter(metadata__default_free_plan='true')
+        .values('name')
+        .first()
+    )
+    if default_plan is not None:
+        return default_plan['name']
+
+
 def get_organization_plan_limits(
     usage_type: UsageType, organizations: list[Organization] = None
 ):
@@ -175,14 +185,6 @@ def get_organization_plan_limits(
         return limit
 
     return {org.id: get_limit(org) for org in orgs}
-
-
-def get_default_plan_name() -> Optional[str]:
-    default_plan = (
-        Product.objects.filter(metadata__default_free_plan='true').values('').first()
-    )
-    if default_plan is not None:
-        return default_plan.name
 
 
 def get_organization_plan_limit(
