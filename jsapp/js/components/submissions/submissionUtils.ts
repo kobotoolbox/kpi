@@ -11,6 +11,7 @@ import {
   QUESTION_TYPES,
   RANK_LEVEL_TYPE,
   SCORE_ROW_TYPE,
+  SUPPLEMENTAL_DETAILS_PROP,
   createEnum,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
@@ -606,27 +607,29 @@ export function getMediaAttachment(
  * can be only one transcript), but we need to use paths with languages in it
  * to build Submission Modal and Data Table properly.
  */
-export function getSupplementalDetailsContent(submission: SubmissionResponse, path: string): string | null {
-  let pathArray
+export function getSupplementalDetailsContent(
+  submission: SubmissionResponse,
+  path: string
+): string | null {
   const pathParts = getSupplementalPathParts(path)
+  let pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath]
 
   if (pathParts.type === 'transcript') {
-    pathArray = path.split('/')
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the last element of the path.
-    pathArray.pop()
     pathArray.push('transcript')
     const transcriptObj = get(submission, pathArray, '')
-    if (transcriptObj.languageCode === pathParts.languageCode && typeof transcriptObj.value === 'string') {
+    if (
+      transcriptObj.languageCode === pathParts.languageCode &&
+      typeof transcriptObj.value === 'string'
+    ) {
       return transcriptObj.value
     }
   }
 
   if (pathParts.type === 'translation') {
-    pathArray = path.split('/')
     // The last element is `translation_<language code>`, but we don't want
     // the underscore to be there.
-    pathArray.pop()
     pathArray.push('translation')
     pathArray.push(pathParts.languageCode || '??')
 
@@ -641,9 +644,7 @@ export function getSupplementalDetailsContent(submission: SubmissionResponse, pa
   }
 
   if (pathParts.type === 'qual') {
-    pathArray = path.split('/')
     // The last element is some random uuid, but we look for `qual`.
-    pathArray.pop()
     pathArray.push('qual')
     const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, [])
     const foundResponse = qualResponses.find(
