@@ -607,22 +607,16 @@ export function getMediaAttachment(
  * can be only one transcript), but we need to use paths with languages in it
  * to build Submission Modal and Data Table properly.
  */
-export function getSupplementalDetailsContent(
-  submission: SubmissionResponse,
-  path: string
-): string | null {
+export function getSupplementalDetailsContent(submission: SubmissionResponse, path: string): string | null {
   const pathParts = getSupplementalPathParts(path)
-  let pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath]
+  const pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath]
 
   if (pathParts.type === 'transcript') {
     // There is always one transcript, not nested in language code object, thus
     // we don't need the language code in the last element of the path.
     pathArray.push('transcript')
     const transcriptObj = get(submission, pathArray, '')
-    if (
-      transcriptObj.languageCode === pathParts.languageCode &&
-      typeof transcriptObj.value === 'string'
-    ) {
+    if (transcriptObj.languageCode === pathParts.languageCode && typeof transcriptObj.value === 'string') {
       return transcriptObj.value
     }
   }

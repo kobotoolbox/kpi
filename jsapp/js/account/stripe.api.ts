@@ -201,9 +201,7 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
     await when(() => !!products.length)
     // the user has no subscription, so get limits from the free monthly product
     hasFreeTier = true
-    const freeProduct = products.filter((product) =>
-      product.metadata['default_free_plan'] === 'true',
-    )[0]
+    const freeProduct = products.filter((product) => product.metadata['default_free_plan'] === 'true')[0]
     metadata = {
       ...freeProduct.metadata,
       ...freeProduct.prices[0].metadata,
