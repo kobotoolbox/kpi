@@ -62,7 +62,9 @@ def get_queryset(attachment_pk: int) -> QuerySet[Attachment]:
         Attachment.all_objects.select_related('instance__xform')
         .only(
             'id',
+            'uid',
             'deleted_at',
+            'delete_status',
             'date_created',
             'date_modified',
             'instance_id',
