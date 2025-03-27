@@ -23,21 +23,22 @@ class TestOldEmailRecordMarkAsFailed(TestCase):
         Test that a celery updates the status of 'enqueued' MassEmailRecord
         entries older than a specified number of days to 'failed'
         """
-        user = User.objects.create(username='testuser')
         email_config = MassEmailConfig.objects.create(name='testconfig')
         email_job = MassEmailJob.objects.create(email_config=email_config)
 
         # Create an 'enqueued' record older than the threshold date
+        someuser = User.objects.create(username='someuser')
         old_email_record = MassEmailRecord.objects.create(
-            user=user,
+            user=someuser,
             email_job=email_job,
             status=EmailStatus.ENQUEUED,
             date_created=now() - timedelta(days=12)
         )
 
         # Create an 'enqueued' record newer than the threshold date
+        anotheruser = User.objects.create(username='anotheruser')
         recent_email_record = MassEmailRecord.objects.create(
-            user=user,
+            user=anotheruser,
             email_job=email_job,
             status=EmailStatus.ENQUEUED,
             date_created=now() - timedelta(days=5)

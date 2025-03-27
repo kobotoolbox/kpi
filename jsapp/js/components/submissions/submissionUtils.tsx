@@ -1,6 +1,7 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import type { SubmissionAnalysisResponse } from '#/components/processing/analysis/constants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
@@ -21,6 +22,7 @@ import type {
   SubmissionAttachment,
   SubmissionResponse,
   SubmissionResponseValue,
+  SubmissionResponseValueObject,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
@@ -478,41 +480,83 @@ function isRowFromCurrentGroupLevel(
   }
 }
 
+const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseValueObject => {
+  if (data === null) return false
+  if (typeof data !== 'object') return false
+  if (Array.isArray(data)) return false
+  if (Object.keys(data).length === 0) return false
+
+  return true
+}
+
 /**
- * Returns an array of answers
+ * Returns an array of answers. Will return empty array if no answers found.
+ *
+ * Note: this function doesn't include unresponded questions from repeat groups - i.e. if your repeat group `person` has
+ * `your_name` question, and user submitted 10 `person`s, but only 3 of them have `your_name` answered, this function
+ * will return an array of 3 items (e.g. `['Joe', 'Moe', 'Zoe']`) rather than an array of 10 items with empty strings
+ * for unresponded questions (e.g. `['', 'Joe', '', '', '', '', 'Moe', 'Zoe', '', '']`).
+ * TODO: we might want to change this in future, when we will improve the Data Table UI for repeat groups.
  */
 export function getRepeatGroupAnswers(
   responseData: SubmissionResponse,
-  /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
-  targetKey: string,
-): string[] {
-  const answers: string[] = []
-
-  // Goes through nested groups from key, looking for answers.
-  const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
-    const levelKey = targetKey
+  /** Full (nested) path to a response, e.g. group_person/group_pets/group_pet/pet_name. */
+  fullPath: string,
+): React.ReactNode[] {
+  // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
+  // answers. We are traversing `SubmissionResponse` and it's values (might be nested arrays), going one path level and
+  // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
+  const lookForAnswers = (
+    data: SubmissionResponse | SubmissionResponseValue,
+    currentDepth = 0,
+    responseIndex?: number,
+  ): Array<JSX.Element | string> => {
+    const currentPath = fullPath
       .split('/')
-      .slice(0, levelIndex + 1)
+      .slice(0, currentDepth + 1)
       .join('/')
 
-    const targetKeyData = data[targetKey]
-    const levelKeyData = data[levelKey]
+    if (!isSubmissionResponseValueObject(data)) return []
 
-    // Each level could be an array of repeat group answers or object with questions.
-    if (levelKey === targetKey) {
-      if (targetKeyData !== undefined && typeof targetKeyData !== 'object') {
-        answers.push(String(targetKeyData))
+    const submissionResponseValue = data[currentPath]
+    if (!submissionResponseValue) return []
+
+    if (currentPath === fullPath) {
+      // At full path `submissionResponseValue` should be an actual response to a repeat group question.
+
+      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
+      if (Array.isArray(submissionResponseValue)) return []
+
+      // To find the attachment, we need to build a question path that includes response number in it. For example, if
+      // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
+      // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
+      // works for them too :fingers_crossed:.
+      const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
+      const levelParentKey = fullPath.split('/').slice(0, currentDepth).join('/')
+      const attachmentPath = appendTextToPathAtLevel(fullPath, levelParentKey, `[${responseNumber}]`)
+      const attachment = getMediaAttachment(responseData, String(submissionResponseValue), attachmentPath)
+
+      if (typeof attachment === 'object' && attachment?.is_deleted) {
+        // If we've found the attachment, and it is deleted, we don't want to display it…
+        return [<DeletedAttachment />]
+      } else {
+        // …otherwise we are displaying raw data
+        // TODO: In future we could render something similar to `MediaCell` for each response/attachment here
+        return [String(submissionResponseValue)]
       }
-    } else if (levelKeyData !== null && typeof levelKeyData === 'object' && Array.isArray(levelKeyData)) {
-      levelKeyData.forEach((item: SubmissionResponse) => {
-        lookForAnswers(item, levelIndex + 1)
-      })
+    } else {
+      // Here we go recursively into each item of the array, looking for answers.
+
+      // Gracefully skip if form has changed over time in a specific way leading to a key-collision.
+      if (!Array.isArray(submissionResponseValue)) return []
+
+      return submissionResponseValue.flatMap((item: SubmissionResponseValue, itemIndex: number) =>
+        lookForAnswers(item, currentDepth + 1, itemIndex),
+      )
     }
   }
 
-  lookForAnswers(responseData, 0)
-
-  return answers
+  return lookForAnswers(responseData)
 }
 
 /**
@@ -698,6 +742,21 @@ export default {
 export function getQuestionXPath(surveyRows: SurveyRow[], rowName: string) {
   const flatPaths = getSurveyFlatPaths(surveyRows, true)
   return flatPaths[rowName]
+}
+
+/**
+ * Inserts given string immediately after the specified level in the path.
+ * @param path - The original path string.
+ * @param level - The level after which `stringToAdd` should be inserted.
+ * @returns The updated path string.
+ */
+function appendTextToPathAtLevel(path: string, level: string, stringToAdd: string): string {
+  const parts = path.split('/')
+  const index = parts.indexOf(level)
+  if (index !== -1) {
+    parts[index] = `${parts[index]}${stringToAdd}`
+  }
+  return parts.join('/')
 }
 
 /**

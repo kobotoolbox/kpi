@@ -322,4 +322,5 @@ export const assetWithImageSubmission: SubmissionResponse = {
   _notes: [],
   _validation_status: {},
   _submitted_by: null,
+  _supplementalDetails: {},
 }

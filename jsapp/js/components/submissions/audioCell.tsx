@@ -2,6 +2,7 @@ import './audioCell.scss'
 
 import React from 'react'
 
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -27,15 +28,15 @@ interface AudioCellProps {
 export default function AudioCell(props: AudioCellProps) {
   return (
     <bem.AudioCell>
-      {typeof props.mediaAttachment === 'string' && (
+      {typeof props.mediaAttachment === 'string' ? (
         <span data-tip={props.mediaAttachment}>
           <Icon name='alert' color='mid-red' size='s' />
         </span>
-      )}
-
-      {typeof props.mediaAttachment === 'object' && props.mediaAttachment?.download_url && (
+      ) : props.mediaAttachment?.is_deleted ? (
+        <DeletedAttachment />
+      ) : props.mediaAttachment?.download_url ? (
         <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
-      )}
+      ) : null}
 
       <Button
         type='primary'
