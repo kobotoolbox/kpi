@@ -16,7 +16,7 @@ class UtilsTestCase(BaseTestCase):
             name='Test Community Plan',
         )
         product.save()
-        price = baker.make(
+        baker.make(
             Price,
             active=True,
             id='price_1LsSOSAR39rDI89svTKog9Hq',
