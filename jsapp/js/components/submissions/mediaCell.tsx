@@ -149,8 +149,6 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         </bem.MediaCell>
       )
     }
-    ;(this.props.mediaAttachment as SubmissionAttachment).download_url = 'http://kalvis.lv/404'
-    ;(this.props.mediaAttachment as SubmissionAttachment).is_deleted = true
     if (this.props.mediaAttachment.is_deleted) {
       return <DeletedAttachment title={this.props.mediaAttachment.filename} />
     }
