@@ -44,7 +44,7 @@ export const simpleSurvey = [
     type: 'end_group',
     $kuid: '/fx8qb06',
   },
-];
+]
 
 export const simpleSurveyChoices = [
   {
@@ -57,7 +57,7 @@ export const simpleSurveyChoices = [
     label: ['Blue'],
     list_name: 'fav_col_list',
   },
-];
+]
 
 export const simpleSurveySubmission = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
@@ -80,7 +80,7 @@ export const simpleSurveySubmission = {
   'group_favourites/Favourite_number': '24',
   'meta/instanceID': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
   start: '2020-04-06T13:11:31.421+02:00',
-};
+}
 
 export const simpleSurveySubmissionEmpty = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
@@ -101,7 +101,7 @@ export const simpleSurveySubmissionEmpty = {
   'group_favourites/Favourite_number': '5',
   'meta/instanceID': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
   start: '2020-04-08T10:46:34.957+02:00',
-};
+}
 
 export const simpleSurveyDisplayData = [
   {
@@ -133,7 +133,7 @@ export const simpleSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const simpleSurveyDisplayDataEmpty = [
   {
@@ -165,7 +165,7 @@ export const simpleSurveyDisplayDataEmpty = [
       },
     ],
   },
-];
+]
 
 export const repeatSurvey = [
   {
@@ -213,7 +213,7 @@ export const repeatSurvey = [
     type: 'end_repeat',
     $kuid: '/fd8yo77',
   },
-];
+]
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
 export const repeatSurveySubmission = {
@@ -244,7 +244,7 @@ export const repeatSurveySubmission = {
   ],
   'meta/instanceID': 'uuid:651137b9-e465-49ed-9924-a67d7b1c6f76',
   start: '2020-04-07T16:07:24.044+02:00',
-};
+}
 
 export const repeatSurveyDisplayData = [
   {
@@ -303,7 +303,7 @@ export const repeatSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const nestedRepeatSurvey = [
   {
@@ -354,7 +354,7 @@ export const nestedRepeatSurvey = [
     type: 'end_repeat',
     $kuid: '/aj45t09',
   },
-];
+]
 
 export const nestedRepeatSurveySubmission = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
@@ -401,7 +401,7 @@ export const nestedRepeatSurveySubmission = {
   'meta/deprecatedID': 'uuid:85397438-558e-4b24-94d7-901550744352',
   'meta/instanceID': 'uuid:83aa0573-8a44-42f7-885b-aa7a3afffbd1',
   start: '2020-04-08T13:11:29.840+02:00',
-};
+}
 
 export const nestedRepeatSurveyDisplayData = [
   {
@@ -502,7 +502,7 @@ export const nestedRepeatSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const matrixSurvey = [
   {
@@ -576,7 +576,7 @@ export const matrixSurvey = [
     type: 'end_kobomatrix',
     $kuid: '/en5ri38',
   },
-];
+]
 
 export const matrixSurveyChoices = [
   {
@@ -586,7 +586,7 @@ export const matrixSurveyChoices = [
     list_name: 'count_ch_list',
     $autovalue: 'poland',
   },
-];
+]
 
 export const matrixSurveySubmission = {
   _id: 22,
@@ -612,7 +612,7 @@ export const matrixSurveySubmission = {
   _status: 'submitted_via_web',
   __version__: 'vPNH6GBsRjMKLfXrisReYA',
   today: '2020-04-20',
-};
+}
 
 export const matrixSurveyDisplayData = [
   {
@@ -643,7 +643,7 @@ export const matrixSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const groupsSurvey = [
   {
@@ -778,7 +778,7 @@ export const groupsSurvey = [
     type: 'end_kobomatrix',
     $kuid: '/vs75w20',
   },
-];
+]
 
 export const groupsSurveyChoices = [
   {
@@ -830,7 +830,7 @@ export const groupsSurveyChoices = [
     list_name: 'crossbr_ch_list',
     $autovalue: 'water',
   },
-];
+]
 
 export const groupsSurveySubmission = {
   _id: 23,
@@ -867,7 +867,7 @@ export const groupsSurveySubmission = {
   _status: 'submitted_via_web',
   __version__: 'vN4myUe5KyYrGN4dGrpBid',
   today: '2020-04-23',
-};
+}
 
 export const groupsSurveyDisplayData = [
   {
@@ -1022,7 +1022,7 @@ export const groupsSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const everythingSurvey = [
   {
@@ -1266,7 +1266,7 @@ export const everythingSurvey = [
     $autoname: 'Expected_lifespan',
     parameters: 'start=1;end=125;step=1',
   },
-];
+]
 
 export const everythingSurveyChoices = [
   {
@@ -1346,7 +1346,7 @@ export const everythingSurveyChoices = [
     list_name: 'min_ch_list',
     $autovalue: 'minus_two',
   },
-];
+]
 
 export const everythingSurveySubmission = {
   _id: 25,
@@ -1456,7 +1456,7 @@ export const everythingSurveySubmission = {
     '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0',
   Voice_password: '07. Crazy Love-13_32_31.mp3',
   'test_your_math_2_and_4/test_your_math_2_and_4_plus': '7',
-};
+}
 
 export const everythingSurveyDisplayData = [
   {
@@ -1662,7 +1662,7 @@ export const everythingSurveyDisplayData = [
     data: '88',
     xpath: 'Expected_lifespan',
   },
-];
+]
 
 export const matrixRepeatSurvey = [
   {
@@ -1722,7 +1722,7 @@ export const matrixRepeatSurvey = [
     type: 'end_repeat',
     $kuid: '/wr4ir59',
   },
-];
+]
 
 export const matrixRepeatSurveyChoices = [
   {
@@ -1739,7 +1739,7 @@ export const matrixRepeatSurveyChoices = [
     list_name: 'matrix_ri0sw49',
     $autovalue: 'raw',
   },
-];
+]
 
 export const matrixRepeatSurveySubmission = {
   _id: 16,
@@ -1773,7 +1773,7 @@ export const matrixRepeatSurveySubmission = {
   _geolocation: [null, null],
   _status: 'submitted_via_web',
   __version__: 'vLao7eC5zPrkyAHKYFt9kY',
-};
+}
 
 export const matrixRepeatSurveyDisplayData = [
   {
@@ -1888,7 +1888,7 @@ export const matrixRepeatSurveyDisplayData = [
       },
     ],
   },
-];
+]
 
 export const submissionWithAttachmentsWithUnicode = {
   _id: 18,
@@ -1924,7 +1924,7 @@ export const submissionWithAttachmentsWithUnicode = {
   _submission_time: '2022-01-26T19:40:11',
   _submitted_by: null,
   _validation_status: {},
-};
+}
 
 export const assetWithSupplementalDetails = {
   url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
@@ -1936,12 +1936,7 @@ export const assetWithSupplementalDetails = {
   date_created: '2022-05-12T10:40:02.952931Z',
   summary: {
     geo: false,
-    labels: [
-      'Your name here',
-      'Your selfie goes here',
-      'A video? WTF',
-      'Secret password as an audio file',
-    ],
+    labels: ['Your name here', 'Your selfie goes here', 'A video? WTF', 'Secret password as an audio file'],
     columns: ['name', 'type', 'label', 'required', 'calculation'],
     lock_all: false,
     lock_any: false,
@@ -1980,14 +1975,12 @@ export const assetWithSupplementalDetails = {
   deployment__links: {
     url: 'http://ee.kobo.local/6PTli7y9',
     single_url: 'http://ee.kobo.local/single/6PTli7y9',
-    single_once_url:
-      'http://ee.kobo.local/single/fc64e066ac2314795f6f6afe049420dd',
+    single_once_url: 'http://ee.kobo.local/single/fc64e066ac2314795f6f6afe049420dd',
     offline_url: 'http://ee.kobo.local/x/6PTli7y9',
     preview_url: 'http://ee.kobo.local/preview/6PTli7y9',
     iframe_url: 'http://ee.kobo.local/i/6PTli7y9',
     single_iframe_url: 'http://ee.kobo.local/single/i/6PTli7y9',
-    single_once_iframe_url:
-      'http://ee.kobo.local/single/i/fc64e066ac2314795f6f6afe049420dd',
+    single_once_iframe_url: 'http://ee.kobo.local/single/i/fc64e066ac2314795f6f6afe049420dd',
   },
   deployment__active: true,
   deployment__data_download_links: {
@@ -2043,11 +2036,7 @@ export const assetWithSupplementalDetails = {
       languages: ['fr', 'pl'],
     },
     translated: {
-      values: [
-        'Your_name_here',
-        'A_video_WTF',
-        'Secret_password_as_an_audio_file',
-      ],
+      values: ['Your_name_here', 'A_video_WTF', 'Secret_password_as_an_audio_file'],
       languages: ['pl', 'de'],
     },
     qual: {
@@ -2533,10 +2522,8 @@ export const assetWithSupplementalDetails = {
       url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
     },
   ],
-  xform_link:
-    'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
-  hooks_link:
-    'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/hooks/',
+  xform_link: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/xform/',
+  hooks_link: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/hooks/',
   tag_string: '',
   uid: 'aDDywpeYGnvuDLTeiveyxZ',
   kind: 'asset',
@@ -2620,8 +2607,7 @@ export const assetWithSupplementalDetails = {
     {
       url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/permission-assignments/pEqtSwGsEJzot98Ms3JJpL/',
       user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      permission:
-        'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
+      permission: 'http://kf.kobo.local/api/v2/permissions/validate_submissions/',
       label: 'Validate submissions',
     },
     {
@@ -2647,9 +2633,8 @@ export const assetWithSupplementalDetails = {
   status: 'private',
   access_types: null,
   data_sharing: {},
-  paired_data:
-    'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
-};
+  paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
+}
 
 export const submissionWithSupplementalDetails = {
   _id: 3,
@@ -2663,8 +2648,7 @@ export const submissionWithSupplementalDetails = {
   deviceid: 'ee.kobo.local:SnU3c4G76jpfMlEg',
   phonenumber: 'phonenumber not found',
   Your_name_here: 'David',
-  Secret_password_as_an_audio_file:
-    '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+  Secret_password_as_an_audio_file: '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
   __version__: 'vhazs7e47xB9GYwY3tbYtS',
   _version_: 'vjtVxWH3Xmcoz6VFtqfbVr',
   _version__001: 'vFFTm5vKJURadwXxntZda6',
@@ -2673,14 +2657,10 @@ export const submissionWithSupplementalDetails = {
   _uuid: '58c71236-f713-471b-bd4c-2a5f2e6b9a05',
   _attachments: [
     {
-      download_url:
-        'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
-      download_large_url:
-        'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
-      download_medium_url:
-        'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
-      download_small_url:
-        'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      download_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      download_large_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      download_medium_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
+      download_small_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       mimetype: 'audio/mpeg',
       filename:
         'kobo/attachments/c71e63f6afa64b31ba70b2fbbb710cf4/58c71236-f713-471b-bd4c-2a5f2e6b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
@@ -2777,7 +2757,7 @@ export const submissionWithSupplementalDetails = {
       ],
     },
   },
-};
+}
 
 export const submissionWithNestedSupplementalDetails = {
   _id: 77,
@@ -2792,8 +2772,7 @@ export const submissionWithNestedSupplementalDetails = {
   'meta/rootUuid': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
   _attachments: [
     {
-      download_url:
-        'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
       mimetype: 'audio/x-m4a',
       filename:
         'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
@@ -2842,4 +2821,4 @@ export const submissionWithNestedSupplementalDetails = {
       },
     },
   },
-};
+}
