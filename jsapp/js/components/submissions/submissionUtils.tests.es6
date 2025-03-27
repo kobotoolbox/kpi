@@ -29,6 +29,7 @@ import {
   matrixRepeatSurveyDisplayData,
   submissionWithAttachmentsWithUnicode,
   submissionWithSupplementalDetails,
+  submissionWithNestedSupplementalDetails,
 } from './submissionUtils.mocks';
 import {
   getMediaAttachment,
@@ -48,135 +49,162 @@ chai.use(chaiExclude);
 //    {... "label": "hi", "name": "hi" ...}
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
-import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
+import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined';
 chai.use(chaiDeepEqualIgnoreUndefined);
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: simpleSurvey,
-            choices: simpleSurveyChoices,
-          },
-        }, 1, simpleSurveySubmission).children;
-      const target = simpleSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: simpleSurvey,
+          choices: simpleSurveyChoices,
+        },
+      },
+      1,
+      simpleSurveySubmission
+    ).children;
+    const target = simpleSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a null data entries for a survey with no answers', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: simpleSurvey,
-            choices: simpleSurveyChoices,
-          },
-        }, 0, simpleSurveySubmissionEmpty).children;
-      const target = simpleSurveyDisplayDataEmpty;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: simpleSurvey,
+          choices: simpleSurveyChoices,
+        },
+      },
+      0,
+      simpleSurveySubmissionEmpty
+    ).children;
+    const target = simpleSurveyDisplayDataEmpty;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with a repeat group', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: repeatSurvey,
-            choices: null,
-          },
-        }, 0, repeatSurveySubmission).children;
-      const target = repeatSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: repeatSurvey,
+          choices: null,
+        },
+      },
+      0,
+      repeatSurveySubmission
+    ).children;
+    const target = repeatSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with nested repeat groups', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: nestedRepeatSurvey,
-            choices: null,
-          },
-        }, 0, nestedRepeatSurveySubmission).children;
-      const target = nestedRepeatSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: nestedRepeatSurvey,
+          choices: null,
+        },
+      },
+      0,
+      nestedRepeatSurveySubmission
+    ).children;
+    const target = nestedRepeatSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with a matrix', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: matrixSurvey,
-            choices: matrixSurveyChoices,
-          },
-        }, 0, matrixSurveySubmission).children;
-      const target = matrixSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: matrixSurvey,
+          choices: matrixSurveyChoices,
+        },
+      },
+      0,
+      matrixSurveySubmission
+    ).children;
+    const target = matrixSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a survey with all kinds of groups', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: groupsSurvey,
-            choices: groupsSurveyChoices,
-          },
-        }, 0, groupsSurveySubmission).children;
-      const target = groupsSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: groupsSurvey,
+          choices: groupsSurveyChoices,
+        },
+      },
+      0,
+      groupsSurveySubmission
+    ).children;
+    const target = groupsSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for every possible question type', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: everythingSurvey,
-            choices: everythingSurveyChoices,
-          },
-        }, 0, everythingSurveySubmission).children;
-      const target = everythingSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: everythingSurvey,
+          choices: everythingSurveyChoices,
+        },
+      },
+      0,
+      everythingSurveySubmission
+    ).children;
+    const target = everythingSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 
   it('should return a valid data for a matrix group inside repeat group', () => {
-      const test = getSubmissionDisplayData(
-        {
-          uid: 'abc',
-          content: {
-            survey: matrixRepeatSurvey,
-            choices: matrixRepeatSurveyChoices,
-          },
-        }, 0, matrixRepeatSurveySubmission).children;
-      const target = matrixRepeatSurveyDisplayData;
-      expect(test)
-        .excludingEvery(['__proto__', 'xpathNodes'])
-        .to.deepEqualIgnoreUndefined(target);
+    const test = getSubmissionDisplayData(
+      {
+        uid: 'abc',
+        content: {
+          survey: matrixRepeatSurvey,
+          choices: matrixRepeatSurveyChoices,
+        },
+      },
+      0,
+      matrixRepeatSurveySubmission
+    ).children;
+    const target = matrixRepeatSurveyDisplayData;
+    expect(test)
+      .excludingEvery(['__proto__', 'xpathNodes'])
+      .to.deepEqualIgnoreUndefined(target);
   });
 });
 
 describe('getMediaAttachment', () => {
   it('should return an attachment object', () => {
     const fileName = submissionWithAttachmentsWithUnicode.A_picture;
-    const test = getMediaAttachment(submissionWithAttachmentsWithUnicode, fileName);
+    const test = getMediaAttachment(
+      submissionWithAttachmentsWithUnicode,
+      fileName
+    );
     const target = submissionWithAttachmentsWithUnicode._attachments[0];
     expect(test).to.deep.equal(target);
   });
@@ -197,6 +225,14 @@ describe('getSupplementalDetailsContent', () => {
       '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl'
     );
     expect(test).to.equal('This is polish translation text.');
+  });
+
+  it('should return translation value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr'
+    );
+    expect(test).to.equal('Comment vas-tu mon cher ami?');
   });
 
   it('should return analysis question value properly for qual_select_multiple', () => {
