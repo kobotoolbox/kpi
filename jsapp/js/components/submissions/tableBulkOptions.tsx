@@ -23,7 +23,6 @@ import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
 import { renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
-import ButtonNew from '../common/ButtonNew'
 import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 
 interface TableBulkOptionsProps {
@@ -254,8 +253,19 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           )}
 
         {Object.keys(this.props.selectedRows).length > 0 &&
-          (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-            userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) && <BulkDeleteMediaFiles />}
+          (userCan(
+            PERMISSIONS_CODENAMES.delete_submissions,
+            this.props.asset
+          ) ||
+            userCanPartially(
+              PERMISSIONS_CODENAMES.delete_submissions,
+              this.props.asset
+            )) && (
+            <BulkDeleteMediaFiles
+              submissionData={this.props.data}
+              selectedRows={Object.keys(this.props.selectedRows)}
+            />
+        )}
       </bem.TableMeta__bulkOptions>
     )
   }
