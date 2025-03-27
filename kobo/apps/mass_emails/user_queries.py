@@ -8,11 +8,12 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.utils import get_organizations_subscription_limits
+from kobo.apps.stripe.utils import get_organizations_effective_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
+    get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
-    get_submissions_for_current_billing_period_by_user_id, get_nlp_usage_for_current_billing_period_by_user_id,
+    get_submissions_for_current_billing_period_by_user_id,
 )
 
 
@@ -88,8 +89,14 @@ def get_users_within_range_of_usage_limit(
     maximum = maximum or inf
 
     include_storage_addons = 'storage' in usage_types
-    limits_by_org = get_organizations_subscription_limits(
-        include_storage_addons=include_storage_addons
+    include_onetime_addons = (
+        'submission' in usage_types
+        or 'seconds' in usage_types
+        or 'characters' in usage_types
+    )
+    limits_by_org = get_organizations_effective_limits(
+        include_storage_addons=include_storage_addons,
+        include_onetime_addons=include_onetime_addons,
     )
     owner_by_org = {
         org.id: org.owner_user_object.pk
@@ -114,7 +121,6 @@ def get_users_over_90_percent_of_storage_limit():
         usage_types=['storage'], minimum=0.9, maximum=1
     )
     return [user.extra_details.uid for user in results]
-
 
 def get_users_over_100_percent_of_storage_limit():
     results = get_users_within_range_of_usage_limit(usage_types=['storage'], minimum=1)

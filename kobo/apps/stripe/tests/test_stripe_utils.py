@@ -429,7 +429,8 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert results[self.second_organization.id]['start'] == first_of_this_month
         assert results[self.second_organization.id]['end'] == first_of_next_month
 
-    def test_get_org_effective_limits(self):
+    @data(True, False)
+    def test_get_org_effective_limits(self, include_onetime_addons):
         plan_product_metadata = {
             'mt_characters_limit': '1',
             'asr_seconds_limit': '1',
@@ -466,12 +467,19 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             price=submission_addon.default_price,
             customer=customer2,
         )
-        results = get_organizations_effective_limits()
+        results = get_organizations_effective_limits(
+            include_onetime_addons=include_onetime_addons
+        )
         assert results[self.organization.id]['submission_limit'] == 1
         assert results[self.organization.id]['storage_limit'] == 1
-        assert results[self.organization.id]['characters_limit'] == 16
-        assert results[self.organization.id]['seconds_limit'] == 21
-        assert results[self.second_organization.id]['submission_limit'] == 12
         assert results[self.second_organization.id]['storage_limit'] == 2
         assert results[self.second_organization.id]['characters_limit'] == 2
         assert results[self.second_organization.id]['seconds_limit'] == 2
+        if include_onetime_addons:
+            assert results[self.organization.id]['characters_limit'] == 16
+            assert results[self.organization.id]['seconds_limit'] == 21
+            assert results[self.second_organization.id]['submission_limit'] == 12
+        else:
+            assert results[self.organization.id]['characters_limit'] == 1
+            assert results[self.organization.id]['seconds_limit'] == 1
+            assert results[self.second_organization.id]['submission_limit'] == 2

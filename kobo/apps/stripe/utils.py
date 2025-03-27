@@ -379,11 +379,17 @@ def get_organizations_subscription_limits(
     return results
 
 
-def get_organizations_effective_limits():
-    effective_limits = get_organizations_subscription_limits()
-    if settings.STRIPE_ENABLED:
+def get_organizations_effective_limits(
+    organizations: list[Organization] = None,
+    include_storage_addons=True,
+    include_onetime_addons=True,
+):
+    effective_limits = get_organizations_subscription_limits(
+        include_storage_addons=include_storage_addons, organizations=organizations
+    )
+    if settings.STRIPE_ENABLED and include_onetime_addons:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
-        addon_limits = PlanAddOn.get_organizations_totals()
+        addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
         for org_id, limits in effective_limits.items():
             for usage_type in get_args(UsageType):
                 addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
