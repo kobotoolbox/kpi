@@ -1,9 +1,11 @@
 import calendar
 from datetime import datetime
 from math import ceil, floor, inf
+from typing import get_args
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
@@ -376,11 +378,18 @@ def get_organizations_subscription_limits(
 
     return results
 
-def get_organizations_addons_limit():
-    if not settings.STRIPE_ENABLED:
-        raise NotImplementedError('Cannot get organization plans with stripe disabled')
 
-    pass
+def get_organizations_effective_limits():
+    effective_limits = get_organizations_subscription_limits()
+    if settings.STRIPE_ENABLED:
+        PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+        addon_limits = PlanAddOn.get_organizations_totals()
+        for org_id, limits in effective_limits.items():
+            for usage_type in get_args(UsageType):
+                addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
+                limits[f'{usage_type}_limit'] += addon
+    return effective_limits
+
 
 def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
     """
