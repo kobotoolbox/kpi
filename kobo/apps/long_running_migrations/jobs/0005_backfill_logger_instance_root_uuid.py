@@ -7,6 +7,7 @@ from taggit.models import TaggedItem
 
 from kobo.apps.openrosa.apps.logger.models import XForm, Instance
 from kpi.utils.database import use_db
+from kpi.utils.log import logging
 
 
 def run():
@@ -53,10 +54,16 @@ def _process_instances_batch(
         )
     except IntegrityError:
         if first_try:
-            call_command(
-                'clean_duplicated_submissions',
-                xform=xform.id_string,
-            )
+            try:
+                call_command(
+                    'clean_duplicated_submissions',
+                    xform=xform.id_string,
+                )
+            except Exception as e:
+                logging.error(f'Failed to clean duplicated submissions: {str(e)}')
+                xform.tags.add('kobo-root-uuid-failed')
+                return False
+
             # Need to reload instance_batch to get new uuids
             instance_batch = Instance.objects.only(
                 'pk', 'uuid', 'xml', 'root_uuid'
