@@ -163,7 +163,7 @@ export interface SubmissionAttachment {
   is_deleted?: boolean
 }
 
-interface SubmissionSupplementalDetails {
+export interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: TransxObject
     translation?: {
