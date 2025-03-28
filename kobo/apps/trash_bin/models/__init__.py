@@ -1,7 +1,10 @@
+from typing import Optional
+
 from django.conf import settings
 from django.db import models
 
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from ..type_aliases import ObjectIdentifierList, ToggleStatusesReturn
 
 
 class TrashStatus(models.TextChoices):
@@ -42,3 +45,12 @@ class BaseTrash(AbstractTimeStampedModel):
     # Projects are always deleted entirely and related Celery task ignore this
     # field, but it could be implemented at a later time.
     retain_placeholder = models.BooleanField(default=True)
+
+    @classmethod
+    def toggle_statuses(
+        cls,
+        object_identifiers: ObjectIdentifierList,
+        active: bool = True,
+        **kwargs
+    ) -> Optional[ToggleStatusesReturn]:
+        raise NotImplementedError
