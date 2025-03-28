@@ -24,7 +24,11 @@ from kpi.models import Asset, SubmissionExportTask, ImportTask
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
-from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from .constants import (
+    DELETE_ATTACHMENT_STR_PREFIX,
+    DELETE_PROJECT_STR_PREFIX,
+    DELETE_USER_STR_PREFIX,
+)
 from .exceptions import (
     TrashIntegrityError,
     TrashNotImplementedError,
@@ -32,7 +36,9 @@ from .exceptions import (
 )
 from .models import TrashStatus
 from .models.account import AccountTrash
+from .models.attachment import AttachmentTrash
 from .models.project import ProjectTrash
+from ..openrosa.apps.logger.models import Attachment
 
 
 def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
@@ -97,7 +103,7 @@ def move_to_trash(
     'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
     they should contain 'pk' and 'username'.
 
-    Projects and accounts stay in trash for `grace_period` and then are
+    Projects, accounts and attachments stay in trash for `grace_period` and then are
     hard-deleted when their related scheduled task runs.
 
     If `retain_placeholder` is True, in instance of `kobo_auth.User` with the same
@@ -405,6 +411,15 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             f'{DELETE_USER_STR_PREFIX} data ({{username}})'
             if retain_placeholder
             else f'{DELETE_USER_STR_PREFIX} account ({{username}})'
+        )
+
+    if trash_type == 'attachment':
+        return (
+            AttachmentTrash,
+            'attachment_id',
+            Attachment,
+            'empty_attachment',
+            f'{DELETE_ATTACHMENT_STR_PREFIX} {{attachment_basename}} ({{attachment_uid}})',  # noqa E501
         )
 
     raise TrashNotImplementedError
