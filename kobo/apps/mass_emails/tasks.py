@@ -20,6 +20,10 @@ from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 
+if settings.STRIPE_ENABLED:
+    from kobo.apps.stripe.utils import get_default_plan_name
+
+
 templates_placeholders = {
     '##username##': 'username',
     '##full_name##': 'full_name',
@@ -161,11 +165,12 @@ class MassEmailSender:
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
+        plan_name = None
         if settings.STRIPE_ENABLED:
             plan_name = org_user.active_subscription_status
             if plan_name == '' or plan_name is None:
-                plan_name = gettext('Community Plan')
-        else:
+                plan_name = get_default_plan_name()
+        if plan_name is None:
             plan_name = gettext('Not available')
         data = {
             'username': record.user.username,

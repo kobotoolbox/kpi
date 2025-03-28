@@ -1,6 +1,7 @@
 import calendar
 from datetime import datetime
 from math import ceil, floor, inf
+from typing import Optional
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.db.models import F, Max, Q, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from djstripe.models import Product
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -102,6 +104,16 @@ def get_billing_dates_for_orgs_with_canceled_subscriptions(
         result[res['id']] = {'start': start, 'end': end}
 
     return result
+
+
+def get_default_plan_name() -> Optional[str]:
+    default_plan = (
+        Product.objects.filter(metadata__default_free_plan='true')
+        .values('name')
+        .first()
+    )
+    if default_plan is not None:
+        return default_plan['name']
 
 
 def get_organization_plan_limits(
