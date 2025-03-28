@@ -32,6 +32,7 @@ def get_default_plan_name() -> Optional[str]:
     if not settings.STRIPE_ENABLED:
         return None
     from djstripe.models import Product
+
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')
         .values('name')

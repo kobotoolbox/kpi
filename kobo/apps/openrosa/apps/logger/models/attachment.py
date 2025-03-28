@@ -58,10 +58,7 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
-    # Mimic KpiUidField behaviour with _null=True
-    # TODO: remove _null=True after the long running migration 0007 has
-    # run and been completed
-    uid = KpiUidField(uid_prefix='att', _null=True)
+    uid = KpiUidField(uid_prefix='att')
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
@@ -99,13 +96,6 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         blank=True,
         db_index=True,
     )
-
-    # Override these two fields from AbstractTimeStampedModel to ensure they are
-    # nullable and not backfilled with the current timestamp when the migration runs.
-    # TODO: remove in future release after the long running migration 0007 has run
-    # and been completed
-    date_created = models.DateTimeField(null=True, blank=True)
-    date_modified = models.DateTimeField(null=True, blank=True)
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
