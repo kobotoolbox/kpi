@@ -29,6 +29,7 @@ import {
   simpleSurveySubmission,
   simpleSurveySubmissionEmpty,
   submissionWithAttachmentsWithUnicode,
+  submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
 } from './submissionUtils.mocks'
 
@@ -201,6 +202,14 @@ describe('getSupplementalDetailsContent', () => {
       '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
     )
     expect(test).to.equal('This is polish translation text.')
+  })
+
+  it('should return translation value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr',
+    )
+    expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
 
   it('should return analysis question value properly for qual_select_multiple', () => {

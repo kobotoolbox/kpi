@@ -30,9 +30,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         user3org = user3.organization
 
         usage_limits = {
-            user1org.id: 1000000000,
-            user2org.id: 1000000000,
-            user3org.id: 1000000000,
+            user1org.id: {'storage_limit': 1000000000},
+            user2org.id: {'storage_limit': 1000000000},
+            user3org.id: {'storage_limit': 1000000000},
         }
         storage_by_user_id = {
             user1.id: 1000000001,  # over full usage
@@ -42,7 +42,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # org plan limits and storage usage are tested more thoroughly elsewhere
         # and are hard to set up, so just patch responses
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organization_plan_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -66,10 +66,10 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     def test_users_with_infinite_limits(self, minimum, maximum):
         user1 = User.objects.get(username='anotheruser')
         user1org = user1.organization
-        usage_limits = {user1org.id: inf}
+        usage_limits = {user1org.id: {'storage_limit': inf}}
         storage_by_user_id = {user1.id: 1000000000}
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organization_plan_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -86,21 +86,24 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         assert aslist == []
 
     @data(
-        ('storage', 'get_storage_usage_by_user_id'),
-        ('submission', 'get_submissions_for_current_billing_period_by_user_id'),
+        ('storage', 'get_storage_usage_by_user_id', True),
+        ('submission', 'get_submissions_for_current_billing_period_by_user_id', False),
     )
     @unpack
     def test_users_in_range_of_usage_limit_calls_correct_usage_method(
-        self, usage_type, method_to_patch
+        self, usage_type, method_to_patch, include_storage_addons
     ):
         full_usage_method_to_patch = (
             f'kobo.apps.mass_emails.user_queries.{method_to_patch}'
         )
         full_limit_method_to_patch = (
-            'kobo.apps.mass_emails.user_queries.get_organization_plan_limits'
+            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits'
         )
         with patch(full_usage_method_to_patch) as patched_usage_method:
             with patch(full_limit_method_to_patch) as patched_limit_method:
                 get_users_within_range_of_usage_limit(usage_type=usage_type)
         patched_usage_method.assert_called_once()
-        patched_limit_method.assert_called_once_with(usage_type=usage_type)
+
+        patched_limit_method.assert_called_once_with(
+            include_storage_addons=include_storage_addons
+        )

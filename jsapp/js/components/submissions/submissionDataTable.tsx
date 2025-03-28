@@ -2,12 +2,13 @@ import './submissionDataTable.scss'
 
 import React from 'react'
 
+import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import SimpleTable from '#/components/common/SimpleTable'
-import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import {
@@ -21,6 +22,7 @@ import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } 
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
+import AudioPlayer from '../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')
 bem.SubmissionDataTable__row = makeBem(bem.SubmissionDataTable, 'row')
@@ -208,52 +210,72 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
 
   renderAttachment(type: AnyRowTypeName | null, filename: string, name: string, xpath: string) {
     const attachment = getMediaAttachment(this.props.submissionData, filename, xpath)
-    if (attachment && attachment instanceof Object) {
+
+    // In the case that an attachment is missing, don't crash the page
+    if (typeof attachment !== 'object') return attachment
+
+    if (type === QUESTION_TYPES.audio.id) {
       return (
-        <>
-          {type === QUESTION_TYPES.audio.id && (
-            <>
-              <AudioPlayer mediaURL={attachment.download_url} />
+        <Group>
+          {attachment?.is_deleted ? (
+            <DeletedAttachment />
+          ) : attachment?.download_url ? (
+            <AudioPlayer mediaURL={attachment?.download_url} />
+          ) : null}
 
-              <Button
-                type='primary'
-                size='s'
-                endIcon='arrow-up-right'
-                label={t('Open')}
-                onClick={this.openProcessing.bind(this, name)}
-              />
-            </>
-          )}
-          {type === QUESTION_TYPES.image.id && (
-            <a href={attachment.download_url} target='_blank'>
-              <img src={attachment.download_medium_url} />
-            </a>
-          )}
-
-          {type === QUESTION_TYPES.video.id && <video src={attachment.download_url} controls />}
-
-          {type === QUESTION_TYPES.file.id && (
-            <a href={attachment.download_url} target='_blank'>
-              {filename}
-            </a>
-          )}
-
-          {type !== null && (
-            <AttachmentActionsDropdown
-              asset={this.props.asset}
-              submissionData={this.props.submissionData}
-              attachmentId={attachment.id}
-              onDeleted={() => {
-                this.props.onAttachmentDeleted(attachment.id)
-              }}
-            />
-          )}
-        </>
+          <Button
+            type='primary'
+            size='s'
+            endIcon='arrow-up-right'
+            label={t('Open')}
+            onClick={this.openProcessing.bind(this, name)}
+          />
+        </Group>
       )
-      // In the case that an attachment is missing, don't crash the page
-    } else {
-      return attachment
     }
+
+    if (attachment.is_deleted) {
+      return (
+        <Group>
+          <DeletedAttachment />
+        </Group>
+      )
+    }
+
+    if (type === QUESTION_TYPES.image.id) {
+      return (
+        <a href={attachment.download_url} target='_blank'>
+          <img src={attachment.download_medium_url} />
+        </a>
+      )
+    }
+
+    if (type === QUESTION_TYPES.video.id) {
+      return <video src={attachment.download_url} controls />
+    }
+
+    if (type === QUESTION_TYPES.file.id) {
+      return (
+        <a href={attachment.download_url} target='_blank'>
+          {filename}
+        </a>
+      )
+    }
+
+    if (type !== null) {
+      return (
+        <AttachmentActionsDropdown
+          asset={this.props.asset}
+          submissionData={this.props.submissionData}
+          attachmentId={attachment.id}
+          onDeleted={() => {
+            this.props.onAttachmentDeleted(attachment.id)
+          }}
+        />
+      )
+    }
+
+    return null
   }
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {

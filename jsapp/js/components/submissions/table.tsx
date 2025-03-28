@@ -18,11 +18,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import {
-  getMediaAttachment,
-  getRepeatGroupAnswers,
-  getSupplementalDetailsContent,
-} from '#/components/submissions/submissionUtils'
+import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
@@ -91,6 +87,7 @@ import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
 import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
+import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
 
@@ -348,7 +345,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * @returns {object} one of ValidationStatusOption
    */
   getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) => option.value === originalRow._validation_status?.uid)
+    const foundOption = VALIDATION_STATUS_OPTIONS.find(
+      (option) => 'uid' in originalRow._validation_status && option.value === originalRow._validation_status.uid,
+    )
 
     // If submission doesn't have a validation status, we return the no option option :)
     return foundOption || VALIDATION_STATUS_NO_OPTION
@@ -817,17 +816,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           )
 
           if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key)
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              )
-            } else {
-              return ''
-            }
+            return <RepeatGroupCell submissionData={row.original} rowName={key} />
           }
 
           if (q && q.type && row.value) {

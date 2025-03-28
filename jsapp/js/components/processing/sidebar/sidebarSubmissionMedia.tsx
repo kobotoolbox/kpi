@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
+
+import cx from 'classnames'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { getAttachmentForProcessing } from '#/components/processing/transcript/transcript.utils'
@@ -23,6 +26,13 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
   const attachment = getAttachmentForProcessing(props.asset.content)
   if (typeof attachment === 'string') {
     return null
+  }
+  if (attachment.is_deleted) {
+    return (
+      <section className={cx([styles.mediaWrapper, styles.mediaWrapperDeleted])} key='deleted'>
+        <DeletedAttachment />
+      </section>
+    )
   }
 
   switch (store.currentQuestionType) {

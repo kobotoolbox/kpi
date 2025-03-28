@@ -48,8 +48,8 @@ class AttachmentDeleteStatus(models.TextChoices):
 class AttachmentDefaultManager(models.Manager):
 
     def get_queryset(self):
-        # ToDo remove "deleted_at__isnull=True, " from filter when
-        #   TASK-1534 is completed
+        # TODO remove "deleted_at__isnull=True" from filter after the long
+        # running migration 0007 has run and been completed
         return (
             super()
             .get_queryset()
@@ -58,8 +58,9 @@ class AttachmentDefaultManager(models.Manager):
 
 
 class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
-    # Mimic KpiUidField behaviour with _null=True until TASK-1534 is completed
-    # TODO: remove _null=True when TASK-1534 is complete
+    # Mimic KpiUidField behaviour with _null=True
+    # TODO: remove _null=True after the long running migration 0007 has
+    # run and been completed
     uid = KpiUidField(uid_prefix='att', _null=True)
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
