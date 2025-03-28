@@ -1,14 +1,6 @@
 from ddt import data, ddt
 from django.urls import reverse
-from django.utils import timezone
-from djstripe.models import (
-    Charge,
-    Customer,
-    PaymentIntent,
-    Price,
-    Product,
-    Subscription,
-)
+from djstripe.models import Customer, Subscription
 from model_bakery import baker
 from rest_framework import status
 
@@ -16,6 +8,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.models import PlanAddOn
+from kobo.apps.stripe.tests.utils import _create_payment, _create_one_time_addon_product
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -44,46 +37,19 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
                 'submission_limit': 2000,
                 'valid_tags': 'all',
             }
-        self.product = baker.make(
-            Product,
-            active=True,
-            metadata=metadata,
-        )
-        self.price = baker.make(
-            Price, active=True, product=self.product, type='one_time'
-        )
-        self.product.save()
+        product = _create_one_time_addon_product(limit_metadata=metadata)
+        self.product = product
+        self.price = product.default_price
 
     def _create_payment(self, payment_status='succeeded', refunded=False):
-        payment_total = 2000
-        self.payment_intent = baker.make(
-            PaymentIntent,
+        charge = _create_payment(
             customer=self.customer,
-            status=payment_status,
-            payment_method_types=['card'],
-            livemode=False,
-            amount=payment_total,
-            amount_capturable=payment_total,
-            amount_received=payment_total,
+            price=self.price,
+            product=self.product,
+            payment_status=payment_status,
+            refunded=refunded
         )
-        self.charge = baker.prepare(
-            Charge,
-            customer=self.customer,
-            refunded=refunded,
-            created=timezone.now(),
-            payment_intent=self.payment_intent,
-            paid=True,
-            status=payment_status,
-            livemode=False,
-            amount_refunded=0 if refunded else payment_total,
-            amount=payment_total,
-        )
-        self.charge.metadata = {
-            'price_id': self.price.id,
-            'organization_id': self.organization.id,
-            **(self.product.metadata or {}),
-        }
-        self.charge.save()
+        self.charge = charge
 
     def test_no_addons(self):
         response = self.client.get(self.url)

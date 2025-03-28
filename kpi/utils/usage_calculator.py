@@ -1,6 +1,4 @@
-from datetime import datetime
 from json import dumps, loads
-from zoneinfo import ZoneInfo
 
 from django.apps import apps
 from django.conf import settings
@@ -27,25 +25,17 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
 
 
 def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
-    all_sub_counters = DailyXFormSubmissionCounter.objects.values(
-        'counter', 'user_id', 'date'
+    filters = Q()
+    for user_id, date_range in date_ranges_by_user.items():
+        filters |= Q(
+            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        )
+    all_sub_counters = (
+        DailyXFormSubmissionCounter.objects.values('counter', 'user_id', 'date')
+        .filter(filters)
+        .annotate(total=Sum('counter'))
     )
-    result = {}
-    midnight = datetime.min.time().replace(tzinfo=ZoneInfo('UTC'))
-    for counter_row in all_sub_counters:
-        # filter down to submissions after the billing start date
-        # can't do this in the ORM query because the billing start date is calculated
-        # in python and varies per user
-        user_id = counter_row['user_id']
-        current_user_total = result.get(counter_row['user_id'], 0)
-        # convert date to datetime to compare to the stuff in billing_dates_by_owner
-        counter_time = datetime.combine(counter_row['date'], midnight)
-        current_billing_start = date_ranges_by_user[user_id]['start']
-        current_billing_end = date_ranges_by_user[user_id]['end']
-        if current_billing_start <= counter_time < current_billing_end:
-            current_user_total += counter_row['counter']
-        result[user_id] = current_user_total
-    return result
+    return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
 def get_submissions_for_current_billing_period_by_user_id():

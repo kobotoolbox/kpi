@@ -48,8 +48,8 @@ class AttachmentDeleteStatus(models.TextChoices):
 class AttachmentDefaultManager(models.Manager):
 
     def get_queryset(self):
-        # ToDo remove "deleted_at__isnull=True, " from filter when
-        #   TASK-1534 is completed
+        # TODO remove "deleted_at__isnull=True" from filter after the long
+        # running migration 0007 has run and been completed
         return (
             super()
             .get_queryset()
@@ -99,7 +99,8 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
 
     # Override these two fields from AbstractTimeStampedModel to ensure they are
     # nullable and not backfilled with the current timestamp when the migration runs.
-    # TODO: remove in future release, when TASK-1534 is completed
+    # TODO: remove in future release after the long running migration 0007 has run
+    # and been completed
     date_created = models.DateTimeField(null=True, blank=True)
     date_modified = models.DateTimeField(null=True, blank=True)
 

@@ -459,6 +459,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       return null
     }
 
+    const selectedOption =
+      'uid' in this.state.submission._validation_status ? this.state.submission._validation_status.uid : null
+
     return (
       <div className='submission-modal-dropdowns'>
         {this.state.translationOptions.length > 1 && (
@@ -481,7 +484,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           type='outline'
           size='s'
           options={VALIDATION_STATUS_OPTIONS}
-          selectedOption={this.state.submission._validation_status?.uid || null}
+          selectedOption={selectedOption}
           onChange={(newSelectedOption: string | null) => {
             if (newSelectedOption !== null) {
               const castOption = newSelectedOption as ValidationStatusOptionName

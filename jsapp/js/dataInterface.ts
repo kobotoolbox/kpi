@@ -182,19 +182,30 @@ export type SubmissionResponseValue =
   | string[]
   | number
   | number[]
+  // Sometimes being used as "no value" by backend
   | null
-  | object
+  // Being used as "no value" by backend for `_geolocation`
+  | null[]
+  // Sometimes being used as "no value" by backend
+  | {}
   | SubmissionAttachment[]
   | SubmissionSupplementalDetails
-  // This happens with responses to questions inside repeat groups
-  | Array<{ [questionName: string]: SubmissionResponseValue }>
+  // These are responses to questions from repeat group
+  | SubmissionResponseValueObject[]
+  // This is needed because some of `SubmissionResponse` properties are optional
   | undefined
 
-export interface SubmissionResponse {
-  // `SubmissionResponseValue` covers all possible values (responses to form
-  // questions and other submission properties)
-  [propName: string]: SubmissionResponseValue
-  // Below are all known properties of submission response:
+/**
+ * A list of responses to form questions
+ */
+export interface SubmissionResponseValueObject {
+  [questionName: string]: SubmissionResponseValue
+}
+
+/**
+ * A list of responses to form questions plus some submission metadata
+ */
+export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
   _attachments: SubmissionAttachment[]
   _geolocation: number[] | null[]
@@ -203,13 +214,8 @@ export interface SubmissionResponse {
   _submission_time: string
   _submitted_by: string | null
   _tags: string[]
-  _validation_status: {
-    timestamp?: number
-    uid?: ValidationStatusName
-    by_whom?: string
-    color?: string
-    label?: string
-  }
+  // If submission was validated, this would be a proper response, otherwise it's empty object
+  _validation_status: ValidationStatusResponse | {}
   _version_?: string
   _xform_id_string: string
   deviceid?: string
@@ -225,7 +231,8 @@ export interface SubmissionResponse {
   start?: string
   today?: string
   username?: string
-  _supplementalDetails?: SubmissionSupplementalDetails
+  // Is an empty object if form has no advanced features enabled
+  _supplementalDetails: SubmissionSupplementalDetails | {}
 }
 
 interface AssignablePermissionRegular {
@@ -917,7 +924,7 @@ export interface ValidationStatusResponse {
   /** username */
   by_whom: string
   /** HEX color */
-  color: string
+  color?: string
   label: string
 }
 

@@ -31,3 +31,4 @@ cypress/cypress/screenshots/*
 public
 .venv
 storybook-static
+emails

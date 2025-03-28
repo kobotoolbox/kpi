@@ -2758,3 +2758,67 @@ export const submissionWithSupplementalDetails = {
     },
   },
 }
+
+export const submissionWithNestedSupplementalDetails = {
+  _id: 77,
+  'formhub/uuid': '54445e08ab6d4011ae648adc6ae8c9bc',
+  start: '2025-03-27T16:49:25.353+01:00',
+  end: '2025-03-27T16:49:37.202+01:00',
+  'level_a/level_b/level_c/sounds': 'test-spoken-16_49_36.m4a',
+  __version__: 'v64akAvRrHhkMpxFysVGcK',
+  'meta/instanceID': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  _xform_id_string: 'aw6mhS4KnoG5E8EbQp9KgF',
+  _uuid: '64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  'meta/rootUuid': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  _attachments: [
+    {
+      download_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      mimetype: 'audio/x-m4a',
+      filename:
+        'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
+      instance: 77,
+      xform: 27,
+      id: 70,
+      question_xpath: 'level_a/level_b/level_c/sounds',
+    },
+  ],
+  _status: 'submitted_via_web',
+  _geolocation: [null, null],
+  _submission_time: '2025-03-27T15:49:38',
+  _tags: [],
+  _notes: [],
+  _validation_status: {},
+  _submitted_by: null,
+  _supplementalDetails: {
+    'level_a/level_b/level_c/sounds': {
+      qual: [
+        {
+          val: ['first', 'second', 'third', 'fourth', 'fifth'],
+          type: 'qual_tags',
+          uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
+          scope: 'by_question#survey',
+          xpath: 'level_a/level_b/level_c/sounds',
+          labels: {
+            _default: 'What kind?',
+          },
+        },
+      ],
+      transcript: {
+        value: 'How are you doing my dear friend?',
+        revisions: [],
+        dateCreated: '2025-03-27 15:49:59',
+        dateModified: '2025-03-27 15:49:59',
+        languageCode: 'en',
+      },
+      translation: {
+        fr: {
+          value: 'Comment vas-tu mon cher ami?',
+          revisions: [],
+          dateCreated: '2025-03-27T15:50:09Z',
+          dateModified: '2025-03-27T15:50:09Z',
+          languageCode: 'fr',
+        },
+      },
+    },
+  },
+}
