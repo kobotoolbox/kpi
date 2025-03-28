@@ -26,16 +26,19 @@ class ProjectTrash(BaseTrash):
         verbose_name_plural = 'projects'
 
     def __str__(self) -> str:
-        return f'{self.asset} - {self.periodic_task.start_time}'
+        return f'{self.asset} - {self.periodic_task.clocked.clocked_time}'
 
     @classmethod
     def toggle_statuses(
         cls,
-        object_identifiers: list[str],
+        object_identifiers: list[str] | None = None,
         active: bool = True,
         owner: settings.AUTH_USER_MODEL = None,
         toggle_delete: bool = True,
     ) -> ToggleStatusesReturn:
+
+        if owner is None and object_identifiers is None:
+            raise ValueError('Either `owner` or `object_identifiers` must not be None')
 
         if object_identifiers and owner:
             raise ValueError(

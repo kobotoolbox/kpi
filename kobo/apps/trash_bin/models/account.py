@@ -23,7 +23,7 @@ class AccountTrash(BaseTrash):
 
     def __str__(self) -> str:
         try:
-            return f'{self.user.username} - {self.periodic_task.start_time}'
+            return f'{self.user.username} - {self.periodic_task.clocked.clocked_time}'
         except AttributeError:
             return f'{self.user.username} - None'
 

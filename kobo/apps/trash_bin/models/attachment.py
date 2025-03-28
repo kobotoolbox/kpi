@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from django.db import models, transaction
+from django.db import models
+from django.db.utils import IntegrityError
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -17,13 +18,13 @@ class AttachmentTrash(BaseTrash):
     # Cannot use foreign key on Attachment, because it belongs to Kobocat
     # database. Use property @attachment to simulate the FK.
     # TODO use FK when databases are merged
-    attachment_id = models.IntegerField(db_index=True, unique=True)
+    attachment_id = models.IntegerField(db_index=True, unique=True, default=0)
 
     class Meta(BaseTrash.Meta):
         verbose_name = 'attachment'
 
     def __str__(self) -> str:
-        return f'{self.attachment} - {self.periodic_task.start_time}'
+        return f'{self.attachment} - {self.periodic_task.clocked.clocked_time}'
 
     @property
     def attachment(self):
@@ -33,11 +34,25 @@ class AttachmentTrash(BaseTrash):
             setattr(self, '_attachment', _attachment)
         return _attachment
 
-    @classmethod
-    def toggle_attachment_statuses(cls, attachment_ids: list, delete: bool = False):
+    def save(self, *args, **kwargs):
+        try:
+            self.attachment
+        except Attachment.DoesNotExist:
+            message = (
+                'insert or update on table "trashbin_attachmentrash" violates foreign '
+                'key constraint "trashbin_attachmentrash_attachment_id__fk"\n'
+                f'DETAIL:  Key (attachment_id)=({self.attachment_id}) is not present in '
+                f'table "logger_attachment".'
+            )
+            raise IntegrityError(message)
 
-        delete_status = AttachmentDeleteStatus.PENDING_DELETE if delete else None
-        Attachment.all_objects.filter(pk__in=attachment_ids).update(
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
+
+        delete_status = AttachmentDeleteStatus.PENDING_DELETE if not active else None
+        Attachment.all_objects.filter(pk__in=object_identifiers).update(
             delete_status=delete_status,
             date_modified=timezone.now(),
         )
