@@ -41,8 +41,8 @@ class AttachmentTrash(BaseTrash):
             message = (
                 'insert or update on table "trashbin_attachmentrash" violates foreign '
                 'key constraint "trashbin_attachmentrash_attachment_id__fk"\n'
-                f'DETAIL:  Key (attachment_id)=({self.attachment_id}) is not present in '
-                f'table "logger_attachment".'
+                f'DETAIL:  Key (attachment_id)=({self.attachment_id}) is not present '
+                f'in table "logger_attachment".'
             )
             raise IntegrityError(message)
 

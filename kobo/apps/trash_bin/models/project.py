@@ -40,11 +40,6 @@ class ProjectTrash(BaseTrash):
         if owner is None and object_identifiers is None:
             raise ValueError('Either `owner` or `object_identifiers` must not be None')
 
-        if object_identifiers and owner:
-            raise ValueError(
-                '`asset_uids` and `owner` cannot be passed at the time'
-            )
-
         if object_identifiers:
             kc_filter_params = {'kpi_asset_uid__in': object_identifiers}
             filter_params = {'uid__in': object_identifiers}
