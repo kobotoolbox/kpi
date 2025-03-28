@@ -18,12 +18,12 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
   // We need submission data.
   const [store] = useState(() => singleProcessingStore)
 
-  // We need `assetContent` to proceed.
-  if (!props.asset?.content) {
+  // We need `asset` to proceed.
+  if (!props.asset) {
     return null
   }
 
-  const attachment = getAttachmentForProcessing(props.asset.content)
+  const attachment = getAttachmentForProcessing()
   if (typeof attachment === 'string') {
     return null
   }

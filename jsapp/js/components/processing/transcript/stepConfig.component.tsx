@@ -13,6 +13,7 @@ import TransxAutomaticButton from '#/components/processing/transxAutomaticButton
 import { useExceedingLimits } from '#/components/usageLimits/useExceedingLimits.hook'
 import envStore from '#/envStore'
 import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlockModal.component'
+import { getAttachmentForProcessing } from './transcript.utils'
 
 export default function StepConfig() {
   const [usage] = useContext(UsageContext)
@@ -77,6 +78,7 @@ export default function StepConfig() {
     singleProcessingStore.getProcessedFileLabel(),
   )
   const isAutoEnabled = envStore.data.asr_mt_features_enabled
+  const attachment = getAttachmentForProcessing()
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
@@ -109,6 +111,7 @@ export default function StepConfig() {
             onClick={onAutomaticButtonClick}
             selectedLanguage={draft?.languageCode}
             type='transcript'
+            disabled={typeof attachment === 'string' || attachment.is_deleted}
           />
           <NlpUsageLimitBlockModal
             isModalOpen={isLimitBlockModalOpen}
