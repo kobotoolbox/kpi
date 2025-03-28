@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from rest_framework import renderers
 from rest_framework.response import Response
@@ -16,6 +17,28 @@ from kobo.apps.openrosa.libs.renderers.renderers import (
     MediaFileRenderer,
 )
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
+
+
+def get_object(self):
+    """
+    Returns the object the view is displaying. Can filter by either pk or uid.
+    """
+    queryset = self.filter_queryset(self.get_queryset())
+
+    lookup_field = 'pk'
+    try:
+        att_identifier = int(self.kwargs[lookup_field])
+    except KeyError:
+        att_identifier = self.kwargs['uid']
+        lookup_field = 'uid'
+
+    filter_kwargs = {lookup_field: att_identifier}
+    obj = get_object_or_404(queryset, **filter_kwargs)
+
+    # May raise a permission denied
+    self.check_object_permissions(self.request, obj)
+
+    return obj
 
 
 class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
@@ -146,7 +169,7 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
     """
     content_negotiation_class = MediaFileContentNegotiation
     filter_backends = (filters.AttachmentFilter,)
-    lookup_field = 'pk'
+    lookup_field = 'uid'
     queryset = Attachment.objects.all()
     permission_classes = (AttachmentObjectPermissions,)
     serializer_class = AttachmentSerializer
@@ -156,7 +179,7 @@ class AttachmentViewSet(OpenRosaReadOnlyModelViewSet):
         MediaFileRenderer)
 
     def retrieve(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        self.object = get_object(self)
 
         if isinstance(request.accepted_renderer, MediaFileRenderer) \
                 and self.object.media_file is not None:

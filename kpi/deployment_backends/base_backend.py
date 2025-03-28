@@ -16,6 +16,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.reverse import reverse
@@ -812,16 +813,23 @@ class BaseDeploymentBackend(abc.ABC):
             submission, attachment_xpaths
         )
 
+        attachment_ids = [attachment['id'] for attachment in submission['_attachments']]
+        attachments = Attachment.objects.filter(pk__in=attachment_ids).values('pk', 'uid')
+        attachment_map = {a['pk']: a.get('uid', a['pk']) for a in attachments}
+
         for attachment in submission['_attachments']:
             # We should use 'attachment-list' with `?xpath=` but we do not
-            # know what the XPath is here. Since the primary key is already
-            # exposed, let's use it to build the url.
+            # know what the XPath is here so we will use the uid to build the url.
+            attachment_uid = attachment_map.get(attachment['id'])
+            # # Add uid to attachment data
+            attachment['uid'] = attachment_uid
+
             kpi_url = reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
-                    attachment['id'],
+                    attachment_uid,
                 ),
                 request=request,
             )
@@ -834,7 +842,7 @@ class BaseDeploymentBackend(abc.ABC):
                         args=(
                             self.asset.uid,
                             submission['_id'],
-                            attachment['id'],
+                            attachment_uid,
                             suffix,
                         ),
                         request=request,

@@ -48,7 +48,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
         pk = self.attachment.pk
         data = {
-            'url': 'http://testserver/api/v1/media/%s' % pk,
+            'url': 'http://testserver/api/v1/media/%s' % self.attachment.uid,
             'field_xpath': None,
             'download_url': self.attachment.secure_url(),
             'small_download_url': self.attachment.secure_url('small'),
