@@ -1,4 +1,10 @@
-import { getMediaAttachment, getSubmissionDisplayData, getSupplementalDetailsContent } from './submissionUtils'
+import {
+  getMediaAttachment,
+  getSubmissionDisplayData,
+  getSupplementalDetailsContent,
+  removeEmptyFromSupplementalDetails,
+  removeEmptyObjects,
+} from './submissionUtils'
 import {
   everythingSurvey,
   everythingSurveyChoices,
@@ -234,5 +240,120 @@ describe('getSupplementalDetailsContent', () => {
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
     )
     expect(test).to.equal('12345')
+  })
+})
+
+describe('removeEmptyObjects', () => {
+  it('should return the same value if input is not an object', () => {
+    expect(removeEmptyObjects(null)).to.equal(null)
+    expect(removeEmptyObjects(2038)).to.equal(2038)
+    expect(removeEmptyObjects('foo')).to.equal('foo')
+    expect(removeEmptyObjects(undefined)).to.equal(undefined)
+  })
+
+  it('should remove empty objects from a flat object', () => {
+    const input = { a: 1, b: {}, c: 'foo' }
+    const expected = { a: 1, c: 'foo' }
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should remove nested empty objects', () => {
+    const input = { a: { b: {}, c: { d: {} } }, e: 2038 }
+    const expected = { e: 2038 }
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should handle deeply nested objects with mixed content', () => {
+    const input = {
+      a: { b: { c: {}, d: 1 }, e: {} },
+      f: { g: { h: {}, i: 2 } },
+      j: {},
+    }
+    const expected = {
+      a: { b: { d: 1 } },
+      f: { g: { i: 2 } },
+    }
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should not modify objects with no empty objects', () => {
+    const input = { a: 1, b: { c: 2 }, d: 'test' }
+    const expected = { a: 1, b: { c: 2 }, d: 'test' }
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should handle arrays inside objects by removing them', () => {
+    const input = { a: [], b: { c: [1, 2, 3] }, d: {} }
+    const expected = { b: { c: [1, 2, 3] } }
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should handle nested empty arrays', () => {
+    const input = { a: [], b: {}, c: { d: [] } }
+    const expected = {}
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+})
+
+describe('removeEmptyFromSupplementalDetails', () => {
+  it('should remove empty strings and deleted qual responses', () => {
+    const supplementalDetails = {
+      How_much_can_you_handle: {
+        qual: [{ val: '' }, { val: 'foo' }, { val: 'bar', options: { deleted: true } }],
+      },
+    }
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql({
+      How_much_can_you_handle: {
+        qual: [{ val: 'foo' }],
+      },
+    })
+  })
+
+  it('should remove qual array if all responses are removed', () => {
+    const supplementalDetails = {
+      How_much_can_you_handle: {
+        qual: [{ val: '' }, { val: 'bar', options: { deleted: true } }],
+      },
+    }
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql({})
+  })
+
+  it('should remove nested empty objects', () => {
+    const supplementalDetails = {
+      How_much_can_you_handle: {
+        qual: [],
+      },
+      question2: {},
+    }
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql({})
+  })
+
+  it('should handle already clean supplemental details', () => {
+    const supplementalDetails = {
+      How_much_can_you_handle: {
+        qual: [{ val: 'foo' }],
+      },
+    }
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql(supplementalDetails)
+  })
+
+  it('should handle empty input', () => {
+    const supplementalDetails = {}
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql({})
   })
 })

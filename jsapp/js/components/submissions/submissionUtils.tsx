@@ -780,10 +780,10 @@ export function markAttachmentAsDeleted(
 }
 
 /**
- * Removes empty objects from the given object recursively.
+ * Removes empty objects (and arrays) from the given object recursively.
  * This function mutates the original object.
  */
-function removeEmptyObjects(obj: { [key: string]: any }) {
+export function removeEmptyObjects(obj: { [key: string]: any }) {
   if (typeof obj !== 'object' || obj === null) {
     return obj
   }
@@ -794,7 +794,7 @@ function removeEmptyObjects(obj: { [key: string]: any }) {
       // Remove the property if it is an empty object
       if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
         // This is a safer way to do `delete obj[key]`:
-        obj = Object.fromEntries(Object.entries(obj).filter(([k]) => k !== key))
+        obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
       }
     }
   }
@@ -816,11 +816,6 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
       details[detailsKey].qual = details[detailsKey].qual.filter(
         (qualResponse) => qualResponse.val !== '' && qualResponse.options?.deleted !== true,
       )
-
-      // Now after the cleanup, if there are not responses left, we remove the array
-      if (details[detailsKey].qual.length === 0) {
-        delete details[detailsKey].qual
-      }
     }
   }
 
