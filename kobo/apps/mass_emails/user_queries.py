@@ -69,24 +69,25 @@ def get_users_within_range_of_usage_limit(
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
     :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
     """
-
+    cached_nlp_usage = {}
     # cheat so that we don't fetch information twice if we're looking for nlp usage
-    def get_nlp_usage_method(cached_nlp_usage, nlp_usage_type):
-        if cached_nlp_usage == {}:
-            cached_nlp_usage.update(
-                get_nlp_usage_for_current_billing_period_by_user_id()
-            )
-        result = {
-            userid: usages[nlp_usage_type] for userid, usages in nlp_usage.items()
-        }
-        return lambda: result
+    def get_nlp_usage_method(nlp_usage_type):
+        def get_nlp_usage():
+            if cached_nlp_usage == {}:
+                cached_nlp_usage.update(
+                    get_nlp_usage_for_current_billing_period_by_user_id()
+                )
+                print(f'updated cached_nlp_usage = {cached_nlp_usage}')
+            return {
+                userid: usages[nlp_usage_type] for userid, usages in cached_nlp_usage.items()
+            }
+        return get_nlp_usage
 
-    nlp_usage = {}
     usage_method_by_type = {
         'submission': get_submissions_for_current_billing_period_by_user_id,
         'storage': get_storage_usage_by_user_id,
-        'seconds': get_nlp_usage_method(nlp_usage, 'seconds'),
-        'characters': get_nlp_usage_method(nlp_usage, 'characters'),
+        'seconds': get_nlp_usage_method('seconds'),
+        'characters': get_nlp_usage_method('characters'),
     }
 
     minimum = minimum or 0
@@ -111,11 +112,9 @@ def get_users_within_range_of_usage_limit(
     user_ids = set()
 
     for usage_type in usage_types:
-        breakpoint()
         usage_by_user = usage_method_by_type[usage_type]()
         for user_id, usage in usage_by_user.items():
             limit = limits_by_owner.get(user_id, {}).get(f'{usage_type}_limit', inf)
-            print(f'{user_id=}, {limit=}, {usage=}')
             if minimum * limit <= usage < maximum * limit:
                 user_ids.add(user_id)
 

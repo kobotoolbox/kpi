@@ -109,3 +109,19 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         patched_limit_method.assert_called_once_with(
             include_storage_addons=include_storage_addons, include_onetime_addons=include_onetime_addons
         )
+
+    def test_users_in_range_of_usage_limit_only_gets_nlp_usage_once(self):
+        org1 = User.objects.get(username='someuser').organization
+        usage = {org1.id: {'seconds': 10, 'characters': 20}}
+
+        full_usage_method_to_patch = (
+            f'kobo.apps.mass_emails.user_queries.get_nlp_usage_for_current_billing_period_by_user_id'
+        )
+        full_limit_method_to_patch = (
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits'
+        )
+        with patch(full_usage_method_to_patch, return_value=usage) as patched_usage_method:
+            with patch(full_limit_method_to_patch):
+                get_users_within_range_of_usage_limit(usage_types=['seconds', 'characters'])
+        patched_usage_method.assert_called_once()
+
