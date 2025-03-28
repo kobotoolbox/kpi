@@ -1,10 +1,11 @@
 import calendar
 from datetime import datetime
 from math import ceil, floor, inf
-from typing import Optional
+from typing import Optional, get_args
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
@@ -19,12 +20,18 @@ def _get_limit_key(usage_type: UsageType):
     return f'{USAGE_LIMIT_MAP[usage_type]}_limit'
 
 
+def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
+    limit_key = _get_limit_key(usage_type)
+    return (
+        f'items__price__metadata__{limit_key}',
+        f'items__price__product__metadata__{limit_key}',
+    )
+
+
 def get_default_plan_name() -> Optional[str]:
     if not settings.STRIPE_ENABLED:
         return None
-
     from djstripe.models import Product
-
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')
         .values('name')
@@ -32,14 +39,6 @@ def get_default_plan_name() -> Optional[str]:
     )
     if default_plan is not None:
         return default_plan['name']
-
-
-def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
-    limit_key = _get_limit_key(usage_type)
-    return (
-        f'items__price__metadata__{limit_key}',
-        f'items__price__product__metadata__{limit_key}',
-    )
 
 
 def generate_return_url(product_metadata):
@@ -217,17 +216,6 @@ def get_organization_plan_limits(
         return limit
 
     return {org.id: get_limit(org) for org in orgs}
-
-
-def get_organization_plan_limit(
-    organization: Organization, usage_type: UsageType
-) -> int | float:
-    """
-    Get organization plan limit for a given usage type,
-    will fall back to infinite value if no subscription or
-    default free tier plan found.
-    """
-    return get_organization_plan_limits(usage_type, [organization]).get(organization.id)
 
 
 def get_billing_dates_after_canceled_subscription(
@@ -413,15 +401,15 @@ def get_organizations_subscription_limits(
 
     from djstripe.models.core import Product
 
-    # get regular plan limits
-    subscription_limits = get_subscription_limits(all_org_ids)
+    # get paid subscription limits
+    subscription_limits = get_paid_subscription_limits(all_org_ids)
     subscription_limits_by_org_id = {}
     for row in subscription_limits:
         row_limits = subscription_limits_by_org_id.get(row['org_id'], {})
         if row['product_type'] == 'plan':
             row_limits = {
                 f'{usage_type}_limit': row[f'{usage_type}_limit']
-                for usage_type in ['characters', 'seconds', 'submission', 'storage']
+                for usage_type in get_args(UsageType)
             }
         elif row['product_type'] == 'addon':
             row_limits['addon_storage_limit'] = row['storage_limit']
@@ -443,7 +431,7 @@ def get_organizations_subscription_limits(
         .first()
     ) or {}
     default_plan_limits = {}
-    for usage_type in ['characters', 'seconds', 'submission', 'storage']:
+    for usage_type in get_args(UsageType):
         limit_key = f'{usage_type}_limit'
         default_limit = default_plan.get(limit_key)
         if default_limit is None:
@@ -454,7 +442,7 @@ def get_organizations_subscription_limits(
     results = {}
     for org_id in all_org_ids:
         all_org_limits = {}
-        for usage_type in ['characters', 'seconds', 'submission', 'storage']:
+        for usage_type in get_args(UsageType):
             plan_limit = subscription_limits_by_org_id.get(org_id, {}).get(
                 f'{usage_type}_limit'
             )
@@ -475,7 +463,25 @@ def get_organizations_subscription_limits(
     return results
 
 
-def get_subscription_limits(organization_ids: list[str]) -> QuerySet:
+def get_organizations_effective_limits(
+    organizations: list[Organization] = None,
+    include_storage_addons=True,
+    include_onetime_addons=True,
+):
+    effective_limits = get_organizations_subscription_limits(
+        include_storage_addons=include_storage_addons, organizations=organizations
+    )
+    if settings.STRIPE_ENABLED and include_onetime_addons:
+        PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
+        addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
+        for org_id, limits in effective_limits.items():
+            for usage_type in get_args(UsageType):
+                addon = addon_limits.get(org_id, {}).get(f'total_{usage_type}_limit', 0)
+                limits[f'{usage_type}_limit'] += addon
+    return effective_limits
+
+
+def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
     """
     Return the most recent limits for all usage types for given organizations based on
     their most recent subscriptions. If they have both a regular plan and an addon,
@@ -513,7 +519,7 @@ def get_subscription_limits(organization_ids: list[str]) -> QuerySet:
         & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
     )
 
-    most_recent_full_plans = (
+    most_recent_subs = (
         active_subscriptions.values(
             org_id=F('customer__subscriber_id'),
             storage_limit=Coalesce(F(price_storage_key), F(product_storage_key)),
@@ -558,7 +564,7 @@ def get_subscription_limits(organization_ids: list[str]) -> QuerySet:
             )
         )
     )
-    return most_recent_full_plans
+    return most_recent_subs
 
 
 def determine_limit(

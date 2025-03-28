@@ -42,7 +42,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # org plan limits and storage usage are tested more thoroughly elsewhere
         # and are hard to set up, so just patch responses
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -50,7 +50,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_type='storage', minimum=minimum, maximum=maximum
+                    usage_types=['storage'], minimum=minimum, maximum=maximum
                 )
         aslist = list(results.order_by('username'))
         assert aslist == list(
@@ -69,7 +69,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         usage_limits = {user1org.id: {'storage_limit': inf}}
         storage_by_user_id = {user1.id: 1000000000}
         with patch(
-            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits',
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
             return_value=usage_limits,
         ):
             with patch(
@@ -77,7 +77,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_type='storage', minimum=minimum, maximum=maximum
+                    usage_types=['storage'], minimum=minimum, maximum=maximum
                 )
 
         # result should always be empty no matter what min/max were given if user has
@@ -86,24 +86,58 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         assert aslist == []
 
     @data(
-        ('storage', 'get_storage_usage_by_user_id', True),
-        ('submission', 'get_submissions_for_current_billing_period_by_user_id', False),
+        ('storage', 'get_storage_usage_by_user_id', True, False),
+        (
+            'submission',
+            'get_submissions_for_current_billing_period_by_user_id',
+            False,
+            True,
+        ),
+        ('seconds', 'get_nlp_usage_for_current_billing_period_by_user_id', False, True),
+        (
+            'characters',
+            'get_nlp_usage_for_current_billing_period_by_user_id',
+            False,
+            True,
+        ),
     )
     @unpack
     def test_users_in_range_of_usage_limit_calls_correct_usage_method(
-        self, usage_type, method_to_patch, include_storage_addons
+        self,
+        usage_type,
+        method_to_patch,
+        include_storage_addons,
+        include_onetime_addons,
     ):
         full_usage_method_to_patch = (
             f'kobo.apps.mass_emails.user_queries.{method_to_patch}'
         )
         full_limit_method_to_patch = (
-            'kobo.apps.mass_emails.user_queries.get_organizations_subscription_limits'
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits'
         )
         with patch(full_usage_method_to_patch) as patched_usage_method:
             with patch(full_limit_method_to_patch) as patched_limit_method:
-                get_users_within_range_of_usage_limit(usage_type=usage_type)
+                get_users_within_range_of_usage_limit(usage_types=[usage_type])
         patched_usage_method.assert_called_once()
 
         patched_limit_method.assert_called_once_with(
-            include_storage_addons=include_storage_addons
+            include_storage_addons=include_storage_addons,
+            include_onetime_addons=include_onetime_addons,
         )
+
+    def test_users_in_range_of_usage_limit_only_gets_nlp_usage_once(self):
+        org1 = User.objects.get(username='someuser').organization
+        usage = {org1.id: {'seconds': 10, 'characters': 20}}
+
+        full_usage_method_to_patch = f'kobo.apps.mass_emails.user_queries.get_nlp_usage_for_current_billing_period_by_user_id'
+        full_limit_method_to_patch = (
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits'
+        )
+        with patch(
+            full_usage_method_to_patch, return_value=usage
+        ) as patched_usage_method:
+            with patch(full_limit_method_to_patch):
+                get_users_within_range_of_usage_limit(
+                    usage_types=['seconds', 'characters']
+                )
+        patched_usage_method.assert_called_once()
