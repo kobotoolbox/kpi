@@ -5,11 +5,11 @@ from typing import Optional, get_args
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from djstripe.models import Product
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType

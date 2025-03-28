@@ -8,10 +8,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
+from kobo.apps.stripe.utils import get_organizations_effective_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_storage_usage_by_user_id,
-    get_submissions_for_current_billing_period_by_user_id,
+    get_submissions_for_current_billing_period_by_user_id, get_nlp_usage_for_current_billing_period_by_user_id,
 )
 
 
@@ -110,11 +111,15 @@ def get_users_within_range_of_usage_limit(
     user_ids = set()
 
     for usage_type in usage_types:
+        breakpoint()
         usage_by_user = usage_method_by_type[usage_type]()
         for user_id, usage in usage_by_user.items():
             limit = limits_by_owner.get(user_id, {}).get(f'{usage_type}_limit', inf)
+            print(f'{user_id=}, {limit=}, {usage=}')
             if minimum * limit <= usage < maximum * limit:
                 user_ids.add(user_id)
+
+    return User.objects.filter(id__in=user_ids)
 
 
 def get_users_over_90_percent_of_storage_limit():
