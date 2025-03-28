@@ -24,6 +24,7 @@ import type {
   SubmissionResponse,
   SubmissionResponseValue,
   SubmissionResponseValueObject,
+  SubmissionSupplementalDetails,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
@@ -776,4 +777,59 @@ export function markAttachmentAsDeleted(
   })
 
   return data
+}
+
+/**
+ * Removes empty objects from the given object recursively.
+ * This function mutates the original object.
+ */
+function removeEmptyObjects(obj: { [key: string]: any }) {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj
+  }
+  // Recursively process each property
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      obj[key] = removeEmptyObjects(obj[key])
+      // Remove the property if it is an empty object
+      if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
+        // This is a safer way to do `delete obj[key]`:
+        obj = Object.fromEntries(Object.entries(obj).filter(([k]) => k !== key))
+      }
+    }
+  }
+  return obj
+}
+
+/**
+ * This function removes all possible empty objects from given submission supplemental details. If there were only empty
+ * objects in it (nested), you can end up with an empty object as an final outcome.
+ */
+export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
+  let details = clonedeep(supplementalDetails)
+
+  // Step 1: Remove responses to qual questions that are:
+  // a) empty strings (means "no response" or "response deleted")
+  // b) responses to qual questions that are deleted
+  for (const detailsKey of Object.keys(details)) {
+    if (details[detailsKey].qual) {
+      details[detailsKey].qual = details[detailsKey].qual.filter(
+        (qualResponse) => qualResponse.val !== '' && qualResponse.options?.deleted !== true,
+      )
+
+      // Now after the cleanup, if there are not responses left, we remove the array
+      if (details[detailsKey].qual.length === 0) {
+        delete details[detailsKey].qual
+      }
+    }
+  }
+
+  // Step 2: Remove all empty objects (keeps removing until no empty objects remain)
+  let previousDetails = null
+  while (JSON.stringify(details) !== JSON.stringify(previousDetails)) {
+    previousDetails = clonedeep(details)
+    details = removeEmptyObjects(details)
+  }
+
+  return details
 }
