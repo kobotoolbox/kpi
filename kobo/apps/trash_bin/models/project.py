@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models, transaction
-from django.utils.timezone import now
+from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
@@ -59,7 +59,7 @@ class ProjectTrash(BaseTrash):
                 if active
                 else AssetDeploymentStatus.ARCHIVED
             ),
-            'date_modified': now(),
+            'date_modified': timezone.now(),
         }
 
         if toggle_delete:
