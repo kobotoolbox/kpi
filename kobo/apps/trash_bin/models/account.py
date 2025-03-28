@@ -28,13 +28,13 @@ class AccountTrash(BaseTrash):
             return f'{self.user.username} - None'
 
     @classmethod
-    def toggle_user_statuses(cls, user_ids: list, active: bool = False):
+    def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
 
         date_removal_requested = None if active else now()
         with transaction.atomic():
-            get_user_model().objects.filter(pk__in=user_ids).update(
+            get_user_model().objects.filter(pk__in=object_identifiers).update(
                 is_active=active
             )
-            ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
+            ExtraUserDetail.objects.filter(user_id__in=object_identifiers).update(
                 date_removal_requested=date_removal_requested
             )
