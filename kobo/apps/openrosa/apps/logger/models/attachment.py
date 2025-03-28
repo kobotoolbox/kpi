@@ -100,13 +100,6 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         db_index=True,
     )
 
-    # Override these two fields from AbstractTimeStampedModel to ensure they are
-    # nullable and not backfilled with the current timestamp when the migration runs.
-    # TODO: remove in future release after the long running migration 0007 has run
-    # and been completed
-    date_created = models.DateTimeField(null=True, blank=True)
-    date_modified = models.DateTimeField(null=True, blank=True)
-
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
 
