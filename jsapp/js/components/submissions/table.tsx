@@ -86,7 +86,7 @@ import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from '#/utils'
+import { formatTimeDateShort } from '#/utils'
 import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
@@ -828,14 +828,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               }
 
               if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
-                const submissionEditId = removeDefaultUuidPrefix(row.original['meta/rootUuid']) || row.original._uuid
-
                 if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
                       xpath={q.$xpath}
-                      submissionEditId={submissionEditId}
+                      submissionData={row.original}
                       mediaAttachment={mediaAttachment}
                     />
                   )
