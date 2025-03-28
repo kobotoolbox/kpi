@@ -319,7 +319,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             )
             return
 
-        AccountTrash.toggle_user_statuses([u['pk'] for u in users], active=False)
+        AccountTrash.toggle_statuses([u['pk'] for u in users], active=False)
 
         self.message_user(
             request,

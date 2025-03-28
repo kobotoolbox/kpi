@@ -64,7 +64,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         users = queryset.annotate(pk=F('user_id'), username=F('user__username')).values(
             'pk', 'username'
         )
-        AccountTrash.toggle_user_statuses([u['pk'] for u in users], active=True)
+        AccountTrash.toggle_statuses([u['pk'] for u in users], active=True)
 
         try:
             put_back(request.user, users, 'user')
@@ -124,7 +124,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
     @admin.action(description='Put back selected projects')
     def put_back(self, request, queryset, **kwargs):
         asset_uids = list(queryset.values_list('asset__uid', flat=True))
-        assets_queryset, _ = ProjectTrash.toggle_asset_statuses(
+        assets_queryset, _ = ProjectTrash.toggle_statuses(
             asset_uids, active=True, toggle_delete=True
         )
         # The main goal of the annotation below is to pass always the same

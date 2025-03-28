@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models, transaction
-from django.utils.timezone import now
+from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
@@ -11,6 +11,7 @@ from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from . import BaseTrash
+from ..type_aliases import ToggleStatusesReturn
 
 
 class ProjectTrash(BaseTrash):
@@ -28,22 +29,22 @@ class ProjectTrash(BaseTrash):
         return f'{self.asset} - {self.periodic_task.start_time}'
 
     @classmethod
-    def toggle_asset_statuses(
+    def toggle_statuses(
         cls,
-        asset_uids: list[str] = None,
-        owner: settings.AUTH_USER_MODEL = None,
+        object_identifiers: list[str],
         active: bool = True,
+        owner: settings.AUTH_USER_MODEL = None,
         toggle_delete: bool = True,
-    ) -> tuple:
+    ) -> ToggleStatusesReturn:
 
-        if asset_uids and owner:
+        if object_identifiers and owner:
             raise ValueError(
                 '`asset_uids` and `owner` cannot be passed at the time'
             )
 
-        if asset_uids:
-            kc_filter_params = {'kpi_asset_uid__in': asset_uids}
-            filter_params = {'uid__in': asset_uids}
+        if object_identifiers:
+            kc_filter_params = {'kpi_asset_uid__in': object_identifiers}
+            filter_params = {'uid__in': object_identifiers}
         else:
             kc_filter_params = {'user_id': owner.pk}
             filter_params = {'owner': owner}
@@ -59,7 +60,7 @@ class ProjectTrash(BaseTrash):
                 if active
                 else AssetDeploymentStatus.ARCHIVED
             ),
-            'date_modified': now(),
+            'date_modified': timezone.now(),
         }
 
         if toggle_delete:
