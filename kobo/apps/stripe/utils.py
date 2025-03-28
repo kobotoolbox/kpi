@@ -9,7 +9,6 @@ from django.conf import settings
 from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from djstripe.models import Product
 
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
@@ -21,6 +20,11 @@ def _get_limit_key(usage_type: UsageType):
 
 
 def get_default_plan_name() -> Optional[str]:
+    if not settings.STRIPE_ENABLED:
+        return None
+
+    from djstripe.models import Product
+
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')
         .values('name')

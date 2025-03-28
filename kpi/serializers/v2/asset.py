@@ -93,11 +93,11 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         )
         extra_params = {}
         if asset_uids := validated_data['payload'].get('asset_uids'):
-            extra_params['asset_uids'] = asset_uids
+            extra_params['object_identifiers'] = asset_uids
         else:
             extra_params['owner'] = self.__user
 
-        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
+        queryset, projects_count = ProjectTrash.toggle_statuses(
             active=put_back_,
             toggle_delete=delete_request,
             **extra_params,
