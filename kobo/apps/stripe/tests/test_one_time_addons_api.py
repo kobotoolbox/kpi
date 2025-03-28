@@ -8,7 +8,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.models import PlanAddOn
-from kobo.apps.stripe.tests.utils import _create_payment, _create_one_time_addon_product
+from kobo.apps.stripe.tests.utils import _create_one_time_addon_product, _create_payment
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -153,3 +153,24 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         )
         assert total_limit == limit * 3
         assert remaining == limit * 2
+
+    def test_get_organizations_totals(self):
+        addon = _create_one_time_addon_product(
+            limit_metadata={
+                'mt_characters_limit': 2000,
+                'valid_tags': 'all',
+                'asr_seconds_limit': 3000,
+            }
+        )
+        anotheruser = User.objects.get(username='anotheruser')
+        second_organization = baker.make(Organization)
+        second_organization.add_user(anotheruser, is_admin=True)
+        second_customer = baker.make(Customer, subscriber=second_organization)
+        _create_payment(second_customer, product=addon, price=addon.default_price)
+        _create_payment(self.customer, product=addon, price=addon.default_price)
+        _create_payment(self.customer, product=addon, price=addon.default_price)
+        results = PlanAddOn.get_organizations_totals()
+        assert results[self.organization.id]['total_seconds_limit'] == 6000
+        assert results[self.organization.id]['total_characters_limit'] == 4000
+        assert results[second_organization.id]['total_seconds_limit'] == 3000
+        assert results[second_organization.id]['total_characters_limit'] == 2000
