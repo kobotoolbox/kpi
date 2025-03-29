@@ -9,7 +9,7 @@ from django_request_cache import cache_for_request
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.utils import get_organization_plan_limit
+from kobo.apps.stripe.utils import get_organization_subscription_limit
 from kpi.utils.django_orm_helper import IncrementValue
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
@@ -94,7 +94,7 @@ def get_organization_remaining_usage(
             usage_type,
         )
 
-    plan_limit = get_organization_plan_limit(organization, usage_type)
+    plan_limit = get_organization_subscription_limit(organization, usage_type)
     if plan_limit is None:
         plan_limit = 0
     usage = get_organization_usage(organization, usage_type)
@@ -112,7 +112,7 @@ def handle_usage_deduction(
     """
     PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
-    plan_limit = get_organization_plan_limit(organization, usage_type)
+    plan_limit = get_organization_subscription_limit(organization, usage_type)
     current_usage = get_organization_usage(organization, usage_type)
     if current_usage is None:
         current_usage = 0
