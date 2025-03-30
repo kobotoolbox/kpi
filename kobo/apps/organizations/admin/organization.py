@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import admin, messages
-from django.db.models import Count
+from django.db import transaction
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from organizations.base_admin import BaseOrganizationAdmin
@@ -9,7 +9,7 @@ if settings.STRIPE_ENABLED:
 
 from kobo.apps.kobo_auth.shortcuts import User
 
-from ..models import Organization, OrganizationUser
+from ..models import Organization
 from ..tasks import transfer_member_data_ownership_to_org
 from ..utils import revoke_org_asset_perms
 from .organization_owner import OwnerInline
@@ -51,18 +51,20 @@ class OrgAdmin(BaseOrganizationAdmin):
         return super().change_view(request, object_id, form_url, extra_context)
 
     def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
+        organization_id = form.instance.id
 
-        for formset in formsets:
-            if formset.prefix == 'organization_users':
-                # retrieve all users
-                member_ids = formset.queryset.values('user_id')
-                organization_id = form.instance.id
-                new_members = self._get_new_members_queryset(
-                    member_ids, organization_id
-                )
-                self._transfer_user_ownership(request, new_members)
-                self._delete_previous_organizations(new_members, organization_id)
+        with transaction.atomic():
+            super().save_related(request, form, formsets, change)
+            for formset in formsets:
+                if formset.prefix == 'organization_users':
+                    if new_members := self._get_new_members_queryset(request):
+                        transaction.on_commit(
+                            lambda: self._transfer_user_ownership(request, new_members)
+                        )
+                        self._transfer_user_ownership(request, new_members)
+                        self._delete_previous_organizations(
+                            new_members, organization_id
+                        )
 
                 deleted_user_ids = []
                 for obj in formset.deleted_objects:
@@ -87,26 +89,20 @@ class OrgAdmin(BaseOrganizationAdmin):
             organization_users__user_id__in=new_member_ids
         ).exclude(pk=organization_id).delete()
 
-    def _get_new_members_queryset(
-        self, member_ids: 'QuerySet', organization_id: int
-    ) -> 'QuerySet':
+    def _get_new_members_queryset(self, request: 'HttpRequest') -> 'QuerySet':
+        member_ids = []
+        # Retrieve new member IDs from the POST data
+        user_count = request.POST.get('organization_users-TOTAL_FORMS', 0)
+        for cpt in range(int(user_count)):
+            if request.POST.get(f'organization_users-{cpt}-id') == '':
+                member_ids.append(request.POST.get(f'organization_users-{cpt}-user'))
 
-        users_in_multiple_orgs = (
-            OrganizationUser.objects.values('user_id')
-            .annotate(org_count=Count('organization_id', distinct=True))
-            .filter(org_count__gt=1, user_id__in=member_ids)
-            .values_list('user_id', flat=True)
+        if not member_ids:
+            return
+
+        return User.objects.filter(pk__in=member_ids).values(
+            'pk', 'username'
         )
-
-        queryset = (
-            User.objects.filter(
-                organizations_organizationuser__organization_id=organization_id
-            )
-            .filter(id__in=users_in_multiple_orgs)
-            .values('pk', 'username')
-        )
-
-        return queryset
 
     def _transfer_user_ownership(self, request: 'HttpRequest', new_members: 'QuerySet'):
 

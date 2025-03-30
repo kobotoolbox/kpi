@@ -181,11 +181,12 @@ class Command(BaseCommand):
                 instance.xml, 'instanceID', instance.uuid
             )
             instance.xml_hash = instance.get_hash(instance.xml)
+            instance._populate_root_uuid()  # noqa
             instances_to_update.append(instance)
 
             # Save the parsed instance to sync MongoDB
             parsed_instance = instance.parsed_instance
-            parsed_instance.save()
+            parsed_instance.update_mongo(asynchronous=False)
 
         Instance.objects.bulk_update(
             instances_to_update, ['uuid', 'xml', 'xml_hash']

@@ -8,7 +8,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.utils import get_organization_plan_limits
+from kobo.apps.stripe.utils import get_organizations_subscription_limits
 from kpi.models import Asset
 from kpi.utils.usage_calculator import (
     get_storage_usage_by_user_id,
@@ -63,7 +63,7 @@ def get_users_within_range_of_usage_limit(
 ) -> QuerySet:
     """
     Returns all users whose usage is between minimum and maximum percent
-    of their plan limit for the given usage type
+    of their plan limit for the given usage type.
 
     :param usage_type: UsageType. 'submission' or 'storage'
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
@@ -75,14 +75,19 @@ def get_users_within_range_of_usage_limit(
     }
     minimum = minimum or 0
     maximum = maximum or inf
-    limits_by_org = get_organization_plan_limits(usage_type=usage_type)
+    include_storage_addons = usage_type == 'storage'
+    limits_by_org = get_organizations_subscription_limits(
+        include_storage_addons=include_storage_addons
+    )
     usage_by_user = usage_method_by_type[usage_type]()
+
     owner_by_org = {
         org.id: org.owner_user_object.pk
         for org in Organization.objects.filter(owner__isnull=False)
     }
     limits_by_owner = {
-        owner_by_org[org_id]: limit for org_id, limit in limits_by_org.items()
+        owner_by_org[org_id]: limit[f'{usage_type}_limit']
+        for org_id, limit in limits_by_org.items()
     }
     user_ids = []
     for user_id, usage in usage_by_user.items():
