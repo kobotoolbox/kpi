@@ -231,8 +231,13 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   start?: string
   today?: string
   username?: string
-  // Is an empty object if form has no advanced features enabled
-  _supplementalDetails: SubmissionSupplementalDetails | {}
+  /**
+   * For form with no advanced features enabled (i.e. NLP screen not visited)
+   * it will be `undefined`. For forms with advanced features enabled, it will
+   * be either empty object (i.e. given submission doesn't have any NLP features
+   * applied to it) or a proper `SubmissionSupplementalDetails` object.
+   */
+  _supplementalDetails: SubmissionSupplementalDetails | {} | undefined
 }
 
 interface AssignablePermissionRegular {
