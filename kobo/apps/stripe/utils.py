@@ -604,7 +604,7 @@ def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
     return total_price * price.unit_amount
 
 
-def get_plan_name(org_user: OrganizationUser) -> str:
+def get_plan_name(org_user: OrganizationUser) -> str | None:
     if not settings.STRIPE_ENABLED:
         raise NotImplementedError(
             'Cannot get organization plan name with stripe disabled'
