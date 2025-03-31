@@ -202,18 +202,16 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             # the storage engine when running reports
             self.media_file_size = self.media_file.size
 
-        # Denormalize xform and user
-        if (
-            values := Instance.objects.select_related('xform')
-            .filter(pk=self.instance_id)
-            .values('xform_id', 'xform__user_id')
-            .first()
-        ):
-            self.xform_id = values['xform_id']
-            self.user_id = values['xform__user_id']
-
-        if not self.pk:
-            self.date_created = self.date_modified = timezone.now()
+        if not (self.xform_id and self.user_id):
+            # Denormalize xform and user
+            if (
+                values := Instance.objects.select_related('xform')
+                .filter(pk=self.instance_id)
+                .values('xform_id', 'xform__user_id')
+                .first()
+            ):
+                self.xform_id = values['xform_id']
+                self.user_id = values['xform__user_id']
 
         super().save(*args, **kwargs)
 
