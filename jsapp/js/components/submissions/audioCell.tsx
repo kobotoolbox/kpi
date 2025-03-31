@@ -36,6 +36,7 @@ export default function AudioCell(props: AudioCellProps) {
   // features and we want to avoid acting on false positives here (e.g. used added transcript, then deleted it = we
   // don't want to display the button).
   const isProcessingAvailable =
+    props.submissionData._supplementalDetails &&
     Object.keys(removeEmptyFromSupplementalDetails(props.submissionData._supplementalDetails)).length > 0 &&
     typeof props.mediaAttachment !== 'string'
 
