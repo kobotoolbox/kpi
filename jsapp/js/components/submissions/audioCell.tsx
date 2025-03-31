@@ -33,12 +33,22 @@ export default function AudioCell(props: AudioCellProps) {
   // translations or qualitative analysis questions) being used with it, we don't want to show the button, as it doesn't
   // make sense to open the processing view for it.
   // We use `removeEmptyFromSupplementalDetails`, because submission has some leftover "empty" data after removing
-  // features and we want to avoid acting on false positives here (e.g. used added transcript, then deleted it = we
+  // features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
   // don't want to display the button).
-  const isProcessingAvailable =
-    props.submissionData._supplementalDetails &&
-    Object.keys(removeEmptyFromSupplementalDetails(props.submissionData._supplementalDetails)).length > 0 &&
-    typeof props.mediaAttachment !== 'string'
+  const shouldProcessingBeAccessible =
+    // Case 1: NLP features not enabled yet in asset, attachment not deleted
+    (typeof props.submissionData._supplementalDetails === 'undefined' &&
+      typeof props.mediaAttachment !== 'string' &&
+      !props.mediaAttachment?.is_deleted) ||
+    // Case 2: NLP features enabled in asset, attachment not deleted
+    (typeof props.submissionData._supplementalDetails !== 'undefined' &&
+      typeof props.mediaAttachment !== 'string' &&
+      !props.mediaAttachment?.is_deleted) ||
+    // Case 3: NLP features enabled in asset, attachment deleted, submission has some NLP related features
+    (typeof props.submissionData._supplementalDetails !== 'undefined' &&
+      Object.keys(removeEmptyFromSupplementalDetails(props.submissionData._supplementalDetails)).length > 0 &&
+      typeof props.mediaAttachment !== 'string' &&
+      props.mediaAttachment?.is_deleted)
 
   return (
     <bem.AudioCell>
@@ -52,7 +62,7 @@ export default function AudioCell(props: AudioCellProps) {
         <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
       ) : null}
 
-      {isProcessingAvailable && (
+      {shouldProcessingBeAccessible && (
         <Button
           type='primary'
           size='s'
