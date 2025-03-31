@@ -129,7 +129,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         org1 = User.objects.get(username='someuser').organization
         usage = {org1.id: {'seconds': 10, 'characters': 20}}
 
-        full_usage_method_to_patch = f'kobo.apps.mass_emails.user_queries.get_nlp_usage_for_current_billing_period_by_user_id'
+        full_usage_method_to_patch = ('kobo.apps.mass_emails.user_queries'
+                                      '.get_nlp_usage_for_current_billing_period'
+                                      '_by_user_id')
         full_limit_method_to_patch = (
             'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits'
         )
