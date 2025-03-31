@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from ..type_aliases import ObjectIdentifierList, ToggleStatusesReturn
+from ..type_aliases import ObjectIdentifiers, UpdatedQuerySetAndCount
 
 
 class TrashStatus(models.TextChoices):
@@ -49,8 +49,8 @@ class BaseTrash(AbstractTimeStampedModel):
     @classmethod
     def toggle_statuses(
         cls,
-        object_identifiers: ObjectIdentifierList,
+        object_identifiers: ObjectIdentifiers,
         active: bool = True,
         **kwargs
-    ) -> Optional[ToggleStatusesReturn]:
+    ) -> Optional[UpdatedQuerySetAndCount]:
         raise NotImplementedError

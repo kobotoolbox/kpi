@@ -29,6 +29,9 @@ class AccountTrash(BaseTrash):
 
     @classmethod
     def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
+        """
+        Toggle statuses of projects based on their primary key.
+        """
 
         date_removal_requested = None if active else now()
         with transaction.atomic():

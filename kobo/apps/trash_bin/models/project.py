@@ -11,7 +11,7 @@ from kpi.fields import KpiUidField
 from kpi.models.asset import Asset, AssetDeploymentStatus
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from . import BaseTrash
-from ..type_aliases import ToggleStatusesReturn
+from ..type_aliases import UpdatedQuerySetAndCount
 
 
 class ProjectTrash(BaseTrash):
@@ -31,21 +31,16 @@ class ProjectTrash(BaseTrash):
     @classmethod
     def toggle_statuses(
         cls,
-        object_identifiers: list[str] | None = None,
+        object_identifiers: list[str],
         active: bool = True,
-        owner: settings.AUTH_USER_MODEL = None,
         toggle_delete: bool = True,
-    ) -> ToggleStatusesReturn:
+    ) -> UpdatedQuerySetAndCount:
+        """
+        Toggle statuses of projects based on their `uid`.
+        """
 
-        if owner is None and object_identifiers is None:
-            raise ValueError('Either `owner` or `object_identifiers` must not be None')
-
-        if object_identifiers:
-            kc_filter_params = {'kpi_asset_uid__in': object_identifiers}
-            filter_params = {'uid__in': object_identifiers}
-        else:
-            kc_filter_params = {'user_id': owner.pk}
-            filter_params = {'owner': owner}
+        kc_filter_params = {'kpi_asset_uid__in': object_identifiers}
+        filter_params = {'uid__in': object_identifiers}
 
         kc_update_params = {'downloadable': active}
         update_params = {

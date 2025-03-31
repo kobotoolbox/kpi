@@ -49,10 +49,12 @@ class AttachmentTrash(BaseTrash):
         super().save(*args, **kwargs)
 
     @classmethod
-    def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
-
+    def toggle_statuses(cls, object_identifiers: list[str], active: bool = False):
+        """
+        Toggle statuses of attachments based on their `uid`.
+        """
         delete_status = AttachmentDeleteStatus.PENDING_DELETE if not active else None
-        Attachment.all_objects.filter(pk__in=object_identifiers).update(
+        Attachment.all_objects.filter(uid__in=object_identifiers).update(
             delete_status=delete_status,
             date_modified=timezone.now(),
         )
