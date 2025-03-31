@@ -145,7 +145,7 @@ class MassEmailSender:
                     day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
-    def get_plan_name(self, org_user: OrganizationUser):
+    def get_plan_name(self, org_user: OrganizationUser) -> str:
         plan_name = None
         if settings.STRIPE_ENABLED:
             plan_name = get_plan_name(org_user)
