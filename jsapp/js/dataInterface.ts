@@ -237,7 +237,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
    * be either empty object (i.e. given submission doesn't have any NLP features
    * applied to it) or a proper `SubmissionSupplementalDetails` object.
    */
-  _supplementalDetails: SubmissionSupplementalDetails | {} | undefined
+  _supplementalDetails?: SubmissionSupplementalDetails | {}
 }
 
 interface AssignablePermissionRegular {
