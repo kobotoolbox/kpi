@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
 from django.test import override_settings
 from django.utils import timezone
+from djstripe.models import Price, Product
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -19,6 +20,7 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_based_on_canceled_plans,
     get_current_billing_period_dates_by_org,
     get_current_billing_period_dates_for_active_plans,
+    get_default_plan_name,
     get_organization_subscription_limit,
     get_organizations_subscription_limits,
     get_plan_name,
@@ -452,3 +454,23 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             product.save()
         org_user = self.organization.organization_users.first()
         assert get_plan_name(org_user) == expected_name
+
+    def test_get_default_plan_name(self):
+        assert get_default_plan_name() is None
+
+        product = baker.prepare(
+            Product,
+            metadata={'product_type': 'plan', 'default_free_plan': 'true'},
+            active=True,
+            name='Test Community Plan',
+        )
+        product.save()
+        baker.make(
+            Price,
+            active=True,
+            id='price_1LsSOSAR39rDI89svTKog9Hq',
+            product=product,
+            metadata={'max_purchase_quantity': '3'},
+        )
+
+        assert get_default_plan_name() == product.name
