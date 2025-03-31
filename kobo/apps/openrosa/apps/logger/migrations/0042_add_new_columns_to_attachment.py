@@ -5,7 +5,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 import kpi.fields.kpi_uid
-import kpi.models.abstract_models
 
 
 class Migration(migrations.Migration):
@@ -20,6 +19,8 @@ class Migration(migrations.Migration):
             model_name='attachment',
             name='user',
             field=models.ForeignKey(
+                blank=True,
+                null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='attachments',
                 to=settings.AUTH_USER_MODEL,
@@ -29,6 +30,8 @@ class Migration(migrations.Migration):
             model_name='attachment',
             name='xform',
             field=models.ForeignKey(
+                blank=True,
+                null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='attachments',
                 to='logger.xform',
@@ -37,21 +40,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='attachment',
             name='date_created',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
-            ),
+            field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name='attachment',
             name='date_modified',
-            field=models.DateTimeField(
-                default=kpi.models.abstract_models._get_default_datetime
-            ),
+            field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name='attachment',
             name='uid',
-            field=kpi.fields.kpi_uid.KpiUidField(uid_prefix='att'),
+            field=kpi.fields.kpi_uid.KpiUidField(
+                _null=True, null=True, uid_prefix='att'
+            ),
         ),
         migrations.AddField(
             model_name='attachment',

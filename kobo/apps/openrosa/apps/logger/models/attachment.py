@@ -84,16 +84,12 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         XForm,
         related_name='attachments',
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         db_index=True,
     )
     user = models.ForeignKey(
         User,
         related_name='attachments',
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         db_index=True,
     )
 
