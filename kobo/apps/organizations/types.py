@@ -14,3 +14,8 @@ class UsageLimits(TypedDict):
     submission_limit: float
     seconds_limit: float
     characters_limit: float
+
+
+class NLPUsage(TypedDict):
+    seconds: int
+    characters: int

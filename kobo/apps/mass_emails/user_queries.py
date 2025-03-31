@@ -79,7 +79,6 @@ def get_users_within_range_of_usage_limit(
                 cached_nlp_usage.update(
                     get_nlp_usage_for_current_billing_period_by_user_id()
                 )
-                print(f'updated cached_nlp_usage = {cached_nlp_usage}')
             return {
                 userid: usages[nlp_usage_type]
                 for userid, usages in cached_nlp_usage.items()
