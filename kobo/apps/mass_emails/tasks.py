@@ -16,9 +16,13 @@ from kobo.apps.mass_emails.models import (
     MassEmailJob,
     MassEmailRecord,
 )
+from kobo.apps.organizations.models import OrganizationUser
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
+
+if settings.STRIPE_ENABLED:
+    from kobo.apps.stripe.utils import get_plan_name
 
 templates_placeholders = {
     '##username##': 'username',
@@ -141,6 +145,14 @@ class MassEmailSender:
                     day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
+    def get_plan_name(self, org_user: OrganizationUser) -> str:
+        plan_name = None
+        if settings.STRIPE_ENABLED:
+            plan_name = get_plan_name(org_user)
+        if plan_name is None:
+            plan_name = gettext('Not available')
+        return plan_name
+
     def send_day_emails(self):
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
@@ -161,12 +173,7 @@ class MassEmailSender:
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
-        if settings.STRIPE_ENABLED:
-            plan_name = org_user.active_subscription_status
-            if plan_name == '' or plan_name is None:
-                plan_name = gettext('Community Plan')
-        else:
-            plan_name = gettext('Not available')
+        plan_name = self.get_plan_name(org_user)
         data = {
             'username': record.user.username,
             'full_name': record.user.first_name + ' ' + record.user.last_name,
