@@ -10,7 +10,7 @@ from django.db.models import F, Max, Q, QuerySet, Window
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.models import Organization, OrganizationUser
 from kobo.apps.organizations.types import UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
@@ -602,3 +602,25 @@ def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
         else:
             total_price = floor(total_price)
     return total_price * price.unit_amount
+
+
+def get_plan_name(org_user: OrganizationUser) -> str | None:
+    if not settings.STRIPE_ENABLED:
+        raise NotImplementedError(
+            'Cannot get organization plan name with stripe disabled'
+        )
+    from djstripe.models import Subscription
+
+    subscriptions = Subscription.objects.filter(
+        customer__subscriber_id=org_user.organization.id,
+        status__in=ACTIVE_STRIPE_STATUSES,
+    )
+
+    unique_plans = set()
+    for subscription in subscriptions:
+        unique_plans.add(subscription.plan)
+
+    plan_name = ' and '.join([plan.product.name for plan in unique_plans])
+    if plan_name is None or plan_name == '':
+        plan_name = get_default_plan_name()
+    return plan_name

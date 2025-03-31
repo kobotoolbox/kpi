@@ -6,6 +6,7 @@ from djstripe.models import (
     Charge,
     Customer,
     PaymentIntent,
+    Plan,
     Price,
     Product,
     Subscription,
@@ -68,6 +69,9 @@ def generate_plan_subscription(
         product=product,
         metadata=price_metadata,
     )
+    plan = baker.make(
+        Plan, product=product, billing_scheme='per_unit', amount=1.0, currency='usd'
+    )
 
     period_offset = relativedelta(weeks=2)
 
@@ -75,7 +79,7 @@ def generate_plan_subscription(
         period_offset = relativedelta(months=6)
 
     subscription_item = baker.make(
-        SubscriptionItem, price=price, quantity=1, livemode=False
+        SubscriptionItem, price=price, quantity=1, livemode=False, plan=plan
     )
     return baker.make(
         Subscription,
@@ -87,6 +91,7 @@ def generate_plan_subscription(
         current_period_end=created_date + period_offset,
         current_period_start=created_date - period_offset,
         start_date=created_date,
+        plan=subscription_item.plan,
     )
 
 
