@@ -1,18 +1,28 @@
-export const simpleSurvey = [
+import {
+  AssetTypeName,
+  GroupTypeBeginName,
+  GroupTypeEndName,
+  MetaQuestionTypeName,
+  QuestionTypeName,
+} from '#/constants'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import type { DisplayGroup } from './submissionUtils'
+
+export const simpleSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: '9PMXyB7Sv',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'AkKyOYSIP',
     $autoname: 'end',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'uw4if17',
     label: ['First name', 'Pierwsze imię'],
     required: false,
@@ -20,13 +30,13 @@ export const simpleSurvey = [
   },
   {
     name: 'group_favourites',
-    type: 'begin_group',
+    type: GroupTypeBeginName.begin_group,
     $kuid: 'fx8qb06',
     label: ['Favourites', 'Ulubione'],
     $autoname: 'group_favourites',
   },
   {
-    type: 'select_one',
+    type: QuestionTypeName.select_one,
     $kuid: 'az1fc41',
     label: ['Favourite color', 'Ulubiony kolor'],
     required: false,
@@ -34,32 +44,36 @@ export const simpleSurvey = [
     select_from_list_name: 'fav_col_list',
   },
   {
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'ka9pv41',
     label: ['Favourite number', 'Ulubiona liczba'],
     required: false,
     $autoname: 'Favourite_number',
   },
   {
-    type: 'end_group',
+    type: GroupTypeEndName.end_group,
     $kuid: '/fx8qb06',
   },
 ]
 
-export const simpleSurveyChoices = [
+export const simpleSurveyChoices: SurveyChoice[] = [
   {
     name: 'pink',
     label: ['Pink'],
     list_name: 'fav_col_list',
+    $autovalue: '',
+    $kuid: '',
   },
   {
     name: 'blue',
     label: ['Blue'],
     list_name: 'fav_col_list',
+    $autovalue: '',
+    $kuid: '',
   },
 ]
 
-export const simpleSurveySubmission = {
+export const simpleSurveySubmission: SubmissionResponse = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -71,6 +85,7 @@ export const simpleSurveySubmission = {
   _submitted_by: null,
   _tags: [],
   _uuid: 'faa38eee-4e3f-419e-bac0-e95f1085d998',
+  'meta/rootUuid': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
   _validation_status: {},
   _xform_id_string: 'afKfAnPYX3X7kojqM2cJDb',
   end: '2020-04-06T13:11:41.006+02:00',
@@ -80,9 +95,10 @@ export const simpleSurveySubmission = {
   'group_favourites/Favourite_number': '24',
   'meta/instanceID': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
   start: '2020-04-06T13:11:31.421+02:00',
+  _supplementalDetails: {},
 }
 
-export const simpleSurveySubmissionEmpty = {
+export const simpleSurveySubmissionEmpty: SubmissionResponse = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -94,6 +110,7 @@ export const simpleSurveySubmissionEmpty = {
   _submitted_by: null,
   _tags: [],
   _uuid: '69ff2e33-4d4b-4891-8c81-82d7316cf51f',
+  'meta/rootUuid': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
   _validation_status: {},
   _xform_id_string: 'afKfAnPYX3X7kojqM2cJDb',
   end: '2020-04-08T10:46:41.882+02:00',
@@ -101,9 +118,10 @@ export const simpleSurveySubmissionEmpty = {
   'group_favourites/Favourite_number': '5',
   'meta/instanceID': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
   start: '2020-04-08T10:46:34.957+02:00',
+  _supplementalDetails: {},
 }
 
-export const simpleSurveyDisplayData = [
+export const simpleSurveyDisplayData: DisplayGroup = [
   {
     type: 'text',
     label: 'Pierwsze imię',
@@ -135,7 +153,7 @@ export const simpleSurveyDisplayData = [
   },
 ]
 
-export const simpleSurveyDisplayDataEmpty = [
+export const simpleSurveyDisplayDataEmpty: DisplayGroup = [
   {
     type: 'text',
     label: 'First name',
@@ -167,7 +185,7 @@ export const simpleSurveyDisplayDataEmpty = [
   },
 ]
 
-export const repeatSurvey = [
+export const repeatSurvey: SurveyRow[] = [
   {
     name: 'start',
     type: 'start',
@@ -216,7 +234,7 @@ export const repeatSurvey = [
 ]
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
-export const repeatSurveySubmission = {
+export const repeatSurveySubmission: SubmissionResponse = {
   _id: 17,
   _notes: [],
   __version__: 'v8khdgcT3SYb2HRJhMNtsE',
@@ -246,7 +264,7 @@ export const repeatSurveySubmission = {
   start: '2020-04-07T16:07:24.044+02:00',
 }
 
-export const repeatSurveyDisplayData = [
+export const repeatSurveyDisplayData: DisplayGroup = [
   {
     type: 'group_repeat',
     label: 'Members',
@@ -305,7 +323,7 @@ export const repeatSurveyDisplayData = [
   },
 ]
 
-export const nestedRepeatSurvey = [
+export const nestedRepeatSurvey: SurveyRow[] = [
   {
     name: 'start',
     type: 'start',
@@ -356,7 +374,7 @@ export const nestedRepeatSurvey = [
   },
 ]
 
-export const nestedRepeatSurveySubmission = {
+export const nestedRepeatSurveySubmission: SubmissionResponse = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -403,7 +421,7 @@ export const nestedRepeatSurveySubmission = {
   start: '2020-04-08T13:11:29.840+02:00',
 }
 
-export const nestedRepeatSurveyDisplayData = [
+export const nestedRepeatSurveyDisplayData: DisplayGroup = [
   {
     type: 'group_repeat',
     label: 'People',
@@ -504,7 +522,7 @@ export const nestedRepeatSurveyDisplayData = [
   },
 ]
 
-export const matrixSurvey = [
+export const matrixSurvey: SurveyRow[] = [
   {
     name: 'start',
     type: 'start',
@@ -578,7 +596,7 @@ export const matrixSurvey = [
   },
 ]
 
-export const matrixSurveyChoices = [
+export const matrixSurveyChoices: SurveyChoice[] = [
   {
     name: 'poland',
     $kuid: 'wa9kl23',
@@ -588,7 +606,7 @@ export const matrixSurveyChoices = [
   },
 ]
 
-export const matrixSurveySubmission = {
+export const matrixSurveySubmission: SubmissionResponse = {
   _id: 22,
   username: 'username not found',
   _validation_status: {},
@@ -614,7 +632,7 @@ export const matrixSurveySubmission = {
   today: '2020-04-20',
 }
 
-export const matrixSurveyDisplayData = [
+export const matrixSurveyDisplayData: DisplayGroup = [
   {
     type: 'group_matrix',
     label: 'Countries',
@@ -645,7 +663,7 @@ export const matrixSurveyDisplayData = [
   },
 ]
 
-export const groupsSurvey = [
+export const groupsSurvey: SurveyRow[] = [
   {
     name: 'group_people',
     type: 'begin_repeat',
@@ -780,7 +798,7 @@ export const groupsSurvey = [
   },
 ]
 
-export const groupsSurveyChoices = [
+export const groupsSurveyChoices: SurveyChoice[] = [
   {
     name: 'good',
     $kuid: '4g11EC3jB',
@@ -832,7 +850,7 @@ export const groupsSurveyChoices = [
   },
 ]
 
-export const groupsSurveySubmission = {
+export const groupsSurveySubmission: SubmissionResponse = {
   _id: 23,
   'Are_you_vegan/Killing_humans': 'good',
   _validation_status: {},
@@ -869,7 +887,7 @@ export const groupsSurveySubmission = {
   today: '2020-04-23',
 }
 
-export const groupsSurveyDisplayData = [
+export const groupsSurveyDisplayData: DisplayGroup = [
   {
     type: 'group_repeat',
     label: 'People',
@@ -1024,7 +1042,7 @@ export const groupsSurveyDisplayData = [
   },
 ]
 
-export const everythingSurvey = [
+export const everythingSurvey: SurveyRow[] = [
   {
     name: 'start',
     type: 'start',
@@ -1268,7 +1286,7 @@ export const everythingSurvey = [
   },
 ]
 
-export const everythingSurveyChoices = [
+export const everythingSurveyChoices: SurveyChoice[] = [
   {
     name: 'poland',
     $kuid: 'dVHZ9VigU',
@@ -1348,7 +1366,7 @@ export const everythingSurveyChoices = [
   },
 ]
 
-export const everythingSurveySubmission = {
+export const everythingSurveySubmission: SubmissionResponse = {
   _id: 25,
   Secret_spot: '47.754098 3.426214 0 0',
   Favourite_chocolate_barcode: '123123123123',
@@ -1458,7 +1476,7 @@ export const everythingSurveySubmission = {
   'test_your_math_2_and_4/test_your_math_2_and_4_plus': '7',
 }
 
-export const everythingSurveyDisplayData = [
+export const everythingSurveyDisplayData: DisplayGroup = [
   {
     type: 'select_one',
     label: 'Favourite country',
@@ -1664,7 +1682,7 @@ export const everythingSurveyDisplayData = [
   },
 ]
 
-export const matrixRepeatSurvey = [
+export const matrixRepeatSurvey: SurveyRow[] = [
   {
     name: 'start',
     type: 'start',
@@ -1724,7 +1742,7 @@ export const matrixRepeatSurvey = [
   },
 ]
 
-export const matrixRepeatSurveyChoices = [
+export const matrixRepeatSurveyChoices: SurveyChoice[] = [
   {
     name: 'baked',
     $kuid: 'hb7vh55',
@@ -1741,7 +1759,7 @@ export const matrixRepeatSurveyChoices = [
   },
 ]
 
-export const matrixRepeatSurveySubmission = {
+export const matrixRepeatSurveySubmission: SubmissionResponse = {
   _id: 16,
   _notes: [],
   _validation_status: {},
@@ -1775,7 +1793,7 @@ export const matrixRepeatSurveySubmission = {
   __version__: 'vLao7eC5zPrkyAHKYFt9kY',
 }
 
-export const matrixRepeatSurveyDisplayData = [
+export const matrixRepeatSurveyDisplayData: DisplayGroup = [
   {
     type: 'group_repeat',
     label: 'Simple repeat',
@@ -1890,7 +1908,7 @@ export const matrixRepeatSurveyDisplayData = [
   },
 ]
 
-export const submissionWithAttachmentsWithUnicode = {
+export const submissionWithAttachmentsWithUnicode: SubmissionResponse = {
   _id: 18,
   A_picture: 'Un été au Québec (Canada)-19_41_32.jpg',
   'meta/instanceID': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
@@ -1926,13 +1944,13 @@ export const submissionWithAttachmentsWithUnicode = {
   _validation_status: {},
 }
 
-export const assetWithSupplementalDetails = {
+export const assetWithSupplementalDetails: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
   owner: 'http://kf.kobo.local/api/v2/users/kobo/',
   owner__username: 'kobo',
   parent: null,
   settings: {},
-  asset_type: 'survey',
+  asset_type: AssetTypeName.survey,
   date_created: '2022-05-12T10:40:02.952931Z',
   summary: {
     geo: false,
@@ -2035,7 +2053,7 @@ export const assetWithSupplementalDetails = {
       values: ['A_video_WTF', 'Secret_password_as_an_audio_file'],
       languages: ['fr', 'pl'],
     },
-    translated: {
+    translation: {
       values: ['Your_name_here', 'A_video_WTF', 'Secret_password_as_an_audio_file'],
       languages: ['pl', 'de'],
     },
@@ -2636,7 +2654,7 @@ export const assetWithSupplementalDetails = {
   paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
 }
 
-export const submissionWithSupplementalDetails = {
+export const submissionWithSupplementalDetails: SubmissionResponse = {
   _id: 3,
   'formhub/uuid': 'c71e63f6afa64b31ba70b2fbbb710cf4',
   start: '2022-05-12T12:42:07.034+02:00',
@@ -2662,11 +2680,11 @@ export const submissionWithSupplementalDetails = {
       download_medium_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       download_small_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       mimetype: 'audio/mpeg',
-      filename:
-        'kobo/attachments/c71e63f6afa64b31ba70b2fbbb710cf4/58c71236-f713-471b-bd4c-2a5f2e6b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+      filename: 'kobo/attachments/c71e63f6a...b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
       instance: 3,
       xform: 1,
       id: 3,
+      question_xpath: 'Secret_password_as_an_audio_file',
     },
   ],
   _status: 'submitted_via_web',
@@ -2759,7 +2777,7 @@ export const submissionWithSupplementalDetails = {
   },
 }
 
-export const submissionWithNestedSupplementalDetails = {
+export const submissionWithNestedSupplementalDetails: SubmissionResponse = {
   _id: 77,
   'formhub/uuid': '54445e08ab6d4011ae648adc6ae8c9bc',
   start: '2025-03-27T16:49:25.353+01:00',
@@ -2773,6 +2791,9 @@ export const submissionWithNestedSupplementalDetails = {
   _attachments: [
     {
       download_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_large_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_medium_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_small_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
       mimetype: 'audio/x-m4a',
       filename:
         'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
