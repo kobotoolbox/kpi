@@ -78,24 +78,6 @@ class TestAttachment(TestBase):
                 )
                 default_storage.delete(thumbnail)
 
-    def test_attachment_has_user_and_xform_fields(self):
-        user = User.objects.create_user(username='testuser', password='testpassword')
-        f = open(
-            os.path.join(
-                os.path.dirname(
-                    os.path.dirname(os.path.abspath(__file__))
-                ),
-                'Water_Translated_2011_03_10.xml',
-            )
-        )
-        xml = f.read()
-        f.close()
-        xform = XForm.objects.create(xml=xml, user=user)
-
-        attachment = Attachment(user=user, xform=xform)
-        self.assertTrue(hasattr(attachment, 'user'))
-        self.assertTrue(hasattr(attachment, 'xform'))
-
     def test_attachment_save_populates_user_and_xform(self):
         user = User.objects.create_user(username='testuser', password='testpassword')
         f = open(
