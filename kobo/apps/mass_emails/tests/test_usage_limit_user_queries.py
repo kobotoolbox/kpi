@@ -86,6 +86,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         assert aslist == []
 
     @data(
+        # usage type, usage method, include storage addons, include one-time addons
         ('storage', 'get_storage_usage_by_user_id', True, False),
         (
             'submission',

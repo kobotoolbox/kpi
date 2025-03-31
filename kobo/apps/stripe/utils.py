@@ -12,7 +12,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
+from kobo.apps.organizations.types import BillingDates, UsageLimits, UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
 
@@ -51,7 +51,9 @@ def generate_return_url(product_metadata):
     return base_url + return_page
 
 
-def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
+def get_current_billing_period_dates_by_org(
+    orgs: list[Organization] = None,
+) -> dict[str, BillingDates]:
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
@@ -111,7 +113,7 @@ def get_current_billing_period_dates_by_org(orgs: list[Organization] = None):
 
 def get_current_billing_period_dates_based_on_canceled_plans(
     orgs: list[Organization] = None,
-):
+) -> dict[str, BillingDates]:
     """
     Retrieve the current billing cycle based on the most recent canceled plan for
     the provided organizations (not including addons). If no list of organizations is
@@ -355,9 +357,10 @@ def get_organization_subscription_limit(
 
 def get_organizations_subscription_limits(
     organizations: list[Organization] = None, include_storage_addons: bool = True
-) -> dict[str, dict[str, float]]:
+) -> dict[str, UsageLimits]:
     """
-    Return the all usage limits for given organizations.
+    Return the all usage limits for given organizations based on their recurring
+    subscriptions.
 
     To determine an organization's limits:
     1. If Stripe is not enabled, everyone has infinite amounts of everything.
@@ -394,7 +397,7 @@ def get_organizations_subscription_limits(
         result = {}
         for org in orgs:
             all_org_limits = {}
-            for usage_type in ['submission', 'storage', 'characters', 'seconds']:
+            for usage_type in get_args(UsageType):
                 all_org_limits[f'{usage_type}_limit'] = inf
             result[org.id] = all_org_limits
         return result
@@ -467,7 +470,26 @@ def get_organizations_effective_limits(
     organizations: list[Organization] = None,
     include_storage_addons=True,
     include_onetime_addons=True,
-):
+) -> dict[str, UsageLimits]:
+    """
+    Return the all usage limits for given organizations based on their recurring
+    subscriptions and one-time addons.
+
+    Example result:
+    { 'org1':
+        {
+            'storage_limit': inf,
+            'submission_limit': 5000,
+            'characters_limit': 72000,
+            'seconds_limit': 6000,
+        },
+        ...
+    }
+
+    :param organizations: List of organizations to use. Gets all orgs if not provided.
+    :param include_storage_addons: bool. Include storage addons in the calculation
+    :param include_onetime_addons: bool. Include onetime addons in the calculation
+    """
     effective_limits = get_organizations_subscription_limits(
         include_storage_addons=include_storage_addons, organizations=organizations
     )
@@ -573,7 +595,7 @@ def determine_limit(
     addon_limit,
     default_limit,
     include_storage_addons,
-):
+) -> float:
     # 1. do we have a regular subscription plan?
     limit = plan_limit or default_limit or inf
     # "unlimited" -> inf
