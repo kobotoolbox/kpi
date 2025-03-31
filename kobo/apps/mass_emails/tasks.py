@@ -173,7 +173,7 @@ class MassEmailSender:
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = get_plan_name(org_user)
+        plan_name = self.get_plan_name(org_user)
         data = {
             'username': record.user.username,
             'full_name': record.user.first_name + ' ' + record.user.last_name,

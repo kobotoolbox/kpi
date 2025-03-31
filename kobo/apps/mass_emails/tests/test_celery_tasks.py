@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytz
-from ddt import ddt
 from django.core import mail
 from django.core.cache import cache
 from django.test import override_settings
@@ -13,7 +12,6 @@ from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import MassEmailSender, render_template, send_emails
 
 
-@ddt
 class TestCeleryTask(BaseTestCase):
     fixtures = ['test_data']
 
