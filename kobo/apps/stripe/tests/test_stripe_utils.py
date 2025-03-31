@@ -21,6 +21,7 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_for_active_plans,
     get_organization_subscription_limit,
     get_organizations_subscription_limits,
+    get_plan_name,
     get_subscription_limits,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
@@ -421,3 +422,33 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert results[self.organization.id]['end'] == first_of_next_month
         assert results[self.second_organization.id]['start'] == first_of_this_month
         assert results[self.second_organization.id]['end'] == first_of_next_month
+
+    @data(
+        (True, False, 'My plan'),
+        (True, True, 'My plan and My addon'),
+        (False, True, 'My addon'),
+        (False, False, 'Default'),
+    )
+    @unpack
+    def test_get_plan_name(self, has_plan, has_addon, expected_name):
+        default_plan = generate_free_plan()
+        default_plan.name = 'Default'
+        default_plan.save()
+        if has_plan:
+            product_metadata = {'product_type': 'plan'}
+            subscription = generate_plan_subscription(
+                self.organization, product_metadata
+            )
+            product = subscription.plan.product
+            product.name = 'My plan'
+            product.save()
+        if has_addon:
+            product_metadata = {'product_type': 'addon'}
+            subscription = generate_plan_subscription(
+                self.organization, product_metadata
+            )
+            product = subscription.plan.product
+            product.name = 'My addon'
+            product.save()
+        org_user = self.organization.organization_users.first()
+        assert get_plan_name(org_user) == expected_name

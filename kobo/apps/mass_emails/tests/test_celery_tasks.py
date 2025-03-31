@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytz
+from ddt import ddt
 from django.core import mail
 from django.core.cache import cache
 from django.test import override_settings
@@ -12,6 +13,7 @@ from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import MassEmailSender, render_template, send_emails
 
 
+@ddt
 class TestCeleryTask(BaseTestCase):
     fixtures = ['test_data']
 
@@ -92,3 +94,10 @@ class TestCeleryTask(BaseTestCase):
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_get_plan_name_stripe_disabled(self):
+        org_user = self.user1.organization.organization_users.get(user=self.user1)
+        sender = MassEmailSender()
+        plan_name = sender.get_plan_name(org_user)
+        assert plan_name == 'Not available'
