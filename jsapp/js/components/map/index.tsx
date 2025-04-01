@@ -222,6 +222,8 @@ interface FormMapState {
 export class FormMap extends React.Component<FormMapProps, FormMapState> {
   controls: CustomLayerControl = L.control.layers(BASE_LAYERS) as CustomLayerControl
 
+  private unlisteners: Function[] = []
+
   constructor(props: FormMapProps) {
     super(props)
 
@@ -274,6 +276,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (this.state.map) {
       this.state.map.remove()
     }
+    this.unlisteners.forEach((clb) => clb())
   }
 
   componentDidMount() {
@@ -348,9 +351,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.requestData(map, this.props.viewby)
-    actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this))
-    actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this))
-    actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this))
+    this.unlisteners.push(
+      actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
+      actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
+      actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this)),
+    )
 
 <<<<<<< HEAD
     actions.resources.getAssetFiles(
