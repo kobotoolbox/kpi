@@ -1,7 +1,10 @@
 import sys
 
+from django.conf import settings
 from django.db import transaction
 from djstripe.models import Customer, Subscription, Price
+from djstripe.settings import djstripe_settings
+import stripe
 from xlrd import open_workbook
 
 from kobo.apps.organizations.models import Organization, OrganizationUser
@@ -18,9 +21,11 @@ def run(*args):
 
     source_data = open_workbook(file)
     source_sheet = source_data.sheet_by_index(0)
+    parent_org_column = 1
     target_org_column = 5
 
     for row in range(1, source_sheet.nrows):
+        parent_org_id = source_sheet.cell_value(row, parent_org_column)
         new_org_id = source_sheet.cell_value(row, target_org_column)
         username = source_sheet.cell_value(row, 0)
 
@@ -54,6 +59,20 @@ def run(*args):
             ).delete()
 
             customer, _ = Customer.get_or_create(subscriber=org)
+
+            customer_metadata = {
+                'kpi_owner_username': user.username,
+                'kpi_owner_user_id': user.id,
+                'request_url': settings.KOBOFORM_URL,
+                'organization_id': new_org_id,
+            }
+            stripe.Customer.modify(
+                customer.id,
+                api_key=djstripe_settings.STRIPE_SECRET_KEY,
+                name=customer.name or user.extra_details.data.get('name', user.username),
+                description=org.name,
+                metadata=customer_metadata,
+            ),
             if (
                 Subscription.objects.filter(customer=customer)
                 .exclude(status="canceled")
@@ -61,7 +80,8 @@ def run(*args):
             ):
                 sys.stderr.write(f'{new_org_id},Has existing subscription\n')
                 continue
-            customer.subscribe(price=price)
+            customer_metadata['bulk_subscription'] = parent_org_id
+            customer.subscribe(price=price, metadata=customer_metadata)
             sys.stdout.write(f'{new_org_id},Has been subscribed\n')
 
 
