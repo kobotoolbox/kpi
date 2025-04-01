@@ -243,34 +243,34 @@ def generate_mass_email_user_lists():
         date_created__lt=today, live=True
     )
 
-    for config in email_configs:
-        if config.id in processed_configs:
+    for email_config in email_configs:
+        if email_config.id in processed_configs:
             continue
 
         enqueued_records = MassEmailRecord.objects.filter(
-            email_job__email_config=config,
+            email_job__email_config=email_config,
             status=EmailStatus.ENQUEUED
         )
 
         # Skip processing for one time emails that have been sent or enqueued
-        if config.frequency == -1 and enqueued_records.filter(
+        if email_config.frequency == -1 and enqueued_records.filter(
             status__in=[EmailStatus.ENQUEUED, EmailStatus.SENT]
         ).exists():
-            processed_configs.add(config.id)
+            processed_configs.add(email_config.id)
 
         # Skip processing if there are pending enqueued records
         elif enqueued_records.exists():
-            processed_configs.add(config.id)
+            processed_configs.add(email_config.id)
 
         else:
             try:
                 with transaction.atomic():
-                    enqueue_mass_email_records(config)
+                    enqueue_mass_email_records(email_config)
             except IntegrityError:
                 logging.warning(
-                    f'Skipping duplicate record for config: {config.id}'
+                    f'Skipping duplicate record for config: {email_config.id}'
                 )
                 continue
-            processed_configs.add(config.id)
+            processed_configs.add(email_config.id)
     cache.set(cache_key, processed_configs, timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')

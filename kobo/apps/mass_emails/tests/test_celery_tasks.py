@@ -109,6 +109,7 @@ class TestCeleryTask(BaseTestCase):
         plan_name = sender.get_plan_name(org_user)
         assert plan_name == 'Not available'
 
+
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
     def setUp(self):
@@ -274,7 +275,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         with patch(
             'kobo.apps.mass_emails.tasks.enqueue_mass_email_records'
         ) as mock_enqueue:
-            mock_enqueue.side_effect = IntegrityError("Duplicate entry error")
+            mock_enqueue.side_effect = IntegrityError('Duplicate entry error')
             generate_mass_email_user_lists()
 
         mock_enqueue.assert_called()
