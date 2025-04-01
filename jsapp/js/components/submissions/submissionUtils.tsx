@@ -809,12 +809,16 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   let details = clonedeep(supplementalDetails)
 
   // Step 1: Remove responses to qual questions that are:
-  // a) empty strings (means "no response" or "response deleted")
+  // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
   // b) responses to qual questions that are deleted
   for (const detailsKey of Object.keys(details)) {
     if (details[detailsKey].qual) {
       details[detailsKey].qual = details[detailsKey].qual.filter(
-        (qualResponse) => qualResponse.val !== '' && qualResponse.options?.deleted !== true,
+        (qualResponse) =>
+          qualResponse.val !== '' &&
+          qualResponse.val !== null &&
+          !(Array.isArray(qualResponse.val) && qualResponse.val.length === 0) &&
+          qualResponse.options?.deleted !== true,
       )
     }
   }
@@ -827,4 +831,26 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   }
 
   return details
+}
+
+// If attachment for this submission response is deleted, and there is no NLP related features (transcript,
+// translations or qualitative analysis questions) being used with it, we don't want to show the button, as it doesn't
+// make sense to open the processing view for it.
+// We use `removeEmptyFromSupplementalDetails`, because submission has some leftover "empty" data after removing
+// features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
+// don't want to display the button).
+export function shouldProcessingBeAccessible(
+  submissionData: SubmissionResponse,
+  mediaAttachment: SubmissionAttachment,
+) {
+  return (
+    // Case 1: NLP features not enabled yet in asset, attachment not deleted
+    (typeof submissionData._supplementalDetails === 'undefined' && !mediaAttachment.is_deleted) ||
+    // Case 2: NLP features enabled in asset, attachment not deleted
+    (typeof submissionData._supplementalDetails !== 'undefined' && !mediaAttachment.is_deleted) ||
+    // Case 3: NLP features enabled in asset, attachment deleted, submission has some NLP related features
+    (typeof submissionData._supplementalDetails !== 'undefined' &&
+      Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0 &&
+      mediaAttachment.is_deleted)
+  )
 }

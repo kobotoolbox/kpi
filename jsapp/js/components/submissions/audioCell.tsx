@@ -10,7 +10,7 @@ import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
-import { removeEmptyFromSupplementalDetails } from './submissionUtils'
+import { shouldProcessingBeAccessible } from './submissionUtils'
 
 bem.AudioCell = makeBem(null, 'audio-cell')
 
@@ -29,27 +29,6 @@ interface AudioCellProps {
 export default function AudioCell(props: AudioCellProps) {
   const submissionEditId = removeDefaultUuidPrefix(props.submissionData['meta/rootUuid']) || props.submissionData._uuid
 
-  // If attachment for this submission response is deleted, and there is no NLP related features (transcript,
-  // translations or qualitative analysis questions) being used with it, we don't want to show the button, as it doesn't
-  // make sense to open the processing view for it.
-  // We use `removeEmptyFromSupplementalDetails`, because submission has some leftover "empty" data after removing
-  // features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
-  // don't want to display the button).
-  const shouldProcessingBeAccessible =
-    // Case 1: NLP features not enabled yet in asset, attachment not deleted
-    (typeof props.submissionData._supplementalDetails === 'undefined' &&
-      typeof props.mediaAttachment !== 'string' &&
-      !props.mediaAttachment?.is_deleted) ||
-    // Case 2: NLP features enabled in asset, attachment not deleted
-    (typeof props.submissionData._supplementalDetails !== 'undefined' &&
-      typeof props.mediaAttachment !== 'string' &&
-      !props.mediaAttachment?.is_deleted) ||
-    // Case 3: NLP features enabled in asset, attachment deleted, submission has some NLP related features
-    (typeof props.submissionData._supplementalDetails !== 'undefined' &&
-      Object.keys(removeEmptyFromSupplementalDetails(props.submissionData._supplementalDetails)).length > 0 &&
-      typeof props.mediaAttachment !== 'string' &&
-      props.mediaAttachment?.is_deleted)
-
   return (
     <bem.AudioCell>
       {typeof props.mediaAttachment === 'string' ? (
@@ -62,18 +41,18 @@ export default function AudioCell(props: AudioCellProps) {
         <MiniAudioPlayer mediaURL={props.mediaAttachment?.download_url} />
       ) : null}
 
-      {shouldProcessingBeAccessible && (
-        <Button
-          type='primary'
-          size='s'
-          endIcon='arrow-up-right'
-          label={t('Open')}
-          isDisabled={typeof props.mediaAttachment === 'string'}
-          onClick={() => {
-            goToProcessing(props.assetUid, props.xpath, submissionEditId)
-          }}
-        />
-      )}
+      {typeof props.mediaAttachment !== 'string' &&
+        shouldProcessingBeAccessible(props.submissionData, props.mediaAttachment) && (
+          <Button
+            type='primary'
+            size='s'
+            endIcon='arrow-up-right'
+            label={t('Open')}
+            onClick={() => {
+              goToProcessing(props.assetUid, props.xpath, submissionEditId)
+            }}
+          />
+        )}
     </bem.AudioCell>
   )
 }
