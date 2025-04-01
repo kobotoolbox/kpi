@@ -170,7 +170,7 @@ class MassEmailSender:
             batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
                 if emails_sent > 0 and emails_sent % batch_size == 0:
-                    sleep(5)
+                    sleep(settings.MASS_EMAIL_SLEEP_SECONDS)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 self.send_email(email_config, record)
