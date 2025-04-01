@@ -176,7 +176,6 @@ class MassEmailSender:
                 self.send_email(email_config, record)
                 emails_sent += 1
 
-
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
