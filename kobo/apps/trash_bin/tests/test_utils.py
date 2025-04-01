@@ -42,7 +42,7 @@ class AccountTrashTestCase(TestCase):
         grace_period = 0
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        AccountTrash.toggle_user_statuses([someuser.pk], active=False)
+        AccountTrash.toggle_statuses([someuser.pk], active=False)
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -76,7 +76,7 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = now()
-        AccountTrash.toggle_user_statuses([someuser.pk], active=False)
+        AccountTrash.toggle_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
         after = now()
@@ -130,7 +130,7 @@ class AccountTrashTestCase(TestCase):
             trash_type='user',
         )
 
-        AccountTrash.toggle_user_statuses([someuser.pk], active=True)
+        AccountTrash.toggle_statuses([someuser.pk], active=True)
         someuser.refresh_from_db()
         assert someuser.is_active
 
@@ -163,7 +163,7 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = now() + timedelta(days=grace_period)
-        AccountTrash.toggle_user_statuses([someuser.pk], active=False)
+        AccountTrash.toggle_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
 
@@ -225,7 +225,7 @@ class ProjectTrashTestCase(TestCase):
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
-        ProjectTrash.toggle_asset_statuses(
+        ProjectTrash.toggle_statuses(
             [asset.uid], active=False, toggle_delete=True
         )
 
@@ -287,7 +287,7 @@ class ProjectTrashTestCase(TestCase):
             ],
             trash_type='asset',
         )
-        ProjectTrash.toggle_asset_statuses(
+        ProjectTrash.toggle_statuses(
             [asset.uid], active=True, toggle_delete=True
         )
         asset.refresh_from_db()
