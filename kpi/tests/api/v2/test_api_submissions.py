@@ -1089,20 +1089,18 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         ]
 
         submission_id = submission['_id']
-        attachment_0_id = submission['_attachments'][0]['id']
-        attachment_1_id = submission['_attachments'][1]['id']
-        attachment_2_id = submission['_attachments'][2]['id']
+        attachment_uid = attachments[0]['uid']
 
         expected_new_download_urls = [
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f'/data/{submission_id}/attachments/{attachment_0_id}/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_uid}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f'/data/{submission_id}/attachments/{attachment_1_id}/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_uid}/?format=json',
             'http://testserver/api/v2/assets/'
             + asset.uid
-            + f'/data/{submission_id}/attachments/{attachment_2_id}/?format=json',
+            + f'/data/{submission_id}/attachments/{attachment_uid}/?format=json',
         ]
 
         for idx, attachment in enumerate(attachments):
