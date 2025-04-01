@@ -1,15 +1,24 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytz
+from ddt import data, ddt, unpack
 from django.core import mail
 from django.core.cache import cache
+from django.db import IntegrityError
 from django.test import override_settings
+from django.utils.timezone import now
+from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
-from ..tasks import MassEmailSender, render_template, send_emails
+from ..tasks import (
+    MassEmailSender,
+    generate_mass_email_user_lists,
+    render_template,
+    send_emails
+)
 
 
 class TestCeleryTask(BaseTestCase):
@@ -92,3 +101,180 @@ class TestCeleryTask(BaseTestCase):
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
+
+
+@ddt
+class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
+    def setUp(self):
+        self.user1 = User.objects.create(
+            username='user1', last_login=now() - timedelta(days=400)
+        )
+        self.user2 = User.objects.create(
+            username='user2', last_login=now() - timedelta(days=400)
+        )
+        self.user3 = User.objects.create(
+            username='user3', last_login=now() - timedelta(days=7)
+        )
+        self.cache_key = f'{now().date()}_emails'
+        cache.delete(self.cache_key)
+
+    def _create_email_config(self, name, frequency=-1):
+        """
+        Helper function to create a MassEmailConfig
+        """
+        return MassEmailConfig.objects.create(
+            name=name,
+            subject='Test Subject',
+            template='Test Template',
+            live=True,
+            query='users_inactive_for_365_days',
+            frequency=frequency,
+            date_created=now() - timedelta(days=1),
+        )
+
+    def _create_email_record(self, user, email_config, status, days_ago=0):
+        """
+        Helper function to create a MassEmailRecord
+        """
+        return MassEmailRecord.objects.create(
+            user=user,
+            email_job=MassEmailJob.objects.create(email_config=email_config),
+            status=status,
+            date_created=now() - timedelta(days=days_ago),
+        )
+
+    def test_one_time_email_send_is_cached(self):
+        """
+        Verify that one-time email configs (frequency=-1) are cached if records
+        were sent/enqueued
+        """
+        email_config = self._create_email_config('Test')
+        self._create_email_record(self.user1, email_config, EmailStatus.ENQUEUED)
+        self._create_email_record(self.user2, email_config, EmailStatus.SENT)
+
+        # Verify config is cached after task execution
+        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_existing_enqueued_email_config_is_cached(self):
+        """
+        Verify that email configs with existing enqueued records are cached
+        """
+        email_config = self._create_email_config('Test')
+        self._create_email_record(self.user1, email_config, EmailStatus.ENQUEUED)
+
+        # Verify config is cached after task execution
+        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_new_email_records_are_created_when_no_enqueued_emails_exist(self):
+        """
+        Verify that new jobs and records are created when no enqueued records exist
+        """
+        email_config = self._create_email_config('Test')
+
+        # Verify job, records creation, and config caching after task execution
+        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+
+        email_job = MassEmailJob.objects.get(email_config=email_config)
+        email_records = MassEmailRecord.objects.filter(email_job=email_job)
+
+        self.assertEqual(email_records.count(), 2)
+        self.assertEqual(
+            set(email_records.values_list('user', flat=True)),
+            {self.user1.id, self.user2.id}
+        )
+        self.assertTrue(
+            all(record.status == EmailStatus.ENQUEUED for record in email_records)
+        )
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    @data(
+        (0,),
+        (1,),
+        (2,),
+    )
+    @unpack
+    def test_recurring_email_send_creates_new_records(self, frequency):
+        """
+        Verify that recurring email configs (frequency >= 0) generate new records
+        """
+        email_config = self._create_email_config('Test', frequency=frequency)
+        self._create_email_record(
+            self.user1, email_config, EmailStatus.SENT, days_ago=1 + frequency
+        )
+
+        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+
+        email_job = MassEmailJob.objects.filter(
+            email_config=email_config
+        ).latest('date_created')
+        email_records = MassEmailRecord.objects.filter(email_job=email_job)
+
+        self.assertEqual(email_records.count(), 2)
+        self.assertEqual(
+            set(email_records.values_list('user', flat=True)),
+            {self.user1.id, self.user2.id}
+        )
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_users_who_recently_received_emails_are_excluded(self):
+        """
+        Verify that users who received emails within the configured frequency
+        are excluded
+        """
+        email_config = self._create_email_config('Test', frequency=2)
+        self._create_email_record(
+            self.user1, email_config, EmailStatus.SENT, days_ago=2
+        )
+        self._create_email_record(
+            self.user2, email_config, EmailStatus.SENT, days_ago=1
+        )
+
+        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+
+        email_job = MassEmailJob.objects.filter(
+            email_config=email_config
+        ).latest('date_created')
+        records = MassEmailRecord.objects.filter(email_job=email_job)
+
+        self.assertNotIn(self.user2.id, records.values_list('user', flat=True))
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+    def test_cache_expiry(self):
+        """
+        Verify that the cache expires after 24 hours
+        """
+        email_config = self._create_email_config('Test')
+        generate_mass_email_user_lists()
+        self.assertIn(email_config.id, cache.get(self.cache_key))
+
+        # Simulate cache expiry by manually clearing the cache,
+        # as freeze_time doesn't automatically update cache TTL
+        with freeze_time(now() + timedelta(hours=24)):
+            cache.clear()
+            self.assertIsNone(cache.get(self.cache_key))
+
+    def test_duplicate_entry_handling(self):
+        """
+        Verify that duplicate email records are handled correctly
+        """
+        email_config = self._create_email_config('Test')
+        with patch(
+            'kobo.apps.mass_emails.tasks.enqueue_mass_email_records'
+        ) as mock_enqueue:
+            mock_enqueue.side_effect = IntegrityError("Duplicate entry error")
+            generate_mass_email_user_lists()
+
+        mock_enqueue.assert_called()
+        self.assertNotIn(email_config.id, cache.get(self.cache_key))
+
+        record = MassEmailRecord.objects.filter(
+            email_job__email_config=email_config
+        )
+        self.assertFalse(record.exists())
