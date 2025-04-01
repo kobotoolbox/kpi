@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
@@ -24,14 +23,11 @@ export default function StepConfigAuto() {
   // When polling for transcript, we need to calculate the estimated time
   useEffect(() => {
     if (singleProcessingStore.data.isPollingForTranscript) {
-      const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
-      if (asset?.content) {
-        const attachment = getAttachmentForProcessing(asset.content)
-        if (typeof attachment !== 'string') {
-          getAudioDuration(attachment.download_url).then((length: number) => {
-            setEstimate(secondsToTranscriptionEstimate(length))
-          })
-        }
+      const attachment = getAttachmentForProcessing()
+      if (typeof attachment !== 'string') {
+        getAudioDuration(attachment.download_url).then((length: number) => {
+          setEstimate(secondsToTranscriptionEstimate(length))
+        })
       }
     } else {
       setEstimate(NO_ESTIMATED_MINUTES)

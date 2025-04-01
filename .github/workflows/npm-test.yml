@@ -62,8 +62,8 @@ jobs:
         run: npm run lint:types
 
       # Check that the full build succeeds
-      - name: Build Prod
-        run: SKIP_TS_CHECK=true npm run build
+      - name: Build Production
+        run: SKIP_TS_CHECK=true npm run build:app
 
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
@@ -79,4 +79,4 @@ jobs:
 
       # Check that the storybook build succeeds
       - name: Build Storybook
-        run: npm run storybook:build
+        run: npm run build:storybook
