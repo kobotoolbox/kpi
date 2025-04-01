@@ -67,8 +67,12 @@ interface MapSettingsState {
 }
 
 export default class MapSettings extends React.Component<MapSettingsProps, MapSettingsState> {
+
+  private unlisteners: Function[] = []
+
   constructor(props: MapSettingsProps) {
     super(props)
+
 
     const geoQuestions: LabelValuePair[] = []
     props.asset.content?.survey?.forEach(function (question) {
@@ -107,8 +111,14 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   componentDidMount() {
-    actions.resources.getAssetFiles.completed.listen(this.onGetAssetFilesCompleted.bind(this))
+    this.unlisteners.push(
+      actions.resources.getAssetFiles.completed.listen(this.onGetAssetFilesCompleted.bind(this))
+    )
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
+  }
+
+  componentWillUnmount(): void {
+    this.unlisteners.forEach((unlisten) => unlisten())
   }
 
   // modal handling
