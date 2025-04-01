@@ -21,6 +21,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
@@ -812,16 +813,25 @@ class BaseDeploymentBackend(abc.ABC):
             submission, attachment_xpaths
         )
 
+        attachment_ids = [attachment['id'] for attachment in submission['_attachments']]
+        attachments = Attachment.objects.filter(pk__in=attachment_ids).values(
+            'pk', 'uid'
+        )
+        attachment_map = {a['pk']: a.get('uid', a['pk']) for a in attachments}
+
         for attachment in submission['_attachments']:
             # We should use 'attachment-list' with `?xpath=` but we do not
-            # know what the XPath is here. Since the primary key is already
-            # exposed, let's use it to build the url.
+            # know what the XPath is here so we will use the uid to build the url.
+            attachment_uid = attachment_map.get(attachment['id'])
+            # # Add uid to attachment data
+            attachment['uid'] = attachment_uid
+
             kpi_url = reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
-                    attachment['id'],
+                    attachment_uid,
                 ),
                 request=request,
             )
@@ -834,7 +844,7 @@ class BaseDeploymentBackend(abc.ABC):
                         args=(
                             self.asset.uid,
                             submission['_id'],
-                            attachment['id'],
+                            attachment_uid,
                             suffix,
                         ),
                         request=request,
@@ -862,5 +872,13 @@ class BaseDeploymentBackend(abc.ABC):
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
             attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+
+            # Remove unwanted keys
+            if 'instance' in attachment:
+                del attachment['instance']
+            if 'xform' in attachment:
+                del attachment['xform']
+            if 'id' in attachment:
+                del attachment['id']
 
         return submission

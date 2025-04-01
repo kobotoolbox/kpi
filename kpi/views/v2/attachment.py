@@ -65,12 +65,12 @@ class AttachmentViewSet(
 
     def retrieve(self, request, pk, *args, **kwargs):
         # Since endpoint is needed for KobocatDeploymentBackend to overwrite
-        # Mongo attachments URL with their primary keys (instead of their XPath)
+        # Mongo attachments URL with their primary keys or uid (instead of their XPath)
         submission_id_or_uuid = kwargs['parent_lookup_data']
         return self._get_response(
             request,
             submission_id_or_uuid,
-            attachment_id=pk,
+            attachment_id_or_uid=pk,
             suffix=kwargs.get('suffix'),
         )
 
@@ -99,14 +99,14 @@ class AttachmentViewSet(
         self,
         request,
         submission_id_or_uuid: Union[str, int],
-        attachment_id: Optional[int] = None,
+        attachment_id_or_uid: Optional[Union[str, int]] = None,
         xpath: Optional[str] = None,
         suffix: Optional[str] = None,
     ) -> Response:
 
         try:
             attachment = self.asset.deployment.get_attachment(
-                submission_id_or_uuid, request.user, attachment_id, xpath
+                submission_id_or_uuid, request.user, attachment_id_or_uid, xpath
             )
         except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404
