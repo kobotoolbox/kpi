@@ -780,10 +780,10 @@ export function markAttachmentAsDeleted(
 }
 
 /**
- * Removes empty objects (and arrays) from the given object recursively.
- * This function mutates the original object.
+ * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
  */
-export function removeEmptyObjects(obj: { [key: string]: any }) {
+export function removeEmptyObjects(originalObj: { [key: string]: any }) {
+  const obj = clonedeep(originalObj)
   if (typeof obj !== 'object' || obj === null) {
     return obj
   }
@@ -804,7 +804,7 @@ export function removeEmptyObjects(obj: { [key: string]: any }) {
  * objects in it (nested), you can end up with an empty object as an final outcome.
  */
 export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
-  let details = clonedeep(supplementalDetails)
+  const details = clonedeep(supplementalDetails)
 
   // Step 1: Remove responses to qual questions that are:
   // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
@@ -821,14 +821,8 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
     }
   }
 
-  // Step 2: Remove all empty objects (keeps removing until no empty objects remain)
-  let previousDetails = null
-  while (JSON.stringify(details) !== JSON.stringify(previousDetails)) {
-    previousDetails = clonedeep(details)
-    details = removeEmptyObjects(details)
-  }
-
-  return details
+  // Step 2: Remove all empty objects and arrays (recursively)
+  return removeEmptyObjects(details)
 }
 
 // If attachment for this submission response is deleted, and there is no NLP related features (transcript,

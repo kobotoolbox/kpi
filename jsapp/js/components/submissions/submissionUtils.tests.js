@@ -355,6 +355,18 @@ describe('removeEmptyFromSupplementalDetails', () => {
     expect(result).to.eql(supplementalDetails)
   })
 
+  it('should handle multiple empty responses', () => {
+    const supplementalDetails = {
+      How_much_can_you_handle: {
+        qual: [{ val: '' }, { val: [] }, { val: null }, { val: 'foo', options: { deleted: true } }, { val: 'bar' }],
+      },
+    }
+
+    const result = removeEmptyFromSupplementalDetails(supplementalDetails)
+
+    expect(result).to.eql({ How_much_can_you_handle: { qual: [{ val: 'bar' }] } })
+  })
+
   it('should handle empty input', () => {
     const supplementalDetails = {}
 
