@@ -49,4 +49,8 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
         for config in queryset:
             if config.jobs.count() == 0:
                 enqueue_mass_email_records(config)
+            current_limit = sender.limits.get(config.id)
+            if not current_limit or current_limit < 20:
+                # Force set limit to 20 for testing purposes
+                sender.cache_limit_value(config, 20)
             sender.send_day_emails(config_id=config.id, limit_emails=20)
