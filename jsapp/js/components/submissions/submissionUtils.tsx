@@ -789,13 +789,11 @@ export function removeEmptyObjects(obj: { [key: string]: any }) {
   }
   // Recursively process each property
   for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      obj[key] = removeEmptyObjects(obj[key])
-      // Remove the property if it is an empty object
-      if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
-        // This is a safer way to do `delete obj[key]`:
-        obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
-      }
+    obj[key] = removeEmptyObjects(obj[key])
+    // Remove the property if it is an empty object
+    if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
+      // This is a safer way to do `delete obj[key]`:
+      obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
     }
   }
   return obj

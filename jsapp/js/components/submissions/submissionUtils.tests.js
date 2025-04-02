@@ -282,7 +282,7 @@ describe('removeEmptyObjects', () => {
     expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
-  it('should handle arrays inside objects by removing them', () => {
+  it('should handle empty arrays inside objects by removing them', () => {
     const input = { a: [], b: { c: [1, 2, 3] }, d: {} }
     const expected = { b: { c: [1, 2, 3] } }
     expect(removeEmptyObjects(input)).to.eql(expected)
@@ -290,6 +290,12 @@ describe('removeEmptyObjects', () => {
 
   it('should handle nested empty arrays', () => {
     const input = { a: [], b: {}, c: { d: [] } }
+    const expected = {}
+    expect(removeEmptyObjects(input)).to.eql(expected)
+  })
+
+  it('should handle empty objects inside arrays', () => {
+    const input = { a: [{}], b: [{}, {}], c: { d: [{ e: [] }] } }
     const expected = {}
     expect(removeEmptyObjects(input)).to.eql(expected)
   })
