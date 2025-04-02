@@ -783,7 +783,7 @@ export function markAttachmentAsDeleted(
  * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
  */
 export function removeEmptyObjects(originalObj: { [key: string]: any }) {
-  const obj = clonedeep(originalObj)
+  let obj = clonedeep(originalObj)
   if (typeof obj !== 'object' || obj === null) {
     return obj
   }
