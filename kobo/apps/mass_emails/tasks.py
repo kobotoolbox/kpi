@@ -216,16 +216,23 @@ def send_emails():
 def get_users_for_config(email_config):
     """
     Get users based on query, excluding recent recipients
+
+    frequency = -1: One time email
+    frequency = 1: Daily emails
+    frequency > 1: Recurring emails
     """
     users = USER_QUERIES.get(email_config.query, lambda: [])()
-    cutoff_date = now() - timedelta(days=email_config.frequency)
-    if email_config.frequency == 0:
-        cutoff_date = now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_midnight = now().replace(hour=0, minute=0, second=0, microsecond=0)
+    cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
+
+    # For daily emails, cutoff date is today midnight
+    if email_config.frequency == 1:
+        cutoff_date = today_midnight
 
     recent_recipients = set(
         MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
-            date_created__gte=cutoff_date
+            date_modified__gte=cutoff_date
         ).values_list('user_id', flat=True)
     )
     return [user for user in users if user.id not in recent_recipients]

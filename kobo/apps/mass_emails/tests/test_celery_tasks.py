@@ -168,11 +168,16 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         """
         Helper function to create a MassEmailRecord
         """
-        return MassEmailRecord.objects.create(
+        record = MassEmailRecord.objects.create(
             user=user,
             email_job=MassEmailJob.objects.create(email_config=email_config),
             status=status,
             date_created=now() - timedelta(days=days_ago),
+        )
+
+        # Update date_modified to simulate record creation in the past
+        MassEmailRecord.objects.filter(id=record.id).update(
+            date_modified=now() - timedelta(days=days_ago)
         )
 
     def test_one_time_email_send_is_cached(self):
@@ -225,18 +230,24 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
     @data(
-        (0,),
-        (1,),
-        (2,),
+        (1, 1, True, 2),
+        (1, 0, False, 1),
+        (2, 2, True, 2),
+        (2, 1, False, 1),
+        (3, 3, True, 2),
+        (3, 2, False, 1),
     )
     @unpack
-    def test_recurring_email_send_creates_new_records(self, frequency):
+    def test_cutoff_date_logic(
+        self, frequency, days_ago, expected_inclusion, total_records
+    ):
         """
-        Verify that recurring email configs (frequency >= 0) generate new records
+        Test that the cutoff date logic correctly determines which users should
+        receive emails based on the frequency
         """
         email_config = self._create_email_config('Test', frequency=frequency)
         self._create_email_record(
-            self.user1, email_config, EmailStatus.SENT, days_ago=1 + frequency
+            self.user1, email_config, EmailStatus.SENT, days_ago=days_ago
         )
 
         self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
@@ -247,11 +258,11 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         ).latest('date_created')
         email_records = MassEmailRecord.objects.filter(email_job=email_job)
 
-        self.assertEqual(email_records.count(), 2)
-        self.assertEqual(
-            set(email_records.values_list('user', flat=True)),
-            {self.user1.id, self.user2.id}
+        user_included = (
+            self.user1.id in email_records.values_list('user', flat=True)
         )
+        self.assertEqual(user_included, expected_inclusion)
+        self.assertEqual(email_records.count(), total_records)
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
     def test_users_who_recently_received_emails_are_excluded(self):
