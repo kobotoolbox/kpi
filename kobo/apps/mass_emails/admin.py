@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import admin, messages
 
 from .models import EmailStatus, MassEmailConfig, MassEmailRecord
-from .tasks import enqueue_mass_email_records
+from .tasks import enqueue_mass_email_records, MassEmailSender
 
 
 @admin.register(MassEmailConfig)
