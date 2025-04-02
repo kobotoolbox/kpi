@@ -109,6 +109,31 @@ class TestCeleryTask(BaseTestCase):
         plan_name = sender.get_plan_name(org_user)
         assert plan_name == 'Not available'
 
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
+    def test_send_is_throttled(self):
+        calls = []
+        with patch(
+            'kobo.apps.mass_emails.tasks.sleep',
+            side_effect=lambda *x: calls.append('sleep'),
+        ):
+            with patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ):
+                sender = MassEmailSender()
+                sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+                sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
+
 
 @ddt
 class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
