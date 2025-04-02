@@ -14,7 +14,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         actions = super().get_actions(request)
-        if settings.MASS_EMAIL_ENABLE_TEST_ACTION:
+        if not settings.MASS_EMAIL_ENABLE_TEST_ACTION:
             del actions['test_email_config']
         return actions
 
@@ -42,7 +42,7 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
             )
 
     @admin.action(
-        description='Test configuration sending first 20 enqueued email records'
+        description='Test configuration (sends 20 emails)'
     )
     def test_email_config(self, request, queryset):
         sender = MassEmailSender()
