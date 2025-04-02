@@ -831,14 +831,9 @@ export function shouldProcessingBeAccessible(
   submissionData: SubmissionResponse,
   mediaAttachment: SubmissionAttachment,
 ) {
-  return (
-    // Case 1: NLP features not enabled yet in asset, attachment not deleted
-    (typeof submissionData._supplementalDetails === 'undefined' && !mediaAttachment.is_deleted) ||
-    // Case 2: NLP features enabled in asset, attachment not deleted
-    (typeof submissionData._supplementalDetails !== 'undefined' && !mediaAttachment.is_deleted) ||
-    // Case 3: NLP features enabled in asset, attachment deleted, submission has some NLP related features
-    (typeof submissionData._supplementalDetails !== 'undefined' &&
-      Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0 &&
-      mediaAttachment.is_deleted)
-  )
+  const hasProcessingFeatures =
+    typeof submissionData._supplementalDetails !== 'undefined' &&
+    Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
+
+  return !mediaAttachment.is_deleted || hasProcessingFeatures
 }
