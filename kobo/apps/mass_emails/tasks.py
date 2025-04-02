@@ -157,8 +157,8 @@ class MassEmailSender:
     def send_day_emails(
         self, config_id: int | None = None, limit_emails: int | None = None
     ):
-        """Send the emails for the current day. Optionally provide a configuration id and
-        a limit of emails for testing purposes
+        """Send the emails for the current day. Optionally provide a configuration id
+        and a limit for testing purposes
         """
         emails_sent = 0
         for email_config in self.configs:
