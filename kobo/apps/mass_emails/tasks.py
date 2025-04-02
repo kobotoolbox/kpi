@@ -154,8 +154,10 @@ class MassEmailSender:
             plan_name = gettext('Not available')
         return plan_name
 
-    def send_day_emails(self, config_id: int|None=None, limit_emails: int|None=None):
-        """ Send the emails for the current day. Optionally provide a configuration id and
+    def send_day_emails(
+        self, config_id: int | None = None, limit_emails: int | None = None
+    ):
+        """Send the emails for the current day. Optionally provide a configuration id and
         a limit of emails for testing purposes
         """
         emails_sent = 0
