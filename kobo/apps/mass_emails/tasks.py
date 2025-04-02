@@ -154,9 +154,15 @@ class MassEmailSender:
             plan_name = gettext('Not available')
         return plan_name
 
-    def send_day_emails(self):
+    def send_day_emails(self, config_id: int|None=None, limit_emails: int|None=None):
+        """ Send the emails for the current day. Optionally provide a configuration id and
+        a limit of emails for testing purposes
+        """
         emails_sent = 0
         for email_config in self.configs:
+            if config_id is not None and email_config.id != config_id:
+                continue
+
             limit = self.limits.get(email_config.id)
             if not limit:
                 continue
@@ -175,6 +181,8 @@ class MassEmailSender:
                 self.cache_limit_value(None, self.total_limit - 1)
                 self.send_email(email_config, record)
                 emails_sent += 1
+                if limit_emails is not None and emails_sent >= limit_emails:
+                    break
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
