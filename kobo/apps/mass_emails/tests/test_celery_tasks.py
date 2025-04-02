@@ -92,3 +92,10 @@ class TestCeleryTask(BaseTestCase):
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_get_plan_name_stripe_disabled(self):
+        org_user = self.user1.organization.organization_users.get(user=self.user1)
+        sender = MassEmailSender()
+        plan_name = sender.get_plan_name(org_user)
+        assert plan_name == 'Not available'
