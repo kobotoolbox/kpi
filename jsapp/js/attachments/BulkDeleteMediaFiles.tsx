@@ -3,18 +3,26 @@ import { Modal } from '@mantine/core'
 import { useFeatureFlag, FeatureFlag } from '#/featureFlags'
 import { useDisclosure } from '@mantine/hooks'
 import { SubmissionResponse } from '#/dataInterface'
-import { SubmissionAttachment } from '#/dataInterface'
 import InlineMessage from '#/components/common/inlineMessage'
+import { useRemoveBulkAttachments } from './attachmentsQuery'
+import { useState } from 'react'
+import { notify } from '#/utils'
 
 const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
 interface BulkDeleteMediaFilesProps {
   submissionData: SubmissionResponse[]
-  selectedRows: string[] // an array of the selected submission UIDs
+  selectedRowIds: string[] // an array of the selected submission UIDs
+  assetUid: string
 }
 
 export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
   const [opened, { open, close }] = useDisclosure(false)
+  const [isDeletePending, setIsDeletePending] = useState(false)
+  const [warningSurpressed, setWarningSurpressed] = useState(false)
+
+  const removeBulkAttachments = useRemoveBulkAttachments(props.assetUid)
+
   let totalImages = 0
   let totalVideos = 0
   let totalFiles = 0
@@ -24,19 +32,11 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     return null
   }
 
-  // Get the submission data for only the selected submissions
+  // Array of submissionData of only selected submissions
   const selectedSubmissions: SubmissionResponse[] = []
   props.submissionData.forEach((submission) => {
-    if (props.selectedRows.includes(String(submission._id))) {
+    if (props.selectedRowIds.includes(String(submission._id))) {
       selectedSubmissions.push(submission)
-    }
-  })
-
-  // Get an array of attachments for each selected submission
-  const attachments: SubmissionAttachment[][] = []
-  selectedSubmissions.forEach((submission) => {
-    if (submission._attachments.length > 0) {
-      attachments.push(submission._attachments)
     }
   })
 
@@ -52,10 +52,13 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     }
   }
 
-  attachments.forEach((attArray) => {
-    attArray.forEach((att) => {
-      addMediaType(att.mimetype)
-    })
+  // For each attachment in a submission, we add it to the list of parameters and increase that media file type count
+  selectedSubmissions.forEach((submission) => {
+    if (submission._attachments.length > 0) {
+      submission._attachments.forEach((attachment) => {
+        addMediaType(attachment.mimetype)
+      })
+    }
   })
 
   const getMediaCount = () => {
@@ -89,6 +92,26 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     return result.join(', ') + '.'
   }
 
+  const handleConfirmDelete = async () => {
+    setIsDeletePending(true)
+
+    try {
+      for await (const submission of selectedSubmissions) {
+        await removeBulkAttachments.mutateAsync(submission._id.toString())
+      }
+      notify(
+        t('Media files from ##Number_of_selected_submissions## submission(s) have been deleted').replace(
+          '##Number_of_selected_submissions##',
+          selectedSubmissions.length.toString(),
+        ),
+      )
+    } catch (error) {
+      notify(t('An error occurred while removing the attachments'), 'error')
+    } finally {
+      setIsDeletePending(false)
+    }
+  }
+
   return (
     <Box>
       <Button onClick={open} size='s' variant='transparent'>
@@ -101,11 +124,12 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
           <Checkbox
             label={
               <Text>
-                {t('You are about to permanently remove the following media files from the selected submissions: ')}
+                {t('You are about to permanently remove the following media files from the selected submissions:')}
                 <br />
                 {getMediaCount()}
               </Text>
             }
+            onClick={() => setWarningSurpressed(!warningSurpressed)}
           />
           <InlineMessage
             icon='warning'
@@ -114,12 +138,16 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
           />
 
           <Group justify='flex-end'>
-            <Button variant='light' size='lg' onClick={close}>
+            <Button variant='light' size='lg' onClick={close} disabled={isDeletePending}>
               {t('Cancel')}
             </Button>
 
-            <Button variant='danger' size='lg'>
-              {/*TODO: Mock the bulk deleting here and see if handling it like the individual removal is possible (use the "is_deleted" mocking, see markAttachmentAsDeleted. This probably is not going to be easy without access to the submissions themselves*/}
+            <Button
+              disabled={!warningSurpressed || isDeletePending}
+              variant='danger'
+              size='lg'
+              onClick={handleConfirmDelete}
+            >
               {t('Delete')}
             </Button>
           </Group>

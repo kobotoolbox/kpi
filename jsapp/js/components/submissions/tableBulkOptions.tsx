@@ -263,7 +263,8 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             )) && (
             <BulkDeleteMediaFiles
               submissionData={this.props.data}
-              selectedRows={Object.keys(this.props.selectedRows)}
+              selectedRowIds={Object.keys(this.props.selectedRows)}
+              assetUid={this.props.asset.uid}
             />
         )}
       </bem.TableMeta__bulkOptions>
