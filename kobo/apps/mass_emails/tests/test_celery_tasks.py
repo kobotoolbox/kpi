@@ -180,39 +180,56 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
             date_modified=now() - timedelta(days=days_ago)
         )
 
-    def test_one_time_email_send_is_cached(self):
+    def test_one_time_email_handling(self):
         """
-        Verify that one-time email configs (frequency=-1) are cached if records
-        were sent/enqueued
+        Test one-time email configs (frequency=-1) behave correctly
         """
-        email_config = self._create_email_config('Test')
-        self._create_email_record(self.user1, email_config, EmailStatus.ENQUEUED)
-        self._create_email_record(self.user2, email_config, EmailStatus.SENT)
+        # Case 1: Existing records should prevent new emails from being generated
+        one_time_config = self._create_email_config('ExistingRecordsTest')
+        self._create_email_record(self.user1, one_time_config, EmailStatus.ENQUEUED)
+        self._create_email_record(self.user2, one_time_config, EmailStatus.SENT)
 
-        # Verify config is cached after task execution
-        self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
+        self.assertNotIn(one_time_config.id, cache.get(self.cache_key, set()))
         generate_mass_email_user_lists()
-        self.assertIn(email_config.id, cache.get(self.cache_key))
+        self.assertIn(one_time_config.id, cache.get(self.cache_key))
+
+        # Verify no new records were created
+        existing_records = MassEmailRecord.objects.filter(
+            email_job__email_config=one_time_config
+        )
+        self.assertEqual(existing_records.count(), 2)
+
+        # Case 2: If no records exist, new records should be created
+        new_one_time_config = self._create_email_config('NewRecordsTest')
+        self.assertNotIn(new_one_time_config.id, cache.get(self.cache_key, set()))
+        generate_mass_email_user_lists()
+
+        new_records = MassEmailRecord.objects.filter(
+            email_job__email_config=new_one_time_config
+        )
+        self.assertEqual(new_records.count(), 2)
+        self.assertTrue(
+            all(record.status == EmailStatus.ENQUEUED for record in new_records)
+        )
+        self.assertIn(new_one_time_config.id, cache.get(self.cache_key))
 
     def test_existing_enqueued_email_config_is_cached(self):
         """
-        Verify that email configs with existing enqueued records are cached
+        Test that email configs with existing enqueued records are cached
         """
         email_config = self._create_email_config('Test')
         self._create_email_record(self.user1, email_config, EmailStatus.ENQUEUED)
 
-        # Verify config is cached after task execution
         self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
         generate_mass_email_user_lists()
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
     def test_new_email_records_are_created_when_no_enqueued_emails_exist(self):
         """
-        Verify that new jobs and records are created when no enqueued records exist
+        Test that new jobs and records are created when no enqueued records exist
         """
         email_config = self._create_email_config('Test')
 
-        # Verify job, records creation, and config caching after task execution
         self.assertNotIn(email_config.id, cache.get(self.cache_key, set()))
         generate_mass_email_user_lists()
 
@@ -267,7 +284,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
 
     def test_users_who_recently_received_emails_are_excluded(self):
         """
-        Verify that users who received emails within the configured frequency
+        Test that users who received emails within the configured frequency
         are excluded
         """
         email_config = self._create_email_config('Test', frequency=2)
@@ -291,7 +308,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
 
     def test_cache_expiry(self):
         """
-        Verify that the cache expires after 24 hours
+        Test that the cache expires after 24 hours
         """
         email_config = self._create_email_config('Test')
         generate_mass_email_user_lists()
@@ -305,7 +322,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
 
     def test_duplicate_entry_handling(self):
         """
-        Verify that duplicate email records are handled correctly
+        Test that duplicate email records are handled correctly
         """
         email_config = self._create_email_config('Test')
         with patch(

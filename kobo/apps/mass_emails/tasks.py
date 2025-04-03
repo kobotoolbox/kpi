@@ -225,10 +225,6 @@ def get_users_for_config(email_config):
     today_midnight = now().replace(hour=0, minute=0, second=0, microsecond=0)
     cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
 
-    # For daily emails, cutoff date is today midnight
-    if email_config.frequency == 1:
-        cutoff_date = today_midnight
-
     recent_recipients = set(
         MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
