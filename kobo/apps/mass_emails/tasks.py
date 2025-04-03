@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 from math import ceil
+from time import sleep
 from typing import Optional
 
 from constance import config
@@ -16,13 +17,13 @@ from kobo.apps.mass_emails.models import (
     MassEmailJob,
     MassEmailRecord,
 )
+from kobo.apps.organizations.models import OrganizationUser
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mailer import EmailMessage, Mailer
 
 if settings.STRIPE_ENABLED:
-    from kobo.apps.stripe.utils import get_default_plan_name
-
+    from kobo.apps.stripe.utils import get_plan_name
 
 templates_placeholders = {
     '##username##': 'username',
@@ -145,7 +146,16 @@ class MassEmailSender:
                     day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
+    def get_plan_name(self, org_user: OrganizationUser) -> str:
+        plan_name = None
+        if settings.STRIPE_ENABLED:
+            plan_name = get_plan_name(org_user)
+        if plan_name is None:
+            plan_name = gettext('Not available')
+        return plan_name
+
     def send_day_emails(self):
+        emails_sent = 0
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
             if not limit:
@@ -157,21 +167,19 @@ class MassEmailSender:
             logging.info(
                 f'Processing {limit} records for MassEmailConfig({email_config})'
             )
+            batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
+                if emails_sent > 0 and emails_sent % batch_size == 0:
+                    sleep(settings.MASS_EMAIL_SLEEP_SECONDS)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 self.send_email(email_config, record)
+                emails_sent += 1
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')
         org_user = record.user.organization.organization_users.get(user=record.user)
-        plan_name = None
-        if settings.STRIPE_ENABLED:
-            plan_name = org_user.active_subscription_status
-            if plan_name == '' or plan_name is None:
-                plan_name = get_default_plan_name()
-        if plan_name is None:
-            plan_name = gettext('Not available')
+        plan_name = self.get_plan_name(org_user)
         data = {
             'username': record.user.username,
             'full_name': record.user.first_name + ' ' + record.user.last_name,

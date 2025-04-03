@@ -92,3 +92,35 @@ class TestCeleryTask(BaseTestCase):
         assert 'Username: Test Username' in rendered
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_get_plan_name_stripe_disabled(self):
+        org_user = self.user1.organization.organization_users.get(user=self.user1)
+        sender = MassEmailSender()
+        plan_name = sender.get_plan_name(org_user)
+        assert plan_name == 'Not available'
+
+    @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
+    def test_send_is_throttled(self):
+        calls = []
+        with patch(
+            'kobo.apps.mass_emails.tasks.sleep',
+            side_effect=lambda *x: calls.append('sleep'),
+        ):
+            with patch.object(
+                MassEmailSender,
+                'send_email',
+                side_effect=lambda *x: calls.append('send_email'),
+            ):
+                sender = MassEmailSender()
+                sender.limits = {self.configs[0].id: 3, self.configs[1].id: 2}
+                sender.send_day_emails()
+        assert calls == [
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+            'send_email',
+            'sleep',
+            'send_email',
+        ]
