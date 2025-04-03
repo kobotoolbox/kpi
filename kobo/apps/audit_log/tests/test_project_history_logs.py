@@ -94,21 +94,31 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         new_instance = Instance.objects.get(uuid=uuid_)
         return new_instance, submission_data
 
-    def _check_common_metadata(self, metadata_dict, expected_subtype):
+    def _check_common_metadata(
+        self, metadata_dict, expected_subtype, expect_owner=False
+    ):
         self.assertEqual(metadata_dict['asset_uid'], self.asset.uid)
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
         self.assertEqual(metadata_dict['log_subtype'], expected_subtype)
+        # TODO: remove this parameter when all ph logs have project owners included
+        if expect_owner:
+            self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
         self, metadata, expected_username, expected_root_uuid
     ):
         self.assertEqual(metadata['submission']['submitted_by'], expected_username)
         self.assertEqual(metadata['submission']['root_uuid'], expected_root_uuid)
-        self.assertEqual(metadata['project_owner'], self.asset.owner.username)
 
     def _base_asset_detail_endpoint_test(
-        self, patch, url_name, request_data, expected_action, use_v2=True
+        self,
+        patch,
+        url_name,
+        request_data,
+        expected_action,
+        use_v2=True,
+        expect_owner=False,
     ):
         url_name_prefix = 'api_v2:' if use_v2 else ''
         url = reverse(f'{url_name_prefix}{url_name}', kwargs={'uid': self.asset.uid})
@@ -119,6 +129,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data,
             expected_action,
             PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=expect_owner,
         )
         self.assertEqual(
             log_metadata['latest_version_uid'], self.asset.latest_version.uid
@@ -126,7 +137,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         return log_metadata
 
     def _base_project_history_log_test(
-        self, method, url, request_data, expected_action, expected_subtype
+        self,
+        method,
+        url,
+        request_data,
+        expected_action,
+        expected_subtype,
+        expect_owner=False,
     ):
         # requests are either patches or posts
         # hit the endpoint with the correct data
@@ -144,7 +161,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # check the log has the expected fields and metadata
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, expected_action)
-        self._check_common_metadata(log.metadata, expected_subtype)
+        self._check_common_metadata(
+            log.metadata, expected_subtype, expect_owner=expect_owner
+        )
         return log.metadata
 
     def _make_bulk_request(self, asset_uids, action) -> Response:
@@ -165,88 +184,96 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         return response
 
     def test_first_time_deployment_creates_log(self):
-        post_data = {
-            'active': True,
-            'backend': 'mock',
-        }
-        log_metadata = self._base_asset_detail_endpoint_test(
-            patch=False,
-            url_name=self.deployment_url,
-            request_data=post_data,
-            expected_action=AuditAction.DEPLOY,
-        )
+        with self.assertNumQueries(148):
+            post_data = {
+                'active': True,
+                'backend': 'mock',
+            }
+            log_metadata = self._base_asset_detail_endpoint_test(
+                patch=False,
+                url_name=self.deployment_url,
+                request_data=post_data,
+                expected_action=AuditAction.DEPLOY,
+                expect_owner=True,
+            )
 
-        self.assertEqual(
-            log_metadata['latest_deployed_version_uid'],
-            self.asset.latest_version.uid,
-        )
+            self.assertEqual(
+                log_metadata['latest_deployed_version_uid'],
+                self.asset.latest_version.uid,
+            )
 
     def test_redeployment_creates_log(self):
         # first time deploy
-        self.asset.deploy(backend='mock', active=True)
-        request_data = {
-            'active': True,
-            'backend': 'mock',
-        }
-        log_metadata = self._base_asset_detail_endpoint_test(
-            patch=True,
-            url_name=self.deployment_url,
-            request_data=request_data,
-            expected_action=AuditAction.REDEPLOY,
-        )
+        with self.assertNumQueries(154):
+            self.asset.deploy(backend='mock', active=True)
+            request_data = {
+                'active': True,
+                'backend': 'mock',
+            }
+            log_metadata = self._base_asset_detail_endpoint_test(
+                patch=True,
+                url_name=self.deployment_url,
+                request_data=request_data,
+                expected_action=AuditAction.REDEPLOY,
+                expect_owner=True,
+            )
 
-        self.assertEqual(
-            log_metadata['latest_deployed_version_uid'],
-            self.asset.latest_version.uid,
-        )
+            self.assertEqual(
+                log_metadata['latest_deployed_version_uid'],
+                self.asset.latest_version.uid,
+            )
 
     def test_archive_creates_log(self):
         # can only archive deployed asset
-        self.asset.deploy(backend='mock', active=True)
-        request_data = {
-            'active': False,
-        }
-        self._base_asset_detail_endpoint_test(
-            patch=True,
-            url_name=self.deployment_url,
-            request_data=request_data,
-            expected_action=AuditAction.ARCHIVE,
-        )
-        # do it again (archive an already-archived asset)
-        self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data=request_data,
-            format='json',
-        )
-        archived_logs = ProjectHistoryLog.objects.filter(
-            object_id=self.asset.id, action=AuditAction.ARCHIVE
-        )
-        # we should log the attempt even if it didn't technically do anything
-        self.assertEqual(archived_logs.count(), 2)
+        with self.assertNumQueries(195):
+            self.asset.deploy(backend='mock', active=True)
+            request_data = {
+                'active': False,
+            }
+            self._base_asset_detail_endpoint_test(
+                patch=True,
+                url_name=self.deployment_url,
+                request_data=request_data,
+                expected_action=AuditAction.ARCHIVE,
+                expect_owner=True,
+            )
+            # do it again (archive an already-archived asset)
+            self.client.patch(
+                reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+                data=request_data,
+                format='json',
+            )
+            archived_logs = ProjectHistoryLog.objects.filter(
+                object_id=self.asset.id, action=AuditAction.ARCHIVE
+            )
+            # we should log the attempt even if it didn't technically do anything
+            self.assertEqual(archived_logs.count(), 2)
 
     def test_unarchive_creates_log(self):
-        # can only unarchive deployed asset
-        self.asset.deploy(backend='mock', active=False)
-        request_data = {
-            'active': True,
-        }
-        self._base_asset_detail_endpoint_test(
-            patch=True,
-            url_name=self.deployment_url,
-            request_data=request_data,
-            expected_action=AuditAction.UNARCHIVE,
-        )
-        # do it again (unarchive an already-unarchived asset)
-        self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
-            data=request_data,
-            format='json',
-        )
-        unarchived_logs = ProjectHistoryLog.objects.filter(
-            object_id=self.asset.id, action=AuditAction.UNARCHIVE
-        )
-        # we should log the attempt even if it didn't technically do anything
-        self.assertEqual(unarchived_logs.count(), 2)
+        with self.assertNumQueries(195):
+            # can only unarchive deployed asset
+            self.asset.deploy(backend='mock', active=False)
+            request_data = {
+                'active': True,
+            }
+            self._base_asset_detail_endpoint_test(
+                patch=True,
+                url_name=self.deployment_url,
+                request_data=request_data,
+                expected_action=AuditAction.UNARCHIVE,
+                expect_owner=True,
+            )
+            # do it again (unarchive an already-unarchived asset)
+            self.client.patch(
+                reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+                data=request_data,
+                format='json',
+            )
+            unarchived_logs = ProjectHistoryLog.objects.filter(
+                object_id=self.asset.id, action=AuditAction.UNARCHIVE
+            )
+            # we should log the attempt even if it didn't technically do anything
+            self.assertEqual(unarchived_logs.count(), 2)
 
     def test_failed_requests_does_not_create_log(self):
         # attempt to PATCH on an un-deployed asset
@@ -982,45 +1009,49 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
-        ('archive', AuditAction.ARCHIVE),
-        ('unarchive', AuditAction.UNARCHIVE),
-        ('undelete', None),
-        ('delete', None),
+        ('archive', AuditAction.ARCHIVE, 270),
+        ('unarchive', AuditAction.UNARCHIVE, 269),
+        ('undelete', None, 306),
+        ('delete', None, 281),
     )
     @unpack
-    def test_bulk_actions(self, bulk_action, audit_action):
-        assets = [Asset.objects.create(
-            content={
-                'survey': [
-                    {
-                        'type': 'text',
-                        'label': 'Question 1',
-                        'name': 'q1',
-                        '$kuid': 'abc',
+    def test_bulk_actions(self, bulk_action, audit_action, expected_queries):
+        with self.assertNumQueries(expected_queries):
+            assets = [
+                Asset.objects.create(
+                    content={
+                        'survey': [
+                            {
+                                'type': 'text',
+                                'label': 'Question 1',
+                                'name': 'q1',
+                                '$kuid': 'abc',
+                            },
+                        ]
                     },
-                ]
-            },
-            owner=self.user,
-            asset_type='survey',
-        ) for i in range(0, 2)]
+                    owner=self.user,
+                    asset_type='survey',
+                )
+                for i in range(0, 2)
+            ]
 
-        for asset in assets:
-            asset.deploy(backend='mock', active=True)
+            for asset in assets:
+                asset.deploy(backend='mock', active=True)
 
-        uids = [asset.uid for asset in assets]
+            uids = [asset.uid for asset in assets]
 
-        if bulk_action == 'undelete':
-            self._make_bulk_request(uids, 'delete')
+            if bulk_action == 'undelete':
+                self._make_bulk_request(uids, 'delete')
 
-        self._make_bulk_request(uids, bulk_action)
+            self._make_bulk_request(uids, bulk_action)
 
-        if audit_action is None:
-            self.assertEqual(ProjectHistoryLog.objects.count(), 0)
-        else:
-            project_hist_logs = ProjectHistoryLog.objects.filter(
-                object_id__in=[asset.id for asset in assets], action=audit_action
-            )
-            self.assertEqual(project_hist_logs.count(), 2)
+            if audit_action is None:
+                self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+            else:
+                project_hist_logs = ProjectHistoryLog.objects.filter(
+                    object_id__in=[asset.id for asset in assets], action=audit_action
+                )
+                self.assertEqual(project_hist_logs.count(), 2)
 
     def test_bulk_permission_assignment_creates_logs_for_each_user(self):
         def get_user_url(username):
