@@ -250,7 +250,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expect_owner=True,
             expected_queries=45,
         )
-            # do it again (archive an already-archived asset)
+        # do it again (archive an already-archived asset)
         self.client.patch(
             reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
             data=request_data,
