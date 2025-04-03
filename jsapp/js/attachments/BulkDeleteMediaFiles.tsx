@@ -7,11 +7,12 @@ import InlineMessage from '#/components/common/inlineMessage'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 import { useState } from 'react'
 import { notify } from '#/utils'
+import {Anchor} from '@mantine/core'
 
 const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
 interface BulkDeleteMediaFilesProps {
-  submissionData: SubmissionResponse[]
+  selectedSubmissions: SubmissionResponse[]
   selectedRowIds: string[] // an array of the selected submission UIDs
   assetUid: string
 }
@@ -32,14 +33,6 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     return null
   }
 
-  // Array of submissionData of only selected submissions
-  const selectedSubmissions: SubmissionResponse[] = []
-  props.submissionData.forEach((submission) => {
-    if (props.selectedRowIds.includes(String(submission._id))) {
-      selectedSubmissions.push(submission)
-    }
-  })
-
   const addMediaType = (mimetype: string) => {
     if (mimetype.includes('image/')) {
       totalImages++
@@ -53,12 +46,10 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
   }
 
   // For each attachment in a submission, we add it to the list of parameters and increase that media file type count
-  selectedSubmissions.forEach((submission) => {
-    if (submission._attachments.length > 0) {
+  props.selectedSubmissions.forEach((submission) => {
       submission._attachments.forEach((attachment) => {
-        addMediaType(attachment.mimetype)
+          addMediaType(attachment.mimetype)
       })
-    }
   })
 
   const getMediaCount = () => {
@@ -96,13 +87,13 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     setIsDeletePending(true)
 
     try {
-      for await (const submission of selectedSubmissions) {
+      for await (const submission of props.selectedSubmissions) {
         await removeBulkAttachments.mutateAsync(submission._id.toString())
       }
       notify(
         t('Media files from ##Number_of_selected_submissions## submission(s) have been deleted').replace(
           '##Number_of_selected_submissions##',
-          selectedSubmissions.length.toString(),
+          props.selectedSubmissions.length.toString(),
         ),
       )
     } catch (error) {
@@ -114,9 +105,9 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   return (
     <Box>
-      <Button onClick={open} size='s' variant='transparent'>
-        {t('Delete only media files')}
-      </Button>
+      <Anchor onClick={open} underline='always' fw={'bold'}>
+        {t('Delete media files only')}
+      </Anchor>
 
       <Modal opened={opened} onClose={close} title={t('Delete media files')} size={'md'}>
         <FocusTrap.InitialFocus />

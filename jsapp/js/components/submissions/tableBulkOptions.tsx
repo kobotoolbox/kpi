@@ -38,6 +38,8 @@ interface TableBulkOptionsProps {
 
 class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   currentDialog: AlertifyDialogInstance | null = null
+  /** Arry of submission data for only the selected submissions */
+  selectedSubmissionsWithAttachments: SubmissionResponse[] = []
 
   componentDidMount() {
     actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog.bind(this))
@@ -179,6 +181,14 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     })
   }
 
+  getSelectedSubmissionsWithAttachments() {
+    return (this.selectedSubmissionsWithAttachments = this.props.data.filter(
+      (submission) =>
+        Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
+        submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
+    ))
+  }
+
   render() {
     let selectedCount = Object.keys(this.props.selectedRows).length
     if (this.props.selectedAllPages) {
@@ -253,20 +263,15 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           )}
 
         {Object.keys(this.props.selectedRows).length > 0 &&
-          (userCan(
-            PERMISSIONS_CODENAMES.delete_submissions,
-            this.props.asset
-          ) ||
-            userCanPartially(
-              PERMISSIONS_CODENAMES.delete_submissions,
-              this.props.asset
-            )) && (
+          (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+            userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
+          this.getSelectedSubmissionsWithAttachments().length > 0 && (
             <BulkDeleteMediaFiles
-              submissionData={this.props.data}
+              selectedSubmissions={this.selectedSubmissionsWithAttachments}
               selectedRowIds={Object.keys(this.props.selectedRows)}
               assetUid={this.props.asset.uid}
             />
-        )}
+          )}
       </bem.TableMeta__bulkOptions>
     )
   }
