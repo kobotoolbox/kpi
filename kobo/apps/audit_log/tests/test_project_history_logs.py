@@ -198,8 +198,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_first_time_deployment_creates_log(self):
         post_data = {
-                'active': True,
-                'backend': 'mock',
+            'active': True,
+            'backend': 'mock',
         }
         log_metadata = self._base_asset_detail_endpoint_test(
             patch=False,
