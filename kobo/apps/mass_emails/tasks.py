@@ -222,6 +222,9 @@ def get_users_for_config(email_config):
     frequency > 1: Recurring emails
     """
     users = USER_QUERIES.get(email_config.query, lambda: [])()
+    if email_config.frequency == -1:
+        return users
+
     today_midnight = now().replace(hour=0, minute=0, second=0, microsecond=0)
     cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
 
@@ -256,19 +259,18 @@ def generate_mass_email_user_lists():
         if email_config.id in processed_configs:
             continue
 
-        enqueued_records = MassEmailRecord.objects.filter(
+        email_records = MassEmailRecord.objects.filter(
             email_job__email_config=email_config,
-            status=EmailStatus.ENQUEUED
         )
 
         # Skip processing for one time emails that have been sent or enqueued
-        if email_config.frequency == -1 and enqueued_records.filter(
+        if email_config.frequency == -1 and email_records.filter(
             status__in=[EmailStatus.ENQUEUED, EmailStatus.SENT]
         ).exists():
             processed_configs.add(email_config.id)
 
         # Skip processing if there are pending enqueued records
-        elif enqueued_records.exists():
+        elif email_records.filter(status=EmailStatus.ENQUEUED).exists():
             processed_configs.add(email_config.id)
 
         else:
