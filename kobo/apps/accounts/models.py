@@ -13,10 +13,8 @@ class EmailContent(models.Model):
     ##user## - The username of the user
     """
     class EmailOptions(models.TextChoices):
-        ACTIVATION_EMAIL = (
-            'email_confirmation_signup_message',
-            'Email Confirmation Signup Message',
-        )
+        ACTIVATION_EMAIL = 'email_confirmation_signup_message', \
+            'Email Confirmation Signup Message'
 
     class SectionOptions(models.TextChoices):
         SUBJECT = 'subject', 'Subject'

@@ -48,7 +48,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import (
-    AttachmentDeleteStatus,
     generate_attachment_filename,
 )
 from kobo.apps.openrosa.apps.logger.models.instance import (
@@ -840,10 +839,7 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     # in memory after the update.
     # This behavior is necessary to allow the signal to handle file deletion from
     # storage.
-    remaining_attachments.update(
-        date_modified=dj_timezone.now(),
-        delete_status=AttachmentDeleteStatus.SOFT_DELETED,
-    )
+    remaining_attachments.update(deleted_at=dj_timezone.now())
 
     return soft_deleted_attachments
 

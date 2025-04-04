@@ -5,9 +5,7 @@ from django.conf import settings
 from django.core.files.base import File
 from django.core.management import call_command
 
-from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kpi.deployment_backends.kc_access.storage import (
@@ -77,42 +75,3 @@ class TestAttachment(TestBase):
                     > created_times[size]
                 )
                 default_storage.delete(thumbnail)
-
-    def test_attachment_has_user_and_xform_fields(self):
-        attachment = Attachment()
-        self.assertTrue(hasattr(attachment, 'user'))
-        self.assertTrue(hasattr(attachment, 'xform'))
-
-    def test_attachment_save_populates_user_and_xform(self):
-        user = User.objects.create_user(username='testuser', password='testpassword')
-        f = open(
-            os.path.join(
-                os.path.dirname(
-                    os.path.dirname(os.path.abspath(__file__))
-                ),
-                'Water_Translated_2011_03_10.xml',
-            )
-        )
-        xml = f.read()
-        f.close()
-        xform = XForm.objects.create(xml=xml, user=user)
-        instance = Instance.objects.all()[0]
-        instance.xform = xform
-        instance.save()
-
-        media_file = os.path.join(
-            self.this_directory,
-            'fixtures',
-            'transportation',
-            'instances',
-            self.surveys[0],
-            self.media_file,
-        )
-        attachment = Attachment.objects.create(
-            instance=instance,
-            media_file=File(open(media_file, 'rb'), media_file),
-        )
-
-        attachment.refresh_from_db()
-        self.assertEqual(attachment.user_id, user.id)
-        self.assertEqual(attachment.xform_id, xform.id)

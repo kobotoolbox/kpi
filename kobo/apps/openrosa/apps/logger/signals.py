@@ -45,7 +45,7 @@ def pre_delete_attachment(instance, **kwargs):
     only_update_counters = kwargs.pop('only_update_counters', False)
     xform = attachment.instance.xform
 
-    if file_size and attachment.delete_status is None:
+    if file_size and attachment.deleted_at is None:
         with transaction.atomic():
             # Update both counters simultaneously within a transaction to minimize
             # the risk of desynchronization.
