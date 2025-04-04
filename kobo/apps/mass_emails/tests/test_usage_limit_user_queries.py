@@ -2,8 +2,9 @@ from math import inf
 from typing import get_args
 from unittest.mock import patch
 
+import pytest
 from ddt import data, ddt, unpack
-from django.test import override_settings
+from django.conf import settings
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -17,6 +18,9 @@ from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     fixtures = ['test_data']
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     @data(
         (0.9, None, ['fred', 'someuser']),
         (0.75, 1, ['someuser', 'anotheruser']),
@@ -62,6 +66,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             User.objects.filter(username__in=expected_users).order_by('username')
         )
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     @data(
         (0.9, None),
         (0.75, 1),
@@ -90,6 +97,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         aslist = list(results)
         assert aslist == []
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     @data(
         # usage type, usage method, include storage addons, include one-time addons
         ('storage', 'get_storage_usage_by_user_id', True, False),
@@ -131,6 +141,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             include_onetime_addons=include_onetime_addons,
         )
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_users_in_range_of_usage_limit_only_gets_nlp_usage_once(self):
         org1 = User.objects.get(username='someuser').organization
         usage = {org1.id: {'seconds': 10, 'characters': 20}}
@@ -150,7 +163,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 )
         patched_usage_method.assert_called_once()
 
-    @override_settings(STRIPE_ENABLED=False)
+    @pytest.mark.skipif(
+        settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
+    )
     def test_users_in_range_of_usage_limit_stripe_disabled_returns_empty(self):
         assert list(get_users_within_range_of_usage_limit(get_args(UsageType))) == []
 

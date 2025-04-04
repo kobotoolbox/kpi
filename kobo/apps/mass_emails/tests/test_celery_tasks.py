@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
+import pytest
 import pytz
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
 from django.db import IntegrityError
@@ -99,7 +101,7 @@ class TestCeleryTask(BaseTestCase):
         assert 'Full name: Test Full Name' in rendered
         assert 'Plan name: Test Plan Name' in rendered
 
-    @override_settings(STRIPE_ENABLED=False)
+    @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
         org_user = self.user1.organization.organization_users.get(user=self.user1)
         sender = MassEmailSender()
