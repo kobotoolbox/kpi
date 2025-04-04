@@ -6,30 +6,25 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
-  everythingSurvey,
-  everythingSurveyChoices,
+  everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
-  groupsSurvey,
-  groupsSurveyChoices,
+  groupsSurveyAsset,
   groupsSurveyDisplayData,
   groupsSurveySubmission,
-  matrixRepeatSurvey,
-  matrixRepeatSurveyChoices,
+  matrixRepeatSurveyAsset,
   matrixRepeatSurveyDisplayData,
   matrixRepeatSurveySubmission,
-  matrixSurvey,
-  matrixSurveyChoices,
+  matrixSurveyAsset,
   matrixSurveyDisplayData,
   matrixSurveySubmission,
-  nestedRepeatSurvey,
+  nestedRepeatSurveyAsset,
   nestedRepeatSurveyDisplayData,
   nestedRepeatSurveySubmission,
-  repeatSurvey,
+  repeatSurveyAsset,
   repeatSurveyDisplayData,
   repeatSurveySubmission,
-  simpleSurvey,
-  simpleSurveyChoices,
+  simpleSurveyAsset,
   simpleSurveyDisplayData,
   simpleSurveyDisplayDataEmpty,
   simpleSurveySubmission,
@@ -52,133 +47,54 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
+import type { SubmissionSupplementalDetails } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: simpleSurvey,
-          choices: simpleSurveyChoices,
-        },
-      },
-      1,
-      simpleSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(simpleSurveyAsset, 1, simpleSurveySubmission).children
     const target = simpleSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a null data entries for a survey with no answers', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: simpleSurvey,
-          choices: simpleSurveyChoices,
-        },
-      },
-      0,
-      simpleSurveySubmissionEmpty,
-    ).children
+    const test = getSubmissionDisplayData(simpleSurveyAsset, 0, simpleSurveySubmissionEmpty).children
     const target = simpleSurveyDisplayDataEmpty
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with a repeat group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: repeatSurvey,
-          choices: null,
-        },
-      },
-      0,
-      repeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(repeatSurveyAsset, 0, repeatSurveySubmission).children
     const target = repeatSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with nested repeat groups', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: nestedRepeatSurvey,
-          choices: null,
-        },
-      },
-      0,
-      nestedRepeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(nestedRepeatSurveyAsset, 0, nestedRepeatSurveySubmission).children
     const target = nestedRepeatSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with a matrix', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: matrixSurvey,
-          choices: matrixSurveyChoices,
-        },
-      },
-      0,
-      matrixSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(matrixSurveyAsset, 0, matrixSurveySubmission).children
     const target = matrixSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with all kinds of groups', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: groupsSurvey,
-          choices: groupsSurveyChoices,
-        },
-      },
-      0,
-      groupsSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(groupsSurveyAsset, 0, groupsSurveySubmission).children
     const target = groupsSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for every possible question type', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: everythingSurvey,
-          choices: everythingSurveyChoices,
-        },
-      },
-      0,
-      everythingSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(everythingSurveyAsset, 0, everythingSurveySubmission).children
     const target = everythingSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a matrix group inside repeat group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: matrixRepeatSurvey,
-          choices: matrixRepeatSurveyChoices,
-        },
-      },
-      0,
-      matrixRepeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(matrixRepeatSurveyAsset, 0, matrixRepeatSurveySubmission).children
     const target = matrixRepeatSurveyDisplayData
     expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
   })
@@ -187,7 +103,11 @@ describe('getSubmissionDisplayData', () => {
 describe('getMediaAttachment', () => {
   it('should return an attachment object', () => {
     const fileName = submissionWithAttachmentsWithUnicode.A_picture
-    const test = getMediaAttachment(submissionWithAttachmentsWithUnicode, fileName)
+    const test = getMediaAttachment(
+      submissionWithAttachmentsWithUnicode,
+      'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
+      'A_picture',
+    )
     const target = submissionWithAttachmentsWithUnicode._attachments[0]
     expect(test).to.deep.equal(target)
   })
@@ -303,7 +223,7 @@ describe('removeEmptyObjects', () => {
 
 describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove empty strings and deleted qual responses', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [{ val: '' }, { val: 'foo' }, { val: 'bar', options: { deleted: true } }],
       },
@@ -319,7 +239,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   })
 
   it('should remove qual array if all responses are removed', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [{ val: '' }, { val: 'bar', options: { deleted: true } }],
       },
@@ -331,7 +251,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   })
 
   it('should remove nested empty objects', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [],
       },
@@ -344,7 +264,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   })
 
   it('should handle already clean supplemental details', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [{ val: 'foo' }],
       },
@@ -356,7 +276,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   })
 
   it('should handle multiple empty responses', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [{ val: '' }, { val: [] }, { val: null }, { val: 'foo', options: { deleted: true } }, { val: 'bar' }],
       },
@@ -368,7 +288,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   })
 
   it('should handle empty input', () => {
-    const supplementalDetails = {}
+    const supplementalDetails: SubmissionSupplementalDetails = {}
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
