@@ -505,7 +505,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
-            #         'project_owner': audit_log_info['owner_username'],
+            'project_owner': audit_log_info['owner_username'],
         }
 
         # requests to archive/unarchive will only have the `active` param in the request
