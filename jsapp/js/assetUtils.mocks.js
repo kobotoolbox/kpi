@@ -336,7 +336,6 @@ export const surveyWithAllPossibleGroups = [
     $kuid: 'vs75w20',
     label: ['Crossbreeding'],
     $autoname: 'group_crossbreeding',
-    _isRepeat: 'false',
     appearance: 'field-list',
     'kobo--matrix_list': 'matrix_go11n34',
   },
