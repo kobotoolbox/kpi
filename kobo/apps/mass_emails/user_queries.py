@@ -79,7 +79,6 @@ def get_users_within_range_of_usage_limit(
     # cheat so that we don't fetch information twice if we're looking for nlp usage
     def get_nlp_usage_method(nlp_usage_type):
         def get_nlp_usage():
-            nonlocal cached_nlp_usage
             if cached_nlp_usage == {}:
                 cached_nlp_usage.update(
                     get_nlp_usage_for_current_billing_period_by_user_id()

@@ -43,6 +43,7 @@ def get_submission_counts_in_date_range_by_user_id(
     )
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
+
 @requires_stripe
 def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
