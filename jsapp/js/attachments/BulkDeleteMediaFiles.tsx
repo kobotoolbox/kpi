@@ -7,7 +7,7 @@ import InlineMessage from '#/components/common/inlineMessage'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 import { useState } from 'react'
 import { notify } from '#/utils'
-import {Anchor} from '@mantine/core'
+import { Anchor } from '@mantine/core'
 
 const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
@@ -47,39 +47,41 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   // For each attachment in a submission, we add it to the list of parameters and increase that media file type count
   props.selectedSubmissions.forEach((submission) => {
-      submission._attachments.forEach((attachment) => {
-          addMediaType(attachment.mimetype)
-      })
+    submission._attachments.forEach((attachment) => {
+      addMediaType(attachment.mimetype)
+    })
   })
 
   const getMediaCount = () => {
-    let images = ''
-    let audios = ''
-    let videos = ''
-    let files = ''
+    const allStrings = { images: '', videos: '', audios: '', files: '' }
+    const result: string[] = []
 
     if (totalImages > 1) {
-      images = t('##media## images').replace('##media##', String(totalImages))
+      allStrings.images = t('##media## images').replace('##media##', String(totalImages))
     } else if (totalImages === 1) {
-      images = t('##media## image').replace('##media##', String(totalImages))
+      allStrings.images = t('##media## image').replace('##media##', String(totalImages))
     }
     if (totalVideos > 1) {
-      videos = t('##media## videos').replace('##media##', String(totalVideos))
+      allStrings.videos = t('##media## videos').replace('##media##', String(totalVideos))
     } else if (totalVideos === 1) {
-      videos = t('##media## video').replace('##media##', String(totalVideos))
+      allStrings.videos = t('##media## video').replace('##media##', String(totalVideos))
     }
     if (totalAudios > 1) {
-      audios = t('##media## audios').replace('##media##', String(totalAudios))
+      allStrings.audios = t('##media## audios').replace('##media##', String(totalAudios))
     } else if (totalAudios === 1) {
-      audios = t('##media## audio').replace('##media##', String(totalAudios))
+      allStrings.audios = t('##media## audio').replace('##media##', String(totalAudios))
     }
     if (totalFiles > 1) {
-      files = t('##media## files').replace('##media##', String(totalFiles))
+      allStrings.files = t('##media## files').replace('##media##', String(totalFiles))
     } else if (totalFiles === 1) {
-      files = t('##media## file').replace('##media##', String(totalFiles))
+      allStrings.files = t('##media## file').replace('##media##', String(totalFiles))
     }
 
-    const result = [images, videos, audios, files]
+    for (const [media, message] of Object.entries(allStrings)) {
+      if (message !== '') {
+        result.push(message)
+      }
+    }
     return result.join(', ') + '.'
   }
 
