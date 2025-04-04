@@ -459,6 +459,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': client_ip,
                 'source': source,
                 'latest_version_uid': asset.prefetched_latest_versions[0].uid,
+                'project_owner': asset.owner.username,
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
@@ -504,6 +505,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
+            'project_owner': audit_log_info['owner_username'],
         }
 
         # requests to archive/unarchive will only have the `active` param in the request
