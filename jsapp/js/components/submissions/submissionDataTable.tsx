@@ -16,6 +16,7 @@ import {
   DisplayGroup,
   getMediaAttachment,
   getSubmissionDisplayData,
+  shouldProcessingBeAccessible,
 } from '#/components/submissions/submissionUtils'
 import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
@@ -223,13 +224,15 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
             <AudioPlayer mediaURL={attachment?.download_url} />
           ) : null}
 
-          <Button
-            type='primary'
-            size='s'
-            endIcon='arrow-up-right'
-            label={t('Open')}
-            onClick={this.openProcessing.bind(this, name)}
-          />
+          {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
+            <Button
+              type='primary'
+              size='s'
+              endIcon='arrow-up-right'
+              label={t('Open')}
+              onClick={this.openProcessing.bind(this, name)}
+            />
+          )}
         </Group>
       )
     }
