@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Union
+from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from django.apps import apps
+from django.conf import settings
 from django.utils import timezone
-from zoneinfo import ZoneInfo
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -20,7 +21,7 @@ def get_billing_dates(organization: Union['Organization', None]):
         first_of_this_month
         + relativedelta(months=1)
     )
-    if not organization:
+    if not organization or not settings.STRIPE_ENABLED:
         return first_of_this_month, first_of_next_month
     calculated_dates = get_current_billing_period_dates_by_org([organization]).get(
         organization.id

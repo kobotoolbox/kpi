@@ -1,4 +1,5 @@
 import calendar
+import functools
 from datetime import datetime
 from math import ceil, floor, inf
 from typing import Optional, get_args
@@ -16,6 +17,35 @@ from kobo.apps.organizations.types import BillingDates, UsageLimits, UsageType
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
 
 
+def requires_stripe(func):
+    """
+    Decorator for methods that rely either on models from Stripe packages or
+    stripe-related database fields
+
+    Any method that calls a @requires_stripe-decorated method should either be
+    decorated itself, or enclose the method in an if settings.STRIPE_ENABLED block
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if not settings.STRIPE_ENABLED:
+            raise NotImplementedError(
+                f'Cannot call {func.__name__} with stripe disabled'
+            )
+        else:
+            from djstripe.models import Product, Subscription
+
+            kwargs['product_model'] = Product
+            kwargs['subscription_model'] = Subscription
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+def _get_default_usage_limits():
+    return {f'{usage_type}_limit': inf for usage_type in get_args(UsageType)}
+
+
 def _get_limit_key(usage_type: UsageType):
     return f'{USAGE_LIMIT_MAP[usage_type]}_limit'
 
@@ -28,12 +58,11 @@ def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
     )
 
 
-def get_default_plan_name() -> Optional[str]:
-    if not settings.STRIPE_ENABLED:
-        return None
-    from djstripe.models import Product
+@requires_stripe
+def get_default_plan_name(**kwargs) -> Optional[str]:
     default_plan = (
-        Product.objects.filter(metadata__default_free_plan='true')
+        kwargs['product_model']
+        .objects.filter(metadata__default_free_plan='true')
         .values('name')
         .first()
     )
@@ -51,13 +80,15 @@ def generate_return_url(product_metadata):
     return base_url + return_page
 
 
+@requires_stripe
 def get_current_billing_period_dates_by_org(
-    orgs: list[Organization] = None,
+    orgs: list[Organization] = None, **kwargs
 ) -> dict[str, BillingDates]:
 
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
     first_of_next_month = first_of_this_month + relativedelta(months=1)
+
     # check 1: look for active subscriptions
     all_active_billing_dates = get_current_billing_period_dates_for_active_plans(orgs)
 
@@ -111,8 +142,9 @@ def get_current_billing_period_dates_by_org(
     return results
 
 
+@requires_stripe
 def get_current_billing_period_dates_based_on_canceled_plans(
-    orgs: list[Organization] = None,
+    orgs: list[Organization] = None, **kwargs
 ) -> dict[str, BillingDates]:
     """
     Retrieve the current billing cycle based on the most recent canceled plan for
@@ -149,79 +181,9 @@ def get_current_billing_period_dates_based_on_canceled_plans(
     return result
 
 
-def get_organization_plan_limits(
-    usage_type: UsageType, organizations: list[Organization] = None
-):
-    orgs = Organization.objects.prefetch_related('djstripe_customers')
-    if organizations is not None:
-        orgs = orgs.filter(id__in=[org.id for org in organizations])
-    if not settings.STRIPE_ENABLED:
-        return {org.id: inf for org in orgs}
-    else:
-        from djstripe.models.core import Product
-    limit_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
-    all_owner_plans = (
-        orgs.filter(
-            djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES
-        )
-        .values(
-            org_id=F('id'),
-            # prefer price metadata over product metadata
-            limit=Coalesce(
-                F(
-                    f'djstripe_customers__subscriptions__items__price__metadata__{limit_key}'  # noqa
-                ),
-                F(
-                    f'djstripe_customers__subscriptions__items__price__product__metadata__{limit_key}'  # noqa
-                ),
-            ),
-            start_date=F('djstripe_customers__subscriptions__start_date'),
-            product_type=F(
-                'djstripe_customers__subscriptions__items__price__product__metadata__product_type'  # noqa
-            ),
-        )
-        .annotate(
-            # find the most recent one
-            most_recent=Window(
-                expression=Max('start_date'),
-                partition_by=F('org_id'),
-                order_by='org_id',
-            )
-        )
-        .filter(
-            Q(start_date=F('most_recent'))
-            | (Q(start_date__isnull=True) & Q(most_recent__isnull=True))
-        )
-    )
-    subscriptions = {
-        res['org_id']: res['limit']
-        for res in all_owner_plans
-        if not (res['product_type'] == 'addon' and res['limit'] is None)
-    }
-
-    # Anyone who does not have a subscription is on the free tier plan by default
-    default_plan = (
-        Product.objects.filter(
-            metadata__default_free_plan='true'
-        )
-        .values(limit=F(f'metadata__{limit_key}'))
-        .first()
-    )
-    default_limit = default_plan['limit'] if default_plan else 'unlimited'
-
-    def get_limit(org):
-        limit = subscriptions.get(org.id, default_limit)
-        if limit == 'unlimited':
-            limit = inf
-        else:
-            limit = int(limit)
-        return limit
-
-    return {org.id: get_limit(org) for org in orgs}
-
-
+@requires_stripe
 def get_billing_dates_after_canceled_subscription(
-    canceled_subscription_anchor: datetime,
+    canceled_subscription_anchor: datetime, **kwargs
 ):
     now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
     canceled_subscription_anchor = canceled_subscription_anchor.replace(
@@ -266,8 +228,9 @@ def get_billing_dates_after_canceled_subscription(
     return period_start, period_end
 
 
+@requires_stripe
 def get_current_billing_period_dates_for_active_plans(
-    organizations: list[Organization] = None,
+    organizations: list[Organization] = None, **kwargs
 ) -> dict[str, dict[str, datetime]]:
     """
     Retrieve the current billing cycle for the most recent active plan for
@@ -339,8 +302,9 @@ def get_default_add_on_limits():
     }
 
 
+@requires_stripe
 def get_organization_subscription_limit(
-    organization: Organization, usage_type: UsageType
+    organization: Organization, usage_type: UsageType, **kwargs
 ) -> int | float:
     """
     Get organization plan limit for a given usage type,
@@ -355,19 +319,21 @@ def get_organization_subscription_limit(
     )
 
 
+@requires_stripe
 def get_organizations_subscription_limits(
-    organizations: list[Organization] = None, include_storage_addons: bool = True
+    organizations: list[Organization] = None,
+    include_storage_addons: bool = True,
+    **kwargs,
 ) -> dict[str, UsageLimits]:
     """
     Return the all usage limits for given organizations based on their recurring
     subscriptions.
 
     To determine an organization's limits:
-    1. If Stripe is not enabled, everyone has infinite amounts of everything.
-    2. Otherwise, get the most recent active plans and storage addons
-    3. If there is an active plan, set the limits to the limits of the plan
-    4. If there is no active plan, set the limits to the limits of the default plan
-    5. If there is a storage addon, update the storage limit to
+    1. Get the most recent active plans and storage addons
+    2. If there is an active plan, set the limits to the limits of the plan
+    3. If there is no active plan, set the limits to the limits of the default plan
+    4. If there is a storage addon, update the storage limit to
      max(storage addon, existing limit)
 
     Example result:
@@ -392,18 +358,6 @@ def get_organizations_subscription_limits(
         orgs = Organization.objects.all()
     all_org_ids = [org.id for org in orgs]
 
-    # If Stripe is not enabled, return inf for every limit
-    if not settings.STRIPE_ENABLED:
-        result = {}
-        for org in orgs:
-            all_org_limits = {}
-            for usage_type in get_args(UsageType):
-                all_org_limits[f'{usage_type}_limit'] = inf
-            result[org.id] = all_org_limits
-        return result
-
-    from djstripe.models.core import Product
-
     # get paid subscription limits
     subscription_limits = get_paid_subscription_limits(all_org_ids)
     subscription_limits_by_org_id = {}
@@ -424,7 +378,8 @@ def get_organizations_subscription_limits(
     seconds_limit = _get_limit_key('seconds')
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
-        Product.objects.filter(metadata__default_free_plan='true')
+        kwargs['product_model']
+        .objects.filter(metadata__default_free_plan='true')
         .values(
             storage_limit=F(f'metadata__{storage_limit}'),
             submission_limit=F(f'metadata__{submission_limit}'),
@@ -473,7 +428,8 @@ def get_organizations_effective_limits(
 ) -> dict[str, UsageLimits]:
     """
     Return the all usage limits for given organizations based on their recurring
-    subscriptions and one-time addons.
+    subscriptions and one-time addons. If Stripe is not enabled, returns inf for
+    all limits.
 
     Example result:
     { 'org1':
@@ -490,10 +446,15 @@ def get_organizations_effective_limits(
     :param include_storage_addons: bool. Include storage addons in the calculation
     :param include_onetime_addons: bool. Include onetime addons in the calculation
     """
+
+    if not settings.STRIPE_ENABLED:
+        orgs = organizations or Organization.objects.all()
+        return {org.id: _get_default_usage_limits() for org in orgs}
+
     effective_limits = get_organizations_subscription_limits(
         include_storage_addons=include_storage_addons, organizations=organizations
     )
-    if settings.STRIPE_ENABLED and include_onetime_addons:
+    if include_onetime_addons:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
         addon_limits = PlanAddOn.get_organizations_totals(organizations=organizations)
         for org_id, limits in effective_limits.items():
@@ -503,7 +464,8 @@ def get_organizations_effective_limits(
     return effective_limits
 
 
-def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
+@requires_stripe
+def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> QuerySet:
     """
     Return the most recent limits for all usage types for given organizations based on
     their most recent subscriptions. If they have both a regular plan and an addon,
@@ -512,13 +474,6 @@ def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
 
     Only works when Stripe is enabled.
     """
-
-    # Get organizations we care about (either those in the 'organizations' param or all)
-
-    if not settings.STRIPE_ENABLED:
-        raise NotImplementedError('Cannot get organization plans with stripe disabled')
-
-    from djstripe.models.billing import Subscription
 
     price_storage_key, product_storage_key = (
         _get_subscription_metadata_fields_for_usage_type('storage')
@@ -533,9 +488,10 @@ def get_paid_subscription_limits(organization_ids: list[str]) -> QuerySet:
         _get_subscription_metadata_fields_for_usage_type('seconds')
     )
 
+    # Get organizations we care about (either those in the 'organizations' param or all)
     org_filter = Q(customer__subscriber_id__in=[org_id for org_id in organization_ids])
 
-    active_subscriptions = Subscription.objects.filter(
+    active_subscriptions = kwargs['subscription_model'].objects.filter(
         org_filter
         & Q(status__in=ACTIVE_STRIPE_STATUSES)
         & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
@@ -617,7 +573,10 @@ def determine_limit(
     return limit
 
 
-def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
+@requires_stripe
+def get_total_price_for_quantity(
+    price: 'djstripe.models.Price', quantity: int, **kwargs
+):
     """
     Calculate a total price (dividing and rounding as necessary) for an item quantity
     and djstripe Price object
@@ -632,14 +591,9 @@ def get_total_price_for_quantity(price: 'djstripe.models.Price', quantity: int):
     return total_price * price.unit_amount
 
 
-def get_plan_name(org_user: OrganizationUser) -> str | None:
-    if not settings.STRIPE_ENABLED:
-        raise NotImplementedError(
-            'Cannot get organization plan name with stripe disabled'
-        )
-    from djstripe.models import Subscription
-
-    subscriptions = Subscription.objects.filter(
+@requires_stripe
+def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
+    subscriptions = kwargs['subscription_model'].objects.filter(
         customer__subscriber_id=org_user.organization.id,
         status__in=ACTIVE_STRIPE_STATUSES,
     )

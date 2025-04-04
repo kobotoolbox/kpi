@@ -11,7 +11,10 @@ from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, X
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage
 from kobo.apps.organizations.utils import get_billing_dates
-from kobo.apps.stripe.utils import get_current_billing_period_dates_by_org
+from kobo.apps.stripe.utils import (
+    get_current_billing_period_dates_by_org,
+    requires_stripe,
+)
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -41,7 +44,8 @@ def get_submission_counts_in_date_range_by_user_id(
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
-def get_submissions_for_current_billing_period_by_user_id() -> dict[int, int]:
+@requires_stripe
+def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
         org.id: org.owner.organization_user.user.id
@@ -87,7 +91,10 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     return results
 
 
-def get_nlp_usage_for_current_billing_period_by_user_id() -> dict[int, NLPUsage]:
+@requires_stripe
+def get_nlp_usage_for_current_billing_period_by_user_id(
+    **kwargs,
+) -> dict[int, NLPUsage]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
         org.id: org.owner.organization_user.user.id

@@ -1,10 +1,13 @@
 from math import inf
+from typing import get_args
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
+from django.test import override_settings
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit
+from kobo.apps.organizations.types import UsageType
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -144,3 +147,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                     usage_types=['seconds', 'characters']
                 )
         patched_usage_method.assert_called_once()
+
+    @override_settings(STRIPE_ENABLED=False)
+    def test_users_in_range_of_usage_limit_stripe_disabled_returns_empty(self):
+        assert list(get_users_within_range_of_usage_limit(get_args(UsageType))) == []
