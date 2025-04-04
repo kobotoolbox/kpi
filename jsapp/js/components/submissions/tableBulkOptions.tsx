@@ -2,6 +2,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import { actions } from '#/actions'
+import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
 import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
@@ -23,7 +24,6 @@ import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
 import { renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
-import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse
@@ -38,7 +38,7 @@ interface TableBulkOptionsProps {
 
 class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   currentDialog: AlertifyDialogInstance | null = null
-  /** Arry of submission data for only the selected submissions */
+  /** Array of submission data for only the selected submissions */
   selectedSubmissionsWithAttachments: SubmissionResponse[] = []
 
   componentDidMount() {

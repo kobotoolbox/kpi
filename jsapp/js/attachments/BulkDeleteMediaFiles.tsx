@@ -1,13 +1,13 @@
-import { FocusTrap, Button, Box, Checkbox, Text, Stack, Group } from '@mantine/core'
+import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text } from '@mantine/core'
 import { Modal } from '@mantine/core'
-import { useFeatureFlag, FeatureFlag } from '#/featureFlags'
-import { useDisclosure } from '@mantine/hooks'
-import { SubmissionResponse } from '#/dataInterface'
-import InlineMessage from '#/components/common/inlineMessage'
-import { useRemoveBulkAttachments } from './attachmentsQuery'
-import { useState } from 'react'
-import { notify } from '#/utils'
 import { Anchor } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import { useState } from 'react'
+import InlineMessage from '#/components/common/inlineMessage'
+import { SubmissionResponse } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+import { notify } from '#/utils'
+import { useRemoveBulkAttachments } from './attachmentsQuery'
 
 const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
