@@ -1,6 +1,7 @@
 from datetime import timedelta
 from math import inf
 
+from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
 
@@ -70,11 +71,15 @@ def get_users_within_range_of_usage_limit(
     :param minimum: float. Minimum usage, eg 0.9 for 90% of the limit. Default 0
     :param maximum: float. Maximum usage, eg 1 for 100% of the limit. Default inf
     """
+    if not settings.STRIPE_ENABLED:
+        return User.objects.none()
+
     cached_nlp_usage = {}
 
     # cheat so that we don't fetch information twice if we're looking for nlp usage
     def get_nlp_usage_method(nlp_usage_type):
         def get_nlp_usage():
+            nonlocal cached_nlp_usage
             if cached_nlp_usage == {}:
                 cached_nlp_usage.update(
                     get_nlp_usage_for_current_billing_period_by_user_id()
