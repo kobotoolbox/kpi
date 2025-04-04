@@ -29,6 +29,11 @@
     ]
   },
   "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "jsapp/compiled": true
+    },
+
     // Black
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
