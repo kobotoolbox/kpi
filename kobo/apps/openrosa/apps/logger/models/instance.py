@@ -111,7 +111,7 @@ class Instance(AbstractTimeStampedModel):
             UniqueConstraint(
                 fields=['root_uuid', 'xform'],
                 name='unique_root_uuid_per_xform'
-            )
+            ),
         ]
 
     @property
