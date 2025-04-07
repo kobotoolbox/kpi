@@ -24,6 +24,7 @@ import type {
   SubmissionResponse,
   SubmissionResponseValue,
   SubmissionResponseValueObject,
+  SubmissionSupplementalDetails,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
@@ -776,4 +777,67 @@ export function markAttachmentAsDeleted(
   })
 
   return data
+}
+
+/**
+ * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
+ */
+export function removeEmptyObjects(originalObj: { [key: string]: any }) {
+  let obj = clonedeep(originalObj)
+  if (typeof obj !== 'object' || obj === null) {
+    return obj
+  }
+  // Recursively process each property
+  for (const key in obj) {
+    obj[key] = removeEmptyObjects(obj[key])
+    // Remove the property if it is an empty object
+    if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
+      // This is a safer way to do `delete obj[key]`:
+      obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
+    }
+  }
+  return obj
+}
+
+/**
+ * This function removes all possible empty objects from given submission supplemental details. If there were only empty
+ * objects in it (nested), you can end up with an empty object as an final outcome.
+ */
+export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
+  const details = clonedeep(supplementalDetails)
+
+  // Step 1: Remove responses to qual questions that are:
+  // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
+  // b) responses to qual questions that are deleted
+  for (const detailsKey of Object.keys(details)) {
+    if (details[detailsKey].qual) {
+      details[detailsKey].qual = details[detailsKey].qual.filter(
+        (qualResponse) =>
+          qualResponse.val !== '' &&
+          qualResponse.val !== null &&
+          !(Array.isArray(qualResponse.val) && qualResponse.val.length === 0) &&
+          qualResponse.options?.deleted !== true,
+      )
+    }
+  }
+
+  // Step 2: Remove all empty objects and arrays (recursively)
+  return removeEmptyObjects(details)
+}
+
+// If attachment for this submission response is deleted, and there is no NLP related features (transcript,
+// translations or qualitative analysis questions) being used with it, we don't want to show the button, as it doesn't
+// make sense to open the processing view for it.
+// We use `removeEmptyFromSupplementalDetails`, because submission has some leftover "empty" data after removing
+// features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
+// don't want to display the button).
+export function shouldProcessingBeAccessible(
+  submissionData: SubmissionResponse,
+  mediaAttachment: SubmissionAttachment,
+) {
+  const hasProcessingFeatures =
+    typeof submissionData._supplementalDetails !== 'undefined' &&
+    Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
+
+  return !mediaAttachment.is_deleted || hasProcessingFeatures
 }
