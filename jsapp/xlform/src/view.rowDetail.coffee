@@ -456,6 +456,9 @@ module.exports = do ->
 
   viewRowDetail.DetailViewMixins.appearance =
     getTypes: () ->
+      fieldListType = ['field-list', 'Show all questions in this group on the same screen']
+      groupTypes = ['select', fieldListType, ['other', 'Advanced']]
+
       types =
         text: ['multiline', 'numbers']
         select_one: [
@@ -473,11 +476,14 @@ module.exports = do ->
         select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
-        group: ['select', ['field-list', 'Show all questions in this group on the same screen'], ['other', 'Advanced']]
-      # `repeat` is a repeating group with the same appearance options
-      types.repeat = types.group
+        group: groupTypes
+        # `repeat` is a repeating group with the same appearance options
+        repeat: groupTypes
+        # Question Matrix is always 'field-list', regardless of provided type,
+        # so we don't even allow 'other' here
+        kobomatrix: [fieldListType]
 
-      types[@model._parent.getValue('type').split(' ')[0]]
+      return types[@model._parent.getValue('type').split(' ')[0]]
     html: ->
 
       @$el.addClass("card__settings__fields--active")
@@ -502,7 +508,19 @@ module.exports = do ->
       if $select.length > 0
         $input = $('<input/>', {class:'text', type: 'text', width: 'auto'})
         if modelValue != ''
-          if @getTypes()? && modelValue in @getTypes()
+          appearanceTypes = @getTypes()
+          # Because appearance types are now `string` or `string[]`, we need to
+          # make a more detailed check to verify the model value is in the list
+          # before selecting it
+          hasValue = false
+          if appearanceTypes
+            for appearanceType in appearanceTypes
+              if typeof appearanceType is 'string'
+                hasValue = modelValue == appearanceType
+              else if Array.isArray(appearanceType)
+                hasValue = modelValue == appearanceType[0]
+
+          if hasValue
             $select.val(modelValue)
           else
             $select.val('other')

@@ -9,8 +9,12 @@ from django.utils import timezone
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.models import Organization
+from kobo.apps.organizations.types import NLPUsage
 from kobo.apps.organizations.utils import get_billing_dates
-from kobo.apps.stripe.utils import get_current_billing_period_dates_by_org
+from kobo.apps.stripe.utils import (
+    get_current_billing_period_dates_by_org,
+    requires_stripe,
+)
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
@@ -24,7 +28,9 @@ def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
     return {res['user']: res['bytes_sum'] for res in xform_query}
 
 
-def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
+def get_submission_counts_in_date_range_by_user_id(
+    date_ranges_by_user,
+) -> dict[int, int]:
     filters = Q()
     for user_id, date_range in date_ranges_by_user.items():
         filters |= Q(
@@ -38,7 +44,8 @@ def get_submission_counts_in_date_range_by_user_id(date_ranges_by_user):
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
-def get_submissions_for_current_billing_period_by_user_id():
+@requires_stripe
+def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
         org.id: org.owner.organization_user.user.id
@@ -51,6 +58,53 @@ def get_submissions_for_current_billing_period_by_user_id():
     return get_submission_counts_in_date_range_by_user_id(
         current_billing_dates_by_owner
     )
+
+
+def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLPUsage]:
+    filters = Q()
+    for user_id, date_range in date_ranges_by_user.items():
+        filters |= Q(
+            user_id=user_id, date__range=[date_range['start'], date_range['end']]
+        )
+    NLPUsageCounter = apps.get_model('trackers', 'NLPUsageCounter')  # noqa
+
+    nlp_tracking = (
+        NLPUsageCounter.objects.values('user_id')
+        .filter(filters)
+        .annotate(
+            asr_seconds_current_period=Coalesce(
+                Sum('total_asr_seconds'),
+                0,
+            ),
+            mt_characters_current_period=Coalesce(
+                Sum('total_mt_characters'),
+                0,
+            ),
+        )
+    )
+    results = {}
+    for row in nlp_tracking:
+        results[row['user_id']] = {
+            'seconds': row['asr_seconds_current_period'],
+            'characters': row['mt_characters_current_period'],
+        }
+    return results
+
+
+@requires_stripe
+def get_nlp_usage_for_current_billing_period_by_user_id(
+    **kwargs,
+) -> dict[int, NLPUsage]:
+    current_billing_dates_by_org = get_current_billing_period_dates_by_org()
+    owner_by_org = {
+        org.id: org.owner.organization_user.user.id
+        for org in Organization.objects.filter(owner__isnull=False)
+    }
+    current_billing_dates_by_owner = {
+        owner_by_org[org_id]: dates
+        for org_id, dates in current_billing_dates_by_org.items()
+    }
+    return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
 
 
 class ServiceUsageCalculator(CachedClass):

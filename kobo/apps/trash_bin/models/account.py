@@ -23,18 +23,21 @@ class AccountTrash(BaseTrash):
 
     def __str__(self) -> str:
         try:
-            return f'{self.user.username} - {self.periodic_task.start_time}'
+            return f'{self.user.username} - {self.periodic_task.clocked.clocked_time}'
         except AttributeError:
             return f'{self.user.username} - None'
 
     @classmethod
-    def toggle_user_statuses(cls, user_ids: list, active: bool = False):
+    def toggle_statuses(cls, object_identifiers: list[int], active: bool = False):
+        """
+        Toggle statuses of projects based on their primary key.
+        """
 
         date_removal_requested = None if active else now()
         with transaction.atomic():
-            get_user_model().objects.filter(pk__in=user_ids).update(
+            get_user_model().objects.filter(pk__in=object_identifiers).update(
                 is_active=active
             )
-            ExtraUserDetail.objects.filter(user_id__in=user_ids).update(
+            ExtraUserDetail.objects.filter(user_id__in=object_identifiers).update(
                 date_removal_requested=date_removal_requested
             )
