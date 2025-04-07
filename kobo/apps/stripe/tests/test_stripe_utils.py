@@ -4,16 +4,20 @@ from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
-from django.test import override_settings
 from django.utils import timezone
-from djstripe.models import Price, Product
+from djstripe.models import Customer, Price, Product
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.tests.utils import generate_free_plan, generate_plan_subscription
+from kobo.apps.stripe.tests.utils import (
+    _create_one_time_addon_product,
+    _create_payment,
+    generate_free_plan,
+    generate_plan_subscription,
+)
 from kobo.apps.stripe.utils import (
     determine_limit,
     get_billing_dates_after_canceled_subscription,
@@ -22,9 +26,10 @@ from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_for_active_plans,
     get_default_plan_name,
     get_organization_subscription_limit,
+    get_organizations_effective_limits,
     get_organizations_subscription_limits,
+    get_paid_subscription_limits,
     get_plan_name,
-    get_subscription_limits,
 )
 from kpi.tests.kpi_test_case import BaseTestCase
 
@@ -91,14 +96,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
                 free_plan.metadata['storage_bytes_limit']
             )
 
-    @override_settings(STRIPE_ENABLED=False)
-    def test_get_organization_limits_stripe_disabled_returns_inf(self):
-        all_limits = get_organizations_subscription_limits()
-        for org in Organization.objects.all():
-            for usage_type in ['submission', 'storage', 'seconds', 'characters']:
-                assert all_limits[org.id][f'{usage_type}_limit'] == inf
-
-    def test_get_subscription_limits_prioritizes_price_metadata(self):
+    def test__prioritizes_price_metadata(self):
         product_metadata = {
             'mt_characters_limit': '1',
             'asr_seconds_limit': '1',
@@ -116,7 +114,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         generate_plan_subscription(
             self.organization, metadata=product_metadata, price_metadata=price_metadata
         )
-        limits = get_subscription_limits([self.organization.id]).first()
+        limits = get_paid_subscription_limits([self.organization.id]).first()
         for usage_type in ['submission', 'storage', 'seconds', 'characters']:
             assert limits[f'{usage_type}_limit'] == '2'
 
@@ -158,7 +156,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             self.organization, metadata=addon_product_metadata, status='canceled'
         )
 
-        limits = get_subscription_limits([self.organization.id])
+        limits = get_paid_subscription_limits([self.organization.id])
         plan_limits = limits.filter(product_type='plan').first()
         addon_limits = limits.filter(product_type='addon').first()
 
@@ -424,6 +422,61 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert results[self.organization.id]['end'] == first_of_next_month
         assert results[self.second_organization.id]['start'] == first_of_this_month
         assert results[self.second_organization.id]['end'] == first_of_next_month
+
+    @data(True, False)
+    def test_get_org_effective_limits(self, include_onetime_addons):
+        plan_product_metadata = {
+            'mt_characters_limit': '1',
+            'asr_seconds_limit': '1',
+            'submission_limit': '1',
+            'storage_bytes_limit': '1',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        product_metadata = {
+            'mt_characters_limit': '2',
+            'asr_seconds_limit': '2',
+            'submission_limit': '2',
+            'storage_bytes_limit': '2',
+            'product_type': 'plan',
+            'plan_type': 'enterprise',
+        }
+        generate_plan_subscription(self.organization, metadata=plan_product_metadata)
+        generate_plan_subscription(self.second_organization, metadata=product_metadata)
+        addon_product_metadata = {'submission_limit': '10'}
+        submission_addon = _create_one_time_addon_product(addon_product_metadata)
+        one_time_nlp_addon_metadata = {
+            'mt_characters_limit': '15',
+            'asr_seconds_limit': '20',
+        }
+        nlp_addon = _create_one_time_addon_product(one_time_nlp_addon_metadata)
+        customer = baker.make(Customer, subscriber=self.organization)
+        customer2 = baker.make(Customer, subscriber=self.second_organization)
+
+        _create_payment(
+            product=nlp_addon, price=nlp_addon.default_price, customer=customer
+        )
+        _create_payment(
+            product=submission_addon,
+            price=submission_addon.default_price,
+            customer=customer2,
+        )
+        results = get_organizations_effective_limits(
+            include_onetime_addons=include_onetime_addons
+        )
+        assert results[self.organization.id]['submission_limit'] == 1
+        assert results[self.organization.id]['storage_limit'] == 1
+        assert results[self.second_organization.id]['storage_limit'] == 2
+        assert results[self.second_organization.id]['characters_limit'] == 2
+        assert results[self.second_organization.id]['seconds_limit'] == 2
+        if include_onetime_addons:
+            assert results[self.organization.id]['characters_limit'] == 16
+            assert results[self.organization.id]['seconds_limit'] == 21
+            assert results[self.second_organization.id]['submission_limit'] == 12
+        else:
+            assert results[self.organization.id]['characters_limit'] == 1
+            assert results[self.organization.id]['seconds_limit'] == 1
+            assert results[self.second_organization.id]['submission_limit'] == 2
 
     @data(
         (True, False, 'My plan'),

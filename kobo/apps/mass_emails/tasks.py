@@ -1,5 +1,6 @@
 from datetime import datetime, time, timedelta
 from math import ceil
+from time import sleep
 from typing import Optional
 
 from constance import config
@@ -154,6 +155,7 @@ class MassEmailSender:
         return plan_name
 
     def send_day_emails(self):
+        emails_sent = 0
         for email_config in self.configs:
             limit = self.limits.get(email_config.id)
             if not limit:
@@ -165,10 +167,14 @@ class MassEmailSender:
             logging.info(
                 f'Processing {limit} records for MassEmailConfig({email_config})'
             )
+            batch_size = settings.MASS_EMAIL_THROTTLE_PER_SECOND
             for record in records:
+                if emails_sent > 0 and emails_sent % batch_size == 0:
+                    sleep(settings.MASS_EMAIL_SLEEP_SECONDS)
                 self.cache_limit_value(email_config, self.limits[email_config.id] - 1)
                 self.cache_limit_value(None, self.total_limit - 1)
                 self.send_email(email_config, record)
+                emails_sent += 1
 
     def send_email(self, email_config, record):
         logging.info(f'Processing MassEmailRecord({record})')

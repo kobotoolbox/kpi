@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, get_args
 
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import IntegerField, Sum
+from django.db.models import IntegerField, Q, Sum
 from django.db.models.functions import Cast, Coalesce
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -121,6 +121,93 @@ class PlanAddOn(models.Model):
         return add_on_created
 
     @staticmethod
+    def get_limits_remaining_field(usage_type):
+        usage_mapped = USAGE_LIMIT_MAP[usage_type]
+        limit_key = f'{usage_mapped}_limit'
+        return f'limits_remaining__{limit_key}'
+
+    @staticmethod
+    def get_usage_limits_field(usage_type):
+        usage_mapped = USAGE_LIMIT_MAP[usage_type]
+        limit_key = f'{usage_mapped}_limit'
+        return f'usage_limits__{limit_key}'
+
+    @staticmethod
+    def get_organizations_totals(organizations: list['Organization'] = None):
+        organizations_filter = Q()
+        if organizations is not None:
+            organizations_filter = Q(
+                organization__id__in=[org.id for org in organizations]
+            )
+        fields_by_usage_type = {}
+        for usage_type in get_args(UsageType):
+            fields_by_usage_type[usage_type] = {
+                'limits': PlanAddOn.get_limits_remaining_field(usage_type),
+                'usage': PlanAddOn.get_usage_limits_field(usage_type),
+            }
+        all_add_on_totals = (
+            PlanAddOn.objects.filter(organizations_filter & Q(charge__refunded=False))
+            .values('organization_id')
+            .annotate(
+                seconds_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field('seconds'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_seconds_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field('seconds'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                characters_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field('characters'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_characters_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field('characters'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                submission_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field('submission'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_submission_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field('submission'),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+            )
+        )
+        return {row['organization_id']: row for row in all_add_on_totals}
+
+    @staticmethod
     def get_organization_totals(
         organization: 'Organization', usage_type: UsageType
     ) -> (int, int):
@@ -128,28 +215,12 @@ class PlanAddOn(models.Model):
         Returns the total limit and the total remaining usage for a given organization
         and usage type.
         """
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
-        limit_field = f'limits_remaining__{limit_key}'
-        usage_field = f'usage_limits__{limit_key}'
-        totals = PlanAddOn.objects.filter(
-            organization__id=organization.id,
-            limits_remaining__has_key=limit_key,
-            usage_limits__has_key=limit_key,
-            charge__refunded=False,
-        ).aggregate(
-            total_usage_limit=Coalesce(
-                Sum(Cast(usage_field, output_field=IntegerField())),
-                0,
-                output_field=IntegerField(),
-            ),
-            total_remaining=Coalesce(
-                Sum(Cast(limit_field, output_field=IntegerField())),
-                0,
-            ),
+        limits = PlanAddOn.get_organizations_totals([organization]).get(
+            organization.id, {}
         )
-
-        return totals['total_usage_limit'], totals['total_remaining']
+        usage_limit = limits[f'total_{usage_type}_limit']
+        limit_remaining = limits[f'{usage_type}_remaining']
+        return usage_limit, limit_remaining
 
     @property
     def is_expended(self):

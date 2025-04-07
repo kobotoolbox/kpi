@@ -1,3 +1,4 @@
+from math import inf
 from typing import Optional, Union
 
 from django.apps import apps
@@ -86,6 +87,8 @@ def get_organization_remaining_usage(
     """
     Get the organization remaining usage count for a given limit type
     """
+    if not settings.STRIPE_ENABLED:
+        return inf
     addon_remaining = 0
     if settings.STRIPE_ENABLED:
         PlanAddOn = apps.get_model('stripe', 'PlanAddOn')  # noqa
