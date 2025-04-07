@@ -250,7 +250,8 @@ def generate_mass_email_user_lists():
 
     today = now().date()
     cache_key = f'{today}_emails'
-    processed_configs = cache.get(cache_key, set())
+    cached_data = cache.get(cache_key, [])
+    processed_configs = set(cached_data)
     email_configs = MassEmailConfig.objects.filter(
         date_created__lt=today, live=True
     )
@@ -283,5 +284,5 @@ def generate_mass_email_user_lists():
                 )
                 continue
             processed_configs.add(email_config.id)
-    cache.set(cache_key, processed_configs, timeout=60*60*24)
+    cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')

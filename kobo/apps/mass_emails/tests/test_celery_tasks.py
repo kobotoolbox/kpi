@@ -304,6 +304,43 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         self.assertEqual(email_records.count(), total_records)
         self.assertIn(email_config.id, cache.get(self.cache_key))
 
+    def test_task_skips_already_processed_configs_using_cache(self):
+        """
+        Test that `generate_mass_email_user_lists` uses the cached config IDs
+        to skip already processed email configs
+        """
+        email_config1 = self._create_email_config('Test A')
+        generate_mass_email_user_lists()
+
+        self.assertIn(email_config1.id, cache.get(self.cache_key))
+        config1_records = MassEmailRecord.objects.filter(
+            email_job__email_config=email_config1, status=EmailStatus.ENQUEUED
+        )
+        self.assertEqual(config1_records.count(), 2)
+
+        # Delete the records to simulate reprocessing of the config
+        config1_records.delete()
+        self.assertEqual(
+            MassEmailRecord.objects.filter(
+                email_job__email_config=email_config1
+            ).count(), 0
+        )
+
+        email_config2 = self._create_email_config('Test B')
+        generate_mass_email_user_lists()
+
+        self.assertIn(email_config2.id, cache.get(self.cache_key))
+        records = MassEmailRecord.objects.filter(
+            email_job__email_config=email_config2, status=EmailStatus.ENQUEUED
+        )
+        self.assertEqual(records.count(), 2)
+
+        # Confirm email_config1 was skipped and no new records were created
+        config1_reprocessed_records = MassEmailRecord.objects.filter(
+            email_job__email_config=email_config1
+        )
+        self.assertEqual(config1_reprocessed_records.count(), 0)
+
     def test_cache_expiry(self):
         """
         Test that the cache expires after 24 hours
