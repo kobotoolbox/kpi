@@ -612,7 +612,7 @@ export const nestedRepeatSurveyDisplayData: DisplayGroup = {
           type: DisplayGroupTypeName.group_repeat,
           label: 'Personal items',
           name: 'group_items',
-          xpathNodes: [],
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
           children: [
             {
               type: QuestionTypeName.text,
@@ -627,7 +627,7 @@ export const nestedRepeatSurveyDisplayData: DisplayGroup = {
           type: DisplayGroupTypeName.group_repeat,
           label: 'Personal items',
           name: 'group_items',
-          xpathNodes: [],
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
           children: [
             {
               type: QuestionTypeName.text,
@@ -642,7 +642,7 @@ export const nestedRepeatSurveyDisplayData: DisplayGroup = {
           type: DisplayGroupTypeName.group_repeat,
           label: 'Personal items',
           name: 'group_items',
-          xpathNodes: [],
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
           children: [
             {
               type: QuestionTypeName.text,
@@ -687,7 +687,7 @@ export const nestedRepeatSurveyDisplayData: DisplayGroup = {
           type: DisplayGroupTypeName.group_repeat,
           label: 'Personal items',
           name: 'group_items',
-          xpathNodes: [],
+          xpathNodes: [{ childIndex: 3, childrenAreRepeatable: true, path: 'group_people' }],
           children: [
             {
               type: QuestionTypeName.text,
@@ -3175,6 +3175,8 @@ export const submissionWithSupplementalDetails: SubmissionResponse = {
           revisions: [
             {
               dateModified: '2022-05-12T20:46:21Z',
+              languageCode: 'en',
+              value: 'foo',
             },
           ],
           dateCreated: '2022-05-12T20:46:21Z',
@@ -3194,16 +3196,22 @@ export const submissionWithSupplementalDetails: SubmissionResponse = {
           val: ['best', 'things', 'ever recorder by human', '3'],
           type: 'qual_tags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
+          labels: { _default: 'Another tag question here?' },
+          xpath: '',
         },
         {
           val: 12345,
           type: 'qual_integer',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
+          labels: { _default: 'Another integer question here?' },
+          xpath: '',
         },
         {
           val: 'a thing',
           type: 'qual_text',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
+          labels: { _default: 'Another text question here?' },
+          xpath: '',
         },
         {
           val: [
@@ -3222,11 +3230,15 @@ export const submissionWithSupplementalDetails: SubmissionResponse = {
           ],
           type: 'qual_select_multiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
+          labels: { _default: 'Another select question here?' },
+          xpath: '',
         },
         {
           val: ['wow', 'this works', 'f me', 'alpha beta gamma'],
           type: 'qual_tags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
+          labels: { _default: 'Another tag question here?' },
+          xpath: '',
         },
         {
           val: {
@@ -3237,6 +3249,8 @@ export const submissionWithSupplementalDetails: SubmissionResponse = {
           },
           type: 'qual_select_one',
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
+          labels: { _default: 'Another select question here?' },
+          xpath: '',
         },
       ],
     },

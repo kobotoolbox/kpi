@@ -178,6 +178,13 @@ export interface SubmissionSupplementalDetails {
 }
 
 /**
+ * This is a completely empty object.
+ *
+ * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
+ */
+export type SubmissionSupplementalDetailsEmpty = Record<string, never>
+
+/**
  * Value of a property found in `SubmissionResponse`, it can be either a built
  * in submission property (e.g. `_geolocation`) or a response to a form question
  */
@@ -241,7 +248,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
    * be either empty object (i.e. given submission doesn't have any NLP features
    * applied to it) or a proper `SubmissionSupplementalDetails` object.
    */
-  _supplementalDetails?: SubmissionSupplementalDetails | {}
+  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
 }
 
 interface AssignablePermissionRegular {

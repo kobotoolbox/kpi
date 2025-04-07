@@ -151,6 +151,8 @@ export interface AnalysisResponse extends AnalysisQuestionBase {
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
   val: AnalysisResponseValue
+  // There can be a `scope` property here, but we have no use of it on FE
+  scope?: 'by_question#survey'
 }
 
 /**
