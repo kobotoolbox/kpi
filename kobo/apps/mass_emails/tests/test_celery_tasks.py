@@ -124,3 +124,14 @@ class TestCeleryTask(BaseTestCase):
             'sleep',
             'send_email',
         ]
+
+    def test_send_emails_limited(self):
+        sender = MassEmailSender()
+        config_1 = MassEmailConfig.objects.get(name='Config 1')
+        sender.send_day_emails(config_1.id, 2)
+        records = MassEmailRecord.objects.filter(email_job__email_config=config_1)
+        sent_count = sum([record.status == EmailStatus.SENT for record in records])
+        queue_count = sum([record.status == EmailStatus.ENQUEUED for record in records])
+        assert len(mail.outbox) == 2
+        assert sent_count == 2
+        assert queue_count == 1

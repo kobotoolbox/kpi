@@ -1404,6 +1404,7 @@ if os.environ.get('EMAIL_USE_TLS'):
 MAX_MASS_EMAILS_PER_DAY = 1000
 MASS_EMAIL_THROTTLE_PER_SECOND = 40
 MASS_EMAIL_SLEEP_SECONDS = 1
+MASS_EMAIL_ENABLE_TEST_ACTION = True
 
 """ AWS configuration (email and storage) """
 if env.str('AWS_ACCESS_KEY_ID', False):
