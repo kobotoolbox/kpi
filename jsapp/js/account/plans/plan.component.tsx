@@ -12,7 +12,8 @@ import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
 import { getSubscriptionsForProductId, isDowngrade, processCheckoutResponse } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 import type { FreeTierThresholds } from '#/envStore'
@@ -382,11 +383,11 @@ export default function Plan(props: PlanProps) {
     hasMetaFeatures() && (
       <div className={styles.comparisonButton}>
         <Button
-          type='text'
-          size='m'
-          label={expandComparison ? t('Collapse full comparison') : t('Display full comparison')}
+          size='md'
+          variant='transparent'
+          children={expandComparison ? t('Collapse full comparison') : t('Display full comparison')}
           onClick={() => setExpandComparison(!expandComparison)}
-          endIcon={expandComparison ? 'angle-up' : 'angle-down'}
+          rightSection={<Icon name={expandComparison ? 'angle-up' : 'angle-down'} size={'s'} />}
         />
       </div>
     )
@@ -457,41 +458,29 @@ export default function Plan(props: PlanProps) {
                   </div>
                 ))}
                 <div className={styles.minimizedCards}>{comparisonButton()}</div>
-                {shouldShowExtras && (
-                  <div className={styles.enterprisePlanContainer}>
-                    <div className={styles.enterprisePlan}>
-                      <h1 className={styles.enterpriseTitle}> {t('Want more?')}</h1>
-                      <div className={styles.priceTitle}>{t('Contact us')}</div>
-                      <p className={styles.enterpriseDetails}>
-                        {t(
-                          'For organizations with higher volume and advanced data collection needs, get in touch to learn more about our ',
-                        )}
-                        <a
-                          href='https://www.kobotoolbox.org/contact/'
-                          target='_blanks'
-                          className={styles.enterpriseLink}
-                        >
-                          {t('Enterprise Plan')}
-                        </a>
-                        .
-                      </p>
-                      <p className={styles.enterpriseDetails}>
-                        {t('We also offer custom solutions and private servers for large organizations. ')}
-                        <br />
-                        <a
-                          href='https://www.kobotoolbox.org/contact/'
-                          target='_blanks'
-                          className={styles.enterpriseLink}
-                        >
-                          {t('Contact our team')}
-                        </a>
-                        {t(' for more information.')}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
               <div className={styles.maximizedCards}>{comparisonButton()}</div>
+              {shouldShowExtras && (
+                <div className={styles.enterpriseBanner}>
+                  <div className={styles.enterpriseBannerText}>
+                    <h1 className={styles.enterpriseBannerTitle}> {t('Enterprise')}</h1>
+                    <p className={styles.enterpriseBannerDetails}>
+                      {t(
+                        "If your organization needs more data capacity and advanced features, let's chat about our Enterprise Plan! We also offer custom solutions and private servers for larger teams. Get in touch to learn more.",
+                      )}
+                    </p>
+                  </div>
+                  <div className={styles.enterpriseBannerButtonContainer}>
+                    <Button
+                      size='lg'
+                      component='a'
+                      href='https://www.kobotoolbox.org/contact/'
+                      target='_blank'
+                      children={t('Contact us')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}

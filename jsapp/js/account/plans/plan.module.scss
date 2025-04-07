@@ -3,7 +3,7 @@
 @use 'sass:color';
 @use 'scss/_variables';
 
-$plans-page-card-width: 320px;
+$plans-page-card-width: 290px;
 $plans-page-gap: 20px;
 $plans-page-max-width: $plans-page-card-width * 3 + $plans-page-gap * 2;
 $plan-badge-height: 38px;
@@ -76,7 +76,7 @@ $plan-badge-height: 38px;
   cursor: pointer;
 }
 
-.intervalToggle input[type='radio']:checked + label {
+.intervalToggle input[type="radio"]:checked + label {
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
   border-radius: 4px;
@@ -98,7 +98,7 @@ $plan-badge-height: 38px;
   }
 }
 
-.intervalToggle input[type='radio'] + label:hover {
+.intervalToggle input[type="radio"] + label:hover {
   background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
   border-radius: 4px;
 }
@@ -111,12 +111,14 @@ $plan-badge-height: 38px;
 }
 
 .priceName,
-.enterpriseTitle {
-  color: colors.$kobo-gray-700;
+.enterpriseBannerTitle {
   font-weight: 600;
-  font-size: 24px;
+  font-size: 25px;
   line-height: 32px;
   margin: 0;
+}
+
+.priceName {
   padding: 0 0 12px;
 }
 
@@ -132,7 +134,7 @@ $plan-badge-height: 38px;
 .planContainer {
   border-radius: 6px;
   border: colors.$kobo-gray-400 solid 1px;
-  padding: 24px;
+  padding: 20px;
   width: $plans-page-card-width;
   display: flex;
   flex-direction: column;
@@ -143,8 +145,11 @@ $plan-badge-height: 38px;
   border-radius: 0 0 6px 6px;
 }
 
-.featureContainer {
-  height: 16em;
+.planDetailsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 25px;
 }
 
 .planContainer :global hr {
@@ -165,6 +170,7 @@ $plan-badge-height: 38px;
   height: 100%;
   width: auto;
   display: inline-flex;
+  line-height: 20px;
   margin-right: 12px;
 }
 
@@ -175,28 +181,36 @@ $plan-badge-height: 38px;
   margin-top: -(10px);
 }
 
-.enterprisePlanContainer {
-  flex: 0 0 $plans-page-card-width;
+.enterpriseBanner {
   display: flex;
-  flex-direction: column;
-}
-
-.enterprisePlan {
-  background-color: colors.$kobo-bg-blue;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: colors.$kobo-dark-blue;
+  color: colors.$kobo-white;
   padding: 24px;
   border-radius: 6px;
-  width: $plans-page-card-width;
   height: 100%;
+  margin-bottom: 20px;
 }
 
-.enterpriseDetails {
+.enterpriseBannerText {
+  max-width: 800px;
+}
+
+.enterpriseBannerButtonContainer {
+  flex-direction: column;
+  justify-content: center;
+  width: 113px;
+}
+
+.enterpriseBannerDetails {
+  margin-top: 12px;
+  font-size: 14px;
   line-height: 22px;
-}
-
-a.enterpriseLink {
-  color: colors.$kobo-dark-blue;
-  text-decoration: underline;
-  font-weight: 600;
 }
 
 .listTitle {
@@ -239,7 +253,7 @@ a.enterpriseLink {
   justify-content: flex-end;
 
   &:not(:empty) {
-    margin-top: 30px;
+    margin-top: auto;
   }
 }
 
