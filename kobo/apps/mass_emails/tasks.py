@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
-from django.utils.timezone import get_current_timezone, localdate, now
+from django.utils import timezone
 from django.utils.translation import gettext
 
 from kobo.apps.mass_emails.models import (
@@ -59,7 +59,7 @@ def mark_old_enqueued_mass_email_record_as_failed():
     Update MassEmailRecord entries with status 'enqueued' to 'failed' if older
     than a specified number of days
     """
-    threshold_date = now() - timedelta(
+    threshold_date = timezone.now() - timedelta(
         days=config.MASS_EMAIL_ENQUEUED_RECORD_EXPIRY
     )
     updated_records = MassEmailRecord.objects.filter(
@@ -84,7 +84,7 @@ def render_template(template, data):
 class MassEmailSender:
 
     def __init__(self):
-        self.today = localdate()
+        self.today = timezone.localdate()
         self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
@@ -107,9 +107,10 @@ class MassEmailSender:
             cache_key = f'{self.cache_key_prefix}_{email_config.id}'
 
         tomorrow = datetime.combine(
-            self.today, time(0, 0, 0, 0, get_current_timezone())
+            self.today,
+            time(0, 0, 0, 0, timezone.get_current_timezone())
         ) + timedelta(days=1)
-        timedelta_to_midnight = tomorrow - now()
+        timedelta_to_midnight = tomorrow - timezone.now()
         TTL = timedelta_to_midnight.total_seconds()
 
         cache.set(cache_key, limit, TTL)
@@ -225,7 +226,9 @@ def get_users_for_config(email_config):
     if email_config.frequency == -1:
         return users
 
-    today_midnight = now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_midnight = timezone.now().replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
     cutoff_date = today_midnight - timedelta(days=email_config.frequency-1)
 
     recent_recipients = set(
@@ -248,7 +251,7 @@ def generate_mass_email_user_lists():
     #       been intentionally left out to avoid interference with the existing
     #       email sending tasks.
 
-    today = now().date()
+    today = timezone.now().date()
     cache_key = f'{today}_emails'
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
@@ -272,6 +275,10 @@ def generate_mass_email_user_lists():
 
         # Skip processing if there are pending enqueued records
         elif email_records.filter(status=EmailStatus.ENQUEUED).exists():
+            logging.info(
+                f'Skipping email config {email_config.id} as it already has '
+                f'enqueued records.'
+            )
             processed_configs.add(email_config.id)
 
         else:

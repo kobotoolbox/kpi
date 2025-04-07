@@ -7,7 +7,7 @@ from django.core import mail
 from django.core.cache import cache
 from django.db import IntegrityError
 from django.test import override_settings
-from django.utils.timezone import now
+from django.utils import timezone
 from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -71,14 +71,11 @@ class TestCeleryTask(BaseTestCase):
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=10)
     @patch('django.utils.timezone.now')
-    @patch('kobo.apps.mass_emails.tasks.now')  # Unfortunately we have to mock both
-    def test_send_emails_limits(self, now_mock, now_mock_B):
+    def test_send_emails_limits(self, now_mock):
         now_mock.return_value = datetime(2025, 1, 1, 0, 0, 0, 0, pytz.UTC)
-        now_mock_B.return_value = now_mock.return_value
         send_emails()
         assert len(mail.outbox) == 10
         now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
-        now_mock_B.return_value = now_mock.return_value
         send_emails()
         assert len(mail.outbox) == 20
         # Calling send_emails on the same day:
@@ -139,15 +136,15 @@ class TestCeleryTask(BaseTestCase):
 class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
     def setUp(self):
         self.user1 = User.objects.create(
-            username='user1', last_login=now() - timedelta(days=400)
+            username='user1', last_login=timezone.now() - timedelta(days=400)
         )
         self.user2 = User.objects.create(
-            username='user2', last_login=now() - timedelta(days=400)
+            username='user2', last_login=timezone.now() - timedelta(days=400)
         )
         self.user3 = User.objects.create(
-            username='user3', last_login=now() - timedelta(days=7)
+            username='user3', last_login=timezone.now() - timedelta(days=7)
         )
-        self.cache_key = f'{now().date()}_emails'
+        self.cache_key = f'{timezone.now().date()}_emails'
         cache.delete(self.cache_key)
 
     def _create_email_config(self, name, frequency=-1):
@@ -161,7 +158,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
             live=True,
             query='users_inactive_for_365_days',
             frequency=frequency,
-            date_created=now() - timedelta(days=1),
+            date_created=timezone.now() - timedelta(days=1),
         )
 
     def _create_email_record(self, user, email_config, status, days_ago=0):
@@ -172,12 +169,12 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
             user=user,
             email_job=MassEmailJob.objects.create(email_config=email_config),
             status=status,
-            date_created=now() - timedelta(days=days_ago),
+            date_created=timezone.now() - timedelta(days=days_ago),
         )
 
         # Update date_modified to simulate record creation in the past
         MassEmailRecord.objects.filter(id=record.id).update(
-            date_modified=now() - timedelta(days=days_ago)
+            date_modified=timezone.now() - timedelta(days=days_ago)
         )
 
     @data(
@@ -351,7 +348,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
 
         # Simulate cache expiry by manually clearing the cache,
         # as freeze_time doesn't automatically update cache TTL
-        with freeze_time(now() + timedelta(hours=24)):
+        with freeze_time(timezone.now() + timedelta(hours=24)):
             cache.clear()
             self.assertIsNone(cache.get(self.cache_key))
 
