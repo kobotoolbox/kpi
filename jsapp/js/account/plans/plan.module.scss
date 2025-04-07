@@ -76,7 +76,7 @@ $plan-badge-height: 38px;
   cursor: pointer;
 }
 
-.intervalToggle input[type="radio"]:checked + label {
+.intervalToggle input[type='radio']:checked + label {
   background-color: colors.$kobo-blue;
   color: colors.$kobo-white;
   border-radius: 4px;
@@ -98,7 +98,7 @@ $plan-badge-height: 38px;
   }
 }
 
-.intervalToggle input[type="radio"] + label:hover {
+.intervalToggle input[type='radio'] + label:hover {
   background-color: color.adjust(colors.$kobo-light-storm, $lightness: -5%);
   border-radius: 4px;
 }
