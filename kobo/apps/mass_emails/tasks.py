@@ -47,6 +47,7 @@ def _get_current_15m_boundary(minute: int):
     else:
         return 45
 
+
 def enqueue_mass_email_records(email_config):
     """
     Creates a email job and enqueues email records for users based on query
@@ -322,4 +323,3 @@ def generate_mass_email_user_lists():
             processed_configs.add(email_config.id)
     cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
-
