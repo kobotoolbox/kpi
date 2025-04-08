@@ -9,7 +9,7 @@ import {
 import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import { type DisplayGroup, DisplayGroupTypeName } from './submissionUtils'
 
-export const simpleSurvey: SurveyRow[] = [
+export const simpleSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -55,9 +55,9 @@ export const simpleSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_group,
     $kuid: '/fx8qb06',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const simpleSurveyChoices: SurveyChoice[] = [
+export const simpleSurveyChoices = [
   {
     name: 'pink',
     label: ['Pink'],
@@ -72,9 +72,9 @@ export const simpleSurveyChoices: SurveyChoice[] = [
     $autovalue: '',
     $kuid: '',
   },
-]
+] as const satisfies SurveyChoice[]
 
-export const simpleSurveyAsset: AssetResponse = {
+export const simpleSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -121,9 +121,9 @@ export const simpleSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const simpleSurveySubmission: SubmissionResponse = {
+export const simpleSurveySubmission = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -145,9 +145,9 @@ export const simpleSurveySubmission: SubmissionResponse = {
   'group_favourites/Favourite_number': '24',
   'meta/instanceID': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
   start: '2020-04-06T13:11:31.421+02:00',
-}
+} as const satisfies SubmissionResponse
 
-export const simpleSurveySubmissionEmpty: SubmissionResponse = {
+export const simpleSurveySubmissionEmpty = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -167,9 +167,9 @@ export const simpleSurveySubmissionEmpty: SubmissionResponse = {
   'group_favourites/Favourite_number': '5',
   'meta/instanceID': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
   start: '2020-04-08T10:46:34.957+02:00',
-}
+} as const satisfies SubmissionResponse
 
-export const simpleSurveyDisplayData: DisplayGroup = {
+export const simpleSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -206,9 +206,9 @@ export const simpleSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const simpleSurveyDisplayDataEmpty: DisplayGroup = {
+export const simpleSurveyDisplayDataEmpty = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -245,9 +245,9 @@ export const simpleSurveyDisplayDataEmpty: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const repeatSurvey: SurveyRow[] = [
+export const repeatSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -293,9 +293,9 @@ export const repeatSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_repeat,
     $kuid: '/fd8yo77',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const repeatSurveyAsset: AssetResponse = {
+export const repeatSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -341,10 +341,10 @@ export const repeatSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
-export const repeatSurveySubmission: SubmissionResponse = {
+export const repeatSurveySubmission = {
   _id: 17,
   _notes: [],
   __version__: 'v8khdgcT3SYb2HRJhMNtsE',
@@ -373,9 +373,9 @@ export const repeatSurveySubmission: SubmissionResponse = {
   ],
   'meta/instanceID': 'uuid:651137b9-e465-49ed-9924-a67d7b1c6f76',
   start: '2020-04-07T16:07:24.044+02:00',
-}
+} as const satisfies SubmissionResponse
 
-export const repeatSurveyDisplayData: DisplayGroup = {
+export const repeatSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -440,9 +440,9 @@ export const repeatSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const nestedRepeatSurvey: SurveyRow[] = [
+export const nestedRepeatSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -491,9 +491,9 @@ export const nestedRepeatSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_repeat,
     $kuid: '/aj45t09',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const nestedRepeatSurveyAsset: AssetResponse = {
+export const nestedRepeatSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -539,9 +539,9 @@ export const nestedRepeatSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const nestedRepeatSurveySubmission: SubmissionResponse = {
+export const nestedRepeatSurveySubmission = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -587,9 +587,9 @@ export const nestedRepeatSurveySubmission: SubmissionResponse = {
   'meta/deprecatedID': 'uuid:85397438-558e-4b24-94d7-901550744352',
   'meta/instanceID': 'uuid:83aa0573-8a44-42f7-885b-aa7a3afffbd1',
   start: '2020-04-08T13:11:29.840+02:00',
-}
+} as const satisfies SubmissionResponse
 
-export const nestedRepeatSurveyDisplayData: DisplayGroup = {
+export const nestedRepeatSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -701,9 +701,9 @@ export const nestedRepeatSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const matrixSurvey: SurveyRow[] = [
+export const matrixSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -774,9 +774,9 @@ export const matrixSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/en5ri38',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const matrixSurveyChoices: SurveyChoice[] = [
+export const matrixSurveyChoices = [
   {
     name: 'poland',
     $kuid: 'wa9kl23',
@@ -784,9 +784,9 @@ export const matrixSurveyChoices: SurveyChoice[] = [
     list_name: 'count_ch_list',
     $autovalue: 'poland',
   },
-]
+] as const satisfies SurveyChoice[]
 
-export const matrixSurveyAsset: AssetResponse = {
+export const matrixSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -833,9 +833,9 @@ export const matrixSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const matrixSurveySubmission: SubmissionResponse = {
+export const matrixSurveySubmission = {
   _id: 22,
   username: 'username not found',
   _validation_status: {},
@@ -860,9 +860,9 @@ export const matrixSurveySubmission: SubmissionResponse = {
   _status: 'submitted_via_web',
   __version__: 'vPNH6GBsRjMKLfXrisReYA',
   today: '2020-04-20',
-}
+} as const satisfies SubmissionResponse
 
-export const matrixSurveyDisplayData: DisplayGroup = {
+export const matrixSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -899,9 +899,9 @@ export const matrixSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const groupsSurvey: SurveyRow[] = [
+export const groupsSurvey = [
   {
     name: 'group_people',
     type: GroupTypeBeginName.begin_repeat,
@@ -1033,9 +1033,9 @@ export const groupsSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/vs75w20',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const groupsSurveyChoices: SurveyChoice[] = [
+export const groupsSurveyChoices = [
   {
     name: 'good',
     $kuid: '4g11EC3jB',
@@ -1085,9 +1085,9 @@ export const groupsSurveyChoices: SurveyChoice[] = [
     list_name: 'crossbr_ch_list',
     $autovalue: 'water',
   },
-]
+] as const satisfies SurveyChoice[]
 
-export const groupsSurveyAsset: AssetResponse = {
+export const groupsSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -1134,9 +1134,9 @@ export const groupsSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const groupsSurveySubmission: SubmissionResponse = {
+export const groupsSurveySubmission = {
   _id: 23,
   'Are_you_vegan/Killing_humans': 'good',
   _validation_status: {},
@@ -1173,9 +1173,9 @@ export const groupsSurveySubmission: SubmissionResponse = {
   __version__: 'vN4myUe5KyYrGN4dGrpBid',
   today: '2020-04-23',
   _geolocation: [null, null],
-}
+} as const satisfies SubmissionResponse
 
-export const groupsSurveyDisplayData: DisplayGroup = {
+export const groupsSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -1342,9 +1342,9 @@ export const groupsSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const everythingSurvey: SurveyRow[] = [
+export const everythingSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -1585,9 +1585,9 @@ export const everythingSurvey: SurveyRow[] = [
     $autoname: 'Expected_lifespan',
     parameters: 'start=1;end=125;step=1',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const everythingSurveyChoices: SurveyChoice[] = [
+export const everythingSurveyChoices = [
   {
     name: 'poland',
     $kuid: 'dVHZ9VigU',
@@ -1665,9 +1665,9 @@ export const everythingSurveyChoices: SurveyChoice[] = [
     list_name: 'min_ch_list',
     $autovalue: 'minus_two',
   },
-]
+] as const satisfies SurveyChoice[]
 
-export const everythingSurveyAsset: AssetResponse = {
+export const everythingSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -1714,9 +1714,9 @@ export const everythingSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const everythingSurveySubmission: SubmissionResponse = {
+export const everythingSurveySubmission = {
   _id: 25,
   Secret_spot: '47.754098 3.426214 0 0',
   Favourite_chocolate_barcode: '123123123123',
@@ -1829,9 +1829,9 @@ export const everythingSurveySubmission: SubmissionResponse = {
     '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0',
   Voice_password: '07. Crazy Love-13_32_31.mp3',
   'test_your_math_2_and_4/test_your_math_2_and_4_plus': '7',
-}
+} as const satisfies SubmissionResponse
 
-export const everythingSurveyDisplayData: DisplayGroup = {
+export const everythingSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -2045,9 +2045,9 @@ export const everythingSurveyDisplayData: DisplayGroup = {
       xpath: 'Expected_lifespan',
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const matrixRepeatSurvey: SurveyRow[] = [
+export const matrixRepeatSurvey = [
   {
     name: 'start',
     type: MetaQuestionTypeName.start,
@@ -2104,9 +2104,9 @@ export const matrixRepeatSurvey: SurveyRow[] = [
     type: GroupTypeEndName.end_repeat,
     $kuid: '/wr4ir59',
   },
-]
+] as const satisfies SurveyRow[]
 
-export const matrixRepeatSurveyChoices: SurveyChoice[] = [
+export const matrixRepeatSurveyChoices = [
   {
     name: 'baked',
     $kuid: 'hb7vh55',
@@ -2121,9 +2121,9 @@ export const matrixRepeatSurveyChoices: SurveyChoice[] = [
     list_name: 'matrix_ri0sw49',
     $autovalue: 'raw',
   },
-]
+] as const satisfies SurveyChoice[]
 
-export const matrixRepeatSurveyAsset: AssetResponse = {
+export const matrixRepeatSurveyAsset = {
   url: '',
   owner: '',
   owner__username: '',
@@ -2170,9 +2170,9 @@ export const matrixRepeatSurveyAsset: AssetResponse = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
-}
+} as const satisfies AssetResponse
 
-export const matrixRepeatSurveySubmission: SubmissionResponse = {
+export const matrixRepeatSurveySubmission = {
   _id: 16,
   _notes: [],
   _validation_status: {},
@@ -2205,9 +2205,9 @@ export const matrixRepeatSurveySubmission: SubmissionResponse = {
   _geolocation: [null, null],
   _status: 'submitted_via_web',
   __version__: 'vLao7eC5zPrkyAHKYFt9kY',
-}
+} as const satisfies SubmissionResponse
 
-export const matrixRepeatSurveyDisplayData: DisplayGroup = {
+export const matrixRepeatSurveyDisplayData = {
   type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
@@ -2334,9 +2334,9 @@ export const matrixRepeatSurveyDisplayData: DisplayGroup = {
       ],
     },
   ],
-}
+} as const satisfies DisplayGroup
 
-export const submissionWithAttachmentsWithUnicode: SubmissionResponse = {
+export const submissionWithAttachmentsWithUnicode = {
   _id: 18,
   A_picture: 'Un été au Québec (Canada)-19_41_32.jpg',
   'meta/instanceID': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
@@ -2372,9 +2372,9 @@ export const submissionWithAttachmentsWithUnicode: SubmissionResponse = {
   _submission_time: '2022-01-26T19:40:11',
   _submitted_by: null,
   _validation_status: {},
-}
+} as const satisfies SubmissionResponse
 
-export const assetWithSupplementalDetails: AssetResponse = {
+export const assetWithSupplementalDetails = {
   url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
   owner: 'http://kf.kobo.local/api/v2/users/kobo/',
   owner__username: 'kobo',
@@ -3117,9 +3117,9 @@ export const assetWithSupplementalDetails: AssetResponse = {
   access_types: null,
   data_sharing: {},
   paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
-}
+} as const satisfies AssetResponse
 
-export const submissionWithSupplementalDetails: SubmissionResponse = {
+export const submissionWithSupplementalDetails = {
   _id: 3,
   'formhub/uuid': 'c71e63f6afa64b31ba70b2fbbb710cf4',
   start: '2022-05-12T12:42:07.034+02:00',
@@ -3255,9 +3255,9 @@ export const submissionWithSupplementalDetails: SubmissionResponse = {
       ],
     },
   },
-}
+} as const satisfies SubmissionResponse
 
-export const submissionWithNestedSupplementalDetails: SubmissionResponse = {
+export const submissionWithNestedSupplementalDetails = {
   _id: 77,
   'formhub/uuid': '54445e08ab6d4011ae648adc6ae8c9bc',
   start: '2025-03-27T16:49:25.353+01:00',
@@ -3322,4 +3322,4 @@ export const submissionWithNestedSupplementalDetails: SubmissionResponse = {
       },
     },
   },
-}
+} as const satisfies SubmissionResponse

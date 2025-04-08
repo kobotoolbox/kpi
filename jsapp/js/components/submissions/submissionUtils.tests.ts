@@ -103,7 +103,6 @@ describe('getSubmissionDisplayData', () => {
 
 describe('getMediaAttachment', () => {
   it('should return an attachment object', () => {
-    const fileName = submissionWithAttachmentsWithUnicode.A_picture
     const test = getMediaAttachment(
       submissionWithAttachmentsWithUnicode,
       'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
