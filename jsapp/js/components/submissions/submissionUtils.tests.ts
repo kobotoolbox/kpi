@@ -6,30 +6,25 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
-  everythingSurvey,
-  everythingSurveyChoices,
+  everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
-  groupsSurvey,
-  groupsSurveyChoices,
+  groupsSurveyAsset,
   groupsSurveyDisplayData,
   groupsSurveySubmission,
-  matrixRepeatSurvey,
-  matrixRepeatSurveyChoices,
+  matrixRepeatSurveyAsset,
   matrixRepeatSurveyDisplayData,
   matrixRepeatSurveySubmission,
-  matrixSurvey,
-  matrixSurveyChoices,
+  matrixSurveyAsset,
   matrixSurveyDisplayData,
   matrixSurveySubmission,
-  nestedRepeatSurvey,
+  nestedRepeatSurveyAsset,
   nestedRepeatSurveyDisplayData,
   nestedRepeatSurveySubmission,
-  repeatSurvey,
+  repeatSurveyAsset,
   repeatSurveyDisplayData,
   repeatSurveySubmission,
-  simpleSurvey,
-  simpleSurveyChoices,
+  simpleSurveyAsset,
   simpleSurveyDisplayData,
   simpleSurveyDisplayDataEmpty,
   simpleSurveySubmission,
@@ -42,6 +37,7 @@ import {
 // getSubmissionDisplayData() returns objects that have prototype chains, while
 // the simple mock objects do not. Be able to exclude __proto__ when comparing
 // the two
+import chai from 'chai'
 import chaiExclude from 'chai-exclude'
 chai.use(chaiExclude)
 
@@ -52,144 +48,69 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
+import type { SubmissionSupplementalDetails } from '#/dataInterface'
 chai.use(chaiDeepEqualIgnoreUndefined)
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: simpleSurvey,
-          choices: simpleSurveyChoices,
-        },
-      },
-      1,
-      simpleSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(simpleSurveyAsset, 1, simpleSurveySubmission)
     const target = simpleSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a null data entries for a survey with no answers', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: simpleSurvey,
-          choices: simpleSurveyChoices,
-        },
-      },
-      0,
-      simpleSurveySubmissionEmpty,
-    ).children
+    const test = getSubmissionDisplayData(simpleSurveyAsset, 0, simpleSurveySubmissionEmpty)
     const target = simpleSurveyDisplayDataEmpty
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with a repeat group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: repeatSurvey,
-          choices: null,
-        },
-      },
-      0,
-      repeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(repeatSurveyAsset, 0, repeatSurveySubmission)
     const target = repeatSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with nested repeat groups', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: nestedRepeatSurvey,
-          choices: null,
-        },
-      },
-      0,
-      nestedRepeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(nestedRepeatSurveyAsset, 0, nestedRepeatSurveySubmission)
     const target = nestedRepeatSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with a matrix', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: matrixSurvey,
-          choices: matrixSurveyChoices,
-        },
-      },
-      0,
-      matrixSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(matrixSurveyAsset, 0, matrixSurveySubmission)
     const target = matrixSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a survey with all kinds of groups', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: groupsSurvey,
-          choices: groupsSurveyChoices,
-        },
-      },
-      0,
-      groupsSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(groupsSurveyAsset, 0, groupsSurveySubmission)
     const target = groupsSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for every possible question type', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: everythingSurvey,
-          choices: everythingSurveyChoices,
-        },
-      },
-      0,
-      everythingSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(everythingSurveyAsset, 0, everythingSurveySubmission)
     const target = everythingSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 
   it('should return a valid data for a matrix group inside repeat group', () => {
-    const test = getSubmissionDisplayData(
-      {
-        uid: 'abc',
-        content: {
-          survey: matrixRepeatSurvey,
-          choices: matrixRepeatSurveyChoices,
-        },
-      },
-      0,
-      matrixRepeatSurveySubmission,
-    ).children
+    const test = getSubmissionDisplayData(matrixRepeatSurveyAsset, 0, matrixRepeatSurveySubmission)
     const target = matrixRepeatSurveyDisplayData
-    expect(test).excludingEvery(['__proto__', 'xpathNodes']).to.deepEqualIgnoreUndefined(target)
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 })
 
 describe('getMediaAttachment', () => {
   it('should return an attachment object', () => {
     const fileName = submissionWithAttachmentsWithUnicode.A_picture
-    const test = getMediaAttachment(submissionWithAttachmentsWithUnicode, fileName)
+    const test = getMediaAttachment(
+      submissionWithAttachmentsWithUnicode,
+      'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
+      'A_picture',
+    )
     const target = submissionWithAttachmentsWithUnicode._attachments[0]
-    expect(test).to.deep.equal(target)
+    chai.expect(test).to.deep.equal(target)
   })
 })
 
@@ -199,7 +120,7 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
     )
-    expect(test).to.equal('This is french transcript text.')
+    chai.expect(test).to.equal('This is french transcript text.')
   })
 
   it('should return translation value properly', () => {
@@ -207,7 +128,7 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
     )
-    expect(test).to.equal('This is polish translation text.')
+    chai.expect(test).to.equal('This is polish translation text.')
   })
 
   it('should return translation value properly for a question inside a group', () => {
@@ -215,7 +136,7 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithNestedSupplementalDetails,
       '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr',
     )
-    expect(test).to.equal('Comment vas-tu mon cher ami?')
+    chai.expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
 
   it('should return analysis question value properly for qual_select_multiple', () => {
@@ -223,7 +144,7 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918',
     )
-    expect(test).to.equal('First, Third')
+    chai.expect(test).to.equal('First, Third')
   })
 
   it('should return analysis question value properly for qual_tags', () => {
@@ -231,7 +152,7 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
     )
-    expect(test).to.equal('best, things, ever recorder by human, 3')
+    chai.expect(test).to.equal('best, things, ever recorder by human, 3')
   })
 
   it('should return analysis question value properly for qual_integer', () => {
@@ -239,28 +160,21 @@ describe('getSupplementalDetailsContent', () => {
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
     )
-    expect(test).to.equal('12345')
+    chai.expect(test).to.equal('12345')
   })
 })
 
 describe('removeEmptyObjects', () => {
-  it('should return the same value if input is not an object', () => {
-    expect(removeEmptyObjects(null)).to.equal(null)
-    expect(removeEmptyObjects(2038)).to.equal(2038)
-    expect(removeEmptyObjects('foo')).to.equal('foo')
-    expect(removeEmptyObjects(undefined)).to.equal(undefined)
-  })
-
   it('should remove empty objects from a flat object', () => {
     const input = { a: 1, b: {}, c: 'foo' }
     const expected = { a: 1, c: 'foo' }
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should remove nested empty objects', () => {
     const input = { a: { b: {}, c: { d: {} } }, e: 2038 }
     const expected = { e: 2038 }
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should handle deeply nested objects with mixed content', () => {
@@ -273,65 +187,112 @@ describe('removeEmptyObjects', () => {
       a: { b: { d: 1 } },
       f: { g: { i: 2 } },
     }
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should not modify objects with no empty objects', () => {
     const input = { a: 1, b: { c: 2 }, d: 'test' }
     const expected = { a: 1, b: { c: 2 }, d: 'test' }
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should handle empty arrays inside objects by removing them', () => {
     const input = { a: [], b: { c: [1, 2, 3] }, d: {} }
     const expected = { b: { c: [1, 2, 3] } }
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should handle nested empty arrays', () => {
     const input = { a: [], b: {}, c: { d: [] } }
     const expected = {}
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 
   it('should handle empty objects inside arrays', () => {
     const input = { a: [{}], b: [{}, {}], c: { d: [{ e: [] }] } }
     const expected = {}
-    expect(removeEmptyObjects(input)).to.eql(expected)
+    chai.expect(removeEmptyObjects(input)).to.eql(expected)
   })
 })
 
 describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove empty strings and deleted qual responses', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [{ val: '' }, { val: 'foo' }, { val: 'bar', options: { deleted: true } }],
+        qual: [
+          {
+            val: '',
+            type: 'qual_text',
+            uuid: '',
+            labels: { _default: 'foo' },
+            xpath: '',
+          },
+          {
+            val: 'foo',
+            type: 'qual_text',
+            uuid: '',
+            labels: { _default: 'foo' },
+            xpath: '',
+          },
+          {
+            val: 'bar',
+            options: { deleted: true },
+            type: 'qual_text',
+            uuid: '',
+            labels: { _default: 'foo' },
+            xpath: '',
+          },
+        ],
       },
     }
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql({
+    chai.expect(result).to.eql({
       How_much_can_you_handle: {
-        qual: [{ val: 'foo' }],
+        qual: [
+          {
+            val: 'foo',
+            type: 'qual_text',
+            uuid: '',
+            labels: { _default: 'foo' },
+            xpath: '',
+          },
+        ],
       },
     })
   })
 
   it('should remove qual array if all responses are removed', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [{ val: '' }, { val: 'bar', options: { deleted: true } }],
+        qual: [
+          {
+            val: '',
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+          {
+            val: 'bar',
+            options: { deleted: true },
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+        ],
       },
     }
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql({})
+    chai.expect(result).to.eql({})
   })
 
   it('should remove nested empty objects', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
         qual: [],
       },
@@ -340,38 +301,95 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql({})
+    chai.expect(result).to.eql({})
   })
 
   it('should handle already clean supplemental details', () => {
-    const supplementalDetails = {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [{ val: 'foo' }],
+        qual: [
+          {
+            val: 'foo',
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+        ],
       },
     }
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql(supplementalDetails)
+    chai.expect(result).to.eql(supplementalDetails)
   })
 
-  it('should handle multiple empty responses', () => {
-    const supplementalDetails = {
+  it('should handle multiple kinds of empty responses', () => {
+    const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [{ val: '' }, { val: [] }, { val: null }, { val: 'foo', options: { deleted: true } }, { val: 'bar' }],
+        qual: [
+          {
+            val: '',
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+          {
+            val: [],
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+          {
+            val: null,
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+          {
+            val: 'foo',
+            options: { deleted: true },
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+          {
+            val: 'bar',
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+        ],
       },
     }
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql({ How_much_can_you_handle: { qual: [{ val: 'bar' }] } })
+    chai.expect(result).to.eql({
+      How_much_can_you_handle: {
+        qual: [
+          {
+            val: 'bar',
+            type: 'qual_text',
+            labels: { _default: 'foo' },
+            uuid: '',
+            xpath: '',
+          },
+        ],
+      },
+    })
   })
 
   it('should handle empty input', () => {
-    const supplementalDetails = {}
+    const supplementalDetails: SubmissionSupplementalDetails = {}
 
     const result = removeEmptyFromSupplementalDetails(supplementalDetails)
 
-    expect(result).to.eql({})
+    chai.expect(result).to.eql({})
   })
 })

@@ -20,7 +20,11 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
+import type {
+  AnalysisQuestionSchema,
+  AnalysisQuestionType,
+  SubmissionAnalysisResponse,
+} from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
@@ -174,6 +178,13 @@ export interface SubmissionSupplementalDetails {
 }
 
 /**
+ * This is a completely empty object.
+ *
+ * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
+ */
+export type SubmissionSupplementalDetailsEmpty = Record<string, never>
+
+/**
  * Value of a property found in `SubmissionResponse`, it can be either a built
  * in submission property (e.g. `_geolocation`) or a response to a form question
  */
@@ -237,7 +248,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
    * be either empty object (i.e. given submission doesn't have any NLP features
    * applied to it) or a proper `SubmissionSupplementalDetails` object.
    */
-  _supplementalDetails: SubmissionSupplementalDetails | {} | undefined
+  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
 }
 
 interface AssignablePermissionRegular {
@@ -386,7 +397,10 @@ export interface SurveyRow {
   hint?: string[]
   name?: string
   required?: boolean
-  _isRepeat?: boolean
+  // It's here because when form has `kobomatrix` row, Form Builder's "Save" button is sending a request that contains
+  // it, and BE doesn't remove it. It's really a result of a bug in the code. It shouldn't be used and shouldn't be part
+  // of this interface. But rather than removing it, I want to leave a trace, so that noone will add it again in future.
+  // _isRepeat?: 'false'
   appearance?: string
   parameters?: string
   'kobo--matrix_list'?: string
@@ -397,6 +411,8 @@ export interface SurveyRow {
   /** HXL tags. */
   tags?: string[]
   select_from_list_name?: string
+  /** Used by `file` type to list accepted extensions */
+  'body::accept'?: string
 }
 
 export interface SurveyChoice {
@@ -581,8 +597,9 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: string
-  language: string
+  type: AnalysisQuestionType | 'transcript' | 'translation'
+  /** Two letter language code or ?? for qualitative analysis questions */
+  language: string | '??'
   source: string
   xpath: string
   settings:
