@@ -252,7 +252,7 @@ def generate_mass_email_user_lists():
     #       email sending tasks.
 
     today = timezone.now().date()
-    cache_key = f'{today}_emails'
+    cache_key = f'mass_emails_{today}_emails'
     cached_data = cache.get(cache_key, [])
     processed_configs = set(cached_data)
     email_configs = MassEmailConfig.objects.filter(

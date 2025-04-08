@@ -144,7 +144,7 @@ class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
         self.user3 = User.objects.create(
             username='user3', last_login=timezone.now() - timedelta(days=7)
         )
-        self.cache_key = f'{timezone.now().date()}_emails'
+        self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
         cache.delete(self.cache_key)
 
     def _create_email_config(self, name, frequency=-1):
