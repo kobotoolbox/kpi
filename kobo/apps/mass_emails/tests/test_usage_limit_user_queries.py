@@ -4,9 +4,11 @@ from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.test import override_settings
+from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit
+from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import UsageType
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -151,3 +153,23 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
     @override_settings(STRIPE_ENABLED=False)
     def test_users_in_range_of_usage_limit_stripe_disabled_returns_empty(self):
         assert list(get_users_within_range_of_usage_limit(get_args(UsageType))) == []
+
+    def test_organization_with_no_owner(self):
+        no_owner = baker.make(Organization, id='org_abcd1234', mmo_override=False)
+        usage_limits = {no_owner.id: {'storage_limit': 10}}
+        storage_by_user_id = {self.someuser.id: 1000000000}
+        with patch(
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
+            return_value=usage_limits,
+        ):
+            with patch(
+                'kobo.apps.mass_emails.user_queries.get_storage_usage_by_user_id',
+                return_value=storage_by_user_id,
+            ):
+                results = get_users_within_range_of_usage_limit(
+                    usage_types=['storage'], minimum=0
+                )
+
+        # result should be empty because the organization has no owner
+        aslist = list(results)
+        assert aslist == []
