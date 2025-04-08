@@ -9,7 +9,6 @@ from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
-
 from django.utils.translation import gettext
 
 from kobo.apps.mass_emails.models import (
@@ -34,6 +33,19 @@ templates_placeholders = {
     '##date_created##': 'date_created',
 }
 
+
+def _get_current_15m_boundary(minute: int):
+    """
+    Returns the most recent quarter-hour boundary
+    """
+    if 0 <= minute < 15:
+        return 0
+    elif 15 <= minute < 30:
+        return 15
+    elif 30 <= minute < 45:
+        return 30
+    else:
+        return 45
 
 def enqueue_mass_email_records(email_config):
     """
@@ -88,11 +100,14 @@ class MassEmailSender:
         now = timezone.now()
         self.today = now.date()
         self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
-        if getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', False):
-            minute_boundary = get_closest_15m()
-            boundary = now.replace(minute=minute_boundary, second=0, microsecond=0)
-            self.cache_key_prefix = f'mass_emails_{boundary.isoformat()}_email_remaining'
-            logging.info(f'Setting cache key prefix: {self.cache_key_prefix}')
+        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+            # if we're in test mode, we update the cache every 15m instead of every
+            # day and run the job every 5m instead of every hour
+            minute_boundary = _get_current_15m_boundary(now.minute)
+            key_date = now.replace(
+                minute=minute_boundary, second=0, microsecond=0
+            ).isoformat()
+            self.cache_key_prefix = f'mass_emails_{key_date}_email_remaining'
 
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
@@ -308,16 +323,3 @@ def generate_mass_email_user_lists():
     cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
 
-
-def get_closest_15m():
-    now = timezone.now()
-    minutes = now.minute
-    logging.info(f'{minutes=}')
-    if 0 <= minutes < 15:
-        return 0
-    elif 15 <= minutes < 30:
-        return 15
-    elif 30 <= minutes < 45:
-        return 30
-    else:
-        return 45
