@@ -84,7 +84,7 @@ def render_template(template, data):
 class MassEmailSender:
 
     def __init__(self):
-        self.today = timezone.localdate()
+        self.today = timezone.now().date()
         self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
