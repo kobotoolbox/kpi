@@ -1,4 +1,4 @@
-import { AssetResponse, AssetContentSettings } from 'js/dataInterface'
+import type { AssetContentSettings, AssetResponse } from '#/dataInterface'
 
 export function parseTags(asset: AssetResponse) {
   return {

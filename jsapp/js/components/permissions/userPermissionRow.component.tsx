@@ -1,16 +1,21 @@
 import React from 'react'
+
 import alertify from 'alertifyjs'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import { escapeHtml } from 'js/utils'
-import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
+import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import { router } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import sessionStore from '#/stores/session'
+import { escapeHtml } from '#/utils'
+import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
-import type { PermissionBase, PermissionResponse } from 'js/dataInterface'
 import type { AssignablePermsMap } from './sharingForm.component'
-import { getPermLabel, getFriendlyPermName } from './utils'
-import Button from 'js/components/common/button'
-import Avatar from 'js/components/common/avatar'
+import UserAssetPermsEditor from './userAssetPermsEditor.component'
+import { getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
   assetUid: string
@@ -62,29 +67,19 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     dialog.set(opts).show()
   }
 
-  /**
-   * Note: we remove "view_asset" permission, as it is the most basic one,
-   * so removing it will in fact remove every permission except `add_submissions`.
-   * That permission will be removed seprately.
-   */
   removeAllPermissions() {
     this.setState({ isBeingDeleted: true })
-    const userViewAssetPerm = this.props.permissions.find(
+    const userAssetPermUrl = this.props.permissions.find(
       (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
     )
-
-    const userAddSubmissionsPerm = this.props.permissions.find(
-      (perm) => perm.permission === permConfig.getPermissionByCodename('add_submissions')?.url,
-    )
-    if (userViewAssetPerm) {
-      actions.permissions.removeAssetPermission(this.props.assetUid, userViewAssetPerm.url)
-    }
-
-    // We have to remove this permission seprately as it can be granted without
-    // `view_asset`.
-    if (userAddSubmissionsPerm) {
-      actions.permissions.removeAssetPermission(this.props.assetUid, userAddSubmissionsPerm.url)
-    }
+    const isCurrentUser = this.props.username === sessionStore.currentAccount.username
+    actions.permissions.removeAssetPermission(this.props.assetUid, userAssetPermUrl?.url, true)
+    permissionsActions.removeAssetPermission.completed.listen(() => {
+      // If the user deletes their own permissions, they will be routed to the form landing page
+      if (isCurrentUser) {
+        router?.navigate(ROUTES.FORMS)
+      }
+    })
   }
 
   onPermissionsEditorSubmitEnd(isSuccess: boolean) {

@@ -1,11 +1,12 @@
-import autoBind from 'react-autobind'
+import './tableMediaPreview.scss'
+
 import React from 'react'
 
-import bem, { makeBem } from 'js/bem'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import KoboImage from 'js/components/common/koboImage'
-import { QUESTION_TYPES } from 'js/constants'
-import './tableMediaPreview.scss'
+import autoBind from 'react-autobind'
+import bem, { makeBem } from '#/bem'
+import AudioPlayer from '#/components/common/audioPlayer'
+import KoboImage from '#/components/common/koboImage'
+import { QUESTION_TYPES } from '#/constants'
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview')
 bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'div')
@@ -44,6 +45,13 @@ class TableMediaPreview extends React.Component {
 
   renderPreviewByType() {
     switch (this.props.questionType) {
+      case QUESTION_TYPES.file.id:
+        return (
+          <bem.TableMediaPreview__text>
+            {this.props.mediaName}
+            <br />({this.props.mediaAttachment?.mimetype})
+          </bem.TableMediaPreview__text>
+        )
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image>

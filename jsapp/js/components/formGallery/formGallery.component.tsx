@@ -1,11 +1,15 @@
-import React, { useEffect, useMemo, useReducer } from 'react'
-import ReactSelect from 'react-select'
-import type { AssetResponse, PaginatedResponse, SubmissionResponse } from 'js/dataInterface'
-import { dataInterface } from 'js/dataInterface'
-import bem, { makeBem } from 'js/bem'
-import Button from 'jsapp/js/components/common/button'
-import { getFlatQuestionsList } from 'jsapp/js/assetUtils'
 import './formGallery.component.scss'
+
+import React, { useEffect, useMemo, useReducer } from 'react'
+
+import { Center } from '@mantine/core'
+import ReactSelect from 'react-select'
+import { getFlatQuestionsList } from '#/assetUtils'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
@@ -115,11 +119,17 @@ export default function FormGallery(props: FormGalleryProps) {
           </bem.GalleryFiltersDates>
         </bem.GalleryFilters>
         <bem.GalleryGrid>
-          {attachments.map((attachment) => (
-            <a key={attachment.id} href={attachment.download_url} target='_blank'>
-              <img src={attachment.download_small_url} alt={attachment.filename} width='150' loading='lazy' />
-            </a>
-          ))}
+          {attachments.map((attachment) =>
+            attachment.is_deleted ? (
+              <Center key={attachment.id} title={attachment.filename} className='gallery-grid-deleted-attachment'>
+                <DeletedAttachment />
+              </Center>
+            ) : (
+              <a key={attachment.id} href={attachment.download_url} target='_blank'>
+                <img src={attachment.download_url} alt={attachment.filename} width='150' loading='lazy' />
+              </a>
+            ),
+          )}
         </bem.GalleryGrid>
         {showLoadMore && (
           <bem.GalleryFooter>

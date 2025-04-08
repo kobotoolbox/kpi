@@ -1,5 +1,5 @@
-import type { SubscriptionInfo } from 'jsapp/js/account/stripe.types'
-import type { EnvStoreData } from 'jsapp/js/envStore'
+import type { SubscriptionInfo } from '#/account/stripe.types'
+import type { EnvStoreData } from '#/envStore'
 
 /** Only use this directly for complex cases/strings (for example, possessive case).
  * Otherwise, use getSimpleMMOLabel.
@@ -23,8 +23,8 @@ export function shouldUseTeamLabel(envStoreData: EnvStoreData, subscription: Sub
 export function getSimpleMMOLabel(
   envStoreData: EnvStoreData,
   subscription: SubscriptionInfo | null,
-  plural: boolean = false,
-  capitalize: boolean = false,
+  plural = false,
+  capitalize = false,
 ) {
   if (shouldUseTeamLabel(envStoreData, subscription)) {
     if (plural) {

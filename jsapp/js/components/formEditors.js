@@ -1,11 +1,12 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
+
 import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
+import { update_states } from '#/constants'
+import { withRouter } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
 import editableFormMixin from '../editorMixins/editableForm'
-import { update_states } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import { withRouter } from 'js/router/legacy'
 
 /**
  * These are the components that are used for Form Builder routes.

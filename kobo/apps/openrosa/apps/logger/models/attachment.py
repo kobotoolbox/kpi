@@ -8,13 +8,17 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
 
+from kobo.apps.kobo_auth.models import User
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
 from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.fields.file import ExtendedFileField
+from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
+from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 from .instance import Instance
 
@@ -33,13 +37,27 @@ def upload_to(attachment, filename):
     return generate_attachment_filename(attachment.instance, filename)
 
 
+class AttachmentDeleteStatus(models.TextChoices):
+
+    DELETED = 'deleted'
+    SOFT_DELETED = 'soft-deleted'
+    PENDING_DELETE = 'pending-delete'
+
+
 class AttachmentDefaultManager(models.Manager):
 
     def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
+        # TODO remove "deleted_at__isnull=True" from filter after the long
+        # running migration 0007 has run and been completed
+        return (
+            super()
+            .get_queryset()
+            .filter(deleted_at__isnull=True, delete_status__isnull=True)
+        )
 
 
-class Attachment(models.Model, AudioTranscodingMixin):
+class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
+    uid = KpiUidField(uid_prefix='att')
     instance = models.ForeignKey(
         Instance, related_name='attachments', on_delete=models.CASCADE
     )
@@ -57,6 +75,22 @@ class Attachment(models.Model, AudioTranscodingMixin):
     mimetype = models.CharField(
         max_length=100, null=False, blank=True, default='')
     deleted_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    delete_status = models.CharField(
+        choices=AttachmentDeleteStatus.choices, db_index=True, null=True, max_length=20
+    )
+
+    xform = models.ForeignKey(
+        XForm,
+        related_name='attachments',
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
+    user = models.ForeignKey(
+        User,
+        related_name='attachments',
+        on_delete=models.CASCADE,
+        db_index=True,
+    )
 
     objects = AttachmentDefaultManager()
     all_objects = models.Manager()
@@ -166,6 +200,17 @@ class Attachment(models.Model, AudioTranscodingMixin):
             # Cache the file size in the database to avoid expensive calls to
             # the storage engine when running reports
             self.media_file_size = self.media_file.size
+
+        if not (self.xform_id and self.user_id):
+            # Denormalize xform and user
+            if (
+                values := Instance.objects.select_related('xform')
+                .filter(pk=self.instance_id)
+                .values('xform_id', 'xform__user_id')
+                .first()
+            ):
+                self.xform_id = values['xform_id']
+                self.user_id = values['xform__user_id']
 
         super().save(*args, **kwargs)
 

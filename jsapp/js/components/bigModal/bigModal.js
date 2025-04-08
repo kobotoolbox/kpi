@@ -1,44 +1,45 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
-import Reflux from 'reflux'
+
 import alertify from 'alertifyjs'
-import { actions } from 'js/actions'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Modal from 'js/components/common/modal'
-import { stores } from 'js/stores'
-import { PROJECT_SETTINGS_CONTEXTS, MODAL_TYPES, ASSET_TYPES } from 'js/constants'
-import { AssetTagsForm } from 'js/components/modalForms/assetTagsForm'
-import { LibraryAssetForm } from 'js/components/modalForms/libraryAssetForm'
-import LibraryNewItemForm from 'js/components/modalForms/libraryNewItemForm'
-import LibraryUploadForm from 'js/components/modalForms/libraryUploadForm'
-import EncryptForm from 'js/components/modalForms/encryptForm'
-import BulkEditSubmissionsForm from 'js/components/modalForms/bulkEditSubmissionsForm'
-import ProjectSettings from 'js/components/modalForms/projectSettings'
-import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm'
-import SharingForm from 'js/components/permissions/sharingForm.component'
-import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm'
-import SubmissionModal from 'js/components/submissions/submissionModal'
-import TableSettings from 'js/components/submissions/tableSettings'
-import TableMediaPreview from 'js/components/submissions/tableMediaPreview'
-import TranslationSettings from 'js/components/modalForms/translationSettings'
-import TranslationTable from 'js/components/modalForms/translationTable'
+import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Modal from '#/components/common/modal'
+import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
+import { AssetTagsForm } from '#/components/modalForms/assetTagsForm'
+import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
+import EncryptForm from '#/components/modalForms/encryptForm'
+import { LibraryAssetForm } from '#/components/modalForms/libraryAssetForm'
+import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
+import LibraryUploadForm from '#/components/modalForms/libraryUploadForm'
+import ProjectSettings from '#/components/modalForms/projectSettings'
+import TranslationSettings from '#/components/modalForms/translationSettings'
+import TranslationTable from '#/components/modalForms/translationTable'
+import SharingForm from '#/components/permissions/sharingForm.component'
+import SubmissionModal from '#/components/submissions/submissionModal'
+import TableMediaPreview from '#/components/submissions/tableMediaPreview'
+import TableSettings from '#/components/submissions/tableSettings'
+import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import pageState from '#/pageState.store'
+import { stores } from '#/stores'
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals'
-import pageState from 'js/pageState.store'
 
 function getSubmissionTitle(props) {
   let title = t('Success!')
-  let p = props.params
-  let sid = parseInt(p.sid)
+  const p = props.params
+  const sid = Number.parseInt(p.sid)
 
   if (!p.isDuplicated) {
     title = t('Submission Record')
     if (p.tableInfo) {
-      let index = p.ids.indexOf(sid) + p.tableInfo.pageSize * p.tableInfo.currentPage + 1
+      const index = p.ids.indexOf(sid) + p.tableInfo.pageSize * p.tableInfo.currentPage + 1
       title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`
     } else {
-      let index = p.ids.indexOf(sid)
+      const index = p.ids.indexOf(sid)
       if (p.ids.length === 1) {
         title = `${t('Submission Record')}`
       } else {

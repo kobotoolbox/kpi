@@ -1,18 +1,19 @@
 import React from 'react'
+
+import alertify from 'alertifyjs'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-textarea-autosize'
-import LanguageForm from 'js/components/modalForms/languageForm'
-import alertify from 'alertifyjs'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { actions } from 'js/actions'
-import { stores } from 'js/stores'
-import { getLangString, notify } from 'utils'
-import { LockingRestrictionName } from 'js/components/locking/lockingConstants'
-import { MODAL_TYPES, QUESTION_TYPES, GROUP_TYPES_BEGIN } from 'js/constants'
-import { hasRowRestriction, hasAssetRestriction } from 'js/components/locking/lockingUtils'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { LockingRestrictionName } from '#/components/locking/lockingConstants'
+import { hasAssetRestriction, hasRowRestriction } from '#/components/locking/lockingUtils'
+import LanguageForm from '#/components/modalForms/languageForm'
+import { GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import pageState from '#/pageState.store'
+import { stores } from '#/stores'
+import { getLangString, notify } from '#/utils'
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -67,7 +68,7 @@ export class TranslationTable extends React.Component {
     // add choice options to translation table
     if (choices && choices.length) {
       choices.forEach((choice) => {
-        let isLabelLocked = lockedChoiceLists.includes(choice.list_name)
+        const isLabelLocked = lockedChoiceLists.includes(choice.list_name)
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
@@ -159,16 +160,16 @@ export class TranslationTable extends React.Component {
   }
 
   saveChanges() {
-    let content = this.props.asset.content,
+    const content = this.props.asset.content,
       rows = this.state.tableData,
       langIndex = this.props.langIndex
     for (var i = 0, len = rows.length; i < len; i++) {
-      let item = content[rows[i].contentProp].find(
+      const item = content[rows[i].contentProp].find(
         (o) =>
           (o.name === rows[i].name || o.$autoname === rows[i].name || o.$autovalue === rows[i].name) &&
           o.list_name === rows[i].listName,
       )
-      let itemProp = rows[i].itemProp
+      const itemProp = rows[i].itemProp
 
       if (item[itemProp][langIndex] !== rows[i].value) {
         item[itemProp][langIndex] = rows[i].value
@@ -212,7 +213,7 @@ export class TranslationTable extends React.Component {
   }
 
   onLanguageChange(lang, index) {
-    let content = this.props.asset.content,
+    const content = this.props.asset.content,
       langString = getLangString(lang)
 
     content.translations[index] = langString
@@ -248,12 +249,10 @@ export class TranslationTable extends React.Component {
   isRowLabelLocked(rowType, rowName) {
     if (rowType === GROUP_TYPES_BEGIN.begin_group) {
       return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.group_label_edit)
+    } else if (Object.keys(QUESTION_TYPES).includes(rowType)) {
+      return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.question_label_edit)
     } else {
-      if (Object.keys(QUESTION_TYPES).includes(rowType)) {
-        return hasRowRestriction(this.props.asset.content, rowName, LockingRestrictionName.question_label_edit)
-      } else {
-        return false
-      }
+      return false
     }
   }
 

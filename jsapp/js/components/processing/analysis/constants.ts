@@ -1,5 +1,5 @@
-import type { IconName } from 'jsapp/fonts/k-icons'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { IconName } from '#/k-icons'
 
 export const AUTO_SAVE_TYPING_DELAY = 3000
 
@@ -105,9 +105,7 @@ export interface AnalysisRequest {
   uuid: string
   /** `null` is for `qual_integer` */
   val: string | string[] | number | null
-}
-
-/**
+} /**
  * This is a response object for `qual_select_one` and `qual_select_multiple`.
  * Besides `uuid` of a choice, it also has `labels`. It makes it easier to
  * display these responses in the UI.
@@ -116,17 +114,21 @@ interface AnalysisResponseSelectXValue {
   labels: AnalysisLabels
   /** The `uuid` of selected `AnalysisQuestionChoice`. */
   val: string
-}
-
-/**
+} /**
  * A lot of options, because:
- * - `qual_tags` returns `string[]`
- * - `qual_text` returns `string`
- * - `qual_integer` returns `number`
- * - `qual_select_one` returns `AnalysisResponseSelectXValue`
- * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]`
+ * - `qual_tags` returns `string[]` (`[]` for empty)
+ * - `qual_text` returns `string` (`''` for empty)
+ * - `qual_integer` returns `number` (`null` for empty)
+ * - `qual_select_one` returns `AnalysisResponseSelectXValue` (dunno for empty, as there's a bug: https://linear.app/kobotoolbox/issue/DEV-40/cant-unselect-qual-select-one-question-response)
+ * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]` (`[]` for empty)
  */
-type AnalysisResponseValue = string | string[] | number | AnalysisResponseSelectXValue | AnalysisResponseSelectXValue[]
+type AnalysisResponseValue =
+  | string
+  | string[]
+  | number
+  | null
+  | AnalysisResponseSelectXValue
+  | AnalysisResponseSelectXValue[]
 
 /**
  * This is the object that is returned from interacting with the processing
@@ -145,10 +147,12 @@ export interface AnalysisResponse extends AnalysisQuestionBase {
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
  * but with more detailed `val` for `qual_select_one` and `qual_select_multiple`
- * - containing both `uuid` and a `labels` object.
+ * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
   val: AnalysisResponseValue
+  // There can be a `scope` property here, but we have no use of it on FE
+  scope?: 'by_question#survey'
 }
 
 /**

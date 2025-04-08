@@ -1,19 +1,20 @@
-import type React from 'react'
-import { useEffect, useState } from 'react'
-import Button from 'js/components/common/button'
-import InlineMessage from 'js/components/common/inlineMessage'
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import bem, { makeBem } from 'js/bem'
 import './accountSettings.scss'
-import { notify } from 'js/utils'
+
+import React, { useEffect, useState } from 'react'
+
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import bem, { makeBem } from '#/bem'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import envStore from '#/envStore'
+import { notify } from '#/utils'
 import { dataInterface } from '../dataInterface'
-import AccountFieldsEditor from './accountFieldsEditor.component'
-import Avatar from 'js/components/common/avatar'
-import envStore from 'js/envStore'
-import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
-import type { AccountFieldsValues, AccountFieldsErrors } from './account.constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from 'js/constants'
 import { useSession } from '../stores/useSession'
+import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
+import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
+import AccountFieldsEditor from './accountFieldsEditor.component'
 import { useOrganizationQuery } from './organization/organizationQuery'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
@@ -65,9 +66,9 @@ const AccountSettings = () => {
     // We will not display organization fields if user is a member of an MMO,
     // only displaying these fields in organization settings view
     setDisplayedFields(
-      !organization?.is_mmo
-        ? fieldKeys
-        : fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key)),
+      organization?.is_mmo
+        ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
+        : fieldKeys,
     )
   }, [currentLoggedAccount, orgQuery.data])
 

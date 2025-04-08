@@ -1,15 +1,17 @@
-import React from 'react'
-import autoBind from 'react-autobind'
-import Checkbox from 'js/components/common/checkbox'
-import Radio from 'js/components/common/radio'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import { notify } from 'utils'
-import { DATA_TABLE_SETTINGS } from 'js/components/submissions/tableConstants'
-import { userCan } from 'js/components/permissions/utils'
-import tableStore from 'js/components/submissions/tableStore'
-import Button from 'js/components/common/button'
 import './tableSettings.scss'
+
+import React from 'react'
+
+import autoBind from 'react-autobind'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import Radio from '#/components/common/radio'
+import { userCan } from '#/components/permissions/utils'
+import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
+import tableStore from '#/components/submissions/tableStore'
+import { notify } from '#/utils'
 
 /**
  * This is a modal form that handles changing some of the table settings.
@@ -47,7 +49,7 @@ class TableSettings extends React.Component {
   }
 
   onLabelChange(value) {
-    this.setState({ translationIndex: parseInt(value) })
+    this.setState({ translationIndex: Number.parseInt(value) })
   }
 
   onUpdateSettingsFailed() {

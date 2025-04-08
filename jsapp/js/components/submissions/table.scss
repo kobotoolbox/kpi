@@ -239,6 +239,7 @@ $s-data-table-font: 13px;
   }
 
   // We want to target only the data cells
+  .rt-td .deletedAttachment:only-child,
   .rt-td .trimmed-text:only-child {
     height: 100%;
     align-content: center;

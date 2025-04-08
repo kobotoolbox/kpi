@@ -1,6 +1,4 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import type { TabsProps } from './tabs'
 import Tabs from './tabs'
 
 const meta: Meta<typeof Tabs> = {

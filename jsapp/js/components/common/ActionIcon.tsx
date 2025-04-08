@@ -1,8 +1,9 @@
+import { forwardRef } from 'react'
+
 import { ActionIcon as ActionIconMantine } from '@mantine/core'
 import type { ActionIconProps as ActionIconPropsMantine } from '@mantine/core/lib/components'
-import Icon, { IconSize } from './icon'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import { forwardRef } from 'react'
+import type { IconName } from '#/k-icons'
+import Icon, { type IconSize } from './icon'
 
 export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   iconName: IconName

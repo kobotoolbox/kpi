@@ -1,96 +1,95 @@
+import './table.scss'
+
 import React from 'react'
+
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
-import enketoHandler from 'js/enketoHandler'
-import Checkbox from 'js/components/common/checkbox'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { stores } from 'js/stores'
-import pageState from 'js/pageState.store'
-import type { PageStateStoreState } from 'js/pageState.store'
+import { DebounceInput } from 'react-debounce-input'
 import ReactTable from 'react-table'
 import type { CellInfo } from 'react-table'
-import ValidationStatusDropdown from 'js/components/submissions/validationStatusDropdown'
+import { actions } from '#/actions'
+import type { SurveyFlatPaths } from '#/assetUtils'
+import { getQuestionOrChoiceDisplayName, getRowName, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import CenteredMessage from '#/components/common/centeredMessage.component'
+import Checkbox from '#/components/common/checkbox'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan, userCanPartially, userHasPermForSubmission } from '#/components/permissions/utils'
+import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { getMediaAttachment, getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
+import type {
+  DataTableSelectedRows,
+  ReactTableInstance,
+  ReactTableState,
+  SubmissionPageName,
+  TableColumn,
+} from '#/components/submissions/table.types'
+import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
+import TableBulkOptions from '#/components/submissions/tableBulkOptions'
+import TableColumnSortDropdown from '#/components/submissions/tableColumnSortDropdown'
+import {
+  CELLS_WIDTH_OVERRIDES,
+  DATA_TABLE_SETTING,
+  DATA_TABLE_SETTINGS,
+  DEFAULT_DATA_CELL_WIDTH,
+  SUBMISSION_ACTIONS_ID,
+  SortValues,
+  TABLE_MEDIA_TYPES,
+  VALIDATION_STATUS_ID_PROP,
+} from '#/components/submissions/tableConstants'
+import tableStore from '#/components/submissions/tableStore'
+import type { TableStoreData } from '#/components/submissions/tableStore'
+import {
+  buildFilterQuery,
+  getBackgroundAudioQuestionName,
+  getColumnHXLTags,
+  getColumnLabel,
+  isTableColumnFilterableByDropdown,
+  isTableColumnFilterableByTextInput,
+} from '#/components/submissions/tableUtils'
+import TextModalCell from '#/components/submissions/textModalCell.component'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
-} from 'js/components/submissions/validationStatus.constants'
+} from '#/components/submissions/validationStatus.constants'
 import {
-  ValidationStatusAdditionalName,
+  VALIDATION_STATUS_NO_OPTION,
   VALIDATION_STATUS_OPTIONS,
   VALIDATION_STATUS_SHOW_ALL_OPTION,
-  VALIDATION_STATUS_NO_OPTION,
-} from 'js/components/submissions/validationStatus.constants'
-import { DebounceInput } from 'react-debounce-input'
+  ValidationStatusAdditionalName,
+} from '#/components/submissions/validationStatus.constants'
+import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
 import {
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  GROUP_TYPES_BEGIN,
-  META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   EnketoActions,
+  GROUP_TYPES_BEGIN,
+  META_QUESTION_TYPES,
+  MODAL_TYPES,
+  QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { formatTimeDateShort, removeDefaultUuidPrefix } from 'js/utils'
-import type { SurveyFlatPaths } from 'js/assetUtils'
-import { getRowName, renderQuestionTypeIcon, getQuestionOrChoiceDisplayName, getSurveyFlatPaths } from 'js/assetUtils'
-import {
-  getRepeatGroupAnswers,
-  getMediaAttachment,
-  getSupplementalDetailsContent,
-} from 'js/components/submissions/submissionUtils'
-import TableBulkOptions from 'js/components/submissions/tableBulkOptions'
-import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox'
-import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown'
-import ColumnsHideDropdown from 'js/components/submissions/columnsHideDropdown'
-import {
-  SortValues,
-  SUBMISSION_ACTIONS_ID,
-  VALIDATION_STATUS_ID_PROP,
-  DATA_TABLE_SETTING,
-  DATA_TABLE_SETTINGS,
-  TABLE_MEDIA_TYPES,
-  DEFAULT_DATA_CELL_WIDTH,
-  CELLS_WIDTH_OVERRIDES,
-} from 'js/components/submissions/tableConstants'
-import {
-  getColumnLabel,
-  getColumnHXLTags,
-  getBackgroundAudioQuestionName,
-  buildFilterQuery,
-  isTableColumnFilterableByTextInput,
-  isTableColumnFilterableByDropdown,
-} from 'js/components/submissions/tableUtils'
-import tableStore from 'js/components/submissions/tableStore'
-import type { TableStoreData } from 'js/components/submissions/tableStore'
-import './table.scss'
-import MediaCell from './mediaCell'
-import AudioCell from './audioCell'
-import { userCan, userCanPartially, userHasPermForSubmission } from 'js/components/permissions/utils'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
-import TextModalCell from 'js/components/submissions/textModalCell.component'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type {
-  FailResponse,
   AssetResponse,
   AssetTableSettings,
-  SubmissionResponse,
-  PaginatedResponse,
+  FailResponse,
   GetSubmissionsOptions,
-  ValidationStatusResponse,
+  PaginatedResponse,
+  SubmissionResponse,
   SurveyChoice,
   SurveyRow,
-} from 'js/dataInterface'
-import type {
-  SubmissionPageName,
-  TableColumn,
-  ReactTableState,
-  ReactTableInstance,
-  DataTableSelectedRows,
-} from 'js/components/submissions/table.types'
-import Button from 'js/components/common/button'
+  ValidationStatusResponse,
+} from '#/dataInterface'
+import enketoHandler from '#/enketoHandler'
+import pageState from '#/pageState.store'
+import type { PageStateStoreState } from '#/pageState.store'
+import { stores } from '#/stores'
+import { formatTimeDateShort } from '#/utils'
+import RepeatGroupCell from './RepeatGroupCell'
+import AudioCell from './audioCell'
+import MediaCell from './mediaCell'
 
 const DEFAULT_PAGE_SIZE = 30
 
@@ -181,7 +180,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
-      actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions.bind(this)),
+      // Note: this action is not async, so we don't need to listen for `completed`
+      actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
       actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed.bind(this)),
       actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted.bind(this)),
@@ -345,7 +345,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * @returns {object} one of ValidationStatusOption
    */
   getCurrentValidationStatusOption(originalRow: SubmissionResponse): ValidationStatusOption {
-    const foundOption = VALIDATION_STATUS_OPTIONS.find((option) => option.value === originalRow._validation_status?.uid)
+    const foundOption = VALIDATION_STATUS_OPTIONS.find(
+      (option) => 'uid' in originalRow._validation_status && option.value === originalRow._validation_status.uid,
+    )
 
     // If submission doesn't have a validation status, we return the no option option :)
     return foundOption || VALIDATION_STATUS_NO_OPTION
@@ -355,12 +357,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Callback for dropdown.
    */
   onValidationStatusChange(sid: string, newValidationStatus: ValidationStatusOptionName) {
-    const _this = this
-
     if (newValidationStatus === ValidationStatusAdditionalName.no_status) {
-      actions.resources.removeSubmissionValidationStatus(_this.props.asset.uid, sid)
+      actions.resources.removeSubmissionValidationStatus(this.props.asset.uid, sid)
     } else {
-      actions.resources.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {
+      actions.resources.updateSubmissionValidationStatus(this.props.asset.uid, sid, {
         'validation_status.uid': newValidationStatus,
       })
     }
@@ -569,7 +569,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
-        let currentOption: ValidationStatusOption =
+        const currentOption: ValidationStatusOption =
           VALIDATION_STATUS_OPTIONS.find((item) => item.value === filter?.value) || VALIDATION_STATUS_SHOW_ALL_OPTION
 
         return (
@@ -816,17 +816,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           )
 
           if (typeof row.value === 'object' && !key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key)
-            if (repeatGroupAnswers) {
-              // display a list of answers from a repeat group question
-              return (
-                <span className='trimmed-text' dir='auto'>
-                  {repeatGroupAnswers.join(', ')}
-                </span>
-              )
-            } else {
-              return ''
-            }
+            return <RepeatGroupCell submissionData={row.original} rowName={key} />
           }
 
           if (q && q.type && row.value) {
@@ -838,14 +828,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               }
 
               if (q.type === QUESTION_TYPES.audio.id || q.type === QUESTION_TYPES['background-audio'].id) {
-                const submissionEditId = removeDefaultUuidPrefix(row.original['meta/rootUuid']) || row.original._uuid
-
                 if (mediaAttachment !== null && q.$xpath !== undefined) {
                   return (
                     <AudioCell
                       assetUid={this.props.asset.uid}
                       xpath={q.$xpath}
-                      submissionEditId={submissionEditId}
+                      submissionData={row.original}
                       mediaAttachment={mediaAttachment}
                     />
                   )
@@ -860,9 +848,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     mediaName={row.value}
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
-                    assetUid={this.props.asset.uid}
-                    xpath={q.$xpath}
-                    submissionUuid={row.original._uuid}
+                    submissionData={row.original}
+                    asset={this.props.asset}
                   />
                 )
               }
@@ -882,7 +869,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
               const labels: string[] = []
-              values.forEach(function (valueItem: string) {
+              values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,
                 )
@@ -1028,7 +1015,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   onSubmissionValidationStatusChange(result: ValidationStatusResponse, sid: string) {
     if (sid) {
-      const subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid))
+      const subIndex = this.state.submissions.findIndex((x) => x._id === Number.parseInt(sid))
       if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
         const newData = this.state.submissions
         newData[subIndex]._validation_status = result || {}
@@ -1117,7 +1104,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   submissionModalProcessing(
     sid: string,
     submissions: SubmissionResponse[],
-    isDuplicated: boolean = false,
+    isDuplicated = false,
     duplicatedSubmission: SubmissionResponse | null = null,
   ) {
     const ids = submissions.map((item) => item._id)
@@ -1218,7 +1205,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   bulkSelectAllRows(isChecked: boolean) {
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       if (isChecked) {
         s[r._id] = true
       } else {
@@ -1253,7 +1240,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   bulkSelectAll() {
     // make sure all rows on current page are selected
     const s = this.state.selectedRows
-    this.state.submissions.forEach(function (r) {
+    this.state.submissions.forEach((r) => {
       s[r._id] = true
     })
 

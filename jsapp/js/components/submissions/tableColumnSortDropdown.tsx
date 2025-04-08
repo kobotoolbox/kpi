@@ -1,11 +1,13 @@
-import React from 'react'
-import classNames from 'classnames'
-import KoboDropdown from 'js/components/common/koboDropdown'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { SortValues } from 'js/components/submissions/tableConstants'
 import './tableColumnSortDropdown.scss'
-import { userCan } from 'js/components/permissions/utils'
-import type { AssetResponse } from 'js/dataInterface'
+
+import React from 'react'
+
+import classNames from 'classnames'
+import KoboDropdown from '#/components/common/koboDropdown'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan } from '#/components/permissions/utils'
+import { SortValues } from '#/components/submissions/tableConstants'
+import type { AssetResponse } from '#/dataInterface'
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear'
 
@@ -31,7 +33,7 @@ interface TableColumnSortDropdownProps {
  */
 export default function TableColumnSortDropdown(props: TableColumnSortDropdownProps) {
   function renderTrigger() {
-    let sortIcon = ['k-icon']
+    const sortIcon = ['k-icon']
     if (props.sortValue && props.sortValue === SortValues.ASCENDING) {
       sortIcon.push('k-icon-sort-ascending')
     }

@@ -81,7 +81,7 @@ def empty_account(account_trash_id: int, force: bool = False):
 
         account_trash.status = TrashStatus.IN_PROGRESS
         account_trash.metadata['failure_error'] = ''
-        account_trash.save(update_fields=['metadata', 'status'])
+        account_trash.save(update_fields=['metadata', 'status', 'date_modified'])
 
     # Delete children first…
     for asset in assets.filter(parent__isnull=False):
@@ -198,7 +198,7 @@ def empty_project(project_trash_id: int, force: bool = False):
             return
 
         project_trash.status = TrashStatus.IN_PROGRESS
-        project_trash.save(update_fields=['status'])
+        project_trash.save(update_fields=['status', 'date_modified'])
 
     delete_asset(project_trash.request_author, project_trash.asset)
     PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
@@ -219,7 +219,7 @@ def empty_account_failure(sender=None, **kwargs):
         )
         account_trash.metadata['failure_error'] = str(exception)
         account_trash.status = TrashStatus.FAILED
-        account_trash.save(update_fields=['status', 'metadata'])
+        account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
 @task_retry.connect(sender=empty_account)
@@ -232,7 +232,7 @@ def empty_account_retry(sender=None, **kwargs):
         )
         account_trash.metadata['failure_error'] = str(exception)
         account_trash.status = TrashStatus.RETRY
-        account_trash.save(update_fields=['status', 'metadata'])
+        account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
 @task_failure.connect(sender=empty_project)
@@ -246,7 +246,7 @@ def empty_project_failure(sender=None, **kwargs):
         )
         project_trash.metadata['failure_error'] = str(exception)
         project_trash.status = TrashStatus.FAILED
-        project_trash.save(update_fields=['status', 'metadata'])
+        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
 @task_retry.connect(sender=empty_project)
@@ -259,7 +259,7 @@ def empty_project_retry(sender=None, **kwargs):
         )
         project_trash.metadata['failure_error'] = str(exception)
         project_trash.status = TrashStatus.RETRY
-        project_trash.save(update_fields=['status', 'metadata'])
+        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
 @celery_app.task

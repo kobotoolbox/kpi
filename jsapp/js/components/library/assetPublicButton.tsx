@@ -1,11 +1,11 @@
 import React from 'react'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import assetUtils from 'js/assetUtils'
-import { ASSET_TYPES } from 'js/constants'
-import { notify } from 'js/utils'
-import Button from 'js/components/common/button'
-import type { AssetResponse } from 'js/dataInterface'
+
+import { actions } from '#/actions'
+import assetUtils from '#/assetUtils'
+import Button from '#/components/common/button'
+import { ASSET_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { notify } from '#/utils'
 
 interface AssetPublicButtonProps {
   asset: AssetResponse
@@ -114,18 +114,7 @@ export default class AssetPublicButton extends React.Component<AssetPublicButton
     // NOTE: this button is purposely made available for collections that are
     // not ready yet (i.e. the required metadata of the collection is empty),
     // as we display an error notification that teaches users what to do.
-    if (!isPublic) {
-      return (
-        <Button
-          type='secondary'
-          size='m'
-          startIcon='globe-alt'
-          label={t('Make public')}
-          onClick={this.makePublic.bind(this)}
-          isPending={isButtonPending}
-        />
-      )
-    } else {
+    if (isPublic) {
       return (
         <Button
           type='secondary-danger'
@@ -133,6 +122,17 @@ export default class AssetPublicButton extends React.Component<AssetPublicButton
           startIcon='close'
           label={t('Make private')}
           onClick={this.makePrivate.bind(this)}
+          isPending={isButtonPending}
+        />
+      )
+    } else {
+      return (
+        <Button
+          type='secondary'
+          size='m'
+          startIcon='globe-alt'
+          label={t('Make public')}
+          onClick={this.makePublic.bind(this)}
           isPending={isButtonPending}
         />
       )

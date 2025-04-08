@@ -1,28 +1,21 @@
-// Libraries
-import type React from 'react'
-import { useState, useRef, useCallback, type CSSProperties, useEffect } from 'react'
-import cx from 'classnames'
+import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
+
 import {
+  type CellContext,
+  type Column,
+  type ColumnPinningPosition,
+  type PaginationState,
+  type TableOptions,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  type CellContext,
-  type Column,
-  type PaginationState,
-  type TableOptions,
-  type ColumnPinningPosition,
 } from '@tanstack/react-table'
-import { useViewportSize } from 'jsapp/js/hooks/useViewportSize'
-
-// Partial components
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Button from 'js/components/common/button'
-import KoboSelect from 'js/components/common/koboSelect'
-
-// Utilities
-import { generateUuid } from 'js/utils'
-
-// Styles
+import cx from 'classnames'
+import Button from '#/components/common/button'
+import KoboSelect from '#/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { useViewportSize } from '#/hooks/useViewportSize'
+import { generateUuid } from '#/utils'
 import styles from './universalTable.module.scss'
 
 export interface UniversalTableColumn<DataItem> {
@@ -233,7 +226,7 @@ export default function UniversalTable<DataItem>(props: UniversalTableProps<Data
   // guess if there is a horizontal scrollbar
   useEffect(() => {
     const columnsWidth = table.getTotalSize()
-    let containerWidth = Infinity
+    let containerWidth = Number.POSITIVE_INFINITY
     if (tableContainerRef.current) {
       containerWidth = tableContainerRef.current.offsetWidth
     }

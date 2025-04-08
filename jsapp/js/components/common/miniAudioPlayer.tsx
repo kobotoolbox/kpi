@@ -1,9 +1,11 @@
+import '#/components/common/miniAudioPlayer.scss'
+
 import React, { createRef } from 'react'
-import bem, { makeBem } from 'js/bem'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
-import { formatSeconds, generateUuid, notify } from 'js/utils'
-import 'js/components/common/miniAudioPlayer.scss'
+
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import { formatSeconds, generateUuid, notify } from '#/utils'
 
 bem.MiniAudioPlayer = makeBem(null, 'mini-audio-player')
 bem.MiniAudioPlayer__time = makeBem(bem.MiniAudioPlayer, 'time', 'time')
@@ -108,10 +110,10 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   }
 
   onButtonClick() {
-    if (!this.state.isPlaying) {
-      this.start()
-    } else {
+    if (this.state.isPlaying) {
       this.stop()
+    } else {
+      this.start()
     }
 
     this.setState({

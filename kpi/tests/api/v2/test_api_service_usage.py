@@ -21,8 +21,8 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         """
         Test the endpoint aggregates all data correctly
         """
-        self._create_asset()
-        self.add_nlp_trackers()
+        self._create_and_set_asset()
+        self.add_standard_nlp_trackers()
         self.add_submissions(count=1)
 
         url = reverse(self._get_endpoint('service-usage-list'))
@@ -42,10 +42,10 @@ class ServiceUsageAPITestCase(BaseServiceUsageTestCase):
         Test that the endpoint functions with multiple assets and the data is
         aggregated properly with
         """
-        self._create_asset()
+        self._create_and_set_asset()
         self.add_submissions(count=1)
 
-        self._create_asset()
+        self._create_and_set_asset()
         self.add_submissions()
 
         url = reverse(self._get_endpoint('service-usage-list'))

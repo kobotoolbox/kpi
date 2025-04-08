@@ -145,7 +145,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self._xform = publish_xls_form(xlsx_file, self.asset.owner)
         self._xform.downloadable = active
         self._xform.kpi_asset_uid = self.asset.uid
-        self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform.save(
+            update_fields=['downloadable', 'kpi_asset_uid', 'date_modified']
+        )
 
         self.store_data(
             {
@@ -629,7 +631,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 logging.warning(
                     f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
                 )
-            self.save_to_db({'enketo_id': enketo_id})
+            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
         if self.xform.require_auth:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.

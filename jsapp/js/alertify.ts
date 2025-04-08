@@ -1,10 +1,11 @@
 // This is a collection of DRY wrappers for alertifyjs.
-import alertify from 'alertifyjs'
-import { KeyNames } from 'js/constants'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import { escapeHtml } from 'js/utils'
 import type { ReactElement } from 'react'
+
+import alertify from 'alertifyjs'
 import ReactDOMServer from 'react-dom/server'
+import { KeyNames } from '#/constants'
+import type { IconName } from '#/k-icons'
+import { escapeHtml } from '#/utils'
 
 interface MultiConfirmButton {
   label: string
@@ -42,63 +43,61 @@ export function multiConfirm(confirmId: string, title: string, message: string, 
     // define new alertify dialog
     alertify.dialog(
       confirmId,
-      function () {
-        return {
-          setup: function () {
-            const buttonsArray: AlertifyButton[] = []
-            buttons.forEach((button, i) => {
-              let buttonLabel = button.label
-              if (button.icon) {
-                buttonLabel = `
+      () => ({
+        setup: () => {
+          const buttonsArray: AlertifyButton[] = []
+          buttons.forEach((button, i) => {
+            let buttonLabel = button.label
+            if (button.icon) {
+              buttonLabel = `
                   <span>
                     <i class="k-icon ${button.icon}"></i>
                     ${button.label}
                   </span>
                 `
-              }
+            }
 
-              let buttonClass = alertify.defaults.theme.input
-              if (button.color === 'blue') {
-                buttonClass = alertify.defaults.theme.ok
-              } else if (button.color === 'red') {
-                buttonClass = alertify.defaults.theme.cancel
-              }
+            let buttonClass = alertify.defaults.theme.input
+            if (button.color === 'blue') {
+              buttonClass = alertify.defaults.theme.ok
+            } else if (button.color === 'red') {
+              buttonClass = alertify.defaults.theme.cancel
+            }
 
-              buttonsArray.push({
-                text: buttonLabel,
-                className: buttonClass,
-                // primary is needed to not change for disabling below to work
-                scope: 'primary',
-                element: undefined,
-                index: i,
-              })
+            buttonsArray.push({
+              text: buttonLabel,
+              className: buttonClass,
+              // primary is needed to not change for disabling below to work
+              scope: 'primary',
+              element: undefined,
+              index: i,
             })
-            return {
-              buttons: buttonsArray,
-              options: {
-                title: title,
-                basic: false,
-                movable: false,
-                resizable: false,
-                closable: true,
-                maximizable: false,
-                pinnable: false,
-              },
-            }
-          },
-          prepare: function () {
-            if (message && this.setContent) {
-              this.setContent(escapeHtml(message))
-            }
-          },
-          settings: {
-            onclick: Function.prototype,
-          },
-          callback: function (closeEvent: MultiConfirmButtonCloseEvent) {
-            this.settings.onclick(closeEvent)
-          },
-        }
-      },
+          })
+          return {
+            buttons: buttonsArray,
+            options: {
+              title: title,
+              basic: false,
+              movable: false,
+              resizable: false,
+              closable: true,
+              maximizable: false,
+              pinnable: false,
+            },
+          }
+        },
+        prepare: function () {
+          if (message && this.setContent) {
+            this.setContent(escapeHtml(message))
+          }
+        },
+        settings: {
+          onclick: Function.prototype,
+        },
+        callback: function (closeEvent: MultiConfirmButtonCloseEvent) {
+          this.settings.onclick(closeEvent)
+        },
+      }),
       false,
       'confirm',
     )
@@ -114,7 +113,7 @@ export function multiConfirm(confirmId: string, title: string, message: string, 
   }
 
   dialog.set({
-    onclick: function (closeEvent: MultiConfirmButtonCloseEvent) {
+    onclick: (closeEvent: MultiConfirmButtonCloseEvent) => {
       const foundButton = buttons[closeEvent.index]
       // button click operates on the button array indexes to know which
       // callback needs to be triggered
@@ -122,10 +121,10 @@ export function multiConfirm(confirmId: string, title: string, message: string, 
         foundButton.callback()
       }
     },
-    onshow: function () {
+    onshow: () => {
       document.addEventListener('keyup', killMe)
     },
-    onclose: function () {
+    onclose: () => {
       document.removeEventListener('keyup', killMe)
     },
   })

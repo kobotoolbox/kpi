@@ -1,7 +1,8 @@
 import React from 'react'
+
+import { fromJS } from 'immutable'
 import { createRoot } from 'react-dom/client'
 import KoboMatrix from './containers/KoboMatrix'
-import { fromJS } from 'immutable'
 
 /*
 Initially, this KoboMatrixRow class will be an intermediary between
@@ -9,12 +10,12 @@ the react interface and the backbone `model.row` code.
 */
 class KoboMatrixRow {
   constructor(model) {
-    let obj2 = {}
+    const obj2 = {}
     const _o = model
     obj2.label = _o.getValue('label')
     var choices = {}
 
-    Object.keys(_o.items).forEach(function (key) {
+    Object.keys(_o.items).forEach((key) => {
       if (_o.items[key] && _o.items[key].options) {
         _o.items[key].options.map((item) => {
           const { $kuid } = item.attributes
@@ -44,7 +45,7 @@ class KoboMatrixRow {
 }
 
 export function renderKobomatrix(view, el) {
-  let model = new KoboMatrixRow(view.model)
+  const model = new KoboMatrixRow(view.model)
   const root = createRoot(el.get(0))
   root.render(<KoboMatrix model={model} />)
   // TODO: should this root be unmounted at some point?

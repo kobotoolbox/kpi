@@ -1,15 +1,16 @@
 import React from 'react'
+
+import autoBind from 'react-autobind'
 import ReactDOM from 'react-dom'
 import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
 import Reflux from 'reflux'
-import { stores } from 'js/stores'
-import bem from 'js/bem'
-import { searches } from 'js/searches'
-import AssetName from 'js/components/common/assetName'
-import { COMMON_QUERIES, ASSET_TYPES } from 'js/constants'
-import { ListSearch, ListTagFilter, ListCollectionFilter, ListExpandToggle } from 'js/components/list'
-import pageState from 'js/pageState.store'
+import bem from '#/bem'
+import AssetName from '#/components/common/assetName'
+import { ListCollectionFilter, ListExpandToggle, ListSearch, ListTagFilter } from '#/components/list'
+import { ASSET_TYPES, COMMON_QUERIES } from '#/constants'
+import pageState from '#/pageState.store'
+import { searches } from '#/searches'
+import { stores } from '#/stores'
 
 class AssetNavigatorListView extends React.Component {
   constructor(props) {
@@ -178,8 +179,8 @@ class AssetNavigator extends Reflux.Component {
   }
 
   toggleTagSelected(tag) {
-    let tags = this.state.selectedTags
-    let _ti = tags.indexOf(tag)
+    const tags = this.state.selectedTags
+    const _ti = tags.indexOf(tag)
     if (_ti === -1) {
       tags.push(tag)
     } else {

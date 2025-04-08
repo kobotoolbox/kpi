@@ -1,6 +1,6 @@
 import chai from 'chai'
 import type { ProjectsFilterDefinition } from './constants'
-import { removeIncorrectFilters, buildQueriesFromFilters } from './utils'
+import { buildQueriesFromFilters, removeIncorrectFilters } from './utils'
 
 describe('projectViewsUtils', () => {
   describe('removeIncorrectFilters', () => {

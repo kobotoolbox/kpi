@@ -1,4 +1,4 @@
-# js/hooks
+# #/hooks
 
 A folder for [custom React hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) that are re-used between multiple features.
 

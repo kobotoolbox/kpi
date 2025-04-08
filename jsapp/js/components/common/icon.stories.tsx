@@ -1,7 +1,6 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
+import { IconNames } from '#/k-icons'
 import Icon from './icon'
-import { IconNames } from 'jsapp/fonts/k-icons'
 import type { IconColor } from './icon'
 
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']

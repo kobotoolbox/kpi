@@ -1,7 +1,5 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-
-import { IconNames } from 'jsapp/fonts/k-icons'
+import { IconNames } from '#/k-icons'
 import Badge from './badge'
 import type { BadgeColor, BadgeSize } from './badge'
 

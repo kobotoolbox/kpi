@@ -1,21 +1,23 @@
-import React from 'react'
-import autoBind from 'react-autobind'
-import alertify from 'alertifyjs'
-import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils'
-import Select from 'react-select'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import Checkbox from 'js/components/common/checkbox'
-import TextBox from 'js/components/common/textBox'
-import Button from 'js/components/common/button'
-import MultiCheckbox from 'js/components/common/multiCheckbox'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import envStore from 'js/envStore'
-import { generateAutoname, escapeHtml } from 'js/utils'
-import { MODAL_TYPES, MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
-import pageState from 'js/pageState.store'
 import './connect-projects.scss'
+
+import React from 'react'
+
+import alertify from 'alertifyjs'
+import autoBind from 'react-autobind'
+import Select from 'react-select'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import MultiCheckbox from '#/components/common/multiCheckbox'
+import TextBox from '#/components/common/textBox'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import dataAttachmentsUtils from '#/components/dataAttachments/dataAttachmentsUtils'
+import { MAX_DISPLAYED_STRING_LENGTH, MODAL_TYPES } from '#/constants'
+import envStore from '#/envStore'
+import pageState from '#/pageState.store'
+import { escapeHtml, generateAutoname } from '#/utils'
 
 const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
 
@@ -211,9 +213,11 @@ class ConnectProjects extends React.Component {
       },
     }
 
-    if (!this.state.isShared) {
-      let dialog = alertify.dialog('confirm')
-      let opts = {
+    if (this.state.isShared) {
+      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
+    } else {
+      const dialog = alertify.dialog('confirm')
+      const opts = {
         title: `${t('Privacy Notice')}`,
         message: t(
           'This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.',
@@ -226,8 +230,6 @@ class ConnectProjects extends React.Component {
         oncancel: dialog.destroy,
       }
       dialog.set(opts).show()
-    } else {
-      actions.dataShare.toggleDataSharing(this.props.asset.uid, data)
     }
   }
 
@@ -275,7 +277,7 @@ class ConnectProjects extends React.Component {
    */
 
   generateFilteredAssetList() {
-    let attachedSourceUids = []
+    const attachedSourceUids = []
     this.state.attachedSources.forEach((item) => {
       attachedSourceUids.push(item.sourceUid)
     })
@@ -305,7 +307,7 @@ class ConnectProjects extends React.Component {
 
   renderSelect() {
     if (this.state.sharingEnabledAssets !== null) {
-      let sharingEnabledAssets = this.generateFilteredAssetList()
+      const sharingEnabledAssets = this.generateFilteredAssetList()
 
       return (
         <bem.KoboSelect__wrapper

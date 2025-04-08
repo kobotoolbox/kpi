@@ -1,7 +1,6 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import KoboSelect from 'js/components/common/koboSelect'
-import { IconNames } from 'jsapp/fonts/k-icons'
+import KoboSelect from '#/components/common/koboSelect'
+import { IconNames } from '#/k-icons'
 
 const meta: Meta<typeof KoboSelect> = {
   title: 'commonDeprecated/KoboSelect',

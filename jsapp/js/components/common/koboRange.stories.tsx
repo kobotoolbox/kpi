@@ -1,7 +1,5 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-
-import KoboRange, { KoboRangeColors } from 'js/components/common/koboRange'
+import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
 
 const meta: Meta<typeof KoboRange> = {
   title: 'common/KoboRange',

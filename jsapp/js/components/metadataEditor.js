@@ -1,14 +1,16 @@
-import React from 'react'
-import autoBind from 'react-autobind'
-import Checkbox from 'js/components/common/checkbox'
-import TextBox from 'js/components/common/textBox'
-import Icon from 'js/components/common/icon'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import Select from 'react-select'
-import { QuestionTypeName, META_QUESTION_TYPES, SURVEY_DETAIL_ATTRIBUTES, FUNCTION_TYPE } from 'js/constants'
-import bem, { makeBem } from 'js/bem'
-import envStore from 'js/envStore'
 import './metadataEditor.scss'
+
+import React from 'react'
+
+import autoBind from 'react-autobind'
+import Select from 'react-select'
+import bem, { makeBem } from '#/bem'
+import Checkbox from '#/components/common/checkbox'
+import Icon from '#/components/common/icon'
+import TextBox from '#/components/common/textBox'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import { FUNCTION_TYPE, META_QUESTION_TYPES, QuestionTypeName, SURVEY_DETAIL_ATTRIBUTES } from '#/constants'
+import envStore from '#/envStore'
 
 bem.FormBuilderMeta = makeBem(null, 'form-builder-meta')
 bem.FormBuilderMeta__columns = makeBem(bem.FormBuilderMeta, 'columns')
@@ -169,7 +171,7 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES['start-geopoint'],
     ]
 
-    let backgroundAudioProp = this.getMetaProperty(QuestionTypeName['background-audio'])
+    const backgroundAudioProp = this.getMetaProperty(QuestionTypeName['background-audio'])
 
     return (
       <bem.FormBuilderMeta>

@@ -1,15 +1,16 @@
-import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import { observer } from 'mobx-react'
-import sessionStore from 'js/stores/session'
-import QRCode from 'qrcode.react'
-import Button from 'js/components/common/button'
-import TextBox from 'js/components/common/textBox'
-import type { MfaActivatedResponse, MfaBackupCodesResponse } from 'js/actions/mfaActions'
-import mfaActions from 'js/actions/mfaActions'
-import { currentLang } from 'js/utils'
-import envStore from 'js/envStore'
 import './mfaModals.scss'
+
+import React from 'react'
+
+import { observer } from 'mobx-react'
+import QRCode from 'qrcode.react'
+import type { MfaActivatedResponse, MfaBackupCodesResponse } from '#/actions/mfaActions'
+import mfaActions from '#/actions/mfaActions'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
 
 bem.MFAModal = makeBem(null, 'mfa-modal')
 

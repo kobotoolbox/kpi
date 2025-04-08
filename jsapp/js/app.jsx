@@ -1,38 +1,35 @@
 /**
  * A component with common layout elements for all routes.
  */
+import '#/bemComponents' // importing it so it exists
+import '#/surveyCompanionStore' // importing it so it exists
 
 import React from 'react'
-import DocumentTitle from 'react-document-title'
-import { Outlet } from 'react-router-dom'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
-import 'js/surveyCompanionStore' // importing it so it exists
-import {} from 'js/bemComponents' // importing it so it exists
-import bem from 'js/bem'
-import mixins from 'js/mixins'
-import MainHeader from 'js/components/header/mainHeader.component'
-import Drawer from 'js/components/drawer'
-import FormViewSideTabs from 'js/components/formViewSideTabs'
-import ProjectTopTabs from 'js/project/projectTopTabs.component'
-import BigModal from 'js/components/bigModal/bigModal'
-import ToasterConfig from './toasterConfig'
-import { withRouter, routerGetAssetId, router } from './router/legacy'
-import { Tracking } from './router/useTracking'
-import InvalidatedPassword from 'js/router/invalidatedPassword.component'
-import { RootContextProvider } from 'js/rootContextProvider.component'
-import TOSAgreement from 'js/router/tosAgreement.component'
-import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from 'js/router/routerUtils'
-import { isAnyProcessingRouteActive } from 'js/components/processing/routes.utils'
-import pageState from 'js/pageState.store'
 
-import '@mantine/core/styles.css'
 import { MantineProvider } from '@mantine/core'
-
-// Query-related
 import { QueryClientProvider } from '@tanstack/react-query'
+import DocumentTitle from 'react-document-title'
+import reactMixin from 'react-mixin'
+import { Outlet } from 'react-router-dom'
+import Reflux from 'reflux'
+import bem from '#/bem'
+import BigModal from '#/components/bigModal/bigModal'
+import Drawer from '#/components/drawer'
+import FormViewSideTabs from '#/components/formViewSideTabs'
+import MainHeader from '#/components/header/mainHeader.component'
+import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
+import mixins from '#/mixins'
+import pageState from '#/pageState.store'
+import ProjectTopTabs from '#/project/projectTopTabs.component'
+import { RootContextProvider } from '#/rootContextProvider.component'
+import InvalidatedPassword from '#/router/invalidatedPassword.component'
+import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
+import TOSAgreement from '#/router/tosAgreement.component'
 import { queryClient } from './query/queryClient.ts'
+import { router, routerGetAssetId, withRouter } from './router/legacy'
+import { Tracking } from './router/useTracking'
 import { themeKobo } from './theme'
+import ToasterConfig from './toasterConfig'
 
 class App extends React.Component {
   constructor(props) {

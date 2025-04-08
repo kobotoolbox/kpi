@@ -1,18 +1,29 @@
-export const simpleSurvey = [
+import {
+  AssetTypeName,
+  GroupTypeBeginName,
+  GroupTypeEndName,
+  MetaQuestionTypeName,
+  MiscRowTypeName,
+  QuestionTypeName,
+} from '#/constants'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { type DisplayGroup, DisplayGroupTypeName } from './submissionUtils'
+
+export const simpleSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: '9PMXyB7Sv',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'AkKyOYSIP',
     $autoname: 'end',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'uw4if17',
     label: ['First name', 'Pierwsze imię'],
     required: false,
@@ -20,13 +31,13 @@ export const simpleSurvey = [
   },
   {
     name: 'group_favourites',
-    type: 'begin_group',
+    type: GroupTypeBeginName.begin_group,
     $kuid: 'fx8qb06',
     label: ['Favourites', 'Ulubione'],
     $autoname: 'group_favourites',
   },
   {
-    type: 'select_one',
+    type: QuestionTypeName.select_one,
     $kuid: 'az1fc41',
     label: ['Favourite color', 'Ulubiony kolor'],
     required: false,
@@ -34,32 +45,85 @@ export const simpleSurvey = [
     select_from_list_name: 'fav_col_list',
   },
   {
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'ka9pv41',
     label: ['Favourite number', 'Ulubiona liczba'],
     required: false,
     $autoname: 'Favourite_number',
   },
   {
-    type: 'end_group',
+    type: GroupTypeEndName.end_group,
     $kuid: '/fx8qb06',
   },
 ]
 
-export const simpleSurveyChoices = [
+export const simpleSurveyChoices: SurveyChoice[] = [
   {
     name: 'pink',
     label: ['Pink'],
     list_name: 'fav_col_list',
+    $autovalue: '',
+    $kuid: '',
   },
   {
     name: 'blue',
     label: ['Blue'],
     list_name: 'fav_col_list',
+    $autovalue: '',
+    $kuid: '',
   },
 ]
 
-export const simpleSurveySubmission = {
+export const simpleSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: simpleSurvey,
+    choices: simpleSurveyChoices,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const simpleSurveySubmission: SubmissionResponse = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -71,6 +135,7 @@ export const simpleSurveySubmission = {
   _submitted_by: null,
   _tags: [],
   _uuid: 'faa38eee-4e3f-419e-bac0-e95f1085d998',
+  'meta/rootUuid': 'uuid:faa38eee-4e3f-419e-bac0-e95f1085d998',
   _validation_status: {},
   _xform_id_string: 'afKfAnPYX3X7kojqM2cJDb',
   end: '2020-04-06T13:11:41.006+02:00',
@@ -82,7 +147,7 @@ export const simpleSurveySubmission = {
   start: '2020-04-06T13:11:31.421+02:00',
 }
 
-export const simpleSurveySubmissionEmpty = {
+export const simpleSurveySubmissionEmpty: SubmissionResponse = {
   __version__: 'vHNo5vFh3KoB7LWhucUkFy',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -94,6 +159,7 @@ export const simpleSurveySubmissionEmpty = {
   _submitted_by: null,
   _tags: [],
   _uuid: '69ff2e33-4d4b-4891-8c81-82d7316cf51f',
+  'meta/rootUuid': 'uuid:69ff2e33-4d4b-4891-8c81-82d7316cf51f',
   _validation_status: {},
   _xform_id_string: 'afKfAnPYX3X7kojqM2cJDb',
   end: '2020-04-08T10:46:41.882+02:00',
@@ -103,120 +169,182 @@ export const simpleSurveySubmissionEmpty = {
   start: '2020-04-08T10:46:34.957+02:00',
 }
 
-export const simpleSurveyDisplayData = [
-  {
-    type: 'text',
-    label: 'Pierwsze imię',
-    name: 'First_name',
-    data: 'Leszek',
-    xpath: 'First_name',
-  },
-  {
-    type: 'group_regular',
-    label: 'Ulubione',
-    name: 'group_favourites',
-    children: [
-      {
-        type: 'select_one',
-        label: 'Ulubiony kolor',
-        name: 'Favourite_color',
-        listName: 'fav_col_list',
-        data: 'pink',
-        xpath: 'group_favourites/Favourite_color',
-      },
-      {
-        type: 'integer',
-        label: 'Ulubiona liczba',
-        name: 'Favourite_number',
-        data: '24',
-        xpath: 'group_favourites/Favourite_number',
-      },
-    ],
-  },
-]
+export const simpleSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: QuestionTypeName.text,
+      label: 'Pierwsze imię',
+      name: 'First_name',
+      data: 'Leszek',
+      xpath: 'First_name',
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Ulubione',
+      name: 'group_favourites',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.select_one,
+          label: 'Ulubiony kolor',
+          name: 'Favourite_color',
+          listName: 'fav_col_list',
+          data: 'pink',
+          xpath: 'group_favourites/Favourite_color',
+        },
+        {
+          type: QuestionTypeName.integer,
+          label: 'Ulubiona liczba',
+          name: 'Favourite_number',
+          data: '24',
+          xpath: 'group_favourites/Favourite_number',
+        },
+      ],
+    },
+  ],
+}
 
-export const simpleSurveyDisplayDataEmpty = [
-  {
-    type: 'text',
-    label: 'First name',
-    name: 'First_name',
-    data: null,
-    xpath: 'First_name',
-  },
-  {
-    type: 'group_regular',
-    label: 'Favourites',
-    name: 'group_favourites',
-    children: [
-      {
-        type: 'select_one',
-        label: 'Favourite color',
-        name: 'Favourite_color',
-        listName: 'fav_col_list',
-        data: null,
-        xpath: 'group_favourites/Favourite_color',
-      },
-      {
-        type: 'integer',
-        label: 'Favourite number',
-        name: 'Favourite_number',
-        data: '5',
-        xpath: 'group_favourites/Favourite_number',
-      },
-    ],
-  },
-]
+export const simpleSurveyDisplayDataEmpty: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: QuestionTypeName.text,
+      label: 'First name',
+      name: 'First_name',
+      data: null,
+      xpath: 'First_name',
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Favourites',
+      name: 'group_favourites',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.select_one,
+          label: 'Favourite color',
+          name: 'Favourite_color',
+          listName: 'fav_col_list',
+          data: null,
+          xpath: 'group_favourites/Favourite_color',
+        },
+        {
+          type: QuestionTypeName.integer,
+          label: 'Favourite number',
+          name: 'Favourite_number',
+          data: '5',
+          xpath: 'group_favourites/Favourite_number',
+        },
+      ],
+    },
+  ],
+}
 
-export const repeatSurvey = [
+export const repeatSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: 'lMV6oqDcf',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'sdwqjbndr',
     $autoname: 'end',
   },
   {
     name: 'group_members',
-    type: 'begin_repeat',
+    type: GroupTypeBeginName.begin_repeat,
     $kuid: 'fd8yo77',
     label: ['Members'],
     required: false,
     $autoname: 'group_members',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'lm2ww64',
     label: ['First name'],
     required: false,
     $autoname: 'First_name',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'nf9gq14',
     label: ['Middle name'],
     required: false,
     $autoname: 'Middle_name',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'qt6mr31',
     label: ['Last name'],
     required: false,
     $autoname: 'Last_name',
   },
   {
-    type: 'end_repeat',
+    type: GroupTypeEndName.end_repeat,
     $kuid: '/fd8yo77',
   },
 ]
 
+export const repeatSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: repeatSurvey,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
-export const repeatSurveySubmission = {
+export const repeatSurveySubmission: SubmissionResponse = {
   _id: 17,
   _notes: [],
   __version__: 'v8khdgcT3SYb2HRJhMNtsE',
@@ -228,6 +356,7 @@ export const repeatSurveySubmission = {
   _submitted_by: null,
   _tags: [],
   _uuid: '651137b9-e465-49ed-9924-a67d7b1c6f76',
+  'meta/rootUuid': 'uuid:651137b9-e465-49ed-9924-a67d7b1c6f76',
   _validation_status: {},
   _xform_id_string: 'afmcL74BTjjRpdAJy52WGX',
   end: '2020-04-07T16:07:41.931+02:00',
@@ -246,117 +375,173 @@ export const repeatSurveySubmission = {
   start: '2020-04-07T16:07:24.044+02:00',
 }
 
-export const repeatSurveyDisplayData = [
-  {
-    type: 'group_repeat',
-    label: 'Members',
-    name: 'group_members',
-    children: [
-      {
-        type: 'text',
-        label: 'First name',
-        name: 'First_name',
-        data: 'Leszek',
-        xpath: 'group_members[1]/First_name',
-      },
-      {
-        type: 'text',
-        label: 'Middle name',
-        name: 'Middle_name',
-        data: 'Jan',
-        xpath: 'group_members[1]/Middle_name',
-      },
-      {
-        type: 'text',
-        label: 'Last name',
-        name: 'Last_name',
-        data: 'Pietrzak',
-        xpath: 'group_members[1]/Last_name',
-      },
-    ],
-  },
-  {
-    type: 'group_repeat',
-    label: 'Members',
-    name: 'group_members',
-    children: [
-      {
-        type: 'text',
-        label: 'First name',
-        name: 'First_name',
-        data: null,
-        xpath: 'group_members[2]/First_name',
-      },
-      {
-        type: 'text',
-        label: 'Middle name',
-        name: 'Middle_name',
-        data: null,
-        xpath: 'group_members[2]/Middle_name',
-      },
-      {
-        type: 'text',
-        label: 'Last name',
-        name: 'Last_name',
-        data: 'Niepietrzak',
-        xpath: 'group_members[2]/Last_name',
-      },
-    ],
-  },
-]
+export const repeatSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'Members',
+      name: 'group_members',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'First name',
+          name: 'First_name',
+          data: 'Leszek',
+          xpath: 'group_members[1]/First_name',
+        },
+        {
+          type: QuestionTypeName.text,
+          label: 'Middle name',
+          name: 'Middle_name',
+          data: 'Jan',
+          xpath: 'group_members[1]/Middle_name',
+        },
+        {
+          type: QuestionTypeName.text,
+          label: 'Last name',
+          name: 'Last_name',
+          data: 'Pietrzak',
+          xpath: 'group_members[1]/Last_name',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'Members',
+      name: 'group_members',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'First name',
+          name: 'First_name',
+          data: null,
+          xpath: 'group_members[2]/First_name',
+        },
+        {
+          type: QuestionTypeName.text,
+          label: 'Middle name',
+          name: 'Middle_name',
+          data: null,
+          xpath: 'group_members[2]/Middle_name',
+        },
+        {
+          type: QuestionTypeName.text,
+          label: 'Last name',
+          name: 'Last_name',
+          data: 'Niepietrzak',
+          xpath: 'group_members[2]/Last_name',
+        },
+      ],
+    },
+  ],
+}
 
-export const nestedRepeatSurvey = [
+export const nestedRepeatSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: 'Rq36zKyog',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'Redw9OtxY',
     $autoname: 'end',
   },
   {
-    type: 'begin_repeat',
+    type: GroupTypeBeginName.begin_repeat,
     label: ['People'],
     name: 'group_people',
     $kuid: 'aj45t09',
     $autoname: 'group_people',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     label: ['Name'],
     required: false,
     $kuid: 'bj78z02',
     $autoname: 'Name',
   },
   {
-    type: 'begin_repeat',
+    type: GroupTypeBeginName.begin_repeat,
     label: ['Personal items'],
     name: 'group_items',
     $kuid: 'te04d01',
     $autoname: 'group_items',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     label: ['Item name'],
     required: false,
     $kuid: 'fd1ec62',
     $autoname: 'Item_name',
   },
   {
-    type: 'end_repeat',
+    type: GroupTypeEndName.end_repeat,
     $kuid: '/te04d01',
   },
   {
-    type: 'end_repeat',
+    type: GroupTypeEndName.end_repeat,
     $kuid: '/aj45t09',
   },
 ]
 
-export const nestedRepeatSurveySubmission = {
+export const nestedRepeatSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: nestedRepeatSurvey,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const nestedRepeatSurveySubmission: SubmissionResponse = {
   __version__: 'v7sPQZCGQoW8JKYL5Kq79m',
   _attachments: [],
   _bamboo_dataset_id: '',
@@ -368,6 +553,7 @@ export const nestedRepeatSurveySubmission = {
   _submitted_by: null,
   _tags: [],
   _uuid: '83aa0573-8a44-42f7-885b-aa7a3afffbd1',
+  'meta/rootUuid': 'uuid:83aa0573-8a44-42f7-885b-aa7a3afffbd1',
   _validation_status: {},
   _xform_id_string: 'ahTnpQwdqrrp4fRKqUxj2p',
   end: '2020-04-08T13:22:56.270+02:00',
@@ -403,159 +589,171 @@ export const nestedRepeatSurveySubmission = {
   start: '2020-04-08T13:11:29.840+02:00',
 }
 
-export const nestedRepeatSurveyDisplayData = [
-  {
-    type: 'group_repeat',
-    label: 'People',
-    name: 'group_people',
-    children: [
-      {
-        type: 'text',
-        label: 'Name',
-        name: 'Name',
-        data: 'John',
-        xpath: 'group_people[1]/Name',
-      },
-      {
-        type: 'group_repeat',
-        label: 'Personal items',
-        name: 'group_items',
-        children: [
-          {
-            type: 'text',
-            label: 'Item name',
-            name: 'Item_name',
-            data: 'Notebook',
-            xpath: 'group_people[1]/group_items[1]/Item_name',
-          },
-        ],
-      },
-      {
-        type: 'group_repeat',
-        label: 'Personal items',
-        name: 'group_items',
-        children: [
-          {
-            type: 'text',
-            label: 'Item name',
-            name: 'Item_name',
-            data: 'Pen',
-            xpath: 'group_people[1]/group_items[2]/Item_name',
-          },
-        ],
-      },
-      {
-        type: 'group_repeat',
-        label: 'Personal items',
-        name: 'group_items',
-        children: [
-          {
-            type: 'text',
-            label: 'Item name',
-            name: 'Item_name',
-            data: 'Shoe',
-            xpath: 'group_people[1]/group_items[3]/Item_name',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'group_repeat',
-    label: 'People',
-    name: 'group_people',
-    children: [
-      {
-        type: 'text',
-        label: 'Name',
-        name: 'Name',
-        data: 'Leszek',
-        xpath: 'group_people[2]/Name',
-      },
-    ],
-  },
-  {
-    type: 'group_repeat',
-    label: 'People',
-    name: 'group_people',
-    children: [
-      {
-        type: 'text',
-        label: 'Name',
-        name: 'Name',
-        data: null,
-        xpath: 'group_people[3]/Name',
-      },
-      {
-        type: 'group_repeat',
-        label: 'Personal items',
-        name: 'group_items',
-        children: [
-          {
-            type: 'text',
-            label: 'Item name',
-            name: 'Item_name',
-            data: 'Computer',
-            xpath: 'group_people[3]/group_items[1]/Item_name',
-          },
-        ],
-      },
-    ],
-  },
-]
+export const nestedRepeatSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'People',
+      name: 'group_people',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'Name',
+          name: 'Name',
+          data: 'John',
+          xpath: 'group_people[1]/Name',
+        },
+        {
+          type: DisplayGroupTypeName.group_repeat,
+          label: 'Personal items',
+          name: 'group_items',
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Item name',
+              name: 'Item_name',
+              data: 'Notebook',
+              xpath: 'group_people[1]/group_items[1]/Item_name',
+            },
+          ],
+        },
+        {
+          type: DisplayGroupTypeName.group_repeat,
+          label: 'Personal items',
+          name: 'group_items',
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Item name',
+              name: 'Item_name',
+              data: 'Pen',
+              xpath: 'group_people[1]/group_items[2]/Item_name',
+            },
+          ],
+        },
+        {
+          type: DisplayGroupTypeName.group_repeat,
+          label: 'Personal items',
+          name: 'group_items',
+          xpathNodes: [{ childIndex: 1, childrenAreRepeatable: true, path: 'group_people' }],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Item name',
+              name: 'Item_name',
+              data: 'Shoe',
+              xpath: 'group_people[1]/group_items[3]/Item_name',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'People',
+      name: 'group_people',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'Name',
+          name: 'Name',
+          data: 'Leszek',
+          xpath: 'group_people[2]/Name',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'People',
+      name: 'group_people',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'Name',
+          name: 'Name',
+          data: null,
+          xpath: 'group_people[3]/Name',
+        },
+        {
+          type: DisplayGroupTypeName.group_repeat,
+          label: 'Personal items',
+          name: 'group_items',
+          xpathNodes: [{ childIndex: 3, childrenAreRepeatable: true, path: 'group_people' }],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Item name',
+              name: 'Item_name',
+              data: 'Computer',
+              xpath: 'group_people[3]/group_items[1]/Item_name',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
 
-export const matrixSurvey = [
+export const matrixSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: 'HVwODOAEK',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: '32gE3g5ST',
     $autoname: 'end',
   },
   {
     name: 'today',
-    type: 'today',
+    type: MetaQuestionTypeName.today,
     $kuid: '3h9Nl2bpx',
     $autoname: 'today',
   },
   {
     name: 'username',
-    type: 'username',
+    type: MetaQuestionTypeName.username,
     $kuid: '3RscqJRor',
     $autoname: 'username',
   },
   {
     name: 'deviceid',
-    type: 'deviceid',
+    type: MetaQuestionTypeName.deviceid,
     $kuid: 'll7GCh9oi',
     $autoname: 'deviceid',
   },
   {
     name: 'phonenumber',
-    type: 'phonenumber',
+    type: MetaQuestionTypeName.phonenumber,
     $kuid: 'b02UNLdMV',
     $autoname: 'phonenumber',
   },
   {
     name: 'countries',
-    type: 'begin_kobomatrix',
+    type: GroupTypeBeginName.begin_kobomatrix,
     $kuid: 'en5ri38',
     label: ['Countries'],
     required: false,
     $autoname: 'countries',
-    _isRepeat: 'false',
     appearance: 'field-list',
     'kobo--matrix_list': 'count_ch_list',
   },
   {
     hint: [''],
     name: 'ecology_level',
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'mi7ka64',
     label: ['Ecology level'],
     required: false,
@@ -565,7 +763,7 @@ export const matrixSurvey = [
   {
     hint: [''],
     name: 'secularity_level',
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'iy4fw00',
     label: ['Secularity level'],
     required: false,
@@ -573,12 +771,12 @@ export const matrixSurvey = [
     appearance: 'w1',
   },
   {
-    type: 'end_kobomatrix',
+    type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/en5ri38',
   },
 ]
 
-export const matrixSurveyChoices = [
+export const matrixSurveyChoices: SurveyChoice[] = [
   {
     name: 'poland',
     $kuid: 'wa9kl23',
@@ -588,11 +786,61 @@ export const matrixSurveyChoices = [
   },
 ]
 
-export const matrixSurveySubmission = {
+export const matrixSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: matrixSurvey,
+    choices: matrixSurveyChoices,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const matrixSurveySubmission: SubmissionResponse = {
   _id: 22,
   username: 'username not found',
   _validation_status: {},
   _uuid: 'a0039b58-1b2d-4445-912e-01e4ad56dbb4',
+  'meta/rootUuid': 'uuid:a0039b58-1b2d-4445-912e-01e4ad56dbb4',
   _bamboo_dataset_id: '',
   _tags: [],
   _submitted_by: null,
@@ -614,83 +862,91 @@ export const matrixSurveySubmission = {
   today: '2020-04-20',
 }
 
-export const matrixSurveyDisplayData = [
-  {
-    type: 'group_matrix',
-    label: 'Countries',
-    name: 'countries',
-    children: [
-      {
-        type: 'group_matrix_row',
-        label: 'Poland',
-        name: 'poland',
-        children: [
-          {
-            type: 'integer',
-            label: 'Ecology level',
-            name: 'ecology_level',
-            data: '3',
-            xpath: 'countries/ecology_level',
-          },
-          {
-            type: 'integer',
-            label: 'Secularity level',
-            name: 'secularity_level',
-            data: '-5',
-            xpath: 'countries/secularity_level',
-          },
-        ],
-      },
-    ],
-  },
-]
+export const matrixSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: DisplayGroupTypeName.group_matrix,
+      label: 'Countries',
+      name: 'countries',
+      xpathNodes: [],
+      children: [
+        {
+          type: DisplayGroupTypeName.group_matrix_row,
+          label: 'Poland',
+          name: 'poland',
+          xpathNodes: [],
+          children: [
+            {
+              type: QuestionTypeName.integer,
+              label: 'Ecology level',
+              name: 'ecology_level',
+              data: '3',
+              xpath: 'countries/ecology_level',
+            },
+            {
+              type: QuestionTypeName.integer,
+              label: 'Secularity level',
+              name: 'secularity_level',
+              data: '-5',
+              xpath: 'countries/secularity_level',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
 
-export const groupsSurvey = [
+export const groupsSurvey: SurveyRow[] = [
   {
     name: 'group_people',
-    type: 'begin_repeat',
+    type: GroupTypeBeginName.begin_repeat,
     $kuid: 'fs1km00',
     label: ['People'],
     $autoname: 'group_people',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'sr97c95',
     label: ['First name'],
     required: false,
     $autoname: 'First_name',
   },
   {
-    type: 'end_repeat',
+    type: GroupTypeEndName.end_repeat,
     $kuid: '/fs1km00',
   },
   {
     name: 'group_location',
-    type: 'begin_group',
+    type: GroupTypeBeginName.begin_group,
     $kuid: 'lq0th66',
     label: ['Location'],
     $autoname: 'group_location',
   },
   {
-    type: 'geopoint',
+    type: QuestionTypeName.geopoint,
     $kuid: 'ug36q69',
     label: ['Original location'],
     required: false,
     $autoname: 'Original_location',
   },
   {
-    type: 'geopoint',
+    type: QuestionTypeName.geopoint,
     $kuid: 'kw6zd49',
     label: ['Current location'],
     required: false,
     $autoname: 'Current_location',
   },
   {
-    type: 'end_group',
+    type: GroupTypeEndName.end_group,
     $kuid: '/lq0th66',
   },
   {
-    type: 'begin_score',
+    type: GroupTypeBeginName.begin_score,
     $kuid: 'rd0zi80',
     label: ['Are you vegan?'],
     required: false,
@@ -698,23 +954,23 @@ export const groupsSurvey = [
     'kobo--score-choices': 'vg_ch_list',
   },
   {
-    type: 'score__row',
+    type: MiscRowTypeName.score__row,
     $kuid: 'as5gb66',
     label: ['Killing humans'],
     $autoname: 'Killing_humans',
   },
   {
-    type: 'score__row',
+    type: MiscRowTypeName.score__row,
     $kuid: 'kv3uq84',
     label: ['Killing nonhumans'],
     $autoname: 'Killing_nonhumans',
   },
   {
-    type: 'end_score',
+    type: GroupTypeEndName.end_score,
     $kuid: '/rd0zi80',
   },
   {
-    type: 'begin_rank',
+    type: GroupTypeBeginName.begin_rank,
     $kuid: 'bj3zo95',
     label: ['Best things in life'],
     required: false,
@@ -723,41 +979,40 @@ export const groupsSurvey = [
     'kobo--rank-constraint-message': 'Items cannot be selected more than once',
   },
   {
-    type: 'rank__level',
+    type: MiscRowTypeName.rank__level,
     $kuid: 'yy8lt23',
     label: ['1st choice'],
     $autoname: '_1st_choice',
   },
   {
-    type: 'rank__level',
+    type: MiscRowTypeName.rank__level,
     $kuid: 'll0ky89',
     label: ['2nd choice'],
     $autoname: '_2nd_choice',
   },
   {
-    type: 'rank__level',
+    type: MiscRowTypeName.rank__level,
     $kuid: 'cz6uz72',
     label: ['3rd choice'],
     $autoname: '_3rd_choice',
   },
   {
-    type: 'end_rank',
+    type: GroupTypeEndName.end_rank,
     $kuid: '/bj3zo95',
   },
   {
     name: 'group_crossbreeding',
-    type: 'begin_kobomatrix',
+    type: GroupTypeBeginName.begin_kobomatrix,
     $kuid: 'vs75w20',
     label: ['Crossbreeding'],
     $autoname: 'group_crossbreeding',
-    _isRepeat: 'false',
     appearance: 'field-list',
     'kobo--matrix_list': 'crossbr_ch_list',
   },
   {
     hint: [''],
     name: 'human',
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'ji8zj93',
     label: ['Human'],
     required: false,
@@ -767,7 +1022,7 @@ export const groupsSurvey = [
   {
     hint: [''],
     name: 'nonhuman',
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'on6ec28',
     label: ['Nonhuman'],
     required: false,
@@ -775,12 +1030,12 @@ export const groupsSurvey = [
     appearance: 'w1',
   },
   {
-    type: 'end_kobomatrix',
+    type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/vs75w20',
   },
 ]
 
-export const groupsSurveyChoices = [
+export const groupsSurveyChoices: SurveyChoice[] = [
   {
     name: 'good',
     $kuid: '4g11EC3jB',
@@ -832,11 +1087,61 @@ export const groupsSurveyChoices = [
   },
 ]
 
-export const groupsSurveySubmission = {
+export const groupsSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: groupsSurvey,
+    choices: groupsSurveyChoices,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const groupsSurveySubmission: SubmissionResponse = {
   _id: 23,
   'Are_you_vegan/Killing_humans': 'good',
   _validation_status: {},
   _uuid: '846a669e-299e-4650-bdfa-05bcf34622e2',
+  'meta/rootUuid': 'uuid:846a669e-299e-4650-bdfa-05bcf34622e2',
   _bamboo_dataset_id: '',
   _tags: [],
   'Best_things_in_life/_2nd_choice': 'sleep',
@@ -867,178 +1172,193 @@ export const groupsSurveySubmission = {
   _status: 'submitted_via_web',
   __version__: 'vN4myUe5KyYrGN4dGrpBid',
   today: '2020-04-23',
+  _geolocation: [null, null],
 }
 
-export const groupsSurveyDisplayData = [
-  {
-    type: 'group_repeat',
-    label: 'People',
-    name: 'group_people',
-    children: [
-      {
-        type: 'text',
-        label: 'First name',
-        name: 'First_name',
-        data: 'Leszek',
-        xpath: 'group_people[1]/First_name',
-      },
-    ],
-  },
-  {
-    type: 'group_repeat',
-    label: 'People',
-    name: 'group_people',
-    children: [
-      {
-        type: 'text',
-        label: 'First name',
-        name: 'First_name',
-        data: 'John',
-        xpath: 'group_people[2]/First_name',
-      },
-    ],
-  },
-  {
-    type: 'group_regular',
-    label: 'Location',
-    name: 'group_location',
-    children: [
-      {
-        type: 'geopoint',
-        label: 'Original location',
-        name: 'Original_location',
-        data: '52.48278 18.813458 0 0',
-        xpath: 'group_location/Original_location',
-      },
-      {
-        type: 'geopoint',
-        label: 'Current location',
-        name: 'Current_location',
-        data: '53.748711 -7.880555 0 0',
-        xpath: 'group_location/Current_location',
-      },
-    ],
-  },
-  {
-    type: 'group_regular',
-    label: 'Are you vegan?',
-    name: 'Are_you_vegan',
-    children: [
-      {
-        type: 'score__row',
-        label: 'Killing humans',
-        name: 'Killing_humans',
-        listName: 'vg_ch_list',
-        data: 'good',
-        xpath: 'Are_you_vegan/Killing_humans',
-      },
-      {
-        type: 'score__row',
-        label: 'Killing nonhumans',
-        name: 'Killing_nonhumans',
-        listName: 'vg_ch_list',
-        data: 'bad',
-        xpath: 'Are_you_vegan/Killing_nonhumans',
-      },
-    ],
-  },
-  {
-    type: 'group_regular',
-    label: 'Best things in life',
-    name: 'Best_things_in_life',
-    children: [
-      {
-        type: 'rank__level',
-        label: '1st choice',
-        name: '_1st_choice',
-        listName: 'best_ch_list',
-        data: 'conquest',
-        xpath: 'Best_things_in_life/_1st_choice',
-      },
-      {
-        type: 'rank__level',
-        label: '2nd choice',
-        name: '_2nd_choice',
-        listName: 'best_ch_list',
-        data: 'sleep',
-        xpath: 'Best_things_in_life/_2nd_choice',
-      },
-      {
-        type: 'rank__level',
-        label: '3rd choice',
-        name: '_3rd_choice',
-        listName: 'best_ch_list',
-        data: 'food',
-        xpath: 'Best_things_in_life/_3rd_choice',
-      },
-    ],
-  },
-  {
-    type: 'group_matrix',
-    label: 'Crossbreeding',
-    name: 'group_crossbreeding',
-    children: [
-      {
-        type: 'group_matrix_row',
-        label: 'Fire',
-        name: 'fire',
-        children: [
-          {
-            type: 'text',
-            label: 'Human',
-            name: 'human',
-            data: 'fireman',
-            xpath: 'group_crossbreeding/human',
-          },
-          {
-            type: 'text',
-            label: 'Nonhuman',
-            name: 'nonhuman',
-            data: 'firething',
-            xpath: 'group_crossbreeding/nonhuman',
-          },
-        ],
-      },
-      {
-        type: 'group_matrix_row',
-        label: 'Water',
-        name: 'water',
-        children: [
-          {
-            type: 'text',
-            label: 'Human',
-            name: 'human',
-            data: 'waterman',
-            xpath: 'group_crossbreeding/human',
-          },
-          {
-            type: 'text',
-            label: 'Nonhuman',
-            name: 'nonhuman',
-            data: 'waterthing',
-            xpath: 'group_crossbreeding/nonhuman',
-          },
-        ],
-      },
-    ],
-  },
-]
+export const groupsSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'People',
+      name: 'group_people',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'First name',
+          name: 'First_name',
+          data: 'Leszek',
+          xpath: 'group_people[1]/First_name',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'People',
+      name: 'group_people',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.text,
+          label: 'First name',
+          name: 'First_name',
+          data: 'John',
+          xpath: 'group_people[2]/First_name',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Location',
+      name: 'group_location',
+      xpathNodes: [],
+      children: [
+        {
+          type: QuestionTypeName.geopoint,
+          label: 'Original location',
+          name: 'Original_location',
+          data: '52.48278 18.813458 0 0',
+          xpath: 'group_location/Original_location',
+        },
+        {
+          type: QuestionTypeName.geopoint,
+          label: 'Current location',
+          name: 'Current_location',
+          data: '53.748711 -7.880555 0 0',
+          xpath: 'group_location/Current_location',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Are you vegan?',
+      name: 'Are_you_vegan',
+      xpathNodes: [],
+      children: [
+        {
+          type: MiscRowTypeName.score__row,
+          label: 'Killing humans',
+          name: 'Killing_humans',
+          listName: 'vg_ch_list',
+          data: 'good',
+          xpath: 'Are_you_vegan/Killing_humans',
+        },
+        {
+          type: MiscRowTypeName.score__row,
+          label: 'Killing nonhumans',
+          name: 'Killing_nonhumans',
+          listName: 'vg_ch_list',
+          data: 'bad',
+          xpath: 'Are_you_vegan/Killing_nonhumans',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Best things in life',
+      name: 'Best_things_in_life',
+      xpathNodes: [],
+      children: [
+        {
+          type: MiscRowTypeName.rank__level,
+          label: '1st choice',
+          name: '_1st_choice',
+          listName: 'best_ch_list',
+          data: 'conquest',
+          xpath: 'Best_things_in_life/_1st_choice',
+        },
+        {
+          type: MiscRowTypeName.rank__level,
+          label: '2nd choice',
+          name: '_2nd_choice',
+          listName: 'best_ch_list',
+          data: 'sleep',
+          xpath: 'Best_things_in_life/_2nd_choice',
+        },
+        {
+          type: MiscRowTypeName.rank__level,
+          label: '3rd choice',
+          name: '_3rd_choice',
+          listName: 'best_ch_list',
+          data: 'food',
+          xpath: 'Best_things_in_life/_3rd_choice',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_matrix,
+      label: 'Crossbreeding',
+      name: 'group_crossbreeding',
+      xpathNodes: [],
+      children: [
+        {
+          type: DisplayGroupTypeName.group_matrix_row,
+          label: 'Fire',
+          name: 'fire',
+          xpathNodes: [],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Human',
+              name: 'human',
+              data: 'fireman',
+              xpath: 'group_crossbreeding/human',
+            },
+            {
+              type: QuestionTypeName.text,
+              label: 'Nonhuman',
+              name: 'nonhuman',
+              data: 'firething',
+              xpath: 'group_crossbreeding/nonhuman',
+            },
+          ],
+        },
+        {
+          type: DisplayGroupTypeName.group_matrix_row,
+          label: 'Water',
+          name: 'water',
+          xpathNodes: [],
+          children: [
+            {
+              type: QuestionTypeName.text,
+              label: 'Human',
+              name: 'human',
+              data: 'waterman',
+              xpath: 'group_crossbreeding/human',
+            },
+            {
+              type: QuestionTypeName.text,
+              label: 'Nonhuman',
+              name: 'nonhuman',
+              data: 'waterthing',
+              xpath: 'group_crossbreeding/nonhuman',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
 
-export const everythingSurvey = [
+export const everythingSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: 'hI2IjAPLy',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'xVomX5yES',
     $autoname: 'end',
   },
   {
-    type: 'select_one',
+    type: QuestionTypeName.select_one,
     $kuid: 'ys1bd14',
     label: ['Favourite country'],
     required: false,
@@ -1046,7 +1366,7 @@ export const everythingSurvey = [
     select_from_list_name: 'fav_cntr_list',
   },
   {
-    type: 'select_multiple',
+    type: QuestionTypeName.select_multiple,
     $kuid: 'ca8bv64',
     label: ['Favourite food'],
     required: false,
@@ -1054,56 +1374,56 @@ export const everythingSurvey = [
     select_from_list_name: 'fav_food_ch_list',
   },
   {
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'gr1hn65',
     label: ['Your name'],
     required: false,
     $autoname: 'Your_name',
   },
   {
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'vw1ya03',
     label: ['Lucky number'],
     required: false,
     $autoname: 'Lucky_number',
   },
   {
-    type: 'decimal',
+    type: QuestionTypeName.decimal,
     $kuid: 'ia1ux31',
     label: ['Unlucky number'],
     required: false,
     $autoname: 'Unlucky_number',
   },
   {
-    type: 'date',
+    type: QuestionTypeName.date,
     $kuid: 'vl8ck72',
     label: ['Birth date'],
     required: false,
     $autoname: 'Birth_date',
   },
   {
-    type: 'time',
+    type: QuestionTypeName.time,
     $kuid: 'qa9pv52',
     label: ['Birth time'],
     required: false,
     $autoname: 'Birth_time',
   },
   {
-    type: 'datetime',
+    type: QuestionTypeName.datetime,
     $kuid: 'cq0yk16',
     label: ['Some random date and time'],
     required: false,
     $autoname: 'Some_random_date_and_time',
   },
   {
-    type: 'geopoint',
+    type: QuestionTypeName.geopoint,
     $kuid: 'ib3wx74',
     label: ['Secret spot'],
     required: false,
     $autoname: 'Secret_spot',
   },
   {
-    type: 'image',
+    type: QuestionTypeName.image,
     $kuid: 'vu9cb06',
     label: ['Selfportrait'],
     required: false,
@@ -1111,56 +1431,56 @@ export const everythingSurvey = [
     parameters: 'max-pixels=1024',
   },
   {
-    type: 'audio',
+    type: QuestionTypeName.audio,
     $kuid: 'aa28j83',
     label: ['Voice password'],
     required: false,
     $autoname: 'Voice_password',
   },
   {
-    type: 'video',
+    type: QuestionTypeName.video,
     $kuid: 'tj2xw94',
     label: ['A video?'],
     required: false,
     $autoname: 'A_video',
   },
   {
-    type: 'geotrace',
+    type: QuestionTypeName.geotrace,
     $kuid: 'bh5yb78',
     label: ['Shortest path'],
     required: false,
     $autoname: 'Shortest_path',
   },
   {
-    type: 'note',
+    type: QuestionTypeName.note,
     $kuid: 'pg3yl90',
     label: ['This is a secret'],
     required: false,
     $autoname: 'This_is_a_secret',
   },
   {
-    type: 'barcode',
+    type: QuestionTypeName.barcode,
     $kuid: 'qu5zg17',
     label: ['Favourite chocolate barcode'],
     required: false,
     $autoname: 'Favourite_chocolate_barcode',
   },
   {
-    type: 'acknowledge',
+    type: QuestionTypeName.acknowledge,
     $kuid: 'ym87f54',
     label: ['Are you sane?'],
     required: false,
     $autoname: 'Are_you_sane',
   },
   {
-    type: 'geoshape',
+    type: QuestionTypeName.geoshape,
     $kuid: 'ua1av57',
     label: ['Secret area'],
     required: false,
     $autoname: 'Secret_area',
   },
   {
-    type: 'begin_score',
+    type: GroupTypeBeginName.begin_score,
     $kuid: 'yp8ep33',
     label: ['How are you?'],
     required: false,
@@ -1169,7 +1489,7 @@ export const everythingSurvey = [
   },
   {
     name: 'outside',
-    type: 'score__row',
+    type: MiscRowTypeName.score__row,
     $kuid: 'ir6tu76',
     label: ['Outside'],
     required: false,
@@ -1177,31 +1497,30 @@ export const everythingSurvey = [
   },
   {
     name: 'inside',
-    type: 'score__row',
+    type: MiscRowTypeName.score__row,
     $kuid: 'je4go60',
     label: ['Inside'],
     required: false,
     $autoname: 'inside',
   },
   {
-    type: 'end_score',
+    type: GroupTypeEndName.end_score,
     $kuid: '/yp8ep33',
   },
   {
     name: 'test_your_math',
-    type: 'begin_kobomatrix',
+    type: GroupTypeBeginName.begin_kobomatrix,
     $kuid: 'gy07t52',
     label: ['Test your math'],
     required: false,
     $autoname: 'test_your_math',
-    _isRepeat: 'false',
     appearance: 'field-list',
     'kobo--matrix_list': 'matrix_cb3fk35',
   },
   {
     hint: [''],
     name: 'plus',
-    type: 'integer',
+    type: QuestionTypeName.integer,
     $kuid: 'oh83n52',
     label: ['Plus'],
     required: false,
@@ -1211,7 +1530,7 @@ export const everythingSurvey = [
   {
     hint: [''],
     name: 'minus',
-    type: 'select_one',
+    type: QuestionTypeName.select_one,
     $kuid: 'gy9ev97',
     label: ['Minus'],
     required: false,
@@ -1220,11 +1539,11 @@ export const everythingSurvey = [
     select_from_list_name: 'min_ch_list',
   },
   {
-    type: 'end_kobomatrix',
+    type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/gy07t52',
   },
   {
-    type: 'begin_rank',
+    type: GroupTypeBeginName.begin_rank,
     $kuid: 'vs3yt07',
     label: ['Colours by brightness'],
     required: false,
@@ -1233,25 +1552,25 @@ export const everythingSurvey = [
     'kobo--rank-constraint-message': 'Items cannot be selected more than once',
   },
   {
-    type: 'rank__level',
+    type: MiscRowTypeName.rank__level,
     $kuid: 'yp71p21',
     label: ['1st choice'],
     required: false,
     $autoname: '_1st_choice',
   },
   {
-    type: 'rank__level',
+    type: MiscRowTypeName.rank__level,
     $kuid: 'ac8ez34',
     label: ['2nd choice'],
     required: false,
     $autoname: '_2nd_choice',
   },
   {
-    type: 'end_rank',
+    type: GroupTypeEndName.end_rank,
     $kuid: '/vs3yt07',
   },
   {
-    type: 'file',
+    type: QuestionTypeName.file,
     $kuid: 'dz9cv47',
     label: ['We need your CV'],
     required: false,
@@ -1259,7 +1578,7 @@ export const everythingSurvey = [
     'body::accept': 'txt',
   },
   {
-    type: 'range',
+    type: QuestionTypeName.range,
     $kuid: 'jb6ll34',
     label: ['Expected lifespan'],
     required: false,
@@ -1268,7 +1587,7 @@ export const everythingSurvey = [
   },
 ]
 
-export const everythingSurveyChoices = [
+export const everythingSurveyChoices: SurveyChoice[] = [
   {
     name: 'poland',
     $kuid: 'dVHZ9VigU',
@@ -1348,7 +1667,56 @@ export const everythingSurveyChoices = [
   },
 ]
 
-export const everythingSurveySubmission = {
+export const everythingSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: everythingSurvey,
+    choices: everythingSurveyChoices,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const everythingSurveySubmission: SubmissionResponse = {
   _id: 25,
   Secret_spot: '47.754098 3.426214 0 0',
   Favourite_chocolate_barcode: '123123123123',
@@ -1360,6 +1728,7 @@ export const everythingSurveySubmission = {
   _validation_status: {},
   We_need_your_CV: 'zamki-13_35_5.txt',
   _uuid: 'fdd252ee-860a-426c-be90-cbbf61787cb9',
+  'meta/rootUuid': 'uuid:fdd252ee-860a-426c-be90-cbbf61787cb9',
   _bamboo_dataset_id: '',
   _tags: [],
   _notes: [],
@@ -1396,6 +1765,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
       id: 6,
       xform: 18,
+      question_xpath: 'A_video',
     },
     {
       mimetype: 'audio/mpeg',
@@ -1412,6 +1782,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
       id: 5,
       xform: 18,
+      question_xpath: 'Voice_password',
     },
     {
       mimetype: 'text/plain',
@@ -1428,6 +1799,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
       id: 4,
       xform: 18,
+      question_xpath: 'We_need_your_CV',
     },
     {
       mimetype: 'image/jpeg',
@@ -1444,6 +1816,7 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
       id: 3,
       xform: 18,
+      question_xpath: 'Selfportrait',
     },
   ],
   Expected_lifespan: '88',
@@ -1458,246 +1831,255 @@ export const everythingSurveySubmission = {
   'test_your_math_2_and_4/test_your_math_2_and_4_plus': '7',
 }
 
-export const everythingSurveyDisplayData = [
-  {
-    type: 'select_one',
-    label: 'Favourite country',
-    name: 'Favourite_country',
-    listName: 'fav_cntr_list',
-    data: 'ireland',
-    xpath: 'Favourite_country',
-  },
-  {
-    type: 'select_multiple',
-    label: 'Favourite food',
-    name: 'Favourite_food',
-    listName: 'fav_food_ch_list',
-    data: 'pizza apple',
-    xpath: 'Favourite_food',
-  },
-  {
-    type: 'text',
-    label: 'Your name',
-    name: 'Your_name',
-    data: 'Leszek',
-    xpath: 'Your_name',
-  },
-  {
-    type: 'integer',
-    label: 'Lucky number',
-    name: 'Lucky_number',
-    data: '24',
-    xpath: 'Lucky_number',
-  },
-  {
-    type: 'decimal',
-    label: 'Unlucky number',
-    name: 'Unlucky_number',
-    data: '-7',
-    xpath: 'Unlucky_number',
-  },
-  {
-    type: 'date',
-    label: 'Birth date',
-    name: 'Birth_date',
-    data: '1900-04-10',
-    xpath: 'Birth_date',
-  },
-  {
-    type: 'time',
-    label: 'Birth time',
-    name: 'Birth_time',
-    data: '13:45:00.000+02:00',
-    xpath: 'Birth_time',
-  },
-  {
-    type: 'datetime',
-    label: 'Some random date and time',
-    name: 'Some_random_date_and_time',
-    data: '2020-04-02T01:33:00.000+02:00',
-    xpath: 'Some_random_date_and_time',
-  },
-  {
-    type: 'geopoint',
-    label: 'Secret spot',
-    name: 'Secret_spot',
-    data: '47.754098 3.426214 0 0',
-    xpath: 'Secret_spot',
-  },
-  {
-    type: 'image',
-    label: 'Selfportrait',
-    name: 'Selfportrait',
-    data: '784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
-    xpath: 'Selfportrait',
-  },
-  {
-    type: 'audio',
-    label: 'Voice password',
-    name: 'Voice_password',
-    data: '07. Crazy Love-13_32_31.mp3',
-    xpath: 'Voice_password',
-  },
-  {
-    type: 'video',
-    label: 'A video?',
-    name: 'A_video',
-    data: 'IMG_3619-13_33_22.MOV',
-    xpath: 'A_video',
-  },
-  {
-    type: 'geotrace',
-    label: 'Shortest path',
-    name: 'Shortest_path',
-    data: '26.74561 -1.485606 0 0;18.979026 23.772309 0 0',
-    xpath: 'Shortest_path',
-  },
-  {
-    type: 'barcode',
-    label: 'Favourite chocolate barcode',
-    name: 'Favourite_chocolate_barcode',
-    data: '123123123123',
-    xpath: 'Favourite_chocolate_barcode',
-  },
-  {
-    type: 'acknowledge',
-    label: 'Are you sane?',
-    name: 'Are_you_sane',
-    data: 'OK',
-    xpath: 'Are_you_sane',
-  },
-  {
-    type: 'geoshape',
-    label: 'Secret area',
-    name: 'Secret_area',
-    data: '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0',
-    xpath: 'Secret_area',
-  },
-  {
-    type: 'group_regular',
-    label: 'How are you?',
-    name: 'How_are_you',
-    children: [
-      {
-        type: 'score__row',
-        label: 'Outside',
-        name: 'outside',
-        listName: 'how_r_u_ch_list',
-        data: 'good',
-        xpath: 'How_are_you/outside',
-      },
-      {
-        type: 'score__row',
-        label: 'Inside',
-        name: 'inside',
-        listName: 'how_r_u_ch_list',
-        data: 'bad',
-        xpath: 'How_are_you/inside',
-      },
-    ],
-  },
-  {
-    type: 'group_matrix',
-    label: 'Test your math',
-    name: 'test_your_math',
-    children: [
-      {
-        type: 'group_matrix_row',
-        label: '2 and 4',
-        name: '2_and_4',
-        children: [
-          {
-            type: 'integer',
-            label: 'Plus',
-            name: 'plus',
-            data: '7',
-            xpath: 'test_your_math/plus',
-          },
-          {
-            type: 'select_one',
-            label: 'Minus',
-            name: 'minus',
-            listName: 'min_ch_list',
-            data: 'minus_four',
-            xpath: 'test_your_math/minus',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'group_regular',
-    label: 'Colours by brightness',
-    name: 'Colours_by_brightness',
-    children: [
-      {
-        type: 'rank__level',
-        label: '1st choice',
-        name: '_1st_choice',
-        listName: 'col_br_ch_list',
-        data: 'blue',
-        xpath: 'Colours_by_brightness/_1st_choice',
-      },
-      {
-        type: 'rank__level',
-        label: '2nd choice',
-        name: '_2nd_choice',
-        listName: 'col_br_ch_list',
-        data: 'yellow',
-        xpath: 'Colours_by_brightness/_2nd_choice',
-      },
-    ],
-  },
-  {
-    type: 'file',
-    label: 'We need your CV',
-    name: 'We_need_your_CV',
-    data: 'zamki-13_35_5.txt',
-    xpath: 'We_need_your_CV',
-  },
-  {
-    type: 'range',
-    label: 'Expected lifespan',
-    name: 'Expected_lifespan',
-    data: '88',
-    xpath: 'Expected_lifespan',
-  },
-]
+export const everythingSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: QuestionTypeName.select_one,
+      label: 'Favourite country',
+      name: 'Favourite_country',
+      listName: 'fav_cntr_list',
+      data: 'ireland',
+      xpath: 'Favourite_country',
+    },
+    {
+      type: QuestionTypeName.select_multiple,
+      label: 'Favourite food',
+      name: 'Favourite_food',
+      listName: 'fav_food_ch_list',
+      data: 'pizza apple',
+      xpath: 'Favourite_food',
+    },
+    {
+      type: QuestionTypeName.text,
+      label: 'Your name',
+      name: 'Your_name',
+      data: 'Leszek',
+      xpath: 'Your_name',
+    },
+    {
+      type: QuestionTypeName.integer,
+      label: 'Lucky number',
+      name: 'Lucky_number',
+      data: '24',
+      xpath: 'Lucky_number',
+    },
+    {
+      type: QuestionTypeName.decimal,
+      label: 'Unlucky number',
+      name: 'Unlucky_number',
+      data: '-7',
+      xpath: 'Unlucky_number',
+    },
+    {
+      type: QuestionTypeName.date,
+      label: 'Birth date',
+      name: 'Birth_date',
+      data: '1900-04-10',
+      xpath: 'Birth_date',
+    },
+    {
+      type: QuestionTypeName.time,
+      label: 'Birth time',
+      name: 'Birth_time',
+      data: '13:45:00.000+02:00',
+      xpath: 'Birth_time',
+    },
+    {
+      type: QuestionTypeName.datetime,
+      label: 'Some random date and time',
+      name: 'Some_random_date_and_time',
+      data: '2020-04-02T01:33:00.000+02:00',
+      xpath: 'Some_random_date_and_time',
+    },
+    {
+      type: QuestionTypeName.geopoint,
+      label: 'Secret spot',
+      name: 'Secret_spot',
+      data: '47.754098 3.426214 0 0',
+      xpath: 'Secret_spot',
+    },
+    {
+      type: QuestionTypeName.image,
+      label: 'Selfportrait',
+      name: 'Selfportrait',
+      data: '784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
+      xpath: 'Selfportrait',
+    },
+    {
+      type: QuestionTypeName.audio,
+      label: 'Voice password',
+      name: 'Voice_password',
+      data: '07. Crazy Love-13_32_31.mp3',
+      xpath: 'Voice_password',
+    },
+    {
+      type: QuestionTypeName.video,
+      label: 'A video?',
+      name: 'A_video',
+      data: 'IMG_3619-13_33_22.MOV',
+      xpath: 'A_video',
+    },
+    {
+      type: QuestionTypeName.geotrace,
+      label: 'Shortest path',
+      name: 'Shortest_path',
+      data: '26.74561 -1.485606 0 0;18.979026 23.772309 0 0',
+      xpath: 'Shortest_path',
+    },
+    {
+      type: QuestionTypeName.barcode,
+      label: 'Favourite chocolate barcode',
+      name: 'Favourite_chocolate_barcode',
+      data: '123123123123',
+      xpath: 'Favourite_chocolate_barcode',
+    },
+    {
+      type: QuestionTypeName.acknowledge,
+      label: 'Are you sane?',
+      name: 'Are_you_sane',
+      data: 'OK',
+      xpath: 'Are_you_sane',
+    },
+    {
+      type: QuestionTypeName.geoshape,
+      label: 'Secret area',
+      name: 'Secret_area',
+      data: '-7.362467 -54.112248 0 0;24.20689 -79.483642 0 0;25.720735 -41.556644 0 0;2.196727 -40.315761 0 0;-7.362467 -54.112248 0 0',
+      xpath: 'Secret_area',
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'How are you?',
+      name: 'How_are_you',
+      xpathNodes: [],
+      children: [
+        {
+          type: MiscRowTypeName.score__row,
+          label: 'Outside',
+          name: 'outside',
+          listName: 'how_r_u_ch_list',
+          data: 'good',
+          xpath: 'How_are_you/outside',
+        },
+        {
+          type: MiscRowTypeName.score__row,
+          label: 'Inside',
+          name: 'inside',
+          listName: 'how_r_u_ch_list',
+          data: 'bad',
+          xpath: 'How_are_you/inside',
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_matrix,
+      label: 'Test your math',
+      name: 'test_your_math',
+      xpathNodes: [],
+      children: [
+        {
+          type: DisplayGroupTypeName.group_matrix_row,
+          label: '2 and 4',
+          name: '2_and_4',
+          xpathNodes: [],
+          children: [
+            {
+              type: QuestionTypeName.integer,
+              label: 'Plus',
+              name: 'plus',
+              data: '7',
+              xpath: 'test_your_math/plus',
+            },
+            {
+              type: QuestionTypeName.select_one,
+              label: 'Minus',
+              name: 'minus',
+              listName: 'min_ch_list',
+              data: 'minus_four',
+              xpath: 'test_your_math/minus',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_regular,
+      label: 'Colours by brightness',
+      name: 'Colours_by_brightness',
+      xpathNodes: [],
+      children: [
+        {
+          type: MiscRowTypeName.rank__level,
+          label: '1st choice',
+          name: '_1st_choice',
+          listName: 'col_br_ch_list',
+          data: 'blue',
+          xpath: 'Colours_by_brightness/_1st_choice',
+        },
+        {
+          type: MiscRowTypeName.rank__level,
+          label: '2nd choice',
+          name: '_2nd_choice',
+          listName: 'col_br_ch_list',
+          data: 'yellow',
+          xpath: 'Colours_by_brightness/_2nd_choice',
+        },
+      ],
+    },
+    {
+      type: QuestionTypeName.file,
+      label: 'We need your CV',
+      name: 'We_need_your_CV',
+      data: 'zamki-13_35_5.txt',
+      xpath: 'We_need_your_CV',
+    },
+    {
+      type: QuestionTypeName.range,
+      label: 'Expected lifespan',
+      name: 'Expected_lifespan',
+      data: '88',
+      xpath: 'Expected_lifespan',
+    },
+  ],
+}
 
-export const matrixRepeatSurvey = [
+export const matrixRepeatSurvey: SurveyRow[] = [
   {
     name: 'start',
-    type: 'start',
+    type: MetaQuestionTypeName.start,
     $kuid: '5hhy3gTQM',
     $autoname: 'start',
   },
   {
     name: 'end',
-    type: 'end',
+    type: MetaQuestionTypeName.end,
     $kuid: 'gIKQbAuFK',
     $autoname: 'end',
   },
   {
     name: 'Simple_repeat',
-    type: 'begin_repeat',
+    type: GroupTypeBeginName.begin_repeat,
     $kuid: 'wr4ir59',
     label: ['Simple repeat'],
     $autoname: 'Simple_repeat',
   },
   {
     name: 'Best_food',
-    type: 'begin_kobomatrix',
+    type: GroupTypeBeginName.begin_kobomatrix,
     $kuid: 'hn03y22',
     label: ['Best food'],
     $autoname: 'Best_food',
-    _isRepeat: 'false',
     appearance: 'field-list',
     'kobo--matrix_list': 'matrix_ri0sw49',
   },
   {
     hint: [''],
     name: 'Salty',
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'ar3rp04',
     label: ['Salty'],
     required: false,
@@ -1707,7 +2089,7 @@ export const matrixRepeatSurvey = [
   {
     hint: [''],
     name: 'Sweet',
-    type: 'text',
+    type: QuestionTypeName.text,
     $kuid: 'qp2gg39',
     label: ['Sweet'],
     required: true,
@@ -1715,16 +2097,16 @@ export const matrixRepeatSurvey = [
     appearance: 'w1',
   },
   {
-    type: 'end_kobomatrix',
+    type: GroupTypeEndName.end_kobomatrix,
     $kuid: '/hn03y22',
   },
   {
-    type: 'end_repeat',
+    type: GroupTypeEndName.end_repeat,
     $kuid: '/wr4ir59',
   },
 ]
 
-export const matrixRepeatSurveyChoices = [
+export const matrixRepeatSurveyChoices: SurveyChoice[] = [
   {
     name: 'baked',
     $kuid: 'hb7vh55',
@@ -1741,11 +2123,61 @@ export const matrixRepeatSurveyChoices = [
   },
 ]
 
-export const matrixRepeatSurveySubmission = {
+export const matrixRepeatSurveyAsset: AssetResponse = {
+  url: '',
+  owner: '',
+  owner__username: '',
+  owner_label: '',
+  date_created: '',
+  summary: {},
+  date_modified: '',
+  version_id: null,
+  has_deployment: false,
+  deployed_version_id: null,
+  deployment__active: false,
+  deployment__submission_count: 0,
+  deployment_status: 'deployed',
+  downloads: [],
+  uid: '',
+  kind: '',
+  assignable_permissions: [],
+  effective_permissions: [],
+  data: '',
+  children: {
+    count: 0,
+  },
+  content: {
+    survey: matrixRepeatSurvey,
+    choices: matrixRepeatSurveyChoices,
+  },
+  subscribers_count: 0,
+  status: '',
+  access_types: null,
+  project_ownership: null,
+  parent: null,
+  settings: {},
+  asset_type: AssetTypeName.survey,
+  report_styles: {
+    default: {},
+    specified: {},
+    kuid_names: {},
+  },
+  report_custom: {},
+  map_styles: {},
+  map_custom: {},
+  tag_string: '',
+  name: '',
+  permissions: [],
+  export_settings: [],
+  data_sharing: {},
+}
+
+export const matrixRepeatSurveySubmission: SubmissionResponse = {
   _id: 16,
   _notes: [],
   _validation_status: {},
   _uuid: '967be1fa-e015-44f9-af6e-38c795db705a',
+  'meta/rootUuid': 'uuid:967be1fa-e015-44f9-af6e-38c795db705a',
   _bamboo_dataset_id: '',
   _tags: [],
   _submitted_by: null,
@@ -1775,122 +2207,136 @@ export const matrixRepeatSurveySubmission = {
   __version__: 'vLao7eC5zPrkyAHKYFt9kY',
 }
 
-export const matrixRepeatSurveyDisplayData = [
-  {
-    type: 'group_repeat',
-    label: 'Simple repeat',
-    name: 'Simple_repeat',
-    children: [
-      {
-        type: 'group_matrix',
-        label: 'Best food',
-        name: 'Best_food',
-        children: [
-          {
-            type: 'group_matrix_row',
-            label: 'Baked',
-            name: 'baked',
-            children: [
-              {
-                type: 'text',
-                label: 'Salty',
-                name: 'Salty',
-                data: 'bread',
-                xpath: 'Simple_repeat/Best_food/Salty',
-              },
-              {
-                type: 'text',
-                label: 'Sweet',
-                name: 'Sweet',
-                data: 'pie',
-                xpath: 'Simple_repeat/Best_food/Sweet',
-              },
-            ],
-          },
-          {
-            type: 'group_matrix_row',
-            label: 'Raw',
-            name: 'raw',
-            children: [
-              {
-                type: 'text',
-                label: 'Salty',
-                name: 'Salty',
-                data: 'olive',
-                xpath: 'Simple_repeat/Best_food/Salty',
-              },
-              {
-                type: 'text',
-                label: 'Sweet',
-                name: 'Sweet',
-                data: 'apple',
-                xpath: 'Simple_repeat/Best_food/Sweet',
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'group_repeat',
-    label: 'Simple repeat',
-    name: 'Simple_repeat',
-    children: [
-      {
-        type: 'group_matrix',
-        label: 'Best food',
-        name: 'Best_food',
-        children: [
-          {
-            type: 'group_matrix_row',
-            label: 'Baked',
-            name: 'baked',
-            children: [
-              {
-                type: 'text',
-                label: 'Salty',
-                name: 'Salty',
-                data: 'pizza',
-                xpath: 'Simple_repeat/Best_food/Salty',
-              },
-              {
-                type: 'text',
-                label: 'Sweet',
-                name: 'Sweet',
-                data: 'croissant',
-                xpath: 'Simple_repeat/Best_food/Sweet',
-              },
-            ],
-          },
-          {
-            type: 'group_matrix_row',
-            label: 'Raw',
-            name: 'raw',
-            children: [
-              {
-                type: 'text',
-                label: 'Salty',
-                name: 'Salty',
-                data: 'cucumber',
-                xpath: 'Simple_repeat/Best_food/Salty',
-              },
-              {
-                type: 'text',
-                label: 'Sweet',
-                name: 'Sweet',
-                data: 'tomato',
-                xpath: 'Simple_repeat/Best_food/Sweet',
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-]
+export const matrixRepeatSurveyDisplayData: DisplayGroup = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'Simple repeat',
+      name: 'Simple_repeat',
+      xpathNodes: [],
+      children: [
+        {
+          type: DisplayGroupTypeName.group_matrix,
+          label: 'Best food',
+          name: 'Best_food',
+          xpathNodes: [],
+          children: [
+            {
+              type: DisplayGroupTypeName.group_matrix_row,
+              label: 'Baked',
+              name: 'baked',
+              xpathNodes: [],
+              children: [
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Salty',
+                  name: 'Salty',
+                  data: 'bread',
+                  xpath: 'Simple_repeat/Best_food/Salty',
+                },
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Sweet',
+                  name: 'Sweet',
+                  data: 'pie',
+                  xpath: 'Simple_repeat/Best_food/Sweet',
+                },
+              ],
+            },
+            {
+              type: DisplayGroupTypeName.group_matrix_row,
+              label: 'Raw',
+              name: 'raw',
+              xpathNodes: [],
+              children: [
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Salty',
+                  name: 'Salty',
+                  data: 'olive',
+                  xpath: 'Simple_repeat/Best_food/Salty',
+                },
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Sweet',
+                  name: 'Sweet',
+                  data: 'apple',
+                  xpath: 'Simple_repeat/Best_food/Sweet',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: DisplayGroupTypeName.group_repeat,
+      label: 'Simple repeat',
+      name: 'Simple_repeat',
+      xpathNodes: [],
+      children: [
+        {
+          type: DisplayGroupTypeName.group_matrix,
+          label: 'Best food',
+          name: 'Best_food',
+          xpathNodes: [],
+          children: [
+            {
+              type: DisplayGroupTypeName.group_matrix_row,
+              label: 'Baked',
+              name: 'baked',
+              xpathNodes: [],
+              children: [
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Salty',
+                  name: 'Salty',
+                  data: 'pizza',
+                  xpath: 'Simple_repeat/Best_food/Salty',
+                },
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Sweet',
+                  name: 'Sweet',
+                  data: 'croissant',
+                  xpath: 'Simple_repeat/Best_food/Sweet',
+                },
+              ],
+            },
+            {
+              type: DisplayGroupTypeName.group_matrix_row,
+              label: 'Raw',
+              name: 'raw',
+              xpathNodes: [],
+              children: [
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Salty',
+                  name: 'Salty',
+                  data: 'cucumber',
+                  xpath: 'Simple_repeat/Best_food/Salty',
+                },
+                {
+                  type: QuestionTypeName.text,
+                  label: 'Sweet',
+                  name: 'Sweet',
+                  data: 'tomato',
+                  xpath: 'Simple_repeat/Best_food/Sweet',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
 
-export const submissionWithAttachmentsWithUnicode = {
+export const submissionWithAttachmentsWithUnicode: SubmissionResponse = {
   _id: 18,
   A_picture: 'Un été au Québec (Canada)-19_41_32.jpg',
   'meta/instanceID': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
@@ -1899,6 +2345,7 @@ export const submissionWithAttachmentsWithUnicode = {
   __version__: 'vUdsH7ovQn4eCdBtPJyBag',
   _xform_id_string: 'azCy24QgjprZGrdvbHQXr3',
   _uuid: '4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
+  'meta/rootUuid': 'uuid:4cfa16e8-f29b-41a9-984c-2bf7fe05064b',
   _attachments: [
     {
       download_url:
@@ -1915,6 +2362,7 @@ export const submissionWithAttachmentsWithUnicode = {
       instance: 18,
       xform: 4,
       id: 13,
+      question_xpath: 'A_picture',
     },
   ],
   _geolocation: [null, null],
@@ -1926,13 +2374,45 @@ export const submissionWithAttachmentsWithUnicode = {
   _validation_status: {},
 }
 
-export const assetWithSupplementalDetails = {
+export const assetWithSupplementalDetails: AssetResponse = {
   url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/',
   owner: 'http://kf.kobo.local/api/v2/users/kobo/',
   owner__username: 'kobo',
+  owner_label: 'kobo',
+  deployment_status: 'deployed',
+  effective_permissions: [
+    {
+      codename: 'manage_asset',
+    },
+    {
+      codename: 'validate_submissions',
+    },
+    {
+      codename: 'change_asset',
+    },
+    {
+      codename: 'add_submissions',
+    },
+    {
+      codename: 'delete_asset',
+    },
+    {
+      codename: 'view_asset',
+    },
+    {
+      codename: 'change_submissions',
+    },
+    {
+      codename: 'delete_submissions',
+    },
+    {
+      codename: 'view_submissions',
+    },
+  ],
+  project_ownership: null,
   parent: null,
   settings: {},
-  asset_type: 'survey',
+  asset_type: AssetTypeName.survey,
   date_created: '2022-05-12T10:40:02.952931Z',
   summary: {
     geo: false,
@@ -2035,7 +2515,7 @@ export const assetWithSupplementalDetails = {
       values: ['A_video_WTF', 'Secret_password_as_an_audio_file'],
       languages: ['fr', 'pl'],
     },
-    translated: {
+    translation: {
       values: ['Your_name_here', 'A_video_WTF', 'Secret_password_as_an_audio_file'],
       languages: ['pl', 'de'],
     },
@@ -2292,8 +2772,10 @@ export const assetWithSupplementalDetails = {
       {
         type: 'transcript',
         name: 'A_video_WTF/transcript',
+        dtpath: 'A_video_WTF/transcript_pl',
+        xpath: 'A_video_WTF/transcript/pl',
         label: 'A_video_WTF - transcript',
-        languages: ['fr', 'pl'],
+        language: 'pl',
         path: ['A_video_WTF', 'transcript'],
         source: 'A_video_WTF',
         settings: {
@@ -2304,8 +2786,10 @@ export const assetWithSupplementalDetails = {
       {
         type: 'transcript',
         name: 'Secret_password_as_an_audio_file/transcript',
+        dtpath: 'Secret_password_as_an_audio_file/transcript_fr',
+        xpath: 'Secret_password_as_an_audio_file/transcript/fr',
         label: 'Secret_password_as_an_audio_file - transcript',
-        languages: ['fr', 'pl'],
+        language: 'fr',
         path: ['Secret_password_as_an_audio_file', 'transcript'],
         source: 'Secret_password_as_an_audio_file',
         settings: {
@@ -2316,6 +2800,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'Your_name_here/translation_pl',
+        dtpath: 'Your_name_here/translation_pl',
+        xpath: 'Your_name_here/translation/pl',
         label: 'Your_name_here - translation (pl)',
         language: 'pl',
         path: ['Your_name_here', 'translation_pl'],
@@ -2328,6 +2814,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'Your_name_here/translation_de',
+        dtpath: 'Your_name_here/translation_de',
+        xpath: 'Your_name_here/translation/de',
         label: 'Your_name_here - translation (de)',
         language: 'de',
         path: ['Your_name_here', 'translation_de'],
@@ -2340,6 +2828,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'A_video_WTF/translation_pl',
+        dtpath: 'A_video_WTF/translation_pl',
+        xpath: 'A_video_WTF/translation/pl',
         label: 'A_video_WTF - translation (pl)',
         language: 'pl',
         path: ['A_video_WTF', 'translation_pl'],
@@ -2352,6 +2842,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'A_video_WTF/translation_de',
+        dtpath: 'A_video_WTF/translation_de',
+        xpath: 'A_video_WTF/translation/de',
         label: 'A_video_WTF - translation (de)',
         language: 'de',
         path: ['A_video_WTF', 'translation_de'],
@@ -2364,6 +2856,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'Secret_password_as_an_audio_file/translation_pl',
+        dtpath: 'Secret_password_as_an_audio_file/translation_pl',
+        xpath: 'Secret_password_as_an_audio_file/translation/pl',
         label: 'Secret_password_as_an_audio_file - translation (pl)',
         language: 'pl',
         path: ['Secret_password_as_an_audio_file', 'translation_pl'],
@@ -2376,6 +2870,8 @@ export const assetWithSupplementalDetails = {
       {
         type: 'translation',
         name: 'Secret_password_as_an_audio_file/translation_de',
+        dtpath: 'Secret_password_as_an_audio_file/translation_de',
+        xpath: 'Secret_password_as_an_audio_file/translation/de',
         label: 'Secret_password_as_an_audio_file - translation (de)',
         language: 'de',
         path: ['Secret_password_as_an_audio_file', 'translation_de'],
@@ -2394,61 +2890,49 @@ export const assetWithSupplementalDetails = {
     survey: [
       {
         name: 'start',
-        type: 'start',
+        type: MetaQuestionTypeName.start,
         $kuid: '8sHgNqqM9',
         $autoname: 'start',
       },
       {
         name: 'end',
-        type: 'end',
+        type: MetaQuestionTypeName.end,
         $kuid: 'VpPsXe5aq',
         $autoname: 'end',
       },
       {
         name: 'today',
-        type: 'today',
+        type: MetaQuestionTypeName.today,
         $kuid: 'HuEzX4mel',
         $autoname: 'today',
       },
       {
         name: 'username',
-        type: 'username',
+        type: MetaQuestionTypeName.username,
         $kuid: '4dINVeRnR',
         $autoname: 'username',
       },
       {
-        name: 'simserial',
-        type: 'simserial',
-        $kuid: 'WrxreUkAJ',
-        $autoname: 'simserial',
-      },
-      {
-        name: 'subscriberid',
-        type: 'subscriberid',
-        $kuid: '8ojkWhAXU',
-        $autoname: 'subscriberid',
-      },
-      {
         name: 'deviceid',
-        type: 'deviceid',
+        type: MetaQuestionTypeName.deviceid,
         $kuid: 'q8Rvs1sqk',
         $autoname: 'deviceid',
       },
       {
         name: 'phonenumber',
-        type: 'phonenumber',
+        type: MetaQuestionTypeName.phonenumber,
         $kuid: 'Oqbll19yc',
         $autoname: 'phonenumber',
       },
       {
         name: 'audit',
-        type: 'audit',
+        type: MetaQuestionTypeName.audit,
         $kuid: '4Fbwq3mxP',
         $autoname: 'audit',
       },
       {
         name: 'Your_name_here',
-        type: 'text',
+        type: QuestionTypeName.text,
         $kuid: 'RAeXenoDr',
         label: ['Your name here'],
         required: false,
@@ -2456,7 +2940,7 @@ export const assetWithSupplementalDetails = {
       },
       {
         name: 'Your_selfie_goes_here',
-        type: 'image',
+        type: QuestionTypeName.image,
         $kuid: 'MWflesBzX',
         label: ['Your selfie goes here'],
         required: false,
@@ -2464,7 +2948,7 @@ export const assetWithSupplementalDetails = {
       },
       {
         name: 'A_video_WTF',
-        type: 'video',
+        type: QuestionTypeName.video,
         $kuid: 'bMGj1HZfu',
         label: ['A video? WTF'],
         required: false,
@@ -2472,7 +2956,7 @@ export const assetWithSupplementalDetails = {
       },
       {
         name: 'Secret_password_as_an_audio_file',
-        type: 'audio',
+        type: QuestionTypeName.audio,
         $kuid: '3VHKj8Kt4',
         label: ['Secret password as an audio file'],
         required: false,
@@ -2480,7 +2964,7 @@ export const assetWithSupplementalDetails = {
       },
       {
         name: '__version__',
-        type: 'calculate',
+        type: QuestionTypeName.calculate,
         $kuid: 'Hd5Iz0aWv',
         required: false,
         $autoname: '__version__',
@@ -2488,10 +2972,9 @@ export const assetWithSupplementalDetails = {
       },
       {
         name: '_version_',
-        type: 'calculate',
+        type: QuestionTypeName.calculate,
         $kuid: 'kU3D6JQPQ',
         $autoname: '_version_',
-        $given_name: '__version__',
         calculation: "'vjtVxWH3Xmcoz6VFtqfbVr'",
       },
     ],
@@ -2636,7 +3119,7 @@ export const assetWithSupplementalDetails = {
   paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
 }
 
-export const submissionWithSupplementalDetails = {
+export const submissionWithSupplementalDetails: SubmissionResponse = {
   _id: 3,
   'formhub/uuid': 'c71e63f6afa64b31ba70b2fbbb710cf4',
   start: '2022-05-12T12:42:07.034+02:00',
@@ -2655,6 +3138,7 @@ export const submissionWithSupplementalDetails = {
   'meta/instanceID': 'uuid:58c71236-f713-471b-bd4c-2a5f2e6b9a05',
   _xform_id_string: 'aDDywpeYGnvuDLTeiveyxZ',
   _uuid: '58c71236-f713-471b-bd4c-2a5f2e6b9a05',
+  'meta/rootUuid': 'uuid:58c71236-f713-471b-bd4c-2a5f2e6b9a05',
   _attachments: [
     {
       download_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
@@ -2662,11 +3146,11 @@ export const submissionWithSupplementalDetails = {
       download_medium_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       download_small_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       mimetype: 'audio/mpeg',
-      filename:
-        'kobo/attachments/c71e63f6afa64b31ba70b2fbbb710cf4/58c71236-f713-471b-bd4c-2a5f2e6b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+      filename: 'kobo/attachments/c71e63f6a...b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
       instance: 3,
       xform: 1,
       id: 3,
+      question_xpath: 'Secret_password_as_an_audio_file',
     },
   ],
   _status: 'submitted_via_web',
@@ -2691,6 +3175,8 @@ export const submissionWithSupplementalDetails = {
           revisions: [
             {
               dateModified: '2022-05-12T20:46:21Z',
+              languageCode: 'en',
+              value: 'foo',
             },
           ],
           dateCreated: '2022-05-12T20:46:21Z',
@@ -2710,16 +3196,22 @@ export const submissionWithSupplementalDetails = {
           val: ['best', 'things', 'ever recorder by human', '3'],
           type: 'qual_tags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
+          labels: { _default: 'Another tag question here?' },
+          xpath: '',
         },
         {
           val: 12345,
           type: 'qual_integer',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
+          labels: { _default: 'Another integer question here?' },
+          xpath: '',
         },
         {
           val: 'a thing',
           type: 'qual_text',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
+          labels: { _default: 'Another text question here?' },
+          xpath: '',
         },
         {
           val: [
@@ -2738,11 +3230,15 @@ export const submissionWithSupplementalDetails = {
           ],
           type: 'qual_select_multiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
+          labels: { _default: 'Another select question here?' },
+          xpath: '',
         },
         {
           val: ['wow', 'this works', 'f me', 'alpha beta gamma'],
           type: 'qual_tags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
+          labels: { _default: 'Another tag question here?' },
+          xpath: '',
         },
         {
           val: {
@@ -2753,8 +3249,77 @@ export const submissionWithSupplementalDetails = {
           },
           type: 'qual_select_one',
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
+          labels: { _default: 'Another select question here?' },
+          xpath: '',
         },
       ],
+    },
+  },
+}
+
+export const submissionWithNestedSupplementalDetails: SubmissionResponse = {
+  _id: 77,
+  'formhub/uuid': '54445e08ab6d4011ae648adc6ae8c9bc',
+  start: '2025-03-27T16:49:25.353+01:00',
+  end: '2025-03-27T16:49:37.202+01:00',
+  'level_a/level_b/level_c/sounds': 'test-spoken-16_49_36.m4a',
+  __version__: 'v64akAvRrHhkMpxFysVGcK',
+  'meta/instanceID': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  _xform_id_string: 'aw6mhS4KnoG5E8EbQp9KgF',
+  _uuid: '64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  'meta/rootUuid': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  _attachments: [
+    {
+      download_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_large_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_medium_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_small_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      mimetype: 'audio/x-m4a',
+      filename:
+        'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
+      instance: 77,
+      xform: 27,
+      id: 70,
+      question_xpath: 'level_a/level_b/level_c/sounds',
+    },
+  ],
+  _status: 'submitted_via_web',
+  _geolocation: [null, null],
+  _submission_time: '2025-03-27T15:49:38',
+  _tags: [],
+  _notes: [],
+  _validation_status: {},
+  _submitted_by: null,
+  _supplementalDetails: {
+    'level_a/level_b/level_c/sounds': {
+      qual: [
+        {
+          val: ['first', 'second', 'third', 'fourth', 'fifth'],
+          type: 'qual_tags',
+          uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
+          scope: 'by_question#survey',
+          xpath: 'level_a/level_b/level_c/sounds',
+          labels: {
+            _default: 'What kind?',
+          },
+        },
+      ],
+      transcript: {
+        value: 'How are you doing my dear friend?',
+        revisions: [],
+        dateCreated: '2025-03-27 15:49:59',
+        dateModified: '2025-03-27 15:49:59',
+        languageCode: 'en',
+      },
+      translation: {
+        fr: {
+          value: 'Comment vas-tu mon cher ami?',
+          revisions: [],
+          dateCreated: '2025-03-27T15:50:09Z',
+          dateModified: '2025-03-27T15:50:09Z',
+          languageCode: 'fr',
+        },
+      },
     },
   },
 }

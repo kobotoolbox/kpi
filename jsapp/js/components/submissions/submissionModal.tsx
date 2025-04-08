@@ -1,31 +1,33 @@
+import './submissionModal.scss'
+
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
+
 import alertify from 'alertifyjs'
-import enketoHandler from 'js/enketoHandler'
-import { dataInterface } from 'js/dataInterface'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { launchPrinting } from 'js/utils'
-import pageState from 'js/pageState.store'
-import { MODAL_TYPES, QuestionTypeName, EnketoActions } from 'js/constants'
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import AudioPlayer from '#/components/common/audioPlayer'
+import Button from '#/components/common/button'
+import CenteredMessage from '#/components/common/centeredMessage.component'
+import Checkbox from '#/components/common/checkbox'
+import KoboSelect from '#/components/common/koboSelect'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
+import SubmissionDataTable from '#/components/submissions/submissionDataTable'
+import { getMediaAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
+import type { SubmissionPageName } from '#/components/submissions/table.types'
+import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
-} from 'js/components/submissions/validationStatus.constants'
-import type { ValidationStatusOptionName } from 'js/components/submissions/validationStatus.constants'
-import SubmissionDataTable from 'js/components/submissions/submissionDataTable'
-import Checkbox from 'js/components/common/checkbox'
-import Button from 'js/components/common/button'
-import KoboSelect from 'js/components/common/koboSelect'
-import { userHasPermForSubmission, userCan } from 'js/components/permissions/utils'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
-import type { FailResponse, AssetResponse, SubmissionResponse, ValidationStatusResponse } from 'js/dataInterface'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import { getBackgroundAudioQuestionName } from 'js/components/submissions/tableUtils'
-import { getMediaAttachment } from 'js/components/submissions/submissionUtils'
-import type { SubmissionPageName } from 'js/components/submissions/table.types'
-import './submissionModal.scss'
+} from '#/components/submissions/validationStatus.constants'
+import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
+import { EnketoActions, MODAL_TYPES, QuestionTypeName } from '#/constants'
+import { dataInterface } from '#/dataInterface'
+import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
+import enketoHandler from '#/enketoHandler'
+import pageState from '#/pageState.store'
+import { launchPrinting } from '#/utils'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 
@@ -86,7 +88,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
   constructor(props: SubmissionModalProps) {
     super(props)
-    let translations = this.props.asset.content?.translations
+    const translations = this.props.asset.content?.translations
     let translationOptions: TranslationOption[] = []
 
     if (translations && translations.length > 1) {
@@ -187,8 +189,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
         let next = -1
 
         if (this.props.ids && sid) {
-          const c = this.props.ids.findIndex((k) => k === parseInt(sid))
-          let tableInfo = this.props.tableInfo || false
+          const c = this.props.ids.findIndex((k) => k === Number.parseInt(sid))
+          const tableInfo = this.props.tableInfo || false
           if (this.props.ids[c - 1]) {
             prev = this.props.ids[c - 1]
           }
@@ -261,8 +263,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
    * there is no indication that app is doing anything in the meantime (bad UX).
    */
   deleteSubmission() {
-    let dialog = alertify.dialog('confirm')
-    let opts = {
+    const dialog = alertify.dialog('confirm')
+    const opts = {
       title: t('Delete submission?'),
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: { ok: t('Delete'), cancel: t('Cancel') },
@@ -392,7 +394,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   onLanguageChange(newValue: string | null) {
-    let index = this.state.translationOptions.findIndex((x) => x.value === newValue)
+    const index = this.state.translationOptions.findIndex((x) => x.value === newValue)
     this.setState({
       translationIndex: index || 0,
     })
@@ -433,6 +435,22 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     return undefined
   }
 
+  handleDeletedAttachment(attachmentId: number) {
+    if (this.state.submission) {
+      // Override the attachment object in memory to mark it as deleted (without
+      // making an API call for fresh submission data)
+      this.setState({
+        submission: markAttachmentAsDeleted(this.state.submission, attachmentId),
+      })
+
+      // Prompt table to refresh submission list
+      actions.resources.refreshTableSubmissions()
+      // TODO: IDEA: instead of doing this for every deleted attachment, mark
+      // state here as something like `isRefreshTableUponClosingNeeded`, and add
+      // some `onBeforeClose` functionality to the `bigModal`…
+    }
+  }
+
   /**
    * Displays language and validation status dropdowns.
    */
@@ -440,6 +458,9 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     if (!this.props.asset.deployment__active || !this.state.submission) {
       return null
     }
+
+    const selectedOption =
+      'uid' in this.state.submission._validation_status ? this.state.submission._validation_status.uid : null
 
     return (
       <div className='submission-modal-dropdowns'>
@@ -463,7 +484,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           type='outline'
           size='s'
           options={VALIDATION_STATUS_OPTIONS}
-          selectedOption={this.state.submission._validation_status?.uid || null}
+          selectedOption={selectedOption}
           onChange={(newSelectedOption: string | null) => {
             if (newSelectedOption !== null) {
               const castOption = newSelectedOption as ValidationStatusOptionName
@@ -724,6 +745,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           submissionData={this.state.submission}
           translationIndex={this.state.translationIndex}
           showXMLNames={this.state.showXMLNames}
+          onAttachmentDeleted={this.handleDeletedAttachment.bind(this)}
         />
       </>
     )

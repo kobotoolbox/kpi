@@ -1,23 +1,23 @@
 import clonedeep from 'lodash.clonedeep'
-import type { PermsFormData } from './permParser'
 import permConfig from './permConfig'
 import {
-  PARTIAL_BY_USERS_PERM_PAIRS,
-  PARTIAL_BY_RESPONSES_PERM_PAIRS,
+  CHECKBOX_DISABLED_SUFFIX,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
+  PARTIAL_BY_RESPONSES_PERM_PAIRS,
+  PARTIAL_BY_USERS_PERM_PAIRS,
   PARTIAL_IMPLIED_CHECKBOX_PAIRS,
-  CHECKBOX_DISABLED_SUFFIX,
 } from './permConstants'
 import type {
   CheckboxNameAll,
-  CheckboxNamePartialByUsers,
   CheckboxNamePartialByResponses,
+  CheckboxNamePartialByUsers,
   PermissionCodename,
 } from './permConstants'
+import type { PermsFormData } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'
-import { getPartialByUsersListName, getPartialByResponsesQuestionName, getPartialByResponsesValueName } from './utils'
 import type { UserAssetPermsEditorState } from './userAssetPermsEditor.component'
+import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
 
 /**
  * Returns a list of checkboxes that applies for given permission. Because
@@ -146,10 +146,10 @@ export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
 
 export function isAssignable(permCodename: PermissionCodename, assignablePerms: AssignablePermsMap) {
   const permDef = permConfig.getPermissionByCodename(permCodename)
-  if (!permDef) {
-    return false
-  } else {
+  if (permDef) {
     return assignablePerms.has(permDef.url)
+  } else {
+    return false
   }
 }
 

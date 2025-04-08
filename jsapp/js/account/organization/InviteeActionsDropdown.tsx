@@ -1,10 +1,11 @@
-import { Modal, Stack, Group, Text, Menu, LoadingOverlay } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
-import ButtonNew from 'jsapp/js/components/common/ButtonNew'
 import type { ReactNode } from 'react'
+
+import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
+import ButtonNew from '#/components/common/ButtonNew'
+import { notify } from '#/utils'
 import type { MemberInvite } from './membersInviteQuery'
 import { MemberInviteStatus, usePatchMemberInvite, useRemoveMemberInvite } from './membersInviteQuery'
-import { notify } from 'js/utils'
 
 /**
  * A dropdown with all actions that can be taken towards an organization invitee.
@@ -29,7 +30,7 @@ export default function InviteeActionsDropdown({
       notify(t('The invitation was resent'), 'success')
     } catch (e: any) {
       if (e.status === 429 && e.headers?.get('Retry-After')) {
-        const minutes = Math.ceil(parseInt(e.headers.get('Retry-After')) / 60)
+        const minutes = Math.ceil(Number.parseInt(e.headers.get('Retry-After')) / 60)
         notify(
           t('Invitation resent too quickly, wait for ##MINUTES## minutes before retrying').replace(
             '##MINUTES##',

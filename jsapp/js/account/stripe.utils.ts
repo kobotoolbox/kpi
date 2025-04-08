@@ -1,25 +1,25 @@
-import { when } from 'mobx'
-import prettyBytes from 'pretty-bytes'
 import { useCallback } from 'react'
 
-import { ACTIVE_STRIPE_STATUSES } from 'js/constants'
-import envStore from 'js/envStore'
+import { when } from 'mobx'
+import prettyBytes from 'pretty-bytes'
 import {
-  Limits,
-  USAGE_TYPE,
-  Price,
-  BaseProduct,
-  ChangePlan,
-  Checkout,
-  Product,
-  SubscriptionChangeType,
-  SubscriptionInfo,
-  TransformQuantity,
-  LimitAmount,
+  type BaseProduct,
+  type ChangePlan,
   ChangePlanStatus,
-} from 'js/account/stripe.types'
-import subscriptionStore from 'js/account/subscriptionStore'
-import { convertUnixTimestampToUtc, notify } from 'js/utils'
+  type Checkout,
+  type LimitAmount,
+  Limits,
+  type Price,
+  type Product,
+  SubscriptionChangeType,
+  type SubscriptionInfo,
+  type TransformQuantity,
+  USAGE_TYPE,
+} from '#/account/stripe.types'
+import subscriptionStore from '#/account/subscriptionStore'
+import { ACTIVE_STRIPE_STATUSES } from '#/constants'
+import envStore from '#/envStore'
+import { convertUnixTimestampToUtc, notify } from '#/utils'
 
 // check if the currently logged-in user has a paid subscription in an active status
 // promise returns a boolean, or `null` if Stripe is not active - we check for the existence of `stripe_public_key`
@@ -58,12 +58,12 @@ export function isAddonProduct(product: Product) {
 }
 
 export function processCheckoutResponse(data: Checkout) {
-  if (!data?.url) {
+  if (data?.url) {
+    window.location.assign(data.url)
+  } else {
     notify.error(t('There has been an issue, please try again later.'), {
       duration: 10000,
     })
-  } else {
-    window.location.assign(data.url)
   }
 }
 
@@ -128,9 +128,9 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
     currentPlan.schedule.phases?.length &&
     currentPlan.schedule.phases.length > 1
   ) {
-    let nextPhaseItem = currentPlan.schedule.phases[1].items[0]
+    const nextPhaseItem = currentPlan.schedule.phases[1].items[0]
     for (const product of products) {
-      let price = product.prices.find((price) => price.id === nextPhaseItem.price)
+      const price = product.prices.find((price) => price.id === nextPhaseItem.price)
       if (price) {
         nextProduct = product
         date = convertUnixTimestampToUtc(currentPlan.schedule.phases[0].end_date!)

@@ -1,8 +1,8 @@
-import permConfig from 'js/components/permissions/permConfig'
-import { notify } from 'js/utils'
-import { replaceSupportEmail } from 'js/textUtils'
-import type { PermissionResponse } from 'js/dataInterface'
 import union from 'lodash.union'
+import permConfig from '#/components/permissions/permConfig'
+import type { PermissionResponse } from '#/dataInterface'
+import { replaceSupportEmail } from '#/textUtils'
+import { notify } from '#/utils'
 
 export const INVALID_PERMS_ERROR = t(
   'The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org',
@@ -30,7 +30,7 @@ export function validateBackendPermissions(permissionAssignments: PermissionResp
     allContradictory = union(allContradictory, appendUserUrls(permDef.contradictory, assignment.user))
   })
 
-  let hasAllImplied = true
+  const hasAllImplied = true
   // FIXME: `manage_asset` implies all the `*_submission` permissions, but
   // those are assignable *only* when the asset type is 'survey'. We need to
   // design a way to pass that nuance from the back end to the front end

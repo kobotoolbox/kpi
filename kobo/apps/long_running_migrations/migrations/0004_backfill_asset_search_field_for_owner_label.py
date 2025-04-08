@@ -6,7 +6,7 @@ from django.db import migrations
 def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model('long_running_migrations', 'LongRunningMigration')  # noqa
     LongRunningMigration.objects.create(
-        name='0004_back_fill_asset_search_field_for_owner_label'
+        name='0004_backfill_asset_search_field_for_owner_label'
     )
 
 

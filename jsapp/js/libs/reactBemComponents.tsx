@@ -37,10 +37,11 @@
 
 */
 import React from 'react'
+
 import cx from 'classnames'
 import type { Argument as ClassnamesArgument } from 'classnames'
 
-const reactCreateBemElement = function (base: string, el = 'div') {
+const reactCreateBemElement = (base: string, el = 'div') => {
   let elUnwrap
   if (el.match) {
     elUnwrap = el.match(/\<(\w+)\s?\/?\>/)
@@ -49,12 +50,12 @@ const reactCreateBemElement = function (base: string, el = 'div') {
     }
   }
 
-  const reduceModify = function (
+  const reduceModify = (
     s: { [key: string]: boolean },
     modifier: { [key: string]: boolean } | string[] | string | undefined,
-  ) {
+  ) => {
     if (typeof modifier === 'object' && !Array.isArray(modifier)) {
-      Object.keys(modifier).forEach(function (key) {
+      Object.keys(modifier).forEach((key) => {
         if (modifier[key]) {
           s[`${base}--${key}`] = true
         }
@@ -93,10 +94,10 @@ const reactCreateBemElement = function (base: string, el = 'div') {
 }
 
 export function bemComponents(obj: { [key: string]: [string, string?] | string }) {
-  let keys = Object.keys(obj)
+  const keys = Object.keys(obj)
   return Object.freeze(
-    keys.reduce(function (hsh: any, key) {
-      let val = obj[key]
+    keys.reduce((hsh: any, key) => {
+      const val = obj[key]
       if (val instanceof Array) {
         hsh[key] = reactCreateBemElement.apply(null, val)
       } else {

@@ -29,6 +29,11 @@
     ]
   },
   "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "jsapp/compiled": true
+    },
+
     // Black
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
@@ -43,31 +48,35 @@
     "[javascript]": {
       "editor.defaultFormatter": "biomejs.biome",
       "editor.codeActionsOnSave": {
-        "quickfix.biome": "explicit"
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
       }
     },
     "[javascriptreact]": {
       "editor.defaultFormatter": "biomejs.biome",
       "editor.codeActionsOnSave": {
-        "quickfix.biome": "explicit"
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
       }
     },
     "[typescript]": {
       "editor.defaultFormatter": "biomejs.biome",
       "editor.codeActionsOnSave": {
-        "quickfix.biome": "explicit"
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
       }
     },
     "[typescriptreact]": {
       "editor.defaultFormatter": "biomejs.biome",
       "editor.codeActionsOnSave": {
-        "quickfix.biome": "explicit"
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
       }
     },
     "[json]": {
       "editor.defaultFormatter": "biomejs.biome",
       "editor.codeActionsOnSave": {
-        "quickfix.biome": "explicit"
+        "source.fixAll.biome": "explicit"
       }
     },
 
@@ -108,6 +117,7 @@
     // Use locally-installed TypeScript instance (supports plugins in tsconfig)
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.preferences.preferTypeOnlyAutoImports": true,
 
     "markdown-preview-enhanced.previewColorScheme": "editorColorScheme"
   }

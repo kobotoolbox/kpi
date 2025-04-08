@@ -1,22 +1,22 @@
-import type React from 'react'
-import { useState, useEffect, useContext } from 'react'
-import styles from './usageProjectBreakdown.module.scss'
-import { Link } from 'react-router-dom'
-import { ROUTES } from 'jsapp/js/router/routerConstants'
-import AssetStatusBadge from 'jsapp/js/components/common/assetStatusBadge'
-import LoadingSpinner from 'jsapp/js/components/common/loadingSpinner'
+import React, { useContext, useEffect, useState } from 'react'
+
 import prettyBytes from 'pretty-bytes'
-import type { AssetUsage, AssetWithUsage } from 'js/account/usage/usage.api'
-import { getOrgAssetUsage } from 'js/account/usage/usage.api'
-import { USAGE_ASSETS_PER_PAGE } from 'jsapp/js/constants'
-import SortableProjectColumnHeader from 'jsapp/js/projects/projectsTable/sortableProjectColumnHeader'
-import type { ProjectFieldDefinition } from 'jsapp/js/projects/projectViews/constants'
-import type { ProjectsTableOrder } from 'jsapp/js/projects/projectsTable/projectsTable'
-import { convertSecondsToMinutes } from 'jsapp/js/utils'
+import { Link } from 'react-router-dom'
+import { useOrganizationQuery } from '#/account/organization/organizationQuery'
+import type { AssetUsage, AssetWithUsage } from '#/account/usage/usage.api'
+import { getOrgAssetUsage } from '#/account/usage/usage.api'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { USAGE_ASSETS_PER_PAGE } from '#/constants'
+import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
+import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
+import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
+import { ROUTES } from '#/router/routerConstants'
+import { convertSecondsToMinutes } from '#/utils'
+import styles from './usageProjectBreakdown.module.scss'
 import { UsageContext } from './useUsage.hook'
-import Button from 'js/components/common/button'
-import Icon from 'js/components/common/icon'
-import { useOrganizationQuery } from 'js/account/organization/organizationQuery'
 
 type ButtonType = 'back' | 'forward'
 
@@ -67,9 +67,9 @@ const ProjectBreakdown = () => {
   }
 
   const calculateRange = (): string => {
-    const totalProjects = parseInt(projectData.count)
+    const totalProjects = Number.parseInt(projectData.count)
     let startRange = (currentPage - 1) * USAGE_ASSETS_PER_PAGE + 1
-    if (parseInt(projectData.count) === 0) {
+    if (Number.parseInt(projectData.count) === 0) {
       startRange = 0
     }
     const endRange = Math.min(currentPage * USAGE_ASSETS_PER_PAGE, totalProjects)
@@ -84,7 +84,7 @@ const ProjectBreakdown = () => {
         setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))
       } else if (buttonType === 'forward' && projectData.next) {
         setCurrentPage((prevPage) =>
-          Math.min(prevPage + 1, Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)),
+          Math.min(prevPage + 1, Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)),
         )
       }
     } catch (error) {
@@ -93,7 +93,7 @@ const ProjectBreakdown = () => {
   }
 
   const isActiveBack = currentPage > 1
-  const isActiveForward = currentPage < Math.ceil(parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)
+  const isActiveForward = currentPage < Math.ceil(Number.parseInt(projectData.count) / USAGE_ASSETS_PER_PAGE)
 
   const usageName: ProjectFieldDefinition = {
     name: 'name',
@@ -185,7 +185,7 @@ const ProjectBreakdown = () => {
             </th>
           </tr>
         </thead>
-        {parseInt(projectData.count) === 0 ? (
+        {Number.parseInt(projectData.count) === 0 ? (
           <tbody>
             <tr>
               <td colSpan={7} style={{ border: 'none' }}>

@@ -1,27 +1,38 @@
 import React, { useState } from 'react'
-import AudioPlayer from 'js/components/common/audioPlayer'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { AssetContent } from 'js/dataInterface'
-import { QUESTION_TYPES } from 'js/constants'
-import { getAttachmentForProcessing } from 'js/components/processing/transcript/transcript.utils'
+
+import cx from 'classnames'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
+import AudioPlayer from '#/components/common/audioPlayer'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { getAttachmentForProcessing } from '#/components/processing/transcript/transcript.utils'
+import { QUESTION_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import styles from './sidebarSubmissionMedia.module.scss'
 
 interface SidebarSubmissionMediaProps {
-  assetContent: AssetContent | undefined
+  asset: AssetResponse | undefined
 }
 
 export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProps) {
   // We need submission data.
   const [store] = useState(() => singleProcessingStore)
 
-  // We need `assetContent` to proceed.
-  if (!props.assetContent) {
+  // We need `asset` to proceed.
+  if (!props.asset) {
     return null
   }
 
-  const attachment = getAttachmentForProcessing(props.assetContent)
+  const attachment = getAttachmentForProcessing()
   if (typeof attachment === 'string') {
     return null
+  }
+  if (attachment.is_deleted) {
+    return (
+      <section className={cx([styles.mediaWrapper, styles.mediaWrapperDeleted])} key='deleted'>
+        <DeletedAttachment />
+      </section>
+    )
   }
 
   switch (store.currentQuestionType) {
@@ -35,19 +46,27 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
           `}
           key='audio'
         >
-          <AudioPlayer mediaURL={attachment.download_url} filename={attachment.filename} />
-        </section>
-      )
-    case QUESTION_TYPES.video.id:
-      return (
-        <section
-          className={`
-            ${styles.mediaWrapper}
-            ${styles.mediaWrapperVideo}
-          `}
-          key='video'
-        >
-          <video className={styles.videoPreview} src={attachment.download_url} controls />
+          <AudioPlayer
+            mediaURL={attachment.download_url}
+            filename={attachment.filename}
+            rightHeaderSection={
+              store.data.submissionData && (
+                <AttachmentActionsDropdown
+                  asset={props.asset}
+                  submissionData={store.data.submissionData}
+                  attachmentId={attachment.id}
+                  onDeleted={() => {
+                    // TODO: this might be done with a bit more elegant UX, as calling the function causes a whole page
+                    // spinner to appear. I feel like redoing `singleProcessingStore` in a `react-query` way would
+                    // be the way to go. Alternatively we could use `markAttachmentAsDeleted` function and simply
+                    // override memoized value in store - but given how big and complex the store (and NLP view) is, we
+                    // could end up with unexpected bugs.
+                    store.fetchSubmissionData()
+                  }}
+                />
+              )
+            }
+          />
         </section>
       )
     default:

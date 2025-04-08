@@ -1,5 +1,7 @@
+import datetime
 import os.path
 import uuid
+from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -17,7 +19,12 @@ from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.usage_calculator import ServiceUsageCalculator
+from kpi.utils.usage_calculator import (
+    ServiceUsageCalculator,
+    get_nlp_usage_for_current_billing_period_by_user_id,
+    get_storage_usage_by_user_id,
+    get_submissions_for_current_billing_period_by_user_id,
+)
 
 
 class BaseServiceUsageTestCase(BaseAssetTestCase):
@@ -59,62 +66,76 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 },
             ]
         }
-        self.asset = Asset.objects.create(
+        asset = Asset.objects.create(
             content=content_source_asset,
             owner=owner,
             asset_type='survey',
         )
 
-        self.asset.deploy(backend='mock', active=True)
-        self.asset.save()
+        asset.deploy(backend='mock', active=True)
+        asset.deployment.set_namespace(self.URL_NAMESPACE)
+        return asset
 
-        self.asset.deployment.set_namespace(self.URL_NAMESPACE)
+    def _create_and_set_asset(self, user=None):
+        self.asset = self._create_asset(user)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
 
-    def add_nlp_trackers(self):
+    def add_nlp_tracker(self, asset, date, userid, seconds, characters):
+        counter = {
+            'google_asr_seconds': seconds,
+            'google_mt_characters': characters,
+        }
+        return NLPUsageCounter.objects.create(
+            user_id=userid,
+            asset=asset,
+            date=date,
+            counters=counter,
+            total_asr_seconds=seconds,
+            total_mt_characters=characters,
+        )
+
+    def add_standard_nlp_trackers(self):
         """
-        Add nlp data to an asset
+        Add nlp data common across several tests
         """
         # this month
         today = timezone.now().date()
-        counter_1 = {
-            'google_asr_seconds': 4586,
-            'google_mt_characters': 5473,
-        }
-        NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
+        self.add_nlp_tracker(
+            userid=self.anotheruser.id,
+            asset=self.asset,
             date=today,
-            counters=counter_1,
-            total_asr_seconds=counter_1['google_asr_seconds'],
-            total_mt_characters=counter_1['google_mt_characters'],
+            seconds=4586,
+            characters=5473,
         )
 
         # last month
         last_month = today - relativedelta(months=1)
-        counter_2 = {
-            'google_asr_seconds': 142,
-            'google_mt_characters': 1253,
-        }
-        NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
+        self.add_nlp_tracker(
+            userid=self.anotheruser.id,
+            asset=self.asset,
             date=last_month,
-            counters=counter_2,
-            total_asr_seconds=counter_2['google_asr_seconds'],
-            total_mt_characters=counter_2['google_mt_characters'],
+            seconds=142,
+            characters=1253,
         )
 
-    def add_submissions(self, count=2):
+    def add_submissions(
+        self,
+        count=2,
+        asset=None,
+        username='anotheruser',
+        date_override: datetime.datetime = None,
+    ):
         """
         Add one or more submissions to an asset (TWO by default)
         """
         submissions = []
-        v_uid = self.asset.latest_deployed_version.uid
+        if asset is None:
+            asset = self.asset
+        v_uid = asset.latest_deployed_version.uid
 
         for x in range(count):
             submission = {
@@ -124,22 +145,24 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
                 '_uuid': str(uuid.uuid4()),
                 '_attachments': [
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_clip.3gp',  # noqa: E501
-                        'filename': 'anotheruser/audio_conversion_test_clip.3gp',
+                        'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                        'filename': f'{username}/audio_conversion_test_clip.3gp',
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'download_url': 'http://testserver/anotheruser/audio_conversion_test_image.jpg',  # noqa: E501
-                        'filename': 'anotheruser/audio_conversion_test_image.jpg',
+                        'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
+                        'filename': f'{username}/audio_conversion_test_image.jpg',
                         'mimetype': 'image/jpeg',
                     },
                 ],
-                '_submitted_by': 'anotheruser',
+                '_submitted_by': username,
             }
+            if date_override:
+                submission['_submission_time'] = date_override.isoformat()
             # increment the attachment ID for each attachment created
             submissions.append(submission)
 
-        self.asset.deployment.mock_submissions(submissions)
+        asset.deployment.mock_submissions(submissions)
 
     def expected_file_size(self):
         """
@@ -157,14 +180,14 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
 class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     def setUp(self):
         super().setUp()
-        self._create_asset()
-        self.add_nlp_trackers()
+        self._create_and_set_asset()
         self.add_submissions(count=5)
 
     def test_disable_cache(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser, disable_cache=True)
         nlp_usage_A = calculator.get_nlp_usage_counters()
-        self.add_nlp_trackers()
+        self.add_standard_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
             2 * nlp_usage_A['asr_seconds_current_period']
@@ -176,6 +199,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         )
 
     def test_nlp_usage_counters(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser)
         nlp_usage = calculator.get_nlp_usage_counters()
         assert nlp_usage['asr_seconds_current_period'] == 4586
@@ -184,6 +208,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
     def test_no_data(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.someuser)
         nlp_usage = calculator.get_nlp_usage_counters()
         submission_counters = calculator.get_submission_counters()
@@ -198,6 +223,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
     @override_settings(STRIPE_ENABLED=True)
     def test_organization_setup(self):
+        self.add_standard_nlp_trackers()
         organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
@@ -219,6 +245,34 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['characters']) == 5473
         assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
 
+    def test_storage_usage_all_users(self):
+        asset_2 = self._create_asset(self.someuser)
+        asset_3 = self._create_asset(self.someuser)
+        self.add_submissions(count=2, asset=asset_2, username='someuser')
+        self.add_submissions(count=2, asset=asset_3, username='someuser')
+        results = get_storage_usage_by_user_id()
+        assert results == {
+            self.someuser.id: 4 * self.expected_file_size(),
+            self.anotheruser.id: 5 * self.expected_file_size(),
+        }
+
+    def test_storage_usage_subset_users(self):
+        user3 = User.objects.create_user(
+            username='fred', password='fred', email='fred@fred.com'
+        )
+        asset_2 = self._create_asset(self.someuser)
+        asset_3 = self._create_asset(self.someuser)
+        asset_4 = self._create_asset(user3)
+        self.add_submissions(count=2, asset=asset_2, username='someuser')
+        self.add_submissions(count=2, asset=asset_3, username='someuser')
+        self.add_submissions(count=2, asset=asset_4, username='fred')
+        results = get_storage_usage_by_user_id([self.someuser.id, self.anotheruser.id])
+        # third user should not be in results
+        assert results == {
+            self.someuser.id: 4 * self.expected_file_size(),
+            self.anotheruser.id: 5 * self.expected_file_size(),
+        }
+
     def test_storage_usage(self):
         calculator = ServiceUsageCalculator(self.anotheruser)
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
@@ -228,3 +282,117 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         submission_counters = calculator.get_submission_counters()
         assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
+
+    def test_submission_counters_current_period_all_orgs(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        five_days_ago = timezone.now() - relativedelta(days=5)
+        one_month_from_five_days_ago = five_days_ago + relativedelta(months=1)
+        mock_billing_periods = {
+            # someuser is on a yearly cycle
+            self.someuser.organization.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            },
+            # anotheruser is on a monthly cycle
+            self.anotheruser.organization.id: {
+                'start': five_days_ago,
+                'end': one_month_from_five_days_ago,
+            },
+        }
+        asset_2 = self._create_asset(self.someuser)
+
+        # mock a submission for someuser from 3 months ago (in range)
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self.add_submissions(
+            count=1, asset=asset_2, username='someuser', date_override=three_months_ago
+        )
+        # mock a submission for someuser from a year ago (out of range)
+        one_year_ago = timezone.now() - relativedelta(years=1)
+        self.add_submissions(
+            count=1, asset=asset_2, username='someuser', date_override=one_year_ago
+        )
+        # mock a submission for another user from 3 months ago (out of range)
+        self.add_submissions(count=1, date_override=three_months_ago)
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            submissions_by_user = (
+                get_submissions_for_current_billing_period_by_user_id()
+            )
+        assert submissions_by_user[self.someuser.id] == 1
+        assert submissions_by_user[self.anotheruser.id] == 5
+
+    def test_nlp_counters_current_period_all_orgs(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        five_days_ago = timezone.now() - relativedelta(days=5)
+        one_month_from_five_days_ago = five_days_ago + relativedelta(months=1)
+        yesterday = timezone.now() - relativedelta(days=1)
+        mock_billing_periods = {
+            # someuser is on a yearly cycle
+            self.someuser.organization.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            },
+            # anotheruser is on a monthly cycle
+            self.anotheruser.organization.id: {
+                'start': five_days_ago,
+                'end': one_month_from_five_days_ago,
+            },
+        }
+        asset_2 = self._create_asset(self.someuser)
+
+        # mock nlp data for someuser in range
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=three_months_ago,
+            seconds=10,
+            characters=20,
+        )
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=yesterday,
+            seconds=10,
+            characters=20,
+        )
+
+        # mock nlp data for someuser from a year ago (out of range)
+        one_year_ago = timezone.now() - relativedelta(years=1)
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=one_year_ago,
+            seconds=10,
+            characters=20,
+        )
+
+        # mock nlp data for another user in range
+        self.add_nlp_tracker(
+            asset=self.asset,
+            userid=self.anotheruser.id,
+            date=yesterday,
+            seconds=10,
+            characters=20,
+        )
+        # mock nlp data for another user from 3 months ago (out of range)
+        self.add_nlp_tracker(
+            asset=self.asset,
+            userid=self.anotheruser.id,
+            date=three_months_ago,
+            seconds=10,
+            characters=20,
+        )
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            nlp_usage_by_user = get_nlp_usage_for_current_billing_period_by_user_id()
+        assert nlp_usage_by_user[self.someuser.id]['seconds'] == 20
+        assert nlp_usage_by_user[self.anotheruser.id]['seconds'] == 10
+        assert nlp_usage_by_user[self.someuser.id]['characters'] == 40
+        assert nlp_usage_by_user[self.anotheruser.id]['characters'] == 20

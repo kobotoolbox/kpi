@@ -3,10 +3,9 @@
  */
 
 import Reflux from 'reflux'
-import alertify from 'alertifyjs'
-import { dataInterface } from 'js/dataInterface'
-import { MAX_DISPLAYED_STRING_LENGTH } from 'js/constants'
-import { getAssetUIDFromUrl, truncateFile, truncateString, notify } from 'js/utils'
+import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
+import { dataInterface } from '#/dataInterface'
+import { getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 
 const dataShareActions = Reflux.createActions({
   attachToSource: { children: ['started', 'completed', 'failed'] },
@@ -57,13 +56,13 @@ dataShareActions.getAttachedSources.listen((assetUid) => {
       // We create our own object from backend response because:
       // 1. We need to truncate the filename and display this instead
       // 2. We need both the current asset URL as well as it's source data URL
-      let allSources = []
+      const allSources = []
 
       // TODO: Check if pagination is an issue, if so we should try to use the
       // backend response directly.
       // See: https://github.com/kobotoolbox/kpi/issues/3911
       response.results.forEach((source) => {
-        let sourceUid = getAssetUIDFromUrl(source.source)
+        const sourceUid = getAssetUIDFromUrl(source.source)
         allSources.push({
           sourceName: truncateString(source.source__name, MAX_DISPLAYED_STRING_LENGTH.connect_projects),
           // Source's asset url

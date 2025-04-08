@@ -1,24 +1,24 @@
-import Reflux from 'reflux'
 import type { RouterState } from '@remix-run/router'
-import searchBoxStore from 'js/components/header/searchBoxStore'
-import assetUtils from 'js/assetUtils'
-import { getCurrentPath, isPublicCollectionsRoute } from 'js/router/routerUtils'
-import { actions } from 'js/actions'
-import { ORDER_DIRECTIONS, ASSETS_TABLE_COLUMNS } from 'js/components/assetsTable/assetsTableConstants'
-import type { OrderDirection } from 'js/projects/projectViews/constants'
-import type { AssetsTableColumn } from 'js/components/assetsTable/assetsTableConstants'
-import { ASSET_TYPES, ACCESS_TYPES } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import { router } from 'js/router/legacy'
+import { reaction } from 'mobx'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import assetUtils from '#/assetUtils'
+import { ASSETS_TABLE_COLUMNS, ORDER_DIRECTIONS } from '#/components/assetsTable/assetsTableConstants'
+import type { AssetsTableColumn } from '#/components/assetsTable/assetsTableConstants'
+import searchBoxStore from '#/components/header/searchBoxStore'
+import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type {
   AssetResponse,
+  AssetSubscriptionsResponse,
   AssetsResponse,
   DeleteAssetResponse,
   MetadataResponse,
-  AssetSubscriptionsResponse,
   SearchAssetsPredefinedParams,
-} from 'js/dataInterface'
-import { reaction } from 'mobx'
+} from '#/dataInterface'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import { router } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import { getCurrentPath, isPublicCollectionsRoute } from '#/router/routerUtils'
 
 export interface PublicCollectionsStoreData {
   isFetchingData: boolean

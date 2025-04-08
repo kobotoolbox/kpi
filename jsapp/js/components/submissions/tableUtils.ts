@@ -1,25 +1,25 @@
+import type { Filter } from 'react-table'
+import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
+import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {
-  QUESTION_TYPES,
+  DROPDOWN_FILTER_QUESTION_TYPES,
+  EXCLUDED_COLUMNS,
+  FILTER_EXACT_TYPES,
+  SUBMISSION_ACTIONS_ID,
+  TEXT_FILTER_QUESTION_IDS,
+  TEXT_FILTER_QUESTION_TYPES,
+  VALIDATION_STATUS_ID_PROP,
+} from '#/components/submissions/tableConstants'
+import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
+import {
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
+  QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
-import { ValidationStatusAdditionalName } from 'js/components/submissions/validationStatus.constants'
-import {
-  EXCLUDED_COLUMNS,
-  SUBMISSION_ACTIONS_ID,
-  VALIDATION_STATUS_ID_PROP,
-  TEXT_FILTER_QUESTION_IDS,
-  TEXT_FILTER_QUESTION_TYPES,
-  FILTER_EXACT_TYPES,
-  DROPDOWN_FILTER_QUESTION_TYPES,
-} from 'js/components/submissions/tableConstants'
-import type { SubmissionResponse, AssetResponse, SurveyRow } from 'js/dataInterface'
-import { getSurveyFlatPaths, getRowName, injectSupplementalRowsIntoListOfRows } from 'js/assetUtils'
-import { getSupplementalPathParts } from 'js/components/processing/processingUtils'
-import type { Filter } from 'react-table'
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
+import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 
 export function getColumnLabel(
   asset: AssetResponse,
@@ -107,7 +107,7 @@ export function getColumnLabel(
     let gLabels = questionPath.join(' / ')
 
     if (showLabels) {
-      const gT = questionPath.map(function (g) {
+      const gT = questionPath.map((g) => {
         const x = asset.content?.survey?.find((o) => o.name === g || o.$autoname === g)
         if (x?.label && x.label[translationIndex]) {
           return x.label[translationIndex]
@@ -167,11 +167,7 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
 
   if (submissions) {
     // Gather unique columns from all provided submissions and add them to output
-    const dataKeys = Object.keys(
-      submissions.reduce(function (result, obj) {
-        return Object.assign(result, obj)
-      }, {}),
-    )
+    const dataKeys = Object.keys(submissions.reduce((result, obj) => Object.assign(result, obj), {}))
     output = [...new Set([...output, ...dataKeys])]
   }
 
@@ -272,7 +268,7 @@ export function buildFilterQuery(
   filters.forEach((filter) => {
     switch (filter.id) {
       case '_id': {
-        output.queryObj[filter.id] = { $in: [parseInt(filter.value)] }
+        output.queryObj[filter.id] = { $in: [Number.parseInt(filter.value)] }
         break
       }
       case VALIDATION_STATUS_ID_PROP: {

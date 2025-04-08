@@ -1,14 +1,10 @@
-// Libraries
 import React, { useState, useMemo } from 'react'
 
-// Partial components
-import UniversalTable from './universalTable.component'
-
-// Types
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { PaginatedResponse } from 'js/dataInterface'
-import type { UniversalTableColumn } from './universalTable.component'
 import type { Record } from 'immutable'
+import type { PaginatedResponse } from '#/dataInterface'
+import UniversalTable from './universalTable.component'
+import type { UniversalTableColumn } from './universalTable.component'
 
 type PaginatedQueryHookData = Record<string, string | number | boolean>
 
@@ -17,9 +13,7 @@ export type PaginatedQueryHookParams = {
   offset: number
 } & PaginatedQueryHookData
 
-interface PaginatedQueryHook<DataItem> {
-  (params: PaginatedQueryHookParams): UseQueryResult<PaginatedResponse<DataItem>>
-}
+type PaginatedQueryHook<DataItem> = (params: PaginatedQueryHookParams) => UseQueryResult<PaginatedResponse<DataItem>>
 
 interface PaginatedQueryUniversalTableProps<DataItem> {
   queryHook: PaginatedQueryHook<DataItem>

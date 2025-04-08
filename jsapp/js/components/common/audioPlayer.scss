@@ -28,6 +28,7 @@
     color: colors.$kobo-storm;
     font-size: 16px;
     font-weight: 600;
+    flex: 1;
   }
 }
 
@@ -41,4 +42,8 @@
   height: 28px;
   border-radius: 6px;
   background-color: colors.$kobo-light-storm;
+}
+
+.audio-player__name__right-section {
+  margin-left: 5px;
 }

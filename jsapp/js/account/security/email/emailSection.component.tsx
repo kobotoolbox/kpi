@@ -1,24 +1,16 @@
-// Libraries
 import React, { useEffect, useState } from 'react'
+
 import cx from 'classnames'
-
-// Stores and email related
-import sessionStore from 'js/stores/session'
-import { getUserEmails, setUserEmail, deleteUnverifiedUserEmails } from './emailSection.api'
-import type { EmailResponse } from './emailSection.api'
+import securityStyles from '#/account/security/securityRoute.module.scss'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import TextBox from '#/components/common/textBox'
+import sessionStore from '#/stores/session'
+import { formatTime, notify } from '#/utils'
 import { useOrganizationQuery } from '../../organization/organizationQuery'
-
-// Partial components
-import Button from 'jsapp/js/components/common/button'
-import TextBox from 'jsapp/js/components/common/textBox'
-import Icon from 'jsapp/js/components/common/icon'
-
-// Utils
-import { formatTime, notify } from 'js/utils'
-
-// Styles
+import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
+import type { EmailResponse } from './emailSection.api'
 import styles from './emailSection.module.scss'
-import securityStyles from 'js/account/security/securityRoute.module.scss'
 
 interface EmailState {
   emails: EmailResponse[]
@@ -109,10 +101,10 @@ export default function EmailSection() {
 
   function handleSubmit() {
     const emailPattern = /[^@]+@[^@]+\.[^@]+/
-    if (!emailPattern.test(email.newEmail)) {
-      notify.error('Invalid email address')
-    } else {
+    if (emailPattern.test(email.newEmail)) {
       setNewUserEmail(email.newEmail)
+    } else {
+      notify.error('Invalid email address')
     }
   }
 

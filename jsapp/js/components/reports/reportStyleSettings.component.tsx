@@ -1,27 +1,21 @@
-// Libraries
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
 
-// Partial components
-import Radio from 'js/components/common/radio'
-import Modal from 'js/components/common/modal'
-import ReportTypeEditor from './reportTypeEditor.component'
-import ReportColorsEditor from './reportColorsEditor.component'
-import Button from 'js/components/common/button'
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
+import Radio from '#/components/common/radio'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
-} from 'js/components/reports/reportsModalTabs.component'
-
-// Utilities
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import { handleApiFail } from 'jsapp/js/api'
-
-// Types & constants
-import type { FailResponse, LabelValuePair } from 'js/dataInterface'
-import type { ReportStyle, ReportStyleName } from './reportsConstants'
+} from '#/components/reports/reportsModalTabs.component'
+import type { FailResponse, LabelValuePair } from '#/dataInterface'
+import ReportColorsEditor from './reportColorsEditor.component'
+import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportStyleSettingsProps {
   parentState: ReportsState
@@ -106,7 +100,7 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
 
   onTranslationIndexChange(newIndex: string) {
     const newStyle = clonedeep(this.state.reportStyle)
-    newStyle.translationIndex = parseInt(newIndex)
+    newStyle.translationIndex = Number.parseInt(newIndex)
     this.setState({ reportStyle: newStyle })
   }
 

@@ -1,18 +1,19 @@
 import React from 'react'
-import { QUESTION_TYPES } from 'js/constants'
-import type { AssetResponse } from 'js/dataInterface'
-import { findRowByXpath, getRowTypeIcon, getTranslatedRowLabel, getRowName, getLanguageIndex } from 'js/assetUtils'
-import { ROUTES } from 'js/router/routerConstants'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import KoboSelect from 'js/components/common/koboSelect'
-import type { KoboSelectOption } from 'js/components/common/koboSelect'
-import styles from './singleProcessingHeader.module.scss'
-import { goToProcessing } from 'js/components/processing/routes.utils'
-import { withRouter } from 'js/router/legacy'
-import type { WithRouterProps } from 'js/router/legacy'
-import { actions } from 'js/actions'
+
 import classNames from 'classnames'
+import { actions } from '#/actions'
+import { findRowByXpath, getLanguageIndex, getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
+import Button from '#/components/common/button'
+import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import { goToProcessing } from '#/components/processing/routes.utils'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { QUESTION_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { withRouter } from '#/router/legacy'
+import type { WithRouterProps } from '#/router/legacy'
+import { ROUTES } from '#/router/routerConstants'
+import styles from './singleProcessingHeader.module.scss'
 
 interface SingleProcessingHeaderProps extends WithRouterProps {
   submissionEditId: string
@@ -117,7 +118,9 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     // itself, so that all the columns are rendered. This is needed for the case
     // when user added/deleted transcript or translation (editing the text
     // value for it is already handled properly by Data Table code).
-    if (!singleProcessingStore.data.isPristine) {
+    if (singleProcessingStore.data.isPristine) {
+      this.navigateToDataTable()
+    } else {
       // Mark button as pending to let user know we wait for stuff.
       this.setState({ isDoneButtonPending: true })
 
@@ -135,8 +138,6 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
       // it would fetch latest asset and make Data Table use it. To avoid
       // race conditions we wait until it loads to leave.
       actions.resources.loadAsset({ id: this.props.assetUid }, true)
-    } else {
-      this.navigateToDataTable()
     }
   }
 

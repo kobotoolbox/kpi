@@ -1,7 +1,6 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
+import { IconNames } from '#/k-icons'
 import KoboPrompt from './koboPrompt'
-import { IconNames } from 'jsapp/fonts/k-icons'
 
 const meta: Meta<typeof KoboPrompt> = {
   title: 'common/KoboPrompt',

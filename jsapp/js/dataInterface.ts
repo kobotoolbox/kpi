@@ -1,36 +1,40 @@
 /**
  * The only file that is making calls to Backend. You shouldn't use it directly,
- * but through proper actions in `jsapp/js/actions.js`.
+ * but through proper actions in `#/actions.js`.
  *
  * NOTE: In future all the calls from here will be moved to appropriate stores.
  */
 
-import { ROOT_URL, COMMON_QUERIES } from './constants'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import type { AnyRowTypeName, AssetTypeName, AssetFileType } from 'js/constants'
-import type { PermissionCodename } from 'js/components/permissions/permConstants'
-import type { Json } from './components/common/common.interfaces'
-import type { ProjectViewsSettings } from './projects/customViewStore'
-import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
-import type { TransxObject } from './components/processing/processingActions'
-import type { UserResponse } from 'js/users/userExistence.store'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { AssetLockingProfileDefinition } from '#/components/locking/lockingConstants'
+import type { PermissionCodename } from '#/components/permissions/permConstants'
+import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
 import type {
-  ReportsPaginatedResponse,
-  AssetResponseReportStyles,
   AssetResponseReportCustom,
-} from 'js/components/reports/reportsConstants'
-import type { ProjectTransferAssetDetail } from 'js/components/permissions/transferProjects/transferProjects.api'
-import type { SortValues } from 'js/components/submissions/tableConstants'
-import type { ValidationStatusName } from 'js/components/submissions/validationStatus.constants'
-import type { AssetLockingProfileDefinition } from 'jsapp/js/components/locking/lockingConstants'
-import {
-  type ExportFormatName,
-  type ExportMultiOptionName,
-  type ExportStatusName,
-  type ExportTypeName,
-} from './components/projectDownloads/exportsConstants'
-import { type LangString } from './utils'
+  AssetResponseReportStyles,
+  ReportsPaginatedResponse,
+} from '#/components/reports/reportsConstants'
+import type { SortValues } from '#/components/submissions/tableConstants'
+import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
+import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
+import type { UserResponse } from '#/users/userExistence.store'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
+import type { Json } from './components/common/common.interfaces'
+import type {
+  AnalysisQuestionSchema,
+  AnalysisQuestionType,
+  SubmissionAnalysisResponse,
+} from './components/processing/analysis/constants'
+import type { TransxObject } from './components/processing/processingActions'
+import type {
+  ExportFormatName,
+  ExportMultiOptionName,
+  ExportStatusName,
+  ExportTypeName,
+} from './components/projectDownloads/exportsConstants'
+import { COMMON_QUERIES, ROOT_URL } from './constants'
+import type { ProjectViewsSettings } from './projects/customViewStore'
+import type { LangString } from './utils'
 
 interface AssetsRequestData {
   q?: string
@@ -159,9 +163,11 @@ export interface SubmissionAttachment {
   instance: number
   xform: number
   id: number
+  /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
+  is_deleted?: boolean
 }
 
-interface SubmissionSupplementalDetails {
+export interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: TransxObject
     translation?: {
@@ -172,6 +178,13 @@ interface SubmissionSupplementalDetails {
 }
 
 /**
+ * This is a completely empty object.
+ *
+ * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
+ */
+export type SubmissionSupplementalDetailsEmpty = Record<string, never>
+
+/**
  * Value of a property found in `SubmissionResponse`, it can be either a built
  * in submission property (e.g. `_geolocation`) or a response to a form question
  */
@@ -180,40 +193,48 @@ export type SubmissionResponseValue =
   | string[]
   | number
   | number[]
+  // Sometimes being used as "no value" by backend
   | null
-  | object
+  // Being used as "no value" by backend for `_geolocation`
+  | null[]
+  // Sometimes being used as "no value" by backend
+  | {}
   | SubmissionAttachment[]
   | SubmissionSupplementalDetails
-  // This happens with responses to questions inside repeat groups
-  | Array<{ [questionName: string]: SubmissionResponseValue }>
+  // These are responses to questions from repeat group
+  | SubmissionResponseValueObject[]
+  // This is needed because some of `SubmissionResponse` properties are optional
   | undefined
 
-export interface SubmissionResponse {
-  // `SubmissionResponseValue` covers all possible values (responses to form
-  // questions and other submission properties)
-  [propName: string]: SubmissionResponseValue
-  // Below are all known properties of submission response:
+/**
+ * A list of responses to form questions
+ */
+export interface SubmissionResponseValueObject {
+  [questionName: string]: SubmissionResponseValue
+}
+
+/**
+ * A list of responses to form questions plus some submission metadata
+ */
+export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
   _attachments: SubmissionAttachment[]
   _geolocation: number[] | null[]
-  _id: number
   _notes: string[]
   _status: string
   _submission_time: string
   _submitted_by: string | null
   _tags: string[]
-  _uuid: string
-  _validation_status: {
-    timestamp?: number
-    uid?: ValidationStatusName
-    by_whom?: string
-    color?: string
-    label?: string
-  }
-  _version_: string
+  // If submission was validated, this would be a proper response, otherwise it's empty object
+  _validation_status: ValidationStatusResponse | {}
+  _version_?: string
   _xform_id_string: string
   deviceid?: string
   end?: string
+  // `meta/rootUuid` is persistent across edits while `_uuid` is not;
+  // use the persistent identifier if present.
+  _id: number
+  _uuid: string
   'formhub/uuid': string
   'meta/instanceID': string
   'meta/rootUuid': string
@@ -221,7 +242,13 @@ export interface SubmissionResponse {
   start?: string
   today?: string
   username?: string
-  _supplementalDetails?: SubmissionSupplementalDetails
+  /**
+   * For form with no advanced features enabled (i.e. NLP screen not visited)
+   * it will be `undefined`. For forms with advanced features enabled, it will
+   * be either empty object (i.e. given submission doesn't have any NLP features
+   * applied to it) or a proper `SubmissionSupplementalDetails` object.
+   */
+  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
 }
 
 interface AssignablePermissionRegular {
@@ -370,7 +397,10 @@ export interface SurveyRow {
   hint?: string[]
   name?: string
   required?: boolean
-  _isRepeat?: boolean
+  // It's here because when form has `kobomatrix` row, Form Builder's "Save" button is sending a request that contains
+  // it, and BE doesn't remove it. It's really a result of a bug in the code. It shouldn't be used and shouldn't be part
+  // of this interface. But rather than removing it, I want to leave a trace, so that noone will add it again in future.
+  // _isRepeat?: 'false'
   appearance?: string
   parameters?: string
   'kobo--matrix_list'?: string
@@ -381,6 +411,8 @@ export interface SurveyRow {
   /** HXL tags. */
   tags?: string[]
   select_from_list_name?: string
+  /** Used by `file` type to list accepted extensions */
+  'body::accept'?: string
 }
 
 export interface SurveyChoice {
@@ -565,8 +597,9 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: string
-  language: string
+  type: AnalysisQuestionType | 'transcript' | 'translation'
+  /** Two letter language code or ?? for qualitative analysis questions */
+  language: string | '??'
   source: string
   xpath: string
   settings:
@@ -632,7 +665,14 @@ export interface AssetResponse extends AssetRequestObject {
   }
   deployment__active: boolean
   deployment__data_download_links?: {
-    [key in ExportTypeName]: string | undefined
+    csv_legacy: string
+    csv: string
+    geojson?: string
+    kml_legacy: string
+    spss_labels?: string
+    xls_legacy: string
+    xls: string
+    zip_legacy: string
   }
   deployment__submission_count: number
   deployment_status: 'archived' | 'deployed' | 'draft'
@@ -906,7 +946,7 @@ export interface ValidationStatusResponse {
   /** username */
   by_whom: string
   /** HEX color */
-  color: string
+  color?: string
   label: string
 }
 
@@ -1037,12 +1077,12 @@ export const dataInterface: DataInterface = {
     const d = $.Deferred()
     $ajax({ url: `${ROOT_URL}/accounts/logout/`, method: 'POST' })
       .done(d.resolve)
-      .fail(function (/*resp, etype, emessage*/) {
+      .fail((/*resp, etype, emessage*/) => {
         // logout request wasn't successful, but may have logged the user out
         // querying '/me/' can confirm if we have logged out.
         dataInterface
           .selfProfile()
-          .done(function (data: { message?: string }) {
+          .done((data: { message?: string }) => {
             if (data.message === 'user is not logged in') {
               d.resolve(data)
             } else {
@@ -1356,6 +1396,13 @@ export const dataInterface: DataInterface = {
     return $ajax({
       method: 'DELETE',
       url: permUrl,
+    })
+  },
+
+  removeAllPermissions(permUrl: string): JQuery.jqXHR<any> {
+    return $ajax({
+      url: `${permUrl}delete-all/`,
+      method: 'DELETE',
     })
   },
 
@@ -1818,13 +1865,6 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/validation_status/`,
       method: 'DELETE',
-    })
-  },
-
-  getSubmissionsQuery(uid: string, query = ''): JQuery.jqXHR<any> {
-    return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}`,
-      method: 'GET',
     })
   },
 

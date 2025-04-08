@@ -1,22 +1,23 @@
 import React from 'react'
-import reactMixin from 'react-mixin'
-import autoBind from 'react-autobind'
-import Reflux from 'reflux'
+
 import alertify from 'alertifyjs'
-import LanguageForm from 'js/components/modalForms/languageForm'
-import bem from 'js/bem'
-import InlineMessage from 'js/components/common/inlineMessage'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import { stores } from 'js/stores'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import { MODAL_TYPES } from 'js/constants'
-import { LockingRestrictionName } from 'js/components/locking/lockingConstants'
-import { hasAssetRestriction } from 'js/components/locking/lockingUtils'
-import envStore from 'js/envStore'
-import { getLangString, notify, escapeHtml } from 'utils'
-import pageState from 'js/pageState.store'
-import Button from 'js/components/common/button'
+import autoBind from 'react-autobind'
+import reactMixin from 'react-mixin'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import assetStore from '#/assetStore'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import { LockingRestrictionName } from '#/components/locking/lockingConstants'
+import { hasAssetRestriction } from '#/components/locking/lockingUtils'
+import LanguageForm from '#/components/modalForms/languageForm'
+import { MODAL_TYPES } from '#/constants'
+import envStore from '#/envStore'
+import pageState from '#/pageState.store'
+import { stores } from '#/stores'
+import { escapeHtml, getLangString, notify } from '#/utils'
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
@@ -148,14 +149,14 @@ export class TranslationSettings extends React.Component {
     }
   }
   prepareTranslations(content) {
-    let translated = content.translated
-    let translationsLength = content.translations.length
-    let survey = content.survey
-    let choices = content.choices
+    const translated = content.translated
+    const translationsLength = content.translations.length
+    const survey = content.survey
+    const choices = content.choices
 
     // append null values to translations for each survey row
     for (let i = 0, len = survey.length; i < len; i++) {
-      let row = survey[i]
+      const row = survey[i]
       for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j]
         if (row[property] && row[property].length < translationsLength) {
@@ -175,13 +176,13 @@ export class TranslationSettings extends React.Component {
     return content
   }
   deleteTranslations(content, langIndex) {
-    let translated = content.translated
-    let translationsLength = content.translations.length
-    let survey = content.survey
-    let choices = content.choices
+    const translated = content.translated
+    const translationsLength = content.translations.length
+    const survey = content.survey
+    const choices = content.choices
 
     for (let i = 0, len = survey.length; i < len; i++) {
-      let row = survey[i]
+      const row = survey[i]
       for (let j = 0, len2 = translated.length; j < len2; j++) {
         var property = translated[j]
         if (row[property]) {
@@ -428,7 +429,7 @@ export class TranslationSettings extends React.Component {
       return <LoadingSpinner />
     }
 
-    let translations = this.state.translations
+    const translations = this.state.translations
     if (translations.length === 0) {
       return this.renderEmptyMessage()
     } else if (translations.length === 1 && translations[0] === null) {

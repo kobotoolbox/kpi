@@ -1,7 +1,5 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-
-import KoboDropdown from 'js/components/common/koboDropdown'
+import KoboDropdown from '#/components/common/koboDropdown'
 
 const meta: Meta<typeof KoboDropdown> = {
   title: 'common/KoboDropdown',

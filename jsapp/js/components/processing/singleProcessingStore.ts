@@ -1,43 +1,38 @@
-import Reflux from 'reflux'
-import alertify from 'alertifyjs'
 import type { RouterState } from '@remix-run/router'
-import { router } from 'js/router/legacy'
-import { getCurrentPath } from 'js/router/routerUtils'
+import alertify from 'alertifyjs'
+import Reflux from 'reflux'
+import { actions } from '#/actions'
+import { destroyConfirm } from '#/alertify'
+import assetStore from '#/assetStore'
 import {
-  getSurveyFlatPaths,
-  getAssetProcessingRows,
-  isAssetProcessingActivated,
-  getAssetAdvancedFeatures,
   findRowByXpath,
-  getRowName,
-  getRowNameByXpath,
+  getAssetAdvancedFeatures,
+  getAssetProcessingRows,
   getFlatQuestionsList,
   getLanguageIndex,
-} from 'js/assetUtils'
-import type { SurveyFlatPaths } from 'js/assetUtils'
-import assetStore from 'js/assetStore'
-import { actions } from 'js/actions'
-import processingActions from 'js/components/processing/processingActions'
-import type { ProcessingDataResponse } from 'js/components/processing/processingActions'
-import type {
-  FailResponse,
-  SubmissionResponse,
-  AssetResponse,
-  GetProcessingSubmissionsResponse,
-} from 'js/dataInterface'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import { QUESTION_TYPES, type AnyRowTypeName, XML_VALUES_OPTION_VALUE } from 'js/constants'
-import { destroyConfirm } from 'js/alertify'
+  getRowName,
+  getRowNameByXpath,
+  getSurveyFlatPaths,
+  isAssetProcessingActivated,
+} from '#/assetUtils'
+import type { SurveyFlatPaths } from '#/assetUtils'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import processingActions from '#/components/processing/processingActions'
+import type { ProcessingDataResponse } from '#/components/processing/processingActions'
 import {
+  ProcessingTab,
+  getCurrentProcessingRouteParts,
+  getProcessingRouteParts,
   isAnyProcessingRoute,
   isAnyProcessingRouteActive,
-  getProcessingRouteParts,
-  getCurrentProcessingRouteParts,
-  ProcessingTab,
-} from 'js/components/processing/routes.utils'
-import type { KoboSelectOption } from 'js/components/common/koboSelect'
-import { getExponentialDelayTime, removeDefaultUuidPrefix } from 'jsapp/js/utils'
-import envStore from 'jsapp/js/envStore'
+} from '#/components/processing/routes.utils'
+import { type AnyRowTypeName, QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
+import type { AssetResponse, FailResponse, GetProcessingSubmissionsResponse, SubmissionResponse } from '#/dataInterface'
+import envStore from '#/envStore'
+import { router } from '#/router/legacy'
+import { getCurrentPath } from '#/router/routerUtils'
+import { getExponentialDelayTime, removeDefaultUuidPrefix } from '#/utils'
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -255,10 +250,10 @@ class SingleProcessingStore extends Reflux.Store {
   /** This is making sure the asset processing features are activated. */
   private onAssetLoad(asset: AssetResponse) {
     if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
-      if (!isAssetProcessingActivated(this.currentAssetUid)) {
-        this.activateAsset()
-      } else {
+      if (isAssetProcessingActivated(this.currentAssetUid)) {
         this.fetchAllInitialDataForAsset()
+      } else {
+        this.activateAsset()
       }
     }
   }
@@ -306,12 +301,12 @@ class SingleProcessingStore extends Reflux.Store {
       return
     }
 
-    if (!isAssetProcessingActivated(this.currentAssetUid)) {
-      this.activateAsset()
-    } else {
+    if (isAssetProcessingActivated(this.currentAssetUid)) {
       this.fetchSubmissionData()
       this.fetchEditIds()
       this.fetchProcessingData()
+    } else {
+      this.activateAsset()
     }
   }
 
@@ -388,7 +383,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  private fetchSubmissionData(): void {
+  fetchSubmissionData(): void {
     this.isSubmissionLoaded = false
     this.data.submissionData = undefined
     this.trigger(this.data)

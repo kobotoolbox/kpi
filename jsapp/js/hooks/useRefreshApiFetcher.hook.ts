@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { ApiFetcherStatus } from 'js/hooks/useApiFetcher.hook'
+
+import type { ApiFetcherStatus } from '#/hooks/useApiFetcher.hook'
 
 /*
  * Use this hook to refresh an ApiFetcher hook whenever a page is reloaded.

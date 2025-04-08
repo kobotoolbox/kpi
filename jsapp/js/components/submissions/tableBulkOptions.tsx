@@ -1,27 +1,28 @@
 import React from 'react'
-import { actions } from 'js/actions'
-import bem from 'js/bem'
-import PopoverMenu from 'js/popoverMenu'
+
 import alertify from 'alertifyjs'
-import { MODAL_TYPES } from 'js/constants'
+import { actions } from '#/actions'
+import bem from '#/bem'
+import Badge from '#/components/common/badge'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userCan, userCanPartially } from '#/components/permissions/utils'
+import type { DataTableSelectedRows, ReactTableStateFilteredItem } from '#/components/submissions/table.types'
 import {
-  ValidationStatusAdditionalName,
   VALIDATION_STATUS_OPTIONS,
-} from 'js/components/submissions/validationStatus.constants'
+  ValidationStatusAdditionalName,
+} from '#/components/submissions/validationStatus.constants'
 import type {
   ValidationStatusName,
   ValidationStatusOptionName,
-} from 'js/components/submissions/validationStatus.constants'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import { renderCheckbox } from 'js/utils'
-import { userCan, userCanPartially } from 'js/components/permissions/utils'
+} from '#/components/submissions/validationStatus.constants'
+import { MODAL_TYPES } from '#/constants'
+import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '#/dataInterface'
+import pageState from '#/pageState.store'
+import PopoverMenu from '#/popoverMenu'
+import { renderCheckbox } from '#/utils'
 import { buildFilterQuery } from './tableUtils'
-import type { AssetResponse, SubmissionResponse, BulkSubmissionsRequest } from 'js/dataInterface'
-import pageState from 'js/pageState.store'
-import type { DataTableSelectedRows, ReactTableStateFilteredItem } from 'js/components/submissions/table.types'
-import Button from 'js/components/common/button'
-import Badge from 'js/components/common/badge'
-import Icon from 'js/components/common/icon'
 
 interface TableBulkOptionsProps {
   asset: AssetResponse
@@ -126,7 +127,6 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
       selectedCount = requestObj.submission_ids.length
     }
     let msg
-    let onshow
     msg = t(
       'You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.',
     ).replace('##count##', String(selectedCount))
@@ -134,16 +134,16 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
     this.closeCurrentDialog() // just for safety sake
     this.currentDialog = alertify.dialog('confirm')
-    onshow = () => {
-      let ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
-      let $els = $('.alertify-toggle input')
+    const onshow = () => {
+      const ok_button = this.currentDialog?.elements.buttons.primary.firstChild as HTMLButtonElement
+      const $els = $('.alertify-toggle input')
 
       ok_button.disabled = true
 
       $els.each(function () {
         $(this).prop('checked', false)
       })
-      $els.change(function () {
+      $els.change(() => {
         ok_button.disabled = false
         $els.each(function () {
           if (!$(this).prop('checked')) {

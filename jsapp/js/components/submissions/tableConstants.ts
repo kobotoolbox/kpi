@@ -1,11 +1,11 @@
 import {
-  createEnum,
-  META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
-  QuestionTypeName,
+  META_QUESTION_TYPES,
   MiscRowTypeName,
-} from 'js/constants'
-import type { AnyRowTypeName } from 'js/constants'
+  QuestionTypeName,
+  createEnum,
+} from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions'
 
@@ -47,6 +47,7 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
 })
 
 export const TABLE_MEDIA_TYPES = createEnum([
+  QuestionTypeName.file,
   QuestionTypeName.image,
   QuestionTypeName.audio,
   QuestionTypeName.video,

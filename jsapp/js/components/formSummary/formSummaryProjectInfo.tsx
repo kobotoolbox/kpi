@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import bem from 'js/bem'
-import { getCountryDisplayString, getSectorDisplayString } from 'js/assetUtils'
-import type { AssetResponse, PaginatedResponse, SubmissionResponse } from 'js/dataInterface'
-import { dataInterface } from 'js/dataInterface'
-import { handleApiFail } from 'js/api'
-import { formatTime } from 'js/utils'
-import AssetStatusBadge from 'js/components/common/assetStatusBadge'
-import Avatar from 'js/components/common/avatar'
-import envStore from 'js/envStore'
-import sessionStore from 'js/stores/session'
+
+import { handleApiFail } from '#/api'
+import { getCountryDisplayString, getSectorDisplayString } from '#/assetUtils'
+import bem from '#/bem'
+import AssetStatusBadge from '#/components/common/assetStatusBadge'
+import Avatar from '#/components/common/avatar'
+import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
+import envStore from '#/envStore'
+import sessionStore from '#/stores/session'
+import { formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse

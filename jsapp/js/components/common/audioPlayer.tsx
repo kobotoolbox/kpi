@@ -1,10 +1,12 @@
+import '#/components/common/audioPlayer.scss'
+
 import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import KoboRange from 'js/components/common/koboRange'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import InlineMessage from 'js/components/common/inlineMessage'
-import Button from 'js/components/common/button'
-import 'js/components/common/audioPlayer.scss'
+
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import KoboRange from '#/components/common/koboRange'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import Icon from './icon'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')
@@ -22,6 +24,7 @@ interface AudioPlayerProps {
   filename?: string
   mediaURL: string
   'data-cy'?: string
+  rightHeaderSection?: React.ReactNode
 }
 
 interface AudioPlayerState {
@@ -98,10 +101,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onPlayStatusChange() {
-    if (!this.state.isPlaying) {
-      this.audioInterface.play()
-    } else {
+    if (this.state.isPlaying) {
       this.audioInterface.pause()
+    } else {
+      this.audioInterface.play()
     }
 
     this.setState({
@@ -110,10 +113,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   onSeekChange(newTime: string) {
-    this.audioInterface.currentTime = parseInt(newTime)
+    this.audioInterface.currentTime = Number.parseInt(newTime)
 
     this.setState({
-      currentTime: parseInt(newTime),
+      currentTime: Number.parseInt(newTime),
     })
   }
 
@@ -126,6 +129,10 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
               <Icon name='file-audio' size='m' />
             </bem.AudioPlayer__nameIcon>
             <label>{this.name}</label>
+
+            {this.props.rightHeaderSection && (
+              <div className='audio-player__name__right-section'>{this.props.rightHeaderSection}</div>
+            )}
           </bem.AudioPlayer__name>
         )}
         <bem.AudioPlayer__controls>

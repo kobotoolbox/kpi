@@ -6,10 +6,11 @@
 //   (yet), as well as other styling props.
 
 import React, { useState, useEffect, useRef } from 'react'
+
 import cx from 'classnames'
+import Icon from '#/components/common/icon'
+import type { IconName } from '#/k-icons'
 import styles from './koboAccessibleSelect.module.scss'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import Icon from 'js/components/common/icon'
 
 const NOTHING_SELECTED: KoboSelectOption = { value: '', label: '' }
 
@@ -77,6 +78,7 @@ export default function KoboSelect3(props: KoboSelect3Props) {
   }
   // Comparison helpers, for letter matching
   const closestAscii = (str: string) => {
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: TODO: investigate, test, and solve or explain.
     const combining = /[\u0300-\u036F]/g
     return str.normalize('NFKD').replace(combining, '')
   }
@@ -176,14 +178,12 @@ export default function KoboSelect3(props: KoboSelect3Props) {
     if (cycle.current) {
       // CYCLE
       jumpToNextPrefixMatch(eventKey)
+    } else if (matchesBeginningOf(buffer.current, optionRef.current.label)) {
+      // Stay on the current option if it still matches.
+      // *do nothing*
     } else {
-      // MATCH
-      //   Stay on the current option if it still matches.
-      //   Otherwise, try to cycle to a better match.
-
-      if (!matchesBeginningOf(buffer.current, optionRef.current.label)) {
-        jumpToNextPrefixMatch(buffer.current)
-      }
+      // try to cycle to a better match.
+      jumpToNextPrefixMatch(buffer.current)
     }
   }
 

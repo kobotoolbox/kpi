@@ -1,14 +1,16 @@
-import { Button as ButtonMantine, createPolymorphicComponent, MantineSize, Tooltip } from '@mantine/core'
+import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
-import { IconName } from 'jsapp/fonts/k-icons'
+import type { IconName } from 'jsapp/fonts/k-icons'
 import { forwardRef } from 'react'
-import Icon, { IconSize } from './icon'
+import Icon, { type IconSize } from './icon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
   sm: 'xs',
   md: 's',
   lg: 'm',
 }
+
+// See boilerpate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
 
 export interface ButtonProps extends ButtonPropsMantine {
   tooltip?: React.ReactNode

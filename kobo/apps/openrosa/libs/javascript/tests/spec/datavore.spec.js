@@ -1,4 +1,4 @@
-describe('FH.DatavoreWrapper', function () {
+describe('FH.DatavoreWrapper', () => {
   var fieldSet = new FH.FieldSet(
     [
       {
@@ -40,96 +40,86 @@ describe('FH.DatavoreWrapper', function () {
     { url: '/user/forms/test/form.json' },
   )
 
-  describe('FH.DatavoreWrapper.fhToDatavoreTypes', function () {
-    it('returns nominal for select one', function () {
+  describe('FH.DatavoreWrapper.fhToDatavoreTypes', () => {
+    it('returns nominal for select one', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('select one')
       expect(dvType).toEqual(dv.type.nominal)
     })
 
-    it('returns numeric for integers', function () {
+    it('returns numeric for integers', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('integer')
       expect(dvType).toEqual(dv.type.numeric)
     })
 
-    it('returns numeric for decimal', function () {
+    it('returns numeric for decimal', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('decimal')
       expect(dvType).toEqual(dv.type.numeric)
     })
 
-    it('returns unknown for text', function () {
+    it('returns unknown for text', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('text')
       expect(dvType).toEqual(dv.type.unknown)
     })
 
-    it('returns unknown for geopoint', function () {
+    it('returns unknown for geopoint', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('geopoint')
       expect(dvType).toEqual(dv.type.unknown)
     })
 
-    it('returns unknown for gps', function () {
+    it('returns unknown for gps', () => {
       var dvType = FH.DatavoreWrapper.fhToDatavoreType('gps')
       expect(dvType).toEqual(dv.type.unknown)
     })
   })
 
-  describe('DV Table initialisation', function () {
+  describe('DV Table initialisation', () => {
     var fhDatavore
 
-    beforeEach(function () {
+    beforeEach(() => {
       fhDatavore = new FH.DatavoreWrapper({ fieldSet: fieldSet, dataSet: dataSet })
     })
 
-    it('initialises a datavore table on creation', function () {
+    it('initialises a datavore table on creation', () => {
       expect(fhDatavore.table).toBeDefined()
     })
 
-    it('adds the meta _id field', function () {
+    it('adds the meta _id field', () => {
       var idCol
 
-      idCol = fhDatavore.table.filter(function (col) {
-        return col.name === '_id'
-      })[0]
+      idCol = fhDatavore.table.filter((col) => col.name === '_id')[0]
       expect(idCol).toBeDefined()
       expect(idCol.type).toEqual(dv.type.unknown)
     })
 
-    it('sets up the correct number of rows and columns', function () {
+    it('sets up the correct number of rows and columns', () => {
       var cols
 
       // 3 +  1 meta _id column
       expect(fhDatavore.table.cols()).toEqual(4)
       expect(fhDatavore.table.rows()).toEqual(7)
 
-      cols = fhDatavore.table.map(function (c) {
-        return c.name
-      })
+      cols = fhDatavore.table.map((c) => c.name)
       expect(cols).toContain('good_eats/food_type')
       expect(cols).toContain('good_eats/risk_factor')
       expect(cols).toContain('good_eats/rating')
     })
 
-    it('properly sets the datavore columns types', function () {
+    it('properly sets the datavore columns types', () => {
       var targetCol
 
-      targetCol = fhDatavore.table.filter(function (col) {
-        return col.name === 'good_eats/food_type'
-      })[0]
+      targetCol = fhDatavore.table.filter((col) => col.name === 'good_eats/food_type')[0]
       expect(targetCol.type).toEqual(dv.type.nominal)
 
-      targetCol = fhDatavore.table.filter(function (col) {
-        return col.name === 'good_eats/food_type'
-      })[0]
+      targetCol = fhDatavore.table.filter((col) => col.name === 'good_eats/food_type')[0]
       expect(targetCol.type).toEqual(dv.type.nominal)
 
-      targetCol = fhDatavore.table.filter(function (col) {
-        return col.name === 'good_eats/rating'
-      })[0]
+      targetCol = fhDatavore.table.filter((col) => col.name === 'good_eats/rating')[0]
       expect(targetCol.type).toEqual(dv.type.numeric)
     })
 
-    describe('API', function () {
-      describe('countBy', function () {
-        it("aggregates the data using the defined field and returns a mapping of field name's to count", function () {
+    describe('API', () => {
+      describe('countBy', () => {
+        it("aggregates the data using the defined field and returns a mapping of field name's to count", () => {
           var result = fhDatavore.countBy('good_eats/food_type'),
             expectedResult = [
               { key: 'breakfast', value: 3 },

@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import Button from '../common/button'
 import KoboModal from './koboModal'
-import KoboModalHeader from './koboModalHeader'
 import KoboModalContent from './koboModalContent'
 import KoboModalFooter from './koboModalFooter'
-import Button from '../common/button'
+import KoboModalHeader from './koboModalHeader'
 
 const meta: Meta<typeof KoboModal> = {
   title: 'commonDeprecated/KoboModal',

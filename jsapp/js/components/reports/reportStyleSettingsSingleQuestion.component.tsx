@@ -1,26 +1,20 @@
-// Libraries
 import React from 'react'
-import clonedeep from 'lodash.clonedeep'
 
-// Partial components
-import bem from 'js/bem'
-import Modal from 'js/components/common/modal'
-import ReportTypeEditor from './reportTypeEditor.component'
-import ReportColorsEditor from './reportColorsEditor.component'
-import Button from 'js/components/common/button'
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
 import ReportsModalTabs, {
   ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
-} from 'js/components/reports/reportsModalTabs.component'
-
-// Utilities
-import { actions } from 'js/actions'
-import { handleApiFail } from 'js/api'
-
-// Types & constants
-import type { ReportStyleName, ReportStyle } from './reportsConstants'
+} from '#/components/reports/reportsModalTabs.component'
+import type { FailResponse } from '#/dataInterface'
+import ReportColorsEditor from './reportColorsEditor.component'
+import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
-import type { FailResponse } from 'js/dataInterface'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportStyleSettingsSingleQuestionProps {
   parentState: ReportsState
@@ -69,10 +63,10 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
 
     let specificSettings: { [rowName: string]: ReportStyle } | undefined
 
-    if (!this.props.parentState.currentCustomReport) {
-      specificSettings = this.props.parentState.reportStyles?.specified
-    } else {
+    if (this.props.parentState.currentCustomReport) {
       specificSettings = this.props.parentState.currentCustomReport.specified
+    } else {
+      specificSettings = this.props.parentState.reportStyles?.specified
     }
 
     if (
@@ -116,14 +110,7 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       return
     }
 
-    if (!customReport) {
-      const parentReportStyles = this.props.parentState.reportStyles
-      if (parentReportStyles) {
-        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle
-        actions.reports.setStyle(assetUid, parentReportStyles)
-        this.setState({ isPending: true })
-      }
-    } else {
+    if (customReport) {
       // TODO FIXME: we are mutating parent state data here (we shouldn't!)
       const parentReportCustom = this.props.parentState.asset?.report_custom
 
@@ -142,6 +129,13 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
         }
 
         actions.reports.setCustom(assetUid, parentReportCustom, customReport.crid)
+        this.setState({ isPending: true })
+      }
+    } else {
+      const parentReportStyles = this.props.parentState.reportStyles
+      if (parentReportStyles) {
+        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle
+        actions.reports.setStyle(assetUid, parentReportStyles)
         this.setState({ isPending: true })
       }
     }

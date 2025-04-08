@@ -1,12 +1,14 @@
-import React from 'react'
-import type { IconName } from 'jsapp/fonts/k-icons'
-import type { IconSize } from 'js/components/common/icon'
-import Icon from 'js/components/common/icon'
 import './button.scss'
+
+import React from 'react'
+
+import cx from 'classnames'
+import type { IconSize } from '#/components/common/icon'
+import Icon from '#/components/common/icon'
+import { useId } from '#/hooks/useId.hook'
+import type { IconName } from '#/k-icons'
 import type { TooltipAlignment } from './tooltip'
 import Tooltip from './tooltip'
-import { useId } from 'js/hooks/useId.hook'
-import cx from 'classnames'
 
 /**
  * Note: we use a simple TypeScript types here instead of enums, so we don't

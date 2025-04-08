@@ -1,6 +1,5 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import InlineMessage from 'js/components/common/inlineMessage'
+import InlineMessage from '#/components/common/inlineMessage'
 
 const meta: Meta<typeof InlineMessage> = {
   title: 'commonDeprecated/Inline Message',

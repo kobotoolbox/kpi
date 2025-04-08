@@ -1,9 +1,12 @@
-// Thin kobo api wrapper around fetch
-import { ROOT_URL } from './constants'
-import type { Json } from './components/common/common.interfaces'
-import type { FailResponse } from 'js/dataInterface'
-import { notify } from 'js/utils'
+/**
+ * Thin kobo api wrapper around fetch
+ */
+
 import * as Sentry from '@sentry/react'
+import type { FailResponse } from '#/dataInterface'
+import { notify } from '#/utils'
+import type { Json } from './components/common/common.interfaces'
+import { ROOT_URL } from './constants'
 
 /**
  * Useful for handling the fail responses from API. Its main goal is to display

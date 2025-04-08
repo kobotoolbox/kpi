@@ -1,13 +1,15 @@
-import React from 'react'
-import bem from 'js/bem'
-import { actions } from 'js/actions'
-import sessionStore from 'js/stores/session'
-import assetUtils from 'js/assetUtils'
-import { ASSET_TYPES } from 'js/constants'
-import { notify, formatTime } from 'js/utils'
 import './assetInfoBox.scss'
-import type { AssetResponse, AccountResponse } from 'js/dataInterface'
-import Button from 'js/components/common/button'
+
+import React from 'react'
+
+import { actions } from '#/actions'
+import assetUtils from '#/assetUtils'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import { ASSET_TYPES } from '#/constants'
+import type { AccountResponse, AssetResponse } from '#/dataInterface'
+import sessionStore from '#/stores/session'
+import { formatTime, notify } from '#/utils'
 
 interface AssetInfoBoxProps {
   asset: AssetResponse
@@ -33,14 +35,14 @@ export default class AssetInfoBox extends React.Component<AssetInfoBoxProps, Ass
   }
 
   componentDidMount() {
-    if (!assetUtils.isSelfOwned(this.props.asset)) {
+    if (assetUtils.isSelfOwned(this.props.asset)) {
+      this.setState({ ownerData: sessionStore.currentAccount })
+    } else {
       this.unlisteners.push(
         actions.misc.getUser.completed.listen(this.onGetUserCompleted.bind(this)),
         actions.misc.getUser.failed.listen(this.onGetUserFailed.bind(this)),
       )
       actions.misc.getUser(this.props.asset.owner)
-    } else {
-      this.setState({ ownerData: sessionStore.currentAccount })
     }
   }
 

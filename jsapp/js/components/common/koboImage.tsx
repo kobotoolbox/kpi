@@ -1,7 +1,9 @@
-import React from 'react'
-import bem, { makeBem } from 'js/bem'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
 import './koboImage.scss'
+
+import React from 'react'
+
+import bem, { makeBem } from '#/bem'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 
 bem.KoboImage = makeBem(null, 'kobo-image', 'figure')
 bem.KoboImage__image = makeBem(bem.KoboImage, 'image', 'img')

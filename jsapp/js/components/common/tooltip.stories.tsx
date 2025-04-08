@@ -1,7 +1,6 @@
-import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import Tooltip from './tooltip'
 import type { TooltipAlignment } from './tooltip'
+import Tooltip from './tooltip'
 
 const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center']
 

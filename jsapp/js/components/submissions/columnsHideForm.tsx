@@ -1,16 +1,18 @@
-import React from 'react'
-import Fuse from 'fuse.js'
-import bem, { makeBem } from 'js/bem'
-import { actions } from 'js/actions'
-import ToggleSwitch from 'js/components/common/toggleSwitch'
-import TextBox from 'js/components/common/textBox'
-import { getColumnLabel } from 'js/components/submissions/tableUtils'
-import tableStore from 'js/components/submissions/tableStore'
-import { FUSE_OPTIONS } from 'js/constants'
-import koboDropdownActions from 'js/components/common/koboDropdownActions'
-import type { AssetResponse, SubmissionResponse } from 'js/dataInterface'
 import './columnsHideDropdown.scss'
-import Button from 'js/components/common/button'
+
+import React from 'react'
+
+import Fuse from 'fuse.js'
+import { actions } from '#/actions'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import koboDropdownActions from '#/components/common/koboDropdownActions'
+import TextBox from '#/components/common/textBox'
+import ToggleSwitch from '#/components/common/toggleSwitch'
+import tableStore from '#/components/submissions/tableStore'
+import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { FUSE_OPTIONS } from '#/constants'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 
 bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section')
 bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p')
@@ -93,7 +95,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormProps, ColumnsHideF
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
-    let newSelectedColumns = [...this.state.selectedColumns]
+    const newSelectedColumns = [...this.state.selectedColumns]
     if (isSelected) {
       newSelectedColumns.push(fieldId)
     } else {

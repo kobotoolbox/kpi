@@ -1,44 +1,45 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+
+import alertify from 'alertifyjs'
+import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import Select from 'react-select'
 import debounce from 'lodash.debounce'
 import DocumentTitle from 'react-document-title'
-import cx from 'classnames'
-import SurveyScope from '../models/surveyScope'
-import { cascadeMixin } from './cascadeMixin'
-import AssetNavigator from './assetNavigator'
-import alertify from 'alertifyjs'
-import MetadataEditor from 'js/components/metadataEditor'
-import { escapeHtml } from '../utils'
-import { QuestionTypeName, ASSET_TYPES, AVAILABLE_FORM_STYLES, update_states, NAME_MAX_LENGTH } from 'js/constants'
-import { ROUTES } from 'js/router/routerConstants'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import Modal from 'js/components/common/modal'
-import bem, { makeBem } from 'js/bem'
-import { stores } from '../stores'
-import { actions } from '../actions'
-import dkobo_xlform from '../../xlform/src/_xlform.init'
-import { dataInterface } from '../dataInterface'
-import assetUtils from 'js/assetUtils'
-import FormLockedMessage from 'js/components/locking/formLockedMessage'
+import ReactDOM from 'react-dom'
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import Select from 'react-select'
+import assetUtils from '#/assetUtils'
+import bem, { makeBem } from '#/bem'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import Modal from '#/components/common/modal'
 import {
-  hasAssetRestriction,
-  hasAssetAnyLocking,
-  isAssetAllLocked,
-  isAssetLockable,
-} from 'js/components/locking/lockingUtils'
-import { LockingRestrictionName, LOCKING_UI_CLASSNAMES } from 'js/components/locking/lockingConstants'
-import {
+  getFormBuilderAssetType,
   koboMatrixParser,
   surveyToValidJson,
-  getFormBuilderAssetType,
   unnullifyTranslations,
-} from 'js/components/formBuilder/formBuilderUtils'
-import envStore from 'js/envStore'
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import Icon from 'js/components/common/icon'
-import Button from 'js/components/common/button'
+} from '#/components/formBuilder/formBuilderUtils'
+import FormLockedMessage from '#/components/locking/formLockedMessage'
+import { LOCKING_UI_CLASSNAMES, LockingRestrictionName } from '#/components/locking/lockingConstants'
+import {
+  hasAssetAnyLocking,
+  hasAssetRestriction,
+  isAssetAllLocked,
+  isAssetLockable,
+} from '#/components/locking/lockingUtils'
+import MetadataEditor from '#/components/metadataEditor'
+import { ASSET_TYPES, AVAILABLE_FORM_STYLES, NAME_MAX_LENGTH, QuestionTypeName, update_states } from '#/constants'
+import envStore from '#/envStore'
+import { ROUTES } from '#/router/routerConstants'
+import dkobo_xlform from '../../xlform/src/_xlform.init'
+import { actions } from '../actions'
+import { dataInterface } from '../dataInterface'
+import SurveyScope from '../models/surveyScope'
+import { stores } from '../stores'
+import { escapeHtml } from '../utils'
+import AssetNavigator from './assetNavigator'
+import { cascadeMixin } from './cascadeMixin'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
@@ -68,8 +69,10 @@ export default Object.assign(
     componentDidMount() {
       this.loadAsideSettings()
 
-      if (!this.state.isNewAsset) {
-        let uid = this.props.params.assetid || this.props.params.uid
+      if (this.state.isNewAsset) {
+        this.launchAppForSurveyContent()
+      } else {
+        const uid = this.props.params.assetid || this.props.params.uid
         stores.allAssets.whenLoaded(uid, (originalAsset) => {
           // Store asset object is mutable and there is no way to predict all the
           // bugs that come from this fact. Form Builder code is already changing
@@ -95,8 +98,6 @@ export default Object.assign(
             })
           }, 0)
         })
-      } else {
-        this.launchAppForSurveyContent()
       }
 
       this.listenTo(stores.surveyState, this.surveyStateChanged)
@@ -170,9 +171,7 @@ export default Object.assign(
 
     preventClosingTab() {
       this.setState({ preventNavigatingOut: true })
-      $(window).on('beforeunload.noclosetab', function () {
-        return UNSAVED_CHANGES_WARNING
-      })
+      $(window).on('beforeunload.noclosetab', () => UNSAVED_CHANGES_WARNING)
     },
 
     unpreventClosingTab() {
@@ -266,10 +265,10 @@ export default Object.assign(
 
       let surveyJSON = surveyToValidJson(this.app.survey)
       if (this.state.asset) {
-        let surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
+        const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
         surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content)
       }
-      let params = { content: surveyJSON }
+      const params = { content: surveyJSON }
 
       if (this.state.name) {
         params.name = this.state.name
@@ -337,8 +336,8 @@ export default Object.assign(
             }
 
             alertify.defaults.theme.ok = 'ajs-cancel'
-            let dialog = alertify.dialog('alert')
-            let opts = {
+            const dialog = alertify.dialog('alert')
+            const opts = {
               title: t('Error saving form'),
               message: errorMsg,
               label: t('Dismiss'),
@@ -358,9 +357,7 @@ export default Object.assign(
 
     buttonStates() {
       var ooo = {}
-      if (!this.app) {
-        ooo.allButtonsDisabled = true
-      } else {
+      if (this.app) {
         ooo.previewDisabled = true
         if (this.app && this.app.survey) {
           ooo.previewDisabled = this.app.survey.rows.length < 1
@@ -369,7 +366,7 @@ export default Object.assign(
         ooo.showAllOpen = !!this.state.multioptionsExpanded
         ooo.showAllAvailable = (() => {
           var hasSelect = false
-          this.app.survey.forEachRow(function (row) {
+          this.app.survey.forEachRow((row) => {
             if (row._isSelectQuestion()) {
               hasSelect = true
             }
@@ -379,6 +376,8 @@ export default Object.assign(
         ooo.name = this.state.name
         ooo.hasSettings = this.state.backRoute === ROUTES.FORMS
         ooo.styleValue = this.state.settings__style
+      } else {
+        ooo.allButtonsDisabled = true
       }
       if (this.state.isNewAsset) {
         ooo.saveButtonText = t('create')
@@ -436,7 +435,7 @@ export default Object.assign(
       // so we need to make sure this stays untouched
       const rawAssetContent = Object.freeze(clonedeep(assetContent))
 
-      let isEmptySurvey =
+      const isEmptySurvey =
         assetContent &&
         assetContent.settings &&
         Object.keys(assetContent.settings).length === 0 &&
@@ -445,9 +444,7 @@ export default Object.assign(
       let survey = null
 
       try {
-        if (!assetContent) {
-          survey = dkobo_xlform.model.Survey.create()
-        } else {
+        if (assetContent) {
           survey = dkobo_xlform.model.Survey.loadDict(assetContent)
           if (_state.files && _state.files.length > 0) {
             survey.availableFiles = _state.files
@@ -455,6 +452,8 @@ export default Object.assign(
           if (isEmptySurvey) {
             survey.surveyDetails.importDefaults()
           }
+        } else {
+          survey = dkobo_xlform.model.Survey.create()
         }
       } catch (err) {
         _state.surveyLoadError = err.message
@@ -493,11 +492,9 @@ export default Object.assign(
     // navigating out of form builder
 
     safeNavigateToRoute(route) {
-      if (!this.needsSave()) {
-        this.props.router.navigate(route)
-      } else {
-        let dialog = alertify.dialog('confirm')
-        let opts = {
+      if (this.needsSave()) {
+        const dialog = alertify.dialog('confirm')
+        const opts = {
           title: UNSAVED_CHANGES_WARNING,
           message: '',
           labels: { ok: t('Yes, leave form'), cancel: t('Cancel') },
@@ -507,6 +504,8 @@ export default Object.assign(
           oncancel: dialog.destroy,
         }
         dialog.set(opts).show()
+      } else {
+        this.props.router.navigate(route)
       }
     },
 
@@ -574,7 +573,7 @@ export default Object.assign(
     // rendering methods
 
     renderFormBuilderHeader() {
-      let { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = this.buttonStates()
+      const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = this.buttonStates()
 
       return (
         <bem.FormBuilderHeader>
@@ -744,7 +743,7 @@ export default Object.assign(
     },
 
     renderAside() {
-      let { styleValue, hasSettings } = this.buttonStates()
+      const { styleValue, hasSettings } = this.buttonStates()
 
       const isAsideVisible = this.state.asideLayoutSettingsVisible || this.state.asideLibrarySearchVisible
 
@@ -837,7 +836,7 @@ export default Object.assign(
     },
 
     renderAssetLabel() {
-      let assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label
+      const assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label
 
       // Case 1: there is no asset yet (creting a new) or asset is not locked
       if (!this.state.asset || !hasAssetAnyLocking(this.state.asset.content)) {

@@ -1,8 +1,8 @@
-import { Select } from 'jsapp/js/components/common/Select'
-import { usePatchOrganizationMember } from './membersQuery'
-import { usePatchMemberInvite } from './membersInviteQuery'
-import { OrganizationUserRole } from './organizationQuery'
 import { LoadingOverlay } from '@mantine/core'
+import { Select } from '#/components/common/Select'
+import { usePatchMemberInvite } from './membersInviteQuery'
+import { usePatchOrganizationMember } from './membersQuery'
+import { OrganizationUserRole } from './organizationQuery'
 
 interface MemberRoleSelectorProps {
   username: string
@@ -21,10 +21,10 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
   const handleRoleChange = (newRole: string | null) => {
     if (newRole) {
       const role = newRole as OrganizationUserRole
-      if (!inviteUrl) {
-        patchMember.mutateAsync({ role })
-      } else {
+      if (inviteUrl) {
         patchInvite.mutateAsync({ role })
+      } else {
+        patchMember.mutateAsync({ role })
       }
     }
   }

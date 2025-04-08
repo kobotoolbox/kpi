@@ -3,14 +3,15 @@
  */
 
 import Reflux from 'reflux'
-import RefluxPromise from 'js/libs/reflux-promise'
+import permConfig from '#/components/permissions/permConfig'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { INVALID_PERMS_ERROR, validateBackendPermissions } from '#/components/permissions/validatePermissions'
+import { dataInterface } from '#/dataInterface'
+import RefluxPromise from '#/libs/reflux-promise'
+import { ANON_USERNAME_URL } from '#/users/utils'
+import { notify } from '#/utils'
+
 Reflux.use(RefluxPromise(window.Promise))
-import { dataInterface } from 'js/dataInterface'
-import { notify } from 'utils'
-import { ANON_USERNAME_URL } from 'js/users/utils'
-import { PERMISSIONS_CODENAMES } from 'js/components/permissions/permConstants'
-import permConfig from 'js/components/permissions/permConfig'
-import { INVALID_PERMS_ERROR, validateBackendPermissions } from 'js/components/permissions/validatePermissions'
 
 export const permissionsActions = Reflux.createActions({
   getConfig: { children: ['completed', 'failed'] },
@@ -88,16 +89,23 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
 })
 
 /**
- * For removing single permission
+ * For removing asset permissions
  *
  * @param {string} assetUid
  * @param {string} perm - permission url
+ * @param {boolean} removeAll - set to true to remove all permissions. Defaults to removing a single permission.
  */
-permissionsActions.removeAssetPermission.listen((assetUid, perm, isNonOwner) => {
-  dataInterface
-    .removePermission(perm)
+permissionsActions.removeAssetPermission.listen((assetUid, perm, removeAll, isNonOwner) => {
+  let removalPromise
+
+  if (removeAll) {
+    removalPromise = dataInterface.removeAllPermissions(perm)
+  } else {
+    removalPromise = dataInterface.removePermission(perm)
+  }
+
+  removalPromise
     .done(() => {
-      // Avoid this call if a non-owner removed their own permissions as it will fail
       if (!isNonOwner) {
         permissionsActions.getAssetPermissions(assetUid)
       }
@@ -154,7 +162,7 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
 })
 
 // copies permissions from one asset to other
-permissionsActions.copyPermissionsFrom.listen(function (sourceUid, targetUid) {
+permissionsActions.copyPermissionsFrom.listen((sourceUid, targetUid) => {
   dataInterface
     .copyPermissionsFrom(sourceUid, targetUid)
     .done(() => {

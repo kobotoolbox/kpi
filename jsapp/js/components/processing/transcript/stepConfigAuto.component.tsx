@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react'
+
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
-import Button from 'js/components/common/button'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import type { LanguageCode } from 'js/components/languages/languagesStore'
-import RegionSelector from 'js/components/languages/regionSelector'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import bodyStyles from 'js/components/processing/processingBody.module.scss'
+import Button from '#/components/common/button'
+import LoadingSpinner from '#/components/common/loadingSpinner'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import RegionSelector from '#/components/languages/regionSelector'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import {
   getAttachmentForProcessing,
   secondsToTranscriptionEstimate,
-} from 'js/components/processing/transcript/transcript.utils'
-import assetStore from 'js/assetStore'
-import { getAudioDuration } from 'js/utils'
+} from '#/components/processing/transcript/transcript.utils'
+import { getAudioDuration } from '#/utils'
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'
@@ -23,14 +23,11 @@ export default function StepConfigAuto() {
   // When polling for transcript, we need to calculate the estimated time
   useEffect(() => {
     if (singleProcessingStore.data.isPollingForTranscript) {
-      const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
-      if (asset?.content) {
-        const attachment = getAttachmentForProcessing(asset.content)
-        if (typeof attachment !== 'string') {
-          getAudioDuration(attachment.download_url).then((length: number) => {
-            setEstimate(secondsToTranscriptionEstimate(length))
-          })
-        }
+      const attachment = getAttachmentForProcessing()
+      if (typeof attachment !== 'string') {
+        getAudioDuration(attachment.download_url).then((length: number) => {
+          setEstimate(secondsToTranscriptionEstimate(length))
+        })
       }
     } else {
       setEstimate(NO_ESTIMATED_MINUTES)
