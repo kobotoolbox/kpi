@@ -28,3 +28,12 @@ CALCULATED_HASH_CACHE_EXPIRATION = 5
 # with option `--print-sql`
 SHELL_PLUS_PRINT_SQL_TRUNCATE = None
 RUNSERVER_PLUS_PRINT_SQL_TRUNCATE = None
+
+# change the interval between "daily" email sends for testing. this will set both
+# the frequency of the task and the expiry time of the cached email limits
+MASS_EMAILS_CONDENSE_SEND = True
+CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
+    'task': 'kobo.apps.mass_emails.tasks.send_emails',
+    'schedule': crontab(minute=f'*/5'),
+    'options': {'queue': 'kpi_queue'},
+}

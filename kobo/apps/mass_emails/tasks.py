@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
+
 from django.utils.translation import gettext
 
 from kobo.apps.mass_emails.models import (
@@ -86,6 +87,8 @@ class MassEmailSender:
     def __init__(self):
         self.today = timezone.now().date()
         self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
+        if getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', False):
+            minute_boundary = get_closest_15m()
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -105,13 +108,14 @@ class MassEmailSender:
         else:
             self.limits[email_config.id] = limit
             cache_key = f'{self.cache_key_prefix}_{email_config.id}'
-
         tomorrow = datetime.combine(
             self.today,
             time(0, 0, 0, 0, timezone.get_current_timezone())
         ) + timedelta(days=1)
         timedelta_to_midnight = tomorrow - timezone.now()
         TTL = timedelta_to_midnight.total_seconds()
+        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', None):
+            TTL = 15 * 60
 
         cache.set(cache_key, limit, TTL)
 
@@ -208,7 +212,10 @@ class MassEmailSender:
         record.save()
 
 
-@celery_app.task(time_limit=3600)  # 1 hour limit
+# Default 1 hour limit
+@celery_app.task(
+    time_limit=(getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', None) or 60) * 60
+)
 def send_emails():
     sender = MassEmailSender()
     sender.send_day_emails()
@@ -293,3 +300,16 @@ def generate_mass_email_user_lists():
             processed_configs.add(email_config.id)
     cache.set(cache_key, list(processed_configs), timeout=60*60*24)
     logging.info(f'Processed {len(processed_configs)} email configs for {today}')
+
+
+def get_closest_15m():
+    now = timezone.now()
+    minutes = now.minute
+    if 0 <= minutes < 15:
+        return 0
+    elif 15 <= minutes < 30:
+        return 15
+    elif 30 <= minutes < 45:
+        return 30
+    else:
+        return 45
