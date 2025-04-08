@@ -24,6 +24,7 @@ import type {
   SubmissionResponse,
   SubmissionResponseValue,
   SubmissionResponseValueObject,
+  SubmissionSupplementalDetails,
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
@@ -83,10 +84,6 @@ export class DisplayGroup {
       this.xpathNodes = xpathNodes
     }
   }
-
-  addChild(child: DisplayResponse | DisplayGroup) {
-    this.children.push(child)
-  }
 }
 
 export class DisplayResponse {
@@ -102,7 +99,7 @@ export class DisplayResponse {
    * Unique identifier of a choices list, only applicable for question types
    * that uses choices lists.
    */
-  public listName: string | undefined
+  public listName?: string | undefined
   /** User response, `null` for no response */
   public data: SubmissionResponseValue | null = null
 
@@ -241,7 +238,7 @@ export function getSubmissionDisplayData(
           rowData.forEach((item, itemIndex) => {
             const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
             const itemObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_repeat, rowLabel, rowName, nodePath)
-            parentGroup.addChild(itemObj)
+            parentGroup.children.push(itemObj)
             /*
              * Start whole process again starting at this place in survey,
              * with current group as parent element and new repeat index
@@ -252,7 +249,7 @@ export function getSubmissionDisplayData(
         }
       } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         const matrixGroupObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_matrix, rowLabel, rowName)
-        parentGroup.addChild(matrixGroupObj)
+        parentGroup.children.push(matrixGroupObj)
 
         if (Array.isArray(choices)) {
           /*
@@ -285,7 +282,7 @@ export function getSubmissionDisplayData(
       ) {
         const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
         const rowObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_regular, rowLabel, rowName, nodePath)
-        parentGroup.addChild(rowObj)
+        parentGroup.children.push(rowObj)
         /*
          * Start whole process again starting at this place in survey,
          * with current group as parent element and pass current repeat index.
@@ -333,11 +330,11 @@ export function getSubmissionDisplayData(
         xpath.push(rowName)
 
         const rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
-        parentGroup.addChild(rowObj)
+        parentGroup.children.push(rowObj)
 
         const rowxpath = flatPaths[rowName]
         supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
-          parentGroup.addChild(
+          parentGroup.children.push(
             new DisplayResponse(
               null,
               getColumnLabel(asset, sdKey, false),
@@ -382,7 +379,7 @@ function populateMatrixData(
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex)
   const matrixRowGroupObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_matrix_row, matrixRowLabel, matrixRowName)
-  matrixGroup.addChild(matrixRowGroupObj)
+  matrixGroup.children.push(matrixRowGroupObj)
 
   const flatPaths = getSurveyFlatPaths(survey, true)
   const matrixGroupPath = flatPaths[matrixGroup.name]
@@ -423,7 +420,7 @@ function populateMatrixData(
         getRowListName(questionSurveyObj),
         questionData,
       )
-      matrixRowGroupObj.addChild(questionObj)
+      matrixRowGroupObj.children.push(questionObj)
     }
   })
 }
@@ -776,4 +773,67 @@ export function markAttachmentAsDeleted(
   })
 
   return data
+}
+
+/**
+ * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
+ */
+export function removeEmptyObjects(originalObj: { [key: string]: any }) {
+  let obj = clonedeep(originalObj)
+  if (typeof obj !== 'object' || obj === null) {
+    return obj
+  }
+  // Recursively process each property
+  for (const key in obj) {
+    obj[key] = removeEmptyObjects(obj[key])
+    // Remove the property if it is an empty object
+    if (typeof obj[key] === 'object' && obj[key] !== null && Object.keys(obj[key]).length === 0) {
+      // This is a safer way to do `delete obj[key]`:
+      obj = Object.fromEntries(Object.entries(obj).filter(([objKey]) => objKey !== key))
+    }
+  }
+  return obj
+}
+
+/**
+ * This function removes all possible empty objects from given submission supplemental details. If there were only empty
+ * objects in it (nested), you can end up with an empty object as an final outcome.
+ */
+export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
+  const details = clonedeep(supplementalDetails)
+
+  // Step 1: Remove responses to qual questions that are:
+  // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
+  // b) responses to qual questions that are deleted
+  for (const detailsKey of Object.keys(details)) {
+    if (details[detailsKey].qual) {
+      details[detailsKey].qual = details[detailsKey].qual.filter(
+        (qualResponse) =>
+          qualResponse.val !== '' &&
+          qualResponse.val !== null &&
+          !(Array.isArray(qualResponse.val) && qualResponse.val.length === 0) &&
+          qualResponse.options?.deleted !== true,
+      )
+    }
+  }
+
+  // Step 2: Remove all empty objects and arrays (recursively)
+  return removeEmptyObjects(details)
+}
+
+// If attachment for this submission response is deleted, and there is no NLP related features (transcript,
+// translations or qualitative analysis questions) being used with it, we don't want to show the button, as it doesn't
+// make sense to open the processing view for it.
+// We use `removeEmptyFromSupplementalDetails`, because submission has some leftover "empty" data after removing
+// features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
+// don't want to display the button).
+export function shouldProcessingBeAccessible(
+  submissionData: SubmissionResponse,
+  mediaAttachment: SubmissionAttachment,
+) {
+  const hasProcessingFeatures =
+    typeof submissionData._supplementalDetails !== 'undefined' &&
+    Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
+
+  return !mediaAttachment.is_deleted || hasProcessingFeatures
 }

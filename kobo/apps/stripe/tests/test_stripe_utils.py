@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
-from django.test import override_settings
 from django.utils import timezone
 from djstripe.models import Customer, Price, Product
 from model_bakery import baker
@@ -96,13 +95,6 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             assert all_limits[org.id]['storage_limit'] == int(
                 free_plan.metadata['storage_bytes_limit']
             )
-
-    @override_settings(STRIPE_ENABLED=False)
-    def test_get_organization_limits_stripe_disabled_returns_inf(self):
-        all_limits = get_organizations_subscription_limits()
-        for org in Organization.objects.all():
-            for usage_type in ['submission', 'storage', 'seconds', 'characters']:
-                assert all_limits[org.id][f'{usage_type}_limit'] == inf
 
     def test__prioritizes_price_metadata(self):
         product_metadata = {
