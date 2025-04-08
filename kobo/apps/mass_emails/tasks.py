@@ -85,10 +85,15 @@ def render_template(template, data):
 class MassEmailSender:
 
     def __init__(self):
-        self.today = timezone.now().date()
+        now = timezone.now()
+        self.today = now.date()
         self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
         if getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', False):
             minute_boundary = get_closest_15m()
+            boundary = now.replace(minute=minute_boundary, second=0, microsecond=0)
+            self.cache_key_prefix = f'mass_emails_{boundary.isoformat()}_email_remaining'
+            logging.info(f'Setting cache key prefix: {self.cache_key_prefix}')
+
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -117,12 +122,14 @@ class MassEmailSender:
         if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', None):
             TTL = 15 * 60
 
+        logging.info(f'Caching {cache_key}')
         cache.set(cache_key, limit, TTL)
 
     def get_day_limits(self):
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
         self.limits = {}
         self.total_limit = cache.get(f'{self.cache_key_prefix}_total')
+        print(f'cache key: {self.cache_key_prefix}')
 
         if self.total_limit is not None:
             for email_config in self.configs:
@@ -305,6 +312,7 @@ def generate_mass_email_user_lists():
 def get_closest_15m():
     now = timezone.now()
     minutes = now.minute
+    logging.info(f'{minutes=}')
     if 0 <= minutes < 15:
         return 0
     elif 15 <= minutes < 30:
