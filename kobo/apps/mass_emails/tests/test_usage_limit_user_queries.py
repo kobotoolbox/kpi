@@ -156,6 +156,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
 
     def test_organization_with_no_owner(self):
         no_owner = baker.make(Organization, id='org_abcd1234', mmo_override=False)
+        assert no_owner.owner_user_object is None
         usage_limits = {no_owner.id: {'storage_limit': 10}}
         storage_by_user_id = {self.someuser.id: 1000000000}
         with patch(
