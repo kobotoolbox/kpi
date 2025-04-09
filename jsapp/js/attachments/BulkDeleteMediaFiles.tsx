@@ -1,6 +1,4 @@
-import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text } from '@mantine/core'
-import { Modal } from '@mantine/core'
-import { Anchor } from '@mantine/core'
+import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text, Modal, Anchor } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -9,8 +7,6 @@ import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 
-const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
-
 interface BulkDeleteMediaFilesProps {
   selectedSubmissions: SubmissionResponse[]
   selectedRowIds: string[] // an array of the selected submission UIDs
@@ -18,6 +14,8 @@ interface BulkDeleteMediaFilesProps {
 }
 
 export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
+  const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
+
   const [opened, { open, close }] = useDisclosure(false)
   const [isDeletePending, setIsDeletePending] = useState(false)
   const [warningSurpressed, setWarningSurpressed] = useState(false)
