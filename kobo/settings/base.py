@@ -1404,6 +1404,16 @@ if os.environ.get('EMAIL_USE_TLS'):
 MAX_MASS_EMAILS_PER_DAY = 1000
 MASS_EMAIL_THROTTLE_PER_SECOND = 40
 MASS_EMAIL_SLEEP_SECONDS = 1
+# change the interval between "daily" email sends for testing. this will set both
+# the frequency of the task and the expiry time of the cached email limits. should
+# only be True on small testing instances
+MASS_EMAILS_CONDENSE_SEND = False
+if MASS_EMAILS_CONDENSE_SEND:
+    CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
+        'task': 'kobo.apps.mass_emails.tasks.send_emails',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_queue'},
+    }
 
 
 """ AWS configuration (email and storage) """
