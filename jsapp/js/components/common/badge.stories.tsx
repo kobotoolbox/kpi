@@ -1,6 +1,4 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import { IconNames } from '#/k-icons'
 import Badge from './badge'
 import type { BadgeColor, BadgeSize } from './badge'
@@ -8,7 +6,7 @@ import type { BadgeColor, BadgeSize } from './badge'
 const badgeColors: BadgeColor[] = ['light-storm', 'light-amber', 'light-blue', 'light-red', 'light-teal', 'light-green']
 const badgeSizes: BadgeSize[] = ['s', 'm', 'l']
 
-export default {
+const meta: Meta<typeof Badge> = {
   title: 'common/Badge',
   component: Badge,
   argTypes: {
@@ -21,18 +19,21 @@ export default {
       control: { type: 'select' },
     },
     icon: {
-      options: IconNames,
+      options: Object.keys(IconNames),
       control: { type: 'select' },
     },
   },
-} as ComponentMeta<typeof Badge>
+}
 
-const Template: ComponentStory<typeof Badge> = (args) => <Badge {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  color: badgeColors[0],
-  label: 'deployed',
-  size: badgeSizes[0],
-  icon: IconNames['project-deployed'],
+type Story = StoryObj<typeof Badge>
+
+export const Primary: Story = {
+  args: {
+    color: badgeColors[0],
+    label: 'deployed',
+    size: badgeSizes[0],
+    icon: IconNames['project-deployed'],
+  },
 }

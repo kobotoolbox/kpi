@@ -27,6 +27,9 @@ interface KoboModalProps {
   'data-cy'?: string
 }
 
+/**
+ * @deprecated use `import { Modal } from '@mantine/core'` instead.
+ */
 export default function KoboModal(props: KoboModalProps) {
   const modalSize: KoboModalSize = props.size || DEFAULT_SIZE
 

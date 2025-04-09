@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from math import ceil
 from time import sleep
 from typing import Optional
@@ -84,8 +84,11 @@ def render_template(template, data):
 class MassEmailSender:
 
     def __init__(self):
-        self.today = timezone.now().date()
-        self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
+        now = timezone.now()
+        self.today = now.date()
+        cache_date = self.get_cache_key_date(send_date=now)
+        self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
+
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
         ).count()
@@ -98,6 +101,13 @@ class MassEmailSender:
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
+    # separated for easier testing
+    def get_cache_key_date(self, send_date: datetime) -> datetime | date:
+        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+            minute_boundary = (send_date.minute // 15) * 15
+            return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
+        return send_date.date()
+
     def cache_limit_value(self, email_config: Optional[MassEmailConfig], limit: int):
         if email_config is None:
             self.total_limit = limit
@@ -105,13 +115,14 @@ class MassEmailSender:
         else:
             self.limits[email_config.id] = limit
             cache_key = f'{self.cache_key_prefix}_{email_config.id}'
-
         tomorrow = datetime.combine(
             self.today,
             time(0, 0, 0, 0, timezone.get_current_timezone())
         ) + timedelta(days=1)
         timedelta_to_midnight = tomorrow - timezone.now()
         TTL = timedelta_to_midnight.total_seconds()
+        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', None):
+            TTL = 15 * 60
 
         cache.set(cache_key, limit, TTL)
 
@@ -208,7 +219,10 @@ class MassEmailSender:
         record.save()
 
 
-@celery_app.task(time_limit=3600)  # 1 hour limit
+# Default 1 hour limit
+@celery_app.task(
+    time_limit=(getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', None) or 60) * 60
+)
 def send_emails():
     sender = MassEmailSender()
     sender.send_day_emails()

@@ -43,6 +43,9 @@ interface KoboPromptProps {
   'data-cy'?: string
 }
 
+/**
+ * @deprecated Since `KoboModal` is deprecated, this one is too. Please use `import { Modal } from '@mantine/core'` instead.
+ */
 export default function KoboPrompt(props: KoboPromptProps) {
   return (
     <KoboModal

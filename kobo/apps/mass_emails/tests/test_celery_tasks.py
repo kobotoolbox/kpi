@@ -17,10 +17,11 @@ from ..tasks import (
     MassEmailSender,
     generate_mass_email_user_lists,
     render_template,
-    send_emails
+    send_emails,
 )
 
 
+@ddt
 class TestCeleryTask(BaseTestCase):
     fixtures = ['test_data']
 
@@ -130,6 +131,21 @@ class TestCeleryTask(BaseTestCase):
             'sleep',
             'send_email',
         ]
+
+    @override_settings(MASS_EMAILS_CONDENSE_SEND=True)
+    @data((5, 0), (20, 15), (40, 30), (46, 45))
+    @unpack
+    def test_cache_key_date_condensed_send_interval(
+        self, current_minute, expected_minute
+    ):
+        sender = MassEmailSender()
+        current_time = datetime(
+            year=2025, month=1, day=1, hour=1, minute=current_minute
+        )
+        expected_time = datetime(
+            year=2025, month=1, day=1, hour=1, minute=expected_minute
+        )
+        assert sender.get_cache_key_date(send_date=current_time) == expected_time
 
 
 @ddt

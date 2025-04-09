@@ -14,6 +14,7 @@ const DEFAULT_PLACEMENT: KoboDropdownPlacement = 'down-center'
 interface KoboDropdownProps {
   /** Defaults to DEFAULT_PLACEMENT :wink: */
   placement?: KoboDropdownPlacement
+  /** I think we have this here, so that `KoboSelect` (that is built atop this component) would use it. */
   isRequired?: boolean
   /** Disables the dropdowns trigger, thus disallowing opening dropdown. */
   isDisabled?: boolean

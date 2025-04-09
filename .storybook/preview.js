@@ -42,3 +42,4 @@ export const parameters = {
 }
 
 window.t = (str) => str
+export const tags = ['autodocs']

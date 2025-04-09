@@ -85,6 +85,11 @@
     }
   }
 
+  .radio__input[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
   // Hover unchecked state
   .radio__row:hover .radio__input:not(:checked) {
     color: colors.$kobo-gray-700;

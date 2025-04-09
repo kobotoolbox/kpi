@@ -1,28 +1,32 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
 
-export default {
+const meta: Meta<typeof KoboRange> = {
   title: 'common/KoboRange',
   component: KoboRange,
   argTypes: {
     color: {
-      options: KoboRangeColors,
+      options: Object.keys(KoboRangeColors),
       control: { type: 'select' },
     },
+    max: { type: 'number' },
+    value: { type: 'number' },
+    onChange: { action: 'changed' },
   },
-} as ComponentMeta<typeof KoboRange>
+}
 
-const Template: ComponentStory<typeof KoboRange> = (args) => <KoboRange {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  color: KoboRangeColors.default,
-  totalLabel: '',
-  currentLabel: '',
-  max: 10,
-  value: 4,
-  isTime: false,
-  isDisabled: false,
+type Story = StoryObj<typeof KoboRange>
+
+export const Default: Story = {
+  args: {
+    color: KoboRangeColors.default,
+    totalLabel: '',
+    currentLabel: '',
+    max: 10,
+    value: 4,
+    isTime: false,
+    isDisabled: false,
+  },
 }
