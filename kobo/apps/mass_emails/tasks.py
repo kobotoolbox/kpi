@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from math import ceil
 from time import sleep
 from typing import Optional
@@ -100,7 +100,8 @@ class MassEmailSender:
     def __init__(self):
         now = timezone.now()
         self.today = now.date()
-        self.cache_key_prefix = f'mass_emails_{self.today.isoformat()}_email_remaining'
+        cache_date = self.get_cache_key_date(send_date=now)
+        self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
         if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
             # if we're in test mode, we update the cache every 15m instead of every
             # day and run the job every 5m instead of every hour
@@ -121,6 +122,13 @@ class MassEmailSender:
         )
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
+
+    # separated for easier testing
+    def get_cache_key_date(self, send_date: datetime) -> datetime | date:
+        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
+            minute_boundary = _get_current_15m_boundary(send_date.minute)
+            return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
+        return send_date.date()
 
     def cache_limit_value(self, email_config: Optional[MassEmailConfig], limit: int):
         if email_config is None:
@@ -145,7 +153,6 @@ class MassEmailSender:
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
         self.limits = {}
         self.total_limit = cache.get(f'{self.cache_key_prefix}_total')
-        print(f'cache key: {self.cache_key_prefix}')
 
         if self.total_limit is not None:
             for email_config in self.configs:

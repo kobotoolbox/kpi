@@ -36,7 +36,7 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     """
     # Calculate the user inactivity threshold date
     days = days or 365
-    inactivity_threshold = now() - timedelta(minutes=2)
+    inactivity_threshold = now() - timedelta(days=days)
 
     # Identify users who have not logged in within the given period
     inactive_users = User.objects.filter(
