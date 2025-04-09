@@ -35,6 +35,7 @@ templates_placeholders = {
 
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{today}_emails'
 
+
 def enqueue_mass_email_records(email_config):
     """
     Creates a email job and enqueues email records for users based on query
