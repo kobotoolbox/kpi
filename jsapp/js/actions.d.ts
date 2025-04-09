@@ -249,15 +249,15 @@ interface HooksGetLogsCompletedDefinition extends Function {
 }
 
 interface MapSetMapStylesDefinition extends Function {
-  (assetUid: string, newMapSettings: AssetMapStyles): void;
-  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function;
-  started: MapSetMapStylesStartedDefinition;
-  completed: GenericCallbackDefinition;
-  failed: GenericFailedDefinition;
+  (assetUid: string, newMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
+  started: MapSetMapStylesStartedDefinition
+  completed: GenericCallbackDefinition
+  failed: GenericFailedDefinition
 }
 interface MapSetMapStylesStartedDefinition extends Function {
-  (assetUid: string, upcomingMapSettings: AssetMapStyles): void;
-  listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function;
+  (assetUid: string, upcomingMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function
 }
 
 // NOTE: as you use more actions in your ts files, please extend this namespace,
