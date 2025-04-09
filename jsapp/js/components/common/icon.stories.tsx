@@ -31,10 +31,10 @@ export const Primary: Story = {
 export const AllIcons: Story = {
   render: () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-      {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((icon) => (
-        <div key={icon} style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <Icon name={icon} size='l' />
-          {icon}
+      {(Object.keys(IconNames) as Array<keyof typeof IconNames>).map((iconName) => (
+        <div key={iconName} style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Icon name={iconName} size='l' />
+          {iconName}
         </div>
       ))}
     </div>
