@@ -1,89 +1,36 @@
 from __future__ import annotations
 
 import json
-from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError, models, transaction
-from django.db.models import F, Q
-from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django_celery_beat.models import (
     ClockedSchedule,
     PeriodicTask,
-    PeriodicTasks,
 )
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from kpi.exceptions import InvalidXFormException, MissingXFormException
-from kpi.models import Asset, SubmissionExportTask, ImportTask
-from kpi.utils.log import logging
-from kpi.utils.mongo_helper import MongoHelper
-from kpi.utils.storage import rmdir
-from .constants import (
+from kpi.models import Asset
+from kobo.apps.trash_bin.constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
     DELETE_USER_STR_PREFIX,
 )
-from .exceptions import (
+from kobo.apps.trash_bin.exceptions import (
     TrashIntegrityError,
     TrashNotImplementedError,
     TrashTaskInProgressError,
 )
-from .models import TrashStatus
-from .models.account import AccountTrash
-from .models.attachment import AttachmentTrash
-from .models.project import ProjectTrash
-from ..openrosa.apps.logger.models import Attachment
-
-
-def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
-
-    asset_id = asset.pk
-    asset_uid = asset.uid
-    host = settings.KOBOFORM_URL
-    owner_username = asset.owner.username
-    project_exports = []
-
-    if asset.has_deployment:
-        _delete_submissions(request_author, asset)
-        asset.deployment.delete()
-        project_exports = SubmissionExportTask.objects.filter(
-            Q(data__source=f'{host}/api/v2/assets/{asset.uid}/')
-            | Q(data__source=f'{host}/assets/{asset.uid}/')
-        )
-
-    with transaction.atomic():
-        # Delete imports
-        ImportTask.objects.filter(
-            Q(data__destination=f'{host}/api/v2/assets/{asset.uid}/')
-            | Q(data__destination=f'{host}/assets/{asset.uid}/')
-        ).delete()
-        # Delete exports (and related files on storage)
-        for export in project_exports:
-            export.delete()
-
-        asset.delete()
-        AuditLog.objects.create(
-            app_label=asset._meta.app_label,
-            model_name=asset._meta.model_name,
-            object_id=asset_id,
-            user=request_author,
-            action=AuditAction.DELETE,
-            metadata={
-                'asset_uid': asset_uid,
-                'asset_name': asset.name,
-            },
-            log_type=AuditType.ASSET_MANAGEMENT,
-        )
-
-    # Delete media files left on storage
-    if asset_uid:
-        rmdir(f'{owner_username}/asset_files/{asset_uid}')
+from kobo.apps.trash_bin.models import TrashStatus
+from kobo.apps.trash_bin.models.account import AccountTrash
+from kobo.apps.trash_bin.models.attachment import AttachmentTrash
+from kobo.apps.trash_bin.models.project import ProjectTrash
+from kobo.apps.openrosa.apps.logger.models import Attachment
 
 
 @transaction.atomic
@@ -255,142 +202,6 @@ def put_back(
 
     with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
-
-
-def replace_user_with_placeholder(
-    user: settings.AUTH_USER_MODEL, retain_audit_logs: bool = True
-) -> settings.AUTH_USER_MODEL:
-    """
-    Replace a user with an inactive placeholder, which prevents others from
-    registering a new account with the same username. The placeholder uses the
-    same primary key as the original user, and certain other fields are
-    retained.
-    """
-    FIELDS_TO_RETAIN = ('username', 'last_login', 'date_joined')
-
-    placeholder_user = get_user_model()()
-    placeholder_user.pk = user.pk
-    placeholder_user.is_active = False
-    placeholder_user.password = 'REMOVED USER'  # cannot match any hashed value
-    for field in FIELDS_TO_RETAIN:
-        setattr(placeholder_user, field, getattr(user, field))
-
-    if not retain_audit_logs:
-        user.delete()
-        placeholder_user.save()
-        return placeholder_user
-
-    audit_log_user_field = AuditLog._meta.get_field('user').remote_field
-    original_audit_log_delete_handler = audit_log_user_field.on_delete
-    with transaction.atomic():
-        try:
-            # prevent the delete() call from touching the audit logs
-            audit_log_user_field.on_delete = models.DO_NOTHING
-            # …and cause a FK violation!
-            user.delete()
-            # then resolve the violation by creating the placeholder with the
-            # same PK as the original user
-            placeholder_user.save()
-        finally:
-            audit_log_user_field.on_delete = original_audit_log_delete_handler
-
-    return placeholder_user
-
-
-@contextmanager
-def temporarily_disconnect_signals(save=False, delete=False):
-    """
-    Temporarily disconnects `PeriodicTasks` signals to prevent accumulating
-    update queries for Celery Beat while bulk operations are in progress.
-
-    See https://django-celery-beat.readthedocs.io/en/stable/reference/django-celery-beat.models.html#django_celery_beat.models.PeriodicTasks  # noqa: E501
-    """
-
-    try:
-        if delete:
-            pre_delete.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
-            post_delete.disconnect(PeriodicTasks.update_changed, sender=ClockedSchedule)
-        if save:
-            pre_save.disconnect(PeriodicTasks.changed, sender=PeriodicTask)
-            post_save.disconnect(PeriodicTasks.update_changed, sender=ClockedSchedule)
-        yield
-    finally:
-        if delete:
-            post_delete.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
-            pre_delete.connect(PeriodicTasks.changed, sender=PeriodicTask)
-        if save:
-            pre_save.connect(PeriodicTasks.changed, sender=PeriodicTask)
-            post_save.connect(PeriodicTasks.update_changed, sender=ClockedSchedule)
-
-    # Force celery beat scheduler to refresh
-    PeriodicTasks.update_changed()
-
-
-def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
-
-    # Test if XForm is still valid
-    try:
-        asset.deployment.xform
-    except (MissingXFormException, InvalidXFormException):
-        # Submissions are lingering in MongoDB but XForm has been
-        # already deleted
-        xform_id_string = asset.deployment.backend_response['id_string']
-        xform_uuid = asset.deployment.backend_response['uuid']
-        deleted_orphans = MongoHelper.delete(xform_id_string, xform_uuid)
-        logging.warning(f'TrashBin: {deleted_orphans} deleted MongoDB orphans')
-
-        return
-
-    while True:
-        audit_logs = []
-        submissions = list(
-            asset.deployment.get_submissions(
-                asset.owner,
-                fields=['_id', '_uuid'],
-                limit=settings.SUBMISSION_DELETION_BATCH_SIZE,
-            )
-        )
-        if not submissions:
-            if not (
-                queryset_or_false := asset.deployment.get_orphan_postgres_submissions()
-            ):
-                break
-
-            # Make submissions an iterable, similar to the output of
-            # `deployment.get_submissions()`.
-            if not (
-                submissions := queryset_or_false.annotate(
-                    _id=F('pk'), _uuid=F('uuid')
-                ).values('_id', '_uuid')[:settings.SUBMISSION_DELETION_BATCH_SIZE]
-            ):
-                break
-
-        submission_ids = []
-        for submission in submissions:
-            audit_logs.append(
-                AuditLog(
-                    app_label='logger',
-                    model_name='instance',
-                    object_id=submission['_id'],
-                    user=request_author,
-                    user_uid=request_author.extra_details.uid,
-                    metadata={
-                        'asset_uid': asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                    log_type=AuditType.SUBMISSION_MANAGEMENT,
-                )
-            )
-
-            submission_ids.append(submission['_id'])
-
-        asset.deployment.delete_submissions(
-            {'submission_ids': submission_ids, 'query': ''}, request_author
-        )
-
-        if audit_logs:
-            AuditLog.objects.bulk_create(audit_logs)
 
 
 def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
