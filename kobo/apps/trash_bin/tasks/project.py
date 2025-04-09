@@ -11,9 +11,8 @@ from kobo.celery import celery_app
 from kpi.exceptions import KobocatCommunicationError
 from ..exceptions import TrashTaskInProgressError
 from ..models import TrashStatus
-from ..models.account import AccountTrash
 from ..models.project import ProjectTrash
-from ..utils import delete_asset
+from ..utils import delete_asset, trash_bin_task_failure, trash_bin_task_retry
 
 
 @celery_app.task(
@@ -54,26 +53,9 @@ def empty_project(project_trash_id: int, force: bool = False):
 
 @task_failure.connect(sender=empty_project)
 def empty_project_failure(sender=None, **kwargs):
-
-    exception = kwargs['exception']
-    project_trash_id = kwargs['args'][0]
-    with transaction.atomic():
-        project_trash = ProjectTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        project_trash.metadata['failure_error'] = str(exception)
-        project_trash.status = TrashStatus.FAILED
-        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+    trash_bin_task_failure(ProjectTrash, **kwargs)
 
 
 @task_retry.connect(sender=empty_project)
 def empty_project_retry(sender=None, **kwargs):
-    project_trash_id = kwargs['request'].get('args')[0]
-    exception = str(kwargs['reason'])
-    with transaction.atomic():
-        project_trash = AccountTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        project_trash.metadata['failure_error'] = str(exception)
-        project_trash.status = TrashStatus.RETRY
-        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+    trash_bin_task_retry(ProjectTrash, **kwargs)

@@ -31,6 +31,7 @@ from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.openrosa.apps.logger.models import Attachment
+from ..type_aliases import TrashModels
 
 
 @transaction.atomic
@@ -202,6 +203,30 @@ def put_back(
 
     with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
+
+
+def trash_bin_task_failure(model: TrashModels, **kwargs):
+    exception = kwargs['exception']
+    obj_trash_id = kwargs['args'][0]
+    with transaction.atomic():
+        obj_trash = model.objects.select_for_update().get(
+            pk=obj_trash_id
+        )
+        obj_trash.metadata['failure_error'] = str(exception)
+        obj_trash.status = TrashStatus.FAILED
+        obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+
+
+def trash_bin_task_retry(model: TrashModels, **kwargs):
+    obj_trash_id = kwargs['request'].get('args')[0]
+    exception = str(kwargs['reason'])
+    with transaction.atomic():
+        obj_trash = model.objects.select_for_update().get(
+            pk=obj_trash_id
+        )
+        obj_trash.metadata['failure_error'] = str(exception)
+        obj_trash.status = TrashStatus.RETRY
+        obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
 def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:

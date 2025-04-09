@@ -24,6 +24,8 @@ from ..models.project import ProjectTrash
 from ..utils import (
     delete_asset,
     replace_user_with_placeholder,
+    trash_bin_task_failure,
+    trash_bin_task_retry,
 )
 
 
@@ -168,26 +170,9 @@ def empty_account(account_trash_id: int, force: bool = False):
 
 @task_failure.connect(sender=empty_account)
 def empty_account_failure(sender=None, **kwargs):
-
-    exception = kwargs['exception']
-    account_trash_id = kwargs['args'][0]
-    with transaction.atomic():
-        account_trash = AccountTrash.objects.select_for_update().get(
-            pk=account_trash_id
-        )
-        account_trash.metadata['failure_error'] = str(exception)
-        account_trash.status = TrashStatus.FAILED
-        account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+    trash_bin_task_failure(AccountTrash, **kwargs)
 
 
 @task_retry.connect(sender=empty_account)
 def empty_account_retry(sender=None, **kwargs):
-    account_trash_id = kwargs['request'].get('args')[0]
-    exception = str(kwargs['reason'])
-    with transaction.atomic():
-        account_trash = AccountTrash.objects.select_for_update().get(
-            pk=account_trash_id
-        )
-        account_trash.metadata['failure_error'] = str(exception)
-        account_trash.status = TrashStatus.RETRY
-        account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
+    trash_bin_task_retry(AccountTrash, **kwargs)
