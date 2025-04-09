@@ -105,10 +105,21 @@ def get_users_within_range_of_usage_limit(
         or 'seconds' in usage_types
         or 'characters' in usage_types
     )
+    org_ids_with_no_owner = list(
+        Organization.objects.filter(owner__isnull=True).values_list('pk', flat=True)
+    )
     limits_by_org = get_organizations_effective_limits(
         include_storage_addons=include_storage_addons,
         include_onetime_addons=include_onetime_addons,
     )
+
+    # filter out any organization with no owner
+    limits_by_org = {
+        org_id: limits
+        for org_id, limits in limits_by_org.items()
+        if org_id not in org_ids_with_no_owner
+    }
+
     owner_by_org = {
         org.id: org.owner_user_object.pk
         for org in Organization.objects.filter(owner__isnull=False)
