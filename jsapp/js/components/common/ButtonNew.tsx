@@ -1,7 +1,7 @@
 import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
-import type { IconName } from 'jsapp/fonts/k-icons'
 import { forwardRef } from 'react'
+import type { IconName } from '#/k-icons'
 import Icon, { type IconSize } from './icon'
 
 const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize>> = {
