@@ -34,20 +34,6 @@ templates_placeholders = {
 }
 
 
-def _get_current_15m_boundary(minute: int):
-    """
-    Returns the most recent quarter-hour boundary
-    """
-    if 0 <= minute < 15:
-        return 0
-    elif 15 <= minute < 30:
-        return 15
-    elif 30 <= minute < 45:
-        return 30
-    else:
-        return 45
-
-
 def enqueue_mass_email_records(email_config):
     """
     Creates a email job and enqueues email records for users based on query
@@ -102,14 +88,6 @@ class MassEmailSender:
         self.today = now.date()
         cache_date = self.get_cache_key_date(send_date=now)
         self.cache_key_prefix = f'mass_emails_{cache_date.isoformat()}_email_remaining'
-        if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
-            # if we're in test mode, we update the cache every 15m instead of every
-            # day and run the job every 5m instead of every hour
-            minute_boundary = _get_current_15m_boundary(now.minute)
-            key_date = now.replace(
-                minute=minute_boundary, second=0, microsecond=0
-            ).isoformat()
-            self.cache_key_prefix = f'mass_emails_{key_date}_email_remaining'
 
         self.total_records = MassEmailRecord.objects.filter(
             status=EmailStatus.ENQUEUED
@@ -126,7 +104,7 @@ class MassEmailSender:
     # separated for easier testing
     def get_cache_key_date(self, send_date: datetime) -> datetime | date:
         if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', False):
-            minute_boundary = _get_current_15m_boundary(send_date.minute)
+            minute_boundary = (send_date.minute // 15) * 15
             return send_date.replace(minute=minute_boundary, second=0, microsecond=0)
         return send_date.date()
 
