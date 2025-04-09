@@ -1,6 +1,6 @@
 import React from 'react'
-import bem from 'js/bem'
-import type { AssetMapStyles, ColorSetName } from 'jsapp/js/dataInterface'
+import bem from '../../../js/bem'
+import type { AssetMapStyles, ColorSetName } from '../../../js/dataInterface'
 
 /** see `kobo.map.marker-colors.scss` for styling details of each set */
 const COLOR_SETS: ColorSetName[] = ['a', 'b', 'c', 'd', 'e']
@@ -33,7 +33,7 @@ export default class MapColorPicker extends React.Component<MapColorPickerProps,
   }
 
   colorRows(set: ColorSetName, length = 10) {
-    let colorRows = []
+    const colorRows = []
     for (let i = 1; i < length; i++) {
       colorRows.push(<span key={i} className={`map-marker map-marker-${set}${i}`} />)
     }

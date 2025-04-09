@@ -1,72 +1,36 @@
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-import './map.scss'
-import './map.marker-colors.scss'
-import L from 'leaflet/dist/leaflet'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet.heat/dist/leaflet-heat'
-import 'leaflet.markercluster/dist/leaflet.markercluster'
-import 'leaflet.markercluster/dist/MarkerCluster.css'
-
-import React from 'react'
-
-import omnivore from '@mapbox/leaflet-omnivore'
-import classNames from 'classnames'
-import JSZip from 'jszip'
-import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
-import { actions } from '#/actions'
-import { getSurveyFlatPaths } from '#/assetUtils'
-import bem from '#/bem'
-import CenteredMessage from '#/components/common/centeredMessage.component'
-import LoadingSpinner from '#/components/common/loadingSpinner'
-import Modal from '#/components/common/modal'
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '#/constants'
-import { dataInterface } from '#/dataInterface'
-import pageState from '#/pageState.store'
-import PopoverMenu from '#/popoverMenu'
-import { withRouter } from '#/router/legacy'
-import { checkLatLng, notify } from '#/utils'
-import MapSettings from './mapSettings'
-
-const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  subdomains: ['a', 'b', 'c'],
-})
-========
-// Libraries
-import React from 'react'
-import bem from 'js/bem'
-import cx from 'classnames'
-import JSZip from 'jszip'
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
-import omnivore, { OmnivoreFunction } from '@mapbox/leaflet-omnivore'
+import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
+import cx from 'classnames'
+import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
+// Libraries
+import React from 'react'
+import bem from '../../../js/bem'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { check } from '@placemarkio/check-geojson'
 
+import CenteredMessage from '../../../js/components/common/centeredMessage.component'
+import LoadingSpinner from '../../../js/components/common/loadingSpinner'
+import Modal from '../../../js/components/common/modal'
 // Partial components
-import PopoverMenu from 'js/popoverMenu'
-import Modal from 'js/components/common/modal'
-import LoadingSpinner from 'js/components/common/loadingSpinner'
-import CenteredMessage from 'js/components/common/centeredMessage.component'
+import PopoverMenu from '../../../js/popoverMenu'
 import MapSettings from './MapSettings'
 
+import { actions } from '../../../js/actions'
+import { getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
-import { dataInterface } from 'js/dataInterface'
-import { actions } from 'js/actions'
-import { withRouter, type WithRouterProps } from 'js/router/legacy'
-import pageState from 'js/pageState.store'
-import { notify, checkLatLng } from 'js/utils'
-import { getSurveyFlatPaths } from 'js/assetUtils'
+import { dataInterface } from '../../../js/dataInterface'
+import pageState from '../../../js/pageState.store'
+import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
+import { checkLatLng, notify } from '../../../js/utils'
 
 // Constants and types
-import { ASSET_FILE_TYPES, MODAL_TYPES, QUESTION_TYPES, QUERY_LIMIT_DEFAULT } from 'js/constants'
+import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
 import type {
   AssetFileResponse,
   AssetMapStyles,
@@ -76,33 +40,17 @@ import type {
   SubmissionResponse,
   SurveyChoice,
   SurveyRow,
-} from 'js/dataInterface'
+} from '../../../js/dataInterface'
 
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
-import { fetchGetUrl } from 'jsapp/js/api'
+import { fetchGetUrl } from '../../../js/api'
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-const streets = L.tileLayer(
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    subdomains: ['a', 'b', 'c'],
-  }
-);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-=======
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
->>>>>>> a7467789f (move controls inside component)
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   subdomains: ['a', 'b', 'c'],
 })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
 const BASE_LAYERS = {
   OpenStreetMap: STREETS_LAYER,
@@ -123,22 +71,8 @@ const BASE_LAYERS = {
   }),
 }
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-const controls = L.control.layers(baseLayers)
-
-export class FormMap extends React.Component {
-  constructor(props) {
-    super(props)
-
-    const survey = props.asset.content.survey
-    let hasGeoPoint = false
-    survey.forEach((s) => {
-========
-=======
 type IconNoValue = '-novalue'
 
->>>>>>> 815f740d0 (cleanup todo comments)
 // We need to extend the types (which are not perfect), to make sure the internal properties are accessible. It is true
 // that we should not access those, but this file is quite old, and I am only migrating it to TypeScript without changing.
 interface CustomLayerControl extends L.Control.Layers {
@@ -228,17 +162,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     super(props)
 
     const survey = props.asset.content?.survey || []
-<<<<<<< HEAD
-    let hasGeoPoint = false
-    survey.forEach(function (s) {
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-      if (s.type === QUESTION_TYPES.geopoint.id) {
-        hasGeoPoint = true
-      }
-    })
-=======
     const hasGeoPoint = survey.some((row) => row.type === QUESTION_TYPES.geopoint.id)
->>>>>>> a7467789f (move controls inside component)
 
     this.state = {
       map: undefined,
@@ -259,17 +183,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       overridenStyles: undefined,
       clearDisaggregatedPopover: false,
       noData: false,
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
     }
-
-    autoBind(this)
-========
-    };
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-    }
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
   componentWillUnmount() {
@@ -280,26 +194,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidMount() {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    const fields = []
-    const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
-    this.props.asset.content.survey.forEach((q) => {
-========
-    const fields: SurveyRow[] = [];
-    const fieldTypes = [
-      'select_one',
-      'select_multiple',
-      'integer',
-      'decimal',
-      'text',
-    ];
-=======
     const fields: SurveyRow[] = []
     const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     this.props.asset.content?.survey?.forEach((q) => {
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
       if (fieldTypes.includes(q.type)) {
         fields.push(q)
       }
@@ -327,27 +224,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (this.props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
       notify(
         t(
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-          'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
-        ).replace('##number##', QUERY_LIMIT_DEFAULT),
-      )
-    }
-
-    this.requestData(map, this.props.viewby)
-    this.listenTo(actions.map.setMapStyles.started, this.onSetMapStylesStarted)
-    this.listenTo(actions.map.setMapStyles.completed, this.onSetMapStylesCompleted)
-    this.listenTo(actions.resources.getAssetFiles.completed, this.updateOverlayList)
-    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
-========
-          'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.'
-        ).replace('##number##', QUERY_LIMIT_DEFAULT.toString())
-      );
-=======
           'By default map is limited to the ##number##  most recent submissions for performance reasons. Go to map settings to increase this limit.',
         ).replace('##number##', QUERY_LIMIT_DEFAULT.toString()),
       )
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     }
 
     this.requestData(map, this.props.viewby)
@@ -357,39 +236,17 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       actions.resources.getAssetFiles.completed.listen(this.onGetAssetFiles.bind(this)),
     )
 
-<<<<<<< HEAD
-    actions.resources.getAssetFiles(
-      this.props.asset.uid,
-      ASSET_FILE_TYPES.map_layer.id
-    );
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
   loadOverlayLayers() {
     dataInterface.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id).done(() => {})
   }
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  updateOverlayList(data) {
-    const map = this.state.map
-========
-  onGetAssetFiles(data: PaginatedResponse<AssetFileResponse>) {
-<<<<<<< HEAD
-    const map = this.state.map;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-    const map = this.state.map
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
   onGetAssetFiles(data: PaginatedResponse<AssetFileResponse>) {
     this.removeUnknownLayers(data.results)
     this.addNewLayers(data.results)
   }
->>>>>>> a41ccbd32 (add check-geojson and final fixes)
 
   /**
    * Removes layers from controls if they are no longer in asset files
@@ -397,36 +254,10 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   removeUnknownLayers(files: AssetFileResponse[]) {
     this.controls._layers.forEach((controlLayer) => {
       if (controlLayer.overlay) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-        const layerMatch = data.results.filter((result) => result.name === controlLayer.name)
-        if (!layerMatch.length) {
-          controls.removeLayer(controlLayer.layer)
-          map.removeLayer(controlLayer.layer)
-========
-        const layerMatch = data.results.filter(
-          // TODO: there is no `name` in AssetFileResponse. Should this be `description`?
-          (result) => result.description === controlLayer.name,
-        )
-=======
-        const layerMatch = data.results.filter((result) => result.description === controlLayer.name)
->>>>>>> 60ac1e840 (map ts WIP (mostly working))
-        if (!layerMatch.length) {
-<<<<<<< HEAD
-          controls.removeLayer(controlLayer.layer);
-          map?.removeLayer(controlLayer.layer);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-          controls.removeLayer(controlLayer.layer)
-          map?.removeLayer(controlLayer.layer)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
         const layerMatch = files.filter((file) => file.description === controlLayer.name)
         if (!layerMatch.length) {
           this.controls.removeLayer(controlLayer.layer)
           this.state.map?.removeLayer(controlLayer.layer)
->>>>>>> a41ccbd32 (add check-geojson and final fixes)
         }
       }
     })
@@ -442,17 +273,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         return
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-      let overlayLayer = false
-========
-      let overlayLayer: LayerGroup | undefined;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-      let overlayLayer: LayerGroup | undefined
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
       // Step 2. Ensure the layer is not already loaded
       const hasLayer = this.controls._layers.some((controlLayer) => controlLayer.name === layer.description)
       if (hasLayer) {
@@ -462,7 +282,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       // Step 3: Identify omnivore function to be used
       let overlayLayer: LayerGroup | undefined
       let omnivoreFn: OmnivoreFunction | undefined
->>>>>>> a41ccbd32 (add check-geojson and final fixes)
       switch (layer.metadata.type) {
         case 'kml':
           omnivoreFn = omnivore.kml
@@ -518,29 +337,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
               }
             })
             .then(JSZip.loadAsync)
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-            .then((zip) => zip.file('doc.kml').async('string'))
-            .then(function success(kml) {
-              overlayLayer = omnivore.kml.parse(kml)
-              controls.addOverlay(overlayLayer, layer.name)
-              overlayLayer.addTo(map)
-            })
-          break
-      }
-
-      if (overlayLayer) {
-        overlayLayer.on('ready', () => {
-          overlayLayer.eachLayer((l) => {
-            const fprops = l.feature.properties
-            const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
-========
-            .then(function (zip) {
-              return zip.file('doc.kml')?.async('string')
-            })
-=======
             .then((zip) => zip.file('doc.kml')?.async('string'))
->>>>>>> 75304cb91 (more polishing)
             .then((kmlContent) => {
               if (kmlContent && this.state.map) {
                 // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
@@ -559,47 +356,10 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           break
       }
 
-<<<<<<< HEAD
-      if (overlayLayer && map) {
-<<<<<<< HEAD
-        overlayLayer.on('ready', () => {
-          overlayLayer?.eachLayer((l) => {
-<<<<<<< HEAD
-            const fprops = l.feature.properties;
-            const name =
-              fprops.name || fprops.title || fprops.NAME || fprops.TITLE;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-            const fprops = l.feature.properties
-            const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-            if (name) {
-              l.bindPopup(name)
-            } else {
-              // when no name or title, load full list of feature's properties
-              l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
-            }
-=======
-        overlayLayer
-          .on('ready', () => {
-            overlayLayer?.eachLayer((l) => {
-              const fprops = (l as LayerExtended).feature.properties
-              const name = fprops.name || fprops.title || fprops.NAME || fprops.TITLE
-              if (name) {
-                l.bindPopup(name)
-              } else {
-                // when no name or title, load full list of feature's properties
-                l.bindPopup('<pre>' + JSON.stringify(fprops, null, 2).replace(/[{}"]/g, '') + '</pre>')
-              }
-            })
->>>>>>> 60ac1e840 (map ts WIP (mostly working))
-          })
-=======
       // Step 4: If this wasn't a special case, `omnivoreFn` should be ready to be used here, `onOmnivoreLayerReady`
       // function handles the rest
       if (omnivoreFn) {
         overlayLayer = omnivoreFn(layer.content)
->>>>>>> a41ccbd32 (add check-geojson and final fixes)
           .on('error', () => {
             notify.error(OVERLAY_ERROR_OMNIVORE.replace('##name##', layer.description))
           })
@@ -634,15 +394,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   onSetMapStylesCompleted() {
     // asset is updated, no need to store oberriden styles as they are identical
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    this.setState({ overridenStyles: false })
-========
-    this.setState({overridenStyles: undefined});
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     this.setState({ overridenStyles: undefined })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
   /**
@@ -666,15 +418,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     // See: https://github.com/kobotoolbox/kpi/issues/3913
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    this.props.asset.content.survey.forEach((row) => {
-========
-    this.props.asset.content?.survey?.forEach(function (row) {
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     this.props.asset.content?.survey?.forEach((row) => {
->>>>>>> 75304cb91 (more polishing)
       if (
         typeof row.label !== 'undefined' &&
         row.label !== null &&
@@ -685,27 +429,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       }
     })
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
     let queryLimit = QUERY_LIMIT_DEFAULT
-    if (this.state.overridenStyles && this.state.overridenStyles.querylimit) {
-      queryLimit = this.state.overridenStyles.querylimit
-    } else if (this.props.asset.map_styles.querylimit) {
-      queryLimit = this.props.asset.map_styles.querylimit
-========
-    let queryLimit = QUERY_LIMIT_DEFAULT;
-=======
-    let queryLimit = QUERY_LIMIT_DEFAULT
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     if (this.state.overridenStyles?.querylimit) {
-      queryLimit = parseInt(this.state.overridenStyles.querylimit)
+      queryLimit = Number.parseInt(this.state.overridenStyles.querylimit)
     } else if (this.props.asset.map_styles.querylimit) {
-<<<<<<< HEAD
-      queryLimit = parseInt(this.props.asset.map_styles.querylimit);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-      queryLimit = parseInt(this.props.asset.map_styles.querylimit)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
+      queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
     const fq = ['_id', '_geolocation']
@@ -718,31 +446,14 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     const sort = [{ id: '_id', desc: true }]
     dataInterface
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-      .done((data) => {
-        const results = data.results
-        if (selectedQuestion) {
-          results.forEach((row, i) => {
-            if (row[selectedQuestion]) {
-              const coordsArray = row[selectedQuestion].split(' ')
-              results[i]._geolocation[0] = coordsArray[0]
-              results[i]._geolocation[1] = coordsArray[1]
-========
       .done((data: PaginatedResponse<SubmissionResponse>) => {
         const results = data.results
         if (selectedQuestion) {
           results.forEach((row, i) => {
             if (selectedQuestion && row[selectedQuestion]) {
-<<<<<<< HEAD
-              const coordsArray: string[] = String(row[selectedQuestion]).split(' ');
-              results[i]._geolocation[0] = parseInt(coordsArray[0]);
-              results[i]._geolocation[1] = parseInt(coordsArray[1]);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
               const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
-              results[i]._geolocation[0] = parseInt(coordsArray[0])
-              results[i]._geolocation[1] = parseInt(coordsArray[1])
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
+              results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
+              results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
             }
           })
         }
@@ -754,32 +465,13 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       })
       .fail((error: FailResponse) => {
         if (error.responseText) {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-          this.setState({ error: error.responseText, loading: false })
-        } else if (error.statusText) {
-          this.setState({ error: error.statusText, loading: false })
-        } else {
-          this.setState({
-            error: t('Error: could not load data.'),
-            loading: false,
-          })
-========
-          this.setState({error: error.responseText});
-=======
           this.setState({ error: error.responseText })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
         } else if (error.statusText) {
           this.setState({ error: error.statusText })
         } else {
           this.setState({
             error: t('Error: could not load data.'),
-<<<<<<< HEAD
-          });
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
           })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
         }
       })
   }
@@ -792,21 +484,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   calcColorSet() {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    let colorSet
-    if (this.state.overridenStyles && this.state.overridenStyles.colorSet) {
-      colorSet = this.state.overridenStyles.colorSet
-========
-    let colorSet;
-    if (this.state.overridenStyles?.colorSet) {
-      colorSet = this.state.overridenStyles.colorSet;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     let colorSet
     if (this.state.overridenStyles?.colorSet) {
       colorSet = this.state.overridenStyles.colorSet
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     } else {
       const ms = this.props.asset.map_styles
       colorSet = ms.colorSet ? ms.colorSet : undefined
@@ -814,23 +494,8 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     return colorSet
   }
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  buildMarkers(map) {
-    const prepPoints = []
-    const viewby = this.props.viewby || undefined
-    const colorSet = this.calcColorSet()
-    let currentQuestionChoices = []
-    let mapMarkers = {}
-    let mM = []
-
-    if (viewby) {
-      mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby)
-      const choices = this.props.asset.content.choices
-      const survey = this.props.asset.content.survey
-========
 
   buildMarkers(map: L.Map) {
-    const _this = this
     const prepPoints: L.Marker[] = []
     const viewby = this.props.viewby || undefined
     const colorSet = this.calcColorSet()
@@ -839,19 +504,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     let mM: MarkerMap = []
 
     if (viewby) {
-<<<<<<< HEAD
-      mapMarkers = this.prepFilteredMarkers(
-        this.state.submissions,
-        this.props.viewby
-      );
-      const choices = this.props.asset.content?.choices || [];
-      const survey = this.props.asset.content?.survey || [];
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
       mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby)
       const choices = this.props.asset.content?.choices || []
       const survey = this.props.asset.content?.survey || []
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
       const question = survey.find((s) => s.name === viewby || s.$autoname === viewby)
 
@@ -859,15 +514,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         currentQuestionChoices = choices.filter((ch) => ch.list_name === question.select_from_list_name)
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       Object.keys(mapMarkers).map((m) => {
-=======
-      Object.keys(mapMarkers).map(function (m) {
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
-      Object.keys(mapMarkers).map((m) => {
->>>>>>> 75304cb91 (more polishing)
         let choice
         if (question && question.type === 'select_one') {
           choice = currentQuestionChoices.find((ch) => ch.name === m || ch.$autoname === m)
@@ -883,32 +530,14 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       if (colorSet !== undefined && colorSet !== 'a' && question && question.type === 'select_one') {
         // sort by question choice order, when using any other color set (only makes sense for select_ones)
-<<<<<<< HEAD
-<<<<<<< HEAD
         mM.sort((a, b) => {
-=======
-        mM.sort(function (a, b) {
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
-        mM.sort((a, b) => {
->>>>>>> 75304cb91 (more polishing)
           const aIndex = currentQuestionChoices.findIndex((ch) => ch.name === a.value)
           const bIndex = currentQuestionChoices.findIndex((ch) => ch.name === b.value)
           return aIndex - bIndex
         })
       } else {
         // sort by occurrence count
-<<<<<<< HEAD
-<<<<<<< HEAD
         mM.sort((a, b) => a.count - b.count).reverse()
-=======
-        mM.sort(function (a, b) {
-          return a.count - b.count
-        }).reverse()
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
-        mM.sort((a, b) => a.count - b.count).reverse()
->>>>>>> 75304cb91 (more polishing)
       }
 
       // move elements with no data in submission for the disaggregated question to end of marker list
@@ -919,9 +548,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       }
       this.setState({ markerMap: mM })
     } else {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-      this.setState({ markerMap: false })
+      this.setState({ markerMap: undefined })
     }
 
     this.state.submissions.forEach((item) => {
@@ -929,37 +556,12 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (checkLatLng(item._geolocation)) {
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
-          const itemId = item[vb]
-          let index = mM.findIndex((m) => m.value === itemId)
-========
-      this.setState({markerMap: undefined});
-=======
-      this.setState({ markerMap: undefined })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-    }
-
-    this.state.submissions.forEach((item) => {
-      let markerProps = {}
-      if (checkLatLng(item._geolocation)) {
-        if (viewby && mM) {
-<<<<<<< HEAD
-          const vb = _this.nameOfFieldInGroup(viewby);
-          const itemId = String(item[vb]);
-          let index: number | '-novalue' = mM.findIndex((m) => m.value === itemId);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-
-          // spread indexes to use full colorset gamut if necessary
-          if (colorSet !== undefined && colorSet !== 'a') {
-            index = this.calculateIconIndex(index, mM)
-=======
-          const vb = _this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
           let index: number | IconNoValue = mM.findIndex((m) => m.value === itemId)
 
           // spread indexes to use full colorset gamut if necessary
           if (colorSet !== undefined && colorSet !== 'a') {
-            index = _this.calculateIconIndex(index, mM)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
+            index = this.calculateIconIndex(index, mM)
           }
 
           // Previously it was possible that `'-novalue' + 1` would happen resulting in code not knowing what to do.
@@ -970,11 +572,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           }
 
           markerProps = {
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-            icon: this.buildIcon(index + 1),
-========
-            icon: _this.buildIcon(iconNumber),
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
+            icon: this.buildIcon(iconNumber),
             sId: item._id,
             typeId: mapMarkers[itemId].id,
           }
@@ -986,20 +584,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           }
         }
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-        prepPoints.push(L.marker(item._geolocation, markerProps))
-========
-        const geo0 = item._geolocation[0];
-        const geo1 = item._geolocation[1];
-=======
         const geo0 = item._geolocation[0]
         const geo1 = item._geolocation[1]
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
         if (geo0 !== null && geo1 !== null) {
           prepPoints.push(L.marker([geo0, geo1], markerProps))
         }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
       }
     })
 
@@ -1011,15 +600,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers = L.markerClusterGroup({
           maxClusterRadius: this.calculateClusterRadius,
           disableClusteringAtZoom: 16,
-<<<<<<< HEAD
-<<<<<<< HEAD
           iconCreateFunction: (cluster) => {
-=======
-          iconCreateFunction: function (cluster) {
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-=======
-          iconCreateFunction: (cluster) => {
->>>>>>> 75304cb91 (more polishing)
             const childCount = cluster.getChildCount()
 
             let markerClass = 'marker-cluster marker-cluster-'
@@ -1035,32 +616,15 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
               html: '<div><span>' + childCount + '</span></div>',
               className: markerClass,
               iconSize: new L.Point(30, 30),
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-            })
-========
-            });
-            return divIcon;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
             })
             return divIcon
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
           },
         })
 
         markers.addLayers(prepPoints)
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      markers.on('click', this.launchSubmissionModal).addTo(map)
-=======
-      markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map);
->>>>>>> e6e6b071c (further improvements to map types (WIP))
-=======
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
       if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
         map.fitBounds(markers.getBounds())
@@ -1073,15 +637,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markers: markers as FeatureGroupExtended,
       })
     } else {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-      this.setState({ error: t('Error: could not load data.'), loading: false })
-========
-      this.setState({error: t('Error: could not load data.')});
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
       this.setState({ error: t('Error: could not load data.') })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     }
   }
 
@@ -1111,20 +667,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     return Math.round(num)
   }
 
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  buildIcon(index = false) {
-    const colorSet = this.calcColorSet() || 'a'
-    const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a'
-========
   buildIcon(index: number | boolean = false) {
-<<<<<<< HEAD
-    const colorSet = this.calcColorSet() || 'a';
-    const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a';
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     const colorSet = this.calcColorSet() || 'a'
     const iconClass = index ? `map-marker-${colorSet}${index}` : 'map-marker-a'
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
     return L.divIcon({
       className: `map-marker ${iconClass}`,
@@ -1132,21 +677,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  prepFilteredMarkers(data, viewby) {
-    const markerMap = new Object()
-    const vb = this.nameOfFieldInGroup(viewby)
-    let idcounter = 1
-
-    data.forEach((listitem) => {
-      const m = listitem[vb]
-
-      if (markerMap[m] === undefined) {
-        markerMap[m] = { count: 1, id: idcounter }
-        idcounter++
-      } else {
-        markerMap[m]['count'] += 1
-========
   prepFilteredMarkers(data: SubmissionResponse[], viewby: string): MapValueCounts {
     const markerMap: MapValueCounts = {}
     const currentViewBy = this.nameOfFieldInGroup(viewby)
@@ -1159,25 +689,13 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         markerMap[subResponseValue] = { count: 1, id: idCounter }
         idCounter++
       } else {
-<<<<<<< HEAD
-        markerMap[subResponseValue]['count'] += 1;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
         markerMap[subResponseValue]['count'] += 1
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
       }
     })
 
     return markerMap
   }
 
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  buildHeatMap(map) {
-    const heatmapPoints = []
-    this.state.submissions.forEach((item) => {
-      if (checkLatLng(item._geolocation)) {
-        heatmapPoints.push([item._geolocation[0], item._geolocation[1], 1])
-========
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
     this.state.submissions.forEach((item) => {
@@ -1187,7 +705,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         if (geo0 !== null && geo1 !== null) {
           heatmapPoints.push([geo0, geo1, 1])
         }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
       }
     })
     const heatmap = L.heatLayer(heatmapPoints, {
@@ -1203,18 +720,12 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   showMarkers() {
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    const map = this.state.map
-    map.addLayer(this.state.markers)
-    map.removeLayer(this.state.heatmap)
-========
     if (this.state.map && this.state.markers) {
       this.state.map.addLayer(this.state.markers)
     }
     if (this.state.map && this.state.heatmap) {
       this.state.map.removeLayer(this.state.heatmap)
     }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
     this.setState({
       markersVisible: true,
     })
@@ -1227,17 +738,12 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   showHeatmap() {
     const map = this.state.map
 
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    map.addLayer(this.state.heatmap)
-    map.removeLayer(this.state.markers)
-========
     if (map && this.state.heatmap) {
       map.addLayer(this.state.heatmap)
     }
     if (map && this.state.markers) {
       map.removeLayer(this.state.markers)
     }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
     this.setState({
       markersVisible: false,
     })
@@ -1255,33 +761,19 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.setState({ clearDisaggregatedPopover: false })
     }, 1000)
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    const name = evt.target.getAttribute('data-name') || undefined
-========
-    const name = evt.currentTarget.getAttribute('data-name') || undefined;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     const name = evt.currentTarget.getAttribute('data-name') || undefined
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     if (name !== undefined) {
       this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
     } else {
       this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`)
     }
   }
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-  filterLanguage(evt) {
-    const index = +evt.target.getAttribute('data-index')
-    this.setState({ langIndex: index })
-========
 
   filterLanguage(evt: React.TouchEvent<HTMLAnchorElement>) {
     const dataIndexAttr = evt.currentTarget.getAttribute('data-index')
     if (dataIndexAttr !== null) {
-      this.setState({ langIndex: parseInt(dataIndexAttr) })
+      this.setState({ langIndex: Number.parseInt(dataIndexAttr) })
     }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
   }
 
   static getDerivedStateFromProps(props: FormMapProps, state: FormMapState) {
@@ -1292,92 +784,38 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       newState.markersVisible = true
     }
     if (state.previousViewby !== props.viewby) {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-      newState.filteredByMarker = false
-      newState.componentRefreshed = true
-========
-      newState.filteredByMarker = undefined;
-      newState.componentRefreshed = true;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
       newState.filteredByMarker = undefined
       newState.componentRefreshed = true
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     }
     return newState
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
     if (prevProps.viewby !== this.props.viewby) {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
       const map = this.refreshMap()
-      this.requestData(map, this.props.viewby)
-========
-      const map = this.refreshMap();
-=======
-      const map = this.refreshMap()
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
       if (map) {
         this.requestData(map, this.props.viewby)
       }
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
     }
   }
 
   refreshMap() {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
     const map = this.state.map
-    map.removeLayer(this.state.markers)
-    map.removeLayer(this.state.heatmap)
-    return map
-========
-    const map = this.state.map;
-=======
-    const map = this.state.map
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
     if (map && this.state.markers) {
       map.removeLayer(this.state.markers)
     }
     if (map && this.state.heatmap) {
       map.removeLayer(this.state.heatmap)
     }
-<<<<<<< HEAD
-    return map;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     return map
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
-<<<<<<< HEAD
-  launchSubmissionModal(evt) {
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    const td = this.state.submissions
-    const ids = []
-    td.forEach((r) => {
-      ids.push(r._id)
-    })
-========
-=======
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
-<<<<<<< HEAD
->>>>>>> e6e6b071c (further improvements to map types (WIP))
-    const td = this.state.submissions;
-    const ids: number[] = [];
-    td.forEach(function (r) {
-      ids.push(r._id);
-    });
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     const td = this.state.submissions
     const ids: number[] = []
     td.forEach((r) => {
       ids.push(r._id)
     })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
     pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
@@ -1394,33 +832,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   overrideStyles(mapStyles: AssetMapStyles) {
-<<<<<<< HEAD
-    this.setState({
-      filteredByMarker: undefined,
-      componentRefreshed: true,
-      overridenStyles: mapStyles,
-<<<<<<< HEAD
-    })
-
-    const map = this.refreshMap()
-
-    // HACK switch to setState callback after updating to React 16+
-    window.setTimeout(() => {
-      this.requestData(map, this.props.viewby)
-    }, 0)
-  }
-
-  toggleFullscreen() {
-    this.setState({ isFullscreen: !this.state.isFullscreen })
-
-    const map = this.state.map
-    setTimeout(() => {
-      map.invalidateSize()
-    }, 300)
-=======
-    }, () => {
-      const map = this.refreshMap();
-=======
     this.setState(
       {
         filteredByMarker: undefined,
@@ -1429,7 +840,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       },
       () => {
         const map = this.refreshMap()
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
         if (map) {
           this.requestData(map, this.props.viewby)
@@ -1439,16 +849,9 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   toggleFullscreen() {
-<<<<<<< HEAD
-    this.setState({isFullscreen: !this.state.isFullscreen}, () => {
-      this.state.map?.invalidateSize();
-    });
->>>>>>> e6e6b071c (further improvements to map types (WIP))
-=======
     this.setState({ isFullscreen: !this.state.isFullscreen }, () => {
       this.state.map?.invalidateSize()
     })
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
   toggleLegend() {
@@ -1457,20 +860,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
-<<<<<<< HEAD
-  filterByMarker(evt) {
+  filterByMarker(markerId: number) {
+    const id = String(markerId)
     const markers = this.state.markers
-    const id = evt.target.getAttribute('data-id')
     let filteredByMarker = this.state.filteredByMarker
     const unselectedClass = 'unselected'
-=======
-  filterByMarker(markerId: number) {
-<<<<<<< HEAD
-    const id = String(markerId);
-    const markers = this.state.markers;
-    let filteredByMarker = this.state.filteredByMarker;
-    const unselectedClass = 'unselected';
->>>>>>> e6e6b071c (further improvements to map types (WIP))
 
     if (!filteredByMarker) {
       filteredByMarker = [id]
@@ -1480,73 +874,20 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       filteredByMarker.push(id)
     }
 
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    this.setState({ filteredByMarker: filteredByMarker })
-    markers.eachLayer((layer) => {
-      if (filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.remove(unselectedClass)
-========
-    this.setState({filteredByMarker: filteredByMarker});
-    markers?.eachLayer(function (layer) {
-      if (!filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.add(unselectedClass);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-      } else {
-        layer._icon.classList.add(unselectedClass)
-=======
-    const id = String(markerId)
-    const markers = this.state.markers
-    let filteredByMarker = this.state.filteredByMarker
-    const unselectedClass = 'unselected'
-
-    if (!filteredByMarker) {
-      filteredByMarker = [id]
-    } else if (!filteredByMarker.includes(id)) {
-      filteredByMarker.push(id)
-    } else {
-      filteredByMarker = filteredByMarker.filter((l) => l !== id)
-    }
-
     this.setState({ filteredByMarker: filteredByMarker })
     markers?.eachLayer((layer) => {
-      if (!filteredByMarker.includes(layer.options.typeId.toString())) {
-        layer._icon.classList.add(unselectedClass)
-      } else {
+      if (filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.remove(unselectedClass)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
+      } else {
+        layer._icon.classList.add(unselectedClass)
       }
     })
   }
 
   resetFilterByMarker() {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-    const markers = this.state.markers
-    this.setState({ filteredByMarker: false })
-    markers.eachLayer((layer) => {
-      layer._icon.classList.remove('unselected')
-    })
-  }
-
-  nameOfFieldInGroup(fieldName) {
-    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey)
-    return flatPaths[fieldName]
-========
-    const markers = this.state.markers;
-    this.setState({filteredByMarker: undefined});
-=======
     const markers = this.state.markers
     this.setState({ filteredByMarker: undefined })
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
-    markers.eachLayer(function (layer) {
-=======
-    markers?.eachLayer(function (layer) {
->>>>>>> c070193b8 (ts fix)
-=======
     markers?.eachLayer((layer) => {
->>>>>>> 75304cb91 (more polishing)
       layer._icon.classList.remove('unselected')
     })
   }
@@ -1557,12 +898,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       return flatPaths[fieldName]
     }
     // Fallback - should never happen
-<<<<<<< HEAD
-    return fieldName;
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
     return fieldName
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
   }
 
   render() {
@@ -1574,25 +910,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       )
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    const fields = this.state.fields
-    const langIndex = this.state.langIndex
-    const langs = this.props.asset.content.translations?.length > 1 ? this.props.asset.content.translations : []
-    const viewby = this.props.viewby
-=======
-    const fields = this.state.fields;
-    const langIndex = this.state.langIndex;
-    let langs: Array<string | null> = [];
-    if (
-      this.props.asset.content?.translations &&
-      this.props.asset.content?.translations.length > 1
-    ) {
-      langs = this.props.asset.content.translations;
-    }
-    const viewby = this.props.viewby;
->>>>>>> e6e6b071c (further improvements to map types (WIP))
-=======
     const fields = this.state.fields
     const langIndex = this.state.langIndex
     let langs: Array<string | null> = []
@@ -1600,7 +917,6 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
       langs = this.props.asset.content.translations
     }
     const viewby = this.props.viewby
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
     const colorSet = this.calcColorSet() || 'a'
     let label = t('Disaggregate by survey responses')
@@ -1608,15 +924,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (viewby) {
       fields.forEach((f) => {
         if (viewby === f.name || viewby === f.$autoname) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-          label = `${t('Disaggregated using:')} ${f.label[langIndex]}`
-=======
-          label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`;
->>>>>>> e6e6b071c (further improvements to map types (WIP))
-=======
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
         }
       })
     } else if (this.state.noData && this.state.hasGeoPoint) {
@@ -1648,19 +956,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-        <bem.FormView__mapButton m={'layers'} onClick={this.showLayerControls} data-tip={t('Toggle layers')}>
-========
-        <bem.FormView__mapButton
-          m={'layers'}
-          onClick={this.showLayerControls.bind(this)}
-          data-tip={t('Toggle layers')}
-        >
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
         <bem.FormView__mapButton m={'layers'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
           <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
@@ -1701,28 +997,14 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
             ))}
             <bem.PopoverMenu__link
               key={'all'}
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-              onClick={this.filterMap}
-              className={viewby ? 'see-all' : 'active see-all'}
-========
               onClick={this.filterMap.bind(this)}
-              className={!viewby ? 'active see-all' : 'see-all'}
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
+              className={viewby ? 'see-all' : 'active see-all'}
             >
               {t('-- See all data --')}
             </bem.PopoverMenu__link>
             {fields.map((f) => {
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
               const name = f.name || f.$autoname
-              const label = f.label ? (
-========
-              const name = f.name || f.$autoname;
-=======
-              const name = f.name || f.$autoname
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
               const fieldLabel = f.label ? (
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
                 f.label[langIndex] ? (
                   f.label[langIndex]
                 ) : (
@@ -1767,15 +1049,11 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
           <bem.FormView__mapList className={this.state.showExpandedLegend ? 'expanded' : 'collapsed'}>
             <div className='maplist-contents'>
               {this.state.filteredByMarker && (
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-                <div key='m-reset' className='map-marker-item map-marker-reset' onClick={this.resetFilterByMarker}>
-========
                 <div
                   key='m-reset'
                   className='map-marker-item map-marker-reset'
                   onClick={this.resetFilterByMarker.bind(this)}
                 >
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
                   {t('Reset')}
                 </div>
               )}
@@ -1784,28 +1062,10 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                 if (this.state.filteredByMarker) {
                   markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
                 }
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-                const label = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set')
-                let index = i
-                if (colorSet !== undefined && colorSet !== 'a') {
-                  index = this.calculateIconIndex(index, this.state.markerMap)
-========
-                const markerLabel = m.labels
-                  ? m.labels[langIndex]
-                  : m.value
-                  ? m.value
-                  : t('not set');
-                let index: number | '-novalue' = i;
-                if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
-                  index = this.calculateIconIndex(index, this.state.markerMap);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
                 const markerLabel = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set')
                 let index: number | IconNoValue = i
                 if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
                   index = this.calculateIconIndex(index, this.state.markerMap)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
                 }
 
                 let markerItemSpanClass = ''
@@ -1815,18 +1075,7 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
 
                 return (
                   <div key={`m-${i}`} className={markerItemClass}>
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-                    <span className={`map-marker map-marker-${colorSet}${index + 1}`}>{m.count}</span>
-                    <span className={'map-marker-label'} onClick={this.filterByMarker} data-id={m.id} title={label}>
-                      {label}
-========
-                    <span className={`map-marker ${markerItemSpanClass}`}>
-                      {m.count}
-                    </span>
-=======
                     <span className={`map-marker ${markerItemSpanClass}`}>{m.count}</span>
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
 
                     <span
                       className={'map-marker-label'}
@@ -1836,23 +1085,13 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
                       title={markerLabel}
                     >
                       {markerLabel}
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
                     </span>
                   </div>
                 )
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend.bind(this)}>
-<<<<<<< HEAD
-              <i
-                className={cx(
-                  'k-icon',
-                  this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up',
-                )}
-              />{' '}
-=======
               <i className={cx('k-icon', this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
               {t('Legend')}
             </div>
           </bem.FormView__mapList>
@@ -1875,14 +1114,4 @@ export class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 }
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:jsapp/js/components/map/map.js
-reactMixin(FormMap.prototype, Reflux.ListenerMixin)
-
 export default withRouter(FormMap)
-========
-export default withRouter(FormMap);
->>>>>>>> 72a264fd6 (WIP migrating map to TS):jsapp/js/components/map/map.tsx
-=======
-export default withRouter(FormMap)
->>>>>>> 8a147c543 (run biome on jsapp/js/components/map files)
