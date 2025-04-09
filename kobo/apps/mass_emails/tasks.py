@@ -124,7 +124,6 @@ class MassEmailSender:
         if getattr(settings, 'MASS_EMAILS_CONDENSE_SEND', None):
             TTL = 15 * 60
 
-        logging.info(f'Caching {cache_key}')
         cache.set(cache_key, limit, TTL)
 
     def get_day_limits(self):
