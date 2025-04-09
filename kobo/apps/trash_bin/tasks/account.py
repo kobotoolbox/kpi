@@ -1,5 +1,4 @@
 import logging
-from datetime import timedelta
 
 from celery.signals import task_failure, task_retry
 from django.conf import settings
@@ -7,10 +6,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-)
+from django_celery_beat.models import PeriodicTask
 from requests.exceptions import HTTPError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -21,15 +17,13 @@ from kpi.deployment_backends.kc_access.utils import delete_kc_user
 from kpi.exceptions import KobocatCommunicationError
 from kpi.models.asset import Asset
 from kpi.utils.storage import rmdir
-from .constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
-from .exceptions import TrashTaskInProgressError
-from .models import TrashStatus
-from .models.account import AccountTrash
-from .models.project import ProjectTrash
-from .utils import (
+from ..exceptions import TrashTaskInProgressError
+from ..models import TrashStatus
+from ..models.account import AccountTrash
+from ..models.project import ProjectTrash
+from ..utils import (
     delete_asset,
     replace_user_with_placeholder,
-    temporarily_disconnect_signals,
 )
 
 
@@ -172,42 +166,6 @@ def empty_account(account_trash_id: int, force: bool = False):
     )
 
 
-@celery_app.task(
-    autoretry_for=(
-        TrashTaskInProgressError,
-        KobocatCommunicationError,
-    ),
-    retry_backoff=60,
-    retry_backoff_max=600,
-    max_retries=5,
-    retry_jitter=False,
-    queue='kpi_low_priority_queue',
-    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
-    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
-)
-def empty_project(project_trash_id: int, force: bool = False):
-    with transaction.atomic():
-        project_trash = ProjectTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        if not force and project_trash.status == TrashStatus.IN_PROGRESS:
-            logging.warning(
-                f'Project {project_trash.asset.name} deletion is already '
-                f'in progress'
-            )
-            return
-
-        project_trash.status = TrashStatus.IN_PROGRESS
-        project_trash.save(update_fields=['status', 'date_modified'])
-
-    delete_asset(project_trash.request_author, project_trash.asset)
-    PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
-    logging.info(
-        f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has '
-        f'been successfully deleted!'
-    )
-
-
 @task_failure.connect(sender=empty_account)
 def empty_account_failure(sender=None, **kwargs):
 
@@ -233,89 +191,3 @@ def empty_account_retry(sender=None, **kwargs):
         account_trash.metadata['failure_error'] = str(exception)
         account_trash.status = TrashStatus.RETRY
         account_trash.save(update_fields=['status', 'metadata', 'date_modified'])
-
-
-@task_failure.connect(sender=empty_project)
-def empty_project_failure(sender=None, **kwargs):
-
-    exception = kwargs['exception']
-    project_trash_id = kwargs['args'][0]
-    with transaction.atomic():
-        project_trash = ProjectTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        project_trash.metadata['failure_error'] = str(exception)
-        project_trash.status = TrashStatus.FAILED
-        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
-
-
-@task_retry.connect(sender=empty_project)
-def empty_project_retry(sender=None, **kwargs):
-    project_trash_id = kwargs['request'].get('args')[0]
-    exception = str(kwargs['reason'])
-    with transaction.atomic():
-        project_trash = AccountTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        project_trash.metadata['failure_error'] = str(exception)
-        project_trash.status = TrashStatus.RETRY
-        project_trash.save(update_fields=['status', 'metadata', 'date_modified'])
-
-
-@celery_app.task
-def garbage_collector():
-
-    with temporarily_disconnect_signals(delete=True):
-        with transaction.atomic():
-            # Remove orphan periodic tasks
-            PeriodicTask.objects.exclude(
-                pk__in=AccountTrash.objects.values_list(
-                    'periodic_task_id', flat=True
-                ),
-            ).filter(
-                name__startswith=DELETE_USER_STR_PREFIX, clocked__isnull=False
-            ).delete()
-
-            PeriodicTask.objects.exclude(
-                pk__in=ProjectTrash.objects.values_list(
-                    'periodic_task_id', flat=True
-                ),
-            ).filter(
-                name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
-            ).delete()
-
-            # Then, remove clocked schedules
-            ClockedSchedule.objects.exclude(
-                pk__in=PeriodicTask.objects.filter(
-                    clocked__isnull=False
-                ).values_list('clocked_id', flat=True),
-            ).delete()
-
-
-@celery_app.task
-def task_restarter():
-    """
-    This task restarts previous tasks which have been stopped accidentally,
-    e.g.: docker container/k8s pod restart or OOM killed.
-    """
-    stuck_threshold = timezone.now() - timedelta(
-        seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-    )
-
-    stuck_account_ids = AccountTrash.objects.values_list(
-        'pk', flat=True
-    ).filter(
-        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
-        date_modified__lte=stuck_threshold,
-    )
-    for stuck_account_id in stuck_account_ids:
-        empty_account.delay(stuck_account_id, force=True)
-
-    stuck_project_ids = ProjectTrash.objects.values_list(
-        'pk', flat=True
-    ).filter(
-        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
-        date_modified__lte=stuck_threshold,
-    )
-    for stuck_project_id in stuck_project_ids:
-        empty_project.delay(stuck_project_id, force=True)

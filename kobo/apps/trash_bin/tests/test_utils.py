@@ -56,7 +56,9 @@ class AccountTrashTestCase(TestCase):
             retain_placeholder=False,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
+        with patch(
+            'kobo.apps.trash_bin.tasks.account.delete_kc_user'
+        ) as mock_delete_kc_user:
             mock_delete_kc_user.return_value = True
             empty_account.apply([account_trash.pk])
 
@@ -180,7 +182,9 @@ class AccountTrashTestCase(TestCase):
             retain_placeholder=True,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
+        with patch(
+            'kobo.apps.trash_bin.tasks.account.delete_kc_user'
+        ) as mock_delete_kc_user:
             mock_delete_kc_user.return_value = True
             empty_account.apply([account_trash.pk])
         after = now() + timedelta(days=grace_period)

@@ -166,12 +166,13 @@ def move_to_trash(
         clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
         trash_model.objects.bulk_create(trash_objects)
         try:
+            python_file = task.replace('empty_', '')
             periodic_tasks = PeriodicTask.objects.bulk_create(
                 [
                     PeriodicTask(
                         clocked=clocked,
                         name=task_name_placeholder.format(**ato.metadata),
-                        task=f'kobo.apps.trash_bin.tasks.{task}',
+                        task=f'kobo.apps.trash_bin.tasks.{python_file}.{task}',
                         args=json.dumps([ato.id]),
                         one_off=True,
                         enabled=not empty_manually,
