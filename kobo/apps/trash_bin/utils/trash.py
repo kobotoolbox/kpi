@@ -32,6 +32,7 @@ from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from ..type_aliases import TrashModels
+from ..utils import temporarily_disconnect_signals
 
 
 @transaction.atomic
