@@ -228,6 +228,29 @@ def send_emails():
     sender.send_day_emails()
 
 
+@celery_app.task(time_limit=3300)  # 55 minutes
+def _send_emails():
+    """Send the emails for the current day. It schedules the emails if they have not
+    been scheduled yet.
+
+    NOTE: This function will replace the function called send_emails in the near future.
+    """
+    today = timezone.now().date()
+    sender = MassEmailSender()
+    cache_key = f'mass_emails_{today}_emails'
+    cached_data = cache.get(cache_key, [])
+    processed_configs = set(cached_data)
+    config_ids = {email_config.id for email_config in sender.configs}
+    if config_ids != processed_configs:
+        logging.info(
+            "Skipping send emails task because enqueued configurations don't "
+            'match the cached list of processed configurations for today'
+        )
+        return
+
+    sender.send_day_emails()
+
+
 def get_users_for_config(email_config):
     """
     Get users based on query, excluding recent recipients

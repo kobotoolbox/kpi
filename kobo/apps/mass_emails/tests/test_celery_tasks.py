@@ -15,9 +15,9 @@ from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     MassEmailSender,
+    _send_emails,
     generate_mass_email_user_lists,
     render_template,
-    send_emails,
 )
 
 
@@ -41,13 +41,19 @@ def test_template_render(self):
 class BaseMassEmailsTestCase(BaseTestCase):
     def setUp(self):
         self.user1 = User.objects.create(
-            username='user1', last_login=timezone.now() - timedelta(days=400), email='user1@test.com',
+            username='user1',
+            last_login=timezone.now() - timedelta(days=400),
+            email='user1@test.com',
         )
         self.user2 = User.objects.create(
-            username='user2', last_login=timezone.now() - timedelta(days=400), email='user2@test.com',
+            username='user2',
+            last_login=timezone.now() - timedelta(days=400),
+            email='user2@test.com',
         )
         self.user3 = User.objects.create(
-            username='user3', last_login=timezone.now() - timedelta(days=7), email='user3@test.com',
+            username='user3',
+            last_login=timezone.now() - timedelta(days=7),
+            email='user3@test.com',
         )
         self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
         cache.delete(self.cache_key)
@@ -101,18 +107,29 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         cache.clear()
 
         for i in range(0, 100):
-            config = self._create_email_config(name=f'Config {i}', template=self.template)
+            config = self._create_email_config(
+                name=f'Config {i}', template=self.template
+            )
             job = MassEmailJob.objects.create(email_config=config)
             self.configs.append(config)
             self.jobs.append(job)
             self._create_email_record(
-                user=self.user1, email_config=config, job=job, status=EmailStatus.ENQUEUED
+                user=self.user1,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
             self._create_email_record(
-                user=self.user2, email_config=config, job=job, status=EmailStatus.ENQUEUED
+                user=self.user2,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
             self._create_email_record(
-                user=self.user3, email_config=config, job=job, status=EmailStatus.ENQUEUED
+                user=self.user3,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=310)
@@ -198,12 +215,15 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert sender.get_cache_key_date(send_date=current_time) == expected_time
 
 
-class TestSendRecurringEmails(BaseMassEmailsTestCase):
-    def setUp(self):
-        super().setUp()
+    def test_send_recurring_emails_exits_when_incomplete_init(self):
+        _send_emails()
+        assert len(mail.outbox) == 0
 
-    def test_send_recurring_emails(self):
-        pass
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_when_initialized(self):
+        generate_mass_email_user_lists()
+        _send_emails()
+        assert len(mail.outbox) == 100
 
 
 @ddt
