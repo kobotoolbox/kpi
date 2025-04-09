@@ -82,6 +82,7 @@ from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uui
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 
@@ -138,6 +139,7 @@ def check_edit_submission_permissions(
         ))
 
 
+@kc_transaction_atomic
 def create_instance(
     username: str,
     xml_file: File,
