@@ -21,7 +21,7 @@ from ..tasks import (
 )
 
 
-def test_template_render(self):
+def test_template_render():
     data = {
         'username': 'Test Username',
         'full_name': 'Test Full Name',
@@ -213,7 +213,6 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
             year=2025, month=1, day=1, hour=1, minute=expected_minute
         )
         assert sender.get_cache_key_date(send_date=current_time) == expected_time
-
 
     def test_send_recurring_emails_exits_when_incomplete_init(self):
         _send_emails()
