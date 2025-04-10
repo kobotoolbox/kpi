@@ -2,15 +2,9 @@ import logging
 
 from celery.signals import task_failure, task_retry
 from django.conf import settings
-from django.db import transaction
-from django_celery_beat.models import (
-    PeriodicTask,
-)
 
 from kobo.celery import celery_app
-from kpi.exceptions import KobocatCommunicationError
 from ..exceptions import TrashTaskInProgressError
-from ..models import TrashStatus
 from ..models.project import ProjectTrash
 from ..utils import delete_asset, process_deletion, trash_bin_task_failure, trash_bin_task_retry
 
@@ -18,7 +12,6 @@ from ..utils import delete_asset, process_deletion, trash_bin_task_failure, tras
 @celery_app.task(
     autoretry_for=(
         TrashTaskInProgressError,
-        KobocatCommunicationError,
     ),
     retry_backoff=60,
     retry_backoff_max=600,

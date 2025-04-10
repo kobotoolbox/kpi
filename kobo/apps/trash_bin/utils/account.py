@@ -6,13 +6,14 @@ from django.db import models
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
-from requests.exceptions import HTTPError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.trackers.models import NLPUsageCounter
-from kpi.deployment_backends.kc_access.utils import delete_kc_user
-from kpi.exceptions import KobocatCommunicationError
+from kpi.deployment_backends.kc_access.utils import (
+    delete_kc_user,
+    kc_transaction_atomic,
+)
 from kpi.models.asset import Asset
 from kpi.utils.storage import rmdir
 from ..exceptions import TrashTaskInProgressError
@@ -70,57 +71,39 @@ def delete_account(account_trash: AccountTrash):
             dispatch_uid='update_catch_all_monthly_xform_submission_counters',
         )
         with transaction.atomic():
-            audit_log_params = {
-                'app_label': get_user_model()._meta.app_label,
-                'model_name': get_user_model()._meta.model_name,
-                'object_id': user_id,
-                'user': account_trash.request_author,
-                'user_uid': account_trash.request_author.extra_details.uid,
-                'metadata': {
-                    'username': user.username,
-                },
-                'log_type': AuditType.USER_MANAGEMENT
-            }
+            with kc_transaction_atomic():
+                audit_log_params = {
+                    'app_label': get_user_model()._meta.app_label,
+                    'model_name': get_user_model()._meta.model_name,
+                    'object_id': user_id,
+                    'user': account_trash.request_author,
+                    'user_uid': account_trash.request_author.extra_details.uid,
+                    'metadata': {
+                        'username': user.username,
+                    },
+                    'log_type': AuditType.USER_MANAGEMENT
+                }
 
-            if account_trash.retain_placeholder:
-                audit_log_params['action'] = AuditAction.REMOVE
-                placeholder_user = _replace_user_with_placeholder(user)
-                # Retain removal date information
-                extra_details = placeholder_user.extra_details
-                extra_details.date_removal_requested = date_removal_requested
-                extra_details.date_removed = timezone.now()
-                extra_details.save(
-                    update_fields=['date_removal_requested', 'date_removed']
-                )
-            else:
-                audit_log_params['action'] = AuditAction.DELETE
-                user.delete()
+                if account_trash.retain_placeholder:
+                    audit_log_params['action'] = AuditAction.REMOVE
+                    placeholder_user = _replace_user_with_placeholder(user)
+                    # Retain removal date information
+                    extra_details = placeholder_user.extra_details
+                    extra_details.date_removal_requested = date_removal_requested
+                    extra_details.date_removed = timezone.now()
+                    extra_details.save(
+                        update_fields=['date_removal_requested', 'date_removed']
+                    )
+                else:
+                    audit_log_params['action'] = AuditAction.DELETE
+                    user.delete()
 
-            AuditLog.objects.create(**audit_log_params)
+                AuditLog.objects.create(**audit_log_params)
 
-            try:
                 delete_kc_user(user.username)
-            except HTTPError as e:
-                error = str(e)
-                if error.startswith(
-                    (
-                        '502',
-                        '504',
-                    )
-                ):
-                    raise KobocatCommunicationError
-                if error.startswith(('401',)):
-                    # When users are deleted in a huge batch, there may be a
-                    # race condition that causes the service account token to
-                    # be expired, making auth against KoBoCAT fail.
-                    raise KobocatCommunicationError(
-                        'Could not authenticate with KoBoCAT'
-                    )
-                if not error.startswith('404'):
-                    raise e
 
-            if user.username:
-                rmdir(f'{user.username}/')
+                if user.username:
+                    rmdir(f'{user.username}/')
 
     finally:
         post_delete.connect(

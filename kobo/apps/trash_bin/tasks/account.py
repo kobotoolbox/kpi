@@ -4,7 +4,6 @@ from celery.signals import task_failure, task_retry
 from django.conf import settings
 
 from kobo.celery import celery_app
-from kpi.exceptions import KobocatCommunicationError
 from ..exceptions import TrashTaskInProgressError
 from ..models.account import AccountTrash
 from ..utils import (
@@ -19,7 +18,6 @@ from ..utils.account import validate_pre_deletion
 @celery_app.task(
     autoretry_for=(
         TrashTaskInProgressError,
-        KobocatCommunicationError,
     ),
     retry_backoff=60,
     retry_backoff_max=600,
