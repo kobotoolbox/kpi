@@ -149,9 +149,45 @@ def create_instance(
     request: Optional['rest_framework.request.Request'] = None,
 ) -> Instance:
     """
-    Submission cases:
-        If there is a username and no uuid, submitting an old ODK form.
-        If there is a username and a uuid, submitting a new ODK form.
+    Processes form submissions by creating or updating an Instance in an atomic
+    transaction.
+
+    The function parses the submitted XML and media files, identifies the
+    corresponding xform, checks permissions, and ensures uniqueness using
+    advisory locks to avoid race conditions from simultaneous submissions.
+    It also enforces the presence of a valid submission UUID and manages
+    both new and duplicate submissions appropriately.
+
+    The root UUID is extracted from the XML (from <meta><rootUuid> if present,
+    or <instanceID> otherwise) and stored in the `root_uuid` column of the
+    Instance model. A unique constraint is enforced on `(root_uuid, xform)` to
+    ensure consistent identification across a submission's lifecycle.
+
+    Returns HTTP 202 (Accepted) for true duplicates (identical content),
+    or raises a conflict (409) if the same UUID is submitted with different
+    content.
+
+    Parameters:
+        username (str):  The username associated with the submission.
+        xml_file (File): A file-like object containing the XML form submission.
+        media_files (Generator[File]): Generator yielding media file objects.
+        status (str, optional): Submission status (default 'submitted_via_web').
+        uuid (str, optional): Unique identifier for the submission.
+        date_created_override (datetime, optional): Override for the submission's
+                                                    creation date.
+        request (Optional[Request]): Request object used for permission checks.
+
+    Returns:
+        Instance: The updated or newly created submission instance
+
+    Raises:
+        InstanceIdMissingError: If no valid UUID is found in the XML submission.
+        DuplicateInstanceError: If an advisory lock is not acquired, or if there
+                                is a submission with the same XML hash and user
+                                without any new attachments.
+        ConflictingSubmissionUUIDError: If the same UUID is submitted with
+                                        differing content.
+        PermissionDenied: If the submission fails permission checks.
     """
 
     if username:
