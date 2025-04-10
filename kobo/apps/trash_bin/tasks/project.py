@@ -6,13 +6,16 @@ from django.conf import settings
 from kobo.celery import celery_app
 from ..exceptions import TrashTaskInProgressError
 from ..models.project import ProjectTrash
-from ..utils import delete_asset, process_deletion, trash_bin_task_failure, trash_bin_task_retry
+from ..utils import (
+    delete_asset,
+    process_deletion,
+    trash_bin_task_failure,
+    trash_bin_task_retry,
+)
 
 
 @celery_app.task(
-    autoretry_for=(
-        TrashTaskInProgressError,
-    ),
+    autoretry_for=(TrashTaskInProgressError,),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,
@@ -30,14 +33,10 @@ def empty_project(project_trash_id: int, force: bool = False):
     )
     asset = project_trash.asset.name
     if not success:
-        logging.warning(
-            f'Project {asset.name} deletion is already '
-            f'in progress'
-        )
+        logging.warning(f'Project {asset.name} deletion is already ' f'in progress')
     else:
         logging.info(
-            f'Project {asset.name} (#{asset.uid}) has '
-            f'been successfully deleted!'
+            f'Project {asset.name} (#{asset.uid}) has ' f'been successfully deleted!'
         )
 
 

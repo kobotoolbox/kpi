@@ -16,9 +16,7 @@ from ..utils.account import validate_pre_deletion
 
 
 @celery_app.task(
-    autoretry_for=(
-        TrashTaskInProgressError,
-    ),
+    autoretry_for=(TrashTaskInProgressError,),
     retry_backoff=60,
     retry_backoff_max=600,
     max_retries=5,

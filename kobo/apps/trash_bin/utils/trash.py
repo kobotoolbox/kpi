@@ -9,14 +9,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-)
+from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
-from kpi.models import Asset
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.trash_bin.constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
@@ -31,7 +28,7 @@ from kobo.apps.trash_bin.models import TrashStatus
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
-from kobo.apps.openrosa.apps.logger.models import Attachment
+from kpi.models import Asset
 from ..type_aliases import DeletionCallback, TrashBinModel, TrashBinModelInstance
 from ..utils import temporarily_disconnect_signals
 
@@ -60,13 +57,9 @@ def move_to_trash(
     username and primary key is retained after deleting all other data.
     """
 
-    (
-        trash_model,
-        fk_field_name,
-        related_model,
-        task,
-        task_name_placeholder
-    ) = _get_settings(trash_type, retain_placeholder)
+    (trash_model, fk_field_name, related_model, task, task_name_placeholder) = (
+        _get_settings(trash_type, retain_placeholder)
+    )
 
     if not retain_placeholder:
         # Total deletion, without retaining any placeholder, supersedes
@@ -76,7 +69,7 @@ def move_to_trash(
         trash_model.objects.filter(
             status__in=allowed_statuses,
             retain_placeholder=True,
-            **{f'{fk_field_name:}__in': obj_ids}
+            **{f'{fk_field_name:}__in': obj_ids},
         ).delete()
 
     trash_objects = []
@@ -142,9 +135,7 @@ def move_to_trash(
         trash_object.periodic_task = periodic_tasks[idx]
         updated_trash_objects.append(trash_object)
 
-    trash_model.objects.bulk_update(
-        updated_trash_objects, fields=['periodic_task_id']
-    )
+    trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
 
     AuditLog.objects.bulk_create(audit_logs)
 
@@ -169,9 +160,7 @@ def process_deletion(
     """
 
     with transaction.atomic():
-        object_trash = model.objects.select_for_update().get(
-            pk=object_id
-        )
+        object_trash = model.objects.select_for_update().get(pk=object_id)
         if not force and object_trash.status == TrashStatus.IN_PROGRESS:
             return object_trash, False
 
@@ -203,18 +192,13 @@ def put_back(
     they should contain 'pk' and 'username'
     """
 
-    trash_model, fk_field_name, related_model, *others = _get_settings(
-        trash_type
-    )
+    trash_model, fk_field_name, related_model, *others = _get_settings(trash_type)
 
     obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
     queryset = trash_model.objects.filter(
-        status=TrashStatus.PENDING,
-        **{f'{fk_field_name}__in': obj_ids}
+        status=TrashStatus.PENDING, **{f'{fk_field_name}__in': obj_ids}
     )
-    periodic_task_ids = list(
-        queryset.values_list('periodic_task_id', flat=True)
-    )
+    periodic_task_ids = list(queryset.values_list('periodic_task_id', flat=True))
     del_pto_results = queryset.delete()
     delete_model_key = f'{trash_model._meta.app_label}.{trash_model.__name__}'
     del_pto_count = del_pto_results[1].get(delete_model_key) or 0
@@ -251,9 +235,7 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     exception = kwargs['exception']
     obj_trash_id = kwargs['args'][0]
     with transaction.atomic():
-        obj_trash = model.objects.select_for_update().get(
-            pk=obj_trash_id
-        )
+        obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
         obj_trash.metadata['failure_error'] = str(exception)
         obj_trash.status = TrashStatus.FAILED
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
@@ -263,9 +245,7 @@ def trash_bin_task_retry(model: TrashBinModel, **kwargs):
     obj_trash_id = kwargs['request'].get('args')[0]
     exception = str(kwargs['reason'])
     with transaction.atomic():
-        obj_trash = model.objects.select_for_update().get(
-            pk=obj_trash_id
-        )
+        obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
         obj_trash.metadata['failure_error'] = str(exception)
         obj_trash.status = TrashStatus.RETRY
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
@@ -287,9 +267,11 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             'user_id',
             get_user_model(),
             'empty_account',
-            f'{DELETE_USER_STR_PREFIX} data ({{username}})'
-            if retain_placeholder
-            else f'{DELETE_USER_STR_PREFIX} account ({{username}})'
+            (
+                f'{DELETE_USER_STR_PREFIX} data ({{username}})'
+                if retain_placeholder
+                else f'{DELETE_USER_STR_PREFIX} account ({{username}})'
+            ),
         )
 
     if trash_type == 'attachment':

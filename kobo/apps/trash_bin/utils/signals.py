@@ -3,11 +3,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-    PeriodicTasks,
-)
+from django_celery_beat.models import ClockedSchedule, PeriodicTask, PeriodicTasks
 
 
 @contextmanager

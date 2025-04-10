@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import models
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
 
@@ -81,7 +80,7 @@ def delete_account(account_trash: AccountTrash):
                     'metadata': {
                         'username': user.username,
                     },
-                    'log_type': AuditType.USER_MANAGEMENT
+                    'log_type': AuditType.USER_MANAGEMENT,
                 }
 
                 if account_trash.retain_placeholder:

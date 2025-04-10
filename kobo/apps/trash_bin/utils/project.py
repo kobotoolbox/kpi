@@ -7,7 +7,7 @@ from django.db.models import F, Q
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kpi.exceptions import InvalidXFormException, MissingXFormException
-from kpi.models import Asset, SubmissionExportTask, ImportTask
+from kpi.models import Asset, ImportTask, SubmissionExportTask
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.storage import rmdir
@@ -93,7 +93,7 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: Asset):
             if not (
                 submissions := queryset_or_false.annotate(
                     _id=F('pk'), _uuid=F('uuid')
-                ).values('_id', '_uuid')[:settings.SUBMISSION_DELETION_BATCH_SIZE]
+                ).values('_id', '_uuid')[: settings.SUBMISSION_DELETION_BATCH_SIZE]
             ):
                 break
 
