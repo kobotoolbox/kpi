@@ -27,6 +27,7 @@ interface BemModifiersObject {
   [modifierName: string]: boolean
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 interface BemComponentProps extends React.ComponentProps<any> {
   /**
    * Pass a string, or array of strings. Pass `null` for nothing. For complex
@@ -80,7 +81,7 @@ export function makeBem(parent: BemInstance | null, name: string, htmlTagName = 
         })
       }
 
-      const newProps: { [propName: string]: any } = {
+      const newProps: { [propName: string]: unknown } = {
         className: classNames.join(' '),
       }
 
