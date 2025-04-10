@@ -188,6 +188,11 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     ))
   }
 
+  handleDeletedAttachment() {
+          // Prompt table to refresh submission list
+      actions.resources.refreshTableSubmissions()
+  }
+
   render() {
     let selectedCount = Object.keys(this.props.selectedRows).length
     if (this.props.selectedAllPages) {
@@ -268,6 +273,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             <BulkDeleteMediaFiles
               selectedSubmissions={this.getSelectedSubmissionsWithAttachments()}
               assetUid={this.props.asset.uid}
+              onDeleted={this.handleDeletedAttachment}
             />
           )}
       </bem.TableMeta__bulkOptions>

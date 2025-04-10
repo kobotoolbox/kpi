@@ -12,6 +12,7 @@ interface BulkDeleteMediaFilesProps {
   // An array of all selected submissions with a valid set of attachments to be deleted
   selectedSubmissions: SubmissionResponse[]
   assetUid: string
+  onDeleted: () => void
 }
 
 export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {

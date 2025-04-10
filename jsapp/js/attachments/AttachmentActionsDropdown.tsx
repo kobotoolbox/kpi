@@ -58,10 +58,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     }
   }
 
-  const requestDownloadFile = () => {
-    downloadUrl(attachment.download_url)
-  }
-
   // We find the question that the attachment belongs to, to determine the text to display in the modal.
   const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
   let attachmentTypeName = t('attachment')
