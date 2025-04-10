@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text, Modal, Anchor } from '@mantine/core'
+import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text, Modal, Anchor, Alert } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -18,7 +18,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   const [opened, { open, close }] = useDisclosure(false)
   const [isDeletePending, setIsDeletePending] = useState(false)
-  const [warningSurpressed, setWarningSurpressed] = useState(false)
+  const [warningAcknowledged, setWarningAcknowledged] = useState(false)
 
   const removeBulkAttachments = useRemoveBulkAttachments(props.assetUid)
 
@@ -31,68 +31,45 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     return null
   }
 
-  const addMediaType = (mimetype: string) => {
-    if (mimetype.includes('image/')) {
-      totalImages++
-    } else if (mimetype.includes('video/')) {
-      totalVideos++
-    } else if (mimetype.includes('application/')) {
-      totalFiles++
-    } else if (mimetype.includes('audio/')) {
-      totalAudios++
-    }
-  }
-
   // For each attachment in a submission, we add it to the list of parameters and increase that media file type count
   props.selectedSubmissions.forEach((submission) => {
     submission._attachments.forEach((attachment) => {
-      addMediaType(attachment.mimetype)
+      const mimetype = attachment.mimetype
+      if (mimetype.includes('image/')) {
+        totalImages++
+      } else if (mimetype.includes('video/')) {
+        totalVideos++
+      } else if (mimetype.includes('application/')) {
+        totalFiles++
+      } else if (mimetype.includes('audio/')) {
+        totalAudios++
+      }
     })
   })
 
   const getMediaCount = () => {
-    const allStrings = { images: '', videos: '', audios: '', files: '' }
-    const result: string[] = []
-
-    if (totalImages > 1) {
-      allStrings.images = t('##media## images').replace('##media##', String(totalImages))
-    } else if (totalImages === 1) {
-      allStrings.images = t('##media## image').replace('##media##', String(totalImages))
-    }
-    if (totalVideos > 1) {
-      allStrings.videos = t('##media## videos').replace('##media##', String(totalVideos))
-    } else if (totalVideos === 1) {
-      allStrings.videos = t('##media## video').replace('##media##', String(totalVideos))
-    }
-    if (totalAudios > 1) {
-      allStrings.audios = t('##media## audios').replace('##media##', String(totalAudios))
-    } else if (totalAudios === 1) {
-      allStrings.audios = t('##media## audio').replace('##media##', String(totalAudios))
-    }
-    if (totalFiles > 1) {
-      allStrings.files = t('##media## files').replace('##media##', String(totalFiles))
-    } else if (totalFiles === 1) {
-      allStrings.files = t('##media## file').replace('##media##', String(totalFiles))
-    }
-
-    for (const [media, message] of Object.entries(allStrings)) {
-      if (message !== '') {
-        result.push(message)
-      }
-    }
-    return result.join(', ') + '.'
+    const mediaTypes = [
+      { count: totalImages, singular: t('image'), plural: t('images') },
+      { count: totalVideos, singular: t('video'), plural: t('videos') },
+      { count: totalAudios, singular: t('audio'), plural: t('audios') },
+      { count: totalFiles, singular: t('file'), plural: t('files') },
+    ]
+    const result = mediaTypes
+      .filter(({ count }) => count > 0)
+      .map(({ count, singular, plural }) => t(`##media## ${count > 1 ? plural : singular}`).replace('##media##', '')) //TODO: throws a weird undefined error
+    return result.join('; ') + '.'
   }
 
   const handleConfirmDelete = async () => {
+    const selectedIds = props.selectedSubmissions.map((submission) => submission._id)
     setIsDeletePending(true)
 
     try {
-      for await (const submission of props.selectedSubmissions) {
-        await removeBulkAttachments.mutateAsync(submission._id.toString())
-      }
+      await removeBulkAttachments.mutateAsync(selectedIds)
+      close()
       notify(
-        t('Media files from ##Number_of_selected_submissions## submission(s) have been deleted').replace(
-          '##Number_of_selected_submissions##',
+        t('Media files from ##number_of_selected_submissions## submission(s) have been deleted').replace(
+          '##number_of_selected_submissions##',
           props.selectedSubmissions.length.toString(),
         ),
       )
@@ -105,7 +82,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   return (
     <Box>
-      <Anchor onClick={open} underline='always' fw={'bold'}>
+      <Anchor onClick={open} underline='always' fw={'bold'} c={'dark-blue'}>
         {t('Delete media files only')}
       </Anchor>
 
@@ -120,21 +97,18 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
                 {getMediaCount()}
               </Text>
             }
-            onClick={() => setWarningSurpressed(!warningSurpressed)}
+            onClick={() => setWarningAcknowledged(!warningAcknowledged)}
           />
-          <InlineMessage
-            icon='warning'
-            type='warning'
-            message={t('Careful - it is not possible to recover deleted media files')}
-          />
-
+          <Alert icon='warning' type='warning'>
+            label={t('Careful - it is not possible to recover deleted media files')}
+          </Alert>
           <Group justify='flex-end'>
             <Button variant='light' size='lg' onClick={close} disabled={isDeletePending}>
               {t('Cancel')}
             </Button>
 
             <Button
-              disabled={!warningSurpressed || isDeletePending}
+              disabled={!warningAcknowledged || isDeletePending}
               variant='danger'
               size='lg'
               onClick={handleConfirmDelete}
