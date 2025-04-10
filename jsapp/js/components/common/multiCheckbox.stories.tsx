@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import MultiCheckbox from './multiCheckbox'
 
 const meta: Meta<typeof MultiCheckbox> = {
-  title: 'common/MultiCheckbox',
+  title: 'Design system old/MultiCheckbox',
   component: MultiCheckbox,
   argTypes: {},
   args: {},

@@ -5,7 +5,7 @@ import type { LoadingSpinnerType } from './loadingSpinner'
 const spinnerTypes: LoadingSpinnerType[] = ['regular', 'big']
 
 const meta: Meta<typeof LoadingSpinner> = {
-  title: 'common/LoadingSpinner',
+  title: 'Design system old/LoadingSpinner',
   component: LoadingSpinner,
   argTypes: {
     type: {

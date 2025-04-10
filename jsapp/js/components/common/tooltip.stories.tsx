@@ -5,7 +5,7 @@ import Tooltip from './tooltip'
 const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center']
 
 const meta: Meta<typeof Tooltip> = {
-  title: 'Common/Tooltip',
+  title: 'Design system/Tooltip',
   component: Tooltip,
   argTypes: {
     text: {

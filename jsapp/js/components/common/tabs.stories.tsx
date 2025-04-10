@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import Tabs from './tabs'
 
 const meta: Meta<typeof Tabs> = {
-  title: 'Common/Tabs',
+  title: 'Design system old/Tabs',
   component: Tabs,
   argTypes: {
     tabs: {

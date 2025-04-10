@@ -7,7 +7,7 @@ import type { Meta, StoryObj } from '@storybook/react'
  * Component used to display an overlay  over the sibling content containing the Loader component
  */
 const meta: Meta<typeof LoadingOverlay> = {
-  title: 'Common/LoadingOverlay',
+  title: 'Design system/LoadingOverlay',
   component: LoadingOverlay,
   decorators: [
     (Story) => (
