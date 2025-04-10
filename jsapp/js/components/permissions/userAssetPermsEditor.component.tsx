@@ -354,7 +354,7 @@ export default class UserAssetPermsEditor extends React.Component<
     )
   }
 
-  onSubmit(evt: React.FormEvent<HTMLFormElement>) {
+  onSubmit(evt: React.BaseSyntheticEvent) {
     evt.preventDefault()
 
     if (!this.isSubmitEnabled()) {

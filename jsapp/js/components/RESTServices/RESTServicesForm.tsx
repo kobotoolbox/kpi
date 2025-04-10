@@ -332,10 +332,9 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
     }
   }
 
-  addNewCustomHeaderRow(evt?: React.MouseEvent<HTMLButtonElement>) {
-    if (evt) {
-      evt.preventDefault()
-    }
+  addNewCustomHeaderRow(evt?: React.BaseSyntheticEvent) {
+    evt?.preventDefault()
+
     const newCustomHeaders = this.state.customHeaders
     newCustomHeaders.push(this.getEmptyHeaderRow())
     this.setState({ customHeaders: newCustomHeaders })
@@ -393,7 +392,7 @@ export default class RESTServicesForm extends React.Component<RESTServicesFormPr
               size='m'
               className='http-header-row-remove'
               startIcon='trash'
-              onClick={(evt: React.ChangeEvent<HTMLButtonElement>) => {
+              onClick={(evt) => {
                 evt.preventDefault()
                 this.removeCustomHeaderRow(n)
               }}

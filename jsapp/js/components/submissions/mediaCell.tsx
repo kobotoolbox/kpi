@@ -1,6 +1,6 @@
 import './mediaCell.scss'
 
-import React from 'react'
+import React, { type BaseSyntheticEvent } from 'react'
 
 import autoBind from 'react-autobind'
 import { actions } from '#/actions'
@@ -67,7 +67,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     }
   }
 
-  launchMediaModal(evt: MouseEvent | TouchEvent) {
+  launchMediaModal(evt: BaseSyntheticEvent) {
     evt.preventDefault()
 
     if (typeof this.props.mediaAttachment !== 'string') {

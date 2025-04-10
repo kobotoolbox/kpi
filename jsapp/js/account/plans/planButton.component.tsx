@@ -35,9 +35,9 @@ export const PlanButton = ({
     return null
   }
 
-  const manageSubscription = (subscriptionPrice?: Price) => {
+  const manageSubscription = (subscriptionPrice: React.UIEvent) => {
     setIsBusy(true)
-    postCustomerPortal(orgQuery.data.id, subscriptionPrice?.id, quantity)
+    postCustomerPortal(orgQuery.data.id, (subscriptionPrice as unknown as Price).id, quantity) // TODO: a bug here, see types.
       .then(processCheckoutResponse)
       .catch(() => setIsBusy(false))
   }

@@ -318,19 +318,19 @@ export default class ProjectExportsCreator extends React.Component<
     this.setState({ selectedRows: newSelectedRows })
   }
 
-  selectAllRows(evt: React.TouchEvent) {
+  selectAllRows(evt: React.BaseSyntheticEvent) {
     evt.preventDefault()
     this.clearSelectedDefinedExport()
     this.setState({ selectedRows: new Set(this.getAllSelectableRows()) })
   }
 
-  clearSelectedRows(evt: React.TouchEvent) {
+  clearSelectedRows(evt: React.BaseSyntheticEvent) {
     evt.preventDefault()
     this.clearSelectedDefinedExport()
     this.setState({ selectedRows: new Set() })
   }
 
-  toggleAdvancedView(evt: React.TouchEvent) {
+  toggleAdvancedView(evt: React.BaseSyntheticEvent) {
     evt.preventDefault()
     this.setState({ isAdvancedViewVisible: !this.state.isAdvancedViewVisible })
   }
@@ -814,7 +814,7 @@ export default class ProjectExportsCreator extends React.Component<
                       <Button
                         type='secondary-danger'
                         size='m'
-                        onClick={(evt: React.TouchEvent) => {
+                        onClick={(evt) => {
                           evt.preventDefault()
                           if (this.state.selectedDefinedExport?.data?.uid) {
                             this.safeDeleteExportSetting(this.state.selectedDefinedExport.data.uid)

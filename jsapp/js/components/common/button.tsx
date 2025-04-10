@@ -87,7 +87,7 @@ export interface ButtonProps {
   /** Additional class names. */
   className?: string
   /** You don't need to pass the callback for `isSubmit` option. */
-  onClick?: (event: any) => void
+  onClick?: (event: React.UIEvent<HTMLButtonElement>) => void
   'data-cy'?: string
 }
 
@@ -121,7 +121,7 @@ const Button = (props: ButtonProps) => {
     additionalButtonAttributes['data-cy'] = props['data-cy']
   }
 
-  const handleClick = (event: React.BaseSyntheticEvent) => {
+  const handleClick = (event: React.UIEvent<HTMLButtonElement>) => {
     if (!props.isDisabled && props.onClick) {
       props.onClick(event)
     }

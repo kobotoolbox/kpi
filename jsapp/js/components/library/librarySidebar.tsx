@@ -40,7 +40,7 @@ export default class LibrarySidebar extends React.Component<{}, LibrarySidebarSt
     })
   }
 
-  showLibraryNewModal(evt: React.TouchEvent<HTMLButtonElement>) {
+  showLibraryNewModal(evt: React.BaseSyntheticEvent) {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.LIBRARY_NEW_ITEM,

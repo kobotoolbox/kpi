@@ -171,7 +171,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
     this.setState({ inputString: inputString })
   }
 
-  changeStep(evt: React.ChangeEvent<HTMLInputElement>, newStep: ModalSteps) {
+  changeStep(evt: React.BaseSyntheticEvent, newStep: ModalSteps) {
     evt.preventDefault()
     this.setState({ currentStep: newStep })
   }
@@ -499,7 +499,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('Next')}
-              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+              onClick={(evt) => {
                 this.changeStep(evt, 'token')
               }}
             />
@@ -531,7 +531,7 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
               size='l'
               isFullWidth
               label={t('Back')}
-              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+              onClick={(evt) => {
                 this.changeStep(evt, 'token')
               }}
             />

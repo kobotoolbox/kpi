@@ -228,7 +228,7 @@ export default function TransferProjects(props: TransferProjectsProps) {
               <Button label={t('Cancel')} onClick={toggleModal} type='secondary' size='m' />
               <Button
                 label={t('Transfer project')}
-                onClick={(evt: React.FormEvent<HTMLFormElement>) => {
+                onClick={(evt) => {
                   evt.preventDefault()
                   submitInvite(transfer.usernameInput)
                 }}

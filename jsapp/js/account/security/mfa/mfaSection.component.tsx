@@ -118,7 +118,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
     }
   }
 
-  showEditModal(evt: React.ChangeEvent<HTMLInputElement>, type: EditModalTypes) {
+  showEditModal(evt: React.BaseSyntheticEvent, type: EditModalTypes) {
     evt.preventDefault()
 
     pageState.showModal({
@@ -180,7 +180,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                     type='primary'
                     label={t('Reconfigure')}
                     size='m'
-                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                    onClick={(evt) => {
                       this.showEditModal(evt, 'reconfigure')
                     }}
                   />
@@ -193,7 +193,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
                     type='primary'
                     label={t('Generate new')}
                     size='m'
-                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                    onClick={(evt) => {
                       this.showEditModal(evt, 'regenerate')
                     }}
                   />
