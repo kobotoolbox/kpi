@@ -23,7 +23,17 @@ from ..utils.project import delete_asset
 
 
 def delete_account(account_trash: AccountTrash):
+    """
+    Permanently deletes an account and all related data.
 
+    This function performs the following steps:
+    1. Deletes all projects owned by the user associated with the given AccountTrash.
+    2. Deletes all related data in the OpenRosa system for that user.
+    3. Deletes the user account itself.
+
+    Raises:
+        Any exception raised by the underlying deletion functions will propagate.
+    """
     assets = (
         Asset.all_objects.filter(owner=account_trash.user)
         .only(
@@ -74,7 +84,7 @@ def delete_account(account_trash: AccountTrash):
 
             if account_trash.retain_placeholder:
                 audit_log_params['action'] = AuditAction.REMOVE
-                placeholder_user = replace_user_with_placeholder(user)
+                placeholder_user = _replace_user_with_placeholder(user)
                 # Retain removal date information
                 extra_details = placeholder_user.extra_details
                 extra_details.date_removal_requested = date_removal_requested
@@ -120,7 +130,7 @@ def delete_account(account_trash: AccountTrash):
         )
 
 
-def replace_user_with_placeholder(
+def _replace_user_with_placeholder(
     user: settings.AUTH_USER_MODEL, retain_audit_logs: bool = True
 ) -> settings.AUTH_USER_MODEL:
     """
@@ -161,6 +171,14 @@ def replace_user_with_placeholder(
 
 
 def validate_pre_deletion(account_trash: AccountTrash):
+    """
+    Validates whether the account can be safely deleted.
+
+    This function checks that all projects associated with the user linked to the given
+    AccountTrash instance are not currently in the process of being deleted. If any
+    project is already being deleted, the function should raise an appropriate exception
+    to prevent the account deletion from proceeding.
+    """
     assets = (
         Asset.all_objects.filter(owner=account_trash.user)
         .only(

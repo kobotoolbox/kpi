@@ -59,4 +59,10 @@ def empty_project_retry(sender=None, **kwargs):
 
 
 def _deletion_callback(project_trash: ProjectTrash):
+    """
+    Deletion callback for a project trash object.
+
+    This wrapper extracts the necessary arguments from the trash object
+    and delegates the deletion to the actual `delete_asset()` function.
+    """
     delete_asset(project_trash.request_author, project_trash.asset)

@@ -32,7 +32,7 @@ from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.openrosa.apps.logger.models import Attachment
-from ..type_aliases import DeletionCallback, TrashModels, TrashModelInstance
+from ..type_aliases import DeletionCallback, TrashBinModel, TrashBinModelInstance
 from ..utils import temporarily_disconnect_signals
 
 
@@ -150,12 +150,24 @@ def move_to_trash(
 
 
 def process_deletion(
-    model: TrashModels,
+    model: TrashBinModel,
     object_id: int,
     deletion_callback: DeletionCallback,
     force: bool = False,
     pre_deletion_callback: Optional[DeletionCallback] = None,
-) -> tuple[TrashModelInstance, bool]:
+) -> tuple[TrashBinModelInstance, bool]:
+    """
+    Executes the generic deletion workflow for a trashed object.
+
+    This function retrieves the trashed object from the specified model and applies a
+    standard deletion process, including optional pre-deletion validation and a final
+    deletion callback. It also handles status updates and prevents concurrent deletions
+    unless forced.
+
+    Returns a tuple containing the deleted trash object instance and a boolean
+    indicating whether the deletion was successful.
+    """
+
     with transaction.atomic():
         object_trash = model.objects.select_for_update().get(
             pk=object_id
@@ -235,7 +247,7 @@ def put_back(
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
 
 
-def trash_bin_task_failure(model: TrashModels, **kwargs):
+def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     exception = kwargs['exception']
     obj_trash_id = kwargs['args'][0]
     with transaction.atomic():
@@ -247,7 +259,7 @@ def trash_bin_task_failure(model: TrashModels, **kwargs):
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
 
-def trash_bin_task_retry(model: TrashModels, **kwargs):
+def trash_bin_task_retry(model: TrashBinModel, **kwargs):
     obj_trash_id = kwargs['request'].get('args')[0]
     exception = str(kwargs['reason'])
     with transaction.atomic():
