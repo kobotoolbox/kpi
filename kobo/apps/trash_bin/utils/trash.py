@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from datetime import timedelta
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -31,7 +32,7 @@ from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.openrosa.apps.logger.models import Attachment
-from ..type_aliases import TrashModels
+from ..type_aliases import DeletionCallback, TrashModels, TrashModelInstance
 from ..utils import temporarily_disconnect_signals
 
 
@@ -146,6 +147,34 @@ def move_to_trash(
     )
 
     AuditLog.objects.bulk_create(audit_logs)
+
+
+def process_deletion(
+    model: TrashModels,
+    object_id: int,
+    deletion_callback: DeletionCallback,
+    force: bool = False,
+    pre_deletion_callback: Optional[DeletionCallback] = None,
+) -> tuple[TrashModelInstance, bool]:
+    with transaction.atomic():
+        object_trash = model.objects.select_for_update().get(
+            pk=object_id
+        )
+        if not force and object_trash.status == TrashStatus.IN_PROGRESS:
+            return object_trash, False
+
+        if pre_deletion_callback:
+            pre_deletion_callback(object_trash)
+
+        object_trash.status = TrashStatus.IN_PROGRESS
+        object_trash.metadata['failure_error'] = ''
+        object_trash.save(update_fields=['metadata', 'status', 'date_modified'])
+
+    deletion_callback(object_trash)
+
+    # Delete related periodic task
+    PeriodicTask.objects.get(pk=object_trash.periodic_task_id).delete()
+    return object_trash, True
 
 
 @transaction.atomic()

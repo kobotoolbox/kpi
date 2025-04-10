@@ -12,7 +12,7 @@ from kpi.exceptions import KobocatCommunicationError
 from ..exceptions import TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.project import ProjectTrash
-from ..utils import delete_asset, trash_bin_task_failure, trash_bin_task_retry
+from ..utils import delete_asset, process_deletion, trash_bin_task_failure, trash_bin_task_retry
 
 
 @celery_app.task(
@@ -29,26 +29,23 @@ from ..utils import delete_asset, trash_bin_task_failure, trash_bin_task_retry
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def empty_project(project_trash_id: int, force: bool = False):
-    with transaction.atomic():
-        project_trash = ProjectTrash.objects.select_for_update().get(
-            pk=project_trash_id
-        )
-        if not force and project_trash.status == TrashStatus.IN_PROGRESS:
-            logging.warning(
-                f'Project {project_trash.asset.name} deletion is already '
-                f'in progress'
-            )
-            return
-
-        project_trash.status = TrashStatus.IN_PROGRESS
-        project_trash.save(update_fields=['status', 'date_modified'])
-
-    delete_asset(project_trash.request_author, project_trash.asset)
-    PeriodicTask.objects.get(pk=project_trash.periodic_task_id).delete()
-    logging.info(
-        f'Project {project_trash.asset.name} (#{project_trash.asset.uid}) has '
-        f'been successfully deleted!'
+    project_trash, success = process_deletion(
+        ProjectTrash,
+        project_trash_id,
+        deletion_callback=_deletion_callback,
+        force=force,
     )
+    asset = project_trash.asset.name
+    if not success:
+        logging.warning(
+            f'Project {asset.name} deletion is already '
+            f'in progress'
+        )
+    else:
+        logging.info(
+            f'Project {asset.name} (#{asset.uid}) has '
+            f'been successfully deleted!'
+        )
 
 
 @task_failure.connect(sender=empty_project)
@@ -59,3 +56,7 @@ def empty_project_failure(sender=None, **kwargs):
 @task_retry.connect(sender=empty_project)
 def empty_project_retry(sender=None, **kwargs):
     trash_bin_task_retry(ProjectTrash, **kwargs)
+
+
+def _deletion_callback(project_trash: ProjectTrash):
+    delete_asset(project_trash.request_author, project_trash.asset)
