@@ -24,7 +24,7 @@ const defaultOptions: RadioOption[] = [
 ]
 
 const meta: Meta<typeof Radio> = {
-  title: 'common/Radio',
+  title: 'Design system old/Radio',
   component: Radio,
   argTypes: {},
 }

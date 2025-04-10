@@ -7,7 +7,7 @@ const badgeColors: BadgeColor[] = ['light-storm', 'light-amber', 'light-blue', '
 const badgeSizes: BadgeSize[] = ['s', 'm', 'l']
 
 const meta: Meta<typeof Badge> = {
-  title: 'common/Badge',
+  title: 'Design system old/Badge',
   component: Badge,
   argTypes: {
     color: {

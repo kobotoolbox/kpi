@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react'
  * Mantine [Loader](https://mantine.dev/core/loader/) component stories.
  */
 const meta: Meta<typeof Loader> = {
-  title: 'Common/Loader',
+  title: 'Design system/Loader',
   component: Loader,
   decorators: [
     (Story) => (

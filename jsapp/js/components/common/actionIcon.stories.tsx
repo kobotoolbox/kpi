@@ -15,8 +15,8 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
 
-const meta: Meta<typeof ActionIcon> = {
-  title: 'common/ActionIcon',
+export default {
+  title: 'Design system/ActionIcon',
   component: ActionIcon,
   argTypes: {
     variant: {
@@ -38,8 +38,6 @@ const meta: Meta<typeof ActionIcon> = {
     loading: { control: 'boolean' },
   },
 } as Meta<typeof ActionIcon>
-
-export default meta
 
 type Story = StoryObj<typeof ActionIcon>
 

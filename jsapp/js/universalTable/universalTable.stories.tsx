@@ -95,7 +95,7 @@ function getMockDataItem(): MockDataItem {
 }
 
 const meta: Meta<UniversalTablePropsAndCustomArgs> = {
-  title: 'misc/UniversalTable',
+  title: 'Components/UniversalTable',
   component: UniversalTable,
   argTypes: {
     hasColumnsPinnedLeft: {

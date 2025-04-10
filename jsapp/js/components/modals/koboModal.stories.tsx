@@ -6,7 +6,7 @@ import KoboModalFooter from './koboModalFooter'
 import KoboModalHeader from './koboModalHeader'
 
 const meta: Meta<typeof KoboModal> = {
-  title: 'commonDeprecated/KoboModal',
+  title: 'Design system old/KoboModal',
   component: KoboModal,
   argTypes: {
     isOpen: { control: 'boolean' },

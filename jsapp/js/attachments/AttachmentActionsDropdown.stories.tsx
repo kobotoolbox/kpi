@@ -9,7 +9,7 @@ const mockSubmission = assetWithImageSubmission
 const mockAttachmentId = assetWithImageSubmission._attachments[0].id
 
 const meta: Meta<typeof AttachmentActionsDropdown> = {
-  title: 'Attachments/AttachmentActionsDropdown',
+  title: 'Components/AttachmentActionsDropdown',
   component: AttachmentActionsDropdown,
   argTypes: {
     asset: { control: 'object' },
