@@ -100,7 +100,7 @@ def generate_mmo_subscription(organization: Organization, customer: Customer = N
     return generate_plan_subscription(organization, product_metadata, customer)
 
 
-def _create_one_time_addon_product(limit_metadata=None):
+def _create_one_time_addon_product(limit_metadata=None, **kwargs):
     metadata = {
         'product_type': 'addon_onetime',
         'valid_tags': 'all',

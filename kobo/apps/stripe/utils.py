@@ -33,10 +33,23 @@ def requires_stripe(func):
                 f'Cannot call {func.__name__} with stripe disabled'
             )
         else:
-            from djstripe.models import Product, Subscription
+            from djstripe.models import (
+                Charge,
+                PaymentIntent,
+                Price,
+                Product,
+                Subscription,
+            )
+
+            PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
             kwargs['product_model'] = Product
             kwargs['subscription_model'] = Subscription
+            kwargs['price_model'] = Price
+            kwargs['charge_model'] = Charge
+            kwargs['payment_intent_model'] = PaymentIntent
+            kwargs['plan_add_on_model'] = PlanAddOn
+
             return func(*args, **kwargs)
 
     return wrapper

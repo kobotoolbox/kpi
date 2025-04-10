@@ -104,6 +104,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 )
             ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
+            # stripe key added below if stripe is enabled
             'stripe_public_key': None,
             'free_tier_thresholds': to_python_object(
                 constance.config.FREE_TIER_THRESHOLDS

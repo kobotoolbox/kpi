@@ -9,6 +9,7 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
+from kobo.apps.stripe.utils import requires_stripe
 from kobo.apps.trackers.utils import (
     get_organization_remaining_usage,
     update_nlp_counter,
@@ -37,8 +38,10 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         )
         self.asset.deploy(backend='mock', active=True)
 
-    def _create_product(self, product_metadata):
-        from djstripe.models import Price, Product
+    @requires_stripe
+    def _create_product(self, product_metadata, **kwargs):
+        Price = kwargs['price_model']
+        Product = kwargs['product_model']
         product = baker.make(
             Product,
             active=True,
@@ -48,13 +51,16 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         product.save()
         return product, price
 
+    @requires_stripe
     def _make_payment(
         self,
         price,
         customer,
         payment_status='succeeded',
+        **kwargs,
     ):
-        from djstripe.models import Charge, PaymentIntent
+        Charge = kwargs['charge_model']
+        PaymentIntent = kwargs['payment_intent_model']
         payment_total = 2000
         payment_intent = baker.make(
             PaymentIntent,
