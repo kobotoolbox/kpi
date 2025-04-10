@@ -1,6 +1,5 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
 import { IconNames } from '#/k-icons'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
 
@@ -16,8 +15,8 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
 
-export default {
-  title: 'common/Action Icon',
+const meta: Meta<typeof ActionIcon> = {
+  title: 'common/ActionIcon',
   component: ActionIcon,
   argTypes: {
     variant: {
@@ -40,49 +39,18 @@ export default {
   },
 } as Meta<typeof ActionIcon>
 
+export default meta
+
 type Story = StoryObj<typeof ActionIcon>
 
-export const Filled: Story = {
+export const Default: Story = {
   args: {
-    variant: 'filled',
-    size: 'md',
-    iconName: 'edit',
-  },
-}
-
-export const Light: Story = {
-  args: {
-    variant: 'light',
-    size: 'md',
-    iconName: 'edit',
-  },
-}
-
-export const Transparent: Story = {
-  args: {
-    variant: 'transparent',
-    size: 'md',
-    iconName: 'more',
-  },
-}
-
-export const Danger: Story = {
-  args: {
-    variant: 'danger',
-    size: 'md',
-    iconName: 'trash',
-  },
-}
-
-export const DangerSecondary: Story = {
-  args: {
-    variant: 'danger-secondary',
+    iconName: 'document',
     size: 'lg',
-    iconName: 'trash',
   },
 }
 
-export const AllIconStyles = () => (
+export const Preview = () => (
   <div
     style={{
       display: 'grid',
@@ -111,3 +79,18 @@ export const AllIconStyles = () => (
     )}
   </div>
 )
+
+export const TestClick: Story = {
+  args: {
+    variant: 'filled',
+    size: 'md',
+    iconName: 'edit',
+    onClick: fn(),
+    'data-testid': 'ActionIcon-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId('ActionIcon-click-test'))
+    await expect((args as any).onClick).toHaveBeenCalled()
+  },
+}
