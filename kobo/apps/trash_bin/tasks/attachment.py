@@ -6,11 +6,7 @@ from django.conf import settings
 from kobo.celery import celery_app
 from ..exceptions import TrashTaskInProgressError
 from ..models.attachment import AttachmentTrash
-from ..utils import (
-    process_deletion,
-    trash_bin_task_failure,
-    trash_bin_task_retry,
-)
+from ..utils import process_deletion, trash_bin_task_failure, trash_bin_task_retry
 from ..utils.attachment import delete_attachment
 
 

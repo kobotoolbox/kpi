@@ -3,7 +3,10 @@ from __future__ import annotations
 from django.db import transaction
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.models.attachment import Attachment, AttachmentDeleteStatus
+from kobo.apps.openrosa.apps.logger.models.attachment import (
+    Attachment,
+    AttachmentDeleteStatus,
+)
 from ..models.attachment import AttachmentTrash
 
 
