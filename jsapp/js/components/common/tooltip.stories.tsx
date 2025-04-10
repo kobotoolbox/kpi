@@ -1,15 +1,12 @@
-import React from 'react'
-
-import type { Meta, Story } from '@storybook/react'
-import type { TooltipAlignment, TooltipProps } from './tooltip'
+import type { Meta, StoryObj } from '@storybook/react'
+import type { TooltipAlignment } from './tooltip'
 import Tooltip from './tooltip'
 
 const tooltipPositions: TooltipAlignment[] = ['right', 'left', 'center']
 
-export default {
-  title: 'Common/Tooltip',
+const meta: Meta<typeof Tooltip> = {
+  title: 'Design system old/Tooltip',
   component: Tooltip,
-  description: 'This is a component that displays a tooltip on a button that is hovered over.',
   argTypes: {
     text: {
       description: 'Content of the tooltip shown on hover over button',
@@ -24,31 +21,54 @@ export default {
       description: 'Accessible label for screen readers',
     },
   },
-} as Meta
-
-const Template: Story<TooltipProps> = (args) => (
-  <Tooltip {...args}>
-    <button>Your Button</button>
-  </Tooltip>
-)
-
-export const Default = Template.bind({})
-Default.args = {
-  text: 'Default Tooltip Text',
-  alignment: 'center',
-  ariaLabel: 'Default Tooltip Text',
+  parameters: {
+    docs: {
+      description: {
+        component: 'This is a component that displays a tooltip on a button that is hovered over.',
+      },
+    },
+  },
 }
 
-export const Right = Template.bind({})
-Right.args = {
-  text: 'Right Aligned Tooltip Text',
-  alignment: 'right',
-  ariaLabel: 'Right Aligned Tooltip Text',
+export default meta
+
+type Story = StoryObj<typeof Tooltip>
+
+export const Default: Story = {
+  args: {
+    text: 'Default Tooltip Text',
+    alignment: 'center',
+    ariaLabel: 'Default Tooltip Text',
+  },
+  render: (args) => (
+    <Tooltip {...args}>
+      <button>Your Button</button>
+    </Tooltip>
+  ),
 }
 
-export const Left = Template.bind({})
-Left.args = {
-  text: 'Left Aligned Tooltip Text',
-  alignment: 'left',
-  ariaLabel: 'Left Aligned Tooltip Text',
+export const Right: Story = {
+  args: {
+    text: 'Right Aligned Tooltip Text',
+    alignment: 'right',
+    ariaLabel: 'Right Aligned Tooltip Text',
+  },
+  render: (args) => (
+    <Tooltip {...args}>
+      <button>Your Button</button>
+    </Tooltip>
+  ),
+}
+
+export const Left: Story = {
+  args: {
+    text: 'Left Aligned Tooltip Text',
+    alignment: 'left',
+    ariaLabel: 'Left Aligned Tooltip Text',
+  },
+  render: (args) => (
+    <Tooltip {...args}>
+      <button>Your Button</button>
+    </Tooltip>
+  ),
 }

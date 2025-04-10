@@ -17,18 +17,88 @@ from kpi.tests.base_test_case import BaseTestCase
 from ..models import EmailStatus, MassEmailConfig, MassEmailJob, MassEmailRecord
 from ..tasks import (
     MassEmailSender,
+    _send_emails,
     generate_mass_email_user_lists,
     render_template,
-    send_emails
 )
 
 
-class TestCeleryTask(BaseTestCase):
+def test_template_render():
+    data = {
+        'username': 'Test Username',
+        'full_name': 'Test Full Name',
+        'plan_name': 'Test Plan Name',
+    }
+    template = """
+    Username: ##username##
+    Full name: ##full_name##
+    Plan name: ##plan_name##
+    """
+    rendered = render_template(template, data)
+    assert 'Username: Test Username' in rendered
+    assert 'Full name: Test Full Name' in rendered
+    assert 'Plan name: Test Plan Name' in rendered
+
+
+class BaseMassEmailsTestCase(BaseTestCase):
+    def setUp(self):
+        self.user1 = User.objects.create(
+            username='user1',
+            last_login=timezone.now() - timedelta(days=400),
+            email='user1@test.com',
+        )
+        self.user2 = User.objects.create(
+            username='user2',
+            last_login=timezone.now() - timedelta(days=400),
+            email='user2@test.com',
+        )
+        self.user3 = User.objects.create(
+            username='user3',
+            last_login=timezone.now() - timedelta(days=7),
+            email='user3@test.com',
+        )
+        self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
+        cache.delete(self.cache_key)
+
+    def _create_email_config(self, name, template=None, frequency=-1):
+        """
+        Helper function to create a MassEmailConfig
+        """
+        return MassEmailConfig.objects.create(
+            name=name,
+            subject='Test Subject',
+            template=template if template else 'Test Template',
+            live=True,
+            query='users_inactive_for_365_days',
+            frequency=frequency,
+            date_created=timezone.now() - timedelta(days=1),
+        )
+
+    def _create_email_record(self, user, email_config, status, days_ago=0, job=None):
+        """
+        Helper function to create a MassEmailRecord
+        """
+        if job is None:
+            job = MassEmailJob.objects.create(email_config=email_config)
+        record = MassEmailRecord.objects.create(
+            user=user,
+            email_job=job,
+            status=status,
+            date_created=timezone.now() - timedelta(days=days_ago),
+        )
+
+        # Update date_modified to simulate record creation in the past
+        MassEmailRecord.objects.filter(id=record.id).update(
+            date_modified=timezone.now() - timedelta(days=days_ago)
+        )
+
+
+@ddt
+class TestMassEmailSender(BaseMassEmailsTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
         super().setUp()
-        cache.clear()
         self.template = """
         Username: ##username##
         Full name: ##full_name##
@@ -36,25 +106,32 @@ class TestCeleryTask(BaseTestCase):
         """
         self.configs = []
         self.jobs = []
-        self.user1 = User.objects.get(username='someuser')
-        self.user2 = User.objects.get(username='anotheruser')
-        self.user3 = User.objects.get(username='adminuser')
+        cache.clear()
 
         for i in range(0, 100):
-            config = MassEmailConfig.objects.create(
-                name=f'Config {i}', subject=f'Subject {i}', template=self.template
+            config = self._create_email_config(
+                name=f'Config {i}', template=self.template
             )
             job = MassEmailJob.objects.create(email_config=config)
             self.configs.append(config)
             self.jobs.append(job)
-            MassEmailRecord.objects.create(
-                user=self.user1, email_job=job, status=EmailStatus.ENQUEUED
+            self._create_email_record(
+                user=self.user1,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
-            MassEmailRecord.objects.create(
-                user=self.user2, email_job=job, status=EmailStatus.ENQUEUED
+            self._create_email_record(
+                user=self.user2,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
-            MassEmailRecord.objects.create(
-                user=self.user3, email_job=job, status=EmailStatus.ENQUEUED
+            self._create_email_record(
+                user=self.user3,
+                email_config=config,
+                job=job,
+                status=EmailStatus.ENQUEUED,
             )
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=310)
@@ -75,31 +152,22 @@ class TestCeleryTask(BaseTestCase):
     @patch('django.utils.timezone.now')
     def test_send_emails_limits(self, now_mock):
         now_mock.return_value = datetime(2025, 1, 1, 0, 0, 0, 0, pytz.UTC)
-        send_emails()
+        sender = MassEmailSender()
+        sender.send_day_emails()
         assert len(mail.outbox) == 10
         now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
-        send_emails()
+        sender = MassEmailSender()
+        sender.send_day_emails()
         assert len(mail.outbox) == 20
         # Calling send_emails on the same day:
-        send_emails()
+        sender = MassEmailSender()
+        sender.send_day_emails()
         assert len(mail.outbox) == 20
 
-        # Test if limits end up witht he correct value
+        # Test if limits end up with the correct value
         sender = MassEmailSender()
         assert sum([0 if lim is None else lim for lim in sender.limits.values()]) == 0
         assert sender.total_limit == 0
-
-    def test_template_render(self):
-        data = {
-            'username': 'Test Username',
-            'full_name': 'Test Full Name',
-            'plan_name': 'Test Plan Name',
-        }
-
-        rendered = render_template(self.template, data)
-        assert 'Username: Test Username' in rendered
-        assert 'Full name: Test Full Name' in rendered
-        assert 'Plan name: Test Plan Name' in rendered
 
     @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
@@ -133,52 +201,34 @@ class TestCeleryTask(BaseTestCase):
             'send_email',
         ]
 
+    @override_settings(MASS_EMAILS_CONDENSE_SEND=True)
+    @data((5, 0), (20, 15), (40, 30), (46, 45))
+    @unpack
+    def test_cache_key_date_condensed_send_interval(
+        self, current_minute, expected_minute
+    ):
+        sender = MassEmailSender()
+        current_time = datetime(
+            year=2025, month=1, day=1, hour=1, minute=current_minute
+        )
+        expected_time = datetime(
+            year=2025, month=1, day=1, hour=1, minute=expected_minute
+        )
+        assert sender.get_cache_key_date(send_date=current_time) == expected_time
+
+    def test_send_recurring_emails_exits_when_incomplete_init(self):
+        _send_emails()
+        assert len(mail.outbox) == 0
+
+    @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
+    def test_send_recurring_emails_when_initialized(self):
+        generate_mass_email_user_lists()
+        _send_emails()
+        assert len(mail.outbox) == 100
+
 
 @ddt
-class GenerateDailyEmailUserListTaskTestCase(BaseTestCase):
-    def setUp(self):
-        self.user1 = User.objects.create(
-            username='user1', last_login=timezone.now() - timedelta(days=400)
-        )
-        self.user2 = User.objects.create(
-            username='user2', last_login=timezone.now() - timedelta(days=400)
-        )
-        self.user3 = User.objects.create(
-            username='user3', last_login=timezone.now() - timedelta(days=7)
-        )
-        self.cache_key = f'mass_emails_{timezone.now().date()}_emails'
-        cache.delete(self.cache_key)
-
-    def _create_email_config(self, name, frequency=-1):
-        """
-        Helper function to create a MassEmailConfig
-        """
-        return MassEmailConfig.objects.create(
-            name=name,
-            subject='Test Subject',
-            template='Test Template',
-            live=True,
-            query='users_inactive_for_365_days',
-            frequency=frequency,
-            date_created=timezone.now() - timedelta(days=1),
-        )
-
-    def _create_email_record(self, user, email_config, status, days_ago=0):
-        """
-        Helper function to create a MassEmailRecord
-        """
-        record = MassEmailRecord.objects.create(
-            user=user,
-            email_job=MassEmailJob.objects.create(email_config=email_config),
-            status=status,
-            date_created=timezone.now() - timedelta(days=days_ago),
-        )
-
-        # Update date_modified to simulate record creation in the past
-        MassEmailRecord.objects.filter(id=record.id).update(
-            date_modified=timezone.now() - timedelta(days=days_ago)
-        )
-
+class GenerateDailyEmailUserListTaskTestCase(BaseMassEmailsTestCase):
     @data(
         (EmailStatus.ENQUEUED, 1),
         (EmailStatus.SENT, 0),

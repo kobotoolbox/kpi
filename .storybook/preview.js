@@ -30,7 +30,10 @@ export const decorators = [
 
 export const parameters = {
   options: {
-    storySort: (a, b) => (a.title === b.title ? 0 : a.title.localeCompare(b.title, undefined, { numeric: true })),
+    storySort: {
+      method: 'alphabetical',
+      order: ['Design system', 'Design system old', 'Components', '*'],
+    },
   },
   actions: { argTypesRegex: '^on[A-Z].*' },
   controls: {
@@ -42,3 +45,4 @@ export const parameters = {
 }
 
 window.t = (str) => str
+export const tags = ['autodocs']

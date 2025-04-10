@@ -1,17 +1,23 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import Checkbox from './checkbox'
 
-export default {
-  title: 'common/Checkbox',
+const meta: Meta<typeof Checkbox> = {
+  title: 'Design system old/Checkbox',
   component: Checkbox,
-  argTypes: {},
-} as ComponentMeta<typeof Checkbox>
+  argTypes: {
+    label: { type: 'string' },
+    checked: { type: 'boolean' },
+    onChange: { action: 'changed' },
+  },
+}
 
-const Template: ComponentStory<typeof Checkbox> = (args) => <Checkbox {...args} onChange={() => {}} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  label: 'I approve',
+type Story = StoryObj<typeof Checkbox>
+
+export const Default: Story = {
+  args: {
+    label: 'Checkbox',
+    checked: false,
+  },
 }

@@ -1,18 +1,14 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import { IconNames } from '#/k-icons'
 import TextBox from './textBox'
 import type { TextBoxSize, TextBoxType } from './textBox'
 
 const textBoxTypes: TextBoxType[] = ['email', 'number', 'password', 'text-multiline', 'text', 'url']
-
 const textBoxSizes: TextBoxSize[] = ['s', 'm', 'l']
 
-export default {
-  title: 'commonDeprecated/TextBox',
+const meta: Meta<typeof TextBox> = {
+  title: 'Design system old/TextBox',
   component: TextBox,
-  description: 'This is a component that displays an input. It uses most of the browser built-in functionalities.',
   argTypes: {
     type: {
       description: 'Type of the HTML `input`, choosing "text-multiline" will render a `textarea`.',
@@ -28,12 +24,12 @@ export default {
     },
     startIcon: {
       description: 'Appears inside the input, on the beginning.',
-      options: IconNames,
+      options: Object.keys(IconNames),
       control: 'select',
     },
     endIcon: {
       description: 'Appears inside the input, on the end. Is replaced by "alert" icon if there are any errors.',
-      options: IconNames,
+      options: Object.keys(IconNames),
       control: 'select',
     },
     value: { control: 'text' },
@@ -63,39 +59,52 @@ export default {
     onChange: { description: 'Input value change callback' },
     onBlur: { description: 'Input blur callback' },
     onKeyPress: { description: 'Input typing callback' },
-    customClassNames: {
+    className: {
       description: 'Adds custom class name to topmost wrapper',
     },
     'data-cy': { description: 'Cypress identifier' },
   },
-} as ComponentMeta<typeof TextBox>
-
-const Template: ComponentStory<typeof TextBox> = (args) => <TextBox {...args} />
-
-export const Primary = Template.bind({})
-Primary.args = {
-  label: 'Your real name',
-  placeholder: 'Type your name...',
+  parameters: {
+    docs: {
+      description: {
+        component: 'This is a component that displays an input. It uses most of the browser built-in functionalities.',
+      },
+    },
+  },
 }
 
-export const Disabled = Template.bind({})
-Disabled.args = {
-  label: "You can't remove this value",
-  value: "I'm here to stay!",
-  disabled: true,
+export default meta
+
+type Story = StoryObj<typeof TextBox>
+
+export const Primary: Story = {
+  args: {
+    label: 'Your real name',
+    placeholder: 'Type your name...',
+  },
 }
 
-export const WithErrors = Template.bind({})
-WithErrors.args = {
-  label: 'Well done.',
-  placeholder: "We weren't even testing for that",
-  errors: ['Horrible person', "I'm serious, that's what it says: 'A horrible person.'"],
+export const Disabled: Story = {
+  args: {
+    label: "You can't remove this value",
+    value: "I'm here to stay!",
+    disabled: true,
+  },
 }
 
-export const WithIcon = Template.bind({})
-WithIcon.args = {
-  label: 'Your nice and funny username',
-  placeholder: 'It really needs to be funny, sorry!',
-  required: true,
-  startIcon: 'user',
+export const WithErrors: Story = {
+  args: {
+    label: 'Well done.',
+    placeholder: "We weren't even testing for that",
+    errors: ['Horrible person', "I'm serious, that's what it says: 'A horrible person.'"],
+  },
+}
+
+export const WithIcon: Story = {
+  args: {
+    label: 'Your nice and funny username',
+    placeholder: 'It really needs to be funny, sorry!',
+    required: true,
+    startIcon: 'user',
+  },
 }

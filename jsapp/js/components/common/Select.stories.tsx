@@ -37,7 +37,7 @@ const largeData = [
  * See detailed uses in [Mantine's Select page](https://mantine.dev/core/select/)
  */
 const meta: Meta<typeof Select> = {
-  title: 'Common/Select',
+  title: 'Design system/Select',
   component: Select,
   decorators: [
     (Story) => (

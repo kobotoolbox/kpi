@@ -98,6 +98,8 @@ interface AdditionalButtonAttributes {
 
 /**
  * A button component.
+ *
+ * @deprecated Use `ButtonNew` instead.
  */
 const Button = (props: ButtonProps) => {
   const labelId = useId()
