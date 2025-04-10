@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import RegionSelector from './regionSelector'
 
 const meta: Meta<typeof RegionSelector> = {
-  title: 'common/RegionSelector',
+  title: 'Components/RegionSelector',
   component: RegionSelector,
   argTypes: {
     rootLanguage: { control: 'text' },

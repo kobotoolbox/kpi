@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import MiniAudioPlayer from './miniAudioPlayer'
 
 const meta: Meta<typeof MiniAudioPlayer> = {
-  title: 'common/MiniAudioPlayer',
+  title: 'Design system old/MiniAudioPlayer',
   component: MiniAudioPlayer,
   argTypes: {},
 }

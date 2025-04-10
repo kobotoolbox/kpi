@@ -7,7 +7,7 @@ const textBoxTypes: TextBoxType[] = ['email', 'number', 'password', 'text-multil
 const textBoxSizes: TextBoxSize[] = ['s', 'm', 'l']
 
 const meta: Meta<typeof TextBox> = {
-  title: 'commonDeprecated/TextBox',
+  title: 'Design system old/TextBox',
   component: TextBox,
   argTypes: {
     type: {

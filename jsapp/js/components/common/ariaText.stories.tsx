@@ -5,7 +5,7 @@ import AriaText from '#/components/common/ariaText'
 
 export default {
   component: AriaText,
-  title: 'Common/Aria Text',
+  title: 'Design system old/AriaText',
   tags: ['autodocs'],
 }
 

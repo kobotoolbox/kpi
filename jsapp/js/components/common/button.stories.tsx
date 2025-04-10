@@ -44,7 +44,7 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
 ] as const
 
 const meta: Meta<typeof Button> = {
-  title: 'common/Button',
+  title: 'Design system/Button',
   component: Button,
   argTypes: {
     variant: {
