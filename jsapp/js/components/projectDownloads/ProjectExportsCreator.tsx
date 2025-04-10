@@ -307,7 +307,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.setState({ selectedDefinedExport: null })
   }
 
-  onSelectedRowsChange(newRowsArray: MultiCheckboxItem[]) {
+  onSelectedRowsChange(newRowsArray: MultiCheckboxItem<{ path: string }>[]) {
     this.clearSelectedDefinedExport()
     const newSelectedRows = new Set<string>()
     newRowsArray.forEach((item) => {

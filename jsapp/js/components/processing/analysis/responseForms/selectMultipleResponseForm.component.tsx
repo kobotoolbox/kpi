@@ -43,7 +43,7 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
 
   const [response, setResponse] = useState<string[]>(initialResponse)
 
-  function onCheckboxesChange(items: MultiCheckboxItem[]) {
+  function onCheckboxesChange(items: MultiCheckboxItem<{ name: string }>[]) {
     if (!analysisQuestions || !question) {
       return
     }
@@ -59,7 +59,7 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
     updateResponseAndReducer(analysisQuestions.dispatch, question.xpath, props.uuid, question.type, newResponse)
   }
 
-  function getCheckboxes(): MultiCheckboxItem[] {
+  function getCheckboxes(): MultiCheckboxItem<{ name: string }>[] {
     if (question?.additionalFields?.choices) {
       return (
         question?.additionalFields?.choices

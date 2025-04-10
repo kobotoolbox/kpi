@@ -10,22 +10,22 @@ bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li')
 
 export type MultiCheckboxType = 'bare' | 'frame'
 
-export interface MultiCheckboxItem {
-  /** any other properties will be passed back with onChange */
-  [propName: string]: any
+type RecordUnknown = Record<string | number | symbol, unknown>
+
+export type MultiCheckboxItem<T extends RecordUnknown = RecordUnknown> = T & {
   checked: boolean
   disabled?: boolean
   label: string
 }
 
-interface MultiCheckboxProps {
+interface MultiCheckboxProps<T extends RecordUnknown = RecordUnknown> {
   /** Influences how the component looks. */
   type: MultiCheckboxType
-  items: MultiCheckboxItem[]
+  items: MultiCheckboxItem<T>[]
   /** Use this to disable all checkboxes - useful for blocking changes while loading. */
   disabled?: boolean
   /** Returns whole list whenever any item changes */
-  onChange: (items: MultiCheckboxItem[]) => void
+  onChange: (items: MultiCheckboxItem<T>[]) => void
   /** Additional class names. */
   className?: string
 }
@@ -34,7 +34,7 @@ interface MultiCheckboxProps {
  * A MultiCheckbox generic component.
  * Use optional `bem.MultiCheckbox__wrapper` to display a frame around it.
  */
-export default function MultiCheckbox(props: MultiCheckboxProps) {
+export default function MultiCheckbox<T extends RecordUnknown = RecordUnknown>(props: MultiCheckboxProps<T>) {
   function onChange(itemIndex: number, isChecked: boolean) {
     const updatedList = props.items
     updatedList[itemIndex].checked = isChecked

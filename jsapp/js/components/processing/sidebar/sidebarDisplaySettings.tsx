@@ -102,7 +102,7 @@ export default function SidebarDisplaySettings() {
   // To make the code a little simpler later on, we need an inverse array here
   // to send to the the display, and a normal array to keep track of the
   // checkboxes in this modal.
-  function onCheckboxesChange(list: MultiCheckboxItem[]) {
+  function onCheckboxesChange(list: MultiCheckboxItem<{ name: string }>[]) {
     const newList = list
       .filter((question) => question.checked)
       .map((question) => {

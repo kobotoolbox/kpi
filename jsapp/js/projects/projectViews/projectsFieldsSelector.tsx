@@ -58,12 +58,12 @@ export default function ProjectsFieldsSelector(props: ProjectsFieldsSelectorProp
     toggleModal()
   }
 
-  const onCheckboxesChange = (items: MultiCheckboxItem[]) => {
+  const onCheckboxesChange = (items: MultiCheckboxItem<{ name: ProjectFieldName }>[]) => {
     const newFields = items.filter((item) => item.checked).map((item) => item.name)
     setSelectedFields(newFields)
   }
 
-  const getCheckboxes = (): MultiCheckboxItem[] =>
+  const getCheckboxes = (): MultiCheckboxItem<{ name: ProjectFieldName }>[] =>
     Object.values(PROJECT_FIELDS)
       .filter((fieldDefinition) => !props.excludedFields?.includes(fieldDefinition.name))
       .map((field) => {
