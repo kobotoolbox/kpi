@@ -139,7 +139,6 @@ def check_edit_submission_permissions(
         ))
 
 
-@kc_transaction_atomic
 def create_instance(
     username: str,
     xml_file: File,
@@ -168,37 +167,38 @@ def create_instance(
     if not new_uuid:
         raise InstanceIdMissingError
 
-    with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
-        if not lock_acquired:
-            raise DuplicateInstanceError
-
-        # Check for an existing instance
-        existing_instance = Instance.objects.filter(
-            xml_hash=xml_hash,
-            xform__user=xform.user,
-        ).first()
-
-        if existing_instance:
-            existing_instance.check_active(force=False)
-            # ensure we have saved the extra attachments
-            new_attachments, _ = save_attachments(existing_instance, media_files)
-            if not new_attachments:
+    with kc_transaction_atomic():
+        with get_instance_lock(xml_hash, new_uuid, xform.id) as lock_acquired:
+            if not lock_acquired:
                 raise DuplicateInstanceError
+
+            # Check for an existing instance
+            existing_instance = Instance.objects.filter(
+                xml_hash=xml_hash,
+                xform__user=xform.user,
+            ).first()
+
+            if existing_instance:
+                existing_instance.check_active(force=False)
+                # ensure we have saved the extra attachments
+                new_attachments, _ = save_attachments(existing_instance, media_files)
+                if not new_attachments:
+                    raise DuplicateInstanceError
+                else:
+                    # Update Mongo via the related ParsedInstance
+                    existing_instance.parsed_instance.save(asynchronous=False)
+                    return existing_instance
             else:
-                # Update Mongo via the related ParsedInstance
-                existing_instance.parsed_instance.save(asynchronous=False)
-                return existing_instance
-        else:
-            instance = save_submission(
-                request,
-                xform,
-                xml,
-                media_files,
-                new_uuid,
-                status,
-                date_created_override,
-            )
-            return instance
+                instance = save_submission(
+                    request,
+                    xform,
+                    xml,
+                    media_files,
+                    new_uuid,
+                    status,
+                    date_created_override,
+                )
+                return instance
 
 
 def disposition_ext_and_date(name, extension, show_date=True):
