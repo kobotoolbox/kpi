@@ -4,7 +4,7 @@ import type { StoryObj } from '@storybook/react'
 import DiffValue from '#/components/common/diffValue.component'
 
 export default {
-  title: 'Design system/DiffValue',
+  title: 'Design system old/DiffValue',
   component: DiffValue,
 }
 
