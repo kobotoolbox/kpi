@@ -570,4 +570,4 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
   }
 }
 
-export default (observer as any)(MFAModals)
+export default observer(MFAModals)
