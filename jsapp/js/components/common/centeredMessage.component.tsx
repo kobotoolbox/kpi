@@ -4,7 +4,7 @@ import type { ReactElement } from 'react'
 import styles from './centeredMessage.module.scss'
 
 interface CenteredMessageProps {
-  message: ReactElement<any, any> | string
+  message: ReactElement | string
 }
 
 /**
