@@ -35,10 +35,10 @@ def empty_account(account_trash_id: int, force: bool = False):
     )
     user = account_trash.user
     if not success:
-        logging.warning(f'User {user.username} deletion is already in progress')
+        logging.warning(f'User `{user.username}` deletion is already in progress')
     else:
         logging.info(
-            f'User {user.username} (#{user.pk}) has been successfully deleted!'
+            f'User `{user.username}` has been successfully deleted!'
         )
 
 
