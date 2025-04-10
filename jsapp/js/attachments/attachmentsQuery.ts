@@ -52,8 +52,7 @@ function removeBulkAttachments(assetUid: string, submissionIds: number[]) {
   })
 
   // return fetchDelete(
-  //   endpoints.ATTACHMENT_DETAIL.replace(':asset_uid', assetUid)
-  //     .replace(':submission_id', submissionId),
+  //   endpoints.ATTACHMENT_DETAIL_BULK_URL.replace(':asset_uid', assetUid), {submissionIds: submissionIds},
   // )
 }
 

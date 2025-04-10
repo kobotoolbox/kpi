@@ -268,7 +268,6 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
           this.getSelectedSubmissionsWithAttachments().length > 0 && (
             <BulkDeleteMediaFiles
               selectedSubmissions={this.selectedSubmissionsWithAttachments}
-              selectedRowIds={Object.keys(this.props.selectedRows)}
               assetUid={this.props.asset.uid}
             />
           )}

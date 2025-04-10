@@ -9,8 +9,8 @@ import { useRemoveBulkAttachments } from './attachmentsQuery'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
 
 interface BulkDeleteMediaFilesProps {
+  // An array of all selected submissions with a valid set of attachments to be deleted
   selectedSubmissions: SubmissionResponse[]
-  selectedRowIds: string[] // an array of the selected submission UIDs
   assetUid: string
 }
 
@@ -49,7 +49,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   return (
     <Box>
-      <Anchor onClick={open} underline='always' fw={'bold'} c={'dark-blue'}>
+      <Anchor onClick={open} underline='always' fw={'bold'} c={'blue.4'}>
         {t('Delete media files only')}
       </Anchor>
 
