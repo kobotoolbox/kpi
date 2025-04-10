@@ -1,6 +1,7 @@
+import { forwardRef } from 'react'
+
 import { Button as ButtonMantine, Tooltip, createPolymorphicComponent } from '@mantine/core'
 import type { ButtonProps as ButtonPropsMantine, TooltipProps } from '@mantine/core/lib/components'
-import { forwardRef } from 'react'
 import type { IconName } from '#/k-icons'
 import Icon, { type IconSize } from './icon'
 

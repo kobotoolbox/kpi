@@ -1,8 +1,25 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
+import React from 'react'
 import { IconNames } from '#/k-icons'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
+
+/**
+ * Storybook:
+ * - design system (for Mantine wrappers)
+ * - design system old (for inhouse components)
+ * - components (re-used sub-features)
+ * - feature/container
+ *   - sub-feature/container
+ *     - ...
+ *
+ * Story:
+ * - "Docs" (custom args)
+ * - "Preview" (big table of most used args at a glance, similar to Figma's big table)
+ * - Test: Asdf
+ * - Test: Foo
+ * - ...
+ */
 
 const actionIconVariants: Array<ActionIconProps['variant']> = [
   'filled',
@@ -47,6 +64,13 @@ export const Filled: Story = {
     variant: 'filled',
     size: 'md',
     iconName: 'edit',
+    onClick: fn(),
+    ...({ 'data-testid': 'testId' } as any),
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId('testId'))
+    await expect((args as any).onClick).toHaveBeenCalled()
   },
 }
 
