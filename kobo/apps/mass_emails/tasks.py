@@ -99,7 +99,7 @@ class MassEmailSender:
                 'jobs__records',
                 filter=Q(jobs__records__status=EmailStatus.ENQUEUED),
             )
-        )
+        ).filter(enqueued_records_count__gt=0)
         logging.info(f'Found {self.total_records} enqueued records')
         self.get_day_limits()
 
