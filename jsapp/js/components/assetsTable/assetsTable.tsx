@@ -1,6 +1,6 @@
 import './assetsTable.scss'
 
-import React from 'react'
+import React, { type Component } from 'react'
 
 import ReactDOM from 'react-dom'
 import bem, { makeBem } from '#/bem'
@@ -99,7 +99,7 @@ export default class AssetsTable extends React.Component<AssetsTableProps, Asset
 
   private updateScrollbarWidthBound = this.updateScrollbarWidth.bind(this)
 
-  bodyRef: React.RefObject<any>
+  bodyRef: React.RefObject<Component>
 
   componentDidMount() {
     this.updateScrollbarWidth()
