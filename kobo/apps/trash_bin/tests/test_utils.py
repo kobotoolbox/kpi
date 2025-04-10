@@ -56,11 +56,7 @@ class AccountTrashTestCase(TestCase):
             retain_placeholder=False,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        with patch(
-            'kobo.apps.trash_bin.tasks.account.delete_kc_user'
-        ) as mock_delete_kc_user:
-            mock_delete_kc_user.return_value = True
-            empty_account.apply([account_trash.pk])
+        empty_account.apply([account_trash.pk])
 
         assert not get_user_model().objects.filter(pk=someuser_id).exists()
         assert not Asset.objects.filter(owner_id=someuser_id).exists()
@@ -182,11 +178,7 @@ class AccountTrashTestCase(TestCase):
             retain_placeholder=True,
         )
         account_trash = AccountTrash.objects.get(user=someuser)
-        with patch(
-            'kobo.apps.trash_bin.tasks.account.delete_kc_user'
-        ) as mock_delete_kc_user:
-            mock_delete_kc_user.return_value = True
-            empty_account.apply([account_trash.pk])
+        empty_account.apply([account_trash.pk])
         after = now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()

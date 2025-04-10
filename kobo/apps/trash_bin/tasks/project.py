@@ -31,12 +31,12 @@ def empty_project(project_trash_id: int, force: bool = False):
         deletion_callback=_deletion_callback,
         force=force,
     )
-    asset = project_trash.asset.name
+    asset = project_trash.asset
     if not success:
-        logging.warning(f'Project {asset.name} deletion is already ' f'in progress')
+        logging.warning(f'Project {asset.name} deletion is already in progress')
     else:
         logging.info(
-            f'Project {asset.name} (#{asset.uid}) has ' f'been successfully deleted!'
+            f'Project {asset.name} (#{asset.uid}) has been successfully deleted!'
         )
 
 
