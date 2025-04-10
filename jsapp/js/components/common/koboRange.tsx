@@ -62,9 +62,9 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
     return minutes + ':' + finalSeconds
   }
 
-  onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  onChange(event: React.ChangeEvent<HTMLInputElement>) {
     if (this.props.onChange) {
-      const currentValue = evt.currentTarget.value
+      const currentValue = event.currentTarget.value
       this.props.onChange(currentValue)
     }
   }
