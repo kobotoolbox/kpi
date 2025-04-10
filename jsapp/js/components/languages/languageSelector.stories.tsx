@@ -3,7 +3,7 @@ import LanguageSelector from './languageSelector'
 
 // TODO: somehow mock the `languagesStore` here, so that there are means to play with this properly :)
 const meta: Meta<typeof LanguageSelector> = {
-  title: 'common/LanguageSelector',
+  title: 'Components/LanguageSelector',
   component: LanguageSelector,
   argTypes: {},
 }

@@ -3,7 +3,7 @@ import React from 'react'
 import { Menu } from '@mantine/core'
 import Button from './ButtonNew'
 
-export default { title: 'common/Dropdown Menu' }
+export default { title: 'Design system/DropdownMenu' }
 
 export function dropdownMenu() {
   return (

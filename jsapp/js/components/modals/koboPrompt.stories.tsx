@@ -3,7 +3,7 @@ import { IconNames } from '#/k-icons'
 import KoboPrompt from './koboPrompt'
 
 const meta: Meta<typeof KoboPrompt> = {
-  title: 'common/KoboPrompt',
+  title: 'Design system old/KoboPrompt',
   component: KoboPrompt,
   argTypes: {
     titleIcon: {
