@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
+import pytest
 import pytz
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
 from django.db import IntegrityError
@@ -167,7 +169,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert sum([0 if lim is None else lim for lim in sender.limits.values()]) == 0
         assert sender.total_limit == 0
 
-    @override_settings(STRIPE_ENABLED=False)
+    @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
         org_user = self.user1.organization.organization_users.get(user=self.user1)
         sender = MassEmailSender()

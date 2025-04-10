@@ -334,3 +334,14 @@ class PermissionAssignmentTestCaseMixin:
             )
             for uid in perm_assignments.values_list('uid', flat=True)
         ]
+
+
+class RequiresStripeAPIKeyMixin:
+    @staticmethod
+    def create_stripe_api_key():
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            APIKey.objects.create(
+                type='publishable', livemode=False, secret='fake_public_key'
+            )

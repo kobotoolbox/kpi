@@ -33,10 +33,23 @@ def requires_stripe(func):
                 f'Cannot call {func.__name__} with stripe disabled'
             )
         else:
-            from djstripe.models import Product, Subscription
+            from djstripe.models import (
+                Charge,
+                PaymentIntent,
+                Price,
+                Product,
+                Subscription,
+            )
+
+            PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
 
             kwargs['product_model'] = Product
             kwargs['subscription_model'] = Subscription
+            kwargs['price_model'] = Price
+            kwargs['charge_model'] = Charge
+            kwargs['payment_intent_model'] = PaymentIntent
+            kwargs['plan_add_on_model'] = PlanAddOn
+
             return func(*args, **kwargs)
 
     return wrapper
@@ -60,8 +73,9 @@ def _get_subscription_metadata_fields_for_usage_type(usage_type: UsageType):
 
 @requires_stripe
 def get_default_plan_name(**kwargs) -> Optional[str]:
+    Product = kwargs['product_model']
     default_plan = (
-        kwargs['product_model']
+        Product
         .objects.filter(metadata__default_free_plan='true')
         .values('name')
         .first()
@@ -350,6 +364,7 @@ def get_organizations_subscription_limits(
     :param organizations: List of organizations to use. Gets all orgs if not provided.
     :param include_storage_addons: bool. Include storage addons in the calculation
     """
+    Product = kwargs['product_model']
 
     # determine which orgs we care about and get their ids
     if organizations is not None:
@@ -378,7 +393,7 @@ def get_organizations_subscription_limits(
     seconds_limit = _get_limit_key('seconds')
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
-        kwargs['product_model']
+        Product
         .objects.filter(metadata__default_free_plan='true')
         .values(
             storage_limit=F(f'metadata__{storage_limit}'),
@@ -474,6 +489,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
 
     Only works when Stripe is enabled.
     """
+    Subscription = kwargs['subscription_model']
 
     price_storage_key, product_storage_key = (
         _get_subscription_metadata_fields_for_usage_type('storage')
@@ -491,7 +507,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     # Get organizations we care about (either those in the 'organizations' param or all)
     org_filter = Q(customer__subscriber_id__in=[org_id for org_id in organization_ids])
 
-    active_subscriptions = kwargs['subscription_model'].objects.filter(
+    active_subscriptions = Subscription.objects.filter(
         org_filter
         & Q(status__in=ACTIVE_STRIPE_STATUSES)
         & Q(items__price__product__metadata__product_type__in=['plan', 'addon'])
@@ -593,7 +609,8 @@ def get_total_price_for_quantity(
 
 @requires_stripe
 def get_plan_name(org_user: OrganizationUser, **kwargs) -> str | None:
-    subscriptions = kwargs['subscription_model'].objects.filter(
+    Subscription = kwargs['subscription_model']
+    subscriptions = Subscription.objects.filter(
         customer__subscriber_id=org_user.organization.id,
         status__in=ACTIVE_STRIPE_STATUSES,
     )
