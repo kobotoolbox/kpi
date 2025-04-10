@@ -38,8 +38,6 @@ interface TableBulkOptionsProps {
 
 class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
   currentDialog: AlertifyDialogInstance | null = null
-  /** Array of submission data for only the selected submissions */
-  selectedSubmissionsWithAttachments: SubmissionResponse[] = []
 
   componentDidMount() {
     actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog.bind(this))
@@ -181,8 +179,9 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     })
   }
 
+  /** Returns an array of SubmissionResponse's which delete-able attachments. */
   getSelectedSubmissionsWithAttachments() {
-    return (this.selectedSubmissionsWithAttachments = this.props.data.filter(
+    return (this.props.data.filter(
       (submission) =>
         Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
         submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
@@ -267,7 +266,7 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
             userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           this.getSelectedSubmissionsWithAttachments().length > 0 && (
             <BulkDeleteMediaFiles
-              selectedSubmissions={this.selectedSubmissionsWithAttachments}
+              selectedSubmissions={this.getSelectedSubmissionsWithAttachments()}
               assetUid={this.props.asset.uid}
             />
           )}
