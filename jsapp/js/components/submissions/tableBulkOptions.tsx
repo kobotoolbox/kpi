@@ -181,16 +181,16 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
 
   /** Returns an array of SubmissionResponse's which delete-able attachments. */
   getSelectedSubmissionsWithAttachments() {
-    return (this.props.data.filter(
+    return this.props.data.filter(
       (submission) =>
         Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
         submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
-    ))
+    )
   }
 
   handleDeletedAttachment() {
-          // Prompt table to refresh submission list
-      actions.resources.refreshTableSubmissions()
+    // Prompt table to refresh submission list
+    actions.resources.refreshTableSubmissions()
   }
 
   render() {

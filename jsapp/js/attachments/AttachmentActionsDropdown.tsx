@@ -7,7 +7,7 @@ import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { downloadUrl, notify } from '#/utils'
+import { notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 import { useRemoveAttachment } from './attachmentsQuery'
 

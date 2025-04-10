@@ -1,12 +1,12 @@
-import { Box, Button, Checkbox, FocusTrap, Group, Stack, Text, Modal, Anchor } from '@mantine/core'
-import Alert from '#/components/common/alert'
+import { Anchor, Box, Button, Checkbox, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
+import Alert from '#/components/common/alert'
+import { getMediaCount } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
-import { getMediaCount } from '#/components/submissions/submissionUtils'
 
 interface BulkDeleteMediaFilesProps {
   // An array of all selected submissions with a valid set of attachments to be deleted
