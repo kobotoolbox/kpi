@@ -397,11 +397,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self,
         submission_id_or_uuid: Union[int, str],
         user: settings.AUTH_USER_MODEL,
-        attachment_id: Optional[int] = None,
+        att_identifier: Optional[Union[str, int]] = None,
         xpath: Optional[str] = None,
     ) -> Attachment:
         """
-        Return an object which can be retrieved by its primary key or by XPath.
+        Return an object which can be retrieved by its primary key, uid, or by XPath.
         An exception is raised when the submission or the attachment is not found.
         """
         submission_id = None
@@ -461,9 +461,15 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'media_file_basename': attachment_filename,
             }
         else:
-            filters = {
-                'pk': attachment_id,
-            }
+            filters = {}
+            try:
+                filters = {'pk': int(att_identifier)}
+            except ValueError:
+                if att_identifier.startswith('att'):
+                    filters = {'uid': att_identifier}
+
+            if not filters:
+                raise AttachmentNotFoundException
 
         filters['instance__id'] = submission_id
         # Ensure the attachment actually belongs to this project!
