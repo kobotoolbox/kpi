@@ -4,7 +4,7 @@
  */
 
 interface GenericDefinition extends Function {
-  (a?: any, b?: any, c?: any, d?: any): void
+  (a?: unknown, b?: unknown, c?: unknown, d?: unknown): void
   started: GenericCallbackDefinition
   completed: GenericCallbackDefinition
   failed: GenericFailedDefinition
@@ -17,8 +17,8 @@ interface GenericFailedDefinition extends Function {
 }
 
 interface GenericCallbackDefinition extends Function {
-  (response: any): void
-  listen: (callback: (response: any) => void) => Function
+  (response: unknown): void
+  listen: (callback: (response: PaginatedResponse<ExportDataResponse>) => void) => Function
 }
 
 interface GetSubmissionDefinition extends Function {
@@ -79,7 +79,7 @@ interface DeleteAssetCompletedDefinition extends Function {
 }
 
 interface UpdateAssetDefinition extends Function {
-  (uid: string, values: any, params?: any): void
+  (uid: string, values: unknown, params?: unknown): void
   completed: UpdateAssetCompletedDefinition
   failed: GenericFailedDefinition
 }
@@ -120,18 +120,18 @@ interface TableUpdateSettingsDefinition extends Function {
 
 interface UpdateSubmissionValidationStatusDefinition extends Function {
   (assetUid: string, submissionUid: string, data: { 'validation_status.uid': ValidationStatus }): void
-  completed: AnySubmissionValidationStatusCompletedDefinition
+  completed: unknownSubmissionValidationStatusCompletedDefinition
   failed: GenericFailedDefinition
 }
 
-interface AnySubmissionValidationStatusCompletedDefinition extends Function {
+interface unknownSubmissionValidationStatusCompletedDefinition extends Function {
   (result: ValidationStatusResponse, sid: string): void
   listen: (callback: (result: ValidationStatusResponse, sid: string) => void) => Function
 }
 
 interface RemoveSubmissionValidationStatusDefinition extends Function {
   (assetUid: string, submissionUid: string): void
-  completed: AnySubmissionValidationStatusCompletedDefinition
+  completed: unknownSubmissionValidationStatusCompletedDefinition
   failed: GenericFailedDefinition
 }
 
@@ -328,6 +328,7 @@ export namespace actions {
     setMessageAcknowledged: GenericDefinition
     setMessageReadTime: GenericDefinition
   }
+  // biome-ignore lint/suspicious/noExplicitAny: Reflux has missing types.
   const library: any
   const submissions: {
     getSubmission: GetSubmissionDefinition
