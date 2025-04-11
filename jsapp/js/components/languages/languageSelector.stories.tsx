@@ -43,16 +43,18 @@ function sleep(ms: number) {
 
 export const TestSearchSwedish: Story = {
   play: async ({ canvasElement }) => {
-    // TODO: wait for languagesStore to be ready?
+    // Wait for languages list to be ready
     await sleep(2000)
 
+    // Type "swed" to find "Swedish" language
     const canvas = within(canvasElement)
     const input = await canvas.findByRole('textbox')
     await userEvent.type(input, 'swed')
 
-    // TODO: wait for langaugesStore to get response from API
+    // Wait for search response to be ready
     await sleep(2000)
 
+    // Verify that the "Swedish" language is present in the list
     const element = await canvas.findByText(/^Swedish/)
     await expect(element).toBeInTheDocument()
   },
