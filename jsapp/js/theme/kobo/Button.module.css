@@ -19,6 +19,7 @@
       color: var(--button-color);
       background: var(--button-bg);
       opacity: 0.5;
+      border: none;
   }
 }
 

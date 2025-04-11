@@ -1,6 +1,10 @@
 export const endpoints = {
   /** Note: currently this endpoint only handles DELETE */
+  ATTACHMENT_BULK_URL: '/api/v2/asset/:asset_uid/attachments/bulk',
+  /** Note: currently this endpoint only handles DELETE */
   ATTACHMENT_DETAIL_URL: '/api/v2/asset/:asset_uid/data/:submission_id/attachments/:attachment_uid/',
+  /** Note: currently this endpoint only handles DELETE */
+  ATTACHMENT_DETAIL_BULK_URL: '/api/v2/asset/:asset_uid/data/:submission_id/attachments/:attachment_uid/bulk',
   /** Note: currently this endpoint only handles DELETE */
   ATTACHMENTS_URL: '/api/v2/asset/:asset_uid/data/:submission_id/attachments/',
   ASSET_HISTORY: '/api/v2/assets/:asset_uid/history/',

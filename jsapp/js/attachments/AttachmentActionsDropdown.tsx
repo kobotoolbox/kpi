@@ -7,7 +7,7 @@ import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { downloadUrl, notify } from '#/utils'
+import { notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 import { useRemoveAttachment } from './attachmentsQuery'
 
@@ -56,10 +56,6 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     } finally {
       setIsDeletePending(false)
     }
-  }
-
-  const requestDownloadFile = () => {
-    downloadUrl(attachment.download_url)
   }
 
   // We find the question that the attachment belongs to, to determine the text to display in the modal.
