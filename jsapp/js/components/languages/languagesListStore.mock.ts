@@ -1,6 +1,33 @@
 import type { PaginatedResponse } from '#/dataInterface'
 import type { ListLanguage } from './languagesStore'
 
+/** This is being returned for `q=swed` */
+export const languagesResponseQuerySwed: PaginatedResponse<ListLanguage> = {
+  count: 1,
+  next: null,
+  previous: null,
+  results: [
+    {
+      name: 'Swedish',
+      code: 'sv',
+      featured: false,
+      transcription_services: [
+        {
+          name: 'Goog',
+          code: 'goog',
+        },
+      ],
+      translation_services: [
+        {
+          name: 'Goog',
+          code: 'goog',
+        },
+      ],
+      url: '/api/v2/languages/sv/',
+    },
+  ],
+}
+
 // Note: We are only supporting 2 pages of results with this mock data. The first page is 100 languages, and the second
 // page is 50 items.
 
