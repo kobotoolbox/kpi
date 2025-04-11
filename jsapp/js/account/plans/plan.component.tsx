@@ -12,7 +12,6 @@ import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
 import { getSubscriptionsForProductId, isDowngrade, processCheckoutResponse } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
-import Icon from '#/components/common/icon'
 import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
@@ -385,10 +384,11 @@ export default function Plan(props: PlanProps) {
         <Button
           size='md'
           variant='transparent'
-          children={expandComparison ? t('Collapse full comparison') : t('Display full comparison')}
           onClick={() => setExpandComparison(!expandComparison)}
-          rightSection={<Icon name={expandComparison ? 'angle-up' : 'angle-down'} size={'s'} />}
-        />
+          rightIcon={expandComparison ? 'angle-up' : 'angle-down'}
+        >
+          {expandComparison ? t('Collapse full comparison') : t('Display full comparison')}
+        </Button>
       </div>
     )
 
@@ -471,13 +471,9 @@ export default function Plan(props: PlanProps) {
                     </p>
                   </div>
                   <div className={styles.enterpriseBannerButtonContainer}>
-                    <Button
-                      size='lg'
-                      component='a'
-                      href='https://www.kobotoolbox.org/contact/'
-                      target='_blank'
-                      children={t('Contact us')}
-                    />
+                    <Button size='lg' component='a' href='https://www.kobotoolbox.org/contact/' target='_blank'>
+                      {t('Contact us')}
+                    </Button>
                   </div>
                 </div>
               )}
