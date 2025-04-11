@@ -159,7 +159,7 @@ export const PlanContainer = ({
       label: string
     }> = []
     getListItem(type, name).map((listItem) => {
-      if (listItem.icon && name === 'Professional') {
+      if (listItem.icon && (name === 'Professional' || name === 'Teams')) {
         items.push({ icon: 'positive_pro', label: listItem.item })
       } else if (!listItem.icon) {
         items.push({ icon: 'negative', label: listItem.item })
@@ -224,68 +224,70 @@ export const PlanContainer = ({
           [styles.planContainer]: true,
         })}
       >
-        <h1 className={styles.priceName}>
-          {product.price?.unit_amount ? product.name : freeTierOverride?.name || product.name}
-        </h1>
-        <div className={styles.priceTitle}>{displayPrice}</div>
-        <ul className={styles.featureContainer}>
-          {product.price.transform_quantity && (
-            <>
-              <li className={styles.selectableFeature}>
-                <Icon name='check' size='m' color='teal' />
-                <KoboSelect
-                  name={t('Total Submissions per Month')}
-                  options={submissionOptions}
-                  size={'s'}
-                  type={'outline'}
-                  onChange={onSubmissionsChange}
-                  selectedOption={submissionQuantity.toString()}
-                />
-              </li>
-              <li>
-                <div className={styles.iconContainer}>
-                  <Icon name='check' size='m' color={product.price.unit_amount ? 'teal' : 'storm'} />
-                </div>
-                {t('##asr_minutes## minutes of automated transcription /##plan_interval##')
-                  .replace('##asr_minutes##', asrMinutes.toLocaleString())
-                  .replace('##plan_interval##', product.price.recurring!.interval)}
-              </li>
-              <li>
-                <div className={styles.iconContainer}>
-                  <Icon name='check' size='m' color={product.price.unit_amount ? 'teal' : 'storm'} />
-                </div>
-                {t('##mt_characters## characters of machine translation /##plan_interval##')
-                  .replace('##mt_characters##', mtCharacters.toLocaleString())
-                  .replace('##plan_interval##', product.price.recurring!.interval)}
-              </li>
-            </>
-          )}
-          {Object.keys(product.metadata).map(
-            (featureItem: string) =>
-              featureItem.includes('feature_list_') && (
-                <li key={featureItem + product.id}>
+        <div className={styles.planDetailsContainer}>
+          <h1 className={styles.priceName}>
+            {product.price?.unit_amount ? product.name : freeTierOverride?.name || product.name}
+          </h1>
+          <div className={styles.priceTitle}>{displayPrice}</div>
+          <ul className={styles.featureContainer}>
+            {product.price.transform_quantity && (
+              <>
+                <li className={styles.selectableFeature}>
+                  <Icon name='check' size='m' color='teal' />
+                  <KoboSelect
+                    name={t('Total Submissions per Month')}
+                    options={submissionOptions}
+                    size={'s'}
+                    type={'outline'}
+                    onChange={onSubmissionsChange}
+                    selectedOption={submissionQuantity.toString()}
+                  />
+                </li>
+                <li>
                   <div className={styles.iconContainer}>
                     <Icon name='check' size='m' color={product.price.unit_amount ? 'teal' : 'storm'} />
                   </div>
-                  {getFeatureMetadata(product, featureItem)}
+                  {t('##asr_minutes## minutes of automated transcription /##plan_interval##')
+                    .replace('##asr_minutes##', asrMinutes.toLocaleString())
+                    .replace('##plan_interval##', product.price.recurring!.interval)}
                 </li>
-              ),
+                <li>
+                  <div className={styles.iconContainer}>
+                    <Icon name='check' size='m' color={product.price.unit_amount ? 'teal' : 'storm'} />
+                  </div>
+                  {t('##mt_characters## characters of machine translation /##plan_interval##')
+                    .replace('##mt_characters##', mtCharacters.toLocaleString())
+                    .replace('##plan_interval##', product.price.recurring!.interval)}
+                </li>
+              </>
+            )}
+            {Object.keys(product.metadata).map(
+              (featureItem: string) =>
+                featureItem.includes('feature_list_') && (
+                  <li key={featureItem + product.id}>
+                    <div className={styles.iconContainer}>
+                      <Icon name='check' size='m' color={product.price.unit_amount ? 'teal' : 'storm'} />
+                    </div>
+                    {getFeatureMetadata(product, featureItem)}
+                  </li>
+                ),
+            )}
+          </ul>
+          {expandComparison && (
+            <div className={styles.expandedContainer}>
+              <hr />
+              {state.featureTypes.map((type, index, array) => {
+                const featureItem = getListItem(type, product.name)
+                return (
+                  featureItem.length > 0 && [
+                    returnListItem(type, product.name, product.metadata[`feature_${type}_title`]),
+                    index !== array.length - 1 && <hr key={`hr-${type}`} />,
+                  ]
+                )
+              })}
+            </div>
           )}
-        </ul>
-        {expandComparison && (
-          <div className={styles.expandedContainer}>
-            <hr />
-            {state.featureTypes.map((type, index, array) => {
-              const featureItem = getListItem(type, product.name)
-              return (
-                featureItem.length > 0 && [
-                  returnListItem(type, product.name, product.metadata[`feature_${type}_title`]),
-                  index !== array.length - 1 && <hr key={`hr-${type}`} />,
-                ]
-              )
-            })}
-          </div>
-        )}
+        </div>
         <div className={styles.planButton}>
           <PlanButton
             product={product}
