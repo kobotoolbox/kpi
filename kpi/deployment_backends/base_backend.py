@@ -814,8 +814,12 @@ class BaseDeploymentBackend(abc.ABC):
             submission, attachment_xpaths
         )
 
-        if is_uid_missing := any(['uid'] not in att for att in submission['_attachments']):
-            attachment_ids = [attachment['id'] for attachment in submission['_attachments']]
+        if is_uid_missing := any(
+            ['uid'] not in att for att in submission['_attachments']
+        ):
+            attachment_ids = [
+                attachment['id'] for attachment in submission['_attachments']
+            ]
             attachments = Attachment.objects.filter(pk__in=attachment_ids).values(
                 'pk', 'uid'
             )
