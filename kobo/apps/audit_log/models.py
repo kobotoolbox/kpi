@@ -77,7 +77,7 @@ class AuditLog(models.Model):
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
-        max_length=30,
+        max_length=60,
         choices=AuditAction.choices,
         default=AuditAction.DELETE,
         db_index=True,
@@ -627,6 +627,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': request.asset.owner.username,
                 'submission': {
                     'submitted_by': instance.username,
                     'root_uuid': instance.root_uuid,
@@ -665,6 +666,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': request.asset.owner.username,
                 'submission': {
                     'submitted_by': username,
                     'root_uuid': instance.root_uuid,

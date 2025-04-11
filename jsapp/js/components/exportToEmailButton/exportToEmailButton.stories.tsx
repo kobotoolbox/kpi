@@ -2,7 +2,7 @@ import type { Meta, StoryFn } from '@storybook/react'
 import ExportToEmailButton from './exportToEmailButton.component'
 
 export default {
-  title: 'misc/ExportToEmailButton',
+  title: 'Components/ExportToEmailButton',
   component: ExportToEmailButton,
   argTypes: {
     label: {

@@ -20,7 +20,11 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type { AnalysisQuestionSchema, SubmissionAnalysisResponse } from './components/processing/analysis/constants'
+import type {
+  AnalysisQuestionSchema,
+  AnalysisQuestionType,
+  SubmissionAnalysisResponse,
+} from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
@@ -84,6 +88,29 @@ interface AssetFileRequest {
   base64Encoded: ArrayBuffer | string | null
 }
 
+export interface AssetFileResponse {
+  uid: string
+  url: string
+  /** Asset URL */
+  asset: string
+  /** User URL */
+  user: string
+  user__username: string
+  file_type: AssetFileType
+  /** This used to be `name`, but we've changed it */
+  description: string
+  date_created: string
+  /** URL to file content */
+  content: string
+  metadata: {
+    /** MD5 hash */
+    hash: string
+    size: number
+    type: string
+    filename: string
+    mimetype: string
+  }
+}
 export interface CreateImportRequest {
   base64Encoded?: string | ArrayBuffer | null
   name?: string
@@ -163,7 +190,7 @@ export interface SubmissionAttachment {
   is_deleted?: boolean
 }
 
-interface SubmissionSupplementalDetails {
+export interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: TransxObject
     translation?: {
@@ -172,6 +199,13 @@ interface SubmissionSupplementalDetails {
     qual?: SubmissionAnalysisResponse[]
   }
 }
+
+/**
+ * This is a completely empty object.
+ *
+ * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
+ */
+export type SubmissionSupplementalDetailsEmpty = Record<string, never>
 
 /**
  * Value of a property found in `SubmissionResponse`, it can be either a built
@@ -208,6 +242,7 @@ export interface SubmissionResponseValueObject {
 export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
   _attachments: SubmissionAttachment[]
+  // TODO: when does this happen to be array of nulls?
   _geolocation: number[] | null[]
   _notes: string[]
   _status: string
@@ -231,8 +266,13 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   start?: string
   today?: string
   username?: string
-  // Is an empty object if form has no advanced features enabled
-  _supplementalDetails: SubmissionSupplementalDetails | {}
+  /**
+   * For form with no advanced features enabled (i.e. NLP screen not visited)
+   * it will be `undefined`. For forms with advanced features enabled, it will
+   * be either empty object (i.e. given submission doesn't have any NLP features
+   * applied to it) or a proper `SubmissionSupplementalDetails` object.
+   */
+  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
 }
 
 interface AssignablePermissionRegular {
@@ -381,7 +421,10 @@ export interface SurveyRow {
   hint?: string[]
   name?: string
   required?: boolean
-  _isRepeat?: boolean
+  // It's here because when form has `kobomatrix` row, Form Builder's "Save" button is sending a request that contains
+  // it, and BE doesn't remove it. It's really a result of a bug in the code. It shouldn't be used and shouldn't be part
+  // of this interface. But rather than removing it, I want to leave a trace, so that noone will add it again in future.
+  // _isRepeat?: 'false'
   appearance?: string
   parameters?: string
   'kobo--matrix_list'?: string
@@ -392,6 +435,8 @@ export interface SurveyRow {
   /** HXL tags. */
   tags?: string[]
   select_from_list_name?: string
+  /** Used by `file` type to list accepted extensions */
+  'body::accept'?: string
 }
 
 export interface SurveyChoice {
@@ -554,7 +599,7 @@ interface AssetRequestObject {
   asset_type: AssetTypeName
   report_styles: AssetResponseReportStyles
   report_custom: AssetResponseReportCustom
-  map_styles: {}
+  map_styles: AssetMapStyles
   map_custom: {}
   content?: AssetContent
   tag_string: string
@@ -576,8 +621,9 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: string
-  language: string
+  type: AnalysisQuestionType | 'transcript' | 'translation'
+  /** Two letter language code or ?? for qualitative analysis questions */
+  language: string | '??'
   source: string
   xpath: string
   settings:
@@ -1033,6 +1079,14 @@ export interface ExportDataResponse {
     fields_from_all_versions: boolean
     flatten?: boolean
   }
+}
+
+export type ColorSetName = 'a' | 'b' | 'c' | 'd' | 'e'
+
+export interface AssetMapStyles {
+  colorSet?: ColorSetName
+  querylimit?: string
+  selectedQuestion?: string
 }
 
 const $ajax = (o: {}) => $.ajax(Object.assign({}, { dataType: 'json', method: 'GET' }, o))
@@ -1889,7 +1943,7 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<any> {
+  getAssetFiles(uid: string, fileType: AssetFileType): JQuery.jqXHR<PaginatedResponse<AssetFileResponse>> {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
       method: 'GET',

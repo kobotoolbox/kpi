@@ -105,6 +105,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     ):
         self.assertEqual(metadata['submission']['submitted_by'], expected_username)
         self.assertEqual(metadata['submission']['root_uuid'], expected_root_uuid)
+        self.assertEqual(metadata['project_owner'], self.asset.owner.username)
 
     def _base_asset_detail_endpoint_test(
         self, patch, url_name, request_data, expected_action, use_v2=True

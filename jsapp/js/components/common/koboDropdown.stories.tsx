@@ -1,10 +1,8 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import KoboDropdown from '#/components/common/koboDropdown'
 
-export default {
-  title: 'common/KoboDropdown',
+const meta: Meta<typeof KoboDropdown> = {
+  title: 'Design system old/KoboDropdown',
   component: KoboDropdown,
   argTypes: {
     placement: {
@@ -15,21 +13,24 @@ export default {
       control: 'boolean',
     },
   },
-} as ComponentMeta<typeof KoboDropdown>
+}
 
-const Template: ComponentStory<typeof KoboDropdown> = (args) => <KoboDropdown {...args} />
+export default meta
 
-export const Primary = Template.bind({})
-Primary.args = {
-  name: 'kobo-dropdown-demo',
-  placement: 'down-center',
-  triggerContent: 'click me',
-  menuContent: (
-    <ol>
-      <li>Some menu</li>
-      <li>Content is</li>
-      <li>Here, and</li>
-      <li>Says "hi"</li>
-    </ol>
-  ),
+type Story = StoryObj<typeof KoboDropdown>
+
+export const Default: Story = {
+  args: {
+    name: 'kobo-dropdown-demo',
+    placement: 'down-center',
+    triggerContent: 'click me',
+    menuContent: (
+      <ol>
+        <li>Some menu</li>
+        <li>Content is</li>
+        <li>Here, and</li>
+        <li>Says: hi</li>
+      </ol>
+    ),
+  },
 }

@@ -1,15 +1,19 @@
 # coding: utf-8
 import constance
 from constance.test import override_config
-from django.urls import reverse
 from django.test import TestCase
-from django.test import override_settings
+from django.urls import reverse
+
+from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
 
 
-@override_settings(STRIPE_ENABLED=False)
-class GlobalSettingsTestCase(TestCase):
+class GlobalSettingsTestCase(TestCase, RequiresStripeAPIKeyMixin):
 
     fixtures = ['test_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.create_stripe_api_key()
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_enabled(self):

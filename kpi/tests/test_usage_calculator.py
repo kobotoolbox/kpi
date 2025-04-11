@@ -3,10 +3,10 @@ import os.path
 import uuid
 from unittest.mock import patch
 
+import pytest
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.cache import cache
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -14,13 +14,13 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.tests.utils import generate_mmo_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.usage_calculator import (
     ServiceUsageCalculator,
+    get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
     get_submissions_for_current_billing_period_by_user_id,
 )
@@ -83,38 +83,42 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         )
         self._deployment = self.asset.deployment
 
-    def add_nlp_trackers(self):
+    def add_nlp_tracker(self, asset, date, userid, seconds, characters):
+        counter = {
+            'google_asr_seconds': seconds,
+            'google_mt_characters': characters,
+        }
+        return NLPUsageCounter.objects.create(
+            user_id=userid,
+            asset=asset,
+            date=date,
+            counters=counter,
+            total_asr_seconds=seconds,
+            total_mt_characters=characters,
+        )
+
+    def add_standard_nlp_trackers(self):
         """
-        Add nlp data to an asset
+        Add nlp data common across several tests
         """
         # this month
         today = timezone.now().date()
-        counter_1 = {
-            'google_asr_seconds': 4586,
-            'google_mt_characters': 5473,
-        }
-        NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
+        self.add_nlp_tracker(
+            userid=self.anotheruser.id,
+            asset=self.asset,
             date=today,
-            counters=counter_1,
-            total_asr_seconds=counter_1['google_asr_seconds'],
-            total_mt_characters=counter_1['google_mt_characters'],
+            seconds=4586,
+            characters=5473,
         )
 
         # last month
         last_month = today - relativedelta(months=1)
-        counter_2 = {
-            'google_asr_seconds': 142,
-            'google_mt_characters': 1253,
-        }
-        NLPUsageCounter.objects.create(
-            user_id=self.anotheruser.id,
-            asset_id=self.asset.id,
+        self.add_nlp_tracker(
+            userid=self.anotheruser.id,
+            asset=self.asset,
             date=last_month,
-            counters=counter_2,
-            total_asr_seconds=counter_2['google_asr_seconds'],
-            total_mt_characters=counter_2['google_mt_characters'],
+            seconds=142,
+            characters=1253,
         )
 
     def add_submissions(
@@ -176,13 +180,13 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     def setUp(self):
         super().setUp()
         self._create_and_set_asset()
-        self.add_nlp_trackers()
         self.add_submissions(count=5)
 
     def test_disable_cache(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser, disable_cache=True)
         nlp_usage_A = calculator.get_nlp_usage_counters()
-        self.add_nlp_trackers()
+        self.add_standard_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
             2 * nlp_usage_A['asr_seconds_current_period']
@@ -194,6 +198,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         )
 
     def test_nlp_usage_counters(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser)
         nlp_usage = calculator.get_nlp_usage_counters()
         assert nlp_usage['asr_seconds_current_period'] == 4586
@@ -202,6 +207,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
     def test_no_data(self):
+        self.add_standard_nlp_trackers()
         calculator = ServiceUsageCalculator(self.someuser)
         nlp_usage = calculator.get_nlp_usage_counters()
         submission_counters = calculator.get_submission_counters()
@@ -214,8 +220,12 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submission_counters['current_period'] == 0
         assert submission_counters['all_time'] == 0
 
-    @override_settings(STRIPE_ENABLED=True)
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_organization_setup(self):
+        from kobo.apps.stripe.tests.utils import generate_mmo_subscription
+        self.add_standard_nlp_trackers()
         organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
@@ -275,6 +285,9 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_submission_counters_current_period_all_orgs(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)
@@ -315,3 +328,79 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             )
         assert submissions_by_user[self.someuser.id] == 1
         assert submissions_by_user[self.anotheruser.id] == 5
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_nlp_counters_current_period_all_orgs(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        five_days_ago = timezone.now() - relativedelta(days=5)
+        one_month_from_five_days_ago = five_days_ago + relativedelta(months=1)
+        yesterday = timezone.now() - relativedelta(days=1)
+        mock_billing_periods = {
+            # someuser is on a yearly cycle
+            self.someuser.organization.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            },
+            # anotheruser is on a monthly cycle
+            self.anotheruser.organization.id: {
+                'start': five_days_ago,
+                'end': one_month_from_five_days_ago,
+            },
+        }
+        asset_2 = self._create_asset(self.someuser)
+
+        # mock nlp data for someuser in range
+        three_months_ago = timezone.now() - relativedelta(months=3)
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=three_months_ago,
+            seconds=10,
+            characters=20,
+        )
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=yesterday,
+            seconds=10,
+            characters=20,
+        )
+
+        # mock nlp data for someuser from a year ago (out of range)
+        one_year_ago = timezone.now() - relativedelta(years=1)
+        self.add_nlp_tracker(
+            asset=asset_2,
+            userid=self.someuser.id,
+            date=one_year_ago,
+            seconds=10,
+            characters=20,
+        )
+
+        # mock nlp data for another user in range
+        self.add_nlp_tracker(
+            asset=self.asset,
+            userid=self.anotheruser.id,
+            date=yesterday,
+            seconds=10,
+            characters=20,
+        )
+        # mock nlp data for another user from 3 months ago (out of range)
+        self.add_nlp_tracker(
+            asset=self.asset,
+            userid=self.anotheruser.id,
+            date=three_months_ago,
+            seconds=10,
+            characters=20,
+        )
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            nlp_usage_by_user = get_nlp_usage_for_current_billing_period_by_user_id()
+        assert nlp_usage_by_user[self.someuser.id]['seconds'] == 20
+        assert nlp_usage_by_user[self.anotheruser.id]['seconds'] == 10
+        assert nlp_usage_by_user[self.someuser.id]['characters'] == 40
+        assert nlp_usage_by_user[self.anotheruser.id]['characters'] == 20

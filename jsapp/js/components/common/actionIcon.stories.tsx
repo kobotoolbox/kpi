@@ -17,7 +17,7 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
 
 export default {
-  title: 'common/Action Icon',
+  title: 'Design system/ActionIcon',
   component: ActionIcon,
   argTypes: {
     variant: {
