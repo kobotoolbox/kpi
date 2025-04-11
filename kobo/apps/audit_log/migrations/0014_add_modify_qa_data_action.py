@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('audit_log', '0015_add_submission_audit_actions'),
+        ('audit_log', '0013_add_new_choices_to_action'),
     ]
 
     operations = [
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                 ],
                 db_index=True,
                 default='delete',
-                max_length=30,
+                max_length=60,
             ),
         ),
     ]
