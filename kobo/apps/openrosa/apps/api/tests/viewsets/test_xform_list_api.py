@@ -8,14 +8,11 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
-    TestAbstractViewSet
+    TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS,
-    CAN_VIEW_XFORM
-)
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS, CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.organizations.models import Organization
 
@@ -30,11 +27,15 @@ class TestXFormListApiBase(TestAbstractViewSet):
         self.publish_xls_form()
 
     def _load_metadata(self, xform=None):
-        data_value = "screenshot.png"
+        data_value = 'screenshot.png'
         data_type = 'media'
         fixture_dir = os.path.join(
-            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
-            "transportation"
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
         )
         path = os.path.join(fixture_dir, data_value)
         xform = xform or self.xform
@@ -274,7 +275,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
             self.assertEqual(content.decode('utf-8'), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
@@ -403,7 +404,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
             self.assertEqual(content.decode('utf-8'), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
@@ -444,7 +445,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path) as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content.decode('utf-8')
             self.assertEqual(content, form_list_xml % data)
 
@@ -559,9 +560,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
     def test_retrieve_xform_media(self):
         self._load_metadata(self.xform)
-        self.view = XFormListApi.as_view({
-            "get": "media"
-        })
+        self.view = XFormListApi.as_view({'get': 'media'})
         request = self.factory.head('/')
         response = self.view(request, pk=self.xform.pk,
                              metadata=self.metadata.pk, format='png')
@@ -640,13 +639,9 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         expected_content = b'<?xml version="1.0" encoding="utf-8"?>\n<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'  # noqa
         self.assertEqual(content, expected_content)
         self.assertTrue(response.has_header('X-OpenRosa-Version'))
-        self.assertTrue(
-            response.has_header('X-OpenRosa-Accept-Content-Length')
-        )
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
         self.assertTrue(response.has_header('Date'))
-        self.assertEqual(
-            response['Content-Type'], 'text/xml; charset=utf-8'
-        )
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_get_xform_list_with_formid_parameter(self):
         """
@@ -671,7 +666,7 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
 
         with open(path) as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content.decode('utf-8')
             self.assertEqual(content, form_list_xml % data)
 
