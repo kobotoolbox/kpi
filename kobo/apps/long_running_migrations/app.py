@@ -39,8 +39,8 @@ def check_must_complete_long_running_migrations(app_configs, **kwargs):
                 'Please first downgrade to release 2.025.14, then run the missing '
                 'long-running migrations using `execute_long_running_migrations()` '
                 'in the shell.\n'
-                'Make sure the following long-running migration completes successfully:.\n'
-                f'{long_running_migrations_list}\n'
+                'Make sure the following long-running migration completes successfully:'
+                f'\n{long_running_migrations_list}\n'
                 'Note that this process may take some time to complete.'
             ),
             obj=None,
