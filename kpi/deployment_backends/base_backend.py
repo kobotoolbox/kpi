@@ -815,7 +815,7 @@ class BaseDeploymentBackend(abc.ABC):
         )
 
         if is_uid_missing := any(
-            ['uid'] not in att for att in submission['_attachments']
+            'uid' not in attachment for attachment in submission['_attachments']
         ):
             attachment_ids = [
                 attachment['id'] for attachment in submission['_attachments']
