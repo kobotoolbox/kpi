@@ -34,7 +34,7 @@ class AttachmentBulkDeleteViewSet(
         >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/\
         attachments/bulk/
         >
-        > **Payload to preform bulk actions on ALL attachments for a deployment**
+        > Payload to perform bulk actions
         >
         >       {
         >           "payload": {
