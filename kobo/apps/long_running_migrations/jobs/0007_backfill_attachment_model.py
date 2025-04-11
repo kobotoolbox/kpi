@@ -126,4 +126,5 @@ def update_mongo(attachment_ids_per_instance: dict):
                 )
             )
 
-    collection.bulk_write(updates)
+    if updates:
+        collection.bulk_write(updates)
