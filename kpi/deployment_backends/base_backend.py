@@ -36,6 +36,7 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -43,7 +44,7 @@ from kpi.utils.xml import (
     get_or_create_element,
     xml_tostring,
 )
-from kpi.utils.log import logging
+
 
 class BaseDeploymentBackend(abc.ABC):
     """
