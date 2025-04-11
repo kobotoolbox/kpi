@@ -43,7 +43,7 @@ from kpi.utils.xml import (
     get_or_create_element,
     xml_tostring,
 )
-
+from kpi.utils.log import logging
 
 class BaseDeploymentBackend(abc.ABC):
     """
@@ -813,25 +813,28 @@ class BaseDeploymentBackend(abc.ABC):
             submission, attachment_xpaths
         )
 
-        attachment_ids = [attachment['id'] for attachment in submission['_attachments']]
-        attachments = Attachment.objects.filter(pk__in=attachment_ids).values(
-            'pk', 'uid'
-        )
-        attachment_map = {a['pk']: a.get('uid', a['pk']) for a in attachments}
+        if is_uid_missing := any(['uid'] not in att for att in submission['_attachments']):
+            attachment_ids = [attachment['id'] for attachment in submission['_attachments']]
+            attachments = Attachment.objects.filter(pk__in=attachment_ids).values(
+                'pk', 'uid'
+            )
+            attachment_map = {a['pk']: a.get('uid', a['pk']) for a in attachments}
+            # log a warning to make it appear in logs & sentry to monitor purposes
+            logging.warning('Uids are missing for some attachments in the submission')
 
         for attachment in submission['_attachments']:
             # We should use 'attachment-list' with `?xpath=` but we do not
             # know what the XPath is here so we will use the uid to build the url.
-            attachment_uid = attachment_map.get(attachment['id'])
-            # # Add uid to attachment data
-            attachment['uid'] = attachment_uid
+            if is_uid_missing:
+                # Add uid to attachment data
+                attachment['uid'] = attachment_map.get(attachment['id'])
 
             kpi_url = reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
-                    attachment_uid,
+                    attachment['uid'],
                 ),
                 request=request,
             )
@@ -844,7 +847,7 @@ class BaseDeploymentBackend(abc.ABC):
                         args=(
                             self.asset.uid,
                             submission['_id'],
-                            attachment_uid,
+                            attachment['uid'],
                             suffix,
                         ),
                         request=request,
