@@ -28,6 +28,7 @@ class GuardianObjectPermissionsFilter(BaseFilterBackend):
             'manifest',
             'list',
             'retrieve',
+            'media',
         ]
     }
 
