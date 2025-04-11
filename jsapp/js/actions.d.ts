@@ -135,6 +135,26 @@ interface RemoveSubmissionValidationStatusDefinition extends Function {
   failed: GenericFailedDefinition
 }
 
+interface ResourcesGetAssetFilesDefinition extends Function {
+  (assetId: string, fileType: AssetFileType): void
+  completed: ResourcesGetAssetFilesCompletedDefinition
+  failed: GenericFailedDefinition
+}
+interface ResourcesGetAssetFilesCompletedDefinition extends Function {
+  (response: PaginatedResponse<AssetFileResponse>): void
+  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
+}
+
+interface ResourcesGetAssetFilesDefinition extends Function {
+  (assetId: string, fileType: AssetFileType): void
+  completed: ResourcesGetAssetFilesCompletedDefinition
+  failed: GenericFailedDefinition
+}
+interface ResourcesGetAssetFilesCompletedDefinition extends Function {
+  (response: PaginatedResponse<AssetFileResponse>): void
+  listen: (callback: (response: PaginatedResponse<AssetFileResponse>) => void) => Function
+}
+
 interface DuplicateSubmissionDefinition extends Function {
   (assetUid: string, submissionUid: string, data: SubmissionResponse): void
   completed: DuplicateSubmissionCompletedDefinition
@@ -194,6 +214,13 @@ interface ReportsSetCustomCompletedDefinition extends Function {
   listen: (callback: (response: AssetResponse, crid: string) => void) => Function
 }
 
+interface MapSetMapStylesDefinition extends Function {
+  (assetUid: string, newMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
+  started: MapSetMapStylesStartedDefinition
+  completed: GenericCallbackDefinition
+  failed: GenericFailedDefinition
+}
 interface HooksGetLogsDefinition extends Function {
   (
     assetUid: string,
@@ -219,6 +246,18 @@ interface HooksGetLogsDefinition extends Function {
 interface HooksGetLogsCompletedDefinition extends Function {
   (response: PaginatedResponse<HookResponse>): void
   listen: (callback: (response: PaginatedResponse<HookResponse>) => void) => Function
+}
+
+interface MapSetMapStylesDefinition extends Function {
+  (assetUid: string, newMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, newMapSettings: AssetMapStyles) => void) => Function
+  started: MapSetMapStylesStartedDefinition
+  completed: GenericCallbackDefinition
+  failed: GenericFailedDefinition
+}
+interface MapSetMapStylesStartedDefinition extends Function {
+  (assetUid: string, upcomingMapSettings: AssetMapStyles): void
+  listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function
 }
 
 // NOTE: as you use more actions in your ts files, please extend this namespace,
@@ -251,7 +290,7 @@ export namespace actions {
     deleteSubmission: GenericDefinition
     duplicateSubmission: DuplicateSubmissionDefinition
     refreshTableSubmissions: GenericDefinition
-    getAssetFiles: GenericDefinition
+    getAssetFiles: ResourcesGetAssetFilesDefinition
   }
   const hooks: {
     add: GenericDefinition
@@ -272,7 +311,9 @@ export namespace actions {
   const table: {
     updateSettings: TableUpdateSettingsDefinition
   }
-  const map: object
+  const map: {
+    setMapStyles: MapSetMapStylesDefinition
+  }
   const permissions: {
     getConfig: GenericDefinition
     copyPermissionsFrom: GenericDefinition

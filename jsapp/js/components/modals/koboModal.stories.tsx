@@ -1,75 +1,47 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import Button from '../common/button'
 import KoboModal from './koboModal'
 import KoboModalContent from './koboModalContent'
 import KoboModalFooter from './koboModalFooter'
 import KoboModalHeader from './koboModalHeader'
-import KoboPrompt from './koboPrompt'
 
-export default {
-  title: 'commonDeprecated/KoboModal',
+const meta: Meta<typeof KoboModal> = {
+  title: 'Design system old/KoboModal',
   component: KoboModal,
   argTypes: {
     isOpen: { control: 'boolean' },
-    demoIsPromptOpen: { control: 'boolean' },
-    demoShouldHaveX: { control: 'boolean' },
   },
+}
+
+export default meta
+
+type Story = StoryObj<typeof KoboModal>
+
+export const Primary: Story = {
   args: {
-    demoIsPromptOpen: false,
-    demoShouldHaveX: false,
+    isOpen: true,
+    // TODO: this doesn't work in story, but since this is a deprecated component, it's fine
+    isDismissableByDefaultMeans: true,
   },
-} as ComponentMeta<typeof KoboModal>
+  render: (args) => (
+    <KoboModal {...args}>
+      <KoboModalHeader>{'KoboModal test'}</KoboModalHeader>
+      <KoboModalContent>
+        <p>{'This is a test modal. It has some custom content.'}</p>
+        <p>{'It uses three different components to render the content:'}</p>
+        <ul>
+          <li>{'KoboModalHeader,'}</li>
+          <li>{'KoboModalContent,'}</li>
+          <li>{'KoboModalFooter.'}</li>
+        </ul>
+        <p>{'All these components are optional (but built in inside KoboPrompt).'}</p>
+        <p>{'You can display anything you like inside KoboModal - it does not assume anything.'}</p>
+      </KoboModalContent>
 
-const Template: ComponentStory<typeof KoboModal> = (args: any) => (
-  <KoboModal {...args}>
-    <KoboModalHeader onRequestCloseByX={args.demoShouldHaveX ? () => {} : undefined}>
-      {'KoboModal test'}
-    </KoboModalHeader>
-    <KoboModalContent>
-      <p>{'This is a test modal. It has some custom content and can open a (nested) prompt.'}</p>
-      <p>{'It uses three different components to render the content:'}</p>
-      <ul>
-        <li>{'KoboModalHeader,'}</li>
-        <li>{'KoboModalContent,'}</li>
-        <li>{'KoboModalFooter.'}</li>
-      </ul>
-      <p>{'All these components are optional (but built in inside KoboPrompt).'}</p>
-      <p>{'You can display anything you like inside KoboModal - it does not assume anything.'}</p>
-    </KoboModalContent>
-
-    <KoboModalFooter>
-      <Button type='primary' size='m' onClick={() => {}} label={'click to close modal from inside'} />
-
-      <Button type='danger' size='m' onClick={() => {}} label={'some action that needs confirmation'} />
-    </KoboModalFooter>
-
-    <KoboPrompt
-      isOpen={args.demoIsPromptOpen}
-      onRequestClose={() => {}}
-      title='Are you sure?'
-      titleIcon='alert'
-      titleIconColor='mid-red'
-      buttons={[
-        {
-          type: 'secondary',
-          label: 'cancel',
-          onClick: () => {},
-        },
-        {
-          type: 'danger',
-          label: 'confirm',
-          onClick: () => {},
-        },
-      ]}
-    >
-      {'This is some dangerous stuff here. Please confirm you want to do this.'}
-    </KoboPrompt>
-  </KoboModal>
-)
-
-export const Primary = Template.bind({})
-Primary.args = {
-  isOpen: true,
+      <KoboModalFooter>
+        <Button type='primary' size='m' onClick={() => {}} label={'click'} />
+        <Button type='danger' size='m' onClick={() => {}} label={'click'} />
+      </KoboModalFooter>
+    </KoboModal>
+  ),
 }

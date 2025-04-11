@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import SimpleTable from './SimpleTable'
 
 const meta: Meta<React.ComponentProps<typeof SimpleTable>> = {
-  title: 'common/SimpleTable',
+  title: 'Design system/SimpleTable',
   component: SimpleTable,
   argTypes: {},
   args: {},

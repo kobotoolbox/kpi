@@ -84,10 +84,6 @@ export class DisplayGroup {
       this.xpathNodes = xpathNodes
     }
   }
-
-  addChild(child: DisplayResponse | DisplayGroup) {
-    this.children.push(child)
-  }
 }
 
 export class DisplayResponse {
@@ -103,7 +99,7 @@ export class DisplayResponse {
    * Unique identifier of a choices list, only applicable for question types
    * that uses choices lists.
    */
-  public listName: string | undefined
+  public listName?: string | undefined
   /** User response, `null` for no response */
   public data: SubmissionResponseValue | null = null
 
@@ -242,7 +238,7 @@ export function getSubmissionDisplayData(
           rowData.forEach((item, itemIndex) => {
             const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
             const itemObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_repeat, rowLabel, rowName, nodePath)
-            parentGroup.addChild(itemObj)
+            parentGroup.children.push(itemObj)
             /*
              * Start whole process again starting at this place in survey,
              * with current group as parent element and new repeat index
@@ -253,7 +249,7 @@ export function getSubmissionDisplayData(
         }
       } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         const matrixGroupObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_matrix, rowLabel, rowName)
-        parentGroup.addChild(matrixGroupObj)
+        parentGroup.children.push(matrixGroupObj)
 
         if (Array.isArray(choices)) {
           /*
@@ -286,7 +282,7 @@ export function getSubmissionDisplayData(
       ) {
         const nodePath = addXpathNode(parentGroup, repeatIndex, rowData)
         const rowObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_regular, rowLabel, rowName, nodePath)
-        parentGroup.addChild(rowObj)
+        parentGroup.children.push(rowObj)
         /*
          * Start whole process again starting at this place in survey,
          * with current group as parent element and pass current repeat index.
@@ -334,11 +330,11 @@ export function getSubmissionDisplayData(
         xpath.push(rowName)
 
         const rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
-        parentGroup.addChild(rowObj)
+        parentGroup.children.push(rowObj)
 
         const rowxpath = flatPaths[rowName]
         supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
-          parentGroup.addChild(
+          parentGroup.children.push(
             new DisplayResponse(
               null,
               getColumnLabel(asset, sdKey, false),
@@ -383,7 +379,7 @@ function populateMatrixData(
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex)
   const matrixRowGroupObj = new DisplayGroup(DISPLAY_GROUP_TYPES.group_matrix_row, matrixRowLabel, matrixRowName)
-  matrixGroup.addChild(matrixRowGroupObj)
+  matrixGroup.children.push(matrixRowGroupObj)
 
   const flatPaths = getSurveyFlatPaths(survey, true)
   const matrixGroupPath = flatPaths[matrixGroup.name]
@@ -424,7 +420,7 @@ function populateMatrixData(
         getRowListName(questionSurveyObj),
         questionData,
       )
-      matrixRowGroupObj.addChild(questionObj)
+      matrixRowGroupObj.children.push(questionObj)
     }
   })
 }

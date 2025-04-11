@@ -1,19 +1,15 @@
-import React from 'react'
-
-import type { ComponentMeta, ComponentStory } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react'
 import LanguageSelector from './languageSelector'
 
-export default {
-  title: 'common/LanguageSelector',
+// TODO: somehow mock the `languagesStore` here, so that there are means to play with this properly :)
+const meta: Meta<typeof LanguageSelector> = {
+  title: 'Components/LanguageSelector',
   component: LanguageSelector,
   argTypes: {},
-} as ComponentMeta<typeof LanguageSelector>
-
-const Template: ComponentStory<typeof LanguageSelector> = (args) => <LanguageSelector {...args} />
-
-export const Primary = Template.bind({})
-Primary.args = {
-  suggestedLanguages: undefined,
-  sourceLanguage: undefined,
-  isDisabled: false,
 }
+
+export default meta
+
+type Story = StoryObj<typeof LanguageSelector>
+
+export const Primary: Story = {}

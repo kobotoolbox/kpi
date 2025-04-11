@@ -3,10 +3,10 @@ import os.path
 import uuid
 from unittest.mock import patch
 
+import pytest
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.cache import cache
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -14,7 +14,6 @@ from model_bakery import baker
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
-from kobo.apps.stripe.tests.utils import generate_mmo_subscription
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -221,8 +220,11 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submission_counters['current_period'] == 0
         assert submission_counters['all_time'] == 0
 
-    @override_settings(STRIPE_ENABLED=True)
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_organization_setup(self):
+        from kobo.apps.stripe.tests.utils import generate_mmo_subscription
         self.add_standard_nlp_trackers()
         organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
@@ -283,6 +285,9 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submission_counters['current_period'] == 5
         assert submission_counters['all_time'] == 5
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_submission_counters_current_period_all_orgs(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)
@@ -324,6 +329,9 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert submissions_by_user[self.someuser.id] == 1
         assert submissions_by_user[self.anotheruser.id] == 5
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_nlp_counters_current_period_all_orgs(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)

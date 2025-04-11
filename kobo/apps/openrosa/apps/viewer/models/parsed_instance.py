@@ -285,9 +285,13 @@ class ParsedInstance(models.Model):
     def to_dict_for_mongo(self):
         d = self.to_dict()
 
+        # TODO remove this check when `root_uuid` has been backfilled
+        #   by long-running migration 0005.
+        root_uuid = self.instance.root_uuid or self.instance.uuid
+
         data = {
             UUID: self.instance.uuid,
-            META_ROOT_UUID: add_uuid_prefix(self.instance.root_uuid),
+            META_ROOT_UUID: add_uuid_prefix(root_uuid),
             ID: self.instance.id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
             self.STATUS: self.instance.status,
