@@ -329,6 +329,7 @@ class TestDataViewSet(TestBase):
                                'instance': self.attachment.instance.pk,
                                'filename': self.attachment.media_file.name,
                                'id': self.attachment.pk,
+                               'uid': self.attachment.uid,
                                'xform': self.xform.id}
                               ],
             '_geolocation': [None, None],
