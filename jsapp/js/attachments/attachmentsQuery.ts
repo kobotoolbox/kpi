@@ -31,7 +31,7 @@ function removeAttachment(assetUid: string, submissionId: string, attachmentUid:
 }
 
 /**
- * Makes a request to endpoint that deletes all attachments for a given submission.
+ * Makes a request to endpoint that deletes all attachments for a given submissions.
  *
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
