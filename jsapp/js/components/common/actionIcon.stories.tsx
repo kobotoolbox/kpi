@@ -81,20 +81,21 @@ export const Preview = () => (
   </div>
 )
 
+const testId = 'ActionIcon-click-test'
 export const TestClick: Story = {
   args: {
     variant: 'filled',
     size: 'md',
     iconName: 'edit',
     onClick: fn(),
-    id: 'ActionIcon-click-test',
+    'data-testid': testId,
   },
   play: async ({ args, canvasElement }) => {
     // Unfortunately Storybook doesn't pass proper types for `args`, so we need to cast it.
     // TODO: I made an issue to point this out to Storybook team: https://github.com/storybookjs/storybook/issues/31106
     // let's fix this when they fix it.
     const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId((args as StoryArgs).id!))
+    await userEvent.click(canvas.getByTestId(testId))
     await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
   },
 }
