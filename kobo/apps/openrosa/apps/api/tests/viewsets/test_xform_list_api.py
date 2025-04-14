@@ -1,21 +1,20 @@
-# coding: utf-8
 import os
 import re
 
 from django.conf import settings
 from django_digest.test import DigestAuth
-from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from guardian.models import UserObjectPermission
+from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
-    TestAbstractViewSet
+    TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
-from kobo.apps.openrosa.libs.constants import (
-    CAN_ADD_SUBMISSIONS,
-    CAN_VIEW_XFORM
-)
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS, CAN_VIEW_XFORM
+from kobo.apps.openrosa.libs.utils.guardian import assign_perm
+from kobo.apps.organizations.models import Organization
 
 
 class TestXFormListApiBase(TestAbstractViewSet):
@@ -28,11 +27,15 @@ class TestXFormListApiBase(TestAbstractViewSet):
         self.publish_xls_form()
 
     def _load_metadata(self, xform=None):
-        data_value = "screenshot.png"
+        data_value = 'screenshot.png'
         data_type = 'media'
         fixture_dir = os.path.join(
-            settings.OPENROSA_APP_DIR, "apps", "main", "tests", "fixtures",
-            "transportation"
+            settings.OPENROSA_APP_DIR,
+            'apps',
+            'main',
+            'tests',
+            'fixtures',
+            'transportation',
         )
         path = os.path.join(fixture_dir, data_value)
         xform = xform or self.xform
@@ -80,21 +83,21 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
     def test_anonymous_xform_list_excludes_forms_of_inactive_users(self):
         request = self.factory.get('/')
         response = self.view(request, username=self.user.username)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data[0]['formID'] == 'transportation_2011_07_25'
 
         self.user.is_active = False
         self.user.save()
         request = self.factory.get('/')
         response = self.view(request, username=self.user.username)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data == []
 
     def test_get_xform_list_as_anonymous_user(self):
 
         request = self.factory.get('/')
         response = self.view(request, username=self.user.username)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
             os.path.dirname(__file__), '..', 'fixtures', 'formList.xml'
@@ -129,7 +132,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         response = self.client.get(
             reverse('form-list', kwargs={'username': self.user.username})
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
             os.path.dirname(__file__), '..', 'fixtures', 'formList.xml'
@@ -158,11 +161,11 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         })
         request = self.factory.get('/')
         response = self.view(request, pk=self.xform_without_auth.pk)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.view(
             request, pk=self.xform_without_auth.pk, username=self.user.username
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         manifest_xml = (
             '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -204,7 +207,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             metadata=self.metadata.pk,
             format='png',
         )
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         response = self.view(
             request,
@@ -213,7 +216,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             metadata=self.metadata.pk,
             format='png',
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
@@ -236,19 +239,19 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         auth = DigestAuth('alice', 'alicealice')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data[0]['formID'] == 'transportation_2011_07_25'
 
         self.user.is_active = False
         self.user.save()
         response = self.view(request)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data == []
 
     def test_head_xform_list(self):
         request = self.factory.head('/')
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
@@ -257,11 +260,11 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
     def test_get_xform_list(self):
         request = self.factory.get('/')
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
             os.path.dirname(__file__),
@@ -272,7 +275,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
             self.assertEqual(content.decode('utf-8'), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
@@ -287,11 +290,11 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         self.xform.save()
         request = self.factory.get('/')
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         xml = '<?xml version="1.0" encoding="utf-8"?>\n<xforms '
         xml += 'xmlns="http://openrosa.org/xforms/xformsList"></xforms>'
@@ -308,7 +311,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request = self.factory.get('/')
         # Get formList without username requires auth unconditionally
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_xform_list_other_user_with_no_role(self):
         request = self.factory.get('/')
@@ -328,7 +331,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         auth = DigestAuth('alice', 'alicealice')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.render().content.decode('utf-8')
         self.assertNotIn(self.xform.id_string, content)
         self.assertEqual(
@@ -359,7 +362,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         auth = DigestAuth('alice', 'alicealice')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.render().content.decode('utf-8')
         self.assertNotIn(self.xform.id_string, content)
         self.assertEqual(
@@ -390,7 +393,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         auth = DigestAuth('alice', 'alicealice')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
             os.path.dirname(__file__),
@@ -401,7 +404,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
             self.assertEqual(content.decode('utf-8'), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
@@ -418,21 +421,21 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         # Test unrecognized `formID`
         request = self.factory.get('/', {'formID': 'unrecognizedID'})
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
         # Test a valid `formID`
         request = self.factory.get('/', {'formID': self.xform.id_string})
         response = self.view(request)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         path = os.path.join(
             os.path.dirname(__file__),
             '..',
@@ -442,7 +445,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         with open(path) as f:
             form_list_xml = f.read().strip()
-            data = {"hash": self.xform.md5_hash, "pk": self.xform.pk}
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content.decode('utf-8')
             self.assertEqual(content, form_list_xml % data)
 
@@ -456,7 +459,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request = self.factory.get('/')
         request.META.update(auth(request.META, response))
         response = self.view(request, pk=self.xform.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertEqual(response['Content-Type'],
                          'text/xml; charset=utf-8')
@@ -486,7 +489,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request = self.factory.get('/')
         request.META.update(auth(request.META, response))
         response = self.view(request, pk=self.xform.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         manifest_xml = (
             '<?xml version="1.0" encoding="utf-8"?>\n'
@@ -534,7 +537,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         })
         request = self.factory.head('/')
         response = self.view(request, pk=self.xform.pk)
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request, pk=self.xform.pk)
@@ -548,7 +551,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request = self.factory.head('/')
         response = self.view(request, pk=self.xform.pk,
                              metadata=self.metadata.pk, format='png')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request.META.update(auth(request.META, response))
         response = self.view(request, pk=self.xform.pk,
@@ -557,19 +560,17 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
     def test_retrieve_xform_media(self):
         self._load_metadata(self.xform)
-        self.view = XFormListApi.as_view({
-            "get": "media"
-        })
+        self.view = XFormListApi.as_view({'get': 'media'})
         request = self.factory.head('/')
         response = self.view(request, pk=self.xform.pk,
                              metadata=self.metadata.pk, format='png')
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         auth = DigestAuth('bob', 'bobbob')
         request = self.factory.get('/')
         request.META.update(auth(request.META, response))
         response = self.view(request, pk=self.xform.pk,
                              metadata=self.metadata.pk, format='png')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_xform_media_as_anonymous(self):
         self._load_metadata(self.xform)
@@ -580,4 +581,197 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         response = self.view(
             request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
         )
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
+    """
+    This class is almost a copy/paste from TestXFormListApiWithAuthRequired at
+    the exception the user is Alice, an admin of Bob's org.
+    No explicit permission assignment should be present in DB, but Alice should still
+    have access to org projects.
+    """
+
+    def setUp(self):
+        super().setUp()
+
+        assert self.xform.user.username == 'bob'
+        bob_organization: Organization = self.xform.user.organization
+        bob_organization.mmo_override = True
+        bob_organization.save()
+
+        alice_data = {
+            'username': 'alice',
+            'password1': 'alicealice',
+            'password2': 'alicealice',
+            'email': 'alice@localhost.com',
+        }
+        alice_profile = self._create_user_profile(alice_data)
+        alice = alice_profile.user
+        bob_organization.add_user(alice, is_admin=True)
+
+        # Make sure alice has no explicit permissions
+        assert UserObjectPermission.objects.filter(user=alice).exists()
+
+    def test_head_xform_list(self):
+        request = self.factory.head('/')
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(request)
+        self.validate_openrosa_head_response(response)
+
+    def test_get_xform_list(self):
+        """
+        Alice has no explicit assigned permissions on any project.
+        Form list should be empty
+        """
+        request = self.factory.get('/')
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        content = response.render().content
+        expected_content = b'<?xml version="1.0" encoding="utf-8"?>\n<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'  # noqa
+        self.assertEqual(content, expected_content)
+        self.assertTrue(response.has_header('X-OpenRosa-Version'))
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+        self.assertTrue(response.has_header('Date'))
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+
+    def test_get_xform_list_with_formid_parameter(self):
+        """
+        Test `formList` with `?formID=[id_string]` filter
+
+        Alice is an admin of Bob's org. They should be able to see any org projects.
+        """
+        # Test a valid `formID`
+        request = self.factory.get('/', {'formID': self.xform.id_string})
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        path = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            'fixtures',
+            'formList_w_require_auth.xml',
+        )
+
+        with open(path) as f:
+            form_list_xml = f.read().strip()
+            data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
+            content = response.render().content.decode('utf-8')
+            self.assertEqual(content, form_list_xml % data)
+
+    def test_retrieve_xform_xml(self):
+        self.view = XFormListApi.as_view({'get': 'retrieve'})
+        request = self.factory.head('/')
+        response = self.view(request, pk=self.xform.pk)
+        auth = DigestAuth('alice', 'alicealice')
+        request = self.factory.get('/')
+        request.META.update(auth(request.META, response))
+        response = self.view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+        self.assertTrue(response.has_header('X-OpenRosa-Version'))
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+        self.assertTrue(response.has_header('Date'))
+
+        path = os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            'fixtures',
+            'Transportation Form.xml',
+        )
+
+        with open(path) as f:
+            form_xml = f.read().strip()
+            data = {'form_uuid': self.xform.uuid}
+            content = response.render().content.decode('utf-8').strip()
+            self.assertEqual(content, form_xml % data)
+
+    def test_retrieve_xform_manifest(self):
+        self._load_metadata(self.xform)
+        self.view = XFormListApi.as_view({'get': 'manifest'})
+        request = self.factory.head('/')
+        response = self.view(request, pk=self.xform.pk)
+        auth = DigestAuth('alice', 'alicealice')
+        request = self.factory.get('/')
+        request.META.update(auth(request.META, response))
+        response = self.view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        manifest_xml = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<manifest xmlns="http://openrosa.org/xforms/xformsManifest">'
+            '   <mediaFile>'
+            '        <filename>screenshot.png</filename>'
+            '        <hash>%(hash)s</hash>'
+            '        <downloadUrl>http://testserver/xformsMedia/%(xform)s/%(pk)s.png</downloadUrl>'  # noqa
+            '    </mediaFile>'
+            '</manifest>'
+        )
+
+        manifest_xml = re.sub(r'> +<', '><', manifest_xml).strip()
+
+        data = {
+            'hash': self.metadata.md5_hash,
+            'pk': self.metadata.pk,
+            'xform': self.xform.pk,
+        }
+        content = response.render().content.decode('utf-8').strip()
+        self.assertEqual(content, manifest_xml % data)
+        self.assertTrue(response.has_header('X-OpenRosa-Version'))
+        self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
+        self.assertTrue(response.has_header('Date'))
+        self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
+
+    def test_head_xform_manifest(self):
+        self._load_metadata(self.xform)
+        self.view = XFormListApi.as_view({'get': 'manifest'})
+        request = self.factory.head('/')
+        response = self.view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(request, pk=self.xform.pk)
+        self.validate_openrosa_head_response(response)
+
+    def test_head_xform_media(self):
+        self._load_metadata(self.xform)
+        self.view = XFormListApi.as_view({'get': 'media'})
+        request = self.factory.head('/')
+        response = self.view(
+            request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request.META.update(auth(request.META, response))
+        response = self.view(
+            request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
+        )
+        self.validate_openrosa_head_response(response)
+
+    def test_retrieve_xform_media(self):
+        self._load_metadata(self.xform)
+        self.view = XFormListApi.as_view({'get': 'media'})
+        request = self.factory.head('/')
+        response = self.view(
+            request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        auth = DigestAuth('alice', 'alicealice')
+        request = self.factory.get('/')
+        request.META.update(auth(request.META, response))
+        response = self.view(
+            request, pk=self.xform.pk, metadata=self.metadata.pk, format='png'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -13,10 +13,16 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -361,6 +367,45 @@ class AssetListApiTests(BaseAssetTestCase):
             'ordering': 'name',
         })
         assert expected_order_by_name_collections_first == uids
+
+    def test_creator_permissions_on_import(self):
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+        organization = someuser.organization
+        organization.mmo_override = True
+        organization.save()
+        organization.add_user(anotheruser)
+        self.client.force_login(anotheruser)
+        # Simulate an import with front end, first POST an empty survey…
+        response = self.create_asset(asset_type=ASSET_TYPE_EMPTY, content={})
+        asset = Asset.objects.get(uid=response.data['uid'])
+
+        assert asset.has_perm(anotheruser, PERM_MANAGE_ASSET)
+        assert not asset.has_perm(anotheruser, PERM_ADD_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_CHANGE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_DELETE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        assert not asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+
+        data = {
+            'content': json.dumps(
+                {
+                    'settings': [{'id_string': 'titled_asset'}],
+                    'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}],
+                }
+            ),
+            'asset_type': ASSET_TYPE_SURVEY,
+        }
+        # … then PATCH is with its content and correct type
+        response = self.client.patch(response.data['url'], data=data)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert asset.has_perm(anotheruser, PERM_MANAGE_ASSET)
+        assert asset.has_perm(anotheruser, PERM_ADD_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_CHANGE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_DELETE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        assert asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
