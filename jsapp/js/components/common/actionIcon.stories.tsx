@@ -15,7 +15,7 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
 
-export default {
+const meta = {
   title: 'Design system/ActionIcon',
   component: ActionIcon,
   argTypes: {
@@ -37,9 +37,11 @@ export default {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
-} as Meta<typeof ActionIcon>
+} satisfies Meta<typeof ActionIcon>
 
-type Story = StoryObj<typeof ActionIcon>
+export default meta
+type StoryArgs = ActionIconProps & { onClick?: () => void; 'data-testid'?: string }
+type Story = StoryObj<typeof ActionIcon> & { args: StoryArgs }
 
 export const Default: Story = {
   args: {
@@ -89,6 +91,9 @@ export const TestClick: Story = {
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
     await userEvent.click(canvas.getByTestId('ActionIcon-click-test'))
-    await expect((args as any).onClick).toHaveBeenCalled()
+    // Unfortunately Storybook doesn't pass proper types for `args`, so we need to cast it.
+    // TODO: I made an issue to point this out to Storybook team: https://github.com/storybookjs/storybook/issues/31106
+    // let's fix this when they fix it.
+    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
   },
 }
