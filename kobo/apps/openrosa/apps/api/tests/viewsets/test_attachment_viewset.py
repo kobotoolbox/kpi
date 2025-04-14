@@ -303,7 +303,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'IMG_2235.JPG'
         )
 
-        # Edit are only allowed with service account
+        # Edits are only allowed with service account
         with open(media_file_path, 'rb') as media_file:
             self._make_submission(
                 xml_path,
@@ -351,7 +351,8 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'xform': self.xform.pk,
             'instance': instance.pk,
             'mimetype': attachment.mimetype,
-            'filename': attachment.media_file.name
+            'filename': attachment.media_file.name,
+            'uid': attachment.uid,
         }
         request = self.factory.get('/', **self.extra)
         response = self.list_view(request, pk=attachment.pk)
@@ -370,7 +371,8 @@ class TestAttachmentViewSet(TestAbstractViewSet):
             'xform': expected['xform'],
             'instance': expected['instance'],
             'mimetype': expected['mimetype'],
-            'filename': expected['filename']
+            'filename': expected['filename'],
+            'uid': attachment.uid,
         }
 
         instance_response = self.client.get(
