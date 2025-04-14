@@ -94,6 +94,6 @@ export const TestClick: Story = {
     // Unfortunately Storybook doesn't pass proper types for `args`, so we need to cast it.
     // TODO: I made an issue to point this out to Storybook team: https://github.com/storybookjs/storybook/issues/31106
     // let's fix this when they fix it.
-    await expect((args as StoryArgs).onClick).toHaveBeenCalled()
+    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
   },
 }
