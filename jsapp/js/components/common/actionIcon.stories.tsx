@@ -40,7 +40,7 @@ const meta = {
 } satisfies Meta<typeof ActionIcon>
 
 export default meta
-type StoryArgs = ActionIconProps & { onClick?: () => void; 'data-testid'?: string }
+type StoryArgs = ActionIconProps & ElementProps<'button', keyof ActionIconProps> & { 'data-testid'?: string }
 type Story = StoryObj<typeof ActionIcon> & { args: StoryArgs }
 
 export const Default: Story = {
