@@ -1,3 +1,4 @@
+import type { ElementProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, within } from '@storybook/test'
 import { IconNames } from '#/k-icons'
@@ -40,7 +41,7 @@ const meta = {
 } satisfies Meta<typeof ActionIcon>
 
 export default meta
-type StoryArgs = ActionIconProps & { onClick?: () => void; 'data-testid'?: string }
+type StoryArgs = ActionIconProps & ElementProps<'button', keyof ActionIconProps> & { 'data-testid'?: string }
 type Story = StoryObj<typeof ActionIcon> & { args: StoryArgs }
 
 export const Default: Story = {
@@ -80,20 +81,21 @@ export const Preview = () => (
   </div>
 )
 
+const testId = 'ActionIcon-click-test'
 export const TestClick: Story = {
   args: {
     variant: 'filled',
     size: 'md',
     iconName: 'edit',
     onClick: fn(),
-    'data-testid': 'ActionIcon-click-test',
+    'data-testid': testId,
   },
   play: async ({ args, canvasElement }) => {
-    const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId('ActionIcon-click-test'))
     // Unfortunately Storybook doesn't pass proper types for `args`, so we need to cast it.
     // TODO: I made an issue to point this out to Storybook team: https://github.com/storybookjs/storybook/issues/31106
     // let's fix this when they fix it.
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId(testId))
     await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
   },
 }
