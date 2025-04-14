@@ -1,6 +1,6 @@
-import React from 'react'
-
+import type { ElementProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
 import { IconNames } from '#/k-icons'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
 
@@ -16,7 +16,7 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
 
-export default {
+const meta = {
   title: 'Design system/ActionIcon',
   component: ActionIcon,
   argTypes: {
@@ -38,51 +38,20 @@ export default {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
-} as Meta<typeof ActionIcon>
+} satisfies Meta<typeof ActionIcon>
 
-type Story = StoryObj<typeof ActionIcon>
+export default meta
+type StoryArgs = ActionIconProps & ElementProps<'button', keyof ActionIconProps> & { 'data-testid'?: string }
+type Story = StoryObj<typeof ActionIcon> & { args: StoryArgs }
 
-export const Filled: Story = {
+export const Default: Story = {
   args: {
-    variant: 'filled',
-    size: 'md',
-    iconName: 'edit',
-  },
-}
-
-export const Light: Story = {
-  args: {
-    variant: 'light',
-    size: 'md',
-    iconName: 'edit',
-  },
-}
-
-export const Transparent: Story = {
-  args: {
-    variant: 'transparent',
-    size: 'md',
-    iconName: 'more',
-  },
-}
-
-export const Danger: Story = {
-  args: {
-    variant: 'danger',
-    size: 'md',
-    iconName: 'trash',
-  },
-}
-
-export const DangerSecondary: Story = {
-  args: {
-    variant: 'danger-secondary',
+    iconName: 'document',
     size: 'lg',
-    iconName: 'trash',
   },
 }
 
-export const AllIconStyles = () => (
+export const Preview = () => (
   <div
     style={{
       display: 'grid',
@@ -111,3 +80,21 @@ export const AllIconStyles = () => (
     )}
   </div>
 )
+
+export const TestClick: Story = {
+  args: {
+    variant: 'filled',
+    size: 'md',
+    iconName: 'edit',
+    onClick: fn(),
+    'data-testid': 'ActionIcon-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    // Unfortunately Storybook doesn't pass proper types for `args`, so we need to cast it.
+    // TODO: I made an issue to point this out to Storybook team: https://github.com/storybookjs/storybook/issues/31106
+    // let's fix this when they fix it.
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId((args as StoryArgs)['data-testid']!))
+    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
+  },
+}
