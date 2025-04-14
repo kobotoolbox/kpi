@@ -34,7 +34,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
     try {
       await removeBulkAttachments.mutateAsync(selectedIds)
-      close()
+      handleCloseModal()
       notify(
         t('Media files from ##number_of_selected_submissions## submission(s) have been deleted').replace(
           '##number_of_selected_submissions##',
@@ -48,13 +48,18 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     }
   }
 
+  const handleCloseModal = () => {
+    setWarningAcknowledged(false)
+    close()
+  }
+
   return (
     <Box>
       <Anchor onClick={open} underline='always' fw={'bold'} c={'blue.4'}>
         {t('Delete media files only')}
       </Anchor>
 
-      <Modal opened={opened} onClose={close} title={t('Delete media files')} size={'md'}>
+      <Modal opened={opened} onClose={handleCloseModal} title={t('Delete media files')} size={'md'}>
         <FocusTrap.InitialFocus />
         <Stack>
           <Checkbox
@@ -66,6 +71,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
               </Text>
             }
             onClick={() => setWarningAcknowledged(!warningAcknowledged)}
+            checked={warningAcknowledged}
           />
           <Alert iconName='warning' type='error'>
             {t('Careful - it is not possible to recover deleted media files')}
