@@ -38,15 +38,10 @@ type Story = StoryObj<typeof LanguageSelector> & { args?: StoryArgs }
 
 export const Default: Story = {}
 
-export const TestSearchSwedish: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'This test is searching for "Swedish" language, selecting it, and then undoing both the selection and the search.',
-      },
-    },
-  },
+/**
+ * This test is searching for "Swedish" language, selecting it, and then undoing both the selection and the search.
+ */
+export const TestSearchAndSelection: Story = {
   args: {
     onLanguageChange: fn(),
   },
