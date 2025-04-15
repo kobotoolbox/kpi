@@ -279,6 +279,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
         <bem.LanguageSelector__clearSelectedLanguage
           onClick={this.clearSelectedLanguage.bind(this)}
           disabled={this.props.isDisabled}
+          title={t('Clear selected language')}
         >
           <Icon name='close' size='s' />
         </bem.LanguageSelector__clearSelectedLanguage>
@@ -326,6 +327,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
             <bem.LanguageSelector__clearSearchBox
               onClick={this.clearSearchPhrase.bind(this)}
               disabled={this.props.isDisabled}
+              title={t('Clear search')}
             >
               <Icon name='close' size='s' />
             </bem.LanguageSelector__clearSearchBox>
