@@ -5,6 +5,8 @@ import React from 'react'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
@@ -24,12 +26,16 @@ import {
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
 import { EnketoActions, MODAL_TYPES, QuestionTypeName } from '#/constants'
 import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, FailResponse, SubmissionAttachment, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
+import type {
+  AssetResponse,
+  FailResponse,
+  SubmissionAttachment,
+  SubmissionResponse,
+  ValidationStatusResponse,
+} from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
-import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
-import DeletedAttachment from '#/attachments/deletedAttachment.component'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 
