@@ -51,7 +51,7 @@ export const TestSearchSwedish: Story = {
 
     // Type "swed" to find "Swedish" language
     const canvas = within(canvasElement)
-    const searchInput = await canvas.findByRole('textbox')
+    const searchInput = await canvas.findByRole('searchbox')
     await userEvent.type(searchInput, 'swed')
 
     // Wait for search response to be ready
