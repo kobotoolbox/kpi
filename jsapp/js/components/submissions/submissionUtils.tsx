@@ -633,6 +633,9 @@ export function getMediaAttachment(
       }
     }
   })
+  if (typeof mediaAttachment !== 'string') {
+    console.log('mediaAttachment', mediaAttachment)
+  }
   return mediaAttachment
 }
 

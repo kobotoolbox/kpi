@@ -24,10 +24,12 @@ import {
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
 import { EnketoActions, MODAL_TYPES, QuestionTypeName } from '#/constants'
 import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse, SubmissionAttachment, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
+import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import DeletedAttachment from '#/attachments/deletedAttachment.component'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 
@@ -403,13 +405,14 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   /**
    * Whether the form has background audio enabled. This means that there is
    * a possibility that the submission could have a background audio recording.
-   * If you need to know if recording exist, please use `getBackgroundAudioUrl`.
+   * If you need to know if recording exist, i.e. if it was being submitted,
+   * please use `getBackgroundAudioAttachment`.
    */
   hasBackgroundAudioEnabled() {
     return this.props.asset?.content?.survey?.some((question) => question.type === QuestionTypeName['background-audio'])
   }
 
-  getBackgroundAudioUrl() {
+  getBackgroundAudioAttachment(): undefined | SubmissionAttachment {
     const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset)
 
     if (
@@ -419,15 +422,11 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     ) {
       const response = this.state.submission[backgroundAudioName]
       if (typeof response === 'string') {
-        const mediaAttachment = getMediaAttachment(
-          this.state.submission,
-          response,
-          QuestionTypeName['background-audio'],
-        )
+        const mediaAttachment = getMediaAttachment(this.state.submission, response, backgroundAudioName)
         if (typeof mediaAttachment === 'string') {
-          return mediaAttachment
+          return undefined
         } else {
-          return mediaAttachment.download_medium_url || mediaAttachment.download_url
+          return mediaAttachment
         }
       }
     }
@@ -436,6 +435,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
   }
 
   handleDeletedAttachment(attachmentId: number) {
+    console.log('what', this.state.submission)
+    console.log('what id', this.state.submission)
     if (this.state.submission) {
       // Override the attachment object in memory to mark it as deleted (without
       // making an API call for fresh submission data)
@@ -693,6 +694,55 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     )
   }
 
+  renderBackgroundAudio() {
+    // For TypeScript
+    if (!this.state.submission) {
+      return null
+    }
+
+    if (!this.hasBackgroundAudioEnabled()) {
+      return null
+    }
+
+    // Get background audio
+    const bgAudio = this.getBackgroundAudioAttachment()
+
+    const isDeleted = Boolean(bgAudio?.is_deleted)
+
+    return (
+      <bem.SubmissionDataTable>
+        <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
+          <bem.SubmissionDataTable__column>{t('Background audio recording')}</bem.SubmissionDataTable__column>
+        </bem.SubmissionDataTable__row>
+
+        <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
+          {bgAudio && !isDeleted && (
+            <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
+              <AudioPlayer mediaURL={bgAudio.download_medium_url || bgAudio.download_url} />
+
+              <AttachmentActionsDropdown
+                asset={this.props.asset}
+                attachmentId={bgAudio.id}
+                submissionData={this.state.submission}
+                onDeleted={() => {
+                  this.handleDeletedAttachment(bgAudio.id)
+                }}
+              />
+            </bem.SubmissionDataTable__column>
+          )}
+
+          {bgAudio && isDeleted && (
+            <bem.SubmissionDataTable__column m='data'>
+              <DeletedAttachment />
+            </bem.SubmissionDataTable__column>
+          )}
+
+          {!bgAudio && <bem.SubmissionDataTable__column m='data'>{t('N/A')}</bem.SubmissionDataTable__column>}
+        </bem.SubmissionDataTable__row>
+      </bem.SubmissionDataTable>
+    )
+  }
+
   render() {
     // Until we get all necessary data, we display a spinner
     if (this.state.isFetchingSubmissionData) {
@@ -707,9 +757,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       return <CenteredMessage message={t('Unknown error')} />
     }
 
-    // Get background audio
-    const bgAudioUrl = this.getBackgroundAudioUrl()
-
     // Each of these `renderX()` functions handle the conditional rendering
     // by itself
     return (
@@ -722,23 +769,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         {this.renderSubmissionActions()}
 
-        {this.hasBackgroundAudioEnabled() && (
-          <bem.SubmissionDataTable>
-            <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
-              <bem.SubmissionDataTable__column>{t('Background audio recording')}</bem.SubmissionDataTable__column>
-            </bem.SubmissionDataTable__row>
-
-            <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
-              {bgAudioUrl && (
-                <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
-                  <AudioPlayer mediaURL={bgAudioUrl} />
-                </bem.SubmissionDataTable__column>
-              )}
-
-              {!bgAudioUrl && <bem.SubmissionDataTable__column m='data'>{t('N/A')}</bem.SubmissionDataTable__column>}
-            </bem.SubmissionDataTable__row>
-          </bem.SubmissionDataTable>
-        )}
+        {this.renderBackgroundAudio()}
 
         <SubmissionDataTable
           asset={this.props.asset}
