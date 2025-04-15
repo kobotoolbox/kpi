@@ -14,7 +14,7 @@ import { useRemoveAttachment } from './attachmentsQuery'
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
   submissionData: SubmissionResponse
-  attachmentId: number
+  attachmentUid: string
   /**
    * Being called after attachment was deleted succesfully. Is meant to be used
    * by parent component to reflect this change in the data it holds, and
@@ -33,7 +33,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
   const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
-  const attachment = props.submissionData._attachments.find((item) => item.id === props.attachmentId)
+  const attachment = props.submissionData._attachments.find((item) => item.uid === props.attachmentUid)
   if (!attachment) {
     return null
   }
@@ -47,7 +47,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     setIsDeletePending(true)
 
     try {
-      await removeAttachmentMutation.mutateAsync(String(attachment.id))
+      await removeAttachmentMutation.mutateAsync(String(attachment.uid))
       setIsDeleteModalOpen(false)
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
       props.onDeleted()

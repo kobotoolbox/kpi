@@ -1760,11 +1760,9 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
       filename:
         'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/IMG_3619-13_33_22.MOV',
-      instance: 25,
+      uid: 'aXPSbtQcYDm8mcJuVZTUhI',
       download_medium_url:
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2FIMG_3619-13_33_22.MOV',
-      id: 6,
-      xform: 18,
       question_xpath: 'A_video',
     },
     {
@@ -1777,11 +1775,9 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
       filename:
         'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/07. Crazy Love-13_32_31.mp3',
-      instance: 25,
       download_medium_url:
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F07.+Crazy+Love-13_32_31.mp3',
-      id: 5,
-      xform: 18,
+      uid: 'aXPSbtQcYDm8mcJuVZTUhQ',
       question_xpath: 'Voice_password',
     },
     {
@@ -1794,11 +1790,9 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
       filename:
         'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/zamki-13_35_5.txt',
-      instance: 25,
       download_medium_url:
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2Fzamki-13_35_5.txt',
-      id: 4,
-      xform: 18,
+      uid: 'aXPSbtQcYDm8mcJuVZTUhE',
       question_xpath: 'We_need_your_CV',
     },
     {
@@ -1811,11 +1805,9 @@ export const everythingSurveySubmission = {
         'http://kc.kobo.local/media/original?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
       filename:
         'kobo/attachments/712e5fb8d7364482a57c60df876c57fb/fdd252ee-860a-426c-be90-cbbf61787cb9/784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
-      instance: 25,
       download_medium_url:
         'http://kc.kobo.local/media/medium?media_file=kobo%2Fattachments%2F712e5fb8d7364482a57c60df876c57fb%2Ffdd252ee-860a-426c-be90-cbbf61787cb9%2F784397e28b5041d59bef15d5d0b2d0bf--cutaway-dio-13_31_48.jpg',
-      id: 3,
-      xform: 18,
+      uid: 'aXPSbtQcYDm8mcJuVZTUhR',
       question_xpath: 'Selfportrait',
     },
   ],
@@ -2359,9 +2351,7 @@ export const submissionWithAttachmentsWithUnicode = {
       mimetype: 'image/jpeg',
       filename:
         'kobo/attachments/45748fd461814880bd9545c8c8827d78/4cfa16e8-f29b-41a9-984c-2bf7fe05064b/Un_ete_au_Quebec_Canada-19_41_32.jpg',
-      instance: 18,
-      xform: 4,
-      id: 13,
+      uid: 'azCy24QgjprZGrdvbHQXrA',
       question_xpath: 'A_picture',
     },
   ],
@@ -3147,9 +3137,7 @@ export const submissionWithSupplementalDetails = {
       download_small_url: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/data/3/attachments/3/',
       mimetype: 'audio/mpeg',
       filename: 'kobo/attachments/c71e63f6a...b9a05/8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
-      instance: 3,
-      xform: 1,
-      id: 3,
+      uid: 'aDDywpeYGnvuDLTeiveyxV',
       question_xpath: 'Secret_password_as_an_audio_file',
     },
   ],
@@ -3277,9 +3265,7 @@ export const submissionWithNestedSupplementalDetails = {
       mimetype: 'audio/x-m4a',
       filename:
         'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
-      instance: 77,
-      xform: 27,
-      id: 70,
+      uid: 'aw6mhS4KnoG5E8EbQp9KgP',
       question_xpath: 'level_a/level_b/level_c/sounds',
     },
   ],

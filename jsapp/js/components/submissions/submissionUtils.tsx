@@ -757,14 +757,14 @@ function appendTextToPathAtLevel(path: string, level: string, stringToAdd: strin
  */
 export function markAttachmentAsDeleted(
   submissionData: SubmissionResponse,
-  targetAttachmentId: number,
+  targetAttachmentUid: string,
 ): SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = data._attachments.find((item) => item.id === targetAttachmentId)
+  const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
 
   data._attachments.forEach((attachment) => {
     if (
-      attachment.id === targetAttachment?.id &&
+      attachment.uid === targetAttachment?.uid &&
       attachment.question_xpath === targetAttachment?.question_xpath &&
       attachment.filename === targetAttachment?.filename
     ) {
