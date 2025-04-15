@@ -314,7 +314,8 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
           {!this.store.isLoading && <Icon name='search' size='m' />}
 
           <bem.LanguageSelector__searchBoxInput
-            type='text'
+            type='search'
+            role='searchbox'
             value={this.state.searchPhrase}
             onChange={this.onSearchPhraseInputChange.bind(this)}
             placeholder={t('Search for a language')}
