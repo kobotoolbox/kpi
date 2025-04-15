@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, userEvent, within } from '@storybook/test'
+import { expect, fn, userEvent, within } from '@storybook/test'
 import { http, HttpResponse } from 'msw'
 import { environmentResponse } from '#/envStore.mock'
-import LanguageSelector from './languageSelector'
+import LanguageSelector, { type LanguageSelectorProps } from './languageSelector'
 import {
   languagesResponsePage1st,
   languagesResponsePage2nd,
@@ -32,8 +32,8 @@ const meta: Meta<typeof LanguageSelector> = {
 }
 
 export default meta
-
-type Story = StoryObj<typeof LanguageSelector>
+type StoryArgs = LanguageSelectorProps
+type Story = StoryObj<typeof LanguageSelector> & { args?: StoryArgs }
 
 export const Primary: Story = {}
 
@@ -42,20 +42,34 @@ function sleep(ms: number) {
 }
 
 export const TestSearchSwedish: Story = {
-  play: async ({ canvasElement }) => {
+  args: {
+    onLanguageChange: fn(),
+  },
+  play: async ({ args, canvasElement }) => {
     // Wait for languages list to be ready
     await sleep(2000)
 
     // Type "swed" to find "Swedish" language
     const canvas = within(canvasElement)
-    const input = await canvas.findByRole('textbox')
-    await userEvent.type(input, 'swed')
+    const searchInput = await canvas.findByRole('textbox')
+    await userEvent.type(searchInput, 'swed')
 
     // Wait for search response to be ready
     await sleep(2000)
 
     // Verify that the "Swedish" language is present in the list
-    const element = await canvas.findByText(/^Swedish/)
-    await expect(element).toBeInTheDocument()
+    const searchResultItem = await canvas.findByText(/^Swedish/)
+    await expect(searchResultItem).toBeInTheDocument()
+
+    // Click the result
+    await userEvent.click(searchResultItem)
+
+    // Search result should be cleared, and the selected language should be "Swedish"
+    await expect(searchResultItem).not.toBeInTheDocument()
+    const selectedLanguage = await canvas.findByText(/^Swedish/)
+    await expect(selectedLanguage).toBeInTheDocument()
+    // Verify that the onLanguageChange callback have been called (i.e. parent component is informed which language
+    // was selected)
+    await expect((args as StoryArgs).onLanguageChange).toHaveBeenCalledTimes(1)
   },
 }

@@ -47,7 +47,7 @@ export function resetAllLanguageSelectors() {
   document.dispatchEvent(event)
 }
 
-interface LanguageSelectorProps {
+export interface LanguageSelectorProps {
   /** Replaces the title on top. */
   titleOverride?: string
   /**
