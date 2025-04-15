@@ -215,27 +215,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
     // In the case that an attachment is missing, don't crash the page
     if (typeof attachment !== 'object') return attachment
 
-    if (type === QUESTION_TYPES.audio.id) {
-      return (
-        <Group>
-          {attachment?.is_deleted ? (
-            <DeletedAttachment />
-          ) : attachment?.download_url ? (
-            <AudioPlayer mediaURL={attachment?.download_url} />
-          ) : null}
-
-          {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
-            <Button
-              type='primary'
-              size='s'
-              endIcon='arrow-up-right'
-              label={t('Open')}
-              onClick={this.openProcessing.bind(this, name)}
-            />
-          )}
-        </Group>
-      )
-    }
+    if (!attachment || typeof attachment.download_url !== 'string') return null
 
     if (attachment.is_deleted) {
       return (
@@ -245,40 +225,50 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       )
     }
 
-    if (type === QUESTION_TYPES.image.id) {
-      return (
-        <a href={attachment.download_url} target='_blank'>
-          <img src={attachment.download_medium_url} />
-        </a>
-      )
-    }
+    return (
+      <>
+        {type === QUESTION_TYPES.audio.id && (
+          <Group>
+            <AudioPlayer mediaURL={attachment?.download_url} />
 
-    if (type === QUESTION_TYPES.video.id) {
-      return <video src={attachment.download_url} controls />
-    }
+            {shouldProcessingBeAccessible(this.props.submissionData, attachment) && (
+              <Button
+                type='primary'
+                size='s'
+                endIcon='arrow-up-right'
+                label={t('Open')}
+                onClick={this.openProcessing.bind(this, name)}
+              />
+            )}
+          </Group>
+        )}
 
-    if (type === QUESTION_TYPES.file.id) {
-      return (
-        <a href={attachment.download_url} target='_blank'>
-          {filename}
-        </a>
-      )
-    }
+        {type === QUESTION_TYPES.image.id && (
+          <a href={attachment.download_url} target='_blank'>
+            <img src={attachment.download_medium_url} />
+          </a>
+        )}
 
-    if (type !== null) {
-      return (
-        <AttachmentActionsDropdown
-          asset={this.props.asset}
-          submissionData={this.props.submissionData}
-          attachmentUid={attachment.uid}
-          onDeleted={() => {
-            this.props.onAttachmentDeleted(attachment.uid)
-          }}
-        />
-      )
-    }
+        {type === QUESTION_TYPES.video.id && <video src={attachment.download_url} controls />}
 
-    return null
+        {type === QUESTION_TYPES.file.id && (
+          <a href={attachment.download_url} target='_blank'>
+            {filename}
+          </a>
+        )}
+
+        {type !== null && (
+          <AttachmentActionsDropdown
+            asset={this.props.asset}
+            submissionData={this.props.submissionData}
+            attachmentUid={attachment.uid}
+            onDeleted={() => {
+              this.props.onAttachmentDeleted(attachment.uid)
+            }}
+          />
+        )}
+      </>
+    )
   }
 
   renderMetaResponse(dataName: MetaQuestionTypeName | string, label: string) {
