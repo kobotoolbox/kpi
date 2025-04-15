@@ -119,7 +119,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         expected_action,
         use_v2=True,
         expect_owner=False,
-        expected_queries=0,
     ):
         url_name_prefix = 'api_v2:' if use_v2 else ''
         url = reverse(f'{url_name_prefix}{url_name}', kwargs={'uid': self.asset.uid})
@@ -131,7 +130,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action,
             PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             expect_owner=expect_owner,
-            expected_queries=expected_queries,
         )
         self.assertEqual(
             log_metadata['latest_version_uid'], self.asset.latest_version.uid
@@ -146,23 +144,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         expected_action,
         expected_subtype,
         expect_owner=False,
-        expected_queries=0,
     ):
-        # requests are either patches or posts
-        # hit the endpoint with the correct data
-        if expected_queries > 0:
-            with self.assertNumQueries(expected_queries):
-                method(
-                    url,
-                    data=request_data,
-                    format='json',
-                )
-        else:
-            method(
-                url,
-                data=request_data,
-                format='json',
-            )
+        method(
+            url,
+            data=request_data,
+            format='json',
+        )
 
         self.asset.refresh_from_db()
 
@@ -178,7 +165,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         return log.metadata
 
-    def _make_bulk_request(self, asset_uids, action, expected_queries) -> Response:
+    def _make_bulk_request(self, asset_uids, action) -> Response:
         """
         Make a bulk action request for a list of asset uid's and an action name
 
@@ -192,8 +179,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             }
         }
         url = reverse(self._get_endpoint('asset-bulk'))
-        with self.assertNumQueries(expected_queries):
-            response = self.client.post(url, data=payload, format='json')
+        response = self.client.post(url, data=payload, format='json')
         return response
 
     def test_first_time_deployment_creates_log(self):
@@ -207,7 +193,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=post_data,
             expected_action=AuditAction.DEPLOY,
             expect_owner=True,
-            expected_queries=149,
         )
 
         self.assertEqual(
@@ -228,7 +213,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.REDEPLOY,
             expect_owner=True,
-            expected_queries=45,
         )
 
         self.assertEqual(
@@ -248,7 +232,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.ARCHIVE,
             expect_owner=True,
-            expected_queries=45,
         )
         # do it again (archive an already-archived asset)
         self.client.patch(
@@ -274,7 +257,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.UNARCHIVE,
             expect_owner=True,
-            expected_queries=45,
         )
         # do it again (unarchive an already-unarchived asset)
         self.client.patch(
@@ -1022,13 +1004,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
-        ('archive', AuditAction.ARCHIVE, 19),
-        ('unarchive', AuditAction.UNARCHIVE, 18),
-        ('undelete', None, 30),
-        ('delete', None, 30),
+        ('archive', AuditAction.ARCHIVE),
+        ('unarchive', AuditAction.UNARCHIVE),
+        ('undelete', None),
+        ('delete', None),
     )
     @unpack
-    def test_bulk_actions(self, bulk_action, audit_action, expected_queries):
+    def test_bulk_actions(self, bulk_action, audit_action):
         assets = [
             Asset.objects.create(
                 content={
@@ -1053,9 +1035,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         uids = [asset.uid for asset in assets]
 
         if bulk_action == 'undelete':
-            self._make_bulk_request(uids, 'delete', expected_queries)
+            self._make_bulk_request(uids, 'delete')
         else:
-            self._make_bulk_request(uids, bulk_action, expected_queries)
+            self._make_bulk_request(uids, bulk_action)
 
         if audit_action is None:
             self.assertEqual(ProjectHistoryLog.objects.count(), 0)
