@@ -225,9 +225,6 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
       )
     }
 
-    if (typeof attachment.download_url !== 'string') {
-    }
-
     return (
       <>
         {type === QUESTION_TYPES.audio.id && (
