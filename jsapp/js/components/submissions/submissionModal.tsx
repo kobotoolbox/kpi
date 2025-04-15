@@ -434,14 +434,12 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     return undefined
   }
 
-  handleDeletedAttachment(attachmentId: number) {
-    console.log('what', this.state.submission)
-    console.log('what id', this.state.submission)
+  handleDeletedAttachment(attachmentUid: string) {
     if (this.state.submission) {
       // Override the attachment object in memory to mark it as deleted (without
       // making an API call for fresh submission data)
       this.setState({
-        submission: markAttachmentAsDeleted(this.state.submission, attachmentId),
+        submission: markAttachmentAsDeleted(this.state.submission, attachmentUid),
       })
 
       // Prompt table to refresh submission list
@@ -722,10 +720,10 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
               <AttachmentActionsDropdown
                 asset={this.props.asset}
-                attachmentId={bgAudio.id}
+                attachmentUid={bgAudio.uid}
                 submissionData={this.state.submission}
                 onDeleted={() => {
-                  this.handleDeletedAttachment(bgAudio.id)
+                  this.handleDeletedAttachment(bgAudio.uid)
                 }}
               />
             </bem.SubmissionDataTable__column>
