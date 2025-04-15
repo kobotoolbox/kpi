@@ -273,6 +273,8 @@ class Asset(
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
             ),
+            # ToDo remove this index. It is wrong. It should be
+            #  `_deployment_data__backend_response__formid` but not used anymore.
             BTreeIndex(
                 F('_deployment_data__formid'), name='deployment_data__formid_idx'
             ),
