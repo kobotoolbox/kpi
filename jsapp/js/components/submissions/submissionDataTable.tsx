@@ -36,7 +36,7 @@ interface SubmissionDataTableProps {
   submissionData: SubmissionResponse
   translationIndex: number
   showXMLNames?: boolean
-  onAttachmentDeleted: (attachmentId: number) => void
+  onAttachmentDeleted: (attachmentUid: string) => void
 }
 
 /**
@@ -270,9 +270,9 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         <AttachmentActionsDropdown
           asset={this.props.asset}
           submissionData={this.props.submissionData}
-          attachmentId={attachment.id}
+          attachmentUid={attachment.uid}
           onDeleted={() => {
-            this.props.onAttachmentDeleted(attachment.id)
+            this.props.onAttachmentDeleted(attachment.uid)
           }}
         />
       )
