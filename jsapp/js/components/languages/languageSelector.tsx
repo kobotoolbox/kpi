@@ -189,12 +189,12 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
   }
 
   clearSearchPhrase() {
-    this.setSearchPhrase('')
+    this.setSearchPhrase('', true)
   }
 
-  setSearchPhrase(searchPhrase: string) {
+  setSearchPhrase(searchPhrase: string, forceFetch?: boolean) {
     this.setState({ searchPhrase: searchPhrase })
-    if (searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
+    if (forceFetch || searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
       this.fetchLanguagesDebounced()
     }
   }
