@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, within } from '@storybook/test'
 import { http, HttpResponse } from 'msw'
 import { environmentResponse } from '#/envStore.mock'
+import { sleep } from '#/storybookUtils'
 import LanguageSelector, { type LanguageSelectorProps } from './languageSelector'
 import {
   languagesResponsePage1st,
@@ -35,13 +36,17 @@ export default meta
 type StoryArgs = LanguageSelectorProps
 type Story = StoryObj<typeof LanguageSelector> & { args?: StoryArgs }
 
-export const Primary: Story = {}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+export const Default: Story = {}
 
 export const TestSearchSwedish: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'This test is searching for "Swedish" language, selecting it, and then undoing both the selection and the search.',
+      },
+    },
+  },
   args: {
     onLanguageChange: fn(),
   },
