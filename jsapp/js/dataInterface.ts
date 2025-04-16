@@ -183,9 +183,7 @@ export interface SubmissionAttachment {
   mimetype: string
   filename: string
   question_xpath: string
-  instance: number
-  xform: number
-  id: number
+  uid: string
   /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
   is_deleted?: boolean
 }
