@@ -5,10 +5,6 @@ import React from 'react'
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
-import DeletedAttachment from '#/attachments/deletedAttachment.component'
-import bem from '#/bem'
-import AudioPlayer from '#/components/common/audioPlayer'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -16,26 +12,25 @@ import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
-import { getMediaAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
+import { markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
 import type { SubmissionPageName } from '#/components/submissions/table.types'
-import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
-import { EnketoActions, MODAL_TYPES, QuestionTypeName } from '#/constants'
+import { EnketoActions, MODAL_TYPES}  from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   AssetResponse,
   FailResponse,
-  SubmissionAttachment,
   SubmissionResponse,
   ValidationStatusResponse,
 } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
+import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'
 
@@ -408,38 +403,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     })
   }
 
-  /**
-   * Whether the form has background audio enabled. This means that there is
-   * a possibility that the submission could have a background audio recording.
-   * If you need to know if recording exist, i.e. if it was being submitted,
-   * please use `getBackgroundAudioAttachment`.
-   */
-  hasBackgroundAudioEnabled() {
-    return this.props.asset?.content?.survey?.some((question) => question.type === QuestionTypeName['background-audio'])
-  }
-
-  getBackgroundAudioAttachment(): undefined | SubmissionAttachment {
-    const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset)
-
-    if (
-      backgroundAudioName &&
-      this.state.submission &&
-      Object.keys(this.state.submission).includes(backgroundAudioName)
-    ) {
-      const response = this.state.submission[backgroundAudioName]
-      if (typeof response === 'string') {
-        const mediaAttachment = getMediaAttachment(this.state.submission, response, backgroundAudioName)
-        if (typeof mediaAttachment === 'string') {
-          return undefined
-        } else {
-          return mediaAttachment
-        }
-      }
-    }
-
-    return undefined
-  }
-
   handleDeletedAttachment(attachmentUid: string) {
     if (this.state.submission) {
       // Override the attachment object in memory to mark it as deleted (without
@@ -698,55 +661,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     )
   }
 
-  renderBackgroundAudio() {
-    // For TypeScript
-    if (!this.state.submission) {
-      return null
-    }
-
-    if (!this.hasBackgroundAudioEnabled()) {
-      return null
-    }
-
-    // Get background audio
-    const bgAudio = this.getBackgroundAudioAttachment()
-
-    const isDeleted = Boolean(bgAudio?.is_deleted)
-
-    return (
-      <bem.SubmissionDataTable>
-        <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
-          <bem.SubmissionDataTable__column>{t('Background audio recording')}</bem.SubmissionDataTable__column>
-        </bem.SubmissionDataTable__row>
-
-        <bem.SubmissionDataTable__row m={['columns', 'response', 'type-audio']}>
-          {bgAudio && !isDeleted && (
-            <bem.SubmissionDataTable__column m={['data', 'type-audio']}>
-              <AudioPlayer mediaURL={bgAudio.download_medium_url || bgAudio.download_url} />
-
-              <AttachmentActionsDropdown
-                asset={this.props.asset}
-                attachmentUid={bgAudio.uid}
-                submissionData={this.state.submission}
-                onDeleted={() => {
-                  this.handleDeletedAttachment(bgAudio.uid)
-                }}
-              />
-            </bem.SubmissionDataTable__column>
-          )}
-
-          {bgAudio && isDeleted && (
-            <bem.SubmissionDataTable__column m='data'>
-              <DeletedAttachment />
-            </bem.SubmissionDataTable__column>
-          )}
-
-          {!bgAudio && <bem.SubmissionDataTable__column m='data'>{t('N/A')}</bem.SubmissionDataTable__column>}
-        </bem.SubmissionDataTable__row>
-      </bem.SubmissionDataTable>
-    )
-  }
-
   render() {
     // Until we get all necessary data, we display a spinner
     if (this.state.isFetchingSubmissionData) {
@@ -765,6 +679,8 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     // by itself
     return (
       <>
+        {/*TODO: Move each of these render functions to a different component to shorthen this file*/}
+
         {this.renderDuplicatedSubmissionSubheader()}
 
         {this.renderRefreshWarning()}
@@ -773,7 +689,14 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         {this.renderSubmissionActions()}
 
-        {this.renderBackgroundAudio()}
+        {this.props.asset.content?.survey &&
+          <SubmissionBackgroundAudio
+            asset={this.props.asset}
+            submission={this.state.submission}
+            survey={this.props.asset.content?.survey}
+            onDeleted={this.handleDeletedAttachment}
+          />
+        }
 
         <SubmissionDataTable
           asset={this.props.asset}

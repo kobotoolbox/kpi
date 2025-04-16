@@ -28,6 +28,7 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
+import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -879,4 +880,27 @@ export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
       }
     })
   return result.join('; ') + '.'
+}
+
+
+export function getBackgroundAudioAttachment(asset: AssetResponse, submission: SubmissionResponse): undefined | SubmissionAttachment {
+  const backgroundAudioName = getBackgroundAudioQuestionName(asset)
+
+  if (
+    backgroundAudioName &&
+    submission &&
+    Object.keys(submission).includes(backgroundAudioName)
+  ) {
+    const response = submission[backgroundAudioName]
+    if (typeof response === 'string') {
+      const mediaAttachment = getMediaAttachment(submission, response, backgroundAudioName)
+      if (typeof mediaAttachment === 'string') {
+        return undefined
+      } else {
+        return mediaAttachment
+      }
+    }
+  }
+
+  return undefined
 }
