@@ -6,15 +6,25 @@ from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+)
 from rest_framework import status
 from rest_framework.exceptions import server_error
-
+from rest_framework_extensions import routers
 from kpi.utils.urls import is_request_for_html
+from kpi.urls.router_api_v1 import router_api_v1
+from kpi.urls.router_api_v2 import router_api_v2
+from kpi.views.v2.test_view import TestViewSet
 
 admin.autodiscover()
 admin.site.login = staff_member_required(
     admin.site.login, login_url=settings.LOGIN_URL
 )
+
+router_api_v3 = routers.SimpleRouter()
+router_api_v3.register('tests', TestViewSet, basename='tests')
 
 urlpatterns = [
     # https://github.com/stochastic-technologies/django-loginas
@@ -33,6 +43,11 @@ urlpatterns = [
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
+]
+urlpatterns += [
+    re_path(r'^api/v3/', include(router_api_v3.urls)),
+    path('api/v2/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v2/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.ENABLE_METRICS:
