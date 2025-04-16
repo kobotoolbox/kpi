@@ -3,7 +3,7 @@ import { expect, fn, userEvent, within } from '@storybook/test'
 import { http, HttpResponse } from 'msw'
 import { environmentResponse } from '#/envStore.mock'
 import { sleep } from '#/storybookUtils'
-import LanguageSelector, { type LanguageSelectorProps } from './languageSelector'
+import LanguageSelector from './languageSelector'
 import {
   languagesResponsePage1st,
   languagesResponsePage2nd,
@@ -33,8 +33,7 @@ const meta: Meta<typeof LanguageSelector> = {
 }
 
 export default meta
-type StoryArgs = LanguageSelectorProps
-type Story = StoryObj<typeof LanguageSelector> & { args?: StoryArgs }
+type Story = StoryObj<typeof LanguageSelector>
 
 export const Default: Story = {}
 
@@ -79,7 +78,7 @@ export const TestSearchAndSelection: Story = {
         await expect(selectedLanguage).toBeInTheDocument()
         // Verify that the onLanguageChange callback have been called (i.e. parent component is informed which language
         // was selected)
-        await expect((args as StoryArgs).onLanguageChange).toHaveBeenCalledTimes(1)
+        await expect(args.onLanguageChange).toHaveBeenCalledTimes(1)
       },
     )
 
