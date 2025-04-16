@@ -484,7 +484,9 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     f'/{username}/submission', data
                 )
                 response = self.view(request, username=username)
-                self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+                self.assertEqual(
+                    response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE
+                )
 
                 self.xform.pending_transfer = False
                 self.xform.save()

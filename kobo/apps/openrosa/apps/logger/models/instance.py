@@ -77,15 +77,10 @@ class Instance(AbstractTimeStampedModel):
 
     json = JSONField(default={}, null=False)
     xml = models.TextField()
-    xml_hash = models.CharField(
-        max_length=XML_HASH_LENGTH, db_index=True, null=True, default=DEFAULT_XML_HASH
-    )
-    user = models.ForeignKey(
-        User, related_name='instances', null=True, on_delete=models.CASCADE
-    )
-    xform = models.ForeignKey(
-        XForm, null=True, related_name='instances', on_delete=models.CASCADE
-    )
+    xml_hash = models.CharField(max_length=XML_HASH_LENGTH, db_index=True, null=True,
+                                default=DEFAULT_XML_HASH)
+    user = models.ForeignKey(User, related_name='instances', null=True, on_delete=models.CASCADE)
+    xform = models.ForeignKey(XForm, null=True, related_name='instances', on_delete=models.CASCADE)
     survey_type = models.ForeignKey(SurveyType, on_delete=models.CASCADE)
 
     # this formerly represented "date instance was deleted".
@@ -96,7 +91,8 @@ class Instance(AbstractTimeStampedModel):
     # ODK keeps track of three statuses for an instance:
     # incomplete, submitted, complete
     # we add a fourth status: submitted_via_web
-    status = models.CharField(max_length=20, default='submitted_via_web')
+    status = models.CharField(max_length=20,
+                              default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='', db_index=True)
 
     # store a geographic objects associated with this instance
@@ -113,7 +109,8 @@ class Instance(AbstractTimeStampedModel):
         app_label = 'logger'
         constraints = [
             UniqueConstraint(
-                fields=['root_uuid', 'xform'], name='unique_root_uuid_per_xform'
+                fields=['root_uuid', 'xform'],
+                name='unique_root_uuid_per_xform'
             ),
         ]
 
@@ -182,17 +179,18 @@ class Instance(AbstractTimeStampedModel):
 
         doc[SUBMISSION_TIME] = self.date_created.strftime(MONGO_STRFTIME)
         doc[XFORM_ID_STRING] = self._parser.get_xform_id_string()
-        doc[SUBMITTED_BY] = self.user.username if self.user is not None else None
+        doc[SUBMITTED_BY] = self.user.username\
+            if self.user is not None else None
         self.json = doc
 
     def _set_parser(self):
         if not hasattr(self, '_parser'):
-            self._parser = XFormInstanceParser(self.xml, self.xform.data_dictionary())
+            self._parser = XFormInstanceParser(
+                self.xml, self.xform.data_dictionary())
 
     def _set_survey_type(self):
-        self.survey_type, created = SurveyType.objects.get_or_create(
-            slug=self.get_root_node_name()
-        )
+        self.survey_type, created = \
+            SurveyType.objects.get_or_create(slug=self.get_root_node_name())
 
     def _set_uuid(self):
         if self.xml and not self.uuid:
@@ -216,9 +214,7 @@ class Instance(AbstractTimeStampedModel):
         self.xml_hash = self.get_hash(self.xml)
 
     @classmethod
-    def populate_xml_hashes_for_instances(
-        cls, usernames=None, pk__in=None, repopulate=False
-    ):
+    def populate_xml_hashes_for_instances(cls, usernames=None, pk__in=None, repopulate=False):
         """
         Populate the `xml_hash` field for `Instance` instances limited to the specified users
         and/or DB primary keys.
@@ -267,14 +263,12 @@ class Instance(AbstractTimeStampedModel):
                 # Do a `Queryset.update()` on this individual instance to avoid signals triggering
                 # things like `Reversion` versioning.
                 instances_updated_count = Instance.objects.filter(pk=pk).update(
-                    xml_hash=cls.get_hash(xml)
-                )
+                    xml_hash=cls.get_hash(xml))
                 instances_updated_total += instances_updated_count
 
             # Set up the next chunk
             target_instances_qs_chunk = target_instances_queryset.filter(
-                pk__gt=instance.pk
-            )
+                pk__gt=instance.pk)
 
         return instances_updated_total
 
@@ -286,11 +280,8 @@ class Instance(AbstractTimeStampedModel):
         """Return a python object representation of this instance's XML."""
         self._set_parser()
 
-        return (
-            self._parser.get_flat_dict_with_attributes()
-            if flat
-            else self._parser.to_dict()
-        )
+        return self._parser.get_flat_dict_with_attributes() if flat else\
+            self._parser.to_dict()
 
     def get_full_dict(self):
         # TODO should we store all of these in the JSON no matter what?
@@ -298,11 +289,14 @@ class Instance(AbstractTimeStampedModel):
         data = {
             UUID: self.uuid,
             ID: self.id,
-            self.USERFORM_ID: '%s_%s' % (self.user.username, self.xform.id_string),
-            ATTACHMENTS: [a.media_file.name for a in self.attachments.all()],
+            self.USERFORM_ID: '%s_%s' % (
+                self.user.username,
+                self.xform.id_string),
+            ATTACHMENTS: [a.media_file.name for a in
+                          self.attachments.all()],
             self.STATUS: self.status,
             TAGS: list(self.tags.names()),
-            NOTES: self.get_notes(),
+            NOTES: self.get_notes()
         }
 
         d.update(data)
@@ -371,11 +365,8 @@ class Instance(AbstractTimeStampedModel):
 
 
 if Instance.XML_HASH_LENGTH / 2 != sha256().digest_size:
-    raise AssertionError(
-        'SHA256 hash `digest_size` expected to be `{}`, not `{}`'.format(
-            Instance.XML_HASH_LENGTH, sha256().digest_size
-        )
-    )
+    raise AssertionError('SHA256 hash `digest_size` expected to be `{}`, not `{}`'.format(
+        Instance.XML_HASH_LENGTH, sha256().digest_size))
 
 
 class InstanceHistory(AbstractTimeStampedModel):
@@ -383,8 +374,7 @@ class InstanceHistory(AbstractTimeStampedModel):
         app_label = 'logger'
 
     xform_instance = models.ForeignKey(
-        Instance, related_name='submission_history', on_delete=models.CASCADE
-    )
+        Instance, related_name='submission_history', on_delete=models.CASCADE)
     xml = models.TextField()
     # old instance id
     uuid = models.CharField(max_length=249, default='')
