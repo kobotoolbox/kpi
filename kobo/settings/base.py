@@ -146,6 +146,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'drf_spectacular',
 )
 
 MIDDLEWARE = [
@@ -666,9 +667,6 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     'positive_int_minus_one': ['django.forms.fields.IntegerField', {
         'min_value': -1
     }],
-    'positive_int': ['django.forms.fields.IntegerField', {
-        'min_value': 0
-    }],
 }
 
 CONSTANCE_CONFIG_FIELDSETS = {
@@ -967,6 +965,15 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KoboToolbox API',
+    'DESCRIPTION': 'Warning: experimental schema generation. Use at your own risk.',
+    'VERSION': '0.0.1',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
 }
 
 OPENROSA_REST_FRAMEWORK = {
