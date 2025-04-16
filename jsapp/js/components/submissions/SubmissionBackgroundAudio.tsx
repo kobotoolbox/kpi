@@ -21,6 +21,7 @@ export default function SubmissionBackgroundAudio(props: SubmissionBackgroundAud
     return null
   }
 
+  // TODO: Remove this check after we get single submission modal to always display background audio
   if (!hasBackgroundAudioEnabled(props.survey)) {
     return null
   }
