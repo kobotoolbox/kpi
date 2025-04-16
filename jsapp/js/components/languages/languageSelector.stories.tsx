@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
 import { http, HttpResponse } from 'msw'
 import { environmentResponse } from '#/envStore.mock'
-import { sleep } from '#/storybookUtils'
 import LanguageSelector from './languageSelector'
 import languagesListStoreMock from './languagesListStore.mock'
 
@@ -32,55 +31,66 @@ export const TestSearchAndSelection: Story = {
   play: async ({ args, canvasElement, step }) => {
     const canvas = within(canvasElement)
 
-    await step(
-      'Wait for languages list to be ready and verify that the "Arabic" language is present in the initial list.',
-      async () => {
-        await sleep(2000)
-        const noSearchItem = await canvas.findByText(/^Arabic/)
-        await expect(noSearchItem).toBeInTheDocument()
-      },
-    )
+    await step('Verify that the Arabic language is present in the initial list', async () => {
+      await waitFor(
+        async () => {
+          const noSearchItem = await canvas.findByText(/^Arabic/)
+          await expect(noSearchItem).toBeInTheDocument()
+        },
+        { timeout: 2000 },
+      )
+    })
 
     let searchResultItem: HTMLElement
-    await step(
-      'Type "swed" to find "Swedish" language. Wait for API response and verify that the language is present in the list.',
-      async () => {
-        const searchInput = await canvas.findByRole('searchbox')
-        await userEvent.type(searchInput, 'swed')
-        await sleep(2000)
-        searchResultItem = await canvas.findByText(/^Swedish/)
-        await expect(searchResultItem).toBeInTheDocument()
-      },
-    )
+    await step('Type "swed" to find Swedish language - verify it is present in the search results', async () => {
+      const searchInput = await canvas.findByRole('searchbox')
+      await userEvent.type(searchInput, 'swed')
+      await waitFor(
+        async () => {
+          searchResultItem = await canvas.findByText(/^Swedish/)
+          await expect(searchResultItem).toBeInTheDocument()
+        },
+        { timeout: 2000 },
+      )
+    })
 
     let selectedLanguage: HTMLElement
-    await step(
-      'Click the result to select the language. Search result should be cleared, and the selected language should be displayed.',
-      async () => {
-        await userEvent.click(searchResultItem)
+    await step('Select the Swedish language by clicking on it', async () => {
+      await userEvent.click(searchResultItem)
+      await step('The `onLanguageChange` should be called with {code: "sv"}', async () => {
+        await expect(args.onLanguageChange).toHaveBeenCalledWith(expect.objectContaining({ code: 'sv' }))
+      })
+      await step('The search result should be cleared', async () => {
         await expect(searchResultItem).not.toBeInTheDocument()
+      })
+      await step('The selected language should be displayed', async () => {
         selectedLanguage = await canvas.findByText(/^Swedish/)
         await expect(selectedLanguage).toBeInTheDocument()
-        // Verify that the onLanguageChange callback have been called (i.e. parent component is informed which language
-        // was selected)
-        await expect(args.onLanguageChange).toHaveBeenCalledTimes(1)
-      },
-    )
+      })
+    })
 
-    await sleep(2000)
-
-    await step(
-      'Clear selected result and then clear search input. Wait for response and verify that the initial list is being displayed again.',
-      async () => {
+    await step('Clear selected language', async () => {
+      await step('Selected language should be cleared', async () => {
         const clearSelectedLanguageButton = await canvas.findByTitle('Clear selected language')
         await userEvent.click(clearSelectedLanguageButton)
         await expect(selectedLanguage).not.toBeInTheDocument()
-        const clearSearchButton = await canvas.findByTitle('Clear search')
-        await userEvent.click(clearSearchButton)
-        await sleep(2000)
-        const noSearchItem2 = await canvas.findByText(/^Arabic/)
-        await expect(noSearchItem2).toBeInTheDocument()
-      },
-    )
+      })
+      await step('Previous search results should be visible', async () => {
+        searchResultItem = await canvas.findByText(/^Swedish/)
+        await expect(searchResultItem).toBeInTheDocument()
+      })
+    })
+
+    await step('Clear search input to see initial list', async () => {
+      const clearSearchButton = await canvas.findByTitle('Clear search')
+      await userEvent.click(clearSearchButton)
+      await waitFor(
+        async () => {
+          const noSearchItem2 = await canvas.findByText(/^Arabic/)
+          await expect(noSearchItem2).toBeInTheDocument()
+        },
+        { timeout: 2000 },
+      )
+    })
   },
 }
