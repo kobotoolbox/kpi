@@ -272,7 +272,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
       <bem.LanguageSelector__selectedLanguage>
         <Icon name='language-alt' size='m' />
 
-        <bem.LanguageSelector__selectedLanguageLabel>
+        <bem.LanguageSelector__selectedLanguageLabel title={t('Selected language')}>
           <LanguageDisplayLabel code={this.state.selectedLanguage.code} name={this.state.selectedLanguage.name} />
         </bem.LanguageSelector__selectedLanguageLabel>
 

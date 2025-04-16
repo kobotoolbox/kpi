@@ -58,7 +58,7 @@ export const TestSearchAndSelection: Story = {
         await expect(searchResultItem).not.toBeInTheDocument()
       })
       await step('The selected language should be displayed', async () => {
-        selectedLanguage = await canvas.findByText(/^Swedish/)
+        selectedLanguage = await canvas.findByTitle('Selected language')
         await expect(selectedLanguage).toBeInTheDocument()
       })
     })
