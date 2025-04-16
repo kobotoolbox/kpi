@@ -60,6 +60,13 @@ class MissingValidationStatusPayloadError(Exception):
     pass
 
 
+class RootUUIDConstraintNotEnforced(RuntimeError):
+    """
+    Raised when the unique constraint on root_uuid is missing or invalid.
+    """
+    pass
+
+
 class TemporarilyUnavailableError(Exception):
     pass
 
