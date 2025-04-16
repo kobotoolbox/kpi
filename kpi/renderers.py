@@ -24,7 +24,7 @@ class AssetJsonRenderer(renderers.JSONRenderer):
 
 class MediaFileRenderer(renderers.BaseRenderer):
     media_type = '*/*'
-    format = None
+    format = 'TODO'
     charset = None
     render_style = 'binary'
 
