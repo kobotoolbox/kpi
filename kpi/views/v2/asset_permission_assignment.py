@@ -191,7 +191,7 @@ class AssetPermissionAssignmentViewSet(
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
     log_type = AuditType.PROJECT_HISTORY
-    logged_fields = ['asset.id']
+    logged_fields = ['asset.id', 'asset.owner.username']
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
@@ -208,7 +208,7 @@ class AssetPermissionAssignmentViewSet(
         :param request:
         :return: JSON
         """
-        request._request.updated_data = {'asset.id': self.asset.id}
+        request._request.updated_data = {'asset.id': self.asset.id, 'asset.owner.username': self.asset.owner.username}
         serializer = AssetBulkInsertPermissionSerializer(
             data={'assignments': request.data},
             context=self.get_serializer_context(),
@@ -226,7 +226,7 @@ class AssetPermissionAssignmentViewSet(
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
-        request._request.initial_data = {'asset.id': self.asset.id}
+        request._request.initial_data = {'asset.id': self.asset.id, 'asset.owner.username': self.asset.owner.username}
 
         if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
             PERM_VIEW_ASSET, source_asset
@@ -283,7 +283,7 @@ class AssetPermissionAssignmentViewSet(
             )
         # we don't call perform_destroy, so manually attach the relevant
         # information to the request
-        request._request.initial_data = {'asset.id': self.asset.id}
+        request._request.initial_data = {'asset.id': self.asset.id, 'asset.owner.username': self.asset.owner.username}
         codename = object_permission.permission.codename
         self.asset.remove_perm(user, codename)
         return Response(status=status.HTTP_204_NO_CONTENT)
