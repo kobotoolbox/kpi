@@ -3,9 +3,14 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kobo.apps.reports import report_data
+from kpi.models import Asset
 
 
-class ReportsDetailSerializer(serializers.BaseSerializer):
+class ReportsDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Asset
+        fields = '__all__'
 
     def to_representation(self, obj):
         request = self.context['request']
@@ -28,4 +33,13 @@ class ReportsDetailSerializer(serializers.BaseSerializer):
             'url': reverse('asset-reports', args=(obj.uid,), request=request),
             'count': len(_list),
             'list': _list,
+        }
+
+
+class ReportsListSerializer(ReportsDetailSerializer):
+
+    def to_representation(self, obj):
+        request = self.context['request']
+        return {
+            'url': reverse('reports-detail', args=(obj.uid,), request=request),
         }
