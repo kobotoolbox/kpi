@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import { http, HttpResponse } from 'msw'
-import { environmentResponse } from '#/envStore.mock'
+import envStoreMock from '#/envStore.mock'
 import LanguageSelector from './languageSelector'
 import languagesListStoreMock from './languagesListStore.mock'
 
@@ -11,7 +10,7 @@ const meta: Meta<typeof LanguageSelector> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [languagesListStoreMock, http.get('/environment/', () => HttpResponse.json(environmentResponse))],
+      handlers: [languagesListStoreMock, envStoreMock],
     },
   },
 }
