@@ -20,7 +20,7 @@ admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 
 urlpatterns = [
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/', SpectacularAPIView.as_view(api_version='api_v2'), name='schema'),
     path(
         'api/schema/swagger/',
         SpectacularSwaggerView.as_view(url_name='schema'),
