@@ -12,21 +12,16 @@ import KoboSelect from '#/components/common/koboSelect'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
-import { markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
+import { getBackgroundAudioAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
 import type { SubmissionPageName } from '#/components/submissions/table.types'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
-import { EnketoActions, MODAL_TYPES}  from '#/constants'
+import { EnketoActions, MODAL_TYPES } from '#/constants'
 import { dataInterface } from '#/dataInterface'
-import type {
-  AssetResponse,
-  FailResponse,
-  SubmissionResponse,
-  ValidationStatusResponse,
-} from '#/dataInterface'
+import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
@@ -675,12 +670,15 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       return <CenteredMessage message={t('Unknown error')} />
     }
 
+    // Get background audio
+    // Note: we do this here to avoid a weird interation with onDeleted if we pass the uid back up to this component
+    const bgAudio = getBackgroundAudioAttachment(this.props.asset, this.state.submission)
+
     // Each of these `renderX()` functions handle the conditional rendering
     // by itself
+    // TODO: Move each of these render functions to a different component to shorthen this file
     return (
       <>
-        {/*TODO: Move each of these render functions to a different component to shorthen this file*/}
-
         {this.renderDuplicatedSubmissionSubheader()}
 
         {this.renderRefreshWarning()}
@@ -689,14 +687,15 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
         {this.renderSubmissionActions()}
 
-        {this.props.asset.content?.survey &&
+        {this.props.asset.content?.survey && bgAudio && (
           <SubmissionBackgroundAudio
             asset={this.props.asset}
             submission={this.state.submission}
             survey={this.props.asset.content?.survey}
-            onDeleted={this.handleDeletedAttachment}
+            audio={bgAudio}
+            onDeleted={() => this.handleDeletedAttachment(bgAudio?.uid)}
           />
-        }
+        )}
 
         <SubmissionDataTable
           asset={this.props.asset}
