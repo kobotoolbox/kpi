@@ -146,6 +146,7 @@ INSTALLED_APPS = (
     'kobo.apps.openrosa.libs',
     'kobo.apps.project_ownership.app.ProjectOwnershipAppConfig',
     'kobo.apps.long_running_migrations.app.LongRunningMigrationAppConfig',
+    'drf_spectacular',
 )
 
 MIDDLEWARE = [
@@ -967,6 +968,20 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
     # Cannot be placed in kpi.exceptions.py because of circular imports
     'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Settings for the API documentation using drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KoboToolbox API',
+    'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
+    'SERVE_INCLUDE_SCHEMA': True,
+    # 'PREPROCESSING_HOOKS': ['kpi.utils.spectacular_print.preprocessing_filter_spec'],
+    # 'POSTPROCESSING_HOOKS': ['kpi.utils.spectacular_print.postProcess_schema_enums'],
+    'DEFAULT_GENERATOR_CLASS':
+        'kpi.utils.spectacular_generator_override.SpectacularOverride',
+    'COMPONENT_NO_READ_ONLY_REQUIRED': False,
+    'DEBUG': True,
 }
 
 OPENROSA_REST_FRAMEWORK = {
