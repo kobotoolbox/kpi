@@ -1,5 +1,6 @@
-import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
+import type { ElementProps, MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
@@ -16,7 +17,6 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   //// Custom:
   'danger',
   'danger-secondary',
-
   'transparent',
 ]
 
@@ -105,44 +105,12 @@ const meta: Meta<typeof Button> = {
 }
 
 export default meta
+type StoryArgs = ButtonProps & ElementProps<'button', keyof ButtonProps> & { 'data-testid'?: string }
+type Story = StoryObj<typeof Button> & { args: StoryArgs }
 
-type Story = StoryObj<typeof Button>
-
-export const Primary: Story = {
+export const Default: Story = {
   args: {
     variant: 'filled',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Secondary: Story = {
-  args: {
-    variant: 'light',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Danger: Story = {
-  args: {
-    variant: 'danger',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const SecondaryDanger: Story = {
-  args: {
-    variant: 'danger-secondary',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Text: Story = {
-  args: {
-    variant: 'transparent',
     size: 'lg',
     children: 'Click me',
   },
@@ -171,7 +139,7 @@ const demoButtons: Array<{ label?: string; leftIconName?: IconName }> = [
  * - with label x icon configurations,
  * - and in idle, pending, and disabled states.
  */
-export const AllButtons = () => (
+export const Preview = () => (
   <div
     style={{
       display: 'grid',
@@ -208,3 +176,30 @@ export const AllButtons = () => (
     )}
   </div>
 )
+
+export const TestClick: Story = {
+  args: {
+    children: 'Click me',
+    onClick: fn(),
+    'data-testid': 'Button-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId((args as StoryArgs)['data-testid']!))
+    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
+  },
+}
+
+export const TestClickDisabled: Story = {
+  args: {
+    disabled: true,
+    children: 'Click me',
+    onClick: fn(),
+    'data-testid': 'Button-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId((args as StoryArgs)['data-testid']!))
+    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(0)
+  },
+}
