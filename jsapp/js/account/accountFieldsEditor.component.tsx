@@ -214,6 +214,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (
             <div className={styles.field}>
               <Select
+                size='sm'
                 label={getLabel('gender')}
                 required={isRequired('gender')}
                 name='gender'
@@ -243,6 +244,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (
             <div className={styles.field}>
               <Select
+                size='sm'
                 label={getLabel('country')}
                 required={isRequired('country')}
                 name='country'
@@ -278,6 +280,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (
             <div className={styles.field}>
               <Select
+                size='sm'
                 label={getLabel('sector')}
                 required={isRequired('sector')}
                 name='sector'
@@ -299,6 +302,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (
             <div className={cx(styles.field, styles.orgTypeDropdown)}>
               <Select
+                size='sm'
                 label={getLabel('organization_type')}
                 required={isRequired('organization_type')}
                 name='organization_type'
@@ -309,7 +313,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
                 data={ORGANIZATION_TYPE_SELECT_OPTIONS}
                 error={props.errors?.organization_type}
-                noMaxMenuHeight
               />
             </div>
           ))}
