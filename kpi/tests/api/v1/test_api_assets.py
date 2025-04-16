@@ -4,13 +4,13 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
+from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
-from kpi.models import Asset, ExportTask
+from kpi.models import Asset, SubmissionExportTask
 from kpi.models.import_export_task import export_upload_to
 from kpi.serializers.v1.asset import AssetListSerializer
 
@@ -18,6 +18,7 @@ from kpi.serializers.v1.asset import AssetListSerializer
 from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -43,6 +44,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
 
+    @unittest.skip(reason='`owner_label` field only exists in v2 endpoint')
+    def test_asset_owner_label(self):
+        pass
+
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
@@ -54,6 +59,12 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     @unittest.skip(reason='`assignable_permissions` property only exists in '
                           'v2 endpoint')
     def test_assignable_permissions(self):
+        pass
+
+    @unittest.skip(
+        reason='`project_ownership` property only exists in v2 endpoint'
+    )
+    def test_ownership_transfer_status(self):
         pass
 
 
@@ -280,14 +291,15 @@ class AssetExportTaskTest(BaseTestCase):
         )
 
     def test_owner_can_create_export(self):
-        post_url = reverse('exporttask-list')
+        post_url = reverse('submissionexporttask-list')
         asset_url = reverse('asset-detail', args=[self.asset.uid])
         task_data = {
             'source': asset_url,
             'type': 'csv',
         }
-        # Create the export task
-        response = self.client.post(post_url, task_data)
+        with immediate_on_commit():
+            # Create the export task
+            response = self.client.post(post_url, task_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         detail_response = self.client.get(response.data['url'])
@@ -349,12 +361,12 @@ class AssetExportTaskTest(BaseTestCase):
         )
         file_path = export_upload_to(self, file_name)
 
-        detail_url = reverse('exporttask-detail', kwargs={
+        detail_url = reverse('submissionexporttask-detail', kwargs={
             'uid': detail_response.data['uid']
             })
 
         # checking if file exists before attempting to delete
-        file_exists_before_delete = ExportTask.result.field.storage.exists(
+        file_exists_before_delete = SubmissionExportTask.result.field.storage.exists(
             name=file_path
         )
         assert file_exists_before_delete
@@ -364,7 +376,7 @@ class AssetExportTaskTest(BaseTestCase):
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 
         # checking if file still exists after attempting to delete it
-        file_exists_after_delete = ExportTask.result.field.storage.exists(
+        file_exists_after_delete = SubmissionExportTask.result.field.storage.exists(
             name=file_path
         )
         assert not file_exists_after_delete

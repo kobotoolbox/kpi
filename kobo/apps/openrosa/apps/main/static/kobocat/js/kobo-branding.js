@@ -1,21 +1,21 @@
-$(document).ready(function() {
-  $(document).on("click", ".header-bar__top-level-menu-button", function () {
-    $('.top-level-menu').toggleClass('is-active');
-  });
+$(document).ready(() => {
+  $(document).on('click', '.header-bar__top-level-menu-button', () => {
+    $('.top-level-menu').toggleClass('is-active')
+  })
 
-  $('table.published_forms__table').footable();
+  $('table.published_forms__table').footable()
 
   if (inIframe()) {
-  	$('body').addClass('in-iframe');
+    $('body').addClass('in-iframe')
   } else {
-  	$('body').addClass('not-in-iframe');
+    $('body').addClass('not-in-iframe')
   }
-}); 
+})
 
-function inIframe () {
-    try {
-        return window.self !== window.top;
-    } catch (e) {
-        return true;
-    }
+function inIframe() {
+  try {
+    return window.self !== window.top
+  } catch (e) {
+    return true
+  }
 }

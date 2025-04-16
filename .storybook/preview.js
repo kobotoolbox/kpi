@@ -1,16 +1,48 @@
-import 'jsapp/scss/main.scss';
-import 'js/bemComponents';
+import 'scss/main.scss'
+import '#/bemComponents'
+import '@mantine/core/styles.css'
+
+import { useEffect } from 'react'
+
+import { MantineProvider, useMantineColorScheme } from '@mantine/core'
+import { addons } from '@storybook/preview-api'
+import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
+import { themeKobo } from '#/theme'
+
+const channel = addons.getChannel()
+
+function ColorSchemeWrapper({ children }) {
+  const { setColorScheme } = useMantineColorScheme()
+  const handleColorScheme = (value) => setColorScheme(value ? 'dark' : 'light')
+
+  useEffect(() => {
+    channel.on(DARK_MODE_EVENT_NAME, handleColorScheme)
+    return () => channel.off(DARK_MODE_EVENT_NAME, handleColorScheme)
+  }, [channel])
+
+  return <>{children}</>
+}
+
+export const decorators = [
+  (renderStory) => <ColorSchemeWrapper>{renderStory()}</ColorSchemeWrapper>,
+  (renderStory) => <MantineProvider theme={themeKobo}>{renderStory()}</MantineProvider>,
+]
 
 export const parameters = {
-  actions: {argTypesRegex: '^on[A-Z].*'},
+  options: {
+    storySort: {
+      method: 'alphabetical',
+      order: ['Design system', 'Design system old', 'Components', '*'],
+    },
+  },
+  actions: { argTypesRegex: '^on[A-Z].*' },
   controls: {
     matchers: {
       color: /(background|color)$/i,
       date: /Date$/,
     },
   },
-};
+}
 
-window.t = function (str) {
-  return str;
-};
+window.t = (str) => str
+export const tags = ['autodocs']

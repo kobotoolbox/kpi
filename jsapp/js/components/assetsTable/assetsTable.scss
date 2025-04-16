@@ -1,6 +1,6 @@
 @use 'scss/colors';
-@use "scss/_variables";
-@use "scss/libs/_mdl";
+@use 'scss/_variables';
+@use 'scss/libs/_mdl';
 @use 'scss/z-indexes';
 @use 'scss/mixins';
 
@@ -114,7 +114,7 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 16px 0 0 0;
+      padding: 16px 0 0;
 
       .k-icon {
         font-size: 24px;
@@ -137,7 +137,7 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
       }
 
       &::after {
-        content: "";
+        content: '';
         background-color: colors.$kobo-teal;
         position: absolute;
         z-index: 0;
@@ -188,7 +188,7 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
 
       &.k-icon-filter-arrows {
         font-size: 9px;
-        margin-left: 0px !important;
+        margin-left: 0 !important;
       }
     }
 
@@ -197,10 +197,10 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
 
       .popover-menu__toggle {
         display: block;
-        color: currentColor;
+        color: currentcolor;
 
         &:hover {
-          color: currentColor;
+          color: currentcolor;
         }
 
         .k-icon {
@@ -314,7 +314,7 @@ $assets-table-hover-bg: colors.$kobo-gray-100;
   padding: 3px 5px;
   font-size: 12px;
   line-height: 1;
-  color: currentColor;
+  color: currentcolor;
   background: colors.$kobo-gray-300;
   border-radius: 2px;
 

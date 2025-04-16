@@ -1,16 +1,17 @@
-import React, {useContext} from 'react';
-import styles from './selectXFieldsEditor.module.scss';
-import type {AdditionalFields} from 'js/components/processing/analysis/constants';
-import Button from 'js/components/common/button';
-import {generateUuid} from 'js/utils';
-import TextBox from 'jsapp/js/components/common/textBox';
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {findQuestion} from 'js/components/processing/analysis/utils';
+import React, { useContext } from 'react'
+
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import type { AdditionalFields } from '#/components/processing/analysis/constants'
+import { findQuestion } from '#/components/processing/analysis/utils'
+import { generateUuid } from '#/utils'
+import styles from './selectXFieldsEditor.module.scss'
 
 interface SelectXFieldsEditorProps {
-  questionUuid: string;
-  fields: AdditionalFields;
-  onFieldsChange: (fields: AdditionalFields) => void;
+  questionUuid: string
+  fields: AdditionalFields
+  onFieldsChange: (fields: AdditionalFields) => void
 }
 
 /**
@@ -18,15 +19,15 @@ interface SelectXFieldsEditorProps {
  * expose editing the choice label to users - the choice uuid is pregenerated.
  */
 export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext);
+  const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
-    return null;
+    return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.questionUuid, analysisQuestions.state);
+  const question = findQuestion(props.questionUuid, analysisQuestions.state)
   if (!question) {
-    return null;
+    return null
   }
 
   function updateChoiceLabel(uuid: string, newLabel: string) {
@@ -35,13 +36,13 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         if (choice.uuid === uuid) {
           return {
             ...choice,
-            labels: {_default: newLabel},
-          };
+            labels: { _default: newLabel },
+          }
         } else {
-          return choice;
+          return choice
         }
       }),
-    });
+    })
   }
 
   function addChoice() {
@@ -50,19 +51,17 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         ...(props.fields.choices || []),
         {
           uuid: generateUuid(),
-          labels: {_default: ''},
+          labels: { _default: '' },
         },
       ],
-    });
+    })
   }
 
   function deleteChoice(uuid: string) {
     // When we are going to delete a choice, we need to check if it already
     // existed in the stored data, or if it was simply created but not saved yet.
 
-    const foundChoice = question?.additionalFields?.choices?.find(
-      (item) => item.uuid === uuid
-    );
+    const foundChoice = question?.additionalFields?.choices?.find((item) => item.uuid === uuid)
 
     if (foundChoice) {
       // flag it
@@ -70,20 +69,18 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         choices: (props.fields.choices || []).map((choice) => {
           if (choice.uuid === uuid) {
             if (typeof choice.options !== 'object') {
-              choice.options = {};
+              choice.options = {}
             }
-            choice.options.deleted = true;
+            choice.options.deleted = true
           }
-          return choice;
+          return choice
         }),
-      });
+      })
     } else {
       // remove it
       props.onFieldsChange({
-        choices: (props.fields.choices || []).filter(
-          (choice) => choice.uuid !== uuid
-        ),
-      });
+        choices: (props.fields.choices || []).filter((choice) => choice.uuid !== uuid),
+      })
     }
   }
 
@@ -91,10 +88,10 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
   const choicesToDisplay =
     props.fields.choices?.filter((item) => {
       if (item.options?.deleted) {
-        return false;
+        return false
       }
-      return true;
-    }) || [];
+      return true
+    }) || []
 
   return (
     <>
@@ -102,9 +99,7 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         <div className={styles.choice} key={choice.uuid}>
           <TextBox
             value={choice.labels._default}
-            onChange={(newLabel: string) =>
-              updateChoiceLabel(choice.uuid, newLabel)
-            }
+            onChange={(newLabel: string) => updateChoiceLabel(choice.uuid, newLabel)}
             placeholder={t('Type option name')}
             className={styles.labelInput}
             size='m'
@@ -132,5 +127,5 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
         />
       </div>
     </>
-  );
+  )
 }

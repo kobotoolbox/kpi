@@ -137,7 +137,7 @@ $side-tabs-width-mobile: 70px;
       // left border is detached from horizontal lines,
       // so we need to make it a separate element
       &::before {
-        content: "";
+        content: '';
         position: absolute;
         width: 4px;
         height: 100%;
@@ -197,12 +197,6 @@ $side-tabs-width-mobile: 70px;
 
   &.historyExpanded .form-view__cell--history-table + .form-view__cell {
     padding-top: 20px;
-  }
-}
-
-.form-view__row--history {
-  .form-view__cell--history-table {
-    margin-bottom: 20px;
   }
 }
 
@@ -279,15 +273,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--padding {
-    padding: 20px;
-  }
-
-  &.form-view__cell--small-padding {
-    padding: 10px 20px 20px 20px;
-  }
-
-  &.form-view__cell--padding-small {
-    padding: 10px 20px;
+    padding: var(--mantine-spacing-lg);
   }
 
   &.form-view__cell--full-width {
@@ -312,7 +298,7 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--first {
-    padding-bottom: 20px;
+    padding-bottom: var(--mantine-spacing-lg);
     position: relative;
 
     .form-view__group {
@@ -497,8 +483,9 @@ $side-tabs-width-mobile: 70px;
 
 .form-view.form-view--form-settings-sharing {
   background: colors.$kobo-white;
+
   .form-modal {
-    padding: 40px 40px 16px 40px;
+    padding: 40px 40px 16px;
     overflow: auto;
   }
 }
@@ -565,13 +552,17 @@ $side-tabs-width-mobile: 70px;
   gap: 10px;
 }
 
-.form-view__cell--collect-meta {
-  pre {
-    display: block;
-    margin: 10px 0;
-    padding: 10px;
+.collect-meta-description {
+  pre,
+  code {
     border: 1px solid colors.$kobo-gray-300;
     background: colors.$kobo-gray-200;
+  }
+
+  pre {
+    display: block;
+    margin: 0;
+    padding: 10px;
     font-size: 13px;
     white-space: normal;
   }
@@ -580,7 +571,7 @@ $side-tabs-width-mobile: 70px;
     margin: 0;
     padding: 0;
     margin-left: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 0;
 
     li {
       margin-bottom: 5px;
@@ -596,18 +587,12 @@ $side-tabs-width-mobile: 70px;
 
   code {
     padding: 4px;
-    border: 1px solid colors.$kobo-gray-300;
-    background: colors.$kobo-gray-200;
     margin-left: 5px;
     margin-right: 5px;
   }
-
-  .form-view__cell {
-    margin-top: 25px;
-  }
 }
 
-@media screen and (max-height: 420px) {
+@media screen and (height <= 420px) {
   .form-view__sidetabs {
     padding-top: 0;
 
@@ -718,6 +703,7 @@ $side-tabs-width-mobile: 70px;
 .anonymousSubmissionDialog {
   margin-top: 3px;
 }
+
 .anonymousSubmissionPointer {
   left: 1em;
 }

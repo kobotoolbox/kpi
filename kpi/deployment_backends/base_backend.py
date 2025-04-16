@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import abc
@@ -22,6 +21,9 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -34,6 +36,7 @@ from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -424,7 +427,7 @@ class BaseDeploymentBackend(abc.ABC):
     def rename_enketo_id_key(self, previous_owner_username: str):
         pass
 
-    def save_to_db(self, updates: dict):
+    def save_to_db(self, updates: dict, update_date_modified=True):
         """
         Persist values from deployment data into the DB.
         `updates` is a dictionary of properties to update.
@@ -439,16 +442,16 @@ class BaseDeploymentBackend(abc.ABC):
 
         # never save `_stored_data_key` attribute
         updates.pop('_stored_data_key', None)
+        fields_to_update = {
+            '_deployment_data': UpdateJSONFieldAttributes('_deployment_data', updates),
+            '_deployment_status': self.asset.deployment_status,
+        }
+        if update_date_modified:
+            fields_to_update['date_modified'] = now
 
-        self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=UpdateJSONFieldAttributes(
-                '_deployment_data',
-                updates=updates,
-            ),
-            date_modified=now,
-            _deployment_status=self.asset.deployment_status
-        )
-        self.asset.date_modified = now
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(**fields_to_update)
+        if update_date_modified:
+            self.asset.date_modified = now
 
     @abc.abstractmethod
     def set_active(self, active: bool):
@@ -782,8 +785,26 @@ class BaseDeploymentBackend(abc.ABC):
             queryset = PairedData.objects(self.asset).values()
             return queryset
 
+    def _inject_properties(
+        self, submission: dict, request: 'rest_framework.request.Request'
+    ) -> dict:
+        submission = self._rewrite_json_attachment_urls(submission, request)
+        submission = self._inject_root_uuid(submission)
+        return submission
+
+    def _inject_root_uuid(self, submission: dict) -> dict:
+
+        if submission.get(META_ROOT_UUID):
+            return submission
+
+        submission[META_ROOT_UUID] = submission.get(
+            META_INSTANCE_ID, add_uuid_prefix(submission['_uuid'])
+        )
+
+        return submission
+
     def _rewrite_json_attachment_urls(
-        self, submission: dict, request
+        self, submission: dict, request: 'rest_framework.request.Request'
     ) -> dict:
         if not request or '_attachments' not in submission:
             return submission
@@ -793,16 +814,32 @@ class BaseDeploymentBackend(abc.ABC):
             submission, attachment_xpaths
         )
 
+        if is_uid_missing := any(
+            'uid' not in attachment for attachment in submission['_attachments']
+        ):
+            attachment_ids = [
+                attachment['id'] for attachment in submission['_attachments']
+            ]
+            attachments = Attachment.objects.filter(pk__in=attachment_ids).values(
+                'pk', 'uid'
+            )
+            attachment_map = {a['pk']: a.get('uid', a['pk']) for a in attachments}
+            # log a warning to make it appear in logs & sentry to monitor purposes
+            logging.warning('Uids are missing for some attachments in the submission')
+
         for attachment in submission['_attachments']:
             # We should use 'attachment-list' with `?xpath=` but we do not
-            # know what the XPath is here. Since the primary key is already
-            # exposed, let's use it to build the url.
+            # know what the XPath is here so we will use the uid to build the url.
+            if is_uid_missing:
+                # Add uid to attachment data
+                attachment['uid'] = attachment_map.get(attachment['id'])
+
             kpi_url = reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
-                    attachment['id'],
+                    attachment['uid'],
                 ),
                 request=request,
             )
@@ -815,7 +852,7 @@ class BaseDeploymentBackend(abc.ABC):
                         args=(
                             self.asset.uid,
                             submission['_id'],
-                            attachment['id'],
+                            attachment['uid'],
                             suffix,
                         ),
                         request=request,
@@ -843,5 +880,13 @@ class BaseDeploymentBackend(abc.ABC):
             # Retrieve XPath and add it to attachment dictionary
             basename = os.path.basename(attachment['filename'])
             attachment['question_xpath'] = filenames_and_xpaths.get(basename, '')
+
+            # Remove unwanted keys
+            if 'instance' in attachment:
+                del attachment['instance']
+            if 'xform' in attachment:
+                del attachment['xform']
+            if 'id' in attachment:
+                del attachment['id']
 
         return submission

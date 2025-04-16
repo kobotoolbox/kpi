@@ -8,6 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
+from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
 from kpi.exceptions import SubmissionIntegrityError
@@ -28,7 +30,7 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
-class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
+class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """
     <span class='label label-danger'>TODO Documentation for this endpoint</span>
@@ -44,6 +46,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     renderer_classes = NoUpdateModelViewSet.renderer_classes + [
         XMLRenderer,
     ]
+    log_type = AuditType.PROJECT_HISTORY
 
     @property
     def asset(self):
@@ -74,11 +77,8 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             if not user.is_anonymous:
                 owned_snapshots = queryset.filter(owner=user)
 
-            return (
-                owned_snapshots
-                | RelatedAssetPermissionsFilter().filter_queryset(
-                    self.request, queryset, view=self
-                )
+            return owned_snapshots | RelatedAssetPermissionsFilter().filter_queryset(
+                self.request, queryset, view=self
             )
 
     @action(
@@ -103,13 +103,16 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     def get_object(self):
         try:
-            snapshot = self.queryset.select_related('asset').defer(
-                'asset__content'
-            ).get(uid=self.kwargs[self.lookup_field])
+            snapshot = (
+                self.queryset.select_related('asset')
+                .defer('asset__content')
+                .get(uid=self.kwargs[self.lookup_field])
+            )
         except AssetSnapshot.DoesNotExist:
             raise Http404
 
         self._asset = snapshot.asset
+        self.request._request.asset = self._asset
         self.check_object_permissions(self.request, snapshot)
 
         return self._add_disclaimer(snapshot)
@@ -207,12 +210,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             return self.get_response_for_head_request()
 
         asset_snapshot = self.get_object()
-
         xml_submission_file = request.data['xml_submission_file']
 
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
-
         try:
             with http_open_rosa_error_handler(
                 lambda: asset_snapshot.asset.deployment.edit_submission(

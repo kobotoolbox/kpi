@@ -9,7 +9,6 @@ from django.template import RequestContext, Template
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from djstripe.models import APIKey
 from markdown import markdown
 from model_bakery import baker
 from rest_framework import status
@@ -21,13 +20,14 @@ from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS, FREE_TIER_EMPTY_DISPLAY
+from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
 from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_database_user
 
 
-class EnvironmentTests(BaseTestCase):
+class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     fixtures = ['test_data']
 
     today = timezone.now()
@@ -45,6 +45,10 @@ class EnvironmentTests(BaseTestCase):
       ]
     }
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.create_stripe_api_key()
+
     def setUp(self):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
@@ -55,6 +59,7 @@ class EnvironmentTests(BaseTestCase):
             'source_code_url': constance.config.SOURCE_CODE_URL,
             'support_email': constance.config.SUPPORT_EMAIL,
             'support_url': constance.config.SUPPORT_URL,
+            'academy_url': constance.config.ACADEMY_URL,
             'community_url': constance.config.COMMUNITY_URL,
             'frontend_min_retry_time': constance.config.FRONTEND_MIN_RETRY_TIME,
             'frontend_max_retry_time': constance.config.FRONTEND_MAX_RETRY_TIME,
@@ -71,8 +76,8 @@ class EnvironmentTests(BaseTestCase):
             'sector_choices': lambda x: self.assertGreater(len(x), 10)
             and self.assertIn(
                 (
-                    "Humanitarian - Sanitation, Water & Hygiene",
-                    "Humanitarian - Sanitation, Water & Hygiene",
+                    'Humanitarian - Sanitation, Water & Hygiene',
+                    'Humanitarian - Sanitation, Water & Hygiene',
                 ),
                 x,
             ),
@@ -99,15 +104,8 @@ class EnvironmentTests(BaseTestCase):
                 )
             ),
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
-            'stripe_public_key': (
-                str(
-                    APIKey.objects.get(
-                        type='publishable', livemode=settings.STRIPE_LIVE_MODE
-                    ).secret
-                )
-                if settings.STRIPE_ENABLED
-                else None
-            ),
+            # stripe key added below if stripe is enabled
+            'stripe_public_key': None,
             'free_tier_thresholds': to_python_object(
                 constance.config.FREE_TIER_THRESHOLDS
             ),
@@ -126,8 +124,19 @@ class EnvironmentTests(BaseTestCase):
             ),
             'open_rosa_server': settings.KOBOCAT_URL,
             'terms_of_service__sitewidemessage__exists': False,
+            'project_history_log_lifespan': (
+                constance.config.PROJECT_HISTORY_LOG_LIFESPAN
+            ),
             'use_team_label': constance.config.USE_TEAM_LABEL,
         }
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            self.dict_checks['stripe_public_key'] = str(
+                APIKey.objects.get(
+                    type='publishable', livemode=settings.STRIPE_LIVE_MODE
+                ).secret
+            )
 
     def _check_response_dict(self, response_dict):
         self.assertEqual(len(response_dict), len(self.dict_checks))
@@ -309,11 +318,11 @@ class EnvironmentTests(BaseTestCase):
         self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
         self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
 
-    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
         # GET mutates state, call it first to test num queries later
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 26)
+        queries = FuzzyInt(18, 29)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -328,11 +337,11 @@ class EnvironmentTests(BaseTestCase):
                 response = self.client.get(self.url, format='json')
         self.assertContains(response, app.name)
 
-    @override_settings(SOCIALACCOUNT_PROVIDERS={}, STRIPE_ENABLED=False)
+    @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps_no_custom_data(self):
         SocialAppCustomData.objects.all().delete()
         self.client.get(self.url, format='json')
-        queries = FuzzyInt(18, 26)
+        queries = FuzzyInt(18, 29)
         with self.assertNumQueries(queries):
             response = self.client.get(self.url, format='json')
 
@@ -355,12 +364,17 @@ class EnvironmentTests(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data['terms_of_service__sitewidemessage__exists']
 
-    @override_settings(STRIPE_ENABLED=False)
+    @pytest.mark.skipif(
+        settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
+    )
     def test_stripe_public_key_when_stripe_disabled(self):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] is None
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_stripe_public_key_when_stripe_enabled(self):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK

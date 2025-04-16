@@ -1,47 +1,43 @@
-import React, {useContext} from 'react';
-import CommonHeader from './commonHeader.component';
-import commonStyles from './common.module.scss';
-import styles from './keywordSearchResponseForm.module.scss';
-import Button from 'js/components/common/button';
-import AnalysisQuestionsContext from 'js/components/processing/analysis/analysisQuestions.context';
-import {
-  findQuestion,
-  getQuestionTypeDefinition,
-} from 'js/components/processing/analysis/utils';
-import Badge from 'jsapp/js/components/common/badge';
+import React, { useContext } from 'react'
+
+import Badge from '#/components/common/badge'
+import Button from '#/components/common/button'
+import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition } from '#/components/processing/analysis/utils'
+import commonStyles from './common.module.scss'
+import CommonHeader from './commonHeader.component'
+import styles from './keywordSearchResponseForm.module.scss'
 
 interface KeywordSearchResponseFormProps {
-  uuid: string;
+  uuid: string
 }
 
 /**
  * TBD, see https://github.com/kobotoolbox/kpi/issues/4594
  */
-export default function KeywordSearchResponseForm(
-  props: KeywordSearchResponseFormProps
-) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext);
+export default function KeywordSearchResponseForm(props: KeywordSearchResponseFormProps) {
+  const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
-    return null;
+    return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state);
+  const question = findQuestion(props.uuid, analysisQuestions.state)
   if (!question) {
-    return null;
+    return null
   }
 
   // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type);
+  const qaDefinition = getQuestionTypeDefinition(question.type)
   if (!qaDefinition) {
-    return null;
+    return null
   }
 
   function startPollingForSearchFinished() {
     // TODO: make this work ;-)
 
     setTimeout(() => {
-      console.log('QA fake API call: poll for search finished DONE');
+      console.log('QA fake API call: poll for search finished DONE')
       analysisQuestions?.dispatch({
         type: 'initialiseSearchCompleted',
         payload: {
@@ -55,24 +51,24 @@ export default function KeywordSearchResponseForm(
                   ...item.additionalFields,
                   isSearching: false,
                 },
-              };
+              }
             } else {
-              return item;
+              return item
             }
           }),
         },
-      });
-    }, 5000);
+      })
+    }, 5000)
   }
 
   function applySearch() {
-    analysisQuestions?.dispatch({type: 'initialiseSearch'});
+    analysisQuestions?.dispatch({ type: 'initialiseSearch' })
 
     // TODO make actual API call here
     // For now we make a fake response
-    console.log('QA fake API call: initialise search', props.uuid);
+    console.log('QA fake API call: initialise search', props.uuid)
     setTimeout(() => {
-      console.log('QA fake API call: initialise search DONE');
+      console.log('QA fake API call: initialise search DONE')
       analysisQuestions?.dispatch({
         type: 'initialiseSearchCompleted',
         payload: {
@@ -84,16 +80,16 @@ export default function KeywordSearchResponseForm(
                   ...item.additionalFields,
                   isSearching: true,
                 },
-              };
+              }
             } else {
-              return item;
+              return item
             }
           }),
         },
-      });
+      })
 
-      startPollingForSearchFinished();
-    }, 1000);
+      startPollingForSearchFinished()
+    }, 1000)
   }
 
   return (
@@ -103,11 +99,7 @@ export default function KeywordSearchResponseForm(
       <section className={commonStyles.content}>
         {(() => {
           if (question.additionalFields?.isSearching) {
-            return (
-              <span className={styles.loading}>
-                {t('…keyword search in progress')}
-              </span>
-            );
+            return <span className={styles.loading}>{t('…keyword search in progress')}</span>
           } else if (!question.response) {
             return (
               <Button
@@ -117,7 +109,7 @@ export default function KeywordSearchResponseForm(
                 onClick={applySearch}
                 isDisabled={analysisQuestions.state.isPending}
               />
-            );
+            )
           } else if (question.additionalFields?.keywords) {
             return (
               <div className={styles.foundInstancesRow}>
@@ -125,17 +117,12 @@ export default function KeywordSearchResponseForm(
                   <Badge
                     color='light-storm'
                     size='s'
-                    label={t('##number## instances').replace(
-                      '##number##',
-                      String(question.response)
-                    )}
+                    label={t('##number## instances').replace('##number##', String(question.response))}
                   />
                   &nbsp;
                   <span>{t('of the keywords')}</span>
                   &nbsp;
-                  <strong className={styles.keywords}>
-                    {question.additionalFields.keywords.join(', ')}
-                  </strong>
+                  <strong className={styles.keywords}>{question.additionalFields.keywords.join(', ')}</strong>
                   &nbsp;
                   <span>{t('from')}</span>
                   &nbsp;
@@ -144,12 +131,12 @@ export default function KeywordSearchResponseForm(
 
                 <time className={styles.date}>last updated time</time>
               </div>
-            );
+            )
           } else {
-            return null;
+            return null
           }
         })()}
       </section>
     </>
-  );
+  )
 }

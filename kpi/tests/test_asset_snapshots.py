@@ -80,6 +80,18 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         snap = AssetSnapshot.objects.create(source=content)
         assert snap.xml.count('<name>ABC</name>') == 2
 
+    def test_asset_snapshot_regenerate(self):
+        content = {
+            'settings': [{'id_string': 'no_title_asset'}],
+            'survey': [{'label': 'Q1 Label.', 'type': 'decimal'}],
+        }
+        asset = Asset.objects.create(asset_type='survey', content=content)
+        xml_ = asset.snapshot().xml
+        AssetSnapshot.objects.filter(asset_id=asset.pk).update(xml='foo')
+        assert xml_ != 'foo'
+        assert asset.snapshot().xml == 'foo'
+        assert asset.snapshot(regenerate=True).xml == xml_
+
 
 class AssetSnapshotHousekeeping(AssetSnapshotsTestCase):
 

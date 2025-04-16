@@ -1,54 +1,45 @@
-// Libraries
-import React, {
-  useState,
-  useEffect,
-} from 'react';
-import cx from 'classnames';
+import React, { useState, useEffect } from 'react'
 
-// Partial components
-import TextBox from 'js/components/common/textBox';
-import Button from 'js/components/common/button';
+import cx from 'classnames'
+import securityStyles from '#/account/security/securityRoute.module.scss'
+import Button from '#/components/common/button'
+import TextBox from '#/components/common/textBox'
+import { dataInterface } from '#/dataInterface'
+import { notify } from '#/utils'
+import styles from './apiTokenSection.module.scss'
 
-// Utils
-import {dataInterface} from 'js/dataInterface';
-import {notify} from 'js/utils';
-
-// Styles
-import styles from './apiTokenSection.module.scss';
-import securityStyles from 'js/account/security/securityRoute.module.scss';
-
-const HIDDEN_TOKEN_VALUE = '*'.repeat(40);
+const HIDDEN_TOKEN_VALUE = '*'.repeat(40)
 
 /**
  * Displays secret API token of a logged in user.
  * The token is obfuscated until a "show me" button is clicked.
  */
 export default function ApiTokenDisplay() {
-  const [token, setToken] = useState(null);
-  const [isFetching, setIsFetching] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [token, setToken] = useState(null)
+  const [isFetching, setIsFetching] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
 
   const toggleTokenVisibility = () => {
-    setIsVisible(!isVisible);
-  };
+    setIsVisible(!isVisible)
+  }
 
   useEffect(() => {
     if (isVisible && token === null) {
       const fetchToken = async () => {
-        setIsFetching(true);
+        setIsFetching(true)
         try {
-          const result = await dataInterface.apiToken();
-          setToken(result.token);
+          const result = await dataInterface.apiToken()
+          setToken(result.token)
         } catch {
-          notify.error(t('Failed to get API token'));
+          notify.error(t('Failed to get API token'))
         } finally {
-          setIsFetching(false);
+          setIsFetching(false)
         }
-      };
+      }
 
-      fetchToken();
+      fetchToken()
     }
-  }, [isVisible]);
+  }, [isVisible])
 
   return (
     <section className={securityStyles.securitySection}>
@@ -66,13 +57,8 @@ export default function ApiTokenDisplay() {
       </div>
 
       <div className={styles.options}>
-        <Button
-          label='Display'
-          size='m'
-          type='primary'
-          onClick={toggleTokenVisibility}
-        />
+        <Button label='Display' size='m' type='primary' onClick={toggleTokenVisibility} />
       </div>
     </section>
-  );
+  )
 }

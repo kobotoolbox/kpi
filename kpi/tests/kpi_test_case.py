@@ -7,10 +7,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_COLLECTION
+
+from ..models.asset import Asset
+
 # FIXME: Remove the following line when the permissions API is in place.
 from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
-from ..models.asset import Asset
 
 
 class KpiTestCase(BaseTestCase, BasePermissionsTestCase):

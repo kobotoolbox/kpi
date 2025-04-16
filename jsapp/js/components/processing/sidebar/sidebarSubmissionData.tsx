@@ -1,28 +1,27 @@
-import React, {useState} from 'react';
-import SubmissionDataList from 'js/components/submissions/submissionDataList';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import type {AssetContent, AssetResponse} from 'js/dataInterface';
-import {META_QUESTION_TYPES, ADDITIONAL_SUBMISSION_PROPS} from 'js/constants';
-import styles from './sidebarSubmissionData.module.scss';
+import React, { useState } from 'react'
+
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import SubmissionDataList from '#/components/submissions/submissionDataList'
+import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {
-  asset: AssetResponse;
+  asset: AssetResponse
 }
 
-export default function SidebarSubmissionData(
-  props: SidebarSubmissionDataProps
-) {
-  const [store] = useState(() => singleProcessingStore);
+export default function SidebarSubmissionData(props: SidebarSubmissionDataProps) {
+  const [store] = useState(() => singleProcessingStore)
 
-  const submissionData = store.getSubmissionData();
+  const submissionData = store.getSubmissionData()
 
   if (!props.asset.content) {
-    return null;
+    return null
   }
 
   // If submission data is not ready yet, just don't render the list.
   if (!submissionData) {
-    return null;
+    return null
   }
 
   /** We want only the processing related data (the actual form questions) */
@@ -31,9 +30,9 @@ export default function SidebarSubmissionData(
       singleProcessingStore.currentQuestionName || '',
       ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
       ...Object.keys(META_QUESTION_TYPES),
-    ];
+    ]
 
-    return metaQuestions.concat(store.getHiddenSidebarQuestions());
+    return metaQuestions.concat(store.getHiddenSidebarQuestions())
   }
 
   return (
@@ -49,5 +48,5 @@ export default function SidebarSubmissionData(
         )}
       </div>
     </section>
-  );
+  )
 }

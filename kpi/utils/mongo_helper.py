@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from django.conf import settings
 
@@ -9,8 +9,7 @@ from kobo.celery import celery_app
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
-# use `dict` when Python 3.8 is dropped
-PermissionFilter = Dict[str, Any]
+PermissionFilter = dict[str, Any]
 
 
 def drop_mock_only(func):
@@ -90,14 +89,15 @@ class MongoHelper:
         return key
 
     @classmethod
-    def delete(cls, mongo_userform_id: str, submission_ids: list):
+    def delete(cls, xform_id_string: str, xform_uuid: str) -> int:
         query = {
-            '_id': {cls.IN_OPERATOR: submission_ids},
-            cls.USERFORM_ID: mongo_userform_id,
+            '$or': [
+                {'_xform_id_string': xform_id_string},
+                {'formhub/uuid': xform_uuid},
+            ],
         }
-        delete_counts = settings.MONGO_DB.instances.delete_many(query)
-
-        return delete_counts == len(submission_ids)
+        mongo_query = settings.MONGO_DB.instances.delete_many(query)
+        return mongo_query.deleted_count
 
     @classmethod
     def encode(cls, key: str) -> str:

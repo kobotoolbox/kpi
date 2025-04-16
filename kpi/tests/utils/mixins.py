@@ -35,9 +35,7 @@ class AssetFileTestCaseMixin:
             'metadata': json.dumps({'source': 'http://geojson.org/'}),
         }
 
-    def create_asset_file(
-        self, payload=None, status_code=status.HTTP_201_CREATED
-    ):
+    def create_asset_file(self, payload=None, status_code=status.HTTP_201_CREATED):
         payload = self.asset_file_payload if payload is None else payload
 
         response = self.client.get(self.list_url)
@@ -93,9 +91,7 @@ class AssetFileTestCaseMixin:
         response_metadata.pop('mimetype', None)
         response_metadata.pop('hash', None)
 
-        self.assertEqual(
-            json.dumps(response_metadata), posted_payload['metadata']
-        )
+        self.assertEqual(json.dumps(response_metadata), posted_payload['metadata'])
         for field in 'file_type', 'description':
             self.assertEqual(response_dict[field], posted_payload[field])
 
@@ -180,12 +176,11 @@ class SubmissionDeleteTestCaseMixin:
 class SubmissionEditTestCaseMixin:
 
     def _get_edit_link(self):
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
-        )
+        ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
         # Mock Enketo response
         responses.add_callback(
-            responses.POST, ee_url,
+            responses.POST,
+            ee_url,
             callback=enketo_edit_instance_response,
             content_type='application/json',
         )
@@ -250,9 +245,7 @@ class SubmissionValidationStatusTestCaseMixin:
     def _update_status(
         self, username: str, status_uid: str = 'validation_status_not_approved'
     ):
-        data = {
-            'validation_status.uid': status_uid
-        }
+        data = {'validation_status.uid': status_uid}
         response = self.client.patch(self.validation_status_url, data=data)
         assert response.status_code == status.HTTP_200_OK
 
@@ -283,9 +276,7 @@ class SubmissionValidationStatusTestCaseMixin:
         assert response.status_code == status.HTTP_200_OK
 
         if empty:
-            statuses = [
-                not s['_validation_status'] for s in response.data['results']
-            ]
+            statuses = [not s['_validation_status'] for s in response.data['results']]
         else:
             statuses = [
                 s['_validation_status']['uid'] == uid
@@ -299,13 +290,12 @@ class SubmissionValidationStatusTestCaseMixin:
 class SubmissionViewTestCaseMixin:
 
     def _get_view_link(self):
-        ee_url = (
-            f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
-        )
+        ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_VIEW_INSTANCE_ENDPOINT}'
 
         # Mock Enketo response
         responses.add_callback(
-            responses.POST, ee_url,
+            responses.POST,
+            ee_url,
             callback=enketo_view_instance_response,
             content_type='application/json',
         )
@@ -333,7 +323,7 @@ class PermissionAssignmentTestCaseMixin:
     def get_asset_perm_assignment_list_url(self, asset):
         return reverse(
             self._get_endpoint('asset-permission-assignment-list'),
-            kwargs={'parent_lookup_asset': asset.uid}
+            kwargs={'parent_lookup_asset': asset.uid},
         )
 
     def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
@@ -344,3 +334,14 @@ class PermissionAssignmentTestCaseMixin:
             )
             for uid in perm_assignments.values_list('uid', flat=True)
         ]
+
+
+class RequiresStripeAPIKeyMixin:
+    @staticmethod
+    def create_stripe_api_key():
+        if settings.STRIPE_ENABLED:
+            from djstripe.models import APIKey
+
+            APIKey.objects.create(
+                type='publishable', livemode=False, secret='fake_public_key'
+            )

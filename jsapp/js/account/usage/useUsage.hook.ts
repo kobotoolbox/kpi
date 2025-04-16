@@ -1,20 +1,20 @@
-import {createContext, useCallback} from 'react';
-import type {Organization, RecurringInterval} from 'js/account/stripe.types';
-import {getSubscriptionInterval} from 'js/account/stripe.api';
-import {convertSecondsToMinutes, formatRelativeTime} from 'js/utils';
-import {getUsage} from 'js/account/usage/usage.api';
-import {useApiFetcher, withApiFetcher} from 'js/hooks/useApiFetcher.hook';
+import { createContext } from 'react'
+
+import { getSubscriptionInterval } from '#/account/stripe.api'
+import type { RecurringInterval } from '#/account/stripe.types'
+import { getOrgServiceUsage } from '#/account/usage/usage.api'
+import { useApiFetcher, withApiFetcher } from '#/hooks/useApiFetcher.hook'
+import { convertSecondsToMinutes, formatRelativeTime } from '#/utils'
 
 export interface UsageState {
-  storage: number;
-  submissions: number;
-  transcriptionMinutes: number;
-  translationChars: number;
-  currentMonthStart: string;
-  currentYearStart: string;
-  billingPeriodEnd: string | null;
-  trackingPeriod: RecurringInterval;
-  lastUpdated?: String | null;
+  storage: number
+  submissions: number
+  transcriptionMinutes: number
+  translationChars: number
+  currentPeriodStart: string
+  currentPeriodEnd: string
+  trackingPeriod: RecurringInterval
+  lastUpdated?: String | null
 }
 
 const INITIAL_USAGE_STATE: UsageState = Object.freeze({
@@ -22,59 +22,46 @@ const INITIAL_USAGE_STATE: UsageState = Object.freeze({
   submissions: 0,
   transcriptionMinutes: 0,
   translationChars: 0,
-  currentMonthStart: '',
-  currentYearStart: '',
-  billingPeriodEnd: null,
+  currentPeriodStart: '',
+  currentPeriodEnd: '',
   trackingPeriod: 'month',
   lastUpdated: '',
-});
+})
 
-const loadUsage = async (
-  organizationId: string | null
-): Promise<UsageState | undefined> => {
+const loadUsage = async (organizationId: string | null): Promise<UsageState | undefined> => {
   if (!organizationId) {
-    throw Error(t('No organization found'));
+    throw Error(t('No organization found'))
   }
-  const trackingPeriod = await getSubscriptionInterval();
-  const usage = await getUsage(organizationId);
+  const trackingPeriod = await getSubscriptionInterval()
+  const usage = await getOrgServiceUsage(organizationId)
   if (!usage) {
-    throw Error(t("Couldn't get usage data"));
+    throw Error(t("Couldn't get usage data"))
   }
-  let lastUpdated: UsageState['lastUpdated'] = null;
+  let lastUpdated: UsageState['lastUpdated'] = null
   if ('headers' in usage && usage.headers instanceof Headers) {
-    const lastUpdateDate = usage.headers.get('date');
+    const lastUpdateDate = usage.headers.get('date')
     if (lastUpdateDate) {
-      lastUpdated = formatRelativeTime(lastUpdateDate);
+      lastUpdated = formatRelativeTime(lastUpdateDate)
     }
   }
   return {
     storage: usage.total_storage_bytes,
-    submissions: usage.total_submission_count[`current_${trackingPeriod}`],
-    transcriptionMinutes: convertSecondsToMinutes(
-      usage.total_nlp_usage[`asr_seconds_current_${trackingPeriod}`]
-    ),
-    translationChars:
-      usage.total_nlp_usage[`mt_characters_current_${trackingPeriod}`],
-    currentMonthStart: usage.current_month_start,
-    currentYearStart: usage.current_year_start,
-    billingPeriodEnd: usage[`current_${trackingPeriod}_end`],
+    submissions: usage.total_submission_count.current_period,
+    transcriptionMinutes: convertSecondsToMinutes(usage.total_nlp_usage.asr_seconds_current_period),
+    translationChars: usage.total_nlp_usage.mt_characters_current_period,
+    currentPeriodStart: usage.current_period_start,
+    currentPeriodEnd: usage.current_period_end,
     trackingPeriod,
     lastUpdated,
-  };
-};
+  }
+}
 
 export const useUsage = (organizationId: string | null) => {
-  const fetcher = useApiFetcher(
-    () => {
-      return loadUsage(organizationId);
-    },
-    INITIAL_USAGE_STATE,
-    {
-      reloadEverySeconds: 15 * 60,
-      skipInitialLoad: !organizationId,
-    }
-  );
+  const fetcher = useApiFetcher(() => loadUsage(organizationId), INITIAL_USAGE_STATE, {
+    reloadEverySeconds: 15 * 60,
+    skipInitialLoad: !organizationId,
+  })
 
-  return fetcher;
-};
-export const UsageContext = createContext(withApiFetcher(INITIAL_USAGE_STATE));
+  return fetcher
+}
+export const UsageContext = createContext(withApiFetcher(INITIAL_USAGE_STATE))

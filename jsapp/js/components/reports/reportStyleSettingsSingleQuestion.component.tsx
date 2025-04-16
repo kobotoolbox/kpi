@@ -1,33 +1,30 @@
-// Libraries
-import React from 'react';
-import clonedeep from 'lodash.clonedeep';
+import React from 'react'
 
-// Partial components
-import bem from 'js/bem';
-import Modal from 'js/components/common/modal';
-import ReportTypeEditor from './reportTypeEditor.component';
-import ReportColorsEditor from './reportColorsEditor.component';
-import Button from 'js/components/common/button';
-import ReportsModalTabs, {ReportsModalTabNames, DEFAULT_REPORTS_MODAL_TAB} from 'js/components/reports/reportsModalTabs.component';
-
-// Utilities
-import {actions} from 'js/actions';
-import {handleApiFail} from 'js/api';
-
-// Types & constants
-import type {ReportStyleName, ReportStyle} from './reportsConstants';
-import type {ReportsState} from './reports';
-import type {FailResponse} from 'js/dataInterface';
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Modal from '#/components/common/modal'
+import ReportsModalTabs, {
+  ReportsModalTabNames,
+  DEFAULT_REPORTS_MODAL_TAB,
+} from '#/components/reports/reportsModalTabs.component'
+import type { FailResponse } from '#/dataInterface'
+import ReportColorsEditor from './reportColorsEditor.component'
+import ReportTypeEditor from './reportTypeEditor.component'
+import type { ReportsState } from './reports'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportStyleSettingsSingleQuestionProps {
-  parentState: ReportsState;
-  question: string;
+  parentState: ReportsState
+  question: string
 }
 
 interface ReportStyleSettingsSingleQuestionState {
-  activeModalTab: ReportsModalTabNames;
-  reportStyle: ReportStyle;
-  isPending: boolean;
+  activeModalTab: ReportsModalTabNames
+  reportStyle: ReportStyle
+  isPending: boolean
 }
 
 /**
@@ -40,20 +37,20 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
   ReportStyleSettingsSingleQuestionProps,
   ReportStyleSettingsSingleQuestionState
 > {
-  private unlisteners: Function[] = [];
+  private unlisteners: Function[] = []
 
   constructor(props: ReportStyleSettingsSingleQuestionProps) {
-    super(props);
+    super(props)
 
     this.state = {
       activeModalTab: DEFAULT_REPORTS_MODAL_TAB,
       reportStyle: {},
       isPending: false,
-    };
+    }
   }
 
   toggleTab(tabName: ReportsModalTabNames) {
-    this.setState({activeModalTab: tabName});
+    this.setState({ activeModalTab: tabName })
   }
 
   componentDidMount() {
@@ -62,14 +59,14 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       actions.reports.setStyle.failed.listen(this.onSetStyleFailed.bind(this)),
       actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
       actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
-    );
+    )
 
-    let specificSettings: {[rowName: string]: ReportStyle} | undefined;
+    let specificSettings: { [rowName: string]: ReportStyle } | undefined
 
-    if (!this.props.parentState.currentCustomReport) {
-      specificSettings = this.props.parentState.reportStyles?.specified;
+    if (this.props.parentState.currentCustomReport) {
+      specificSettings = this.props.parentState.currentCustomReport.specified
     } else {
-      specificSettings = this.props.parentState.currentCustomReport.specified;
+      specificSettings = this.props.parentState.reportStyles?.specified
     }
 
     if (
@@ -78,83 +75,82 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
       specificSettings?.[this.props.question] &&
       Object.keys(specificSettings[this.props.question]).length
     ) {
-      const reportStyle = Object.assign({}, specificSettings[this.props.question]);
-      this.setState({reportStyle: reportStyle});
+      const reportStyle = Object.assign({}, specificSettings[this.props.question])
+      this.setState({ reportStyle: reportStyle })
     }
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => clb());
+    this.unlisteners.forEach((clb) => clb())
   }
 
   onSetStyleCompleted() {
-    this.setState({isPending: false});
+    this.setState({ isPending: false })
   }
 
   onSetStyleFailed(response: FailResponse) {
-    handleApiFail(response);
-    this.setState({isPending: false});
+    handleApiFail(response)
+    this.setState({ isPending: false })
   }
 
   onSetCustomCompleted() {
-    this.setState({isPending: false});
+    this.setState({ isPending: false })
   }
 
   onSetCustomFailed(response: FailResponse) {
-    handleApiFail(response);
-    this.setState({isPending: false});
+    handleApiFail(response)
+    this.setState({ isPending: false })
   }
 
-
   saveSettings(reset: boolean) {
-    const assetUid = this.props.parentState.asset?.uid;
-    const customReport = this.props.parentState.currentCustomReport;
+    const assetUid = this.props.parentState.asset?.uid
+    const customReport = this.props.parentState.currentCustomReport
 
     if (!assetUid) {
-      return;
+      return
     }
 
-    if (!customReport) {
-      const parentReportStyles = this.props.parentState.reportStyles;
-      if (parentReportStyles) {
-        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle;
-        actions.reports.setStyle(assetUid, parentReportStyles);
-        this.setState({isPending: true});
-      }
-    } else {
+    if (customReport) {
       // TODO FIXME: we are mutating parent state data here (we shouldn't!)
-      const parentReportCustom = this.props.parentState.asset?.report_custom;
+      const parentReportCustom = this.props.parentState.asset?.report_custom
 
       if (parentReportCustom) {
-        const newStyle = reset ? {} : this.state.reportStyle;
+        const newStyle = reset ? {} : this.state.reportStyle
 
-        const cridReport = parentReportCustom[customReport.crid];
+        const cridReport = parentReportCustom[customReport.crid]
 
         if (cridReport.specified === undefined) {
-          cridReport.specified = {};
+          cridReport.specified = {}
         }
 
         // `specified` is definitely defined here, but TS needs this check
         if (cridReport?.specified !== undefined) {
-          cridReport.specified[this.props.question] = newStyle;
+          cridReport.specified[this.props.question] = newStyle
         }
 
-        actions.reports.setCustom(assetUid, parentReportCustom, customReport.crid);
-        this.setState({isPending: true});
+        actions.reports.setCustom(assetUid, parentReportCustom, customReport.crid)
+        this.setState({ isPending: true })
+      }
+    } else {
+      const parentReportStyles = this.props.parentState.reportStyles
+      if (parentReportStyles) {
+        parentReportStyles.specified[this.props.question] = reset ? {} : this.state.reportStyle
+        actions.reports.setStyle(assetUid, parentReportStyles)
+        this.setState({ isPending: true })
       }
     }
   }
 
   onReportTypeChange(newType: ReportStyleName) {
-    const newStyles = clonedeep(this.state.reportStyle);
-    newStyles.report_type = newType;
-    this.setState({reportStyle: newStyles});
+    const newStyles = clonedeep(this.state.reportStyle)
+    newStyles.report_type = newType
+    this.setState({ reportStyle: newStyles })
   }
 
   onReportColorsChange(newColors: string[]) {
-    const newStyles = clonedeep(this.state.reportStyle);
-    newStyles.report_colors = newColors;
-    this.setState({reportStyle: newStyles});
+    const newStyles = clonedeep(this.state.reportStyle)
+    newStyles.report_colors = newColors
+    this.setState({ reportStyle: newStyles })
   }
 
   render() {
@@ -172,26 +168,19 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
           <div className='tabs-content'>
             {this.state.activeModalTab === ReportsModalTabNames['chart-type'] && (
               <div id='graph-type'>
-                <ReportTypeEditor
-                  style={this.state.reportStyle}
-                  onChange={this.onReportTypeChange.bind(this)}
-                />
+                <ReportTypeEditor style={this.state.reportStyle} onChange={this.onReportTypeChange.bind(this)} />
               </div>
             )}
             {this.state.activeModalTab === ReportsModalTabNames.colors && (
               <div id='graph-colors'>
-                <ReportColorsEditor
-                  style={this.state.reportStyle}
-                  onChange={this.onReportColorsChange.bind(this)}
-                />
+                <ReportColorsEditor style={this.state.reportStyle} onChange={this.onReportColorsChange.bind(this)} />
               </div>
             )}
           </div>
         </Modal.Body>
 
         <Modal.Footer>
-          {(this.state.reportStyle.report_type ||
-            this.state.reportStyle.report_colors) && (
+          {(this.state.reportStyle.report_type || this.state.reportStyle.report_colors) && (
             <Button
               type='danger'
               size='l'
@@ -210,6 +199,6 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
           />
         </Modal.Footer>
       </bem.GraphSettings>
-    );
+    )
   }
 }

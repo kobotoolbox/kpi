@@ -3,7 +3,7 @@
 {% trans "Projects:" as projects_label %}
 
 <p>{% trans "Dear" %} {{ username }},</p>
-<p>{% blocktrans %}The request you have sent to <b>{{ recipient }}</b> has expired.{% endblocktrans %}</p>
+<p>{% blocktrans trimmed %}The request you have sent to <b>{{ recipient }}</b> has expired.{% endblocktrans %}</p>
 
 <b>{{ projects_label }}</b>
 <ul>

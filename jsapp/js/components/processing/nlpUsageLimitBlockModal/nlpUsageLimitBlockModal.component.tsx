@@ -1,36 +1,31 @@
-import cx from 'classnames';
-import React from 'react';
-import KoboModal from '../../modals/koboModal';
-import KoboModalHeader from 'js/components/modals/koboModalHeader';
-import KoboModalFooter from 'js/components/modals/koboModalFooter';
-import Button from 'js/components/common/button';
-import Icon from 'js/components/common/icon';
-import {useNavigate} from 'react-router-dom';
-import styles from './nlpUsageLimitBlockModal.module.scss';
-import {ACCOUNT_ROUTES} from 'js/account/routes.constants';
-import { RecurringInterval, UsageLimitTypes } from 'jsapp/js/account/stripe.types';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import type { RecurringInterval, UsageLimitTypes } from '#/account/stripe.types'
+import Button from '#/components/common/button'
+import Icon from '#/components/common/icon'
+import KoboModalFooter from '#/components/modals/koboModalFooter'
+import KoboModalHeader from '#/components/modals/koboModalHeader'
+import KoboModal from '../../modals/koboModal'
+import styles from './nlpUsageLimitBlockModal.module.scss'
 
 interface NlpUsageLimitBlockModalProps {
-  isModalOpen: boolean;
-  dismissed: () => void;
-  usageType: UsageLimitTypes.TRANSLATION | UsageLimitTypes.TRANSCRIPTION;
-  interval: RecurringInterval;
+  isModalOpen: boolean
+  dismissed: () => void
+  usageType: UsageLimitTypes.TRANSLATION | UsageLimitTypes.TRANSCRIPTION
+  interval: RecurringInterval
 }
 
 function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleClose = () => {
-    props.dismissed();
-  };
+    props.dismissed()
+  }
 
   return (
     <div className={styles.root}>
-      <KoboModal
-        isOpen={props.isModalOpen}
-        onRequestClose={handleClose}
-        size='medium'
-      >
+      <KoboModal isOpen={props.isModalOpen} onRequestClose={handleClose} size='medium'>
         <KoboModalHeader onRequestCloseByX={handleClose} headerColor='white'>
           {t('Upgrade to continue using this feature')}
         </KoboModalHeader>
@@ -41,17 +36,10 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
               {t('You have reached the ##LIMIT## limit for this ##PERIOD##.')
                 .replace('##LIMIT##', props.usageType)
                 .replace('##PERIOD##', props.interval)}{' '}
-              {t(
-                'Please consider our plans or add-ons to continue using this feature.'
-              )}
+              {t('Please consider our plans or add-ons to continue using this feature.')}
             </div>
             <div className={styles.note}>
-              <Icon
-                name='information'
-                size='s'
-                color='blue'
-                className={styles.noteIcon}
-              />
+              <Icon name='information' size='s' color='blue' className={styles.noteIcon} />
               {t('You can monitor your usage')}&nbsp;
               <a href={'/#/account/usage'}>{t('here')}</a>.
             </div>
@@ -59,23 +47,13 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
         </section>
 
         <KoboModalFooter alignment='end'>
-          <Button
-            type='secondary'
-            size='l'
-            onClick={handleClose}
-            label={t('Go back')}
-          />
+          <Button type='secondary' size='l' onClick={handleClose} label={t('Go back')} />
 
-          <Button
-            type='primary'
-            size='l'
-            onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}
-            label={t('Upgrade now')}
-          />
+          <Button type='primary' size='l' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} label={t('Upgrade now')} />
         </KoboModalFooter>
       </KoboModal>
     </div>
-  );
+  )
 }
 
-export default NlpUsageLimitBlockModal;
+export default NlpUsageLimitBlockModal

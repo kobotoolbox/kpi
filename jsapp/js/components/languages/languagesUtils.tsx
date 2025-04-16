@@ -1,10 +1,11 @@
-import React from 'react';
-import languagesStore from './languagesStore';
-import type {LanguageCode} from './languagesStore';
+import React from 'react'
+
+import languagesStore from './languagesStore'
+import type { LanguageCode } from './languagesStore'
 
 interface LanguageDisplayLabelProps {
-  code: LanguageCode;
-  name: string;
+  code: LanguageCode
+  name: string
 }
 
 /**
@@ -13,16 +14,20 @@ interface LanguageDisplayLabelProps {
  */
 export class LanguageDisplayLabel extends React.Component<LanguageDisplayLabelProps> {
   render() {
-    return <span>{this.props.name}&nbsp;<small>({this.props.code})</small></span>;
+    return (
+      <span>
+        {this.props.name}&nbsp;<small>({this.props.code})</small>
+      </span>
+    )
   }
 }
 
 interface AsyncLanguageDisplayLabelProps {
-  code: LanguageCode;
+  code: LanguageCode
 }
 interface AsyncLanguageDisplayLabelState {
-  name?: string;
-  isLoading: boolean;
+  name?: string
+  isLoading: boolean
 }
 
 /**
@@ -38,37 +43,37 @@ export class AsyncLanguageDisplayLabel extends React.Component<
   AsyncLanguageDisplayLabelState
 > {
   constructor(props: AsyncLanguageDisplayLabelProps) {
-    super(props);
-    this.state = {isLoading: true};
+    super(props)
+    this.state = { isLoading: true }
   }
 
   componentDidMount() {
-    this.getData();
+    this.getData()
   }
 
   async getData() {
-    this.setState({isLoading: true});
+    this.setState({ isLoading: true })
     try {
-      const name = await languagesStore.getLanguageName(this.props.code);
+      const name = await languagesStore.getLanguageName(this.props.code)
       this.setState({
         name: name,
         isLoading: false,
-      });
+      })
     } catch (error) {
-      console.error(`Language ${this.props.code} not found 5`);
-      this.setState({isLoading: false});
+      console.error(`Language ${this.props.code} not found 5`)
+      this.setState({ isLoading: false })
     }
   }
 
   render() {
     if (this.state.isLoading) {
-      return <span>…</span>;
+      return <span>…</span>
     }
     if (this.state.name) {
-      return <LanguageDisplayLabel code={this.props.code} name={this.state.name}/>;
+      return <LanguageDisplayLabel code={this.props.code} name={this.state.name} />
     }
     // Display code as fallback mechanism.
-    return this.props.code;
+    return this.props.code
   }
 }
 
@@ -77,33 +82,33 @@ export class AsyncLanguageDisplayLabel extends React.Component<
  * `AsyncLanguageDisplayLabel` (they both produce a `JSX.Element`).
  */
 export function getLanguageDisplayLabel(name: string, code: LanguageCode) {
-  return `${name} (${code})`;
+  return `${name} (${code})`
 }
 
 /** Checks if given language has any automated transcription services available. */
 export async function hasTranscriptServicesAvailable(code: LanguageCode): Promise<boolean> {
   try {
-    const language = await languagesStore.getLanguage(code);
+    const language = await languagesStore.getLanguage(code)
     if (language) {
-      return Object.keys(language.transcription_services).length >= 1;
+      return Object.keys(language.transcription_services).length >= 1
     } else {
-      return false;
+      return false
     }
   } catch (error) {
-    return false;
+    return false
   }
 }
 
 /** Checks if given language has any automated translation services available. */
 export async function hasTranslationServicesAvailable(code: LanguageCode): Promise<boolean> {
   try {
-    const language = await languagesStore.getLanguage(code);
+    const language = await languagesStore.getLanguage(code)
     if (language) {
-      return Object.keys(language.transcription_services).length >= 1;
+      return Object.keys(language.transcription_services).length >= 1
     } else {
-      return false;
+      return false
     }
   } catch (error) {
-    return false;
+    return false
   }
 }

@@ -1,47 +1,49 @@
-import Reflux from 'reflux';
-import {parsed} from './assetParserUtils';
-import {actions} from './actions';
-import type {AssetResponse} from 'js/dataInterface';
+import Reflux from 'reflux'
+import type { AssetResponse } from '#/dataInterface'
+import { actions } from './actions'
+import { parsed } from './assetParserUtils'
 
-export interface AssetStoreData {[uid: string]: AssetResponse}
+export interface AssetStoreData {
+  [uid: string]: AssetResponse
+}
 
 interface WhenLoadedListeners {
-  [assetUid: string]: Array<(foundAsset: AssetResponse) => void>;
+  [assetUid: string]: Array<(foundAsset: AssetResponse) => void>
 }
 
 /**
  * A store that keeps data of each asset (only the full data with `.content`).
  */
 class AssetStore extends Reflux.Store {
-  data: AssetStoreData = {};
+  data: AssetStoreData = {}
 
-  private whenLoadedListeners: WhenLoadedListeners = {};
+  private whenLoadedListeners: WhenLoadedListeners = {}
 
   init() {
-    actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this));
-    actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this));
-    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this));
+    actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this))
+    actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this))
+    actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this))
   }
 
   onDeleteAssetCompleted(resp: AssetResponse) {
-    delete this.data[resp.uid];
-    this.trigger(this.data);
+    delete this.data[resp.uid]
+    this.trigger(this.data)
   }
 
   onUpdateAssetCompleted(resp: AssetResponse) {
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data);
+    this.data[resp.uid] = parsed(resp)
+    this.trigger(this.data)
   }
 
   onLoadAssetCompleted(resp: AssetResponse) {
-    this.data[resp.uid] = parsed(resp);
-    this.notifyWhenLoadedListeners(this.data[resp.uid]);
-    this.trigger(this.data);
+    this.data[resp.uid] = parsed(resp)
+    this.notifyWhenLoadedListeners(this.data[resp.uid])
+    this.trigger(this.data)
   }
 
   /** Returns asset object (if exists). */
   getAsset(assetUid: string): AssetResponse | undefined {
-    return this.data[assetUid];
+    return this.data[assetUid]
   }
 
   /**
@@ -56,24 +58,24 @@ class AssetStore extends Reflux.Store {
    * `allAssets` was written; plus it's not typed).
    */
   whenLoaded(assetUid: string, callback: (foundAsset: AssetResponse) => void) {
-    const foundAsset = this.getAsset(assetUid);
+    const foundAsset = this.getAsset(assetUid)
     if (foundAsset) {
-      callback(foundAsset);
+      callback(foundAsset)
     } else {
       if (!Array.isArray(this.whenLoadedListeners[assetUid])) {
-        this.whenLoadedListeners[assetUid] = [];
+        this.whenLoadedListeners[assetUid] = []
       }
-      this.whenLoadedListeners[assetUid].push(callback);
-      actions.resources.loadAsset({id: assetUid});
+      this.whenLoadedListeners[assetUid].push(callback)
+      actions.resources.loadAsset({ id: assetUid })
     }
   }
 
   notifyWhenLoadedListeners(asset: AssetResponse) {
     if (this.whenLoadedListeners[asset.uid]) {
       while (this.whenLoadedListeners[asset.uid].length > 0) {
-        const callback = this.whenLoadedListeners[asset.uid].pop();
+        const callback = this.whenLoadedListeners[asset.uid].pop()
         if (callback !== undefined) {
-          callback(asset);
+          callback(asset)
         }
       }
     }
@@ -83,7 +85,7 @@ class AssetStore extends Reflux.Store {
 /**
  * This store keeps only full assets (i.e. ones with `content`)
  */
-const assetStore = new AssetStore();
-assetStore.init();
+const assetStore = new AssetStore()
+assetStore.init()
 
-export default assetStore;
+export default assetStore

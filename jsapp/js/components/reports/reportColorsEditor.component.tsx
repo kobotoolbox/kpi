@@ -1,22 +1,23 @@
-import React from 'react';
-import bem from 'js/bem';
-import {CHART_COLOR_SETS} from './reportsConstants';
-import type {ReportStyle, ChartColorSet} from './reportsConstants';
+import React from 'react'
+
+import bem from '#/bem'
+import { CHART_COLOR_SETS } from './reportsConstants'
+import type { ChartColorSet, ReportStyle } from './reportsConstants'
 
 interface ReportColorsEditorProps {
-  onChange: (newColors: string[]) => void;
+  onChange: (newColors: string[]) => void
   /** The style that is being edited */
-  style: ReportStyle;
+  style: ReportStyle
 }
 
 export default function ReportColorsEditor(props: ReportColorsEditorProps) {
   function onStyleChange(value: number) {
-    let newColors = CHART_COLOR_SETS[0].colors;
+    let newColors = CHART_COLOR_SETS[0].colors
     if (CHART_COLOR_SETS[value]?.colors) {
-      newColors = CHART_COLOR_SETS[value].colors;
+      newColors = CHART_COLOR_SETS[value].colors
     }
 
-    props.onChange(newColors);
+    props.onChange(newColors)
   }
 
   /**
@@ -24,10 +25,7 @@ export default function ReportColorsEditor(props: ReportColorsEditorProps) {
    * that is being edited in this component instance.
    */
   function isChecked(set: ChartColorSet) {
-    return (
-      JSON.stringify(props.style.report_colors) ===
-      JSON.stringify(set.colors)
-    );
+    return JSON.stringify(props.style.report_colors) === JSON.stringify(set.colors)
   }
 
   return (
@@ -45,11 +43,11 @@ export default function ReportColorsEditor(props: ReportColorsEditorProps) {
 
           <label htmlFor={'type-' + set.label}>
             {CHART_COLOR_SETS[index].colors.map((color, i) => (
-              <div style={{backgroundColor: color}} key={i} />
+              <div style={{ backgroundColor: color }} key={i} />
             ))}
           </label>
         </bem.GraphSettings__radio>
       ))}
     </bem.GraphSettings__colors>
-  );
+  )
 }

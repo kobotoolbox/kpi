@@ -153,6 +153,10 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_attachments_rewrite(self):
         pass
 
+    @pytest.mark.skip(reason='Rewrite should be used only with v2')
+    def test_inject_root_uuid_if_not_present(self):
+        pass
+
 
 class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
 
@@ -172,6 +176,10 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
 
     @pytest.mark.skip(reason='Only usable in v2')
     def test_edit_submission_snapshot_missing_unauthenticated(self):
+        pass
+
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_edit_submission_with_partial_perms(self):
         pass
 
 

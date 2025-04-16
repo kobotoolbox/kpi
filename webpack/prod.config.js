@@ -1,11 +1,9 @@
-const path = require('path');
-const webpack = require('webpack');
-const WebpackCommon = require('./webpack.common');
-const TerserPlugin = require('terser-webpack-plugin');
+const path = require('path')
+const webpack = require('webpack')
+const WebpackCommon = require('./webpack.common')
+const TerserPlugin = require('terser-webpack-plugin')
 
-const publicPath =
-  (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') +
-  '/static/compiled/';
+const publicPath = (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') + '/static/compiled/'
 
 const prodConfig = WebpackCommon({
   mode: 'production',
@@ -29,8 +27,7 @@ const prodConfig = WebpackCommon({
     ],
   },
   entry: {
-    app: './jsapp/js/main.es6',
-    browsertests: path.resolve(__dirname, '../test/index.js'),
+    app: './jsapp/js/main.js',
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),
@@ -50,13 +47,13 @@ const prodConfig = WebpackCommon({
     errors: true,
     errorDetails: true,
   },
-});
+})
 
 // Print speed measurements if env variable MEASURE_WEBPACK_PLUGIN_SPEED is set
 if (process.env.MEASURE_WEBPACK_PLUGIN_SPEED) {
-  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
-  const smp = new SpeedMeasurePlugin();
-  module.exports = smp.wrap(prodConfig);
+  const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
+  const smp = new SpeedMeasurePlugin()
+  module.exports = smp.wrap(prodConfig)
 } else {
-  module.exports = prodConfig;
+  module.exports = prodConfig
 }

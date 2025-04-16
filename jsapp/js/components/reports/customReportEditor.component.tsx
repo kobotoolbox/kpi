@@ -1,109 +1,94 @@
-// Libraries
-import React from 'react';
-import clonedeep from 'lodash.clonedeep';
+import React from 'react'
 
-// Partial components
-import bem from 'js/bem';
-import Modal from 'js/components/common/modal';
-import Checkbox from 'js/components/common/checkbox';
-import Button from 'js/components/common/button';
-import TextBox from 'js/components/common/textBox';
-
-// Utilities
-import {actions} from 'js/actions';
-import {getReportRowTranslatedLabel} from './reports.utils';
-import {handleApiFail} from 'js/api';
-
-// Types
-import type {
-  CustomReportSettings,
-  ReportsResponse,
-} from 'js/components/reports/reportsConstants';
-import type {
-  AssetResponse,
-  FailResponse,
-} from 'js/dataInterface';
+import clonedeep from 'lodash.clonedeep'
+import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
+import bem from '#/bem'
+import Button from '#/components/common/button'
+import Checkbox from '#/components/common/checkbox'
+import Modal from '#/components/common/modal'
+import TextBox from '#/components/common/textBox'
+import type { CustomReportSettings, ReportsResponse } from '#/components/reports/reportsConstants'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
+import { getReportRowTranslatedLabel } from './reports.utils'
 
 interface CustomReportEditorProps {
-  reportData: ReportsResponse[];
-  customReport: CustomReportSettings;
-  asset: AssetResponse;
+  reportData: ReportsResponse[]
+  customReport: CustomReportSettings
+  asset: AssetResponse
 }
 
 interface CustomReportEditorState {
-  customReport: CustomReportSettings;
-  isPending: boolean;
+  customReport: CustomReportSettings
+  isPending: boolean
 }
 
 /**
  * This component is being used to create or modify custom report.
  */
-export default class CustomReportEditor extends React.Component<
-  CustomReportEditorProps,
-  CustomReportEditorState
-> {
-  private unlisteners: Function[] = [];
+export default class CustomReportEditor extends React.Component<CustomReportEditorProps, CustomReportEditorState> {
+  private unlisteners: Function[] = []
 
   constructor(props: CustomReportEditorProps) {
-    super(props);
+    super(props)
 
     this.state = {
       customReport: props.customReport,
       isPending: false,
-    };
+    }
   }
 
   componentDidMount() {
     this.unlisteners.push(
       actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
       actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
-    );
+    )
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => clb());
+    this.unlisteners.forEach((clb) => clb())
   }
 
   onSetCustomCompleted(_response: AssetResponse) {
-    this.setState({isPending: false});
+    this.setState({ isPending: false })
   }
 
   onSetCustomFailed(response: FailResponse) {
-    handleApiFail(response);
-    this.setState({isPending: false});
+    handleApiFail(response)
+    this.setState({ isPending: false })
   }
 
   onCustomReportNameChange(newName: string) {
-    const newReport = clonedeep(this.state.customReport);
-    newReport.name = newName;
-    this.setState({customReport: newReport});
+    const newReport = clonedeep(this.state.customReport)
+    newReport.name = newName
+    this.setState({ customReport: newReport })
   }
 
   customReportQuestionChange(name: string, isChecked: boolean) {
-    const newReport = clonedeep(this.state.customReport);
+    const newReport = clonedeep(this.state.customReport)
 
     if (isChecked) {
-      newReport.questions.push(name);
+      newReport.questions.push(name)
     } else {
-      newReport.questions.splice(newReport.questions.indexOf(name), 1);
+      newReport.questions.splice(newReport.questions.indexOf(name), 1)
     }
-    this.setState({customReport: newReport});
+    this.setState({ customReport: newReport })
   }
 
   /** Pass `null` to delete report */
   updateAssetCustomReports(crid: string, newReport: CustomReportSettings | null) {
-    const assetCustomReports = clonedeep(this.props.asset.report_custom || {});
+    const assetCustomReports = clonedeep(this.props.asset.report_custom || {})
     if (newReport === null) {
-      delete assetCustomReports[crid];
+      delete assetCustomReports[crid]
     } else {
-      assetCustomReports[crid] = newReport;
+      assetCustomReports[crid] = newReport
     }
-    actions.reports.setCustom(this.props.asset.uid, assetCustomReports, crid);
-    this.setState({isPending: true});
+    actions.reports.setCustom(this.props.asset.uid, assetCustomReports, crid)
+    this.setState({ isPending: true })
   }
 
   render() {
-    const crid = this.state.customReport.crid;
+    const crid = this.state.customReport.crid
 
     return (
       <bem.GraphSettings>
@@ -121,11 +106,7 @@ export default class CustomReportEditor extends React.Component<
 
             <div className='custom-report--questions'>
               {this.props.reportData.map((item, index) => {
-                const label = getReportRowTranslatedLabel(
-                  item,
-                  this.props.asset.content?.survey,
-                  0
-                );
+                const label = getReportRowTranslatedLabel(item, this.props.asset.content?.survey, 0)
 
                 return (
                   <div className='graph-settings__question' key={index}>
@@ -135,7 +116,7 @@ export default class CustomReportEditor extends React.Component<
                       label={label}
                     />
                   </div>
-                );
+                )
               })}
             </div>
 
@@ -145,10 +126,7 @@ export default class CustomReportEditor extends React.Component<
                   type='danger'
                   size='l'
                   onClick={() => {
-                    this.updateAssetCustomReports(
-                      this.state.customReport.crid,
-                      null
-                    );
+                    this.updateAssetCustomReports(this.state.customReport.crid, null)
                   }}
                   label={t('Delete')}
                   isPending={this.state.isPending}
@@ -159,10 +137,7 @@ export default class CustomReportEditor extends React.Component<
                 type='primary'
                 size='l'
                 onClick={() => {
-                  this.updateAssetCustomReports(
-                    this.state.customReport.crid,
-                    this.state.customReport
-                  );
+                  this.updateAssetCustomReports(this.state.customReport.crid, this.state.customReport)
                 }}
                 label={t('Save')}
                 isPending={this.state.isPending}
@@ -171,6 +146,6 @@ export default class CustomReportEditor extends React.Component<
           </div>
         </Modal.Body>
       </bem.GraphSettings>
-    );
+    )
   }
 }

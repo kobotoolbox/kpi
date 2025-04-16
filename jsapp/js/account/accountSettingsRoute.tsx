@@ -1,139 +1,120 @@
-import React, {useEffect, useState} from 'react';
-import Button from 'js/components/common/button';
-import InlineMessage from 'js/components/common/inlineMessage';
-import {observer} from 'mobx-react';
-import type {Form} from 'react-router-dom';
-import {unstable_usePrompt as usePrompt} from 'react-router-dom';
-import bem, {makeBem} from 'js/bem';
-import sessionStore from 'js/stores/session';
-import './accountSettings.scss';
-import {notify} from 'js/utils';
-import {dataInterface} from '../dataInterface';
-import AccountFieldsEditor from './accountFieldsEditor.component';
-import Avatar from 'js/components/common/avatar';
-import envStore from 'js/envStore';
-import {
-  getInitialAccountFieldsValues,
-  getProfilePatchData,
-} from './account.utils';
-import type {
-  AccountFieldsValues,
-  AccountFieldsErrors,
-} from './account.constants';
-import {HELP_ARTICLE_ANON_SUBMISSIONS_URL} from 'js/constants';
+import './accountSettings.scss'
 
-bem.AccountSettings = makeBem(null, 'account-settings', 'form');
-bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
-bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
-bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
-bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
+import React, { useEffect, useState } from 'react'
 
-interface Form {
-  isPristine: boolean;
-  /**
-   * Whether we have loaded the user metadata values. Used to avoid displaying
-   * blank form with values coming in a moment later (in visible way).
-   */
-  isUserDataLoaded: boolean;
-  fields: AccountFieldsValues;
-  fieldsWithErrors: {
-    extra_details?: AccountFieldsErrors;
-  };
-}
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import bem, { makeBem } from '#/bem'
+import Avatar from '#/components/common/avatar'
+import Button from '#/components/common/button'
+import InlineMessage from '#/components/common/inlineMessage'
+import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import envStore from '#/envStore'
+import { notify } from '#/utils'
+import { dataInterface } from '../dataInterface'
+import { useSession } from '../stores/useSession'
+import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
+import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
+import AccountFieldsEditor from './accountFieldsEditor.component'
+import { useOrganizationQuery } from './organization/organizationQuery'
 
-const AccountSettings = observer(() => {
-  const [form, setForm] = useState<Form>({
-    isPristine: true,
-    isUserDataLoaded: false,
-    fields: getInitialAccountFieldsValues(),
-    fieldsWithErrors: {},
-  });
+bem.AccountSettings = makeBem(null, 'account-settings', 'form')
+bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
+bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right')
+bem.AccountSettings__item = makeBem(bem.FormModal, 'item')
+bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions')
+
+const AccountSettings = () => {
+  const [isPristine, setIsPristine] = useState(true)
+  const [fieldErrors, setFieldErrors] = useState<AccountFieldsErrors>({})
+  const [formFields, setFormFields] = useState<AccountFieldsValues>(getInitialAccountFieldsValues())
+  const [editedFields, setEditedFields] = useState<Partial<AccountFieldsValues>>({})
+
+  const { currentLoggedAccount, refreshAccount } = useSession()
+
+  const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
+
+  const orgQuery = useOrganizationQuery()
 
   useEffect(() => {
-    if (
-      !sessionStore.isPending &&
-      sessionStore.isInitialLoadComplete &&
-      !sessionStore.isInitialRoute
-    ) {
-      sessionStore.refreshAccount();
+    if (!currentLoggedAccount || !orgQuery.data) {
+      return
     }
-  }, []);
-  useEffect(() => {
-    const currentAccount = sessionStore.currentAccount;
-    if (
-      !sessionStore.isPending &&
-      sessionStore.isInitialLoadComplete &&
-      'email' in currentAccount
-    ) {
-      setForm({
-        ...form,
-        isUserDataLoaded: true,
-        fields: {
-          name: currentAccount.extra_details.name,
-          organization_type: currentAccount.extra_details.organization_type,
-          organization: currentAccount.extra_details.organization,
-          organization_website:
-            currentAccount.extra_details.organization_website,
-          sector: currentAccount.extra_details.sector,
-          gender: currentAccount.extra_details.gender,
-          bio: currentAccount.extra_details.bio,
-          city: currentAccount.extra_details.city,
-          country: currentAccount.extra_details.country,
-          require_auth: currentAccount.extra_details.require_auth,
-          twitter: currentAccount.extra_details.twitter,
-          linkedin: currentAccount.extra_details.linkedin,
-          instagram: currentAccount.extra_details.instagram,
-          newsletter_subscription:
-            currentAccount.extra_details.newsletter_subscription,
-        },
-        fieldsWithErrors: {},
-      });
+
+    const fields = {
+      name: currentLoggedAccount.extra_details.name,
+      organization_type: currentLoggedAccount.extra_details.organization_type,
+      organization: currentLoggedAccount.extra_details.organization,
+      organization_website: currentLoggedAccount.extra_details.organization_website,
+      sector: currentLoggedAccount.extra_details.sector,
+      gender: currentLoggedAccount.extra_details.gender,
+      bio: currentLoggedAccount.extra_details.bio,
+      city: currentLoggedAccount.extra_details.city,
+      country: currentLoggedAccount.extra_details.country,
+      require_auth: currentLoggedAccount.extra_details.require_auth,
+      twitter: currentLoggedAccount.extra_details.twitter,
+      linkedin: currentLoggedAccount.extra_details.linkedin,
+      instagram: currentLoggedAccount.extra_details.instagram,
+      newsletter_subscription: currentLoggedAccount.extra_details.newsletter_subscription,
     }
-  }, [sessionStore.isPending]);
+
+    setFormFields(fields)
+
+    const fieldKeys = Object.keys(fields) as Array<keyof AccountFieldsValues>
+
+    const organization = orgQuery.data
+
+    // We will not display organization fields if user is a member of an MMO,
+    // only displaying these fields in organization settings view
+    setDisplayedFields(
+      organization?.is_mmo
+        ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
+        : fieldKeys,
+    )
+  }, [currentLoggedAccount, orgQuery.data])
+
   usePrompt({
-    when: !form.isPristine,
+    when: !isPristine,
     message: t('You have unsaved changes. Leave settings without saving?'),
-  });
-  const updateProfile = (e: React.FormEvent) => {
-    e?.preventDefault?.(); // Prevent form submission page reload
-
-    const profilePatchData = getProfilePatchData(form.fields);
-    dataInterface
-      .patchProfile(profilePatchData)
-      .done(() => {
-        onUpdateComplete();
-      })
-      .fail((...args: any) => {
-        onUpdateFail(args);
-      });
-  };
-
-  const onAccountFieldsEditorChange = (fields: AccountFieldsValues) => {
-    setForm({
-      ...form,
-      fields: fields,
-      isPristine: false,
-    });
-  };
+  })
 
   const onUpdateComplete = () => {
-    notify(t('Updated profile successfully'));
-    setForm({
-      ...form,
-      isPristine: true,
-      fieldsWithErrors: {},
-    });
-  };
+    notify(t('Updated profile successfully'))
+    setIsPristine(true)
+    setFieldErrors({})
+  }
 
-  const onUpdateFail = (data: any) => {
-    setForm({
-      ...form,
-      isPristine: false,
-      fieldsWithErrors: data[0].responseJSON,
-    });
-  };
+  const onUpdateFail = (errors: AccountFieldsErrors) => {
+    setFieldErrors(errors)
+  }
 
-  const accountName = sessionStore.currentAccount.username;
+  const updateProfile = (e: React.FormEvent) => {
+    e?.preventDefault?.() // Prevent form submission page reload
+
+    const patchData = getProfilePatchData(editedFields)
+    dataInterface
+      .patchProfile(patchData)
+      .done(() => {
+        onUpdateComplete()
+        refreshAccount()
+      })
+      .fail((...args: any) => {
+        onUpdateFail(args[0].responseJSON)
+      })
+  }
+
+  const onFieldChange = (fieldName: string, value: string | boolean) => {
+    setFormFields({
+      ...formFields,
+      [fieldName]: value,
+    })
+    setEditedFields({
+      ...editedFields,
+      [fieldName]: value,
+    })
+    setIsPristine(false)
+  }
+
+  const accountName = currentLoggedAccount?.username || ''
 
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
@@ -143,49 +124,51 @@ const AccountSettings = observer(() => {
           className='account-settings-save'
           size={'l'}
           isSubmit
-          label={t('Save Changes') + (form.isPristine ? '' : ' *')}
+          label={t('Save Changes') + (isPristine ? '' : ' *')}
         />
       </bem.AccountSettings__actions>
 
       <bem.AccountSettings__item m={'column'}>
         <bem.AccountSettings__item m='username'>
-          <Avatar size='m' username={accountName} isUsernameVisible/>
+          <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {sessionStore.isInitialLoadComplete && form.isUserDataLoaded && (
+        {currentLoggedAccount && (
           <bem.AccountSettings__item m='fields'>
             <InlineMessage
               type='warning'
               icon='information'
-              message={(
+              message={
                 <>
                   <strong>
-                    {t('You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.')}
+                    {t(
+                      'You can now control whether to allow anonymous submissions in web forms for each project. Previously, this was an account-wide setting.',
+                    )}
                   </strong>
                   &nbsp;
-                  {t('This privacy feature is now a per-project setting. New projects will require authentication by default.')}
+                  {t(
+                    'This privacy feature is now a per-project setting. New projects will require authentication by default.',
+                  )}
                   &nbsp;
-                  <a
-                    href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL}
-                    target='_blank'
-                  >
+                  <a href={envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL} target='_blank'>
                     {t('Learn more about these changes here.')}
                   </a>
                 </>
-              )}
+              }
               className='anonymous-submission-notice'
             />
 
             <AccountFieldsEditor
-              errors={form.fieldsWithErrors.extra_details}
-              values={form.fields}
-              onChange={onAccountFieldsEditorChange}
+              errors={fieldErrors}
+              values={formFields}
+              onFieldChange={onFieldChange}
+              displayedFields={displayedFields}
             />
           </bem.AccountSettings__item>
         )}
       </bem.AccountSettings__item>
     </bem.AccountSettings>
-  );
-});
+  )
+}
 
-export default AccountSettings;
+export default AccountSettings

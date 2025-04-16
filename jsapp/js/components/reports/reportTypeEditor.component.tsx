@@ -1,17 +1,18 @@
-import React from 'react';
-import {CHART_STYLES} from './reportsConstants';
-import type {ReportStyle, ReportStyleName} from './reportsConstants';
-import styles from './reportTypeEditor.module.scss';
+import React from 'react'
+
+import styles from './reportTypeEditor.module.scss'
+import { CHART_STYLES } from './reportsConstants'
+import type { ReportStyle, ReportStyleName } from './reportsConstants'
 
 interface ReportTypeEditorProps {
-  onChange: (newType: ReportStyleName) => void;
+  onChange: (newType: ReportStyleName) => void
   /** The style that is being edited */
-  style: ReportStyle;
+  style: ReportStyle
 }
 
 export default function ReportTypeEditor(props: ReportTypeEditorProps) {
   function onStyleChange(newStyle: ReportStyleName) {
-    props.onChange(newStyle);
+    props.onChange(newStyle)
   }
 
   return (
@@ -28,14 +29,11 @@ export default function ReportTypeEditor(props: ReportTypeEditorProps) {
             id={'type-' + styleDefinition.value}
           />
 
-          <label
-            className={styles.styleLabel}
-            htmlFor={'type-' + styleDefinition.value}
-          >
+          <label className={styles.styleLabel} htmlFor={'type-' + styleDefinition.value}>
             {styleDefinition.label}
           </label>
         </div>
       ))}
     </section>
-  );
+  )
 }

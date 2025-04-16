@@ -8,10 +8,10 @@ $utils = require './model.utils'
 $configs = require './model.configs'
 $surveyDetail = require './model.surveyDetail'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-txtid = require('js/utils').txtid
+txtid = require('#/utils').txtid
 
 module.exports = do ->
-  _t = require("utils").t
+  _t = require("#/utils").t
 
   surveyFragment = {}
 

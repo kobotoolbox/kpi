@@ -18,12 +18,12 @@ $s-data-table-font: 13px;
 }
 
 .form-view.form-view--table {
-  padding: 0px 15px;
+  padding: 0 15px;
   position: relative;
   background: colors.$kobo-white;
 
   .form-view__group--table-header {
-    padding: 15px 0px 5px 0px;
+    padding: 15px 0 5px;
     display: flex;
     justify-content: space-between;
     align-content: center;
@@ -172,6 +172,7 @@ $s-data-table-font: 13px;
 
     .rt-th.rt-resizable-header:last-child {
       overflow: visible;
+
       .rt-resizer {
         width: 5px;
         right: 0;
@@ -238,6 +239,7 @@ $s-data-table-font: 13px;
   }
 
   // We want to target only the data cells
+  .rt-td .deletedAttachment:only-child,
   .rt-td .trimmed-text:only-child {
     height: 100%;
     align-content: center;
@@ -425,7 +427,7 @@ $s-data-table-font: 13px;
       width: 8px;
       height: 100%;
       pointer-events: none;
-      background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04), transparent);
+      background-image: linear-gradient(to right, rgb(0 0 0 / 4%), transparent);
       opacity: 0;
       transition-property: opacity;
       transition-duration: 0.5s;

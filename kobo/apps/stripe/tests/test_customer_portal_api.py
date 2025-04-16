@@ -1,9 +1,10 @@
+from unittest.mock import patch
+from urllib.parse import urlencode
+
 from django.urls import reverse
-from djstripe.models import Customer, Subscription, Price, Product
+from djstripe.models import Customer, Price, Product, Subscription
 from model_bakery import baker
 from rest_framework import status
-from urllib.parse import urlencode
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -34,9 +35,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         self.customer = baker.make(
             Customer, subscriber=self.organization, livemode=False
         )
-        self.product = baker.make(
-            Product, metadata={'product_type': product_type}
-        )
+        self.product = baker.make(Product, metadata={'product_type': product_type})
         self.price = baker.make(
             Price,
             product=self.product,
@@ -99,7 +98,7 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 'livemode': False,
                 'features': {
                     'subscription_update': {
-                        'default_allowed_updates': ['quantity'],
+                        'default_allowed_updates': [],
                         'products': [],
                         'prices': [],
                     },

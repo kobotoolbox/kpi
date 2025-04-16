@@ -1,4 +1,3 @@
-import datetime
 from unittest.mock import Mock, patch
 
 from django.conf import settings
@@ -34,24 +33,17 @@ class ExportTaskInBackgroundTests(TestCase):
         self.assertEqual(self.task.status, 'complete')
 
         root_url = settings.KOBOFORM_URL
+        expected_file_path = self.task.result.url
         expected_message = (
-            'Hello {},\n\n'
-            'Your report is complete: {}'
-            '/private-media/{}/exports/'
-            'assets-{}-view_summary-{}.csv\n\n'
-            'Regards,\n'
-            'KoboToolbox'
+            'Hello {},\n\n' 'Your report is complete: {}\n\n' 'Regards,\n' 'KoboToolbox'
         ).format(
             self.user.username,
-            root_url,
-            self.user.username,
-            self.user.username,
-            datetime.datetime.now().strftime('%Y-%m-%dT%H%M%SZ'),
+            f'{root_url}{expected_file_path}',
         )
         mock_send_mail.assert_called_once_with(
             subject='Project View Report Complete',
             message=expected_message,
-            from_email='help@kobotoolbox.org',
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=['test@example.com'],
             fail_silently=False,
         )

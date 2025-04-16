@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as t
 from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import XLSFormError
+from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS,
@@ -58,7 +58,12 @@ class XForm(AbstractTimeStampedModel):
     CLONED_SUFFIX = '_cloned'
     MAX_ID_LENGTH = 100
 
-    xls = ExtendedFileField(storage=default_storage, upload_to=upload_to, null=True)
+    xls = ExtendedFileField(
+        storage=default_storage,
+        upload_to=upload_to,
+        null=True,
+        max_length=380,
+    )
     json = models.TextField(default='')
     description = models.TextField(default='', null=True)
     xml = models.TextField()
@@ -123,25 +128,24 @@ class XForm(AbstractTimeStampedModel):
     @property
     def asset(self):
         """
-        Retrieve related asset object easily from XForm instance.
+        Retrieve the related asset object easily from XForm instance.
 
         Useful to display form disclaimer in Enketo.
         See kpi.utils.xml.XMLFormWithDisclaimer for more details.
         """
         Asset = apps.get_model('kpi', 'Asset')  # noqa
-        if not hasattr(self, '_cached_asset'):
-            # We only need to load the PK because XMLFormWithDisclaimer
-            # uses an Asset object only to narrow down a query with a filter,
-            # thus uses only asset PK
+        if not getattr(self, '_cache_asset', None):
+            # We only need to load some fields when fetching the related Asset object
+            # with XMLFormWithDisclaimer
             try:
-                asset = Asset.objects.only('pk', 'name', 'uid', 'owner_id').get(
-                    uid=self.kpi_asset_uid
-                )
+                asset = Asset.all_objects.only(
+                    'pk', 'name', 'uid', 'owner_id'
+                ).get(uid=self.kpi_asset_uid)
             except Asset.DoesNotExist:
                 try:
-                    asset = Asset.objects.only(
+                    asset = Asset.all_objects.only(
                         'pk', 'name', 'uid', 'owner_id'
-                    ).get(_deployment_data__formid=self.pk)
+                    ).get(_deployment_data__backend_response__formid=self.pk)
                 except Asset.DoesNotExist:
                     # An `Asset` object needs to be returned to avoid 500 while
                     # Enketo is fetching for project XML (e.g: /formList, /manifest)
@@ -288,12 +292,20 @@ class XForm(AbstractTimeStampedModel):
 
     def url(self):
         return reverse(
-            'download_xform',
-            kwargs={
-                'username': self.user.username,
-                'pk': self.pk
-            }
+            'download_xform', kwargs={'username': self.user.username, 'pk': self.pk}
         )
+
+    @property
+    def xform_root_node_name(self):
+        """
+        Retrieves the name of the XML tag representing the root node of the "survey"
+        in the XForm XML structure.
+
+        It should always be present in `self.json`.
+        """
+
+        form_json = json.loads(self.json)
+        return form_json['name']
 
     @property
     def xml_with_disclaimer(self):

@@ -12,7 +12,7 @@ class UserListTests(BaseTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
 
     def test_user_list_allowed_superuser(self):
         """
@@ -23,11 +23,11 @@ class UserListTests(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         # test filtering by username
-        q = '?q=admin'
+        q = '?q=adminuser'
         response = self.client.get(url + q, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['results']) == 1
-        assert response.data['results'][0]['username'] == 'admin'
+        assert response.data['results'][0]['username'] == 'adminuser'
 
     def test_user_list_forbidden_non_superuser(self):
         """
@@ -52,7 +52,7 @@ class UserListTests(BaseTestCase):
         """
         we can retrieve user details
         """
-        username = 'admin'
+        username = 'adminuser'
         url = reverse(self._get_endpoint('user-kpi-detail'), args=[username])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

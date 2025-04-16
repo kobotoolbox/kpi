@@ -1,21 +1,22 @@
-import React, {useContext} from 'react';
-import AnalysisQuestionsContext from './analysisQuestions.context';
-import AnalysisContentEmpty from './analysisContentEmpty.component';
-import AnalysisQuestionsList from './list/analysisQuestionsList.component';
-import styles from './analysisContent.module.scss';
-import singleProcessingStore from '../singleProcessingStore';
+import React, { useContext } from 'react'
+
+import singleProcessingStore from '../singleProcessingStore'
+import styles from './analysisContent.module.scss'
+import AnalysisContentEmpty from './analysisContentEmpty.component'
+import AnalysisQuestionsContext from './analysisQuestions.context'
+import AnalysisQuestionsList from './list/analysisQuestionsList.component'
 
 /** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent() {
-  const analysisQuestions = useContext(AnalysisQuestionsContext);
+  const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
-    return null;
+    return null
   }
 
   // We only want to display analysis questions for this survey question
   const filteredQuestions = analysisQuestions.state.questions.filter(
-    (question) => question.xpath === singleProcessingStore.currentQuestionXpath
-  );
+    (question) => question.xpath === singleProcessingStore.currentQuestionXpath,
+  )
 
   return (
     <section className={styles.root}>
@@ -23,5 +24,5 @@ export default function AnalysisContent() {
 
       {filteredQuestions.length > 0 && <AnalysisQuestionsList />}
     </section>
-  );
+  )
 }

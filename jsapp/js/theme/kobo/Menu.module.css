@@ -1,0 +1,30 @@
+.dropdown {
+  padding: 0;
+  box-shadow: 0 0 6px var(--mantine-color-gray-4);
+  border: none;
+}
+
+.item {
+  padding: var(--mantine-spacing-sm);
+  color: var(--mantine-color-blue-4);
+
+  font-size: var(--mantine-font-size-md);
+
+  &[data-hovered] {
+    color: var(--mantine-color-blue-5);
+    background-color: transparent;
+  }
+
+  &[data-variant='danger'] {
+    color: var(--mantine-color-red-5);
+
+    &[data-hovered] {
+      color: var(--mantine-color-red-6);
+    }
+  }
+}
+
+.divider {
+  border-color: var(--mantine-color-gray-6);
+  margin: 0;
+}

@@ -19,7 +19,12 @@ We actively welcome your pull requests:
 1. Fork the repo and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update (or create!) the documentation.
-4. Ensure the test suite passes.
+4. Ensure the test suite passes - wait for CI or run everything locally in a container:
+   ```sh
+   cd kobo-install
+   ./run.py
+   ./run.py -cf exec kpi ./scripts/ci_locally.sh
+   ```
 5. Make sure your code lints.
 6. Issue that pull request and follow the pull request template!
 
@@ -46,7 +51,19 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 
 People *love* thorough bug reports. I'm not even kidding.
 
-## Use a Consistent Coding Style
+## Code style Guidelines
 
-For more details about front-end code please check our linter configurations and `.editorconfig` files.
-Python should adhere to [PEP 8](https://www.python.org/dev/peps/pep-0008). Indent 4 spaces, and please do **not** use tabs.
+Automatic lint rules are written using a linter configuration, see:
+- [`.editorconfig`](./.editorconfig) (global)
+- [`.eslintrc.js`](./.eslintrc.js) (frontend)
+- [`.stylelintrc.js`](./.stylelintrc.js) (frontend)
+- [`coffeelint.json`](./coffeelint.json) (frontend)
+
+Manual lint rules are written in coding style files, see:
+- [`CODING_STYLE_FE.md`](./CODING_STYLE_FE.md)
+- [`CODING_STYLE_BE.md`](./CODING_STYLE_BE.md)
+
+Code style guideline principles:
+- PR *must pass* linter CI job based on automatic linter rules
+- PR *must resolve* all reviewer requests based on manual linter rules
+- Reviewer's code style comments not based on manual linter rules are *optional*

@@ -1,15 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import (
-    Case,
-    Count,
-    F,
-    IntegerField,
-    Q,
-    Value,
-    When,
-)
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import filters
@@ -17,10 +9,10 @@ from rest_framework.request import Request
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
-    ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
+    ASSET_STATUS_SHARED,
     PERM_DISCOVER_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
@@ -33,7 +25,6 @@ from kpi.exceptions import (
 )
 from kpi.models.asset import AssetDeploymentStatus, UserAssetSubscription
 from kpi.utils.django_orm_helper import OrderCustomCharField
-from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
 from kpi.utils.object_permission import (
     get_anonymous_user,
     get_database_user,
@@ -41,6 +32,8 @@ from kpi.utils.object_permission import (
     get_perm_ids_from_code_names,
 )
 from kpi.utils.permissions import is_user_anonymous
+from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
+
 from .models import Asset, ObjectPermission
 
 
@@ -154,6 +147,21 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
                 '-date_modified',
             )
 
+        return queryset
+
+
+class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
+    """
+    Filters out assets marked as 'is_excluded_from_projects_list' for
+    organization owners in MMO organizations
+    """
+    def filter_queryset(self, request, queryset, view):
+        user = get_database_user(request.user)
+        organization = user.organization
+        if organization and organization.is_owner(user) and organization.is_mmo:
+            return queryset.exclude(
+                is_excluded_from_projects_list=True, owner_id=user.pk
+            )
         return queryset
 
 
@@ -417,9 +425,7 @@ class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
         if organization.is_admin_only(user):
             # Admins do not receive explicit permission assignments,
             # but they have the same access to assets as the organization owner.
-            org_assets = Asset.objects.filter(
-                owner=organization.owner_user_object
-            )
+            org_assets = Asset.objects.filter(owner=organization.owner_user_object)
         else:
             org_assets = Asset.objects.none()
 
@@ -442,6 +448,7 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+
         try:
             q = request.query_params['q']
         except AttributeError:

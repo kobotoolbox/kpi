@@ -5,16 +5,13 @@ from contextlib import contextmanager
 from datetime import date, datetime
 from typing import Generator, Literal, Optional, Union
 from urllib.parse import urlparse
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
 from defusedxml import ElementTree as DET
 from django.conf import settings
+from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db.models import F, Sum
@@ -38,6 +35,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
     remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
@@ -66,12 +64,12 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+
 from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
@@ -144,11 +142,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
         xlsx_file = ContentFile(xlsx_io.read(), name=f'{self.asset.uid}.xlsx')
 
-        with kc_transaction_atomic():
-            self._xform = publish_xls_form(xlsx_file, self.asset.owner)
-            self._xform.downloadable = active
-            self._xform.kpi_asset_uid = self.asset.uid
-            self._xform.save(update_fields=['downloadable', 'kpi_asset_uid'])
+        self._xform = publish_xls_form(xlsx_file, self.asset.owner)
+        self._xform.downloadable = active
+        self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.save(
+            update_fields=['downloadable', 'kpi_asset_uid', 'date_modified']
+        )
 
         self.store_data(
             {
@@ -238,7 +237,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have full access.
         if submission_ids:
-            # Remove query from `data` because all the submission ids have been
+            # Remove `query` from `data` because all the submission ids have been
             # already retrieved
             data.pop('query', None)
             data['submission_ids'] = submission_ids
@@ -325,7 +324,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         The returned Response should be in XML (expected format by Enketo Express)
         """
         user = request.user
-
         submission_xml = xml_submission_file.read()
         try:
             xml_root = fromstring_preserve_root_xmlns(submission_xml)
@@ -356,9 +354,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
 
         # Validate write access for users with partial permissions
-        self.validate_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user, perm=PERM_CHANGE_SUBMISSIONS, submission_ids=[instance.pk]
         )
+
+        if submission_ids:
+            # If `submission_ids` is not empty, it indicates the user has partial
+            # permissions and has successfully passed validation. Therefore, set the
+            # `has_partial_perms` attribute on `request.user` to grant the necessary
+            # permissions when invoking `logger_tool.py::_has_edit_xform_permission()`.
+            user.has_partial_perms = True
 
         # Set the In-Memory file’s current position to 0 before passing it to
         # Request.
@@ -392,19 +397,21 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self,
         submission_id_or_uuid: Union[int, str],
         user: settings.AUTH_USER_MODEL,
-        attachment_id: Optional[int] = None,
+        att_identifier: Optional[Union[str, int]] = None,
         xpath: Optional[str] = None,
     ) -> Attachment:
         """
-        Return an object which can be retrieved by its primary key or by XPath.
+        Return an object which can be retrieved by its primary key, uid, or by XPath.
         An exception is raised when the submission or the attachment is not found.
         """
         submission_id = None
         submission_uuid = None
+
         try:
             submission_id = int(submission_id_or_uuid)
         except ValueError:
             submission_uuid = submission_id_or_uuid
+
         if submission_uuid:
             # `_uuid` is the legacy identifier that changes (per OpenRosa spec)
             # after every edit; `meta/rootUuid` remains consistent across
@@ -414,17 +421,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     user,
                     query={
                         '$or': [
-                            {'meta/rootUuid': submission_uuid},
+                            {'meta/rootUuid': add_uuid_prefix(submission_uuid)},
                             {'_uuid': submission_uuid},
                         ]
                     },
                     fields=['_id', 'meta/rootUuid', '_uuid'],
                 )
             )
+
             if not candidates:
                 raise SubmissionNotFoundException
             for submission in candidates:
-                if submission.get('meta/rootUuid') == submission_uuid:
+                if submission.get('meta/rootUuid') == add_uuid_prefix(submission_uuid):
                     submission_id = submission['_id']
                     break
             else:
@@ -453,9 +461,15 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'media_file_basename': attachment_filename,
             }
         else:
-            filters = {
-                'pk': attachment_id,
-            }
+            filters = {}
+            try:
+                filters = {'pk': int(att_identifier)}
+            except ValueError:
+                if att_identifier.startswith('att'):
+                    filters = {'uid': att_identifier}
+
+            if not filters:
+                raise AttachmentNotFoundException
 
         filters['instance__id'] = submission_id
         # Ensure the attachment actually belongs to this project!
@@ -623,7 +637,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 logging.warning(
                     f'Enketo ID has changed from {stored_enketo_id} to {enketo_id}'
                 )
-            self.save_to_db({'enketo_id': enketo_id})
+            self.save_to_db({'enketo_id': enketo_id}, update_date_modified=False)
 
         if self.xform.require_auth:
             # Unfortunately, EE creates unique ID based on OpenRosa server URL.
@@ -652,6 +666,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             fields=['_id'],
             skip_count=True,
         )
+
+        if settings.TESTING:
+            # `all_submissions` is a list in testing environment,
+            # but a generator on production.
+            all_submissions = iter(all_submissions)
+
         try:
             next(all_submissions)
         except StopIteration:
@@ -850,13 +870,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         parsed_url = urlparse(settings.KOBOCAT_URL)
         domain_name = parsed_url.netloc
         asset_uid = self.asset.uid
-        enketo_redis_client = get_redis_connection('enketo_redis_main')
-
         try:
+            enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{asset_uid}',
                 dst=f'or:{domain_name}/{self.asset.owner.username},{asset_uid}',
             )
+        except InvalidCacheBackendError:
+            # TODO: This handles the case when the cache is disabled and
+            # get_redis_connection fails, though we may need better error handling here
+            pass
         except redis.exceptions.ResponseError:
             # original does not exist, weird but don't raise a 500 for that
             pass
@@ -991,8 +1014,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        # TODO simplify response when KobocatDeploymentBackend
-        #  and MockDeploymentBackend are gone
         try:
             instance = Instance.objects.only('validation_status', 'date_modified').get(
                 pk=submission_id
@@ -1151,7 +1172,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'md5': metadata['file_hash'],
                 'from_kpi': metadata['from_kpi'],
             }
-
         metadata_filenames = metadata_files.keys()
 
         queryset = self._get_metadata_queryset(file_type=file_type)
@@ -1222,7 +1242,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         pk = self.backend_response['formid']
         xform = (
-            XForm.objects.filter(pk=pk)
+            XForm.all_objects.filter(pk=pk)
             .only(
                 'user__username',
                 'id_string',
@@ -1259,19 +1279,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
     @contextmanager
     def suspend_submissions(user_ids: list[int]):
         UserProfile.objects.filter(user_id__in=user_ids).update(
-            metadata=UpdateJSONFieldAttributes(
-                'metadata',
-                updates={'submissions_suspended': True},
-            ),
+            submissions_suspended=True
         )
         try:
             yield
         finally:
             UserProfile.objects.filter(user_id__in=user_ids).update(
-                metadata=UpdateJSONFieldAttributes(
-                    'metadata',
-                    updates={'submissions_suspended': False},
-                ),
+                submissions_suspended=False
             )
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
@@ -1302,7 +1316,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             attachment_storage_bytes=F('attachment_storage_bytes')
             - self.xform.attachment_storage_bytes
         )
-        UserProfile.objects.filter(user_id=self.asset.owner.pk).update(
+        UserProfile.objects.filter(user_id=new_owner.pk).update(
             attachment_storage_bytes=F('attachment_storage_bytes')
             + self.xform.attachment_storage_bytes
         )
@@ -1352,7 +1366,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
 
         if not file_.is_remote_url:
-            metadata['data_file'] = file_.content
+            # Ensure file has not been read before
+            file_.content.seek(0)
+            file_content = file_.content.read()
+            file_.content.seek(0)
+            metadata['data_file'] = ContentFile(file_content, file_.filename)
 
         MetaData.objects.create(**metadata)
 
@@ -1400,7 +1418,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         return (
-            self._rewrite_json_attachment_urls(
+            self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 request,
             )

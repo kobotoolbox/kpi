@@ -1,11 +1,8 @@
 @use 'scss/colors';
 
 .root {
-  color: colors.$kobo-white;
-  background-color: colors.$kobo-gray-700;
-  padding: 6px 10px;
   border-radius: 48px;
   font-weight: 600;
-  font-size: .85em;
-  margin-right: 20px;
+  font-size: 0.85em;
+  width: fit-content;
 }

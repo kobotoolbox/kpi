@@ -3,11 +3,14 @@ import json
 import os
 
 import dateutil.parser
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
+from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -26,11 +29,11 @@ from kpi.tests.base_test_case import (
     BaseTestCase,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
-from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -83,6 +86,77 @@ class AssetListApiTests(BaseAssetTestCase):
                 break
         self.assertIsNotNone(list_result_detail)
         self.assertDictEqual(expected_list_data, dict(list_result_detail))
+
+    def test_asset_owner_label(self):
+        """
+        Test the behavior of the owner_label field in the Asset API.
+
+        - If the user is an organization owner and the organization is MMO,
+          then the `owner_label` should be the organization's name.
+        - If the user is not an organization owner and the organization is MMO,
+          then the `owner_label` should be the owner's username.
+        - If the user is an organization owner but the organization is not MMO,
+          then the `owner_label` should be the owner's username.
+        """
+        detail_response = self.create_asset()
+        someuser_username = detail_response.data.get('owner__username')
+        someuser = User.objects.get(username=someuser_username)
+
+        # Check the user is an owner of an organization
+        self.assertTrue(someuser.is_org_owner)
+
+        # Fetch the assets list and verify the initial owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            someuser_username
+        )
+
+        # Make the organization a MMO and verify the owner_label
+        self.organization = someuser.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
+
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            self.organization.name
+        )
+
+        # Add another user to the organization and share the asset
+        anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(anotheruser)
+        someuser_asset = someuser.assets.last()
+        someuser_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Create an external user's asset and share it with anotheruser
+        external_user = baker.make(settings.AUTH_USER_MODEL)
+        self.client.force_login(external_user)
+        detail_response = self.create_asset()
+        external_user_asset = external_user.assets.last()
+        external_user_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Fetch the external user's asset and verify the owner_label
+        list_response = self.client.get(self.list_url)
+        self.assertEqual(
+            list_response.data['results'][0]['owner_label'],
+            external_user.username
+        )
+
+        # Verify owner_label for both assets when logged in as anotheruser
+        self.client.force_login(anotheruser)
+        list_response = self.client.get(self.list_url)
+
+        anotheruser_assets = {
+            item['uid']: item['owner_label']
+            for item in list_response.data['results']
+        }
+        self.assertEqual(
+            anotheruser_assets[external_user_asset.uid], external_user.username
+        )
+        self.assertEqual(
+            anotheruser_assets[someuser_asset.uid], self.organization.name
+        )
 
     def test_assets_hash(self):
         another_user = User.objects.get(username='anotheruser')
@@ -1024,7 +1098,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
 
         # Verify an admin user has access to the data
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1261,6 +1335,31 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         # Even 'fields' are not provided in payload, they should
         # exist after `PATCH`
         self.assertTrue('fields' in data_sharing)
+
+    def test_ownership_transfer_status(self):
+        # No transfer yet, no status
+        response = self.client.get(self.asset_url)
+        assert response.data['project_ownership'] is None
+
+        anotheruser = User.objects.get(username='anotheruser')
+        invite = Invite.objects.create(sender=self.asset.owner, recipient=anotheruser)
+        Transfer.objects.create(invite=invite, asset=self.asset)
+
+        # Invite has been created, but not accepted/declined yet
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.PENDING
+        )
+
+        # Simulate expiration
+        invite.status = InviteStatusChoices.EXPIRED
+        invite.save()
+        response = self.client.get(self.asset_url)
+        assert (
+            response.data['project_ownership']['status']
+            == InviteStatusChoices.EXPIRED
+        )
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
@@ -1527,7 +1626,7 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
         json_response = response.json()
         expected_response = {
             'metadata': ['Only `image`, `audio`, `video`, `text/csv`, '
-                         '`application/xml`, `application/zip` '
+                         '`application/xml`, `application/zip`, `application/geo+json` '
                          'MIME types are allowed']
         }
         assert json_response == expected_response
@@ -1625,6 +1724,169 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         assert (
             response2.data['deployment_status']
             == AssetDeploymentStatus.DEPLOYED.value
+        )
+
+    def test_asset_deployment_validation_error(self):
+        bad_content = {
+            'survey': [
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    'label': ['Enter a float number'],
+                },
+                {
+                    'name': 'What_s_your_name',
+                    'type': 'text',
+                    'label': ["What's your name?"],
+                },
+                {
+                    'name': 'Enter_an_int_number',
+                    'type': 'integer',
+                },
+                {
+                    'name': 'Enter_a_time',
+                    'type': 'time',
+                    'label': ['Enter a time'],
+                },
+            ]
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': bad_content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset_uid = asset_response.data.get('uid')
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        self.assertEqual(deploy_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            deploy_response.data['error'],
+            "The survey element named 'Enter_an_int_number' has no label or hint.",
+        )
+
+    def test_asset_redeployment_validation_error(self):
+        content = {
+            'survey': [
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    'label': ['Enter a float number'],
+                },
+                {
+                    'name': 'What_s_your_name',
+                    'type': 'text',
+                    'label': ["What's your name?"],
+                },
+                {
+                    'name': 'Enter_an_int_number',
+                    'type': 'integer',
+                    'label': ['Enter an int number'],
+                },
+                {
+                    'name': 'Enter_a_time',
+                    'type': 'time',
+                    'label': ['Enter a time'],
+                },
+            ]
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset_uid = asset_response.data.get('uid')
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        assert deploy_response.status_code == status.HTTP_200_OK
+
+        # make `content` a bad content, and redeploy
+        del content['survey'][0]['label']
+        asset_url = f'{assets_url}{asset_uid}/'
+
+        updated_asset_response = self.client.patch(
+            asset_url,
+            {'content': content},
+            format='json',
+        )
+        version_id = updated_asset_response.data['version_id']
+
+        redeploy_response = self.client.patch(
+            deployment_url,
+            {
+                'version_id': version_id,
+                'active': True,
+            },
+        )
+
+        assert redeploy_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            str(redeploy_response.data['error'])
+            == "The survey element named 'Enter_a_float_number' has no label or hint."
+        )
+
+    def test_asset_deployment_with_sheet_name_Settings(self):  # noqa
+        content = {
+            'schema': '1',
+            'survey': [
+                {
+                    'name': 'Enter_a_float_number',
+                    'type': 'decimal',
+                    'label': ['Enter a float number'],
+                    'required': False,
+                },
+            ],
+            'choices': [],
+            'settings': {},
+            'Settings': [],  # simulate sheet name called `Settings` on import
+        }
+        assets_url = reverse(self._get_endpoint('asset-list'))
+        asset_response = self.client.post(
+            assets_url,
+            {'content': content, 'asset_type': 'survey'},
+            format='json',
+        )
+        asset = Asset.objects.get(uid=asset_response.data.get('uid'))
+
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+        )
+
+        deploy_response = self.client.post(
+            deployment_url,
+            {
+                'backend': 'mock',
+                'active': True,
+            },
+        )
+
+        assert deploy_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            "Sheetname 'Settings', with case ignored, is already in use"
+            in deploy_response.data['error']
         )
 
     def test_asset_redeployment(self):

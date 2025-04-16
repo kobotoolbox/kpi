@@ -1,3 +1,4 @@
+import uuid
 from copy import deepcopy
 from unittest.mock import Mock, patch
 
@@ -26,6 +27,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.fuzzy_int import FuzzyInt
 from ..constants import GOOGLETS, GOOGLETX
 from ..models import SubmissionExtras
@@ -43,18 +45,54 @@ class ValidateSubmissionTest(APITestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset_uid = self.asset.uid
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
+
+        uuid_ = uuid.uuid4()
+        self.submission_uuid = str(uuid_)
+
+        # add a submission
+        submission_data = {
+            'q1': 'answer',
+            '_uuid': self.submission_uuid,
+            '_submitted_by': 'someuser',
+        }
+
+        self.asset.deployment.mock_submissions([submission_data])
+
         self.client.force_login(user)
 
     def set_asset_advanced_features(self, features):
         self.asset.advanced_features = features
         self.asset.save()
 
+    def test_get_submission_with_nonexistent_instance_404s(self):
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        base_url = resp.json()['advanced_submission_schema']['url']
+        url = f'{base_url}?submission=bad-uuid'
+        rr = self.client.get(url)
+        assert rr.status_code == 404
+
+    def test_post_submission_extra_with_nonexistent_instance_404s(self):
+        self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
+        resp = self.client.get(self.asset_url)
+        schema = resp.json()['advanced_submission_schema']
+        package = {
+            'submission': 'bad-uuid',
+            'q1': {
+                'transcript': {
+                    'value': 'they said hello',
+                }
+            },
+        }
+        rr = self.client.post(schema['url'], package, format='json')
+        assert rr.status_code == 404
+
     def test_asset_post_submission_extra_with_transcript(self):
         self.set_asset_advanced_features({'transcript': {'values': ['q1']}})
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
               'transcript': {
                 'value': 'they said hello',
@@ -134,7 +172,7 @@ class ValidateSubmissionTest(APITestCase):
         original_transcript = 'they said hello'
         original_translation = 'T H E Y   S A I D   H E L L O'
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
                 'transcript': {
                     'value': original_transcript,
@@ -190,7 +228,7 @@ class ValidateSubmissionTest(APITestCase):
         extras = list(self.asset.submission_extras.all())
         assert len(extras) == 1
         extras = extras[0]
-        assert extras.submission_uuid == 'abc123-def456'
+        assert extras.submission_uuid == self.submission_uuid
         assert (
             extras.content['q1']['transcript']['value'] == original_transcript
         )
@@ -210,7 +248,7 @@ class ValidateSubmissionTest(APITestCase):
         extras = list(self.asset.submission_extras.all())
         assert len(extras) == 1
         extras = extras[0]
-        assert extras.submission_uuid == 'abc123-def456'
+        assert extras.submission_uuid == self.submission_uuid
         assert (
             extras.content['q1']['transcript']['value'] == modified_transcript
         )
@@ -379,7 +417,7 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         resp = self.client.get(self.asset_url)
         schema = resp.json()['advanced_submission_schema']
         package = {
-            'submission': 'abc123-def456',
+            'submission': self.submission_uuid,
             'q1': {
                 'transcript': {
                     'value': 'they said hello',
@@ -389,11 +427,11 @@ class TranslatedFieldRevisionsOnlyTests(ValidateSubmissionTest):
         # validate(package, schema)
 
 
-class GoogleNLPSubmissionTest(APITestCase):
+class GoogleNLPSubmissionTest(BaseTestCase):
+    fixtures = ['test_data']
+
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='someuser', email='user@example.com'
-        )
+        self.user = User.objects.get(username='someuser')
         self.asset = Asset(
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]}
         )
@@ -406,12 +444,11 @@ class GoogleNLPSubmissionTest(APITestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset_url = f'/api/v2/assets/{self.asset.uid}/?format=json'
         self.client.force_login(self.user)
-        transcription_service = TranscriptionService.objects.create(code='goog')
-        translation_service = TranslationService.objects.create(code='goog')
+        transcription_service = TranscriptionService.objects.get(code='goog')
+        translation_service = TranslationService.objects.get(code='goog')
 
         language = Language.objects.create(name='', code='')
         language_region = LanguageRegion.objects.create(language=language, name='', code='')
-
         TranscriptionServiceLanguageM2M.objects.create(
             language=language,
             region=language_region,
@@ -424,10 +461,8 @@ class GoogleNLPSubmissionTest(APITestCase):
         )
 
     @override_settings(
-        CACHES={
-            'default':
-                {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
-        }
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
     )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('google.cloud.speech.SpeechClient')
@@ -459,7 +494,10 @@ class GoogleNLPSubmissionTest(APITestCase):
         with self.assertNumQueries(FuzzyInt(25, 35)):
             self.client.post(url, data, format='json')
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     def test_google_transcript_permissions(self):
         url = reverse('advanced-submission-post', args=[self.asset.uid])
         submission_id = 'abc123-def456'
@@ -487,7 +525,10 @@ class GoogleNLPSubmissionTest(APITestCase):
         res = self.client.get(url + '?submission=' + submission_id, format='json')
         self.assertEqual(res.status_code, 404)
 
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+        STRIPE_ENABLED=False,
+    )
     @override_config(ASR_MT_INVITEE_USERNAMES='*')
     @patch('kobo.apps.subsequences.integrations.google.google_translate.translate')
     @patch('kobo.apps.subsequences.integrations.google.base.storage')

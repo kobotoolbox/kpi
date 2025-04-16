@@ -60,7 +60,12 @@ class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
         if update_fields:
             update_fields += ['date_disabled']
 
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
         """
         Update user's profile in KoBoCAT database.

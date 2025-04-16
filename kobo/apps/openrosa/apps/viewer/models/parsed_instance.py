@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 from bson import json_util
 from dateutil import parser
@@ -8,12 +9,13 @@ from django.utils.translation import gettext as t
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.celery import celery_app
-from kobo.apps.openrosa.apps.logger.models import Instance, Note
+from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
     GEOLOCATION,
     ID,
+    META_ROOT_UUID,
     MONGO_STRFTIME,
     NOTES,
     SUBMISSION_TIME,
@@ -24,6 +26,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 
@@ -79,16 +82,38 @@ class ParsedInstance(models.Model):
         app_label = 'viewer'
 
     @classmethod
-    def get_base_query(cls, username, id_string):
-        userform_id = '{}_{}'.format(username, id_string)
+    def get_base_query(
+        cls, username: str, id_string: str, xform: Optional[XForm] = None
+    ) -> dict:
+
+        if xform is None:
+            xform = XForm.objects.only('mongo_uuid').get(
+                id_string=id_string, user__username=username
+            )
+
+        userform_id = (
+            xform.mongo_uuid
+            if xform.mongo_uuid
+            else f'{username}_{id_string}'
+        )
+
         return {
             cls.USERFORM_ID: userform_id
         }
 
     @classmethod
     @apply_form_field_names
-    def query_mongo(cls, username, id_string, query, fields, sort, start=0,
-                    limit=DEFAULT_LIMIT, count=False):
+    def query_mongo(
+        cls,
+        username,
+        id_string,
+        query,
+        fields,
+        sort,
+        start=0,
+        limit=DEFAULT_LIMIT,
+        count=False,
+    ):
 
         query = cls._get_mongo_cursor_query(query, username, id_string)
 
@@ -202,7 +227,7 @@ class ParsedInstance(models.Model):
 
         # TODO: current mongo (3.4 of this writing)
         # cannot mix including and excluding fields in a single query
-        if type(fields) == list and len(fields) > 0:
+        if isinstance(fields, list) and len(fields) > 0:
             fields_to_select = dict(
                 [(MongoHelper.encode(field), 1) for field in fields])
 
@@ -260,16 +285,14 @@ class ParsedInstance(models.Model):
     def to_dict_for_mongo(self):
         d = self.to_dict()
 
-        userform_id = (
-            self.instance.xform.mongo_uuid
-            if self.instance.xform.mongo_uuid
-            else f'{self.instance.xform.user.username}_{self.instance.xform.id_string}'
-        )
+        # TODO remove this check when `root_uuid` has been backfilled
+        #   by long-running migration 0005.
+        root_uuid = self.instance.root_uuid or self.instance.uuid
 
         data = {
             UUID: self.instance.uuid,
+            META_ROOT_UUID: add_uuid_prefix(root_uuid),
             ID: self.instance.id,
-            self.USERFORM_ID: userform_id,
             ATTACHMENTS: _get_attachments_from_instance(self.instance),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
@@ -281,6 +304,17 @@ class ParsedInstance(models.Model):
             SUBMITTED_BY: self.instance.user.username
             if self.instance.user else None
         }
+
+        xform = self.instance.xform
+        username = xform.user.username
+        id_string = xform.id_string
+
+        # Add USERFORM_ID
+        d.update(
+            self.get_base_query(
+                username=username, id_string=id_string, xform=xform
+            )
+        )
 
         d.update(data)
 
@@ -422,6 +456,7 @@ def _get_attachments_from_instance(instance):
         attachment['instance'] = a.instance.pk
         attachment['xform'] = instance.xform.id
         attachment['id'] = a.id
+        attachment['uid'] = a.uid
         attachments.append(attachment)
 
     return attachments

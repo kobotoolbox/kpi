@@ -1,46 +1,41 @@
 /** Don't use anything here for new components */
-import type {FC} from 'react';
-import React from 'react';
-import type {Params, Location, NavigateFunction} from 'react-router-dom';
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom';
-import type {Router} from '@remix-run/router';
+import React, { type FC } from 'react'
+
+import type { Router } from '@remix-run/router'
+import type { Location, NavigateFunction, Params } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 // https://stackoverflow.com/a/70754791/443457
 /**
  * @deprecated Use `getCurrentPath` from `routerUtils.ts`.
  */
 const getRoutePath = (location: Location, params: Params): string => {
-  const {pathname} = location;
+  const { pathname } = location
 
   if (!Object.keys(params).length) {
-    return pathname; // we don't need to replace anything
+    return pathname // we don't need to replace anything
   }
 
-  let path = pathname;
+  let path = pathname
   Object.entries(params).forEach(([paramName, paramValue]) => {
     if (paramValue) {
-      path = path.replace(paramValue, `:${paramName}`);
+      path = path.replace(paramValue, `:${paramName}`)
     }
-  });
-  return path;
-};
+  })
+  return path
+}
 
 interface RouterProp {
-  location: Location;
-  navigate: NavigateFunction;
-  params: Readonly<Params<string>>;
-  searchParams: URLSearchParams; // Replaces props.location.query
-  path: string; // Replaces props.route.path
+  location: Location
+  navigate: NavigateFunction
+  params: Readonly<Params<string>>
+  searchParams: URLSearchParams // Replaces props.location.query
+  path: string // Replaces props.route.path
 }
 
 export interface WithRouterProps {
-  router: RouterProp;
-  params: Readonly<Params<string>>; // Defined as props twice for compat!
+  router: RouterProp
+  params: Readonly<Params<string>> // Defined as props twice for compat!
 }
 
 /**
@@ -52,23 +47,23 @@ export interface WithRouterProps {
  */
 export function withRouter(Component: FC | typeof React.Component) {
   function ComponentWithRouterProp(props: any) {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [searchParams, _] = useSearchParams();
-    const params = useParams();
-    const path = getRoutePath(location, params);
-    const router: RouterProp = {location, navigate, params, searchParams, path};
-    return <Component {...props} params={params} router={router} />;
+    const location = useLocation()
+    const navigate = useNavigate()
+    const [searchParams, _] = useSearchParams()
+    const params = useParams()
+    const path = getRoutePath(location, params)
+    const router: RouterProp = { location, navigate, params, searchParams, path }
+    return <Component {...props} params={params} router={router} />
   }
 
-  return ComponentWithRouterProp;
+  return ComponentWithRouterProp
 }
 
 /**
  * @deprecated Use some of the functions from `routerUtils.ts`.
  */
 function getCurrentRoute() {
-  return router!.state.location.pathname;
+  return router!.state.location.pathname
 }
 
 /**
@@ -77,23 +72,23 @@ function getCurrentRoute() {
  * @deprecated Use some of the functions from `routerUtils.ts`.
  */
 export function routerIsActive(route: string) {
-  return getCurrentRoute().startsWith(route);
+  return getCurrentRoute().startsWith(route)
 }
 
 /**
  * @deprecated Use `getRouteAssetUid` from `routerUtils.ts`.
  */
 export function routerGetAssetId() {
-  const current = getCurrentRoute();
+  const current = getCurrentRoute()
   if (current) {
-    const routeParts = current.split('/');
+    const routeParts = current.split('/')
     if (routeParts[1] === 'forms') {
-      return routeParts[2];
+      return routeParts[2]
     } else if (routeParts[1] === 'library') {
-      return routeParts[3];
+      return routeParts[3]
     }
   }
-  return null;
+  return null
 }
 
 /**
@@ -107,7 +102,7 @@ export function routerGetAssetId() {
  * when using hot reload on development environment. This is because `subscribe`
  * method doesn't have a cancel function.
  */
-export let router: Router | null = null;
+export let router: Router | null = null
 export function injectRouter(newRouter: Router) {
-  router = newRouter;
+  router = newRouter
 }

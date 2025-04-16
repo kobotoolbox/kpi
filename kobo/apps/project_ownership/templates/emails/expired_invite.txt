@@ -4,7 +4,7 @@
 
 {% trans "Dear" %} {{ username }},
 
-{% blocktrans %}The request you have sent to {{ recipient }} has expired.{% endblocktrans %}
+{% blocktrans trimmed %}The request you have sent to {{ recipient }} has expired.{% endblocktrans %}
 
 {{ projects_label }}
 {% for transfer in transfers %}

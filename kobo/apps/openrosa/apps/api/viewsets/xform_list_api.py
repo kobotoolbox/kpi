@@ -1,9 +1,5 @@
 from datetime import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.http import Http404
@@ -106,6 +102,10 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             pass
         else:
             queryset = queryset.filter(id_string=id_string_filter)
+
+        # Submissions for forms owned by inactive users are already blocked by
+        # #5321; those forms should be excluded from `formList` as well
+        queryset = queryset.exclude(user__is_active=False)
 
         return queryset
 

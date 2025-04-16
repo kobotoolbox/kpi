@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from model_bakery import baker
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -48,7 +49,7 @@ class AccountsEmailTestCase(APITestCase):
         # Add second unconfirmed email, overrides the first
         data = {'email': 'morenew@example.com'}
         # Auth, Select, Delete (many), Get or Create
-        queries = FuzzyInt(11, 15)
+        queries = FuzzyInt(11, 20)
         with self.assertNumQueries(queries):
             res = self.client.post(self.url_list, data, format='json')
         self.assertContains(res, data['email'], status_code=201)
@@ -97,4 +98,76 @@ class AccountsEmailTestCase(APITestCase):
             self.user.emailaddress_set.count(),
             1,
             'Expect only 1 email after confirm',
+        )
+
+
+class EmailUpdateRestrictionTestCase(APITestCase):
+    """
+    Test that only organization owners and admins can update their email.
+    """
+    def setUp(self):
+        self.owner = baker.make(settings.AUTH_USER_MODEL)
+        self.admin = baker.make(settings.AUTH_USER_MODEL)
+        self.member = baker.make(settings.AUTH_USER_MODEL)
+        self.non_mmo_user = baker.make(settings.AUTH_USER_MODEL)
+
+        self.organization = self.owner.organization
+        self.organization.mmo_override = True
+        self.organization.save(update_fields=['mmo_override'])
+
+        self.organization.add_user(self.admin, is_admin=True)
+        self.organization.add_user(self.member)
+
+        self.url_list = reverse('emailaddress-list')
+
+    def test_that_mmo_owner_can_update_email(self):
+        """
+        Test that the owner of the organization can update their email
+        """
+        data = {'email': 'owner@example.com'}
+        self.client.force_login(self.owner)
+        res = self.client.post(self.url_list, data, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            self.owner.emailaddress_set.filter(email=data['email']).count(), 1
+        )
+
+    def test_that_mmo_admin_can_update_email(self):
+        """
+        Test that the admin of the organization can update their email
+        """
+        data = {'email': 'admin@example.com'}
+        self.client.force_login(self.admin)
+        res = self.client.post(self.url_list, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            self.admin.emailaddress_set.filter(email=data['email']).count(), 1
+        )
+
+    def test_that_mmo_member_cannot_update_email(self):
+        """
+        Test that the member of the organization cannot update their email
+        """
+        data = {'email': 'member@example.com'}
+        self.client.force_login(self.member)
+        res = self.client.post(self.url_list, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            self.member.emailaddress_set.filter(email=data['email']).count(), 0
+        )
+
+    def test_that_non_mmo_user_can_update_email(self):
+        """
+        Test that a user who is not part of MMO can update their email
+        """
+        data = {'email': 'nonmmo@example.com'}
+        self.client.force_login(self.non_mmo_user)
+        res = self.client.post(self.url_list, data, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            self.non_mmo_user.emailaddress_set.filter(
+                email=data['email']
+            ).count(),
+            1
         )

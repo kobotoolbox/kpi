@@ -1,27 +1,26 @@
-import React from 'react';
-import DocumentTitle from 'react-document-title';
-import Dropzone from 'react-dropzone';
-import bem from 'js/bem';
-import mixins from 'js/mixins';
-import {validFileTypes} from 'js/utils';
-import myLibraryStore from './myLibraryStore';
-import AssetsTable from 'js/components/assetsTable/assetsTable';
-import {MODAL_TYPES} from 'js/constants';
-import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
-import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
-import pageState from 'js/pageState.store';
-import type {MyLibraryStoreData} from './myLibraryStore';
-import type {OrderDirection} from 'js/projects/projectViews/constants';
-import type {FileWithPreview} from 'react-dropzone';
-import type {DragEvent} from 'react';
+import React from 'react'
 
-export default class MyLibraryRoute extends React.Component<
-  {},
-  MyLibraryStoreData
-> {
-  private unlisteners: Function[] = [];
+import type { DragEvent } from 'react'
 
-  state = this.getFreshState();
+import DocumentTitle from 'react-document-title'
+import Dropzone from 'react-dropzone'
+import type { FileWithPreview } from 'react-dropzone'
+import bem from '#/bem'
+import AssetsTable from '#/components/assetsTable/assetsTable'
+import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
+import { MODAL_TYPES } from '#/constants'
+import mixins from '#/mixins'
+import pageState from '#/pageState.store'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import { validFileTypes } from '#/utils'
+import myLibraryStore from './myLibraryStore'
+import type { MyLibraryStoreData } from './myLibraryStore'
+
+export default class MyLibraryRoute extends React.Component<{}, MyLibraryStoreData> {
+  private unlisteners: Function[] = []
+
+  state = this.getFreshState()
 
   getFreshState(): MyLibraryStoreData {
     return {
@@ -36,67 +35,67 @@ export default class MyLibraryRoute extends React.Component<
       filterValue: myLibraryStore.data.filterValue,
       currentPage: myLibraryStore.data.currentPage,
       totalPages: myLibraryStore.data.totalPages,
-    };
+    }
   }
 
   componentDidMount() {
-    this.unlisteners.push(
-      myLibraryStore.listen(this.myLibraryStoreChanged.bind(this), this)
-    );
+    this.unlisteners.push(myLibraryStore.listen(this.myLibraryStoreChanged.bind(this), this))
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   myLibraryStoreChanged() {
-    this.setState(this.getFreshState());
+    this.setState(this.getFreshState())
   }
 
   onAssetsTableOrderChange(columnId: string, value: OrderDirection) {
-    myLibraryStore.setOrder(columnId, value);
+    myLibraryStore.setOrder(columnId, value)
   }
 
   onAssetsTableFilterChange(columnId: string | null, value: string | null) {
-    myLibraryStore.setFilter(columnId, value);
+    myLibraryStore.setFilter(columnId, value)
   }
 
   onAssetsTableSwitchPage(pageNumber: number) {
-    myLibraryStore.setCurrentPage(pageNumber);
+    myLibraryStore.setCurrentPage(pageNumber)
   }
 
   /**
    * If only one file was passed, then open a modal for selecting the type.
    * Otherwise just start uploading all files.
    */
-  onFileDrop(
-    acceptedFiles: FileWithPreview[],
-    rejectedFiles: FileWithPreview[],
-    evt: DragEvent<HTMLDivElement>
-  ) {
+  onFileDrop(acceptedFiles: FileWithPreview[], rejectedFiles: FileWithPreview[], evt: DragEvent<HTMLDivElement>) {
     if (acceptedFiles.length === 1) {
       pageState.switchModal({
         type: MODAL_TYPES.LIBRARY_UPLOAD,
         file: acceptedFiles[0],
-      });
+      })
     } else {
       // TODO comes from mixin
-      mixins.droppable.dropFiles(acceptedFiles, rejectedFiles, evt);
+      mixins.droppable.dropFiles(acceptedFiles, rejectedFiles, evt)
     }
   }
 
   render() {
-    let contextualEmptyMessage: React.ReactNode = t('Your search returned no results.');
+    let contextualEmptyMessage: React.ReactNode = t('Your search returned no results.')
 
     if (myLibraryStore.data.totalUserAssets === 0) {
       contextualEmptyMessage = (
         <div>
-          {t("Let's get started by creating your first library question, block, template or collection. Click the New button to create it.")}
+          {t(
+            "Let's get started by creating your first library question, block, template or collection. Click the New button to create it.",
+          )}
           <div className='pro-tip'>
-            {t('Advanced users: You can also drag and drop XLSForms here and they will be uploaded and converted to library items.')}
+            {t(
+              'Advanced users: You can also drag and drop XLSForms here and they will be uploaded and converted to library items.',
+            )}
           </div>
         </div>
-      );
+      )
     }
 
     return (
@@ -132,11 +131,11 @@ export default class MyLibraryRoute extends React.Component<
           />
 
           <div className='dropzone-active-overlay'>
-            <i className='k-icon k-icon-upload'/>
+            <i className='k-icon k-icon-upload' />
             {t('Drop files to upload')}
           </div>
         </Dropzone>
       </DocumentTitle>
-    );
+    )
   }
 }

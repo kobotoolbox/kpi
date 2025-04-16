@@ -92,7 +92,7 @@ class BaseAssetBulkActionsTestCase(BaseTestCase):
 
     def _login_superuser(self):
         self.client.logout()
-        self.client.login(username='admin', password='pass')
+        self.client.login(username='adminuser', password='pass')
 
     def _login_user(self, userpass: str):
         self.client.logout()

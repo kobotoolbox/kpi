@@ -1,10 +1,10 @@
 // This is a collection of various utility functions related to processing
 // routes and navigation.
 
-import {generatePath, matchPath, useNavigate} from 'react-router-dom';
-import {router} from 'js/router/legacy';
-import {ROUTES, PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC} from 'js/router/routerConstants';
-import {getCurrentPath} from 'js/router/routerUtils';
+import { generatePath, matchPath } from 'react-router-dom'
+import { router } from '#/router/legacy'
+import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
+import { getCurrentPath } from '#/router/routerUtils'
 
 /**
  * This is a list of available tabs in Single Processing View. Each tab uses
@@ -20,13 +20,13 @@ const TabToRouteMap: Map<ProcessingTab, string> = new Map([
   [ProcessingTab.Transcript, PROCESSING_ROUTES.TRANSCRIPT],
   [ProcessingTab.Translations, PROCESSING_ROUTES.TRANSLATIONS],
   [ProcessingTab.Analysis, PROCESSING_ROUTES.ANALYSIS],
-]);
+])
 
 interface ProcessingRouteParts {
-  assetUid: string;
-  xpath: string;
-  submissionEditId: string;
-  tabName?: ProcessingTab;
+  assetUid: string
+  xpath: string
+  submissionEditId: string
+  tabName?: ProcessingTab
 }
 
 /**
@@ -37,36 +37,36 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
     assetUid: '',
     xpath: '',
     submissionEditId: '',
-  };
+  }
 
   // Step 1. Remove query string from path.
-  const targetPath = path.split('?')[0];
+  const targetPath = path.split('?')[0]
 
   // Step 2. Generate match profile (an object with parameters from the path).
-  let matchProfile = matchPath(PROCESSING_ROUTE_GENERIC, targetPath);
+  let matchProfile = matchPath(PROCESSING_ROUTE_GENERIC, targetPath)
 
   // Step 3. If a root route was passed (i.e. one without tab name), we need to
   // match it again, this time against different pattern.
   if (!matchProfile) {
-    matchProfile = matchPath(ROUTES.FORM_PROCESSING_ROOT, targetPath);
+    matchProfile = matchPath(ROUTES.FORM_PROCESSING_ROOT, targetPath)
   }
 
   if (!matchProfile) {
-    return output;
+    return output
   }
 
   // Step 4. Assign all the found values to output
-  output.assetUid = matchProfile.params.uid as string;
-  output.xpath = decodeURLParamWithSlash(matchProfile.params.xpath || '') as string;
-  output.submissionEditId = matchProfile.params.submissionEditId as string;
+  output.assetUid = matchProfile.params.uid as string
+  output.xpath = decodeURLParamWithSlash(matchProfile.params.xpath || '') as string
+  output.submissionEditId = matchProfile.params.submissionEditId as string
   if (
     'tabName' in matchProfile.params &&
     Object.values(ProcessingTab).includes(matchProfile.params.tabName as ProcessingTab)
   ) {
-    output.tabName = matchProfile.params.tabName as ProcessingTab;
+    output.tabName = matchProfile.params.tabName as ProcessingTab
   }
-  return output;
-};
+  return output
+}
 
 /**
  * Restore previously encoded value with encodeURLParamWithSlash to its
@@ -75,7 +75,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
  * @param value
  */
 export function decodeURLParamWithSlash(value: string) {
-  return value.replace(/\|/g, '/');
+  return value.replace(/\|/g, '/')
 }
 
 /**
@@ -87,11 +87,11 @@ export function decodeURLParamWithSlash(value: string) {
  * @param value
  */
 export function encodeURLParamWithSlash(value: string) {
-  return encodeURIComponent(value.replace(/\//g, '|'));
+  return encodeURIComponent(value.replace(/\//g, '|'))
 }
 
 export function getCurrentProcessingRouteParts(): ProcessingRouteParts {
-  return getProcessingRouteParts(getCurrentPath());
+  return getProcessingRouteParts(getCurrentPath())
 }
 
 /**
@@ -99,13 +99,13 @@ export function getCurrentProcessingRouteParts(): ProcessingRouteParts {
  * params from `singleProcessingStore` to it.
  */
 function applyCurrentRouteParams(targetRoute: string) {
-  const routeParams = getProcessingRouteParts(getCurrentPath());
+  const routeParams = getProcessingRouteParts(getCurrentPath())
 
   return generatePath(targetRoute, {
     uid: routeParams.assetUid,
     xpath: encodeURLParamWithSlash(routeParams.xpath),
     submissionEditId: routeParams.submissionEditId,
-  });
+  })
 }
 
 /**
@@ -114,22 +114,18 @@ function applyCurrentRouteParams(targetRoute: string) {
  */
 export function isAnyProcessingRoute(path?: string): boolean {
   if (path === undefined) {
-    return false;
+    return false
   }
 
-  const processingRouteParts = getProcessingRouteParts(path);
-  return Boolean(
-    processingRouteParts.assetUid &&
-    processingRouteParts.submissionEditId &&
-    processingRouteParts.xpath
-  );
+  const processingRouteParts = getProcessingRouteParts(path)
+  return Boolean(processingRouteParts.assetUid && processingRouteParts.submissionEditId && processingRouteParts.xpath)
 }
 
 /**
  * Checks if currently loaded path is a processing route (any of them).
  */
 export function isAnyProcessingRouteActive(): boolean {
-  return isAnyProcessingRoute(getCurrentPath());
+  return isAnyProcessingRoute(getCurrentPath())
 }
 
 /**
@@ -142,11 +138,11 @@ export function isProcessingRouteActive(targetRoute: string) {
   // same as `|` in the `getCurrentPath`. Without this we would be comparing
   // string that could be "exactly" the same, just one containing `|` and
   // the other `%7C` (ASCII for `|`) - resulting in incorrect `false`.
-  const routeToTest = decodeURI(applyCurrentRouteParams(targetRoute));
+  const routeToTest = decodeURI(applyCurrentRouteParams(targetRoute))
   // Sometimes current path containts `|` and sometimes with `%7C` so we need to
   // be extra safe here.
-  const currentPath = decodeURI(getCurrentPath());
-  return currentPath.startsWith(routeToTest);
+  const currentPath = decodeURI(getCurrentPath())
+  return currentPath.startsWith(routeToTest)
 }
 
 /**
@@ -155,16 +151,16 @@ export function isProcessingRouteActive(targetRoute: string) {
  */
 export function getActiveTab(): ProcessingTab | undefined {
   if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-    return ProcessingTab.Transcript;
+    return ProcessingTab.Transcript
   }
   if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
-    return ProcessingTab.Translations;
+    return ProcessingTab.Translations
   }
   if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
-    return ProcessingTab.Analysis;
+    return ProcessingTab.Analysis
   }
   // Should not happen
-  return undefined;
+  return undefined
 }
 
 /**
@@ -173,7 +169,7 @@ export function getActiveTab(): ProcessingTab | undefined {
  * `singleProcessingStore`.
  */
 export function goToTabRoute(targetTabRoute: string) {
-  router!.navigate(applyCurrentRouteParams(targetTabRoute));
+  router!.navigate(applyCurrentRouteParams(targetTabRoute))
 }
 
 /**
@@ -183,20 +179,15 @@ export function goToTabRoute(targetTabRoute: string) {
  * opened right now). Default functionality is to navigate to the root route
  * for processing, thus letting the routes code handle the tab selection.
  */
-export function goToProcessing(
-  assetUid: string,
-  xpath: string,
-  submissionEditId: string,
-  remainOnSameTab?: boolean
-) {
-  let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT;
+export function goToProcessing(assetUid: string, xpath: string, submissionEditId: string, remainOnSameTab?: boolean) {
+  let targetRoute: string = ROUTES.FORM_PROCESSING_ROOT
 
   if (remainOnSameTab) {
-    const activeTab = getActiveTab();
+    const activeTab = getActiveTab()
     if (activeTab) {
-      const activeTabRoute = TabToRouteMap.get(activeTab);
+      const activeTabRoute = TabToRouteMap.get(activeTab)
       if (activeTabRoute) {
-        targetRoute = activeTabRoute;
+        targetRoute = activeTabRoute
       }
     }
   }
@@ -205,6 +196,6 @@ export function goToProcessing(
     uid: assetUid,
     xpath: encodeURLParamWithSlash(xpath),
     submissionEditId,
-  });
-  router!.navigate(path);
+  })
+  router!.navigate(path)
 }

@@ -1,17 +1,13 @@
-// Libraries
-import React from 'react';
+import React from 'react'
 
-// Partial components
-import UniversalProjectsRoute from './universalProjectsRoute';
-
-// Constants and types
+import { ROOT_URL } from '#/constants'
 import {
-  HOME_VIEW,
-  HOME_ORDERABLE_FIELDS,
   HOME_DEFAULT_VISIBLE_FIELDS,
   HOME_EXCLUDED_FIELDS,
-} from './projectViews/constants';
-import {ROOT_URL} from 'js/constants';
+  HOME_ORDERABLE_FIELDS,
+  HOME_VIEW,
+} from './projectViews/constants'
+import UniversalProjectsRoute from './universalProjectsRoute'
 
 /**
  * Component responsible for rendering "My projects" route (`#/projects/home`).
@@ -27,5 +23,5 @@ export default function MyProjectsRoute() {
       defaultExcludedFields={HOME_EXCLUDED_FIELDS}
       isExportButtonVisible={false}
     />
-  );
+  )
 }

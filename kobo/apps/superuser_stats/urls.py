@@ -7,7 +7,6 @@ from kobo.apps.superuser_stats.views import (
     forms_count_by_submission_report,
     media_storage,
     retrieve_reports,
-    user_count_by_organization,
     user_details_report,
     user_report,
     user_statistics_report,
@@ -51,16 +50,7 @@ urlpatterns = [
         r'^reports/media-storage/(?P<base_filename>[^/]+)$', retrieve_reports
     ),
 
-    # Users count by organization
-    path(
-        'reports/users-count-by-organization/',
-        user_count_by_organization,
-        name='user_count_by_organization',
-    ),
-    re_path(r'^reports/users-count-by-organization/(?P<base_filename>[^/]+)$',
-            retrieve_reports),
-
-    # Users count by organization
+    # User report
     path('reports/users/', user_report, name='users_report'),
     re_path(r'^reports/users/(?P<base_filename>[^/]+)$', retrieve_reports),
 

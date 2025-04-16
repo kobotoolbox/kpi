@@ -4,10 +4,10 @@
 // John moved it to this silly little file so that we could use CSP to prohibit
 // inline scripts
 
-window.t = function(str) {
+window.t = (str) => {
   if (window.gettext) {
-    return window.gettext(str);
+    return window.gettext(str)
   } else {
-    return str;
+    return str
   }
-};
+}

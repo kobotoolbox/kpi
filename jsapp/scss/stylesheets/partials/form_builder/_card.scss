@@ -1,4 +1,4 @@
-@use "sass:color";
+@use 'sass:color';
 @use 'scss/z-indexes';
 @use 'scss/colors';
 
@@ -7,7 +7,7 @@
 // ==========================================================================
 
 .card {
-    border-radius: 0px;
+    border-radius: 0;
     font-family: $font;
     font-weight: 600;
     font-size: 13px;
@@ -44,7 +44,7 @@
     }
 
     .card__text {
-        margin:auto;
+        margin: auto;
         display: inline-block;
         vertical-align: middle;
         width: 99%;
@@ -53,15 +53,16 @@
         &.activated {
             color: colors.$kobo-gray-700;
         }
+
         .card__buttons__multioptions {
             cursor: pointer;
             vertical-align: middle;
             text-align: right;
             position: absolute;
-            left:-34px;
-            top:50%;
+            left: -34px;
+            top: 50%;
             width: 32px;
-            margin-top:-30px;
+            margin-top: -30px;
             padding-top: 22px;
             padding-bottom: 22px;
 
@@ -78,7 +79,7 @@
     .card__header-title,
     .card__header-hint {
       &:focus {
-        @include form-builder-focus();
+        @include form-builder-focus;
       }
     }
 
@@ -105,17 +106,19 @@
             font-style: italic;
         }
     }
+
     .card__option-translation {
         &--empty {
             opacity: 0.6;
         }
     }
+
     &.card--shaded .card__header-title {
-        opacity:0.3;
+        opacity: 0.3;
     }
 
     &--required {
-        .card__text:after {
+        .card__text::after {
             content: '*';
             position: absolute;
             top: -0.15em;
@@ -123,10 +126,12 @@
             color: colors.$kobo-gray-700;
             font-size: 11px;
         }
+
         &.card--selectquestion {
             .card__text {
                 padding-left: 10px;
-                &:after {
+
+                &::after {
                     left: 1px;
                 }
             }
@@ -135,8 +140,8 @@
 }
 
 // pseudo-rule used only to increase card hover area to the left of the card
-.no-touch .card:before {
-    content: " ";
+.no-touch .card::before {
+    content: ' ';
     height: 100%;
     left: -60px;
     position: absolute;
@@ -146,11 +151,13 @@
 .sortable-active {
     .card__header {
         border: $cardInSortBorderStyle;
+
         .card__header-title {
             color: $cardInSortBorderColor;
         }
     }
 }
+
 .card--error {
     background-color: rgba(colors.$kobo-mid-red, 0.5);
 }
@@ -171,11 +178,13 @@ $cardIndicatorIconWidth: 21px;
     height: 100%;
     border-right: $cardBorderStyle;
 }
+
 .card--insort {
     .card__indicator {
         border-right: $cardInSortThinBorderStyle;
     }
 }
+
 .card__indicator__icon {
     position: absolute;
     top: 50%;
@@ -220,12 +229,13 @@ $cardIndicatorIconWidth: 21px;
     position: absolute;
     width: 100%;
     height: 100%;
-    left: 0px;
-    top: 0px;
+    left: 0;
+    top: 0;
     z-index: z-indexes.$z-form-builder-card-shade;
     text-align: center;
     vertical-align: middle;
     display: none;
+
     span {
         position: relative;
         top: 35%;
@@ -236,19 +246,24 @@ $cardIndicatorIconWidth: 21px;
 
 .card--shaded .card__header--shade {
     display: block;
-    > span:after {
+
+    > span::after {
         content: attr(data-card-hover-text);
     }
 }
+
 .card__header.settings .card__header--shade {
     background: rgba(colors.$kobo-gray-700, 0.5);
 }
+
 .card__header.delete .card__header--shade {
     background: rgba(colors.$kobo-mid-red, 0.5);
 }
+
 .card__header.duplicate .card__header--shade {
     background: rgba(colors.$kobo-blue, 0.5);
 }
+
 .card__header.add-to-library .card__header--shade {
     background: rgba(colors.$kobo-green, 0.5);
 }
@@ -306,6 +321,7 @@ $cardIndicatorIconWidth: 21px;
     .card__buttons {
         z-index: z-indexes.$z-form-builder-card-buttons + 1;
     }
+
     .card__header .card__text .bg {
         display: block;
     }

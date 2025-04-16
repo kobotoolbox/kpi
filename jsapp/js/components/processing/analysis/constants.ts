@@ -1,7 +1,7 @@
-import type {IconName} from 'jsapp/fonts/k-icons';
-import type {LanguageCode} from 'js/components/languages/languagesStore';
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { IconName } from '#/k-icons'
 
-export const AUTO_SAVE_TYPING_DELAY = 3000;
+export const AUTO_SAVE_TYPING_DELAY = 3000
 
 /**
  * To differentiate these question types from the ones we use in Form Builder,
@@ -14,15 +14,15 @@ export type AnalysisQuestionType =
   | 'qual_select_multiple'
   | 'qual_select_one'
   | 'qual_tags'
-  | 'qual_text';
+  | 'qual_text'
 
 // We need this singled out as const, because some other parts of code (not
 // related to Qualitative Analysis) need to exclude notes from output.
-export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qual_note';
+export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qual_note'
 
 interface AnalysisLabels {
-  _default: string;
-  [langCode: string]: string;
+  _default: string
+  [langCode: string]: string
 }
 
 /**
@@ -36,13 +36,13 @@ interface AnalysisQuestionOptions {
    * as `uuid`s of given choice, so without the question definition, there is no
    * way to understand what was selected).
    */
-  deleted?: boolean;
+  deleted?: boolean
 }
 
 interface AnalysisQuestionChoice {
-  labels: AnalysisLabels;
-  uuid: string;
-  options?: AnalysisQuestionOptions;
+  labels: AnalysisLabels
+  uuid: string
+  options?: AnalysisQuestionOptions
 }
 
 /**
@@ -56,30 +56,30 @@ interface AnalysisQuestionChoice {
  */
 export interface AdditionalFields {
   /** A list of keywords to search for. */
-  keywords?: string[];
+  keywords?: string[]
   /** Used for `qual_auto_keyword_count` question to indicate search in progress. */
-  isSearching?: boolean;
+  isSearching?: boolean
   /** The transcript or translation source for the search. */
-  source?: LanguageCode;
+  source?: LanguageCode
   /** For the `qual_seleect_one` and `qual_select_multiple` question types */
-  choices?: AnalysisQuestionChoice[];
+  choices?: AnalysisQuestionChoice[]
 }
 
 /** Analysis question definition base type containing all common properties. */
 export interface AnalysisQuestionBase {
-  type: AnalysisQuestionType;
-  labels: AnalysisLabels;
-  uuid: string;
-  options?: AnalysisQuestionOptions;
+  type: AnalysisQuestionType
+  labels: AnalysisLabels
+  uuid: string
+  options?: AnalysisQuestionOptions
   /** The survey question that this analysis questions is for. */
-  xpath: string;
+  xpath: string
 }
 
 /** Analysis question definition from the asset's schema (i.e. from Back end) */
 export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
   // 'by_question#survey'
-  scope: string;
-  choices?: AnalysisQuestionChoice[];
+  scope: string
+  choices?: AnalysisQuestionChoice[]
 }
 
 /**
@@ -90,48 +90,45 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
  * pauses did the responded take?" and response "7".
  */
 export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
-  additionalFields?: AdditionalFields;
-  isDraft?: boolean;
+  additionalFields?: AdditionalFields
+  isDraft?: boolean
   /**
    * Some types use an array of strings (e.g. `qual_select_multiple` and
    * `qual_tags`).
    */
-  response: string | string[];
+  response: string | string[]
 }
 
 /** Analysis question response (to a question defined as `uuid`) from Back end. */
 export interface AnalysisRequest {
-  type: AnalysisQuestionType;
-  uuid: string;
+  type: AnalysisQuestionType
+  uuid: string
   /** `null` is for `qual_integer` */
-  val: string | string[] | number | null;
-}
-
-/**
+  val: string | string[] | number | null
+} /**
  * This is a response object for `qual_select_one` and `qual_select_multiple`.
  * Besides `uuid` of a choice, it also has `labels`. It makes it easier to
  * display these responses in the UI.
  */
 interface AnalysisResponseSelectXValue {
-  labels: AnalysisLabels;
+  labels: AnalysisLabels
   /** The `uuid` of selected `AnalysisQuestionChoice`. */
-  val: string;
-}
-
-/**
+  val: string
+} /**
  * A lot of options, because:
- * - `qual_tags` returns `string[]`
- * - `qual_text` returns `string`
- * - `qual_integer` returns `number`
- * - `qual_select_one` returns `AnalysisResponseSelectXValue`
- * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]`
+ * - `qual_tags` returns `string[]` (`[]` for empty)
+ * - `qual_text` returns `string` (`''` for empty)
+ * - `qual_integer` returns `number` (`null` for empty)
+ * - `qual_select_one` returns `AnalysisResponseSelectXValue` (dunno for empty, as there's a bug: https://linear.app/kobotoolbox/issue/DEV-40/cant-unselect-qual-select-one-question-response)
+ * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]` (`[]` for empty)
  */
 type AnalysisResponseValue =
   | string
   | string[]
   | number
+  | null
   | AnalysisResponseSelectXValue
-  | AnalysisResponseSelectXValue[];
+  | AnalysisResponseSelectXValue[]
 
 /**
  * This is the object that is returned from interacting with the processing
@@ -142,7 +139,7 @@ type AnalysisResponseValue =
  * respectively.
  */
 export interface AnalysisResponse extends AnalysisQuestionBase {
-  val: string | string[] | number;
+  val: string | string[] | number
 }
 
 /**
@@ -150,10 +147,12 @@ export interface AnalysisResponse extends AnalysisQuestionBase {
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
  * but with more detailed `val` for `qual_select_one` and `qual_select_multiple`
- * - containing both `uuid` and a `labels` object.
+ * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
-  val: AnalysisResponseValue;
+  val: AnalysisResponseValue
+  // There can be a `scope` property here, but we have no use of it on FE
+  scope?: 'by_question#survey'
 }
 
 /**
@@ -162,10 +161,10 @@ export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
 export interface AnalysisResponseUpdateRequest {
   [xpath: string]:
     | {
-        qual: AnalysisRequest[];
+        qual: AnalysisRequest[]
       }
-    | string; // this will never be a string, but we need TS to stop complaining
-  submission: string;
+    | string // this will never be a string, but we need TS to stop complaining
+  submission: string
 }
 
 /**
@@ -174,8 +173,8 @@ export interface AnalysisResponseUpdateRequest {
  */
 export interface SubmissionProcessingDataResponse {
   [xpath: string]: {
-    qual: AnalysisResponse[];
-  };
+    qual: AnalysisResponse[]
+  }
 }
 
 /**
@@ -183,13 +182,13 @@ export interface SubmissionProcessingDataResponse {
  * internally available for being created, e.g. a `qual_integer` question type.
  */
 export interface AnalysisQuestionTypeDefinition {
-  type: AnalysisQuestionType;
-  label: string;
-  icon: IconName;
+  type: AnalysisQuestionType
+  label: string
+  icon: IconName
   /** Tells the UI to display it in separate section in dropdown. */
-  isAutomated?: boolean;
+  isAutomated?: boolean
   /** to see if all required data was provided. */
-  additionalFieldNames?: Array<'keywords' | 'source' | 'choices'>;
+  additionalFieldNames?: Array<'keywords' | 'source' | 'choices'>
 }
 
 /**
@@ -238,4 +237,4 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
   //   isAutomated: true,
   //   additionalFieldNames: ['keywords', 'source'],
   // },
-];
+]

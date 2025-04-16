@@ -1,7 +1,9 @@
 # coding: utf-8
+
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, renderers, status, viewsets
+from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -12,8 +14,11 @@ from rest_framework.mixins import (
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
     CLONE_ARG_NAME,
+    PERM_ADD_SUBMISSIONS,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -24,20 +29,18 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission import (
-    get_user_permission_assignments_queryset,
-)
+from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 class AssetPermissionAssignmentViewSet(
+    AuditLoggedViewSet,
     AssetNestedObjectViewsetMixin,
     NestedViewSetMixin,
     CreateModelMixin,
     RetrieveModelMixin,
     DestroyModelMixin,
     ListModelMixin,
-    viewsets.GenericViewSet,
 ):
     """
     ## Permission assignments of an asset
@@ -116,7 +119,27 @@ class AssetPermissionAssignmentViewSet(
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/  # noqa: E501
+
+    **Remove all permission assignments**
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/  # noqa: E501
+
+    **Remove all permission assignments**
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{uid}</code>/permission-assignments/{permission_uid}/delete-all/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/pG6AeSjCwNtpWazQAX76Ap/delete-all/
 
 
     **Assign all permissions at once**
@@ -167,6 +190,8 @@ class AssetPermissionAssignmentViewSet(
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = ['asset.id']
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
@@ -183,6 +208,7 @@ class AssetPermissionAssignmentViewSet(
         :param request:
         :return: JSON
         """
+        request._request.updated_data = {'asset.id': self.asset.id}
         serializer = AssetBulkInsertPermissionSerializer(
             data={'assignments': request.data},
             context=self.get_serializer_context(),
@@ -200,6 +226,7 @@ class AssetPermissionAssignmentViewSet(
         source_asset_uid = self.request.data[CLONE_ARG_NAME]
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
+        request._request.initial_data = {'asset.id': self.asset.id}
 
         if user.has_perm(PERM_MANAGE_ASSET, self.asset) and user.has_perm(
             PERM_VIEW_ASSET, source_asset
@@ -219,6 +246,20 @@ class AssetPermissionAssignmentViewSet(
         # returns asset permissions. Users who can change permissions can
         # see all permissions.
         return self.list(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['DELETE'],
+        url_path='delete-all',
+    )
+    def delete_all(self, request, *args, **kwargs):
+        object_permission = self.get_object()
+        user = object_permission.user
+        with transaction.atomic():
+            response = self.destroy(request, *args, **kwargs)
+            if response.status_code == status.HTTP_204_NO_CONTENT:
+                self.asset.remove_perm(user, PERM_ADD_SUBMISSIONS)
+        return response
 
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()
@@ -240,7 +281,9 @@ class AssetPermissionAssignmentViewSet(
                 {'detail': t("Owner's permissions cannot be deleted")},
                 status=status.HTTP_409_CONFLICT,
             )
-
+        # we don't call perform_destroy, so manually attach the relevant
+        # information to the request
+        request._request.initial_data = {'asset.id': self.asset.id}
         codename = object_permission.permission.codename
         self.asset.remove_perm(user, codename)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -266,5 +309,5 @@ class AssetPermissionAssignmentViewSet(
             self.asset, self.request.user
         )
 
-    def perform_create(self, serializer):
+    def perform_create_override(self, serializer):
         serializer.save(asset=self.asset)

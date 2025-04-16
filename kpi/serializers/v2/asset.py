@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import json
@@ -19,6 +18,7 @@ from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
+from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
@@ -64,6 +64,7 @@ from kpi.utils.project_views import (
     user_has_project_view_asset_perm,
     view_has_perm,
 )
+
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -90,16 +91,18 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         delete_request, put_back_ = self._get_action_type_and_direction(
             validated_data['payload']
         )
-        extra_params = {}
-        if asset_uids := validated_data['payload'].get('asset_uids'):
-            extra_params['asset_uids'] = asset_uids
-        else:
-            extra_params['owner'] = self.__user
 
-        queryset, projects_count = ProjectTrash.toggle_asset_statuses(
+        if not (asset_uids := validated_data['payload'].get('asset_uids')):
+            asset_uids = list(
+                Asset.objects.values_list('uid', flat=True).filter(
+                    owner=self.__user
+                )
+            )
+
+        queryset, projects_count = ProjectTrash.toggle_statuses(
+            object_identifiers=asset_uids,
             active=put_back_,
             toggle_delete=delete_request,
-            **extra_params,
         )
         validated_data['project_counts'] = projects_count
 
@@ -129,8 +132,8 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if delete_request:
             if put_back_:
                 message = nt(
-                    f'%(count)d project has been undeleted',
-                    f'%(count)d projects have been undeleted',
+                    '%(count)d project has been undeleted',
+                    '%(count)d projects have been undeleted',
                     instance['project_counts'],
                 ) % {'count': instance['project_counts']}
             else:
@@ -290,6 +293,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     owner = RelativePrefixHyperlinkedRelatedField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
+    owner_label = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(
         lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -406,6 +410,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'data_sharing',
                   'paired_data',
                   'project_ownership',
+                  'owner_label',
                   )
         extra_kwargs = {
             'parent': {
@@ -418,13 +423,15 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def create(self, validated_data):
         current_owner = validated_data['owner']
-        real_owner = self._get_real_owner(current_owner)
+        real_owner = get_real_owner(current_owner)
         if real_owner != current_owner:
             with transaction.atomic():
                 validated_data['owner'] = real_owner
+                validated_data['is_excluded_from_projects_list'] = True
                 instance = super().create(validated_data)
                 instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
         else:
+            validated_data['is_excluded_from_projects_list'] = False
             instance = super().create(validated_data)
 
         return instance
@@ -724,7 +731,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ),
             'sender': transfer.invite.sender.username,
             'recipient': transfer.invite.recipient.username,
-            'status': transfer.status
+            'status': transfer.invite.status
         }
 
     def get_exports(self, obj: Asset) -> str:
@@ -742,14 +749,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
-    def get_access_types(self, obj):
+    def get_access_types(self, asset):
         """
         Handles the detail endpoint but also takes advantage of the
         `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
         if it is present
         """
         # Avoid extra queries if obj is not a collection
-        if obj.asset_type != ASSET_TYPE_COLLECTION:
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
         # User is the owner
@@ -759,7 +766,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return None
 
         access_types = []
-        if request.user == obj.owner:
+        if request.user == asset.owner:
             access_types.append('owned')
 
         # User can view the collection.
@@ -767,9 +774,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # The list view should provide a cache
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(obj.pk)
+            ].get(asset.pk)
         except KeyError:
-            asset_permission_assignments = obj.permissions.all()
+            asset_permission_assignments = asset.permissions.all()
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
@@ -781,13 +788,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ):
                 access_types.append('public')
 
-                if request.user == obj.owner:
+                if request.user == asset.owner:
                     # Do not go further, `access_type` cannot be `shared`
                     # and `owned`
                     break
 
             if (
-                request.user != obj.owner
+                request.user != asset.owner
                 and not obj_permission.deny
                 and obj_permission.user == request.user
             ):
@@ -802,10 +809,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         try:
             # The list view should provide a cache
             subscriptions = self.context['user_subscriptions_per_asset'].get(
-                obj.pk, []
+                asset.pk, []
             )
         except KeyError:
-            subscribed = obj.has_subscribed_user(request.user.pk)
+            subscribed = asset.has_subscribed_user(request.user.pk)
         else:
             subscribed = request.user.pk in subscriptions
         if subscribed:
@@ -815,7 +822,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user.is_superuser:
             access_types.append('superuser')
 
-        if obj.owner.organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+        try:
+            organization = self.context['organizations_per_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
             access_types.extend(['shared', 'org-admin'])
             access_types = list(set(access_types))
 
@@ -825,6 +841,24 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             )
 
         return access_types
+
+    def get_owner_label(self, asset):
+        try:
+            organization = self.context['organizations_per_asset'].get(asset.id)
+        except KeyError:
+            # Fallback on context if it exists (i.e.: asset lists of an organization).
+            # Otherwise, retrieve from the asset owner.
+            organization = self.context.get(
+                'organization', asset.owner.organization
+            )
+
+        if (
+            organization
+            and organization.is_owner(asset.owner)
+            and organization.is_mmo
+        ):
+            return organization.name
+        return asset.owner.username
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
@@ -914,16 +948,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # FIXME: Is this dead code?
         return json.dumps(obj.content)
 
-    def _get_real_owner(self, current_owner: 'User') -> 'User':
-
-        if current_owner.is_org_owner:
-            return current_owner
-
-        # If `owner` is not the owner of the organization they belong to,
-        # they must belong to a multi-member organization. Thus, the asset
-        # must be owned by the organization('s owner).
-        return current_owner.organization.owner_user_object
-
     def _get_status(self, perm_assignments):
         """
         Returns asset status.
@@ -1009,7 +1033,8 @@ class AssetListSerializer(AssetSerializer):
                   'status',
                   'access_types',
                   'children',
-                  'data_sharing'
+                  'data_sharing',
+                  'owner_label',
                   )
 
     def get_permissions(self, asset):
@@ -1114,6 +1139,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
             'deployment_status',
             'asset_type',
             'downloads',
+            'owner_label',
         )
 
     def get_deployment__submission_count(self, obj: Asset) -> int:

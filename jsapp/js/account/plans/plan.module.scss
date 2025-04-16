@@ -3,14 +3,13 @@
 @use 'sass:color';
 @use 'scss/_variables';
 
-$plans-page-card-width: 320px;
+$plans-page-card-width: 290px;
 $plans-page-gap: 20px;
 $plans-page-max-width: $plans-page-card-width * 3 + $plans-page-gap * 2;
 $plan-badge-height: 38px;
 
 .accountPlan {
   padding: 30px 40px;
-  overflow-y: auto;
   position: relative;
   height: 100%;
   width: 100%;
@@ -20,7 +19,7 @@ $plan-badge-height: 38px;
 }
 
 .accountPlan.showAddOns {
-  padding: 15px 0 0 0;
+  padding: 15px 0 0;
 }
 
 .wait {
@@ -34,7 +33,7 @@ $plan-badge-height: 38px;
 }
 
 .unauthorized {
-  opacity: 50%;
+  opacity: 0.5;
 }
 
 .allPlans {
@@ -61,7 +60,7 @@ $plan-badge-height: 38px;
   display: none;
   appearance: none;
 
-  &[aria-disabled=true] + label {
+  &[aria-disabled='true'] + label {
     pointer-events: none;
   }
 }
@@ -82,12 +81,12 @@ $plan-badge-height: 38px;
   color: colors.$kobo-white;
   border-radius: 4px;
 
-  &:after {
+  &::after {
     background-color: colors.$kobo-blue;
     padding: 8px 12px;
   }
 
-  &:before {
+  &::before {
     width: 20px;
     height: 20px;
     color: colors.$kobo-light-storm;
@@ -112,13 +111,15 @@ $plan-badge-height: 38px;
 }
 
 .priceName,
-.enterpriseTitle {
-  color: colors.$kobo-gray-700;
+.enterpriseBannerTitle {
   font-weight: 600;
-  font-size: 24px;
+  font-size: 25px;
   line-height: 32px;
   margin: 0;
-  padding: 0 0 12px 0;
+}
+
+.priceName {
+  padding: 0 0 12px;
 }
 
 .priceTitle {
@@ -133,7 +134,7 @@ $plan-badge-height: 38px;
 .planContainer {
   border-radius: 6px;
   border: colors.$kobo-gray-400 solid 1px;
-  padding: 24px;
+  padding: 20px;
   width: $plans-page-card-width;
   display: flex;
   flex-direction: column;
@@ -144,8 +145,11 @@ $plan-badge-height: 38px;
   border-radius: 0 0 6px 6px;
 }
 
-.featureContainer {
-  height: 16em;
+.planDetailsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 25px;
 }
 
 .planContainer :global hr {
@@ -166,6 +170,7 @@ $plan-badge-height: 38px;
   height: 100%;
   width: auto;
   display: inline-flex;
+  line-height: 20px;
   margin-right: 12px;
 }
 
@@ -176,28 +181,36 @@ $plan-badge-height: 38px;
   margin-top: -(10px);
 }
 
-.enterprisePlanContainer {
-  flex: 0 0 $plans-page-card-width;
+.enterpriseBanner {
   display: flex;
-  flex-direction: column;
-}
-
-.enterprisePlan {
-  background-color: colors.$kobo-bg-blue;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: colors.$kobo-dark-blue;
+  color: colors.$kobo-white;
   padding: 24px;
   border-radius: 6px;
-  width: $plans-page-card-width;
   height: 100%;
+  margin-bottom: 20px;
 }
 
-.enterpriseDetails {
+.enterpriseBannerText {
+  max-width: 800px;
+}
+
+.enterpriseBannerButtonContainer {
+  flex-direction: column;
+  justify-content: center;
+  width: 113px;
+}
+
+.enterpriseBannerDetails {
+  margin-top: 12px;
+  font-size: 14px;
   line-height: 22px;
-}
-
-a.enterpriseLink {
-  color: colors.$kobo-dark-blue;
-  text-decoration: underline;
-  font-weight: 600;
 }
 
 .listTitle {
@@ -240,11 +253,11 @@ a.enterpriseLink {
   justify-content: flex-end;
 
   &:not(:empty) {
-    margin-top: 30px;
+    margin-top: auto;
   }
 }
 
-.scrollToTopButton{
+.scrollToTopButton {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -255,7 +268,7 @@ a.enterpriseLink {
 	color: colors.$kobo-white;
 	border: none;
 	cursor: pointer;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px 0 rgb(0 0 0 / 20%);
 }
 
 .maximizedCards {

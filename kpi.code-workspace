@@ -6,31 +6,37 @@
   ],
   "extensions": {
     "recommendations": [
-      "editorconfig.editorconfig",      // EditorConfig
+      "editorconfig.editorconfig", // EditorConfig
+
+      // Markdown preview that supports what Github supports (checkbo):
+      // checkboxes, footnotes, newlines without empty lines, etc.
+      "shd101wyy.markdown-preview-enhanced",
 
       // Linters and Formatters
-      "ms-python.black-formatter",      // Black (also installs MS Pylance)*
-      "dbaeumer.vscode-eslint",         // ESLint
-      "rvest.vs-code-prettier-eslint",  // Prettier
-      "stylelint.vscode-stylelint",     // Stylelint
-      "freewil.vscode-coffeelint2",     // Coffeelint
+      "ms-python.black-formatter", // Black (also installs MS Pylance)*
+      "dbaeumer.vscode-eslint", // ESLint
+      "stylelint.vscode-stylelint", // Stylelint
+      "freewil.vscode-coffeelint2", // Coffeelint
+      "biomejs.biome", // Biome
 
       // Status Bar Toggle for Format on Save
       "tombonnike.vscode-status-bar-format-toggle", // Formatting Toggle
 
       // Syntax Support
       "almahdi.code-django", // Django templates
+      "vunguyentuan.vscode-css-variables", // CSS
+      "vunguyentuan.vscode-postcss" // CSS
     ]
   },
   "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "jsapp/compiled": true
+    },
+
     // Black
     "[python]": {
       "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-
-    // Prettier
-    "[typescript][typescriptreact][javascript][javascriptreact]": {
-      "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
     },
 
     // Stylelint
@@ -38,9 +44,54 @@
     "css.validate": false,
     "scss.validate": false,
 
+    // Frontend formatting (Biome)
+    "[javascript]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
+      }
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
+      }
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
+      }
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports.biome": "explicit"
+      }
+    },
+    "[json]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit"
+      }
+    },
+
+    // Mantine / PostCSS
+    "cssVariables.lookupFiles": [
+      "**/*.css",
+      "**/*.scss",
+      "**/*.sass",
+      "**/*.less",
+      "node_modules/@mantine/core/styles.css"
+    ],
+
     // Formatting Toggle
     "formattingToggle.affects": [
-      "editor.formatOnSave",
+      "editor.formatOnSave"
       // NOTE: 6/25/24
       //
       //   "source.fixAll.*" has changed from true/false to "explicit"/"never".
@@ -61,14 +112,13 @@
       //         "source.fixAll.eslint":    "explicit",  // "never"
       //         "source.fixAll.stylelint": "explicit",  // "never"
       //       },
-      //
-      //   Also useful: Run Prettier only on your "modified" lines
-      //
-      //       "editor.formatOnSaveMode": "modifications" // or "file"
     ],
 
     // Use locally-installed TypeScript instance (supports plugins in tsconfig)
     "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true
-  },
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.preferences.preferTypeOnlyAutoImports": true,
+
+    "markdown-preview-enhanced.previewColorScheme": "editorColorScheme"
+  }
 }

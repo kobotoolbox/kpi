@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
+from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -19,6 +20,7 @@ from kpi.deployment_backends.kc_access.utils import (
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
 from kpi.models.abstract_models import AbstractTimeStampedModel
+
 from ..exceptions import TransferAlreadyProcessedException
 from ..tasks import async_task, send_email_to_admins
 from ..utils import get_target_folder
@@ -27,7 +29,7 @@ from .choices import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .invite import Invite
+from .invite import Invite, InviteType, OrgMembershipAutoInvite
 
 
 class Transfer(AbstractTimeStampedModel):
@@ -43,6 +45,16 @@ class Transfer(AbstractTimeStampedModel):
         related_name='transfers',
         on_delete=models.CASCADE,
     )
+    # The `invite_type` field is **always** copied from the `Invite` model during the
+    # save process to eliminate the need to load the related `Invite` model solely to
+    # determine its type.
+    # This optimization allows directly resolving the appropriate model with
+    # `get_invite_model()`.
+    invite_type = models.CharField(
+        choices=InviteType.choices,
+        default=InviteType.USER_OWNERSHIP_TRANSFER,
+        max_length=30,
+    )
 
     class Meta:
         verbose_name = 'project ownership transfer'
@@ -54,9 +66,18 @@ class Transfer(AbstractTimeStampedModel):
             f'{self.invite.recipient.username}'
         )
 
+    def get_invite_model(self) -> Invite | OrgMembershipAutoInvite:
+        if self.invite_type == InviteType.USER_OWNERSHIP_TRANSFER:
+            return Invite
+        if self.invite_type == InviteType.ORG_MEMBERSHIP:
+            return OrgMembershipAutoInvite
+
+        raise NotImplementedError
+
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
+        self.invite_type = self.invite.invite_type
         super().save(*args, **kwargs)
 
         if is_new:
@@ -82,7 +103,6 @@ class Transfer(AbstractTimeStampedModel):
 
             global_status.save()
 
-            self.date_modified = timezone.now()
             self.save(update_fields=['date_modified'])
             self._update_invite_status()
 
@@ -91,7 +111,7 @@ class Transfer(AbstractTimeStampedModel):
             raise TransferAlreadyProcessedException()
 
         self.status = TransferStatusChoices.IN_PROGRESS
-        new_owner = self.invite.recipient
+        new_owner = get_real_owner(self.invite.recipient)
         success = False
         try:
             if not self.asset.has_deployment:
@@ -108,6 +128,8 @@ class Transfer(AbstractTimeStampedModel):
                     self.statuses.filter(status_type__in=status_types).update(
                         status=TransferStatusChoices.SUCCESS
                     )
+                    # Update `is_excluded_from_projects_list` flag
+                    self._update_project_exclusion_flag()
             else:
                 _rewrite_mongo = True
                 with transaction.atomic():
@@ -126,6 +148,8 @@ class Transfer(AbstractTimeStampedModel):
 
                         self._sent_in_app_messages()
 
+                    # Update `is_excluded_from_projects_list` flag
+                    self._update_project_exclusion_flag()
             # Do not delegate anything to Celery before the transaction has
             # been validated. Otherwise, Celery could fetch outdated data.
             transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))
@@ -149,9 +173,9 @@ class Transfer(AbstractTimeStampedModel):
         )
 
     def _reassign_project_permissions(self, update_deployment: bool = False):
-        new_owner = self.invite.recipient
+        new_owner = get_real_owner(self.invite.recipient)
 
-        # Delete existing new owner's permissions on project if any
+        # Delete existing new owner's permissions on the project if any
         self.asset.permissions.filter(user=new_owner).delete()
         old_owner = self.asset.owner
         self.asset.owner = new_owner
@@ -174,11 +198,11 @@ class Transfer(AbstractTimeStampedModel):
                 xform.xls.move(target_folder)
 
             xform.save(update_fields=['user_id', 'xls'])
-            # Kobocat adds 3 more permissions that are ignored by KPI:
+            # Kobocat adds 3 more permissions that KPI ignores:
             # - add_xform
             # - transfer_xform
             # - move_xform
-            # There are not transferred since they are not used anymore by Kobocat
+            # There are not transferred since they are not used anymore by KoboCAT,
             # and it does not break anything.
             assign_applicable_kc_permissions(self.asset, new_owner, owner_perms)
             reset_kc_permissions(self.asset, old_owner)
@@ -189,14 +213,25 @@ class Transfer(AbstractTimeStampedModel):
                {'backend_response': backend_response}
             )
 
+        self.asset.update_search_field(
+            owner_username=new_owner.username,
+            organization_name=new_owner.organization.name,
+        )
+
         self.asset.save(
-            update_fields=['owner', '_deployment_data'],
+            update_fields=['owner', '_deployment_data', 'search_field'],
             create_version=False,
             adjust_content=False,
         )
         self.asset.assign_perm(
             self.invite.sender, PERM_MANAGE_ASSET
         )
+        # If the new owner differs from the user who accepted the invite,
+        # let's give them 'manage_asset' permission as well.
+        if new_owner != self.invite.recipient:
+            self.asset.assign_perm(
+                self.invite.recipient, PERM_MANAGE_ASSET
+            )
 
     def _sent_in_app_messages(self):
 
@@ -269,8 +304,8 @@ class Transfer(AbstractTimeStampedModel):
         This method must be called within a transaction because of the lock
         acquired the object row (with `select_for_update`)
         """
-        invite = self.invite.__class__.objects.select_for_update().get(
-            pk=self.invite.pk
+        invite = (
+            self.get_invite_model().objects.select_for_update().get(pk=self.invite_id)
         )
         previous_status = invite.status
         is_complete = True
@@ -291,13 +326,36 @@ class Transfer(AbstractTimeStampedModel):
             invite.status = InviteStatusChoices.COMPLETE
 
         if previous_status != invite.status:
-            invite.date_modified = timezone.now()
             invite.save(update_fields=['status', 'date_modified'])
             if invite.status == InviteStatusChoices.FAILED:
                 send_email_to_admins.delay(invite.uid)
 
-        if previous_status != invite.status:
-            self.invite.refresh_from_db()
+            self.invite.status = invite.status
+            self.invite.date_modified = invite.date_modified
+
+    def _update_project_exclusion_flag(self):
+        """
+        Update `is_excluded_from_projects_list` based on asset ownership
+
+        If the invite is of `OrgMembershipAutoInvite`, set the flag to `True`
+        for assets owned by the sender or invitee joining the organization.
+        These assets should be excluded from the org owner's `My Projects` list.
+
+        If a project is explicitly transferred, it should remain in the
+        `My Projects` list of both the sender and recipient.
+        """
+        is_excluded = (
+            isinstance(self.invite, OrgMembershipAutoInvite)
+            and get_real_owner(self.invite.sender) != self.invite.sender
+        )
+
+        if self.asset.is_excluded_from_projects_list != is_excluded:
+            self.asset.is_excluded_from_projects_list = is_excluded
+            self.asset.save(
+                update_fields=['is_excluded_from_projects_list'],
+                adjust_content=False,
+                create_version=False
+            )
 
 
 class TransferStatus(AbstractTimeStampedModel):
@@ -348,8 +406,8 @@ class TransferStatus(AbstractTimeStampedModel):
                 transfer_id=transfer_id, status_type=status_type
             )
             transfer_status.status = status
-            transfer_status.error = error
             transfer_status.date_modified = timezone.now()
+            transfer_status.error = cls._add_error(transfer_status, error)
             transfer_status.save(
                 update_fields=['status', 'error', 'date_modified']
             )
@@ -372,3 +430,16 @@ class TransferStatus(AbstractTimeStampedModel):
 
         if success:
             self.transfer.status = TransferStatusChoices.SUCCESS
+
+    @classmethod
+    def _add_error(cls, transfer_status, error):
+        if not error:
+            return transfer_status.error
+
+        log_date = transfer_status.date_modified.strftime('%Y-%m-%d %H:%M:%S')
+        error_message = f'[{log_date}] - {error}'
+        return (
+            f'{error_message}\n{transfer_status.error}'
+            if transfer_status.error
+            else error_message
+        )

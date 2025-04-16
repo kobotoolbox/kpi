@@ -1,28 +1,17 @@
 # coding: utf-8
-import requests
 from django.test import RequestFactory
-from httmock import HTTMock, all_requests
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.constants import (
     CAN_CHANGE_XFORM,
     CAN_DELETE_DATA_XFORM,
     CAN_VIEW_XFORM,
 )
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm, remove_perm
-
-
-@all_requests
-def enketo_mock(url, request):
-    response = requests.Response()
-    response.status_code = 201
-    response._content = b'{"url": "https://hmh2a.enketo.formhub.org"}'
-    return response
 
 
 def _data_list(formid):
@@ -274,77 +263,6 @@ class TestDataViewSet(TestBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
-    def test_cannot_get_enketo_edit_url_without_require_auth(self):
-        """
-        It's not currently possible to support authenticated Enketo submission
-        editing while simultaneously accepting anonymous submissions. The
-        less-bad option is to reject edit requests with an explicit error
-        message when anonymous submissions are enabled.
-        """
-        self.xform.require_auth = False
-        self.xform.save(update_fields=['require_auth'])
-        self.assertFalse(self.xform.require_auth)
-        self._make_submissions()
-
-        for view_ in ['enketo', 'enketo_edit']:
-            view = DataViewSet.as_view({'get': view_})
-            formid = self.xform.pk
-            dataid = self.xform.instances.all().order_by('id')[0].pk
-            request = self.factory.get(
-                '/',
-                data={'return_url': 'http://test.io/test_url'},
-                **self.extra
-            )
-            response = view(request, pk=formid, dataid=dataid)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            self.assertTrue(
-                response.data[0].startswith(
-                    'Cannot edit submissions while "Require authentication '
-                    'to see form and submit data" is disabled for your '
-                    'project'
-                )
-            )
-
-    def test_get_enketo_edit_url(self):
-        self._make_submissions()
-        for view_ in ['enketo', 'enketo_edit']:
-            # ensure both legacy `/enketo` and the new `/enketo_edit` endpoints
-            # do the same thing
-            view = DataViewSet.as_view({'get': view_})
-            formid = self.xform.pk
-            dataid = self.xform.instances.all().order_by('id')[0].pk
-
-            request = self.factory.get('/', **self.extra)
-            response = view(request, pk=formid, dataid=dataid)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            # add data check
-            self.assertEqual(
-                response.data['detail'], '`return_url` not provided.'
-            )
-
-            request = self.factory.get(
-                '/', data={'return_url': 'http://test.io/test_url'}, **self.extra
-            )
-
-            with HTTMock(enketo_mock):
-                response = view(request, pk=formid, dataid=dataid)
-                self.assertEqual(
-                    response.data['url'], 'https://hmh2a.enketo.formhub.org'
-                )
-
-    def test_get_enketo_view_url(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'get': 'enketo_view'})
-        request = self.factory.get('/', **self.extra)
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-
-        with HTTMock(enketo_mock):
-            response = view(request, pk=formid, dataid=dataid)
-            self.assertEqual(
-                response.data['url'], 'https://hmh2a.enketo.formhub.org'
-            )
-
     def test_get_form_public_data(self):
         self._make_submissions()
         view = DataViewSet.as_view({'get': 'list'})
@@ -411,6 +329,7 @@ class TestDataViewSet(TestBase):
                                'instance': self.attachment.instance.pk,
                                'filename': self.attachment.media_file.name,
                                'id': self.attachment.pk,
+                               'uid': self.attachment.uid,
                                'xform': self.xform.id}
                               ],
             '_geolocation': [None, None],
@@ -484,104 +403,6 @@ class TestDataViewSet(TestBase):
             'This is not supported by the legacy API anymore',
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-
-    def test_cannot_bulk_delete_submissions_as_granted_user(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'delete': 'bulk_delete'})
-        formid = self.xform.pk
-        submission_ids = self.xform.instances.values_list(
-            'pk', flat=True
-        ).all()[:2]
-        data = {'submission_ids': list(submission_ids)}
-        self._create_user_and_login(username='alice', password='alice')
-        assign_perm(CAN_VIEW_XFORM, self.user, self.xform)
-        assign_perm(CAN_DELETE_DATA_XFORM, self.user, self.xform)
-        self.extra = {'HTTP_AUTHORIZATION': f'Token  {self.user.auth_token}'}
-        request = self.factory.delete(
-            '/', data=data, format='json', **self.extra,
-        )
-        response = view(request, pk=formid)
-        # Even with correct permissions, Alice is not allowed to delete submissions
-        self.assertContains(
-            response,
-            'This is not supported by the legacy API anymore',
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
-
-    def test_cannot_bulk_delete_submissions(self):
-        self._make_submissions()
-        before_count = self.xform.instances.all().count()
-        view = DataViewSet.as_view({'delete': 'bulk_delete'})
-        formid = self.xform.pk
-        submission_ids = self.xform.instances.values_list(
-            'pk', flat=True
-        ).all()[:2]
-        data = {'submission_ids': list(submission_ids)}
-        request = self.factory.delete(
-            '/', data=data, format='json', **self.extra,
-        )
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['detail'], '2 submissions have been deleted')
-        count = self.xform.instances.all().count()
-        self.assertEqual(before_count - 2, count)
-
-    def test_update_validation_status(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'patch': 'validation_status'})
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        data = {
-            'validation_status.uid': 'validation_status_on_hold'
-        }
-        request = self.factory.patch(
-            '/', data=data, format='json', **self.extra
-        )
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        cursor = ParsedInstance.query_mongo_minimal(
-            query={'_id': dataid},
-            fields=None,
-            sort=None,
-        )
-        submission = next(cursor)
-        self.assertEqual(
-            submission['_validation_status']['uid'], 'validation_status_on_hold'
-        )
-        self.assertEqual(
-            submission['_validation_status']['by_whom'], self.user.username  # bob
-        )
-
-    def test_bulk_update_validation_status(self):
-        self._make_submissions()
-        view = DataViewSet.as_view({'patch': 'bulk_validation_status'})
-        formid = self.xform.pk
-        submission_ids = list(self.xform.instances.values_list(
-            'pk', flat=True
-        ).all().order_by('pk')[:2])
-        data = {
-            'submission_ids': submission_ids,
-            'validation_status.uid': 'validation_status_on_hold'
-
-        }
-        request = self.factory.patch(
-            '/', data=data, format='json', **self.extra,
-        )
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        cursor = ParsedInstance.query_mongo_minimal(
-            query={'_id': {'$in': submission_ids}},
-            fields=None,
-            sort=None,
-        )
-        for submission in cursor:
-            self.assertEqual(
-                submission['_validation_status']['uid'],
-                'validation_status_on_hold'
-            )
-            self.assertEqual(
-                submission['_validation_status']['by_whom'], self.user.username  # bob
-            )
 
     def test_cannot_access_data_of_pending_delete_xform(self):
         # Ensure bob is able to see their data

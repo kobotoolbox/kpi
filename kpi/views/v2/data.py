@@ -1,4 +1,3 @@
-# coding: utf-8
 import copy
 import json
 import re
@@ -8,7 +7,7 @@ from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
 from pymongo.errors import OperationFailure
-from rest_framework import renderers, serializers, status, viewsets
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.request import Request
@@ -16,8 +15,10 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.audit_actions import AuditAction
-from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.audit_log.base_views import AuditLoggedViewSet
+from kobo.apps.audit_log.models import AuditType
+from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -54,7 +55,7 @@ from kpi.utils.xml import (
 
 
 class DataViewSet(
-    AssetNestedObjectViewsetMixin, NestedViewSetMixin, viewsets.GenericViewSet
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet
 ):
     """
     ## List of submissions for a specific asset
@@ -330,6 +331,8 @@ class DataViewSet(
     )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
+    log_type = AuditType.PROJECT_HISTORY
+    logged_fields = []
 
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
@@ -346,26 +349,7 @@ class DataViewSet(
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
 
-        # Need to get `uuid` before the data is gone
-        submission = deployment.get_submission(
-            submission_id=submission_id,
-            user=request.user,
-            fields=['_id', '_uuid']
-        )
-
         if deployment.delete_submission(submission_id, user=request.user):
-            AuditLog.objects.create(
-                app_label='logger',
-                model_name='instance',
-                object_id=pk,
-                user=request.user,
-                metadata={
-                    'asset_uid': self.asset.uid,
-                    'uuid': submission['_uuid'],
-                },
-                action=AuditAction.DELETE,
-                log_type=AuditType.SUBMISSION_MANAGEMENT,
-            )
             response = {
                 'content_type': 'application/json',
                 'status': status.HTTP_204_NO_CONTENT,
@@ -594,34 +578,24 @@ class DataViewSet(
         # Prepare audit logs
         data = copy.deepcopy(bulk_actions_validator.data)
         # Retrieve all submissions matching `submission_ids` or `query`.
-        # If user is not allowed to see some of the submissions (i.e.: user
-        # with partial permissions), the request will be rejected
-        # (aka `PermissionDenied`) before AuditLog objects are saved in DB.
+
         submissions = deployment.get_submissions(
             user=request.user,
             submission_ids=data['submission_ids'],
             query=data['query'],
-            fields=['_id', '_uuid'],
+            fields=['_id', '_uuid', '_submitted_by', 'meta/rootUuid'],
         )
 
         # Prepare logs before deleting all submissions.
-        audit_logs = []
-        for submission in submissions:
-            audit_logs.append(
-                AuditLog(
-                    app_label='logger',
-                    model_name='instance',
-                    object_id=submission['_id'],
-                    user=request.user,
-                    user_uid=request.user.extra_details.uid,
-                    metadata={
-                        'asset_uid': self.asset.uid,
-                        'uuid': submission['_uuid'],
-                    },
-                    action=AuditAction.DELETE,
-                    log_type=AuditType.SUBMISSION_MANAGEMENT,
-                )
+        request._request.instances = {
+            sub['_id']: SubmissionUpdate(
+                id=sub['_id'],
+                username=sub['_submitted_by'],
+                action='delete',
+                root_uuid=sub['meta/rootUuid'],
             )
+            for sub in submissions
+        }
 
         try:
             deleted = deployment.delete_submissions(
@@ -633,10 +607,6 @@ class DataViewSet(
                 'content_type': 'application/json',
                 'status': status.HTTP_400_BAD_REQUEST,
             }
-
-        # If requests has succeeded, let's log deletions (if any)
-        if audit_logs and deleted:
-            AuditLog.objects.bulk_create(audit_logs)
 
         return {
             'data': {'detail': f'{deleted} submissions have been deleted'},
@@ -748,18 +718,6 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
-        if 'meta/rootUuid' in submission_json:
-            # this submission has been edited at least one time
-            original_submission_uuid = submission_json['meta/rootUuid']
-        else:
-            # never been edited
-
-            # Note: KoboCAT will accept a submission whose XML lacks
-            # `<meta><instanceID>`, even though that violates the OpenRosa
-            # spec. KoboCAT then automatically generates a UUID for the
-            # submission, but that UUID is added neither to the XML nor to
-            # `meta/instanceID` in the JSON representation
-            original_submission_uuid = 'uuid:' + submission_json['_uuid']
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be
@@ -807,7 +765,7 @@ class DataViewSet(
             regenerate=True,
             root_node_name=xml_root_node_name,
             version_uid=version_uid,
-            submission_uuid=original_submission_uuid,
+            submission_uuid=remove_uuid_prefix(submission_json['meta/rootUuid']),
         )
 
         data = {
@@ -828,7 +786,7 @@ class DataViewSet(
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
             data[key_] = reverse(
                 'attachment-detail',
-                args=(self.asset.uid, submission_id, attachment.pk),
+                args=(self.asset.uid, submission_id, attachment.uid),
                 request=request,
             )
 

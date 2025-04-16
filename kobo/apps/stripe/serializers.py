@@ -2,27 +2,27 @@ from django.core.exceptions import ValidationError
 from djstripe.models import (
     Price,
     Product,
-    Session,
     Subscription,
     SubscriptionItem,
     SubscriptionSchedule,
 )
 from rest_framework import serializers
 
+from kobo.apps.stripe.models import PlanAddOn
+
 
 class OneTimeAddOnSerializer(serializers.ModelSerializer):
-    payment_intent = serializers.SlugRelatedField(
-        slug_field='status',
-        read_only=True,
-        many=False,
-    )
-
     class Meta:
-        model = Session
+        model = PlanAddOn
         fields = (
-            'metadata',
+            'id',
             'created',
-            'payment_intent',
+            'is_available',
+            'usage_limits',
+            'total_usage_limits',
+            'limits_remaining',
+            'organization',
+            'product',
         )
 
 

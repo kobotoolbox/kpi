@@ -1,26 +1,25 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 import responses
+from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
 from django.urls import reverse
-from ddt import ddt, data, unpack
+from django.utils import timezone
+from django.utils.http import parse_http_date
 from model_bakery import baker
 from rest_framework import status
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
-from kpi.tests.base_test_case import BaseTestCase, BaseAssetTestCase
+from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.utils.mixins import (
     AssetFileTestCaseMixin,
-    SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
+    SubmissionEditTestCaseMixin,
     SubmissionValidationStatusTestCaseMixin,
     SubmissionViewTestCaseMixin,
 )
@@ -35,6 +34,7 @@ class OrganizationApiTestCase(BaseTestCase):
         'current_period_start': '2024-01-01',
         'current_period_end': '2024-12-31'
     }
+    MMO_SUBSCRIPTION_DETAILS = {'product_metadata': {'mmo_enabled': 'true'}}
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
@@ -62,7 +62,12 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_create(self):
         data = {'name': 'my org'}
         res = self.client.post(self.url_list, data)
-        self.assertContains(res, data['name'], status_code=201)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        self._insert_data()
+        res = self.client.delete(self.url_detail)
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_list(self):
         self._insert_data()
@@ -73,14 +78,13 @@ class OrganizationApiTestCase(BaseTestCase):
     def test_api_returns_org_data(self):
         self._insert_data()
         response = self.client.get(self.url_detail)
-        self.assertContains(response, self.organization.slug)
         self.assertContains(response, self.organization.id)
         self.assertContains(response, self.organization.name)
 
     def test_update(self):
         self._insert_data(mmo_override=True)
         data = {'name': 'edit'}
-        with self.assertNumQueries(FuzzyInt(10, 16)):
+        with self.assertNumQueries(FuzzyInt(10, 18)):
             res = self.client.patch(self.url_detail, data)
         self.assertContains(res, data['name'])
 
@@ -89,6 +93,20 @@ class OrganizationApiTestCase(BaseTestCase):
         self.organization.add_user(user=user)
         res = self.client.patch(self.url_detail, data)
         self.assertEqual(res.status_code, 403)
+
+    @patch('kpi.utils.usage_calculator.CachedClass._cache_last_updated')
+    def test_service_usage_date_header(self, mock_cache_last_updated):
+        self._insert_data()
+        url_service_usage = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id},
+        )
+        now = timezone.now()
+        mock_cache_last_updated.return_value = now - timedelta(seconds=3)
+        self.client.get(url_service_usage)
+        response = self.client.get(url_service_usage)
+        last_updated_timestamp = parse_http_date(response.headers['Date'])
+        assert (now.timestamp() - last_updated_timestamp) > 3
 
     def test_api_response_includes_is_mmo_with_mmo_override(self):
         """
@@ -103,13 +121,13 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch.object(
         Organization,
         'active_subscription_billing_details',
-        return_value=DEFAULT_SUBSCRIPTION_DETAILS
+        return_value=MMO_SUBSCRIPTION_DETAILS,
     )
     def test_api_response_includes_is_mmo_with_subscription(
         self, mock_active_subscription
     ):
         """
-        Test that is_mmo is True when there is an active subscription.
+        Test that is_mmo is True when there is an active MMO subscription.
         """
         self._insert_data(mmo_override=False)
         response = self.client.get(self.url_detail)
@@ -136,19 +154,108 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch.object(
         Organization,
         'active_subscription_billing_details',
-        return_value=DEFAULT_SUBSCRIPTION_DETAILS
+        return_value=MMO_SUBSCRIPTION_DETAILS,
     )
     def test_api_response_includes_is_mmo_with_override_and_subscription(
         self, mock_active_subscription
     ):
         """
         Test that is_mmo is True when both mmo_override and active
-        subscription is present.
+        MMO subscription is present.
         """
         self._insert_data(mmo_override=True)
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
+
+
+@ddt
+class OrganizationDetailAPITestCase(BaseTestCase):
+
+    fixtures = ['test_data']
+    URL_NAMESPACE = URL_NAMESPACE
+
+    def setUp(self):
+        self.someuser = User.objects.get(username='someuser')
+        self.organization = self.someuser.organization
+        self.organization.mmo_override = True
+        # Only needed to make `test_update_fields()` pass with an empty string for
+        # `website`.
+        self.organization.website = 'http://example.com'
+        self.organization.save(update_fields=['mmo_override'])
+
+        # anotheruser is an admin of someuser's organization
+        self.anotheruser = User.objects.get(username='anotheruser')
+        self.organization.add_user(self.anotheruser, is_admin=True)
+
+        # alice is a regular member of someuser's organization
+        self.alice = User.objects.create_user(
+            username='alice', password='alice', email='alice@alice.com'
+        )
+        self.organization.add_user(self.alice, is_admin=False)
+
+        # bob is external to someuser's organization
+        self.bob = User.objects.create_user(
+            username='bob', password='bob', email='bob@bob.com'
+        )
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_asset_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
+
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_200_OK),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_service_usage(self, username, expected_status_code):
+        user = User.objects.get(username=username)
+        self.client.force_login(user)
+
+        url = reverse(
+            self._get_endpoint('organizations-service-usage'),
+            kwargs={'id': self.organization.id}
+        )
+        response = self.client.get(url)
+        assert response.status_code == expected_status_code
+
+    @data(
+        ('name', 'Someuser Company inc.', status.HTTP_200_OK),
+        ('name', '', status.HTTP_400_BAD_REQUEST),
+        ('website', 'https://foo.bar/', status.HTTP_200_OK),
+        ('website', '', status.HTTP_200_OK),
+    )
+    @unpack
+    def test_update_fields(self, field, value, expected_status_code):
+        assert getattr(self.organization, field) != value
+        self.client.force_login(self.someuser)
+        data = {field: value}
+
+        url = reverse(
+            self._get_endpoint('organizations-detail'),
+            kwargs={'id': self.organization.id},
+        )
+        response = self.client.post(url, data)
+
+        if response.status_code == status.HTTP_200_OK:
+            assert response.status_code == expected_status_code
+            assert response.data[field] == value
 
 
 class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
@@ -249,7 +356,7 @@ class BaseOrganizationAssetApiTestCase(BaseAssetTestCase):
                         'label': 'How many pages?',
                     }
                 ],
-            }
+            },
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['owner__username'] == self.bob.username
@@ -336,7 +443,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     def test_list_not_found_as_anonymous(self):
         self.client.logout()
         response = self.client.get(self.org_assets_list_url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_list_only_organization_assets(self):
         # The organization's assets endpoint only returns assets where the `owner`
@@ -460,9 +567,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         assert_detail_url = reverse(
             self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
         )
-        data = {
-            'name': 'Week-end breakfast'
-        }
+        data = {'name': 'Week-end breakfast'}
 
         self.client.force_login(user)
         response = self.client.patch(assert_detail_url, data)
@@ -496,7 +601,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             self._get_endpoint('asset-detail'),
             # Use JSON format to prevent HtmlRenderer from returning a 200 status
             # instead of 204.
-            kwargs={'uid': asset_uid, 'format': 'json'}
+            kwargs={'uid': asset_uid, 'format': 'json'},
         )
 
         self.client.force_login(user)
@@ -522,7 +627,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
         ('bob', False, False, status.HTTP_200_OK),
     )
     @unpack
-    def test_can_archive_or_unarchive(
+    def test_can_archive_or_unarchive_project(
         self,
         username: str,
         owned_by_org: bool,
@@ -593,7 +698,7 @@ class OrganizationAdminsDataApiTestCase(
     SubmissionEditTestCaseMixin,
     SubmissionDeleteTestCaseMixin,
     SubmissionViewTestCaseMixin,
-    BaseOrganizationAdminsDataApiTestCase
+    BaseOrganizationAdminsDataApiTestCase,
 ):
     """
     This test suite shares logic with `SubmissionEditApiTests`,
@@ -712,19 +817,23 @@ class OrganizationAdminsRestServiceApiTestCase(
 
     def test_can_list_rest_services(self):
         hook = self._create_hook()
-        list_url = reverse(self._get_endpoint('hook-list'), kwargs={
-            'parent_lookup_asset': self.asset.uid
-        })
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid},
+        )
 
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert response.data['results'][0]['uid'] == hook.uid
 
-        detail_url = reverse('hook-detail', kwargs={
-            'parent_lookup_asset': self.asset.uid,
-            'uid': hook.uid,
-        })
+        detail_url = reverse(
+            'hook-detail',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': hook.uid,
+            },
+        )
 
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_200_OK

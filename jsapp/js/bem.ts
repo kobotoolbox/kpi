@@ -1,4 +1,5 @@
 import React from 'react'
+
 import classnames from 'classnames'
 
 /**
@@ -22,7 +23,7 @@ const bem: bemInstances = {}
 
 export default bem
 
-type BemModifiersObject = {
+interface BemModifiersObject {
   [modifierName: string]: boolean
 }
 
@@ -50,11 +51,7 @@ interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
  *
  * @deprecated Use CSS Modules and regular HTML tags.
  */
-export function makeBem(
-  parent: BemInstance | null,
-  name: string,
-  htmlTagName: string = 'div'
-): BemInstance {
+export function makeBem(parent: BemInstance | null, name: string, htmlTagName = 'div'): BemInstance {
   class BemComponent extends React.Component<BemComponentProps, {}> {
     static blockName: string = parent ? parent.blockName : name
 
@@ -63,7 +60,7 @@ export function makeBem(
     }
 
     render() {
-      let classNames: string[] = []
+      const classNames: string[] = []
 
       // Keep existing className attribute if given (either string or array)
       if (typeof this.props.className === 'string') {
@@ -83,8 +80,8 @@ export function makeBem(
         })
       }
 
-      const newProps: {[propName: string]: any} = {
-        className: classNames.join(' ')
+      const newProps: { [propName: string]: any } = {
+        className: classNames.join(' '),
       }
 
       // Keep all the original props expect for modifiers (don't need it) and

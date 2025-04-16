@@ -1,20 +1,18 @@
-import React from 'react';
-import DocumentTitle from 'react-document-title';
-import bem from 'js/bem';
-import publicCollectionsStore from './publicCollectionsStore';
-import AssetsTable from 'js/components/assetsTable/assetsTable';
-import {ROOT_BREADCRUMBS} from 'js/components/library/libraryConstants';
-import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
-import type {PublicCollectionsStoreData} from './publicCollectionsStore';
-import type {OrderDirection} from 'js/projects/projectViews/constants';
+import React from 'react'
 
-export default class PublicCollectionsRoute extends React.Component<
-  {},
-  PublicCollectionsStoreData
-> {
-  private unlisteners: Function[] = [];
+import DocumentTitle from 'react-document-title'
+import bem from '#/bem'
+import AssetsTable from '#/components/assetsTable/assetsTable'
+import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import publicCollectionsStore from './publicCollectionsStore'
+import type { PublicCollectionsStoreData } from './publicCollectionsStore'
 
-  state = this.getFreshState();
+export default class PublicCollectionsRoute extends React.Component<{}, PublicCollectionsStoreData> {
+  private unlisteners: Function[] = []
+
+  state = this.getFreshState()
 
   getFreshState() {
     return {
@@ -27,34 +25,34 @@ export default class PublicCollectionsRoute extends React.Component<
       filterColumnId: publicCollectionsStore.data.filterColumnId,
       filterValue: publicCollectionsStore.data.filterValue,
       currentPage: publicCollectionsStore.data.currentPage,
-      totalPages: publicCollectionsStore.data.totalPages
-    };
+      totalPages: publicCollectionsStore.data.totalPages,
+    }
   }
 
   componentDidMount() {
-    this.unlisteners.push(
-      publicCollectionsStore.listen(this.publicCollectionsStoreChanged.bind(this), this)
-    );
+    this.unlisteners.push(publicCollectionsStore.listen(this.publicCollectionsStoreChanged.bind(this), this))
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   publicCollectionsStoreChanged() {
-    this.setState(this.getFreshState());
+    this.setState(this.getFreshState())
   }
 
   onAssetsTableOrderChange(columnId: string, value: OrderDirection) {
-    publicCollectionsStore.setOrder(columnId, value);
+    publicCollectionsStore.setOrder(columnId, value)
   }
 
   onAssetsTableFilterChange(columnId: string | null, value: string | null) {
-    publicCollectionsStore.setFilter(columnId, value);
+    publicCollectionsStore.setFilter(columnId, value)
   }
 
   onAssetsTableSwitchPage(pageNumber: number) {
-    publicCollectionsStore.setCurrentPage(pageNumber);
+    publicCollectionsStore.setCurrentPage(pageNumber)
   }
 
   render() {
@@ -83,6 +81,6 @@ export default class PublicCollectionsRoute extends React.Component<
           />
         </div>
       </DocumentTitle>
-    );
+    )
   }
 }

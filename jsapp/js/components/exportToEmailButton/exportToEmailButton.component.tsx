@@ -1,10 +1,11 @@
-import Button from '../common/button';
-import KoboPrompt from '../modals/koboPrompt';
-import {useState} from 'react';
-import {handleApiFail} from 'jsapp/js/api';
-import type {FailResponse} from 'jsapp/js/dataInterface';
+import { useState } from 'react'
 
-const MessageModal = ({onClose}: {onClose: () => void}) => (
+import { handleApiFail } from '#/api'
+import type { FailResponse } from '#/dataInterface'
+import Button from '../common/button'
+import KoboPrompt from '../modals/koboPrompt'
+
+const MessageModal = ({ onClose }: { onClose: () => void }) => (
   <KoboPrompt
     isOpen
     onRequestClose={onClose}
@@ -17,10 +18,10 @@ const MessageModal = ({onClose}: {onClose: () => void}) => (
     ]}
   >
     {t(
-      "Your export request is currently being processed. Once the export is complete, you'll receive an email with all the details."
+      "Your export request is currently being processed. Once the export is complete, you'll receive an email with all the details.",
     )}
   </KoboPrompt>
-);
+)
 
 /**
  * Button to be used in views that export data to email.
@@ -31,37 +32,28 @@ export default function ExportToEmailButton({
   exportFunction,
   label,
 }: {
-  exportFunction: () => Promise<void>;
-  label: string;
+  exportFunction: () => Promise<unknown>
+  label: string
 }) {
-  const [isMessageOpen, setIsMessageOpen] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const [isMessageOpen, setIsMessageOpen] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
   const handleClick = () => {
-    setIsPending(true);
+    setIsPending(true)
     exportFunction()
       .then(() => {
-        setIsMessageOpen(true);
+        setIsMessageOpen(true)
       })
       .catch((error) => handleApiFail(error as FailResponse))
       .finally(() => {
-        setIsPending(false);
-      });
-  };
+        setIsPending(false)
+      })
+  }
 
   return (
     <>
-      <Button
-        size='m'
-        type='primary'
-        label={label}
-        startIcon='download'
-        onClick={handleClick}
-        isPending={isPending}
-      />
-      {isMessageOpen && (
-        <MessageModal onClose={() => setIsMessageOpen(false)} />
-      )}
+      <Button size='m' type='primary' label={label} startIcon='download' onClick={handleClick} isPending={isPending} />
+      {isMessageOpen && <MessageModal onClose={() => setIsMessageOpen(false)} />}
     </>
-  );
+  )
 }

@@ -1,28 +1,20 @@
-// Libraries
-import React from 'react';
-import {useParams} from 'react-router-dom';
+import React from 'react'
 
-// Partial components
-import UniversalProjectsRoute from './universalProjectsRoute';
-
-// Constants and types
-import {
-  DEFAULT_VISIBLE_FIELDS,
-  DEFAULT_ORDERABLE_FIELDS,
-  DEFAULT_EXCLUDED_FIELDS,
-} from './projectViews/constants';
-import {ROOT_URL} from 'js/constants';
+import { useParams } from 'react-router-dom'
+import { ROOT_URL } from '#/constants'
+import { DEFAULT_EXCLUDED_FIELDS, DEFAULT_ORDERABLE_FIELDS, DEFAULT_VISIBLE_FIELDS } from './projectViews/constants'
+import UniversalProjectsRoute from './universalProjectsRoute'
 
 /**
  * Component responsible for rendering a custom project view route (`#/projects/<vid>`).
  */
 export default function CustomViewRoute() {
-  const {viewUid} = useParams();
+  const { viewUid } = useParams()
 
   // This condition is here to satisfy TS, as without it the code below would
   // need to be unnecessarily more lengthy.
   if (viewUid === undefined) {
-    return null;
+    return null
   }
 
   return (
@@ -35,5 +27,5 @@ export default function CustomViewRoute() {
       defaultExcludedFields={DEFAULT_EXCLUDED_FIELDS}
       isExportButtonVisible
     />
-  );
+  )
 }

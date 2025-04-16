@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         for dd in DataDictionary.objects.all():
             try:
-                dd._mark_start_time_boolean()
+                dd.mark_start_time_boolean()
                 dd.save()
             except Exception:
                 print ("Could not mark start time for DD: %(data)s" % {

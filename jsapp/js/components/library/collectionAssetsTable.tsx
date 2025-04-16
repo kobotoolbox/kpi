@@ -1,12 +1,13 @@
-import React from 'react';
-import AssetsTable from 'js/components/assetsTable/assetsTable';
-import {AssetsTableContextName} from 'js/components/assetsTable/assetsTableConstants';
-import type {OrderDirection} from 'js/projects/projectViews/constants';
-import singleCollectionStore from './singleCollectionStore';
-import type {AssetResponse} from 'js/dataInterface';
+import React from 'react'
+
+import AssetsTable from '#/components/assetsTable/assetsTable'
+import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
+import type { AssetResponse } from '#/dataInterface'
+import type { OrderDirection } from '#/projects/projectViews/constants'
+import singleCollectionStore from './singleCollectionStore'
 
 interface CollectionAssetsTableProps {
-  asset: AssetResponse;
+  asset: AssetResponse
 }
 
 /**
@@ -14,44 +15,39 @@ interface CollectionAssetsTableProps {
  * Operates identically to `myLibraryRoute` but utilizes `singleCollectionStore`
  * instead.
  */
-export default class CollectionAssetsTable extends React.Component<
-  CollectionAssetsTableProps
-> {
-  private unlisteners: Function[] = [];
+export default class CollectionAssetsTable extends React.Component<CollectionAssetsTableProps> {
+  private unlisteners: Function[] = []
 
   // Listen for changes in store and update state to match
   componentDidMount() {
-    this.unlisteners.push(
-      singleCollectionStore.listen(this.onSingleCollectionStoreChanged.bind(this), this)
-    );
+    this.unlisteners.push(singleCollectionStore.listen(this.onSingleCollectionStoreChanged.bind(this), this))
   }
 
   componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   /**
-  * Don't want to store a duplicate of store data here just for the sake of
-  * comparison, so we need to make the component re-render itself when the
-  * store changes :shrug:.
-  */
+   * Don't want to store a duplicate of store data here just for the sake of
+   * comparison, so we need to make the component re-render itself when the
+   * store changes :shrug:.
+   */
   onSingleCollectionStoreChanged() {
-    this.forceUpdate();
+    this.forceUpdate()
   }
 
-  onAssetsTableOrderChange(
-    columnId: string,
-    columnValue: OrderDirection
-  ) {
-    singleCollectionStore.setOrder(columnId, columnValue);
+  onAssetsTableOrderChange(columnId: string, columnValue: OrderDirection) {
+    singleCollectionStore.setOrder(columnId, columnValue)
   }
 
   onAssetsTableFilterChange(columnId: string | null, columnValue: string | null) {
-    singleCollectionStore.setFilter(columnId, columnValue);
+    singleCollectionStore.setFilter(columnId, columnValue)
   }
 
   onAssetsTableSwitchPage(pageNumber: number) {
-    singleCollectionStore.setCurrentPage(pageNumber);
+    singleCollectionStore.setCurrentPage(pageNumber)
   }
 
   render() {
@@ -72,6 +68,6 @@ export default class CollectionAssetsTable extends React.Component<
         totalPages={singleCollectionStore.data.totalPages}
         onSwitchPage={this.onAssetsTableSwitchPage.bind(this)}
       />
-    );
+    )
   }
 }

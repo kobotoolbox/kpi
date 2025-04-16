@@ -1,0 +1,130 @@
+@use 'sass:list';
+@use 'scss/colors';
+
+// map marker colors
+.map-marker[class*='map-marker-'] {
+  background: rgb(100 100 100 / 80%);
+  border-color: rgba(colors.$kobo-white, 0.75);
+}
+
+.map-marker {
+  border: 1px solid colors.$kobo-white;
+  border-radius: 50%;
+
+  &.unselected {
+    visibility: hidden;
+  }
+
+  &.default-overlay-marker {
+    background: rgba(colors.$kobo-gray-800, 0.7);
+    border: none;
+    border-radius: 0;
+  }
+}
+
+/*****************************************************   */
+/* color sets defined in mapSettings.js (a, b, c, d) */
+/*****************************************************   */
+
+// set A generated with http://tools.medialab.sciences-po.fr/iwanthue/
+$colorsA: rgb(255 50 0 / 50%), rgb(125 245 46 / 50%), rgb(86 0 178 / 50%), rgb(0 236 118 / 50%), rgb(202 0 188 / 50%), rgb(104 155 0 / 50%), rgb(161 107 255 / 50%), rgb(191 184 0 / 50%), rgb(0 66 187 / 50%), rgb(197 231 113 / 50%), rgb(239 0 161 / 50%), rgb(2 231 203 / 50%), rgb(239 0 69 / 50%), rgb(2 153 148 / 50%), rgb(43 130 255 / 50%), rgb(183 142 0 / 50%), rgb(60 46 126 / 50%), rgb(35 106 0 / 50%), rgb(175 158 255 / 40%), rgb(198 116 0 / 50%), rgb(0 140 218 / 50%), rgb(255 109 60 / 50%), rgb(1 76 140 / 50%), rgb(184 69 0 / 50%), rgb(165 228 255 / 50%), rgb(112 31 9 / 50%), rgb(163 231 229 / 50%), rgb(133 0 75 / 50%), rgb(167 234 188 / 50%), rgb(96 33 97 / 50%), rgb(21 70 0 / 50%), rgb(255 110 148 / 50%), rgb(0 87 84 / 50%), rgb(255 157 210 / 50%), rgb(51 64 37 / 50%), rgb(255 153 153 / 50%), rgb(12 64 93 / 50%), rgb(255 194 186 / 50%), rgb(96 42 58 / 50%), rgb(134 0 40 / 50%);
+
+// sets B, C are from colorbrewer2.org sequential
+$colorsB: #7f0000, #b30000, #d7301f, #ef6548, #fc8d59, #fdbb84, #fdd49e, #fee8c8, #fff7ec;
+$colorsC: #084081, #0868ac, #2b8cbe, #4eb3d3, #7bccc4, #a8ddb5, #ccebc5, #e0f3db, #f7fcf0;
+
+// sets D, E are from colorbrewer2.org diverging
+$colorsD: #4d9221, #7fbc41, #b8e186, #e6f5d0, #f7f7f7, #fde0ef, #f1b6da, #de77ae, #c51b7d;
+$colorsE: #2166ac, #4393c3, #92c5de, #d1e5f0, #f7f7f7, #fddbc7, #f4a582, #d6604d, #b2182b;
+
+$class-slug: map-marker-a !default;
+$colorLength: list.length($colorsA);
+
+@for $i from 1 through $colorLength {
+  .map-marker.#{$class-slug}#{$i},
+  .map-marker.#{$class-slug}#{$i + $colorLength},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 2},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 3},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
+    background: list.nth($colorsA, $i);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 2} {
+    background-image: linear-gradient(90deg, rgba(colors.$kobo-white, 0.4) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-white, 0.4) 50%, transparent 50%);
+    background-size: 6px 6px;
+    background-position: center center;
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength} {
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(colors.$kobo-white, 0.3) 3px, rgba(colors.$kobo-white, 0.3) 6px);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 3} {
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(colors.$kobo-white, 0.3) 3px, rgba(colors.$kobo-white, 0.3) 6px);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
+    background-image: linear-gradient(90deg, rgba(colors.$kobo-gray-800, 0.1) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-gray-800, 0.1) 50%, transparent 50%);
+    background-size: 6px 6px;
+  }
+}
+
+.map-marker.map-marker-a {
+  background: list.nth($colorsA, 1);
+}
+
+// B color set
+$class-slug-b: map-marker-b !default;
+$setBLength: list.length($colorsB);
+
+@for $i from 1 through $setBLength {
+  .map-marker.#{$class-slug-b}#{$i} {
+    background: list.nth($colorsB, $i);
+  }
+}
+
+.map-marker.map-marker-b {
+  background: list.nth($colorsB, 1);
+}
+
+// C color set
+$class-slug-c: map-marker-c !default;
+$setCLength: list.length($colorsC);
+
+@for $i from 1 through $setCLength {
+  .map-marker.#{$class-slug-c}#{$i} {
+    background: list.nth($colorsC, $i);
+  }
+}
+
+.map-marker.map-marker-c {
+  background: list.nth($colorsC, 1);
+}
+
+// D color set
+$class-slug-d: map-marker-d !default;
+$setDLength: list.length($colorsD);
+
+@for $i from 1 through $setDLength {
+  .map-marker.#{$class-slug-d}#{$i} {
+    background: list.nth($colorsD, $i);
+  }
+}
+
+.map-marker.map-marker-d {
+  background: list.nth($colorsD, 1);
+}
+
+// E color set
+$class-slug-e: map-marker-e !default;
+$setELength: list.length($colorsE);
+
+@for $i from 1 through $setELength {
+  .map-marker.#{$class-slug-e}#{$i} {
+    background: list.nth($colorsE, $i);
+  }
+}
+
+.map-marker.map-marker-e {
+  background: list.nth($colorsE, 1);
+}

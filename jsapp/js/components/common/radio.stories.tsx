@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import type {ComponentStory, ComponentMeta} from '@storybook/react';
-import Radio from './radio';
-import type {RadioOption} from './radio';
+import type { Meta, StoryObj } from '@storybook/react'
+import { useState } from 'react'
+import Radio from './radio'
+import type { RadioOption } from './radio'
 
 const defaultOptions: RadioOption[] = [
   {
@@ -21,27 +21,31 @@ const defaultOptions: RadioOption[] = [
     label: 'Banana',
     value: 'banana',
   },
-];
+]
 
-export default {
-  title: 'common/Radio',
+const meta: Meta<typeof Radio> = {
+  title: 'Design system old/Radio',
   component: Radio,
   argTypes: {},
-} as ComponentMeta<typeof Radio>;
+}
 
-const Template: ComponentStory<typeof Radio> = (args) => {
-  const [selected, setSelected] = useState('');
-  return (
-    <Radio
-      {...args}
-      selected={selected}
-      onChange={(newSelectedValue) => setSelected(newSelectedValue)}
-      options={defaultOptions}
-    />
-  );
-};
+export default meta
 
-export const Primary = Template.bind({});
-Primary.args = {
-  title: 'Pick your favourite food',
-};
+type Story = StoryObj<typeof Radio>
+
+export const Primary: Story = {
+  render: (args) => {
+    const [selected, setSelected] = useState('')
+    return (
+      <Radio
+        {...args}
+        selected={selected}
+        onChange={(newSelectedValue) => setSelected(newSelectedValue)}
+        options={defaultOptions}
+      />
+    )
+  },
+  args: {
+    title: 'Pick your favourite food',
+  },
+}

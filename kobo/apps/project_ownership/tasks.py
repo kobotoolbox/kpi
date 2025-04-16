@@ -131,27 +131,36 @@ def garbage_collector():
 @celery_app.task
 def mark_as_expired():
     """
-    Flag as expired not accepted (or declined) invites after
+    Mark as expired any invites that were not accepted or declined after X days
+    (X is configurable in Constance)
     """
     # Avoid circular import
     Invite = apps.get_model('project_ownership', 'Invite')  # noqa
+    TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
 
     expiry_threshold = timezone.now() - timedelta(
         days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
     )
 
     invites_to_update = []
+    transfer_statuses_to_update = []
     for invite in Invite.objects.filter(
         date_created__lte=expiry_threshold,
         status=InviteStatusChoices.PENDING,
     ):
         invite.status = InviteStatusChoices.EXPIRED
         invites_to_update.append(invite)
+        # Mark transfers as cancelled
+        for transfer in invite.transfers.all():
+            for transfer_status in transfer.statuses.all():
+                transfer_status.status = TransferStatusChoices.CANCELLED
+                transfer_statuses_to_update.append(transfer_status)
 
     if not invites_to_update:
         return
 
     # Notify senders
+    TransferStatus.objects.bulk_update(transfer_statuses_to_update, fields=['status'])
     Invite.objects.bulk_update(invites_to_update, fields=['status'])
     email_messages = []
 
@@ -183,10 +192,12 @@ def mark_as_expired():
 
 
 @celery_app.task
-def mark_stuck_tasks_as_failed():
+def mark_as_failed():
     """
-    Flag tasks as failed if they have been created for a long time.
+    Mark tasks as failed if they have been pending for too long.
+    The threshold period is configurable in Constance (`PROJECT_OWNERSHIP_STUCK_THRESHOLD`).  # noqa
     """
+
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
     stuck_threshold = timezone.now() - timedelta(
@@ -234,7 +245,7 @@ def send_email_to_admins(invite_uid: str):
 
 
 @celery_app.task
-def task_rescheduler():
+def task_restarter():
     """
     This task restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed.
@@ -243,7 +254,7 @@ def task_rescheduler():
         delegate to celery internal mechanism to restart tasks itself.
         Unfortunately, it does not seem to work as a parameter of @celery_app.task
         decorator (it is ignored), but as a global setting - which would have
-        affect all celery tasks across the app.
+        affected all celery tasks across the app.
     """
     # Avoid circular import
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')  # noqa
@@ -254,7 +265,7 @@ def task_rescheduler():
         minutes=config.PROJECT_OWNERSHIP_STUCK_THRESHOLD
     )
 
-    # Resume stopped involuntarily tasks
+    # Restart tasks that were stopped unintentionally.
     for transfer_status in TransferStatus.objects.filter(
         date_modified__lte=resume_threshold,
         date_created__gt=stuck_threshold,

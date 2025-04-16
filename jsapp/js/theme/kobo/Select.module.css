@@ -1,0 +1,52 @@
+.input {
+  border-color: var(--mantine-color-gray-6);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-4);
+    opacity: 1;
+  }
+}
+
+.input:focus-visible:not([data-error]) {
+  box-shadow: 0 0 0 2px var(--mantine-color-blue-7);
+}
+
+/* Hides caret in FF */
+.input[readonly] {
+  caret-color: transparent;
+}
+
+.dropdown {
+  border-color: var(--mantine-color-gray-6);
+}
+
+.option {
+  border-radius: 0;
+  color: var(--mantine-color-gray-1);
+}
+
+.option:hover {
+  background-color: var(--mantine-color-blue-9);
+}
+
+.option[data-combobox-selected],
+.option[data-combobox-active] {
+  background-color: var(--mantine-color-blue-9);
+}
+
+.section[data-position='right'] {
+  width: auto;
+}
+
+.section i {
+  display: flex;
+  color: var(--mantine-color-gray-4);
+}
+
+.section button {
+  background-color: transparent;
+}
+
+.section button:hover {
+  background-color: transparent;
+}

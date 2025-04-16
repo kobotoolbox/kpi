@@ -1,25 +1,23 @@
-import React from 'react';
-import Button from 'js/components/common/button';
-import singleProcessingStore from 'js/components/processing/singleProcessingStore';
-import HeaderLanguageAndDate from './headerLanguageAndDate.component';
-import {destroyConfirm} from 'js/alertify';
-import bodyStyles from 'js/components/processing/processingBody.module.scss';
-import {hasManagePermissionsToCurrentAsset} from '../analysis/utils';
+import React from 'react'
+
+import { destroyConfirm } from '#/alertify'
+import Button from '#/components/common/button'
+import bodyStyles from '#/components/processing/processingBody.module.scss'
+import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { hasManagePermissionsToCurrentAsset } from '../analysis/utils'
+import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
 export default function StepViewer() {
   function openEditor() {
-    const transcript = singleProcessingStore.getTranscript();
+    const transcript = singleProcessingStore.getTranscript()
     if (transcript) {
       // Make new draft using existing transcript.
-      singleProcessingStore.setTranscriptDraft(transcript);
+      singleProcessingStore.setTranscriptDraft(transcript)
     }
   }
 
   function deleteTranscript() {
-    destroyConfirm(
-      singleProcessingStore.deleteTranscript.bind(singleProcessingStore),
-      t('Delete transcript?')
-    );
+    destroyConfirm(singleProcessingStore.deleteTranscript.bind(singleProcessingStore), t('Delete transcript?'))
   }
 
   return (
@@ -34,10 +32,7 @@ export default function StepViewer() {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={
-              singleProcessingStore.data.isFetchingData ||
-              !hasManagePermissionsToCurrentAsset()
-            }
+            isDisabled={singleProcessingStore.data.isFetchingData || !hasManagePermissionsToCurrentAsset()}
           />
 
           <Button
@@ -56,5 +51,5 @@ export default function StepViewer() {
         {singleProcessingStore.getTranscript()?.value}
       </article>
     </div>
-  );
+  )
 }

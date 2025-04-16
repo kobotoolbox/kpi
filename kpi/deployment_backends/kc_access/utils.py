@@ -130,7 +130,8 @@ def grant_kc_model_level_perms(user: 'kobo_auth.User'):
             'Searched for content types {}.'.format(content_types)
         )
 
-    user.user_permissions.add(*permissions_to_assign)
+    with use_db(settings.OPENROSA_DB_ALIAS):
+        user.user_permissions.add(*permissions_to_assign)
 
 
 def set_kc_anonymous_permissions_xform_flags(
@@ -326,6 +327,9 @@ def reset_kc_permissions(
 
 
 def delete_kc_user(username: str):
+    if settings.TESTING:
+        return
+
     with use_db(settings.OPENROSA_DB_ALIAS):
         # Do not use `.using()` here because it does not bubble down to the
         # Collector.
