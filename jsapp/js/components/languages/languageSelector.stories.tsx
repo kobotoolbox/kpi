@@ -4,11 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { environmentResponse } from '#/envStore.mock'
 import { sleep } from '#/storybookUtils'
 import LanguageSelector from './languageSelector'
-import {
-  languagesResponsePage1st,
-  languagesResponsePage2nd,
-  languagesResponseQuerySwed,
-} from './languagesListStore.mock'
+import languagesListStoreMock from './languagesListStore.mock'
 
 const meta: Meta<typeof LanguageSelector> = {
   title: 'Components/LanguageSelector',
@@ -16,18 +12,7 @@ const meta: Meta<typeof LanguageSelector> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [
-        http.get('/api/v2/languages/', (info) => {
-          if (info.request.url.endsWith('limit=100&offset=100')) {
-            return HttpResponse.json(languagesResponsePage2nd)
-          } else if (info.request.url.endsWith('q=swed')) {
-            return HttpResponse.json(languagesResponseQuerySwed)
-          } else {
-            return HttpResponse.json(languagesResponsePage1st)
-          }
-        }),
-        http.get('/environment/', () => HttpResponse.json(environmentResponse)),
-      ],
+      handlers: [languagesListStoreMock, http.get('/environment/', () => HttpResponse.json(environmentResponse))],
     },
   },
 }
