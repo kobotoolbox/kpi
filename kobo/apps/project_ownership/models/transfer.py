@@ -135,9 +135,7 @@ class Transfer(AbstractTimeStampedModel):
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
-                        with deployment.suspend_submissions(
-                            [self.asset.owner_id, new_owner.pk]
-                        ):
+                        with deployment.suspend_submissions():
                             # Update counters
                             deployment.transfer_counters_ownership(new_owner)
                             previous_owner_username = self.asset.owner.username

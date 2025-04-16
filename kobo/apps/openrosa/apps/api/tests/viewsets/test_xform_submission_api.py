@@ -432,8 +432,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             self.assertTrue(isinstance(response, OpenRosaResponseNotAllowed))
 
     def test_submission_blocking_flag(self):
-        # Set 'submissions_suspended' True in the profile to test if
-        # submission does fail with the flag set
+        # Ensure that 'submissions_suspended' flag on user profile and
+        # `pending_transfer` flag on xform block submissions
         self.xform.user.profile.submissions_suspended = True
         self.xform.user.profile.save()
 
@@ -477,6 +477,20 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 # check that users can submit data again when flag is removed
                 self.xform.user.profile.submissions_suspended = False
                 self.xform.user.profile.save()
+                self.xform.pending_transfer = True
+                self.xform.save()
+
+                request = self.factory.post(
+                    f'/{username}/submission', data
+                )
+                response = self.view(request, username=username)
+                self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+
+                self.xform.pending_transfer = False
+                self.xform.save()
+
+                sf.seek(0)
+                f.seek(0)
 
                 request = self.factory.post(
                     f'/{username}/submission', data
