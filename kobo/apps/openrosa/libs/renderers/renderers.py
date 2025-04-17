@@ -58,7 +58,7 @@ class MediaFileContentNegotiation(DefaultContentNegotiation):
 
 class MediaFileRenderer(BaseRenderer):
     media_type = '*/*'
-    format = None
+    format = 'TODO'
     charset = None
     render_style = 'binary'
 

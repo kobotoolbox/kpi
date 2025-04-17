@@ -3,6 +3,7 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
+from drf_spectacular.utils import extend_schema
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -30,6 +31,9 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
+@extend_schema(
+    tags=['asset_snapshots'],
+)
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """

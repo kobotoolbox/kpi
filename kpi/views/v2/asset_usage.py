@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import renderers, viewsets
 from rest_framework.mixins import ListModelMixin
 
@@ -5,6 +6,7 @@ from kpi.models.asset import Asset
 from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
+
 
 
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):

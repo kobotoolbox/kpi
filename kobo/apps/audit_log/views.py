@@ -1,4 +1,5 @@
 from django.db import transaction
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -169,7 +170,9 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'metadata__icontains',
     ]
 
-
+@extend_schema(
+    tags=['access-logs'],
+)
 class AllAccessLogViewSet(AuditLogViewSet):
     """
     Access logs
@@ -275,7 +278,9 @@ class AllAccessLogViewSet(AuditLogViewSet):
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
 
-
+@extend_schema(
+    tags=['access-logs'],
+)
 class AccessLogViewSet(AuditLogViewSet):
     """
     Access logs
@@ -787,7 +792,9 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
         return Response(tasks_data, status=status.HTTP_200_OK)
 
-
+@extend_schema(
+    tags=['access-logs'],
+)
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
     Access logs export
@@ -854,7 +861,9 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     def list(self, request, *args, **kwargs):
         return self.list_tasks(request.user)
 
-
+@extend_schema(
+    tags=['access-logs'],
+)
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
     Access logs export
