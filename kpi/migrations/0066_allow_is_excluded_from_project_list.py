@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
     schema.
 
     It is particularly important for instances that were upgraded to version 2.025.02b
-    before applying 2.025.02d.
+    before applying 2.025.02e.
 
     Migrations 0061 and 0063 were modified to remove defaults and allow NULL values.
     This change was necessary because PostgreSQL rewrites the entire table when applying
     a default, which is not sustainable for large tables like `kpi_asset`.
     """
     dependencies = [
-        ('kpi', '0064_create_projecthistorylogexporttask'),
+        ('kpi', '0065_alter_asset_search_field'),
     ]
 
     operations = [
@@ -25,10 +25,5 @@ class Migration(migrations.Migration):
             model_name='asset',
             name='is_excluded_from_projects_list',
             field=models.BooleanField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='asset',
-            name='search_field',
-            field=kpi.fields.lazy_default_jsonb.LazyDefaultJSONBField(default=dict),
-        ),
+        )
     ]
