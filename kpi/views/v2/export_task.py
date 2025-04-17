@@ -1,4 +1,5 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema
 from rest_framework import (
     filters,
     renderers,
@@ -14,7 +15,9 @@ from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
-
+@extend_schema(
+    tags=['exports'],
+)
 class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
