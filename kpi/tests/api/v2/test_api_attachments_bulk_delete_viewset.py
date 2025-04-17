@@ -11,6 +11,11 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
+from kpi.constants import (
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -107,28 +112,37 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'payload': {'confirm': True}}),
+            data=json.dumps(
+                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+            ),
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertEqual(response.data, {'message': 'Attachments deleted'})
+        self.assertEqual(response.data, {'message': '2 attachments deleted'})
         self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count + 2)
         self.assertFalse(Attachment.objects.filter(uid=self.attachment1_uid).exists())
         self.assertFalse(Attachment.objects.filter(uid=self.attachment2_uid).exists())
 
-    def test_bulk_delete_attachments_no_confirm(self):
+    def test_bulk_delete_attachments_empty_uid_list(self):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'payload': {'confirm': False}}),
+            data=json.dumps({'attachment_uids': []}),
             content_type='application/json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data,
-            [ErrorDetail(string='Confirmation is required', code='invalid')],
+            {
+                'non_field_errors': [
+                    ErrorDetail(
+                        string='The list of attachment UIDs cannot be empty',
+                        code='invalid',
+                    )
+                ]
+            },
         )
         self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count)
         self.assertFalse(
@@ -145,7 +159,16 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data, [ErrorDetail(string='Invalid JSON payload', code='invalid')]
+            response.data,
+            {
+                'detail': ErrorDetail(
+                    string=(
+                        'JSON parse error - Expecting value: '
+                        'line 1 column 1 (char 0)'
+                    ),
+                    code='parse_error',
+                )
+            },
         )
         self.assertTrue(Attachment.objects.filter(uid=self.attachment1_uid).exists())
         self.assertTrue(Attachment.objects.filter(uid=self.attachment2_uid).exists())
@@ -160,25 +183,86 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.logout()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'payload': {'confirm': True}}),
-            content_type='application/json',
-        )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_bulk_delete_attachments_permission_denied(self):
-        user_edit_only = User.objects.create_user(
-            username='view_only', password='password'
-        )
-        self.asset.assign_perm(user_edit_only, 'change_submissions')
-        self.client.logout()
-        self.client.login(username='view_only', password='password')
-        response = self.client.delete(
-            self.bulk_delete_url,
-            data=json.dumps({'payload': {'confirm': True}}),
+            data=json.dumps(
+                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+            ),
             content_type='application/json',
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(
             response.data,
-            {'detail': 'You do not have permission to perform this action.'},
+            {
+                'detail': ErrorDetail(
+                    string='You do not have permission to delete these attachments',
+                    code='permission_denied',
+                )
+            },
         )
+
+    def test_bulk_delete_not_shared_attachment_as_anotheruser(self):
+        anotherUser = User.objects.create(
+            username='anotherUser', password='anotherUser'
+        )
+        anotherUser.user_permissions.clear()
+        self.asset.assign_perm(anotherUser, PERM_VIEW_SUBMISSIONS)
+
+        self.client.force_login(anotherUser)
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+            ),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            response.data,
+            {
+                'detail': ErrorDetail(
+                    string='You do not have permission to delete these attachments',
+                    code='permission_denied',
+                )
+            },
+        )
+
+    def test_bulk_delete_attachments_edit_permission(self):
+        userEditPerms = User.objects.create_user(
+            username='userEditPerms', password='userEditPerms'
+        )
+        self.asset.assign_perm(userEditPerms, 'kpi.change_submissions')
+        self.client.logout()
+        self.client.force_login(userEditPerms)
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+            ),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data, {'message': '2 attachments deleted'})
+
+    def test_bulk_delete_attachments_with_partial_perms(self):
+        userPartialPerms = User.objects.create_user(
+            username='userPartialPerms', password='userPartialPerms'
+        )
+        self.client.force_login(userPartialPerms)
+        partial_perms = {
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'userPartialPerms'}]
+        }
+        self.asset.assign_perm(
+            userPartialPerms,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        initial_trash_count = AttachmentTrash.objects.count()
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+            ),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.data, {'message': '2 attachments deleted'})
+        self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count + 2)
