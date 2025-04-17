@@ -975,13 +975,10 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'KoboToolbox API',
     'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
-    'SERVE_INCLUDE_SCHEMA': True,
-    # 'PREPROCESSING_HOOKS': ['kpi.utils.spectacular_print.preprocessing_filter_spec'],
+    'VERSION': '0.0.1',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'PREPROCESSING_HOOKS': ['kpi.utils.spectacular_processing.pre_processing_filtering'],
     # 'POSTPROCESSING_HOOKS': ['kpi.utils.spectacular_print.postProcess_schema_enums'],
-    'DEFAULT_GENERATOR_CLASS':
-        'kpi.utils.spectacular_generator_override.SpectacularOverride',
-    'COMPONENT_NO_READ_ONLY_REQUIRED': False,
-    'DEBUG': True,
 }
 
 OPENROSA_REST_FRAMEWORK = {
