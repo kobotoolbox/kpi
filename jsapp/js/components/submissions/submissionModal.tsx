@@ -692,7 +692,6 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           <SubmissionBackgroundAudio
             asset={this.props.asset}
             submission={this.state.submission}
-            survey={this.props.asset.content?.survey}
             audio={bgAudio}
             onDeleted={() => this.handleDeletedAttachment(bgAudio?.uid)}
           />

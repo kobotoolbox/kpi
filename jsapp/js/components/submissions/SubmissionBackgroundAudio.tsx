@@ -4,24 +4,30 @@ import bem from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
 import { hasBackgroundAudioEnabled } from '#/assetUtils'
 import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
-import type { SubmissionResponse, SurveyRow } from '#/dataInterface'
+import type { SubmissionResponse } from '#/dataInterface'
 
 interface SubmissionBackgroundAudioProps {
   asset: AssetResponse
   submission: SubmissionResponse
-  survey: SurveyRow[]
   audio: SubmissionAttachment
   onDeleted: () => void
 }
 
 export default function SubmissionBackgroundAudio(props: SubmissionBackgroundAudioProps) {
+
+  const survey = props.asset.content?.survey
+
+  if (!survey) {
+    return null
+  }
+
   // For TypeScript
   if (!props.submission) {
     return null
   }
 
   // TODO: Remove this check after we get single submission modal to always display background audio
-  if (!hasBackgroundAudioEnabled(props.survey)) {
+  if (!hasBackgroundAudioEnabled(survey)) {
     return null
   }
 
