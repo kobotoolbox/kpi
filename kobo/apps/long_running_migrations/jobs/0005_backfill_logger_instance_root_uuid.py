@@ -5,8 +5,8 @@ from django.db import IntegrityError, connections
 from more_itertools import chunked
 from taggit.models import TaggedItem
 
-from kobo.apps.openrosa.apps.logger.models import XForm, Instance
 from kobo.apps.openrosa.apps.logger.exceptions import RootUUIDConstraintNotEnforced
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
 
@@ -43,21 +43,24 @@ def run():
 
 def _check_root_uuid_unique_index_ready():
     with connections[settings.OPENROSA_DB_ALIAS].cursor() as cursor:
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT ix.indisvalid
             FROM pg_indexes i
             JOIN pg_class c ON c.relname = i.indexname
             JOIN pg_index ix ON ix.indexrelid = c.oid
             WHERE i.tablename = %s AND i.indexname = %s
-        """, ['logger_instance', 'unique_root_uuid_per_xform'])
+        """,
+            ['logger_instance', 'unique_root_uuid_per_xform'],
+        )
         row = cursor.fetchone()
         if not (row is not None and row[0]):
             raise RootUUIDConstraintNotEnforced(
-                "The unique index on 'root_uuid' is missing or invalid.\n"
-                "Make sure the migration `logger.0041_add_root_uuid_field_to_instance` "
-                "has been applied and that the constraint was successfully created. "
-                "Once that is done, re-run this migration (by setting its status back "
-                "to 'CREATED' in the admin interface)."
+                'The unique index on "root_uuid" is missing or invalid.\n'
+                'Make sure the migration `logger.0041_add_root_uuid_field_to_instance` '
+                'has been applied and that the constraint was successfully created. '
+                'Once that is done, re-run this migration (by setting its status back '
+                'to "CREATED" in the admin interface).'
             )
 
 

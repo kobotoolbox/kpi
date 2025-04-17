@@ -64,6 +64,7 @@ class RootUUIDConstraintNotEnforced(RuntimeError):
     """
     Raised when the unique constraint on root_uuid is missing or invalid.
     """
+
     pass
 
 

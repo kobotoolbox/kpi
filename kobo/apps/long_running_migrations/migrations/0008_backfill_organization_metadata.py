@@ -7,9 +7,7 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model(
         'long_running_migrations', 'LongRunningMigration'
     )  # noqa
-    LongRunningMigration.objects.create(
-        name='0008_backfill_organization_metadata'
-    )
+    LongRunningMigration.objects.create(name='0008_backfill_organization_metadata')
 
 
 def noop(*args, **kwargs):

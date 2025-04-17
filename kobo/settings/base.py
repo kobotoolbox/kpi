@@ -1844,7 +1844,6 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
 
 
-
 # Import/Export Celery
 IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
 
