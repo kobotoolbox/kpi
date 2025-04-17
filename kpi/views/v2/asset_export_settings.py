@@ -8,6 +8,7 @@ from rest_framework import (
     serializers,
     viewsets,
 )
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -21,7 +22,9 @@ from kpi.serializers.v2.asset_export_settings import (
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
-
+@extend_schema(
+    tags=['export-settings'],
+)
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
