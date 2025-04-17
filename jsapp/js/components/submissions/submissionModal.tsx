@@ -671,7 +671,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
     }
 
     // Get background audio
-    // Note: we do this here to avoid a weird interation with onDeleted if we pass the uid back up to this component
+    // Note: we do this here to avoid a weird interaction with onDeleted if we pass the uid back up to this component
     // FIXME: This does not get the audio file if the form turns off background audio (even if there exist submissions)
     const bgAudio = getBackgroundAudioAttachment(this.props.asset, this.state.submission)
 
