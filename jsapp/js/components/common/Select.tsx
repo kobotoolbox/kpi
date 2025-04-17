@@ -18,7 +18,7 @@ const iconSizeMap: Record<string, IconSize> = {
   xl: 'l',
 }
 
-export const Select = (props: SelectProps) => {
+const Select = (props: SelectProps) => {
   const [value, setValue] = useState<string | null>(props.value || null)
   const [isOpened, setIsOpened] = useState(props.defaultDropdownOpened || false)
 
@@ -59,3 +59,5 @@ export const Select = (props: SelectProps) => {
     />
   )
 }
+
+export default Select

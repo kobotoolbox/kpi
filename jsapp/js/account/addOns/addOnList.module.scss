@@ -68,6 +68,7 @@
   display: flex;
   width: 100%;
   justify-content: right;
+  gap: 10px;
 }
 
 .purchasedAddOns {
@@ -158,6 +159,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .selectProducts {
+    flex: 2;
+  }
+
+  .selectPrices {
+    flex: 1;
   }
 }
 
