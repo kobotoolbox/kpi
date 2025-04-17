@@ -4,6 +4,7 @@ from typing import Optional, Union
 from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,6 +27,9 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 )
 
 
+@extend_schema(
+    tags=['asset-attachments'],
+)
 class AttachmentViewSet(
     NestedViewSetMixin,
     AssetNestedObjectViewsetMixin,
