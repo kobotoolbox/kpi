@@ -677,7 +677,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
 
     // Each of these `renderX()` functions handle the conditional rendering
     // by itself
-    // TODO: Move each of these render functions to a different component to shorthen this file
+    // TODO: Move each of these render functions to a different component to shorten this file
     return (
       <>
         {this.renderDuplicatedSubmissionSubheader()}
