@@ -8,7 +8,9 @@ from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
 
 
-
+@extend_schema(
+    tags=['asset-usage'],
+)
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     """
     ## Asset Usage Tracker
