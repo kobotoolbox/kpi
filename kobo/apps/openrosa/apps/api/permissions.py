@@ -16,7 +16,6 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
-from kpi.utils.log import logging
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
