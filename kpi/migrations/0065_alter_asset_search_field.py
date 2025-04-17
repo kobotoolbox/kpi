@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
     This migration ensures that Django's state is correctly aligned with the database
     schema.
 
-    It is particularly important for instances that were upgraded to version 2.025.02b
-    before applying 2.025.02d.
+    It is particularly important for instances that were upgraded to release 2.025.02
+    (prior to 2.025.02d).
 
     Migrations 0061 and 0063 were modified to remove defaults and allow NULL values.
     This change was necessary because PostgreSQL rewrites the entire table when applying
