@@ -258,7 +258,7 @@ class Asset(
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     is_excluded_from_projects_list = models.BooleanField(default=False)
-    search_field = models.JSONField(default=dict)
+    search_field = LazyDefaultJSONBField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
