@@ -1,4 +1,5 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
@@ -7,7 +8,9 @@ from kpi.serializers.v2.user_asset_subscription import (
 )
 from kpi.utils.object_permission import get_database_user
 
-
+@extend_schema(
+    tags=['asset-subscriptions'],
+)
 class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     queryset = UserAssetSubscription.objects.none()
     serializer_class = UserAssetSubscriptionSerializer
