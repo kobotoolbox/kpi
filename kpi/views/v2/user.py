@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
+from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
@@ -26,6 +27,10 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
+
+    class Meta:
+        model = Asset
+        fields = '__all__'
 
     def get_serializer_class(self):
         if self.action == 'list':

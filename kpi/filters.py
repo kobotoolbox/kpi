@@ -165,7 +165,7 @@ class ExcludeOrgAssetFilter(filters.BaseFilterBackend):
         return queryset
 
 
-class KpiObjectPermissionsFilter:
+class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
 
     STATUS_PARAMETER = 'status'
     PARENT_UID_PARAMETER = 'parent__uid'
