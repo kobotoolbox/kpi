@@ -2,7 +2,6 @@ import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
-
 import { hasBackgroundAudioEnabled } from '#/assetUtils'
 import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
 import type { SubmissionResponse, SurveyRow } from '#/dataInterface'
