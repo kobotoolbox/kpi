@@ -6,12 +6,11 @@ import { useEffect } from 'react'
 
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
 import { addons } from '@storybook/preview-api'
-// Importing this with `as` to avoid having vary vague `initialize`
 import * as mswAddon from 'msw-storybook-addon'
 import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { themeKobo } from '#/theme'
 
-// For API mocking
+// Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
 mswAddon.initialize()
 
 const channel = addons.getChannel()

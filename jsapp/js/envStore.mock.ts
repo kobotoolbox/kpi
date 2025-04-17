@@ -1,6 +1,11 @@
+import { http, HttpResponse } from 'msw'
 import type { EnvironmentResponse } from './envStore'
 
-export const environmentResponse: EnvironmentResponse = {
+export default http.get<never, never, EnvironmentResponse>('/environment/', () =>
+  HttpResponse.json(environmentResponse),
+)
+
+const environmentResponse: EnvironmentResponse = {
   terms_of_service_url: '',
   privacy_policy_url: '',
   source_code_url: 'https://github.com/kobotoolbox/',

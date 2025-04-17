@@ -757,14 +757,14 @@ function appendTextToPathAtLevel(path: string, level: string, stringToAdd: strin
  */
 export function markAttachmentAsDeleted(
   submissionData: SubmissionResponse,
-  targetAttachmentId: number,
+  targetAttachmentUid: string,
 ): SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = data._attachments.find((item) => item.id === targetAttachmentId)
+  const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
 
   data._attachments.forEach((attachment) => {
     if (
-      attachment.id === targetAttachment?.id &&
+      attachment.uid === targetAttachment?.uid &&
       attachment.question_xpath === targetAttachment?.question_xpath &&
       attachment.filename === targetAttachment?.filename
     ) {
@@ -836,4 +836,47 @@ export function shouldProcessingBeAccessible(
     Object.keys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
 
   return !mediaAttachment.is_deleted || hasProcessingFeatures
+}
+
+// Counts the number of each attachment type for the given array of submissions
+// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` followed by a period
+// for each attachment type present
+export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
+  let totalImages = 0
+  let totalVideos = 0
+  let totalFiles = 0
+  let totalAudios = 0
+
+  selectedSubmissions.forEach((submission) => {
+    submission._attachments.forEach((attachment) => {
+      const mimetype = attachment.mimetype
+      if (mimetype.includes('image/')) {
+        totalImages++
+      } else if (mimetype.includes('video/')) {
+        totalVideos++
+      } else if (mimetype.includes('application/')) {
+        totalFiles++
+      } else if (mimetype.includes('audio/')) {
+        totalAudios++
+      }
+    })
+  })
+
+  const mediaTypes = [
+    { count: totalImages, singular: t('image'), plural: t('images') },
+    { count: totalVideos, singular: t('video'), plural: t('videos') },
+    { count: totalAudios, singular: t('audio'), plural: t('audios') },
+    { count: totalFiles, singular: t('file'), plural: t('files') },
+  ]
+  const result = mediaTypes
+    .filter(({ count }) => count > 0)
+    .map(({ count, singular, plural }) => {
+      // If done with a ternary operator webpack gives a weird undefined error
+      if (count > 1) {
+        return `##media## ${plural}`.replace('##media##', String(count))
+      } else {
+        return `##media## ${singular}`.replace('##media##', String(count))
+      }
+    })
+  return result.join('; ') + '.'
 }
