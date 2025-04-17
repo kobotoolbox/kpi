@@ -12,12 +12,12 @@ from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -258,7 +258,7 @@ class Asset(
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     is_excluded_from_projects_list = models.BooleanField(default=False)
-    search_field = models.JSONField(default=dict)
+    search_field = LazyDefaultJSONBField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -1137,6 +1137,8 @@ class Asset(
         return flatten_content(self.content, in_place=False)
 
     def update_search_field(self, **kwargs):
+        if self.search_field is None:
+            self.search_field = {}
         for key, value in kwargs.items():
             self.search_field[key] = value
         jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
