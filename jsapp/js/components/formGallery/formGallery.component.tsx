@@ -121,11 +121,11 @@ export default function FormGallery(props: FormGalleryProps) {
         <bem.GalleryGrid>
           {attachments.map((attachment) =>
             attachment.is_deleted ? (
-              <Center key={attachment.id} title={attachment.filename} className='gallery-grid-deleted-attachment'>
+              <Center key={attachment.uid} title={attachment.filename} className='gallery-grid-deleted-attachment'>
                 <DeletedAttachment />
               </Center>
             ) : (
-              <a key={attachment.id} href={attachment.download_url} target='_blank'>
+              <a key={attachment.uid} href={attachment.download_url} target='_blank'>
                 <img src={attachment.download_url} alt={attachment.filename} width='150' loading='lazy' />
               </a>
             ),

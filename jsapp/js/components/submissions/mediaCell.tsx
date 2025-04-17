@@ -125,7 +125,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
           <AttachmentActionsDropdown
             asset={asset}
             submissionData={submissionData}
-            attachmentId={attachment.id}
+            attachmentUid={attachment.uid}
             onDeleted={() => {
               // Trigger refresh on the Data Table and close the modal
               actions.resources.refreshTableSubmissions()

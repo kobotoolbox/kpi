@@ -456,6 +456,7 @@ def _get_attachments_from_instance(instance):
         attachment['instance'] = a.instance.pk
         attachment['xform'] = instance.xform.id
         attachment['id'] = a.id
+        attachment['uid'] = a.uid
         attachments.append(attachment)
 
     return attachments
