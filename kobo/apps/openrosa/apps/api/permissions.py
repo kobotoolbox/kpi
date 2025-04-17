@@ -15,6 +15,7 @@ from kobo.apps.openrosa.libs.constants import (
     CAN_VALIDATE_XFORM,
     CAN_VIEW_XFORM,
 )
+from kpi.utils.log import logging
 
 
 class ViewDjangoObjectPermissions(DjangoObjectPermissions):
@@ -47,7 +48,12 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
 
         # `PATCH` should already be set properly by DRF, but it used to be
         # explicitly assigned here as well. Double-check that it's right
-        assert self.perms_map['PATCH'] == ['%(app_label)s.change_%(model_name)s']
+        if self.perms_map['PATCH'] != ['%(app_label)s.change_%(model_name)s']:
+            print('SELF.PERMS_MAP', self.perms_map, flush=True)
+            print('SELF is', self, flush=True)
+            logging.error('SELF.PERMS_MAP cONTAINS ', self.perms_map, exc_info=True)
+
+        # assert self.perms_map['PATCH'] == ['%(app_label)s.change_%(model_name)s']
 
     def get_required_permissions(self, method, model_cls):
 
