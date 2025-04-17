@@ -28,7 +28,7 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 
 @extend_schema(
-    tags=['asset-attachments'],
+    tags=['attachments'],
 )
 class AttachmentViewSet(
     NestedViewSetMixin,

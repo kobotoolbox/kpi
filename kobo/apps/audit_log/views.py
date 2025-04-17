@@ -657,7 +657,9 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             status=status.HTTP_202_ACCEPTED,
         )
 
-
+@extend_schema(
+    tags=['history'],
+)
 class ProjectHistoryLogViewSet(
     AuditLogViewSet, AssetNestedObjectViewsetMixin, NestedViewSetMixin
 ):
