@@ -56,7 +56,7 @@ from kpi.utils.xml import (
 
 
 @extend_schema(
-    tags=['asset-data'],
+    tags=['data'],
 )
 class DataViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedViewSet

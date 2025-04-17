@@ -12,7 +12,7 @@ from kpi.serializers.v2.asset_counts import AssetCountsSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 @extend_schema(
-    tags=['asset-counts'],
+    tags=['counts'],
 )
 class AssetCountsViewSet(
     AssetNestedObjectViewsetMixin,

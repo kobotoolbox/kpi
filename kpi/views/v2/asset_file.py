@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.http import HttpResponseRedirect
+from drf_spectacular.utils import extend_schema
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -13,7 +14,9 @@ from kpi.permissions import AssetEditorPermission
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
-
+@extend_schema(
+    tags=['files'],
+)
 class AssetFileViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
