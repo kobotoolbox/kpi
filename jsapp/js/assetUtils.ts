@@ -9,7 +9,8 @@ import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
-import type { AnyRowTypeName, AssetTypeName, QuestionTypeName } from '#/constants'
+import type { AnyRowTypeName, AssetTypeName } from '#/constants'
+import { QuestionTypeName } from '#/constants'
 import {
   ACCESS_TYPES,
   ASSET_TYPES,
@@ -684,6 +685,16 @@ export function isRowProcessingEnabled(assetUid: string, xpath: string) {
 
 export function isAssetProcessingActivated(assetUid: string) {
   return getAssetProcessingUrl(assetUid) !== undefined
+}
+
+/**
+ * Whether the form has background audio enabled. This means that there is
+ * a possibility that the submission could have a background audio recording.
+ * If you need to know if recording exist, i.e. if it was being submitted,
+ * please use `getBackgroundAudioAttachment`.
+ */
+export function hasBackgroundAudioEnabled(surveyRow: SurveyRow[]) {
+  return surveyRow.some((question) => question.type === QuestionTypeName['background-audio'])
 }
 
 export default {
