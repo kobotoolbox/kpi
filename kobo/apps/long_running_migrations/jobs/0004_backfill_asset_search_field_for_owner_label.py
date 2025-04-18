@@ -1,4 +1,5 @@
 # Generated on 2024-12-19 15:34
+from django.conf import settings
 from django.db.models import Prefetch
 from more_itertools import chunked
 
@@ -10,7 +11,7 @@ def run():
     """
     Transfers all assets owned by members to their respective organizations.
     """
-    CHUNK_SIZE = 2000
+    CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
 
     assets = (
         Asset.objects.only('search_field', 'name', 'uid', 'owner')
