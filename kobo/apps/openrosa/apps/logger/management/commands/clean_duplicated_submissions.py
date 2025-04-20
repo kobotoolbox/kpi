@@ -10,12 +10,12 @@ from more_itertools import chunked
 
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
-    MonthlyXFormSubmissionCounter
+    MonthlyXFormSubmissionCounter,
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
+from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 
 
 class Command(BaseCommand):
@@ -35,13 +35,13 @@ class Command(BaseCommand):
         super().add_arguments(parser)
 
         parser.add_argument(
-            "--user",
+            '--user',
             default=None,
-            help="Specify a username to clean up only their forms",
+            help='Specify a username to clean up only their forms',
         )
 
         parser.add_argument(
-            "--xform",
+            '--xform',
             default=None,
             help="Specify a XForm's `id_string` to clean up only this form",
         )
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             .annotate(count_uuid=Count('uuid'))
             .filter(count_uuid__gt=1)
             .distinct(),
-            **options
+            **options,
         )
 
         for uuid in queryset.iterator():
@@ -64,15 +64,13 @@ class Command(BaseCommand):
                 Instance.objects.filter(uuid=uuid)
                 .values_list('xform_id', flat=True)
                 .distinct(),
-                **options
+                **options,
             )
 
             for xform_id in xform_ids:
 
                 if self._verbosity >= 1:
-                    self.stdout.write(
-                        f'\tProcessing XForm #{xform_id}…'
-                    )
+                    self.stdout.write(f'\tProcessing XForm #{xform_id}…')
 
                 # Get all instances with the same UUID
                 duplicates_queryset = Instance.objects.filter(
@@ -91,9 +89,7 @@ class Command(BaseCommand):
                 # Handle the same xml_hash duplicates
                 if same_xml_hash_duplicates:
                     instance_ref = same_xml_hash_duplicates.pop(0)
-                    self._delete_duplicates(
-                        instance_ref, same_xml_hash_duplicates
-                    )
+                    self._delete_duplicates(instance_ref, same_xml_hash_duplicates)
 
                 # Handle the different xml_hash duplicates (update uuid)
                 if different_xml_hash_duplicates:
@@ -166,16 +162,12 @@ class Command(BaseCommand):
 
         if xform_id_string:
             if self._verbosity >= 3:
-                self.stdout.write(
-                    f'Using option `--xform #{xform_id_string}`'
-                )
+                self.stdout.write(f'Using option `--xform #{xform_id_string}`')
             queryset = queryset.filter(xform__id_string=xform_id_string)
 
         if username:
             if self._verbosity >= 3:
-                self.stdout.write(
-                    f'Using option `--user #{username}`'
-                )
+                self.stdout.write(f'Using option `--user #{username}`')
             queryset = queryset.filter(xform__user__username=username)
 
         return queryset
@@ -216,9 +208,7 @@ class Command(BaseCommand):
                     continue
 
                 if self._verbosity >= 1:
-                    self.stdout.write(
-                        f'\tUpdating instance #{instance.pk}…'
-                    )
+                    self.stdout.write(f'\tUpdating instance #{instance.pk}…')
 
                 # Update the UUID and XML hash
                 old_uuid = instance.uuid
@@ -230,9 +220,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
                     )
-                instance.xml = set_meta(
-                    instance.xml, 'instanceID', instance.uuid
-                )
+                instance.xml = set_meta(instance.xml, 'instanceID', instance.uuid)
                 instance.xml_hash = instance.get_hash(instance.xml)
                 instance._populate_root_uuid()  # noqa
                 instances_to_update.append(instance)
@@ -244,12 +232,10 @@ class Command(BaseCommand):
                     pass
                 else:
                     parsed_instance.update_mongo(asynchronous=False)
-                idx +=1
+                idx += 1
 
             if self._verbosity >= 3:
-                self.stdout.write(
-                    f'\tUpdating batch…'
-                )
+                self.stdout.write('\tUpdating batch…')
             Instance.objects.bulk_update(
                 instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
