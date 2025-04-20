@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 
 from django.conf import settings
@@ -5,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import F
 from django.db.models.aggregates import Count
+from more_itertools import chunked
 
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
@@ -186,7 +188,7 @@ class Command(BaseCommand):
         xml_hash_groups = defaultdict(list)
 
         # Group instances by their xml_hash
-        for instance in instances:
+        for instance in instances.iterator():
             xml_hash_groups[instance['xml_hash']].append(instance)
 
         for xml_hash, duplicates in xml_hash_groups.items():
@@ -201,43 +203,53 @@ class Command(BaseCommand):
         """
         Update the UUID of instances with different xml_hash values.
         """
-        instances_to_update = []
-        for idx, duplicated_instance in enumerate(duplicated_instances):
-            try:
-                instance = Instance.objects.get(pk=duplicated_instance['id'])
-            except Instance.DoesNotExist:
-                continue
+        idx = 0
+        now = int(time.time())
+        for duplicated_instance_batch in chunked(
+            duplicated_instances, settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
+        ):
+            instances_to_update = []
+            for duplicated_instance in duplicated_instance_batch:
+                try:
+                    instance = Instance.objects.get(pk=duplicated_instance['id'])
+                except Instance.DoesNotExist:
+                    continue
 
-            if self._verbosity >= 1:
-                self.stdout.write(
-                    f'\tUpdating instance #{instance.pk}…'
+                if self._verbosity >= 1:
+                    self.stdout.write(
+                        f'\tUpdating instance #{instance.pk}…'
+                    )
+
+                # Update the UUID and XML hash
+                old_uuid = instance.uuid
+                instance.uuid = (
+                    f'DUPLICATE-{now}-{idx}-{instance.xform.id_string}-'
+                    f'{instance.uuid}'
                 )
-
-            # Update the UUID and XML hash
-            old_uuid = instance.uuid
-            instance.uuid = (
-                f'DUPLICATE-{idx}-{instance.xform.id_string}-'
-                f'{instance.uuid}'
-            )
-            if self._verbosity >= 2:
-                self.stdout.write(
-                    f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
+                if self._verbosity >= 2:
+                    self.stdout.write(
+                        f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
+                    )
+                instance.xml = set_meta(
+                    instance.xml, 'instanceID', instance.uuid
                 )
-            instance.xml = set_meta(
-                instance.xml, 'instanceID', instance.uuid
+                instance.xml_hash = instance.get_hash(instance.xml)
+                instance._populate_root_uuid()  # noqa
+                instances_to_update.append(instance)
+
+                # Save the parsed instance to sync MongoDB
+                try:
+                    parsed_instance = instance.parsed_instance
+                except Instance.parsed_instance.RelatedObjectDoesNotExist:
+                    pass
+                else:
+                    parsed_instance.update_mongo(asynchronous=False)
+                idx +=1
+
+            if self._verbosity >= 3:
+                self.stdout.write(
+                    f'\tUpdating batch…'
+                )
+            Instance.objects.bulk_update(
+                instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
             )
-            instance.xml_hash = instance.get_hash(instance.xml)
-            instance._populate_root_uuid()  # noqa
-            instances_to_update.append(instance)
-
-            # Save the parsed instance to sync MongoDB
-            try:
-                parsed_instance = instance.parsed_instance
-            except Instance.parsed_instance.RelatedObjectDoesNotExist:
-                pass
-            else:
-                parsed_instance.update_mongo(asynchronous=False)
-
-        Instance.objects.bulk_update(
-            instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
-        )
