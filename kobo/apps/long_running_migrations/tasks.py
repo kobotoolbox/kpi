@@ -1,25 +1,23 @@
-from kobo.celery import celery_app
-
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
-from dateutil.relativedelta import relativedelta
 
+from kobo.celery import celery_app
 from .models import LongRunningMigration, LongRunningMigrationStatus
 
 
 @celery_app.task(
-    queue = 'kpi_low_priority_queue',
-    soft_time_limit = settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
-    time_limit = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
+    queue='kpi_low_priority_queue',
+    soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
+    time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def async_execute(migration_id: int):
     migration = LongRunningMigration.objects.get(pk=migration_id)
     lock_key = f'execute_long_running_migrations:{migration.name}'
     if cache.add(
-        lock_key, 'true',
-        timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
+        lock_key, 'true', timeout=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT
     ):
         try:
             migration.execute()

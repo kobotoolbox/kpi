@@ -1263,7 +1263,7 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every hour, every day
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
-        'schedule': crontab(minute=0),
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
 
