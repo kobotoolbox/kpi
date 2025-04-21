@@ -49,6 +49,24 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         response = self.view(request)
         self.validate_openrosa_head_response(response)
 
+    def test_query_counts(self):
+        path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'fixtures',
+            'transport_submission.json')
+        with open(path, 'rb') as f:
+            data = json.loads(f.read())
+            request = self.factory.post('/submission', data, format='json')
+            response = self.view(request)
+
+            # redo the request since it was consumed
+            request = self.factory.post('/submission', data, format='json')
+            auth = DigestAuth('bob', 'bobbob')
+            request.META.update(auth(request.META, response))
+            with self.assertNumQueries(47):
+                self.view(request)
+
     def test_post_submission_anonymous(self):
 
         self.xform.require_auth = False

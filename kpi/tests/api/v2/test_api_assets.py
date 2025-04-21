@@ -407,6 +407,21 @@ class AssetListApiTests(BaseAssetTestCase):
         assert asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
         assert asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
 
+    def test_query_counts(self):
+        self.create_asset()
+
+        with self.assertNumQueries(46):
+            self.client.get(self.list_url)
+        # test query count does not increase with more assets
+        self.create_asset()
+        self.create_asset()
+        with self.assertNumQueries(46):
+            self.client.get(self.list_url)
+
+        # test query counts with search filter
+        with self.assertNumQueries(46):
+            self.client.get(self.list_url, data={'q': 'asset_type:survey'})
+
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
