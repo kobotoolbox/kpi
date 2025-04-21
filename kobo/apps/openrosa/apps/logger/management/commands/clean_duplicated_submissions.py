@@ -51,49 +51,41 @@ class Command(BaseCommand):
 
         # Retrieve all instances with the same `uuid`
         queryset = self._filter_queryset(
-            Instance.objects.values_list('uuid', flat=True)
+            Instance.objects.values('uuid', 'xform_id')
             .annotate(count_uuid=Count('uuid'))
-            .filter(count_uuid__gt=1)
-            .distinct(),
+            .filter(count_uuid__gt=1),
             **options,
         )
 
-        for uuid in queryset.iterator():
+        for result in queryset.iterator():
+            uuid = result['uuid']
+            xform_id = result['xform_id']
 
-            xform_ids = self._filter_queryset(
-                Instance.objects.filter(uuid=uuid)
-                .values_list('xform_id', flat=True)
-                .distinct(),
-                **options,
+            if self._verbosity >= 1:
+                self.stdout.write(f'\tProcessing uuid `{uuid}` in XForm #{xform_id}…')
+
+            # Get all instances with the same UUID
+            duplicates_queryset = Instance.objects.filter(
+                uuid=uuid, xform_id=xform_id
             )
 
-            for xform_id in xform_ids:
+            instances = duplicates_queryset.values(
+                'id', 'uuid', 'xml_hash', 'xform_id', 'date_created'
+            ).order_by('uuid', 'date_created')
 
-                if self._verbosity >= 1:
-                    self.stdout.write(f'\tProcessing XForm #{xform_id}…')
+            # Separate duplicates by their xml_hash (same and different)
+            same_xml_hash_duplicates, different_xml_hash_duplicates = (
+                self._get_duplicates_by_xml_hash(instances)
+            )
 
-                # Get all instances with the same UUID
-                duplicates_queryset = Instance.objects.filter(
-                    uuid=uuid, xform_id=xform_id
-                )
+            # Handle the same xml_hash duplicates
+            if same_xml_hash_duplicates:
+                instance_ref = same_xml_hash_duplicates.pop(0)
+                self._delete_duplicates(instance_ref, same_xml_hash_duplicates)
 
-                instances = duplicates_queryset.values(
-                    'id', 'uuid', 'xml_hash', 'xform_id', 'date_created'
-                ).order_by('uuid', 'date_created')
-
-                # Separate duplicates by their xml_hash (same and different)
-                same_xml_hash_duplicates, different_xml_hash_duplicates = (
-                    self._get_duplicates_by_xml_hash(instances)
-                )
-
-                # Handle the same xml_hash duplicates
-                if same_xml_hash_duplicates:
-                    instance_ref = same_xml_hash_duplicates.pop(0)
-                    self._delete_duplicates(instance_ref, same_xml_hash_duplicates)
-
-                # Handle the different xml_hash duplicates (update uuid)
-                if different_xml_hash_duplicates:
-                    self._replace_duplicates(different_xml_hash_duplicates)
+            # Handle the different xml_hash duplicates (update uuid)
+            if different_xml_hash_duplicates:
+                self._replace_duplicates(different_xml_hash_duplicates)
 
     def _delete_duplicates(self, instance_ref, duplicated_instances):
         """
