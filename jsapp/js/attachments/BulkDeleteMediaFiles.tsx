@@ -2,6 +2,8 @@ import { Anchor, Box, Button, Checkbox, FocusTrap, Group, Modal, Stack, Text } f
 import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import Alert from '#/components/common/alert'
+import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
@@ -28,6 +30,11 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
     return null
   }
 
+  // Filter submissions based on partial permissions
+  const filteredSubmissions = props.selectedSubmissions.filter((submission) =>
+    userHasPermForSubmission(PERMISSIONS_CODENAMES.delete_submissions, props.asset, submission),
+  )
+
   const handleConfirmDelete = async () => {
     const selectedIds = props.selectedSubmissions.map((submission) => submission._id)
     setIsDeletePending(true)
@@ -38,7 +45,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
       notify(
         t('Media files from ##number_of_selected_submissions## submission(s) have been deleted').replace(
           '##number_of_selected_submissions##',
-          props.selectedSubmissions.length.toString(),
+          filteredSubmissions.length.toString(),
         ),
       )
     } catch (error) {
@@ -67,7 +74,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
               <Text>
                 {t('You are about to permanently remove the following media files from the selected submissions:')}
                 <br />
-                {getMediaCount(props.selectedSubmissions, props.asset)}
+                {getMediaCount(filteredSubmissions)}
               </Text>
             }
             onClick={() => setWarningAcknowledged(!warningAcknowledged)}
