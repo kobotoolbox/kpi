@@ -29,6 +29,8 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
+import { PERMISSIONS_CODENAMES } from '../permissions/permConstants'
+import { userHasPermForSubmission } from '../permissions/utils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -840,15 +842,21 @@ export function shouldProcessingBeAccessible(
 }
 
 // Counts the number of each attachment type for the given array of submissions
-// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` followed by a period
+// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` ending with a period
 // for each attachment type present
-export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
+export function getMediaCount(selectedSubmissions: SubmissionResponse[], asset: AssetResponse) {
+  // Filter submissions based on partial permissions
+  const filteredSubmissions = selectedSubmissions.filter((submission) =>
+    userHasPermForSubmission(PERMISSIONS_CODENAMES.delete_submissions, asset, submission),
+  )
+  console.log('what', filteredSubmissions)
+
   let totalImages = 0
   let totalVideos = 0
   let totalFiles = 0
   let totalAudios = 0
 
-  selectedSubmissions.forEach((submission) => {
+  filteredSubmissions.forEach((submission) => {
     submission._attachments.forEach((attachment) => {
       const mimetype = attachment.mimetype
       if (mimetype.includes('image/')) {

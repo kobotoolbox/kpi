@@ -3,7 +3,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useState } from 'react'
 import Alert from '#/components/common/alert'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
-import type { SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { notify } from '#/utils'
 import { useRemoveBulkAttachments } from './attachmentsQuery'
@@ -11,7 +11,7 @@ import { useRemoveBulkAttachments } from './attachmentsQuery'
 interface BulkDeleteMediaFilesProps {
   // An array of all selected submissions with a valid set of attachments to be deleted
   selectedSubmissions: SubmissionResponse[]
-  assetUid: string
+  asset: AssetResponse
   onDeleted: () => void
 }
 
@@ -22,7 +22,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
   const [isDeletePending, setIsDeletePending] = useState(false)
   const [warningAcknowledged, setWarningAcknowledged] = useState(false)
 
-  const removeBulkAttachments = useRemoveBulkAttachments(props.assetUid)
+  const removeBulkAttachments = useRemoveBulkAttachments(props.asset.uid)
 
   if (!isFeatureEnabled) {
     return null
@@ -67,7 +67,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
               <Text>
                 {t('You are about to permanently remove the following media files from the selected submissions:')}
                 <br />
-                {getMediaCount(props.selectedSubmissions)}
+                {getMediaCount(props.selectedSubmissions, props.asset)}
               </Text>
             }
             onClick={() => setWarningAcknowledged(!warningAcknowledged)}
