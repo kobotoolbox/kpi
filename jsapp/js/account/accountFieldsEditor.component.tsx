@@ -218,10 +218,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('gender')}
                 required={isRequired('gender')}
                 name='gender'
-                // type='outline'
-                // size='l'
                 clearable={!isFieldRequired('gender')}
-                // selectedOption={props.values.gender}
                 value={props.values.gender}
                 onChange={(value: string | null) => onAnyFieldChange('gender', value || '')}
                 data={GENDER_SELECT_OPTIONS}
@@ -248,10 +245,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('country')}
                 required={isRequired('country')}
                 name='country'
-                // type='outline'
-                // size='l'
                 clearable={!isFieldRequired('country')}
-                // isSearchable
                 value={props.values.country}
                 onChange={(value: string | null) => onAnyFieldChange('country', value || '')}
                 data={envStore.data.country_choices}
@@ -284,10 +278,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('sector')}
                 required={isRequired('sector')}
                 name='sector'
-                // type='outline'
-                // size='l'
                 clearable={!isFieldRequired('sector')}
-                // isSearchable
                 value={props.values.sector}
                 onChange={(value: string | null) => onAnyFieldChange('sector', value || '')}
                 data={envStore.data.sector_choices}
@@ -306,8 +297,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
                 label={getLabel('organization_type')}
                 required={isRequired('organization_type')}
                 name='organization_type'
-                // type='outline'
-                // size='l'
                 clearable={!isFieldRequired('organization_type')}
                 value={props.values.organization_type}
                 onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
