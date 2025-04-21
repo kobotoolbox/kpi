@@ -14,7 +14,6 @@ interface SubmissionBackgroundAudioProps {
 }
 
 export default function SubmissionBackgroundAudio(props: SubmissionBackgroundAudioProps) {
-
   const survey = props.asset.content?.survey
 
   if (!survey) {
