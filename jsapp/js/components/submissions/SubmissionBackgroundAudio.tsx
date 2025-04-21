@@ -1,8 +1,8 @@
+import { hasBackgroundAudioEnabled } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem from '#/bem'
 import AudioPlayer from '#/components/common/audioPlayer'
-import { hasBackgroundAudioEnabled } from '#/assetUtils'
 import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
 import type { SubmissionResponse } from '#/dataInterface'
 
@@ -14,7 +14,6 @@ interface SubmissionBackgroundAudioProps {
 }
 
 export default function SubmissionBackgroundAudio(props: SubmissionBackgroundAudioProps) {
-
   const survey = props.asset.content?.survey
 
   if (!survey) {
