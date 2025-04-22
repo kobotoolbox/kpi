@@ -1,6 +1,7 @@
 import os
 from importlib.util import module_from_spec, spec_from_file_location
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.db import models
@@ -63,6 +64,10 @@ class LongRunningMigration(AbstractTimeStampedModel):
 
         try:
             module.run()
+        except (SoftTimeLimitExceeded, TimeLimitExceeded):
+            # Let's continue in the next round — this task took too long to
+            # complete in a single run.
+            return
         except Exception as e:
             # Log the error and update the status to 'failed'
             logging.error(f'LongRunningMigration.execute(): {str(e)}')
