@@ -24,7 +24,9 @@ from .serializers import (
     ProjectHistoryLogSerializer,
 )
 
-
+@extend_schema(
+    tags=['audit-logs'],
+)
 class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     Audit logs

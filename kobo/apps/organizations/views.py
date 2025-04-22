@@ -11,6 +11,7 @@ from django.db.models import (
 )
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -85,7 +86,9 @@ class OrganizationAssetViewSet(AssetViewSet):
         else:
             raise NotImplementedError
 
-
+@extend_schema(
+    tags=['organizations'],
+)
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
@@ -262,7 +265,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-
+@extend_schema(
+    tags=['members'],
+)
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
@@ -541,7 +546,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
 
-
+@extend_schema(
+    tags=['invites'],
+)
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
     ### List Organization Invites
