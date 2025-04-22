@@ -32,7 +32,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
   // Filter submissions based on partial permissions
   const filteredSubmissions = props.selectedSubmissions.filter((submission) =>
-    userHasPermForSubmission(PERMISSIONS_CODENAMES.delete_submissions, props.asset, submission),
+    userHasPermForSubmission(PERMISSIONS_CODENAMES.change_submissions, props.asset, submission),
   )
 
   const handleConfirmDelete = async () => {
