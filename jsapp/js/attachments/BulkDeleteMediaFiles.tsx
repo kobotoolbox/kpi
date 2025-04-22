@@ -72,7 +72,7 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
         {filteredSubmissions.length === 0 && (
           // This can only happen if the user has permissions to view (but not delete) certain submissions
           <Stack>
-            <Text>{t('You do not have permissions to delete the selected submissions.')}</Text>
+            <Text>{t('You do not have sufficient permissions to delete attachments from the selected submissions.')}</Text>
           </Stack>
         )}
 
