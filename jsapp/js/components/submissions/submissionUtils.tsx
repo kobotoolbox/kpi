@@ -840,7 +840,7 @@ export function shouldProcessingBeAccessible(
 }
 
 // Counts the number of each attachment type for the given array of submissions
-// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` followed by a period
+// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` ending with a period
 // for each attachment type present
 export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
   let totalImages = 0
