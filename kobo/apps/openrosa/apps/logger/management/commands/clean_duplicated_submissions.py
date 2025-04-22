@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# vim: ai ts=4 sts=4 et sw=4 fileencoding=utf-8
-# coding: utf-8
+import time
 from collections import defaultdict
 
 from django.conf import settings
@@ -8,15 +6,16 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import F
 from django.db.models.aggregates import Count
+from more_itertools import chunked
 
 from kobo.apps.openrosa.apps.logger.models import (
     DailyXFormSubmissionCounter,
-    MonthlyXFormSubmissionCounter
+    MonthlyXFormSubmissionCounter,
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
+from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 
 
 class Command(BaseCommand):
@@ -36,44 +35,43 @@ class Command(BaseCommand):
         super().add_arguments(parser)
 
         parser.add_argument(
-            "--user",
+            '--user',
             default=None,
-            help="Specify a username to clean up only their forms",
+            help='Specify a username to clean up only their forms',
         )
 
         parser.add_argument(
-            "--xform",
+            '--xform',
             default=None,
             help="Specify a XForm's `id_string` to clean up only this form",
         )
 
     def handle(self, *args, **options):
-        username = options['user']
-        xform_id_string = options['xform']
         self._verbosity = options['verbosity']
 
         # Retrieve all instances with the same `uuid`
-        query = Instance.objects
-        if xform_id_string:
-            query = query.filter(xform__id_string=xform_id_string)
-
-        if username:
-            query = query.filter(xform__user__username=username)
-
-        query = (
-            query.values_list('uuid', flat=True)
+        queryset = self._filter_queryset(
+            Instance.objects.values('uuid', 'xform_id')
             .annotate(count_uuid=Count('uuid'))
-            .filter(count_uuid__gt=1)
-            .distinct()
+            .filter(count_uuid__gt=1),
+            **options,
         )
 
-        for uuid in query.iterator():
+        for result in queryset.iterator():
+            uuid = result['uuid']
+            xform_id = result['xform_id']
+
+            if self._verbosity >= 1:
+                self.stdout.write(f'\tProcessing uuid `{uuid}` in XForm #{xform_id}…')
+
             # Get all instances with the same UUID
-            duplicates_queryset = Instance.objects.filter(uuid=uuid)
+            duplicates_queryset = Instance.objects.filter(
+                uuid=uuid, xform_id=xform_id
+            )
 
             instances = duplicates_queryset.values(
                 'id', 'uuid', 'xml_hash', 'xform_id', 'date_created'
-            ).order_by('xform_id', 'uuid', 'date_created')
+            ).order_by('uuid', 'date_created')
 
             # Separate duplicates by their xml_hash (same and different)
             same_xml_hash_duplicates, different_xml_hash_duplicates = (
@@ -83,9 +81,7 @@ class Command(BaseCommand):
             # Handle the same xml_hash duplicates
             if same_xml_hash_duplicates:
                 instance_ref = same_xml_hash_duplicates.pop(0)
-                self._delete_duplicates(
-                    instance_ref, same_xml_hash_duplicates
-                )
+                self._delete_duplicates(instance_ref, same_xml_hash_duplicates)
 
             # Handle the different xml_hash duplicates (update uuid)
             if different_xml_hash_duplicates:
@@ -151,46 +147,22 @@ class Command(BaseCommand):
                     f'\tPurged instance IDs: {duplicated_instance_ids}'
                 )
 
-    def _replace_duplicates(self, duplicated_instances):
-        """
-        Update the UUID of instances with different xml_hash values.
-        """
-        instances_to_update = []
-        for idx, duplicated_instance in enumerate(duplicated_instances):
-            try:
-                instance = Instance.objects.get(pk=duplicated_instance['id'])
-            except Instance.DoesNotExist:
-                continue
+    def _filter_queryset(self, queryset, **options):
 
-            if self._verbosity >= 1:
-                self.stdout.write(
-                    f'\tUpdating instance #{instance.pk}…'
-                )
+        username = options['user']
+        xform_id_string = options['xform']
 
-            # Update the UUID and XML hash
-            old_uuid = instance.uuid
-            instance.uuid = (
-                f'DUPLICATE-{idx}-{instance.xform.id_string}-'
-                f'{instance.uuid}'
-            )
-            if self._verbosity >= 2:
-                self.stdout.write(
-                    f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
-                )
-            instance.xml = set_meta(
-                instance.xml, 'instanceID', instance.uuid
-            )
-            instance.xml_hash = instance.get_hash(instance.xml)
-            instance._populate_root_uuid()  # noqa
-            instances_to_update.append(instance)
+        if xform_id_string:
+            if self._verbosity >= 3:
+                self.stdout.write(f'Using option `--xform #{xform_id_string}`')
+            queryset = queryset.filter(xform__id_string=xform_id_string)
 
-            # Save the parsed instance to sync MongoDB
-            parsed_instance = instance.parsed_instance
-            parsed_instance.update_mongo(asynchronous=False)
+        if username:
+            if self._verbosity >= 3:
+                self.stdout.write(f'Using option `--user #{username}`')
+            queryset = queryset.filter(xform__user__username=username)
 
-        Instance.objects.bulk_update(
-            instances_to_update, ['uuid', 'xml', 'xml_hash']
-        )
+        return queryset
 
     def _get_duplicates_by_xml_hash(self, instances):
         """
@@ -200,7 +172,7 @@ class Command(BaseCommand):
         xml_hash_groups = defaultdict(list)
 
         # Group instances by their xml_hash
-        for instance in instances:
+        for instance in instances.iterator():
             xml_hash_groups[instance['xml_hash']].append(instance)
 
         for xml_hash, duplicates in xml_hash_groups.items():
@@ -210,3 +182,52 @@ class Command(BaseCommand):
                 different_xml_hash_duplicates.extend(duplicates)
 
         return same_xml_hash_duplicates, different_xml_hash_duplicates
+
+    def _replace_duplicates(self, duplicated_instances):
+        """
+        Update the UUID of instances with different xml_hash values.
+        """
+        idx = 0
+        now = int(time.time())
+        for duplicated_instance_batch in chunked(
+            duplicated_instances, settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
+        ):
+            instances_to_update = []
+            for duplicated_instance in duplicated_instance_batch:
+                try:
+                    instance = Instance.objects.get(pk=duplicated_instance['id'])
+                except Instance.DoesNotExist:
+                    continue
+
+                if self._verbosity >= 1:
+                    self.stdout.write(f'\tUpdating instance #{instance.pk}…')
+
+                # Update the UUID and XML hash
+                old_uuid = instance.uuid
+                instance.uuid = (
+                    f'DUPLICATE-{now}-{idx}-{instance.xform.id_string}-'
+                    f'{instance.uuid}'
+                )
+                if self._verbosity >= 2:
+                    self.stdout.write(
+                        f'\t\tOld UUID: {old_uuid}, New UUID: {instance.uuid}'
+                    )
+                instance.xml = set_meta(instance.xml, 'instanceID', instance.uuid)
+                instance.xml_hash = instance.get_hash(instance.xml)
+                instance._populate_root_uuid()  # noqa
+                instances_to_update.append(instance)
+
+                # Save the parsed instance to sync MongoDB
+                try:
+                    parsed_instance = instance.parsed_instance
+                except Instance.parsed_instance.RelatedObjectDoesNotExist:
+                    pass
+                else:
+                    parsed_instance.update_mongo(asynchronous=False)
+                idx += 1
+
+            if self._verbosity >= 3:
+                self.stdout.write('\tUpdating batch…')
+            Instance.objects.bulk_update(
+                instances_to_update, ['uuid', 'xml', 'root_uuid', 'xml_hash']
+            )

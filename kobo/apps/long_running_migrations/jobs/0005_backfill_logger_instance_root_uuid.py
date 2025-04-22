@@ -84,6 +84,7 @@ def _process_instances_batch(
                 call_command(
                     'clean_duplicated_submissions',
                     xform=xform.id_string,
+                    verbosity=2,
                 )
             except Exception as e:
                 logging.error(f'Failed to clean duplicated submissions: {str(e)}')
