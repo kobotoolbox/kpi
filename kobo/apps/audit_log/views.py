@@ -26,10 +26,11 @@ from .serializers import (
 )
 from kobo.apps.audit_log.docs.access_log import (
     access_logs_get,
-    access_logs_me_export_get,
-    access_logs_me_export_post,
+    access_logs_me,
     access_logs_export_get,
     access_logs_export_post,
+    access_logs_me_export_get,
+    access_logs_me_export_post,
 )
 
 @extend_schema(
@@ -188,62 +189,12 @@ class AllAccessLogViewSet(AuditLogViewSet):
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
 
-@extend_schema(
 
+@extend_schema(
+    tags=['access-logs'],
+    description=access_logs_me,
 )
 class AccessLogViewSet(AuditLogViewSet):
-    """
-    Access logs
-
-    Lists all access logs for the authenticated user
-
-    Submissions will be grouped together by hour
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/me/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/me/
-
-    > Response 200
-
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z"
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "auth_type": "submission-group",
-    >                    },
-    >                    "date_created": "2024-08-19T16:00:00Z"
-    >                },
-    >                ...
-    >           ]
-    >       }
-
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/me/?offset=100&limit=50
-
-    will return entries 100-149
-
-    """
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
