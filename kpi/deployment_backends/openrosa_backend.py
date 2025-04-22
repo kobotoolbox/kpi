@@ -20,7 +20,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from rest_framework import status
+from rest_framework import exceptions, serializers, status
 
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
@@ -197,6 +197,62 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             pass
 
         super().delete()
+
+    def delete_attachments(
+        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+    ) -> list:
+        """
+        Validates if a list of attachments can be deleted by the user.
+        The user must have either partial or full `edit_submissions` permission
+        in order to delete each attachment.
+        """
+
+        if not attachment_uids:
+            raise serializers.ValidationError(
+                t('The list of attachment UIDs cannot be empty')
+            )
+
+        validated_attachment_uids = []
+        submission_ids_to_check = set()
+        attachment_to_submission_map = {}
+        authorized_submission_ids_set = []
+
+        for uid in attachment_uids:
+            attachment = None
+            try:
+                attachment = Attachment.objects.get(uid=uid)
+            except Attachment.DoesNotExist:
+                print(
+                    f"Could not find attachment with UID '{uid}'"
+                )
+            if attachment:
+                submission_ids_to_check.add(attachment.instance.id)
+                attachment_to_submission_map[uid] = attachment.instance.id
+
+        # Check permissions for all submission ids
+        authorized_submission_ids = self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=list(submission_ids_to_check),
+        )
+        if authorized_submission_ids is None:
+            # No partial permissions, check for full edit permissions on the asset
+            validated_attachment_uids = [
+                uid for uid in attachment_uids if uid in attachment_to_submission_map
+            ]
+            if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
+                raise exceptions.PermissionDenied(
+                    t('You do not have permission to delete these attachments')
+                )
+        else:
+            # There are partial permissions, so filter the attachments based on the
+            # authorized submission IDs.
+            authorized_submission_ids_set = set(authorized_submission_ids)
+            for uid, sub_id in attachment_to_submission_map.items():
+                if sub_id in authorized_submission_ids_set:
+                    validated_attachment_uids.append(uid)
+
+        return validated_attachment_uids
 
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL

@@ -135,14 +135,11 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data,
-            {
-                'non_field_errors': [
-                    ErrorDetail(
-                        string='The list of attachment UIDs cannot be empty',
-                        code='invalid',
-                    )
-                ]
-            },
+            [
+                ErrorDetail(
+                    string='The list of attachment UIDs cannot be empty', code='invalid'
+                )
+            ],
         )
         self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count)
         self.assertFalse(

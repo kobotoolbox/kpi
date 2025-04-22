@@ -1,12 +1,11 @@
 from constance import config
 from django.db.models import F
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.utils import move_to_trash
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 
 
@@ -17,37 +16,11 @@ class AttachmentBulkDeleteSerializer(serializers.Serializer):
         help_text=t('List of attachment UIDs to delete.'),
     )
 
-    def validate(self, attrs):
-        asset = self.context.get('asset')
-        request = self.context.get('request')
-
-        if not asset or not request:
-            raise serializers.ValidationError(
-                t('Asset and request context must be provided')
-            )
-
-        user_permissions = request.user.get_all_permissions()
-        has_full_edit_permission = 'kpi.change_submissions' in user_permissions
-        has_partial_edit_permission = (
-            PERM_PARTIAL_SUBMISSIONS in user_permissions
-            and asset.has_partial_permission(request.user.id, 'kpi.change_submissions')  # noqa
-        )
-
-        if not has_full_edit_permission and not has_partial_edit_permission:
-            raise exceptions.PermissionDenied(
-                t('You do not have permission to delete these attachments')
-            )
-
-        if not attrs['attachment_uids']:
-            raise serializers.ValidationError(
-                t('The list of attachment UIDs cannot be empty')
-            )
-
-        return attrs
-
     def save(self, request, asset):
         deployment = self._get_deployment(asset)
-        attachment_uids_to_delete = self.validated_data['attachment_uids']
+        attachment_uids_to_delete = deployment.delete_attachments(
+            request.user, self.data['attachment_uids']
+        )
 
         attachments = (
             Attachment.objects.filter(
