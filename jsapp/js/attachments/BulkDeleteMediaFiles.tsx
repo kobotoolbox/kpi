@@ -68,36 +68,46 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
 
       <Modal opened={opened} onClose={handleCloseModal} title={t('Delete media files')} size={'md'}>
         <FocusTrap.InitialFocus />
-        <Stack>
-          <Checkbox
-            label={
-              <Text>
-                {t('You are about to permanently remove the following media files from the selected submissions:')}
-                <br />
-                {getMediaCount(filteredSubmissions)}
-              </Text>
-            }
-            onClick={() => setWarningAcknowledged(!warningAcknowledged)}
-            checked={warningAcknowledged}
-          />
-          <Alert iconName='warning' type='error'>
-            {t('Careful - it is not possible to recover deleted media files')}
-          </Alert>
-          <Group justify='flex-end'>
-            <Button variant='light' size='lg' onClick={close} disabled={isDeletePending}>
-              {t('Cancel')}
-            </Button>
 
-            <Button
-              disabled={!warningAcknowledged || isDeletePending}
-              variant='danger'
-              size='lg'
-              onClick={handleConfirmDelete}
-            >
-              {t('Delete')}
-            </Button>
-          </Group>
-        </Stack>
+        {filteredSubmissions.length === 0 && (
+          // This can only happen if the user has permissions to view (but not delete) certain submissions
+          <Stack>
+            <Text>{t('You do not have permissions to delete the selected submissions.')}</Text>
+          </Stack>
+        )}
+
+        {filteredSubmissions.length > 0 && (
+          <Stack>
+            <Checkbox
+              label={
+                <Text>
+                  {t('You are about to permanently remove the following media files from the selected submissions:')}
+                  <br />
+                  {getMediaCount(filteredSubmissions)}
+                </Text>
+              }
+              onClick={() => setWarningAcknowledged(!warningAcknowledged)}
+              checked={warningAcknowledged}
+            />
+            <Alert iconName='warning' type='error'>
+              {t('Careful - it is not possible to recover deleted media files')}
+            </Alert>
+            <Group justify='flex-end'>
+              <Button variant='light' size='lg' onClick={close} disabled={isDeletePending}>
+                {t('Cancel')}
+              </Button>
+
+              <Button
+                disabled={!warningAcknowledged || isDeletePending}
+                variant='danger'
+                size='lg'
+                onClick={handleConfirmDelete}
+              >
+                {t('Delete')}
+              </Button>
+            </Group>
+          </Stack>
+        )}
       </Modal>
     </Box>
   )
