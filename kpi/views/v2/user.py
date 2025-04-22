@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -12,6 +13,9 @@ from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
 
 
+@extend_schema(
+    tags=['users'],
+)
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
     This viewset provides only the `detail` action; `list` is *not* provided to

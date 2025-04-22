@@ -1,6 +1,8 @@
 # coding: utf-8
 from collections import defaultdict
 
+from drf_spectacular.utils import extend_schema
+
 from .base import BaseViewSet
 from ..models.language import Language
 from ..serializers import (
@@ -8,7 +10,9 @@ from ..serializers import (
     LanguageListSerializer,
 )
 
-
+@extend_schema(
+    tags=['languages'],
+)
 class LanguageViewSet(BaseViewSet):
     """
 
