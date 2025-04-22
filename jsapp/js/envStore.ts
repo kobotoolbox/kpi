@@ -20,8 +20,6 @@ export interface EnvironmentResponse {
   operational_purpose_choices: string[][]
   country_choices: string[][]
   interface_languages: string[][]
-  transcription_languages: TransxLanguages
-  translation_languages: TransxLanguages
   submission_placeholder: string
   use_team_label: boolean
   frontend_min_retry_time: number

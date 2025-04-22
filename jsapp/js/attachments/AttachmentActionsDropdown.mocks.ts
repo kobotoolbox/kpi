@@ -309,9 +309,7 @@ export const assetWithImageSubmission: SubmissionResponse = {
       mimetype: 'image/jpeg',
       filename:
         'zefir/attachments/1c0496e69e624ab6a265316eed7127c1/d861c7c7-9c49-42cb-8652-cbe3b6c148ad/the-origin-of-the-world-12_21_57.jpg',
-      instance: 67,
-      xform: 21,
-      id: 22,
+      uid: 'aALUCUEKcgKk28owQo3LrA',
       question_xpath: 'Add_a_picture',
     },
   ],

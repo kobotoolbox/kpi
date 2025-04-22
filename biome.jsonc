@@ -9,7 +9,8 @@
       "*-min.js",
       "bootstrap*.js",
       "jquery*.js",
-      "kobo/apps/openrosa/apps/logger/fixtures/*"
+      "kobo/apps/openrosa/apps/logger/fixtures/*",
+      "msw-mocks/*"
     ]
   },
   "vcs": {

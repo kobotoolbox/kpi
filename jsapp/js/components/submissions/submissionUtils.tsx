@@ -6,6 +6,7 @@ import type { SubmissionAnalysisResponse } from '#/components/processing/analysi
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
   CHOICE_LISTS,
   GROUP_TYPES_BEGIN,
@@ -757,14 +758,14 @@ function appendTextToPathAtLevel(path: string, level: string, stringToAdd: strin
  */
 export function markAttachmentAsDeleted(
   submissionData: SubmissionResponse,
-  targetAttachmentId: number,
+  targetAttachmentUid: string,
 ): SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = data._attachments.find((item) => item.id === targetAttachmentId)
+  const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
 
   data._attachments.forEach((attachment) => {
     if (
-      attachment.id === targetAttachment?.id &&
+      attachment.uid === targetAttachment?.uid &&
       attachment.question_xpath === targetAttachment?.question_xpath &&
       attachment.filename === targetAttachment?.filename
     ) {
@@ -879,4 +880,25 @@ export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
       }
     })
   return result.join('; ') + '.'
+}
+
+export function getBackgroundAudioAttachment(
+  asset: AssetResponse,
+  submission: SubmissionResponse,
+): undefined | SubmissionAttachment {
+  const backgroundAudioName = getBackgroundAudioQuestionName(asset)
+
+  if (backgroundAudioName && submission && Object.keys(submission).includes(backgroundAudioName)) {
+    const response = submission[backgroundAudioName]
+    if (typeof response === 'string') {
+      const mediaAttachment = getMediaAttachment(submission, response, backgroundAudioName)
+      if (typeof mediaAttachment === 'string') {
+        return undefined
+      } else {
+        return mediaAttachment
+      }
+    }
+  }
+
+  return undefined
 }

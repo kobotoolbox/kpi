@@ -189,12 +189,12 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
   }
 
   clearSearchPhrase() {
-    this.setSearchPhrase('')
+    this.setSearchPhrase('', true)
   }
 
-  setSearchPhrase(searchPhrase: string) {
+  setSearchPhrase(searchPhrase: string, forceFetch?: boolean) {
     this.setState({ searchPhrase: searchPhrase })
-    if (searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
+    if (forceFetch || searchPhrase.length >= MINIMUM_SEARCH_LENGTH) {
       this.fetchLanguagesDebounced()
     }
   }
@@ -272,13 +272,14 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
       <bem.LanguageSelector__selectedLanguage>
         <Icon name='language-alt' size='m' />
 
-        <bem.LanguageSelector__selectedLanguageLabel>
+        <bem.LanguageSelector__selectedLanguageLabel title={t('Selected language')}>
           <LanguageDisplayLabel code={this.state.selectedLanguage.code} name={this.state.selectedLanguage.name} />
         </bem.LanguageSelector__selectedLanguageLabel>
 
         <bem.LanguageSelector__clearSelectedLanguage
           onClick={this.clearSelectedLanguage.bind(this)}
           disabled={this.props.isDisabled}
+          title={t('Clear selected language')}
         >
           <Icon name='close' size='s' />
         </bem.LanguageSelector__clearSelectedLanguage>
@@ -314,7 +315,8 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
           {!this.store.isLoading && <Icon name='search' size='m' />}
 
           <bem.LanguageSelector__searchBoxInput
-            type='text'
+            type='search'
+            role='searchbox'
             value={this.state.searchPhrase}
             onChange={this.onSearchPhraseInputChange.bind(this)}
             placeholder={t('Search for a language')}
@@ -325,6 +327,7 @@ class LanguageSelector extends React.Component<LanguageSelectorProps, LanguageSe
             <bem.LanguageSelector__clearSearchBox
               onClick={this.clearSearchPhrase.bind(this)}
               disabled={this.props.isDisabled}
+              title={t('Clear search')}
             >
               <Icon name='close' size='s' />
             </bem.LanguageSelector__clearSearchBox>
