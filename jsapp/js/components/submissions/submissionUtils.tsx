@@ -29,8 +29,6 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
-import { PERMISSIONS_CODENAMES } from '../permissions/permConstants'
-import { userHasPermForSubmission } from '../permissions/utils'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
