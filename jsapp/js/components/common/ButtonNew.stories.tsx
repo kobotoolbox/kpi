@@ -1,9 +1,10 @@
-import type { ElementProps, MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
+import type { ElementProps, MantineSize, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, within } from '@storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
+import type { ElementType, ForwardRefExoticComponent } from 'react'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
@@ -43,7 +44,23 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
   'left-start',
 ] as const
 
-const meta: Meta<typeof Button> = {
+/**
+ * For polymorphic components Storybook fails to infer props, use this helper to make StoryArgs you need.
+ *
+ * TODO: move to utils.
+ *
+ * Example:
+ * ```
+ * type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
+ * type Story = StoryObj<React.ForwardRefExoticComponent<StoryArgs>>
+ * ```
+ */
+type StoryArgsFromPolymorphic<C extends ElementType, P extends object> = P & ElementProps<C, Extract<keyof P, string>>
+
+type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
+type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
+
+const meta = {
   title: 'Design system/Button',
   component: Button,
   argTypes: {
@@ -102,11 +119,9 @@ const meta: Meta<typeof Button> = {
       },
     },
   },
-}
+} satisfies Meta<StoryArgs>
 
 export default meta
-type StoryArgs = ButtonProps & ElementProps<'button', keyof ButtonProps> & { 'data-testid'?: string }
-type Story = StoryObj<typeof Button> & { args: StoryArgs }
 
 export const Default: Story = {
   args: {
@@ -153,13 +168,13 @@ export const Preview = () => (
     {buttonVariants.map((variant) =>
       buttonSizes.map((size) =>
         demoButtons.map(({ label, leftIconName }) => {
-          const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
+          const buttonProps = {
             variant,
             size: size,
             leftIcon: leftIconName,
             onClick: () => console.info('Clicked!', variant, size, label, leftIconName),
             tooltip: label,
-          }
+          } satisfies StoryArgs
           return (
             <>
               <Button {...buttonProps}>{label}</Button>
@@ -185,8 +200,8 @@ export const TestClick: Story = {
   },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId((args as StoryArgs)['data-testid']!))
-    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(1)
+    await userEvent.click(canvas.getByTestId(args['data-testid']!))
+    await expect(args.onClick).toHaveBeenCalledTimes(1)
   },
 }
 
@@ -199,7 +214,7 @@ export const TestClickDisabled: Story = {
   },
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
-    await userEvent.click(canvas.getByTestId((args as StoryArgs)['data-testid']!))
-    await expect((args as StoryArgs).onClick).toHaveBeenCalledTimes(0)
+    await userEvent.click(canvas.getByTestId(args['data-testid']!))
+    await expect(args.onClick).toHaveBeenCalledTimes(0)
   },
 }
