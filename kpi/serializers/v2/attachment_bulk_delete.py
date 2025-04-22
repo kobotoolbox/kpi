@@ -18,33 +18,11 @@ class AttachmentBulkDeleteSerializer(serializers.Serializer):
 
     def save(self, request, asset):
         deployment = self._get_deployment(asset)
-        attachment_uids_to_delete = deployment.delete_attachments(
+        attachment_count = deployment.delete_attachments(
             request.user, self.data['attachment_uids']
         )
 
-        attachments = (
-            Attachment.objects.filter(
-                xform_id=deployment.xform_id, uid__in=attachment_uids_to_delete
-            )
-            .annotate(
-                attachment_basename=F('media_file_basename'),
-                attachment_uid=F('uid'),
-            )
-            .values('pk', 'attachment_basename', 'attachment_uid')
-        )
-
-        attachment_uids = [att['attachment_uid'] for att in attachments]
-        count = len(attachment_uids)
-
-        AttachmentTrash.toggle_statuses(attachment_uids, active=False)
-        move_to_trash(
-            request_author=request.user,
-            objects_list=attachments,
-            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
-            trash_type='attachment',
-        )
-
-        return {'message': f'{count} attachments deleted'}
+        return {'message': f'{attachment_count} attachments deleted'}
 
     def _get_deployment(self, asset):
         """

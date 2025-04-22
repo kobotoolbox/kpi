@@ -35,13 +35,11 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                         'type': 'audio',
                         'label': 'q1',
                         'required': 'false',
-                        '$kuid': 'abcd',
                     },
                     {
                         'type': 'file',
                         'label': 'q2',
                         'required': 'false',
-                        '$kuid': 'efgh',
                     },
                 ]
             },
@@ -57,56 +55,71 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         )
 
     def _create_instances_and_attachments(self):
-        xml_str1 = """
-        <data>
-            <q1>audio.3gp</q1>
-            <q2>image.jpg</q2>
-            <meta>
-                <instanceID>uuid:test_uuid1</instanceID>
-            </meta>
-        </data>
-        """
-        xml_str2 = """
-        <data>
-            <q1>audio.3gp</q1>
-            <q2>image.jpg</q2>
-            <meta>
-                <instanceID>uuid:test_uuid2</instanceID>
-            </meta>
-        </data>
-        """
+        submissions = [
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'meta': {'instanceID': 'uuid:test_uuid1'},
+                'q1': 'audio_conversion_test_clip.3gp',
+                'q2': 'audio_conversion_test_image.jpg',
+                '_attachments': [
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
+                    },
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'mimetype': 'image/jpeg',
+                    },
+                ],
+                '_submitted_by': self.asset.owner.username,
+            },
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'meta': {'instanceID': 'uuid:test_uuid2'},
+                'q1': 'audio_conversion_test_clip.3gp',
+                'q2': 'audio_conversion_test_image.jpg',
+                '_attachments': [
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
+                    },
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'mimetype': 'image/jpeg',
+                    },
+                ],
+                '_submitted_by': self.asset.owner.username,
+            },
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'meta': {'instanceID': 'uuid:test_uuid3'},
+                'q1': 'audio_conversion_test_clip.3gp',
+                'q2': 'audio_conversion_test_image.jpg',
+                '_attachments': [
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'mimetype': 'video/3gpp',
+                    },
+                    {
+                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'mimetype': 'image/jpeg',
+                    },
+                ],
+                '_submitted_by': 'anotheruser',
+            },
+        ]
+        self.asset.deployment.mock_submissions(submissions, create_uuids=False)
 
-        instance1 = Instance.objects.create(
-            xform=self.asset.deployment.xform, xml=xml_str1
-        )
-        instance2 = Instance.objects.create(
-            xform=self.asset.deployment.xform, xml=xml_str2
-        )
+        first_instance = Instance.objects.get(root_uuid='test_uuid1')
+        second_instance = Instance.objects.get(root_uuid='test_uuid2')
+        third_instance = Instance.objects.get(root_uuid='test_uuid3')
 
-        media_file_name = '1335783522563.jpg'
-        media_file_path = os.path.join(
-            settings.OPENROSA_APP_DIR,
-            'apps',
-            'main',
-            'tests',
-            'fixtures',
-            'transportation',
-            'instances',
-            'transport_2011-07-25_19-05-49',
-            media_file_name,
-        )
-
-        attachment1 = Attachment.objects.create(
-            instance=instance1,
-            media_file=File(open(media_file_path, 'rb'), media_file_name),
-        )
-        attachment2 = Attachment.objects.create(
-            instance=instance2,
-            media_file=File(open(media_file_path, 'rb'), media_file_name),
-        )
-
-        self.attachment1_uid = attachment1.uid
-        self.attachment2_uid = attachment2.uid
+        self.attachment1_uid = first_instance.attachments.all()[0].uid
+        self.attachment2_uid = first_instance.attachments.all()[1].uid
+        self.attachment3_uid = second_instance.attachments.all()[0].uid
+        self.attachment4_uid = second_instance.attachments.all()[1].uid
+        self.attachment5_uid = third_instance.attachments.all()[0].uid
+        self.attachment6_uid = third_instance.attachments.all()[1].uid
 
     def test_bulk_delete_attachments_success(self):
         initial_trash_count = AttachmentTrash.objects.count()
@@ -240,15 +253,16 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.assertEqual(response.data, {'message': '2 attachments deleted'})
 
     def test_bulk_delete_attachments_with_partial_perms(self):
-        userPartialPerms = User.objects.create_user(
-            username='userPartialPerms', password='userPartialPerms'
+        user_partial_perms = User.objects.create_user(
+            username='user_partial_perms', password='user_partial_perms'
         )
-        self.client.force_login(userPartialPerms)
+        self.client.force_login(user_partial_perms)
         partial_perms = {
-            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'userPartialPerms'}]
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
+
         self.asset.assign_perm(
-            userPartialPerms,
+            user_partial_perms,
             PERM_PARTIAL_SUBMISSIONS,
             partial_perms=partial_perms,
         )
@@ -256,7 +270,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         response = self.client.delete(
             self.bulk_delete_url,
             data=json.dumps(
-                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
+                {'attachment_uids': [self.attachment5_uid, self.attachment6_uid]}
             ),
             content_type='application/json',
         )

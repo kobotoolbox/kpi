@@ -212,47 +212,52 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 t('The list of attachment UIDs cannot be empty')
             )
 
-        validated_attachment_uids = []
-        submission_ids_to_check = set()
-        attachment_to_submission_map = {}
-        authorized_submission_ids_set = []
-
-        for uid in attachment_uids:
-            attachment = None
-            try:
-                attachment = Attachment.objects.get(uid=uid)
-            except Attachment.DoesNotExist:
-                print(
-                    f"Could not find attachment with UID '{uid}'"
-                )
-            if attachment:
-                submission_ids_to_check.add(attachment.instance.id)
-                attachment_to_submission_map[uid] = attachment.instance.id
+        submission_ids = Attachment.objects.values_list(
+            'instance_id', flat=True
+        ).filter(uid__in=attachment_uids).distinct()
 
         # Check permissions for all submission ids
         authorized_submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=list(submission_ids_to_check),
+            submission_ids=list(submission_ids),
         )
+
         if authorized_submission_ids is None:
-            # No partial permissions, check for full edit permissions on the asset
-            validated_attachment_uids = [
-                uid for uid in attachment_uids if uid in attachment_to_submission_map
-            ]
             if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
+                # Just raise exceptions.PermissionDenied.
+                # Display localized message in serializer (or the viewset, up to you).
                 raise exceptions.PermissionDenied(
                     t('You do not have permission to delete these attachments')
                 )
-        else:
-            # There are partial permissions, so filter the attachments based on the
-            # authorized submission IDs.
-            authorized_submission_ids_set = set(authorized_submission_ids)
-            for uid, sub_id in attachment_to_submission_map.items():
-                if sub_id in authorized_submission_ids_set:
-                    validated_attachment_uids.append(uid)
 
-        return validated_attachment_uids
+        attachments = (
+            Attachment.objects.filter(
+                xform_id=self.xform_id, uid__in=attachment_uids
+            )
+            .annotate(
+                attachment_basename=F('media_file_basename'),
+                attachment_uid=F('uid'),
+            )
+            .values('pk', 'attachment_basename', 'attachment_uid')
+        )
+
+        count = len(attachment_uids)
+        if count != len(attachment_uids):
+            raise AttachmentUidMismatchException
+
+        attachment_uids = [att['attachment_uid'] for att in attachments]
+
+        AttachmentTrash.toggle_statuses(attachment_uids, active=False)
+        move_to_trash(
+            request_author=request.user,
+            objects_list=attachments,
+            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            trash_type='attachment',
+        )
+
+        # Validate every attachment uid
+        return count
 
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
