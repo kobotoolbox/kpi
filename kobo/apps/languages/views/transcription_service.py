@@ -1,9 +1,14 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema
+
 from .base import BaseViewSet
 from ..models.transcription import TranscriptionService
 from ..serializers import TranscriptionServiceSerializer
 
 
+@extend_schema(
+    tags=['transcription-services'],
+)
 class TranscriptionServiceViewSet(BaseViewSet):
     """
     Lists the transcription services accessible to requesting (authenticated) user.

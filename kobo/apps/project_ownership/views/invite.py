@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 
 from kpi.permissions import IsAuthenticated
 from ...audit_log.base_views import AuditLoggedModelViewSet
@@ -5,7 +6,9 @@ from ..filters import InviteFilter
 from ..models import Invite
 from ..serializers import InviteSerializer
 
-
+@extend_schema(
+    tags=['project-ownership-invites'],
+)
 class InviteViewSet(AuditLoggedModelViewSet):
     """
     ## List of invites

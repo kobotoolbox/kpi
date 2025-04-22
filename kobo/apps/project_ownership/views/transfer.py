@@ -1,12 +1,15 @@
 from django.shortcuts import Http404
 from django.db.models import Prefetch
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 
 from kpi.permissions import IsAuthenticated
 from ..models import Transfer, TransferStatus
 from ..serializers import TransferDetailSerializer
 
-
+@extend_schema(
+    tags=['transfers'],
+)
 class TransferViewSet(viewsets.ReadOnlyModelViewSet):
 
     """
