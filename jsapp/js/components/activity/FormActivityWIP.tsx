@@ -12,10 +12,10 @@ import KoboSelect from '../common/koboSelect'
 import ExportToEmailButton from '../exportToEmailButton/exportToEmailButton.component'
 import KoboModal from '../modals/koboModal'
 import KoboModalHeader from '../modals/koboModalHeader'
+import styles from './FormActivityWIP.module.scss'
 import type { ActivityLogsItem } from './activity.constants'
 import { useActivityLogsFilterOptionsQuery, useActivityLogsQuery, useExportActivityLogs } from './activityLogs.query'
 import { ActivityMessage } from './activityMessage.component'
-import styles from './formActivity.module.scss'
 
 /**
  * A component used at Project > Settings > Activity route. Displays a table
