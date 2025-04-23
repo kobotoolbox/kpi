@@ -54,7 +54,11 @@ from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-
+from kpi.views.docs.assets.asset_deployment_docs import (
+    assets_deployment_get,
+    assets_deployment_update,
+    assets_deployment_post,
+)
 
 @extend_schema(
     tags=['asset'],
@@ -438,6 +442,21 @@ class AssetViewSet(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    @extend_schema(
+        methods=["GET"],
+        description=assets_deployment_get,
+    )
+    @extend_schema(
+        methods=["POST"],
+        description=assets_deployment_post,
+    )
+    @extend_schema(
+        methods=["PATCH"],
+        description=assets_deployment_update,
+    )
+    @extend_schema(
+        tags=['Assets-Deployment']
+    )
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
