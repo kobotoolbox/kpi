@@ -329,7 +329,13 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
         # already deleted
         xform_id_string = asset.deployment.backend_response['id_string']
         xform_uuid = asset.deployment.backend_response['uuid']
-        deleted_orphans = MongoHelper.delete(xform_id_string, xform_uuid)
+        mongo_query = {
+            '$or': [
+                {'_xform_id_string': xform_id_string},
+                {'formhub/uuid': xform_uuid},
+            ],
+        }
+        deleted_orphans = MongoHelper.delete_many(mongo_query)
         logging.warning(f'TrashBin: {deleted_orphans} deleted MongoDB orphans')
 
         return

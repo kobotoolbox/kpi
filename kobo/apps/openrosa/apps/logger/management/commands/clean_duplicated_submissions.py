@@ -139,7 +139,7 @@ class Command(BaseCommand):
 
             instance_queryset.delete()
 
-            settings.MONGO_DB.instances.delete_many(
+            MongoHelper.delete_many(
                 {'_id': {'$in': duplicated_instance_ids}}
             )
             if self._verbosity > 1:
