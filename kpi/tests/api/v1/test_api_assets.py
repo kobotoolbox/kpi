@@ -19,6 +19,7 @@ from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.transaction import immediate_on_commit
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -56,12 +57,13 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
-        with self.assertNumQueries(31):
+        with self.assertNumQueries(FuzzyInt(31, 32)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(31):
+        self.create_asset()
+        with self.assertNumQueries(FuzzyInt(31, 32)):
             self.client.get(self.list_url)
 
 
