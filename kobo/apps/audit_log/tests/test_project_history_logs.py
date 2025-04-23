@@ -1083,10 +1083,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             metadata__permissions__username='anotheruser'
         ).first()
         self._check_common_metadata(
-            someuser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            someuser_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self._check_common_metadata(
-            anotheruser_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            anotheruser_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertListEqual(
             someuser_log.metadata['permissions'][
@@ -1183,7 +1187,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log = ProjectHistoryLog.objects.filter(action=expected_action).first()
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
 
         # get the permission that was created
@@ -1201,7 +1207,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=expected_inverse_action
         ).first()
         self._check_common_metadata(
-            removal_log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            removal_log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
 
     # use bulk endpoint? (as opposed to -detail)
@@ -1233,7 +1241,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=AuditAction.MODIFY_USER_PERMISSIONS
         ).first()
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertListEqual(
             sorted(
@@ -1319,7 +1329,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             action=AuditAction.MODIFY_USER_PERMISSIONS
         ).first()
         self._check_common_metadata(
-            log.metadata, PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE
+            log.metadata,
+            PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         # can't sort a list of strings and dicts,
         # so check length and expected entries individually
@@ -1458,6 +1470,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={CLONE_ARG_NAME: second_asset.uid},
             expected_action=AuditAction.CLONE_PERMISSIONS,
             expected_subtype=PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['cloned_from'], second_asset.uid)
 
