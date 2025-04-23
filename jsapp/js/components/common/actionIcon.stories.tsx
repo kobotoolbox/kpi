@@ -42,7 +42,7 @@ const meta = {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
-} satisfies Meta<typeof ActionIcon>
+} satisfies Meta<StoryArgs>
 
 export default meta
 
