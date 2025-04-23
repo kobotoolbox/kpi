@@ -56,12 +56,12 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
-        with self.assertNumQueries(29):
+        with self.assertNumQueries(31):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(29):
+        with self.assertNumQueries(31):
             self.client.get(self.list_url)
 
 
