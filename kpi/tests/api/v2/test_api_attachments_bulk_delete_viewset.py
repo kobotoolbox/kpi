@@ -1,8 +1,5 @@
 import json
-import os
 
-from django.conf import settings
-from django.core.files.base import File
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -63,11 +60,17 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 'q2': 'audio_conversion_test_image.jpg',
                 '_attachments': [
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_clip.3gp'
+                        ),
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_image.jpg'
+                        ),
                         'mimetype': 'image/jpeg',
                     },
                 ],
@@ -80,11 +83,17 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 'q2': 'audio_conversion_test_image.jpg',
                 '_attachments': [
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_clip.3gp'
+                        ),
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_image.jpg'
+                        ),
                         'mimetype': 'image/jpeg',
                     },
                 ],
@@ -97,11 +106,17 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 'q2': 'audio_conversion_test_image.jpg',
                 '_attachments': [
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_clip.3gp',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_clip.3gp'
+                        ),
                         'mimetype': 'video/3gpp',
                     },
                     {
-                        'filename': f'{self.asset.owner.username}/audio_conversion_test_image.jpg',
+                        'filename': (
+                            f'{self.asset.owner.username}'
+                            '/audio_conversion_test_image.jpg'
+                        ),
                         'mimetype': 'image/jpeg',
                     },
                 ],
@@ -114,28 +129,35 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         second_instance = Instance.objects.get(root_uuid='test_uuid2')
         third_instance = Instance.objects.get(root_uuid='test_uuid3')
 
-        self.attachment1_uid = first_instance.attachments.all()[0].uid
-        self.attachment2_uid = first_instance.attachments.all()[1].uid
-        self.attachment3_uid = second_instance.attachments.all()[0].uid
-        self.attachment4_uid = second_instance.attachments.all()[1].uid
-        self.attachment5_uid = third_instance.attachments.all()[0].uid
-        self.attachment6_uid = third_instance.attachments.all()[1].uid
+        self.attachment_uid_1 = first_instance.attachments.all()[0].uid
+        self.attachment_uid_2 = first_instance.attachments.all()[1].uid
+        self.attachment_uid_3 = second_instance.attachments.all()[0].uid
+        self.attachment_uid_4 = second_instance.attachments.all()[1].uid
+        self.attachment_uid_5 = third_instance.attachments.all()[0].uid
+        self.attachment_uid_6 = third_instance.attachments.all()[1].uid
+
+        self.attachment_uids = [
+            self.attachment_uid_1,
+            self.attachment_uid_2,
+            self.attachment_uid_3,
+            self.attachment_uid_4,
+            self.attachment_uid_5,
+            self.attachment_uid_6,
+        ]
 
     def test_bulk_delete_attachments_success(self):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
-            ),
+            data=json.dumps({'attachment_uids': self.attachment_uids}),
             content_type='application/json',
         )
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertEqual(response.data, {'message': '2 attachments deleted'})
-        self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count + 2)
-        self.assertFalse(Attachment.objects.filter(uid=self.attachment1_uid).exists())
-        self.assertFalse(Attachment.objects.filter(uid=self.attachment2_uid).exists())
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data == {'message': '6 attachments deleted'}
+        assert AttachmentTrash.objects.count() == initial_trash_count + 6
+        for uid in self.attachment_uids:
+            assert not Attachment.objects.filter(uid=uid).exists()
 
     def test_bulk_delete_attachments_empty_uid_list(self):
         initial_trash_count = AttachmentTrash.objects.count()
@@ -154,60 +176,43 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 )
             ],
         )
-        self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count)
-        self.assertFalse(
-            AttachmentTrash.objects.filter(uid=self.attachment1_uid).exists()
-        )
-        self.assertFalse(
-            AttachmentTrash.objects.filter(uid=self.attachment2_uid).exists()
-        )
+        assert AttachmentTrash.objects.count() == initial_trash_count
+        for uid in self.attachment_uids:
+            assert not AttachmentTrash.objects.filter(uid=uid).exists()
 
     def test_bulk_delete_attachments_no_payload(self):
         response = self.client.delete(
             self.bulk_delete_url, data='invalid json', content_type='application/json'
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data,
-            {
-                'detail': ErrorDetail(
-                    string=(
-                        'JSON parse error - Expecting value: '
-                        'line 1 column 1 (char 0)'
-                    ),
-                    code='parse_error',
-                )
-            },
-        )
-        self.assertTrue(Attachment.objects.filter(uid=self.attachment1_uid).exists())
-        self.assertTrue(Attachment.objects.filter(uid=self.attachment2_uid).exists())
-        self.assertFalse(
-            AttachmentTrash.objects.filter(uid=self.attachment1_uid).exists()
-        )
-        self.assertFalse(
-            AttachmentTrash.objects.filter(uid=self.attachment2_uid).exists()
-        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data == {
+            'detail': ErrorDetail(
+                string=(
+                    'JSON parse error - Expecting value: ' 'line 1 column 1 (char 0)'
+                ),
+                code='parse_error',
+            )
+        }
+
+        for uid in self.attachment_uids:
+            assert Attachment.objects.filter(uid=uid).exists()
+            assert not AttachmentTrash.objects.filter(uid=uid).exists()
 
     def test_bulk_delete_attachments_unauthenticated(self):
         self.client.logout()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
-            ),
+            data=json.dumps({'attachment_uids': self.attachment_uids}),
             content_type='application/json',
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            response.data,
-            {
-                'detail': ErrorDetail(
-                    string='You do not have permission to delete these attachments',
-                    code='permission_denied',
-                )
-            },
-        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data == {
+            'detail': ErrorDetail(
+                string='You do not have permission to perform this action.',
+                code='permission_denied',
+            )
+        }
 
     def test_bulk_delete_not_shared_attachment_as_anotheruser(self):
         anotherUser = User.objects.create(
@@ -219,21 +224,16 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(anotherUser)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
-            ),
+            data=json.dumps({'attachment_uids': self.attachment_uids}),
             content_type='application/json',
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            response.data,
-            {
-                'detail': ErrorDetail(
-                    string='You do not have permission to delete these attachments',
-                    code='permission_denied',
-                )
-            },
-        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data == {
+            'detail': ErrorDetail(
+                string='You do not have permission to perform this action.',
+                code='permission_denied',
+            )
+        }
 
     def test_bulk_delete_attachments_edit_permission(self):
         userEditPerms = User.objects.create_user(
@@ -244,22 +244,18 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(userEditPerms)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment1_uid, self.attachment2_uid]}
-            ),
+            data=json.dumps({'attachment_uids': self.attachment_uids}),
             content_type='application/json',
         )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertEqual(response.data, {'message': '2 attachments deleted'})
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data == {'message': '6 attachments deleted'}
 
-    def test_bulk_delete_attachments_with_partial_perms(self):
+    def test_bulk_delete_attachments_with_partial_perms_accepted(self):
         user_partial_perms = User.objects.create_user(
             username='user_partial_perms', password='user_partial_perms'
         )
         self.client.force_login(user_partial_perms)
-        partial_perms = {
-            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
-        }
+        partial_perms = {PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]}
 
         self.asset.assign_perm(
             user_partial_perms,
@@ -270,10 +266,45 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         response = self.client.delete(
             self.bulk_delete_url,
             data=json.dumps(
-                {'attachment_uids': [self.attachment5_uid, self.attachment6_uid]}
+                {'attachment_uids': [self.attachment_uid_5, self.attachment_uid_6]}
             ),
             content_type='application/json',
         )
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertEqual(response.data, {'message': '2 attachments deleted'})
-        self.assertEqual(AttachmentTrash.objects.count(), initial_trash_count + 2)
+        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.data == {'message': '2 attachments deleted'}
+        assert AttachmentTrash.objects.count() == initial_trash_count + 2
+
+    def test_bulk_delete_attachments_with_partial_perms_denied(self):
+        user_partial_perms = User.objects.create_user(
+            username='user_partial_perms', password='user_partial_perms'
+        )
+        self.client.force_login(user_partial_perms)
+        partial_perms = {PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]}
+
+        self.asset.assign_perm(
+            user_partial_perms,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {
+                    'attachment_uids': [
+                        self.attachment_uid_1,
+                        self.attachment_uid_2,
+                        self.attachment_uid_3,
+                        self.attachment_uid_4,
+                    ]
+                }
+            ),
+            content_type='application/json',
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        print(response.data)
+        assert response.data == {
+            'detail': ErrorDetail(
+                string='You do not have permission to perform this action.',
+                code='permission_denied',
+            )
+        }

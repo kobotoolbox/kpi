@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 import redis.exceptions
 import requests
+from constance import config
 from defusedxml import ElementTree as DET
 from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
@@ -20,7 +21,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from rest_framework import exceptions, serializers, status
+from rest_framework import exceptions, status
 
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
@@ -40,6 +41,7 @@ from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
+from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -69,8 +71,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
-
-from ..exceptions import BadFormatException
+from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
 
@@ -202,21 +203,25 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self, user: settings.AUTH_USER_MODEL, attachment_uids: list
     ) -> list:
         """
-        Validates if a list of attachments can be deleted by the user.
-        The user must have either partial or full `edit_submissions` permission
+        Validates if a list of attachments can be deleted by the user and then
+        deletes them.
+        Returns a count of deleted attachments.
+
+        The user must have either partial or full edit submission permissions
         in order to delete each attachment.
         """
+        # Import within delete_attachments() to avoid a circular dependency error
+        from kobo.apps.trash_bin.utils.trash import move_to_trash
 
         if not attachment_uids:
-            raise serializers.ValidationError(
-                t('The list of attachment UIDs cannot be empty')
-            )
+            return
 
-        submission_ids = Attachment.objects.values_list(
-            'instance_id', flat=True
-        ).filter(uid__in=attachment_uids).distinct()
+        submission_ids = (
+            Attachment.objects.values_list('instance_id', flat=True)
+            .filter(uid__in=attachment_uids)
+            .distinct()
+        )
 
-        # Check permissions for all submission ids
         authorized_submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -225,16 +230,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         if authorized_submission_ids is None:
             if not self.asset.has_perm(user, PERM_CHANGE_SUBMISSIONS):
-                # Just raise exceptions.PermissionDenied.
-                # Display localized message in serializer (or the viewset, up to you).
-                raise exceptions.PermissionDenied(
-                    t('You do not have permission to delete these attachments')
-                )
+                raise exceptions.PermissionDenied()
 
         attachments = (
-            Attachment.objects.filter(
-                xform_id=self.xform_id, uid__in=attachment_uids
-            )
+            Attachment.objects.filter(xform_id=self.xform_id, uid__in=attachment_uids)
             .annotate(
                 attachment_basename=F('media_file_basename'),
                 attachment_uid=F('uid'),
@@ -250,13 +249,12 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         AttachmentTrash.toggle_statuses(attachment_uids, active=False)
         move_to_trash(
-            request_author=request.user,
+            request_author=user,
             objects_list=attachments,
             grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
             trash_type='attachment',
         )
 
-        # Validate every attachment uid
         return count
 
     def delete_submission(

@@ -1,11 +1,6 @@
-from constance import config
-from django.db.models import F
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
-from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kobo.apps.trash_bin.models.attachment import AttachmentTrash
-from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 
 
@@ -21,6 +16,11 @@ class AttachmentBulkDeleteSerializer(serializers.Serializer):
         attachment_count = deployment.delete_attachments(
             request.user, self.data['attachment_uids']
         )
+
+        if attachment_count is None:
+            raise serializers.ValidationError(
+                t('The list of attachment UIDs cannot be empty')
+            )
 
         return {'message': f'{attachment_count} attachments deleted'}
 
