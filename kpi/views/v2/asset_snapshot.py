@@ -3,7 +3,8 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from responses import delete
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,12 +28,63 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
+from kpi.views.docs.asset_snapshot.asset_snapshot_doc import (
+    form_list_method,
+    manifest_method,
+    submission_method,
+    xform_method,
+    xlm_method,
+)
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
 @extend_schema(
     tags=['asset_snapshots'],
+)
+@extend_schema_view(
+    # description for list
+    list=extend_schema(
+        description="List documentation for snapshot",
+    ),
+    # description for get item
+    retrieve=extend_schema(
+        description="Get documentation for snapshot retrieve",
+    ),
+    # description for post
+    create=extend_schema(
+        description="Post documentation for snapshot",
+    ),
+    # description for delete
+    destroy=extend_schema(
+        description="Delete documentation for snapshot",
+    ),
+    # description for put
+    update=extend_schema(
+        description='Put documentation for snapshot',
+    ),
+    # description for patch
+    partial_update=extend_schema(
+        description='Patch documentation for snapshot',
+    ),
+    form_list=extend_schema(
+        description=form_list_method,
+    ),
+    manifest=extend_schema(
+        description=manifest_method,
+    ),
+    submission=extend_schema(
+        description=submission_method,
+    ),
+    preview=extend_schema(
+        description='Write preview function documentation',
+    ),
+    xform=extend_schema(
+       description=xform_method
+    ),
+    xml_with_disclaimer=extend_schema(
+        description=xlm_method
+    ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
@@ -91,11 +143,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         url_path='formList',
     )
     def form_list(self, request, *args, **kwargs):
-        """
-        Implements part of the OpenRosa Form List API.
-        This route is used by Enketo when it fetches external resources.
-        It lets us specify manifests for preview
-        """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -126,12 +173,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         renderer_classes=[OpenRosaManifestRenderer],
     )
     def manifest(self, request, *args, **kwargs):
-        """
-        Implements part of the OpenRosa Form List API.
-        This route is used by Enketo when it fetches external resources.
-        It returns form media files location in order to display them within
-        Enketo preview
-        """
+
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -209,7 +251,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         ],
     )
     def submission(self, request, *args, **kwargs):
-        """ Implements the OpenRosa Form Submission API """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -241,10 +282,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
-        """
-        This route will render the XForm into syntax-highlighted HTML.
-        It is useful for debugging pyxform transformations
-        """
+
         # **Not** part of the OpenRosa API
         snapshot = self.get_object()
         response_data = copy.copy(snapshot.details)
@@ -259,10 +297,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
     @action(detail=True)
     def xml_with_disclaimer(self, request, *args, **kwargs):
-        """
-        Same behaviour as `retrieve()` from DRF, but makes it easier to target
-        OpenRosa endpoints calls from Enketo to inject disclaimers (if any).
-        """
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
