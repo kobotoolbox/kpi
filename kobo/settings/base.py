@@ -1203,10 +1203,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 10 minutes
+    # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     'perform-maintenance': {
@@ -1224,10 +1224,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kobocat_queue'}
     },
-    # Schedule every 10 minutes
+    # Schedule every 30 minutes
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
@@ -1861,3 +1861,6 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+
+# Number of stuck tasks should be restarted at a time
+MAX_RESTARTED_TASKS = 100
