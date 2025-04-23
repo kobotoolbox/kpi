@@ -1,6 +1,6 @@
-# coding: utf-8
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Union
 
 from django.conf import settings
@@ -132,7 +132,7 @@ class AssetPermission(
     # With the default of True, anonymous requests are categorically rejected.
     authenticated_users_only = False
 
-    perms_map = permissions.DjangoObjectPermissions.perms_map.copy()
+    perms_map = deepcopy(permissions.DjangoObjectPermissions.perms_map)
     perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
@@ -232,7 +232,7 @@ class AssetEditorPermission(AssetNestedObjectPermission):
         - Reads need 'view_asset' permission
         - Writes need 'change_asset' permission
     """
-    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    perms_map = deepcopy(AssetNestedObjectPermission.perms_map)
     perms_map['POST'] = ['%(app_label)s.change_asset']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
@@ -260,7 +260,7 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
 
 class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
 
-    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    perms_map = deepcopy(AssetNestedObjectPermission.perms_map)
     # This change allows users with `view_asset` to permissions to
     # remove themselves from an asset that has been shared with them
     perms_map['DELETE'] = perms_map['GET']
@@ -275,7 +275,7 @@ class AssetSnapshotPermission(AssetPermission):
         app_label = Asset._meta.app_label
         model_name = Asset._meta.model_name
 
-        self.perms_map = self.perms_map.copy()
+        self.perms_map = deepcopy(self.perms_map)
         for action in self.perms_map.keys():
             for idx, perm in enumerate(self.perms_map[action]):
                 self.perms_map[action][idx] = perm % {
@@ -327,7 +327,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     Maps POST requests to the change_model permission instead of DRF's default
     of add_model
     """
-    perms_map = IsOwnerOrReadOnly.perms_map.copy()
+    perms_map = deepcopy(IsOwnerOrReadOnly.perms_map)
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
