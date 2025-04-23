@@ -1,3 +1,27 @@
+asset_snapshot_list = """
+Get list of snapshots for an asset.
+"""
+
+asset_snapshot_retrieve = """
+Get a snapshot of an asset
+"""
+
+asset_snapshot_create = """
+Create a snapshot of an asset
+"""
+
+asset_snapshot_destroy = """
+Delete a snapshot of an asset
+"""
+
+asset_snapshot_update = """
+Update a snapshot of an asset
+"""
+
+asset_snapshot_partial_update = """
+Partial update a snapshot of an asset
+"""
+
 form_list_method = """
 Implements part of the OpenRosa Form List API.
 This route is used by Enketo when it fetches external resources.

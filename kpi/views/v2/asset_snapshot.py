@@ -29,6 +29,12 @@ from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.docs.asset_snapshot.asset_snapshot_doc import (
+    asset_snapshot_create,
+    asset_snapshot_destroy,
+    asset_snapshot_list,
+    asset_snapshot_partial_update,
+    asset_snapshot_retrieve,
+    asset_snapshot_update,
     form_list_method,
     manifest_method,
     submission_method,
@@ -45,27 +51,27 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 @extend_schema_view(
     # description for list
     list=extend_schema(
-        description="List documentation for snapshot",
+        description=asset_snapshot_list,
     ),
     # description for get item
     retrieve=extend_schema(
-        description="Get documentation for snapshot retrieve",
+        description=asset_snapshot_retrieve,
     ),
     # description for post
     create=extend_schema(
-        description="Post documentation for snapshot",
+        description=asset_snapshot_create,
     ),
     # description for delete
     destroy=extend_schema(
-        description="Delete documentation for snapshot",
+        description=asset_snapshot_destroy,
     ),
     # description for put
     update=extend_schema(
-        description='Put documentation for snapshot',
+        description=asset_snapshot_update,
     ),
     # description for patch
     partial_update=extend_schema(
-        description='Patch documentation for snapshot',
+        description=asset_snapshot_partial_update,
     ),
     form_list=extend_schema(
         description=form_list_method,
