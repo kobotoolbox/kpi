@@ -4,8 +4,6 @@ import type { ElementType } from 'react'
 /**
  * For polymorphic components Storybook fails to infer props, use this helper to make StoryArgs you need.
  *
- * TODO: move to utils.
- *
  * Example:
  * ```
  * type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
