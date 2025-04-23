@@ -1,10 +1,11 @@
-import type { ElementProps, MantineSize, TooltipProps } from '@mantine/core'
+import type { MantineSize, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, within } from '@storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
-import type { ElementType, ForwardRefExoticComponent } from 'react'
+import type { ForwardRefExoticComponent } from 'react'
+import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
@@ -43,19 +44,6 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
   'left-end',
   'left-start',
 ] as const
-
-/**
- * For polymorphic components Storybook fails to infer props, use this helper to make StoryArgs you need.
- *
- * TODO: move to utils.
- *
- * Example:
- * ```
- * type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
- * type Story = StoryObj<React.ForwardRefExoticComponent<StoryArgs>>
- * ```
- */
-type StoryArgsFromPolymorphic<C extends ElementType, P extends object> = P & ElementProps<C, Extract<keyof P, string>>
 
 type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
 type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
