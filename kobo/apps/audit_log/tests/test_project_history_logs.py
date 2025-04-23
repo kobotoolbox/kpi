@@ -1539,6 +1539,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={},
             expected_action=AuditAction.ADD_SUBMISSION,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         new_submission = Instance.objects.last()
         self._check_submission_log_metadata(
@@ -1585,7 +1586,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # check the log has the expected fields and metadata
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         submitted_by = username if username is not None else 'AnonymousUser'
         self._check_submission_log_metadata(
             log.metadata, submitted_by, instance.root_uuid
@@ -1615,7 +1618,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log1.metadata, 'adminuser', instance1.root_uuid
@@ -1624,7 +1629,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log2.metadata, 'someuser', instance2.root_uuid
@@ -1633,7 +1640,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
         self._check_submission_log_metadata(
             log3.metadata, 'AnonymousUser', instance3.root_uuid
@@ -1686,7 +1695,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log1.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1696,7 +1707,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log2.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1706,7 +1719,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.MODIFY_SUBMISSION)
         self.assertEqual(log3.metadata['submission']['status'], 'On Hold')
         self._check_submission_log_metadata(
@@ -1768,7 +1783,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         username = 'AnonymousUser' if anonymous else self.user.username
         self._check_submission_log_metadata(log.metadata, username, inst.root_uuid)
 
@@ -1828,7 +1845,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log1 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='adminuser'
         ).first()
-        self._check_common_metadata(log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log1.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log1.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log1.metadata, 'adminuser', instance1.root_uuid
@@ -1837,7 +1856,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log2 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='someuser'
         ).first()
-        self._check_common_metadata(log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log2.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log2.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log2.metadata, 'someuser', instance2.root_uuid
@@ -1846,7 +1867,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log3 = ProjectHistoryLog.objects.filter(
             metadata__submission__submitted_by='AnonymousUser'
         ).first()
-        self._check_common_metadata(log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log3.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log3.action, AuditAction.DELETE_SUBMISSION)
         self._check_submission_log_metadata(
             log3.metadata, 'AnonymousUser', instance3.root_uuid
