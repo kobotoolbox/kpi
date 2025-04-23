@@ -6,6 +6,7 @@ import type { SubmissionAnalysisResponse } from '#/components/processing/analysi
 import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
+import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
 import {
   CHOICE_LISTS,
   GROUP_TYPES_BEGIN,
@@ -839,7 +840,7 @@ export function shouldProcessingBeAccessible(
 }
 
 // Counts the number of each attachment type for the given array of submissions
-// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` followed by a period
+// Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` ending with a period
 // for each attachment type present
 export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
   let totalImages = 0
@@ -879,4 +880,25 @@ export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
       }
     })
   return result.join('; ') + '.'
+}
+
+export function getBackgroundAudioAttachment(
+  asset: AssetResponse,
+  submission: SubmissionResponse,
+): undefined | SubmissionAttachment {
+  const backgroundAudioName = getBackgroundAudioQuestionName(asset)
+
+  if (backgroundAudioName && submission && Object.keys(submission).includes(backgroundAudioName)) {
+    const response = submission[backgroundAudioName]
+    if (typeof response === 'string') {
+      const mediaAttachment = getMediaAttachment(submission, response, backgroundAudioName)
+      if (typeof mediaAttachment === 'string') {
+        return undefined
+      } else {
+        return mediaAttachment
+      }
+    }
+  }
+
+  return undefined
 }
