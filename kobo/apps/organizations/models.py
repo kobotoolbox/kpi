@@ -83,7 +83,7 @@ class Organization(AbstractOrganization):
             Organization.objects.prefetch_related('djstripe_customers')
             .filter(
                 djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',
+                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
                 djstripe_customers__subscriber=self.id,
             )
             .order_by('-djstripe_customers__subscriptions__start_date')
