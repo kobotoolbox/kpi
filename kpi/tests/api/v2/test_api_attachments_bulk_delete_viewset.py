@@ -207,7 +207,9 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.data == {'detail': ErrorDetail(string='Not found.', code='not_found')}
+        assert response.data == {
+            'detail': ErrorDetail(string='Not found.', code='not_found')
+        }
 
     def test_bulk_delete_not_shared_attachment_as_anotheruser(self):
         another_user = User.objects.create(
