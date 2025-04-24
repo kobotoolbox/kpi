@@ -19,7 +19,7 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
-from kpi.permissions import SubmissionPermission
+from kpi.permissions import AttachmentDeletionPermission, SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.serializers.v2.attachment_bulk_delete import AttachmentBulkDeleteSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -163,22 +163,21 @@ class AttachmentViewSet(
         response = Response(content_type='', headers=headers)
         return response
 
-    @action(detail=False, methods=['delete'], url_path='bulk')
+    @action(
+        detail=False,
+        methods=['delete'],
+        url_path='bulk',
+        permission_classes=[AttachmentDeletionPermission],
+    )
     def bulk_destroy(self, request, *args, **kwargs):
         submission_id_or_uuid = kwargs['parent_lookup_data']
         deployment = self.asset.deployment
 
-        attachments_qs = Attachment.objects.filter(
+        attachments = Attachment.objects.filter(
             xform_id=deployment.xform_id, instance__pk=submission_id_or_uuid
         )
 
-        attachment_uids = list(attachments_qs.values_list('uid', flat=True))
-
-        if not attachment_uids:
-            return Response(
-                {'message': 'No attachments found for this submission'},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        attachment_uids = list(attachments.values_list('uid', flat=True))
 
         serializer = AttachmentBulkDeleteSerializer(
             data={'attachment_uids': attachment_uids},
