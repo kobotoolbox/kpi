@@ -12,7 +12,6 @@ from rest_framework import status
 
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
