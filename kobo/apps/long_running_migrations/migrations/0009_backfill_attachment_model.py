@@ -7,7 +7,7 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model(
         'long_running_migrations', 'LongRunningMigration'
     )  # noqa
-    LongRunningMigration.objects.create(name='0007_backfill_attachment_model')
+    LongRunningMigration.objects.create(name='0009_backfill_attachment_model')
 
 
 def noop(*args, **kwargs):
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             'long_running_migrations',
-            '0006_cleanup_orphaned_xform_in_trash',
+            '0008_backfill_organization_metadata',
         ),
     ]
 

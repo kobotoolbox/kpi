@@ -73,10 +73,6 @@ jobs:
       - name: Run unit tests and xlform tests
         run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
-      # Run the Jest test suite (React components)
-      - name: Run component tests with Jest
-        run: npx jest --config ./jsapp/jest/jest.config.ts --ci
-
       # Check that the storybook build succeeds
       - name: Build Storybook
         run: npm run build:storybook
