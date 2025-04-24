@@ -89,12 +89,15 @@ class MongoHelper:
         return key
 
     @classmethod
-    def delete_one(cls, query: dict) -> int:
-        return cls._raw_delete(query, many=False)
-
-    @classmethod
-    def delete_many(cls, query: dict) -> int:
-        return cls._raw_delete(query, many=True)
+    def delete(cls, xform_id_string: str, xform_uuid: str) -> int:
+        query = {
+            '$or': [
+                {'_xform_id_string': xform_id_string},
+                {'formhub/uuid': xform_uuid},
+            ],
+        }
+        mongo_query = settings.MONGO_DB.instances.delete_many(query)
+        return mongo_query.deleted_count
 
     @classmethod
     def encode(cls, key: str) -> str:
@@ -180,34 +183,6 @@ class MongoHelper:
         return key not in cls.KEY_WHITELIST and (
             key.startswith('$') or key.count('.') > 0
         )
-
-    @classmethod
-    def replace_one(cls, document: dict) -> int:
-        """
-        PyMongo's update_one and update_many methods do not support maxTimeMS queries.
-        Use low-level command instead.
-
-        Unfortunately, MockMongo (in the testing environment) does not support `command`
-        yet.
-        """
-
-        if settings.TESTING:
-            result = settings.MONGO_DB.instances.replace_one(
-                {'_id': document['_id']}, document, upsert=True
-            )
-            return result.modified_count
-
-        command = {
-            'update': 'formhub',
-            'updates': [{
-                'q': {'_id': document['_id']},
-                'u': document,
-                'upsert': True
-            }],
-            'maxTimeMS': cls.get_max_time_ms()
-        }
-        result = settings.MONGO_DB.command(command)
-        return result.get('nModified', 0)
 
     @classmethod
     def to_readable_dict(cls, d: dict) -> dict:
@@ -310,14 +285,6 @@ class MongoHelper:
                 d[cls.encode(key)] = value
 
         return d
-
-    @classmethod
-    def update_one(cls, query: dict, update: dict) -> dict[str, int]:
-        return cls._raw_update(query, update, many=False)
-
-    @classmethod
-    def update_many(cls, query: dict, update: dict) -> dict[str, int]:
-        return cls._raw_update(query, update, many=True)
 
     @classmethod
     def get_permission_filters_query(
@@ -446,76 +413,3 @@ class MongoHelper:
             if key.startswith('{}.'.format(reserved_attribute)):
                 return True
         return False
-
-    @classmethod
-    def _raw_delete(cls, query: dict, many: bool = True) -> int:
-        """
-        PyMongo's delete_one and delete_many methods do not support maxTimeMS queries.
-        Use low-level command instead.
-
-        Unfortunately, MockMongo (in the testing environment) does not support `command`
-        yet.
-        """
-        if settings.TESTING:
-            if many:
-                result = settings.MONGO_DB.instances.delete_many(query)
-            else:
-                result = settings.MONGO_DB.instances.delete_one(query)
-
-            return result.deleted_count
-
-        command = {
-            'delete': 'formhub',
-            'deletes': [
-                {
-                    'q': query,
-                    'limit': 0 if many else 1,
-                }
-            ],
-            'maxTimeMS': cls.get_max_time_ms(),
-        }
-
-        result = settings.MONGO_DB.command(command)
-        return result.get('n', 0)
-
-    @classmethod
-    def _raw_update(
-        cls, query: dict, update: dict, many: bool = True
-    ) -> dict[str, int]:
-        """
-        PyMongo's update_one and update_many methods do not support maxTimeMS queries.
-        Use low-level command instead.
-
-        Unfortunately, MockMongo (in the testing environment) does not support `command`
-        yet.
-        """
-        if settings.TESTING:
-            if many:
-                result = settings.MONGO_DB.instances.update_many(
-                    query, {'$set': update}
-                )
-            else:
-                result = settings.MONGO_DB.instances.update_one(
-                    query, {'$set': update}
-                )
-
-            return {
-                'matched_count': result.matched_count,
-                'modified_count': result.modified_count,
-            }
-
-        command = {
-            'update': 'formhub',
-            'updates': [{
-                'q': query,
-                'u': update,
-                'multi': many,
-            }],
-            'maxTimeMS': cls.get_max_time_ms()
-        }
-        result = settings.MONGO_DB.command(command)
-
-        return {
-            'matched_count': result.get('n', 0),
-            'modified_count': result.get('nModified', 0),
-        }

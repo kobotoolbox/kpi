@@ -54,10 +54,10 @@ def datetime_from_str(text):
 @celery_app.task
 def update_mongo_instance(record):
     # since our dict always has an id, save will always result in an upsert op
-    # - so we do not need to worry whether it is an edit or not
-    # https://www.mongodb.com/docs/manual/reference/method/db.collection.replaceOne/
+    # - so we dont need to worry whether its an edit or not
+    # https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.replace_one
     try:
-        MongoHelper.replace_one(record)
+        xform_instances.replace_one({'_id': record['_id']}, record, upsert=True)
     except PyMongoError as e:
         raise Exception('Submission could not be saved to Mongo') from e
     return True
@@ -345,11 +345,14 @@ class ParsedInstance(models.Model):
 
     @staticmethod
     def bulk_update_validation_statuses(query, validation_status):
-        return MongoHelper.update_many(query, {VALIDATION_STATUS: validation_status})
+        return xform_instances.update_many(
+            query,
+            {'$set': {VALIDATION_STATUS: validation_status}},
+        )
 
     @staticmethod
     def bulk_delete(query):
-        return MongoHelper.delete_many(query)
+        return xform_instances.delete_many(query)
 
     def to_dict(self):
         if not hasattr(self, '_dict_cache'):

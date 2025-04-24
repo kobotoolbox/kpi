@@ -977,7 +977,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         instance_ids = instance_ids.difference(mongo_ids)
     else:
         # clear mongo records
-        MongoHelper.delete_many({common_tags.USERFORM_ID: userform_id})
+        mongo_instances.delete_many({common_tags.USERFORM_ID: userform_id})
 
     # get instances
     sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
