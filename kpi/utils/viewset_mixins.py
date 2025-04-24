@@ -11,7 +11,9 @@ class AssetNestedObjectViewsetMixin:
         # FIXME
         #   Remove the return None and find why we cannot generate the api with
         #   the below code
-        return None
+        # return None
+        if hasattr(self, 'swagger_fake_view'):
+            return None
 
         if not hasattr(self, '_asset'):
             asset = get_object_or_404(
