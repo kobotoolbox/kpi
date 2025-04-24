@@ -26,7 +26,7 @@ const ProjectDownloads = React.lazy(
 )
 const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
 
-const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/formActivity'))
+const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/FormActivity'))
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
