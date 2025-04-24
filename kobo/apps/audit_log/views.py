@@ -182,7 +182,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
     description=access_logs_get
 )
 class AllAccessLogViewSet(AuditLogViewSet):
@@ -191,7 +191,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
     description=access_logs_me,
 )
 class AccessLogViewSet(AuditLogViewSet):
@@ -656,7 +656,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
         return Response(tasks_data, status=status.HTTP_200_OK)
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -689,7 +689,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
 )
 @extend_schema_view(
     list=extend_schema(
