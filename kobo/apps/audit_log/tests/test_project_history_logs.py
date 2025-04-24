@@ -639,6 +639,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.REGISTER_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         new_hook = Hook.objects.get(name='test')
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
@@ -669,6 +670,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.MODIFY_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
         self.assertEqual(log_metadata['hook']['active'], False)
@@ -697,6 +699,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.DELETE_SERVICE,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['hook']['uid'], new_hook.uid)
         self.assertEqual(log_metadata['hook']['active'], True)
@@ -726,6 +729,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.CONNECT_PROJECT,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -760,6 +764,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DISCONNECT_PROJECT,
             request_data=None,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -793,6 +798,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.MODIFY_IMPORTED_FIELDS,
             request_data={'fields': ['q2']},
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['paired-data']['source_name'], source.name)
         self.assertEqual(log_metadata['paired-data']['source_uid'], source.uid)
@@ -821,6 +827,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data=request_data,
             expected_action=AuditAction.ADD_MEDIA,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         file = AssetFile.objects.filter(asset=self.asset).first()
         self.assertEqual(log_metadata['asset-file']['uid'], file.uid)
@@ -850,6 +857,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.DELETE_MEDIA,
             request_data=None,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(log_metadata['asset-file']['uid'], media.uid)
         self.assertEqual(log_metadata['asset-file']['filename'], media.filename)
@@ -972,6 +980,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.EXPORT,
             request_data=request_data,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
 
     def test_export_v1_creates_log(self):
