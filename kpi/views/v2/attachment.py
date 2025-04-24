@@ -4,12 +4,13 @@ from typing import Optional, Union
 from django.conf import settings
 from django.shortcuts import Http404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.superuser_stats.views import retrieve_reports
 from kpi.exceptions import (
     AttachmentNotFoundException,
     FFMpegException,
@@ -21,6 +22,11 @@ from kpi.exceptions import (
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.views.docs.asset_attachments.asset_attachment_docs import (
+    asset_attachment_list,
+    asset_attachment_retrieve,
+    asset_attachment_thumb,
+)
 
 thumbnail_suffixes_pattern = 'original|' + '|'.join(
     [suffix for suffix in settings.THUMB_CONF]
@@ -28,39 +34,24 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
 
 
 @extend_schema(
-    tags=['attachments'],
+    tags=['Attachments'],
+)
+@extend_schema_view(
+    list=extend_schema(
+      description=asset_attachment_list
+    ),
+    retrieve=extend_schema(
+        description=asset_attachment_retrieve,
+    ),
+    thumb=extend_schema(
+        description=asset_attachment_thumb,
+    ),
 )
 class AttachmentViewSet(
     NestedViewSetMixin,
     AssetNestedObjectViewsetMixin,
     viewsets.ViewSet
 ):
-    """
-        ## GET an audio or video file
-
-        <pre class="prettyprint">
-        <b>GET</b>  /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_id}</code>/attachment/?xpath=<code>{xml_path_to_question}</code>
-        </pre>
-
-        <sup>*</sup>`data_id` can be the primary key of the submission or its `uuid`.
-        Please note that using the `uuid` may match **several** submissions, only
-        the first match will be returned.
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file
-
-        ## GET an MP3 file from an audio or video file
-        Convert audio and video files. Only conversions to MP3 is supported for this feature
-
-        <pre class="prettyprint">
-        <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_id}</code>/attachment/?xpath=<code>{xml_path_to_question}</code>&format=mp3
-        </pre>
-
-        > Example
-        >
-        >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file&format=mp3
-    """
     renderer_classes = (
         MediaFileRenderer,
         MP3ConversionRenderer,
