@@ -74,6 +74,7 @@ class MongoHelper:
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
     DEFAULT_BATCHSIZE = 1000
+    COLLECTION = 'instances'
 
     @classmethod
     def decode(cls, key):
@@ -182,7 +183,7 @@ class MongoHelper:
         )
 
     @classmethod
-    def replace_one(cls, document: dict) -> int:
+    def replace_one(cls, document: dict) -> dict:
         """
         PyMongo's update_one and update_many methods do not support maxTimeMS queries.
         Use low-level command instead.
@@ -195,10 +196,14 @@ class MongoHelper:
             result = settings.MONGO_DB.instances.replace_one(
                 {'_id': document['_id']}, document, upsert=True
             )
-            return result.modified_count
+            return {
+                'matched_count': result.matched_count,
+                'modified_count': result.modified_count,
+                'updated_existing': result.raw_result.get('updatedExisting', False)
+            }
 
         command = {
-            'update': 'formhub',
+            'update': cls.COLLECTION,
             'updates': [{
                 'q': {'_id': document['_id']},
                 'u': document,
@@ -207,7 +212,12 @@ class MongoHelper:
             'maxTimeMS': cls.get_max_time_ms()
         }
         result = settings.MONGO_DB.command(command)
-        return result.get('nModified', 0)
+
+        return {
+            'matched_count': result.get('n', 0),
+            'modified_count': result.get('nModified', 0),
+            'updated_existing': 'upserted' in result
+        }
 
     @classmethod
     def to_readable_dict(cls, d: dict) -> dict:
@@ -465,7 +475,7 @@ class MongoHelper:
             return result.deleted_count
 
         command = {
-            'delete': 'formhub',
+            'delete': cls.COLLECTION,
             'deletes': [
                 {
                     'q': query,
@@ -505,7 +515,7 @@ class MongoHelper:
             }
 
         command = {
-            'update': 'formhub',
+            'update': cls.COLLECTION,
             'updates': [{
                 'q': query,
                 'u': update,
