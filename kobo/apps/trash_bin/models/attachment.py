@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db import models
+from django.db import models, transaction
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
@@ -14,6 +14,7 @@ from kobo.apps.openrosa.apps.logger.signals import (
 )
 from kpi.fields import KpiUidField
 from . import BaseTrash
+from ..type_aliases import UpdatedQuerySetAndCount
 
 
 class AttachmentTrash(BaseTrash):
@@ -53,24 +54,31 @@ class AttachmentTrash(BaseTrash):
         super().save(*args, **kwargs)
 
     @classmethod
-    def toggle_statuses(cls, object_identifiers: list[str], active: bool = False):
+    def toggle_statuses(
+        cls,
+        object_identifiers: list[str],
+        active: bool = False,
+        **kwargs
+    ) -> UpdatedQuerySetAndCount:
         """
         Toggle statuses of attachments based on their `uid`.
         """
-        attachments = Attachment.all_objects.filter(uid__in=object_identifiers)
-        for attachment in attachments:
-            current_status = attachment.delete_status
-            if not active:
-                # Decrement counters when moving to trash
-                if current_status != AttachmentDeleteStatus.PENDING_DELETE:
-                    pre_delete_attachment(attachment, only_update_counters=True)
-            else:
-                # Increment counters when restoring from trash
-                if current_status == AttachmentDeleteStatus.PENDING_DELETE:
-                    post_save_attachment(attachment, created=True)
-
         delete_status = AttachmentDeleteStatus.PENDING_DELETE if not active else None
-        attachments.update(
-            delete_status=delete_status,
-            date_modified=timezone.now(),
-        )
+        with transaction.atomic():
+            queryset = Attachment.all_objects.filter(uid__in=object_identifiers)
+            for attachment in queryset:
+                current_status = attachment.delete_status
+                if not active:
+                    # Decrement counters when moving to trash
+                    if current_status != AttachmentDeleteStatus.PENDING_DELETE:
+                        pre_delete_attachment(attachment, only_update_counters=True)
+                else:
+                    # Increment counters when restoring from trash
+                    if current_status == AttachmentDeleteStatus.PENDING_DELETE:
+                        post_save_attachment(attachment, created=True)
+
+            updated = queryset.update(
+                delete_status=delete_status,
+                date_modified=timezone.now(),
+            )
+            return queryset, updated
