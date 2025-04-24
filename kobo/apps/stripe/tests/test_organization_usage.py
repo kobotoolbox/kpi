@@ -635,3 +635,8 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
         product_metadata['mmo_enabled'] = 'true'
         generate_plan_subscription(self.organization, metadata=product_metadata)
         assert self.organization.is_mmo is True
+
+        # Ensure non-plan subscriptions are ignored
+        addon_metadata = {'product_type': 'addon'}
+        generate_plan_subscription(self.organization, metadata=addon_metadata)
+        assert self.organization.is_mmo is True
