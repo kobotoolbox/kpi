@@ -50,7 +50,7 @@ class Organization(AbstractOrganization):
     id = KpiUidField(uid_prefix='org', primary_key=True)
     mmo_override = models.BooleanField(
         default=False,
-        verbose_name='Make organization multi-member (necessary for adding users)'
+        verbose_name='Make organization multi-member (necessary for adding users)',
     )
     website = models.CharField(default='', max_length=255)
     organization_type = models.CharField(
@@ -83,7 +83,6 @@ class Organization(AbstractOrganization):
             Organization.objects.prefetch_related('djstripe_customers')
             .filter(
                 djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
-                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
                 djstripe_customers__subscriber=self.id,
             )
             .order_by('-djstripe_customers__subscriptions__start_date')
@@ -203,11 +202,22 @@ class Organization(AbstractOrganization):
         if self.mmo_override:
             return True
 
-        if billing_details := self.active_subscription_billing_details():
-            if product_metadata := billing_details.get('product_metadata'):
-                return product_metadata.get('mmo_enabled') == 'true'
+        return (
+            Organization.objects.prefetch_related('djstripe_customers')
+            .filter(
+                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+                djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
+                djstripe_customers__subscriber=self.id,
+            )
+            .exists()
+        )
 
-        return False
+        # if billing_details := self.active_subscription_billing_details():
+        #     if product_metadata := billing_details.get('product_metadata'):
+        #         return product_metadata.get('mmo_enabled') == 'true'
+
+        # return False
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
@@ -272,6 +282,7 @@ class OrganizationUser(AbstractOrganizationUser):
     @classmethod
     def export_resource_classes(cls):
         from .admin.organization_user import OrgUserResource
+
         return {
             'organization_users': ('Organization users resource', OrgUserResource),
         }

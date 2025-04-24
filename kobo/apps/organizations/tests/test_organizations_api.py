@@ -118,52 +118,49 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
 
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=MMO_SUBSCRIPTION_DETAILS,
+    @patch(
+        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
     def test_api_response_includes_is_mmo_with_subscription(
-        self, mock_active_subscription
+        self, mock_query
     ):
         """
         Test that is_mmo is True when there is an active MMO subscription.
         """
         self._insert_data(mmo_override=False)
+        mock_query.return_value.filter.return_value.exists.return_value = True
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
 
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=None
+    @patch(
+        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
     def test_api_response_includes_is_mmo_with_no_override_and_no_subscription(
-        self, mock_active_subscription
+        self, mock_query
     ):
         """
         Test that is_mmo is False when neither mmo_override nor active
         subscription is present.
         """
         self._insert_data(mmo_override=False)
+        mock_query.return_value.filter.return_value.exists.return_value = False
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], False)
 
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=MMO_SUBSCRIPTION_DETAILS,
+    @patch(
+        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
     def test_api_response_includes_is_mmo_with_override_and_subscription(
-        self, mock_active_subscription
+        self, mock_query
     ):
         """
         Test that is_mmo is True when both mmo_override and active
         MMO subscription is present.
         """
         self._insert_data(mmo_override=True)
+        mock_query.return_value.filter.return_value.exists.return_value = True
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
