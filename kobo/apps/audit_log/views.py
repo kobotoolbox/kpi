@@ -1,6 +1,5 @@
 from django.db import transaction
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from jsonschema.validators import create
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
