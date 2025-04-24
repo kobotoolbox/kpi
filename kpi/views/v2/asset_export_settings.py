@@ -8,7 +8,7 @@ from rest_framework import (
     serializers,
     viewsets,
 )
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -21,115 +21,51 @@ from kpi.serializers.v2.asset_export_settings import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.views.docs.asset_export_settings.asset_export_setting_docs import (
+    export_setting_create,
+    export_setting_data,
+    export_setting_destroy,
+    export_setting_list,
+    export_setting_retreive,
+    export_setting_update,
+    export_setting_partial_update,
+)
+
 
 @extend_schema(
     tags=['export-settings'],
 )
+@extend_schema_view(
+    create=extend_schema(
+        description=export_setting_create,
+    ),
+    data=extend_schema(
+        description=export_setting_data,
+    ),
+    destroy=extend_schema(
+        description=export_setting_destroy,
+    ),
+    list=extend_schema(
+        description=export_setting_list,
+    ),
+    retrieve=extend_schema(
+        description=export_setting_retreive,
+    ),
+    update=extend_schema(
+        description=export_setting_update,
+    ),
+    partial_update=extend_schema(
+        description=export_setting_partial_update
+    ),
+)
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
-    ## List of export settings for a specific asset
-
-    > Required permissions: `view_submissions` (View submissions)
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/
-
     ## CRUD
 
     * `asset_uid` - is the unique identifier of a specific asset
     * `setting_uid` - is the unique identifier of a specific export setting
 
-    ### Create an export setting for an asset
-
-    > Required permissions: `manage_asset` (Manage project)
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/
-
-    > **Payload**
-    >
-    >        {
-    >           "name": "foo",
-    >           "export_settings": {
-    >               "fields_from_all_versions": "true",
-    >               "group_sep": "/",
-    >               "hierarchy_in_labels": "true",
-    >               "lang": "English (en)",
-    >               "multiple_select": "both",
-    >               "type": "csv",
-    >               "fields": ["field_1", "field_2"],
-    >               "flatten": "true",
-    >               "xls_types_as_text": "false",
-    >               "include_media_url": "false",
-    >               "submission_ids": [1, 2, 3, 4],
-    >               "query": {
-    >                   "$and": [
-    >                       {"_submission_time": {"$gte": "2021-08-31"}},
-    >                       {"_submission_time": {"$lte": "2021-10-13"}}
-    >                   ]
-    >               }
-    >           }
-    >        }
-
-    where:
-
-    * "name" (required) is the name of the export setting displayed in the UI
-    * "export_settings" (required) is a map of defined settings containing the following valid options:
-        * "fields" (optional) is an array of column names to be included in the export (including their group hierarchy). Valid inputs include:
-            * An array containing any string value that matches the XML column name
-            * An empty array which will result in all columns being included
-            * If "fields" is not included in the "export_settings", all columns will be included in the export
-        * "flatten" (optional) is a boolean value and only relevant when exporting to "geojson" format.
-        * "fields_from_all_versions" (required) is a boolean to specify whether fields from all form versions will be included in the export.
-        * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
-            * Non-empty value
-        * "hierarchy_in_labels" (required) is a boolean to specify whether the group hierarchy will be displayed in labels
-        * "multiple_select" (required) is a value to specify the display of multiple-select-type responses. Valid inputs include:
-            * "both",
-            * "summary", or
-            * "details"
-        * "type" (required) specifies the export format. Valid export formats include:
-            * "csv",
-            * "geojson",
-            * "spss_labels", or
-            * "xls"
-        * "xls_types_as_text" (optional) is a boolean value that defaults to "false" and only affects "xls" export types.
-        * "include_media_url" (optional) is a boolean value that defaults to "false" and only affects "xls" and "csv" export types.
-        * "submission_ids" (optional) is an array of submission ids that will filter exported submissions to only the specified array of ids. Valid inputs include:
-            * An array containing integer values
-            * An empty array (no filtering)
-        * "query" (optional) is a JSON object containing a Mongo filter query for filtering exported submissions. Valid inputs include:
-            * A JSON object containing a valid Mongo query
-            * An empty JSON object (no filtering)
-
-    **Note that the following behaviour can be expected when specifying a value for the "multiple_select" field:**
-
-    * "summary": Includes one column per question, with all selected choices separated by spaces;
-    * "details": Expands each multiple-select question to one column per choice, with each of those columns having a binary 1 or 0 to indicate whether that choice was chosen;
-    * "both": Includes the format of "summary" _and_ "details" in the export
-
-    ### Retrieve a specific export setting
-
-    > Required permissions: `view_submissions` (View submissions)
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/espj4oFeS9tVhQQMVfitTB2/
 
     ### Update an asset's export setting
 
@@ -157,35 +93,6 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     >               "fields": ["field_1", "field_2", "field_3"]
     >           }
     >        }
-
-    ### Delete current export setting
-
-    > Required permissions: `manage_asset` (Manage project)
-
-    <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/export-settings/espj4oFeS9tVhQQMVfitTB2/
-
-
-    ### Synchronous data export
-
-    To retrieve data synchronously in CSV and XLSX format according to a
-    particular instance of export settings, access the URLs given by
-    `data_url_csv` and `data_url_xlsx`:
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/data.csv
-    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/<code>{setting_uid}</code>/data.xlsx
-    </pre>
-    <span class='label label-warning'>WARNING</span>
-    Processing time of synchronous exports is substantially limited compared to
-    asynchronous exports, which are available at
-    `/api/v2/assets/{asset_uid}/exports/`.
-
 
     ### CURRENT ENDPOINT
     """
