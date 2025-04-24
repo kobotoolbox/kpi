@@ -465,6 +465,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
@@ -494,6 +495,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
@@ -522,11 +524,13 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         request.updated_data = {
             'object_id': 1,
             'field_1': 'new_field1',
             'field_2': 'new_field2',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
