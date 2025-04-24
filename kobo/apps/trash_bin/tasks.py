@@ -186,6 +186,9 @@ def empty_account(account_trash_id: int, force: bool = False):
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def empty_project(project_trash_id: int, force: bool = False):
+
+    raise Exception('Temporarily deactivated')
+
     with transaction.atomic():
         project_trash = ProjectTrash.objects.select_for_update().get(
             pk=project_trash_id
