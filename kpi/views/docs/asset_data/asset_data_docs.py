@@ -1,4 +1,18 @@
 asset_data_bulk_destroy = """
+Delete the validation status of a submission.
+<pre class="prettyprint">
+<b>DELETE</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
+</pre>
+
+> Example
+>
+>       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/
+
+> **Payload**
+>
+>        {
+>           "submission_ids": [{integer}],
+>        }
 """
 
 asset_data_bulk_partial_update = """
@@ -170,6 +184,10 @@ or
 """
 
 asset_data_validation_status_destroy = """
+Delete the validation status of a submission.
+<pre class="prettyprint">
+<b>DELETE</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
+</pre>
 """
 
 asset_data_validation_status_list = """
@@ -207,6 +225,10 @@ where `<validation_status>` is a string and can be one of these values:
 """
 
 asset_data_validation_statuses_destroy = """
+Delete the validation statuses of a submission.
+<pre class="prettyprint">
+<b>DELETE</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/validation_status/
+</pre>
 """
 
 asset_data_validation_statuses_partial_update = """
