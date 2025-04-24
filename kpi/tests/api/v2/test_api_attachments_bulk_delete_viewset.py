@@ -206,22 +206,17 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             data=json.dumps({'attachment_uids': self.attachment_uids}),
             content_type='application/json',
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.data == {
-            'detail': ErrorDetail(
-                string='You do not have permission to perform this action.',
-                code='permission_denied',
-            )
-        }
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data == {'detail': ErrorDetail(string='Not found.', code='not_found')}
 
     def test_bulk_delete_not_shared_attachment_as_anotheruser(self):
-        anotherUser = User.objects.create(
-            username='anotherUser', password='anotherUser'
+        another_user = User.objects.create(
+            username='another_user', password='another_user'
         )
-        anotherUser.user_permissions.clear()
-        self.asset.assign_perm(anotherUser, PERM_VIEW_SUBMISSIONS)
+        another_user.user_permissions.clear()
+        self.asset.assign_perm(another_user, PERM_VIEW_SUBMISSIONS)
 
-        self.client.force_login(anotherUser)
+        self.client.force_login(another_user)
         response = self.client.delete(
             self.bulk_delete_url,
             data=json.dumps({'attachment_uids': self.attachment_uids}),
@@ -236,12 +231,13 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         }
 
     def test_bulk_delete_attachments_edit_permission(self):
-        userEditPerms = User.objects.create_user(
-            username='userEditPerms', password='userEditPerms'
+        user_edit_perms = User.objects.create_user(
+            username='user_edit_perms', password='user_edit_perms'
         )
-        self.asset.assign_perm(userEditPerms, 'kpi.change_submissions')
+        user_edit_perms.user_permissions.clear()
+        self.asset.assign_perm(user_edit_perms, PERM_CHANGE_SUBMISSIONS)
         self.client.logout()
-        self.client.force_login(userEditPerms)
+        self.client.force_login(user_edit_perms)
         response = self.client.delete(
             self.bulk_delete_url,
             data=json.dumps({'attachment_uids': self.attachment_uids}),

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.permissions import AttachmentDeletionPermission
 from kpi.serializers.v2.attachment_bulk_delete import AttachmentBulkDeleteSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
@@ -10,6 +11,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 class AttachmentBulkDeleteViewSet(
     NestedViewSetMixin, AssetNestedObjectViewsetMixin, viewsets.ViewSet
 ):
+    permission_classes = [AttachmentDeletionPermission]
 
     @action(detail=False, methods=['DELETE'])
     def bulk(self, request, *args, **kwargs):
@@ -40,9 +42,11 @@ class AttachmentBulkDeleteViewSet(
           to delete
         """
 
+        print('here in the viewset')
         serializer = AttachmentBulkDeleteSerializer(
             data=request.data, context={'request': request, 'asset': self.asset}
         )
+        print('here after the seralizer')
         serializer.is_valid(raise_exception=True)
 
         result = serializer.save(request=request, asset=self.asset)
