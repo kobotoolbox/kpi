@@ -83,15 +83,19 @@ class AttachmentApiTests(BaseAssetTestCase):
             'q1': 'audio_conversion_test_clip.3gp',
             'q2': 'audio_conversion_test_image.jpg',
             '_uuid': _uuid,
-            'meta/instanceID': f'uuid:test_uuid',
+            'meta/instanceID': 'uuid:test_uuid',
             '_attachments': [
                 {
-                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.3gp',
+                    'download_url': (
+                        'http://testserver/someuser/audio_conversion_test_clip.3gp'
+                    ),
                     'filename': 'someuser/audio_conversion_test_clip.3gp',
                     'mimetype': 'video/3gpp',
                 },
                 {
-                    'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
+                    'download_url': (
+                        'http://testserver/someuser/audio_conversion_test_image.jpg'
+                    ),
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
                 },
