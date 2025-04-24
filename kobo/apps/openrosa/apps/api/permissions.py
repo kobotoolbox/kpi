@@ -1,4 +1,5 @@
-# coding: utf-8
+from copy import deepcopy
+
 from django.http import Http404
 from rest_framework.permissions import (
     SAFE_METHODS,
@@ -40,7 +41,7 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
         super().__init__(*args, **kwargs)
         # Do NOT mutate `perms_map` from the parent class! Doing so will affect
         # *every* instance of `DjangoObjectPermissions` and all its subclasses
-        self.perms_map = self.perms_map.copy()
+        self.perms_map = deepcopy(self.perms_map)
         self.perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
         self.perms_map['OPTIONS'] = ['%(app_label)s.view_%(model_name)s']
         self.perms_map['HEAD'] = ['%(app_label)s.view_%(model_name)s']
@@ -109,7 +110,7 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         super().__init__(*args, **kwargs)
         # Those who can edit submissions can also delete them, following the
         # behavior of `kobo.apps.openrosa.apps.main.views.delete_data`
-        self.perms_map = self.perms_map.copy()
+        self.perms_map = deepcopy(self.perms_map)
         self.perms_map['DELETE'] = ['%(app_label)s.' + CAN_DELETE_DATA_XFORM]
 
     def has_permission(self, request, view):
@@ -234,7 +235,7 @@ class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
         super(MetaDataObjectPermissions, self).__init__(
             *args, **kwargs
         )
-        self.perms_map = self.perms_map.copy()
+        self.perms_map = deepcopy(self.perms_map)
         self.perms_map['POST'] = self.perms_map['PATCH']
         self.perms_map['PUT'] = self.perms_map['PATCH']
         self.perms_map['DELETE'] = self.perms_map['PATCH']
@@ -288,7 +289,7 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
     def __init__(self, *args, **kwargs):
         # The default `perms_map` does not include GET, OPTIONS, PATCH or HEAD.
         # See http://www.django-rest-framework.org/api-guide/filtering/#djangoobjectpermissionsfilter  # noqa
-        self.perms_map = DjangoObjectPermissions.perms_map.copy()
+        self.perms_map = deepcopy(DjangoObjectPermissions.perms_map)
         self.perms_map['GET'] = ['%(app_label)s.view_xform']
         self.perms_map['OPTIONS'] = ['%(app_label)s.view_xform']
         self.perms_map['HEAD'] = ['%(app_label)s.view_xform']
@@ -316,7 +317,7 @@ class NoteObjectPermissions(DjangoObjectPermissions):
     authenticated_users_only = False
 
     def __init__(self, *args, **kwargs):
-        self.perms_map = self.perms_map.copy()
+        self.perms_map = deepcopy(self.perms_map)
         self.perms_map['GET'] = ['%(app_label)s.view_xform']
         self.perms_map['OPTIONS'] = ['%(app_label)s.view_xform']
         self.perms_map['HEAD'] = ['%(app_label)s.view_xform']
