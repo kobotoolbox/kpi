@@ -26,6 +26,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -91,15 +92,7 @@ class ParsedInstance(models.Model):
                 id_string=id_string, user__username=username
             )
 
-        userform_id = (
-            xform.mongo_uuid
-            if xform.mongo_uuid
-            else f'{username}_{id_string}'
-        )
-
-        return {
-            cls.USERFORM_ID: userform_id
-        }
+        return {cls.USERFORM_ID: get_mongo_userform_id(xform, username)}
 
     @classmethod
     @apply_form_field_names
