@@ -159,7 +159,13 @@ class HookViewSet(
     serializer_class = HookSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     log_type = AuditType.PROJECT_HISTORY
-    logged_fields = ['endpoint', 'active', 'uid', ('object_id', 'asset.id')]
+    logged_fields = [
+        'endpoint',
+        'active',
+        'uid',
+        ('object_id', 'asset.id'),
+        'asset.owner.username',
+    ]
 
     def get_queryset(self):
         queryset = self.model.objects.filter(asset__uid=self.asset.uid)
