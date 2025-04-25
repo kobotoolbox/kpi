@@ -6,8 +6,12 @@ import { useEffect } from 'react'
 
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
 import { addons } from '@storybook/preview-api'
+import * as mswAddon from 'msw-storybook-addon'
 import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { themeKobo } from '#/theme'
+
+// Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
+mswAddon.initialize()
 
 const channel = addons.getChannel()
 
@@ -28,9 +32,14 @@ export const decorators = [
   (renderStory) => <MantineProvider theme={themeKobo}>{renderStory()}</MantineProvider>,
 ]
 
+export const loaders = [mswAddon.mswLoader]
+
 export const parameters = {
   options: {
-    storySort: (a, b) => (a.title === b.title ? 0 : a.title.localeCompare(b.title, undefined, { numeric: true })),
+    storySort: {
+      method: 'alphabetical',
+      order: ['Design system', 'Design system old', 'Components', '*'],
+    },
   },
   actions: { argTypesRegex: '^on[A-Z].*' },
   controls: {

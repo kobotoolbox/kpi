@@ -48,6 +48,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_asset_owner_label(self):
         pass
 
+    @unittest.skip(reason='Only needed for v2')
+    def test_creator_permissions_on_import(self):
+        pass
+
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None

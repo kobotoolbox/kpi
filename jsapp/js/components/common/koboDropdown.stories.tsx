@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import KoboDropdown from '#/components/common/koboDropdown'
 
 const meta: Meta<typeof KoboDropdown> = {
-  title: 'common/KoboDropdown',
+  title: 'Design system old/KoboDropdown',
   component: KoboDropdown,
   argTypes: {
     placement: {

@@ -5,7 +5,7 @@ name: pytest
 on: workflow_call
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       DATABASE_URL: postgis://kobo:kobo@localhost:5432/kpi_test
       DJANGO_LANGUAGE_CODES: "ar cs de-DE en es fr hi ku pl pt tr zh-hans"
@@ -24,6 +24,9 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10']
+        extra-pytest-options:
+          - --ds kobo.settings.testing
+          - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe
     services:
       postgres:
         image: postgis/postgis:14-3.4
@@ -61,7 +64,7 @@ jobs:
     - name: Test back-end code
       # Explicitly name the directories where coverage should be measured;
       # specifying just `--cov=.` includes `src`, which contains third-party packages
-      run: pytest --cov=hub --cov=kobo --cov=kpi -ra
+      run: pytest ${{ matrix.extra-pytest-options }} --cov=hub --cov=kobo --cov=kpi -ra
     - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop
       # Coveralls action will intermittently give 422 errors - until that issue is resolved this step allowed to error.

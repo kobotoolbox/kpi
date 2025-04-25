@@ -2,6 +2,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import { actions } from '#/actions'
+import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
 import Badge from '#/components/common/badge'
 import Button from '#/components/common/button'
@@ -178,6 +179,20 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
     })
   }
 
+  /** Returns an array of SubmissionResponse's which delete-able attachments. */
+  getSelectedSubmissionsWithAttachments() {
+    return this.props.data.filter(
+      (submission) =>
+        Object.keys(this.props.selectedRows).includes(submission._id.toString()) &&
+        submission._attachments.filter((attachment) => !attachment.is_deleted).length > 0,
+    )
+  }
+
+  handleDeletedAttachment() {
+    // Prompt table to refresh submission list
+    actions.resources.refreshTableSubmissions()
+  }
+
   render() {
     let selectedCount = Object.keys(this.props.selectedRows).length
     if (this.props.selectedAllPages) {
@@ -248,6 +263,17 @@ class TableBulkOptions extends React.Component<TableBulkOptionsProps> {
               startIcon='trash'
               label={t('Delete')}
               className='table-meta__additional-text'
+            />
+          )}
+
+        {Object.keys(this.props.selectedRows).length > 0 &&
+          (userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+            userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
+          this.getSelectedSubmissionsWithAttachments().length > 0 && (
+            <BulkDeleteMediaFiles
+              selectedSubmissions={this.getSelectedSubmissionsWithAttachments()}
+              asset={this.props.asset}
+              onDeleted={this.handleDeletedAttachment}
             />
           )}
       </bem.TableMeta__bulkOptions>

@@ -786,7 +786,7 @@ class DataViewSet(
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
             data[key_] = reverse(
                 'attachment-detail',
-                args=(self.asset.uid, submission_id, attachment.pk),
+                args=(self.asset.uid, submission_id, attachment.uid),
                 request=request,
             )
 

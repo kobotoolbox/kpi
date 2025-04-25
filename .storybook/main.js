@@ -85,6 +85,7 @@ module.exports = {
     return config
   },
   docs: {},
+  staticDirs: ['../msw-mocks'],
 }
 
 /// Apply some customizations to the config, intended to decrease build time

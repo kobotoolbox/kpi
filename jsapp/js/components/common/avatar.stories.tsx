@@ -5,7 +5,7 @@ import type { AvatarSize } from './avatar'
 const avatarSizes: AvatarSize[] = ['s', 'm']
 
 const meta: Meta<typeof Avatar> = {
-  title: 'common/Avatar',
+  title: 'Design system old/Avatar',
   component: Avatar,
   argTypes: {
     size: {

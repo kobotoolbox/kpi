@@ -6,10 +6,10 @@ import { assetWithImage, assetWithImageSubmission } from './AttachmentActionsDro
 const mockQueryClient = new QueryClient()
 const mockAsset = assetWithImage
 const mockSubmission = assetWithImageSubmission
-const mockAttachmentId = assetWithImageSubmission._attachments[0].id
+const mockAttachmentUid = assetWithImageSubmission._attachments[0].uid
 
 const meta: Meta<typeof AttachmentActionsDropdown> = {
-  title: 'Attachments/AttachmentActionsDropdown',
+  title: 'Components/AttachmentActionsDropdown',
   component: AttachmentActionsDropdown,
   argTypes: {
     asset: { control: 'object' },
@@ -18,7 +18,7 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
       description:
         'To see what happens when attachment is deleted, please add `is_deleted=true` flag to the attachment object in the data.',
     },
-    attachmentId: { control: 'number' },
+    attachmentUid: { control: 'text' },
     onDeleted: { action: 'onDeleted' },
   },
   args: {},
@@ -37,7 +37,7 @@ export default meta
 export const Default: StoryObj<typeof AttachmentActionsDropdown> = {
   args: {
     asset: mockAsset,
-    attachmentId: mockAttachmentId,
+    attachmentUid: mockAttachmentUid,
     submissionData: mockSubmission,
     onDeleted: () => console.log('Attachment deleted'),
   },

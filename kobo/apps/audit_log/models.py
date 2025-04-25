@@ -77,7 +77,7 @@ class AuditLog(models.Model):
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
-        max_length=30,
+        max_length=60,
         choices=AuditAction.choices,
         default=AuditAction.DELETE,
         db_index=True,
@@ -459,6 +459,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': client_ip,
                 'source': source,
                 'latest_version_uid': asset.prefetched_latest_versions[0].uid,
+                'project_owner': asset.owner.username,
             }
             ProjectHistoryLog.objects.create(
                 user=request.user,
@@ -484,6 +485,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
+                'project_owner': initial_data['asset.owner.username'],
             },
         )
 
@@ -504,6 +506,7 @@ class ProjectHistoryLog(AuditLog):
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
+            'project_owner': audit_log_info['owner_username'],
         }
 
         # requests to archive/unarchive will only have the `active` param in the request
@@ -732,6 +735,7 @@ class ProjectHistoryLog(AuditLog):
             'source': get_human_readable_client_user_agent(request),
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            'project_owner': source_data['asset.owner.username'],
         }
         # we'll be bulk creating logs instead of using .create, so we have to set
         # all fields manually

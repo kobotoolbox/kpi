@@ -2,7 +2,6 @@
 from allauth.account.models import EmailAddress
 from django.conf import settings
 from django.shortcuts import resolve_url
-from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from trench.utils import get_mfa_model
@@ -39,7 +38,6 @@ class LoginTests(KpiTestCase):
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
-    @override_settings(STRIPE_ENABLED=False)
     def test_login_with_mfa_enabled(self):
         """
         Validate that multi-factor authentication form is displayed after
@@ -52,7 +50,6 @@ class LoginTests(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data)
         self.assertContains(response, 'verification token')
 
-    @override_settings(STRIPE_ENABLED=False)
     def test_login_with_mfa_disabled(self):
         """
         Validate that multi-factor authentication form is NOT displayed after
@@ -70,7 +67,6 @@ class LoginTests(KpiTestCase):
         self.assertEqual(status_code, status.HTTP_302_FOUND)
         self.assertEqual(resolve_url(settings.LOGIN_REDIRECT_URL), redirection)
 
-    @override_settings(STRIPE_ENABLED=False)
     def test_admin_login(self):
         """
         Admin login is disabled and should redirect to normal login form

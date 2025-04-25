@@ -68,6 +68,7 @@
   display: flex;
   width: 100%;
   justify-content: right;
+  gap: 6px;
 }
 
 .purchasedAddOns {
@@ -109,7 +110,7 @@
   display: none;
 }
 
-@media screen and (min-width: breakpoints.$b600) {
+@include breakpoints.breakpoint(narrowAndUp) {
   .table td:nth-child(2) {
     margin-inline-end: 10em;
   }
@@ -122,7 +123,7 @@
 
   .productName {
     display: table-cell;
-    width: 40%;
+    width: 30%;
     margin-right: 12px;
   }
 
@@ -133,6 +134,8 @@
   .price {
     display: table-cell;
     width: 30%;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
   .mobileView {
@@ -159,6 +162,14 @@
     align-items: center;
     justify-content: center;
   }
+
+  .selectProducts {
+    flex: 2;
+  }
+
+  .selectPrices {
+    flex: 1;
+  }
 }
 
 @include breakpoints.breakpoint(mediumAndUp) {
@@ -168,5 +179,9 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 0 20px;
+  }
+
+  .productName {
+    width: 40%;
   }
 }

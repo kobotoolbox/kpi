@@ -3,7 +3,7 @@ import KoboSelect from '#/components/common/koboSelect'
 import { IconNames } from '#/k-icons'
 
 const meta: Meta<typeof KoboSelect> = {
-  title: 'commonDeprecated/KoboSelect',
+  title: 'Design system old/KoboSelect',
   component: KoboSelect,
   argTypes: {
     selectedOption: {

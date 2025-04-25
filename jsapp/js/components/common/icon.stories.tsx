@@ -6,7 +6,7 @@ import type { IconColor } from './icon'
 const iconColors: Array<IconColor | undefined> = [undefined, 'mid-red', 'storm', 'teal', 'amber', 'blue']
 
 const meta: Meta<typeof Icon> = {
-  title: 'common/Icon',
+  title: 'Design system old/Icon',
   component: Icon,
   argTypes: {
     color: {

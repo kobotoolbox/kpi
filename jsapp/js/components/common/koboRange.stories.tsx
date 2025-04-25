@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import KoboRange, { KoboRangeColors } from '#/components/common/koboRange'
 
 const meta: Meta<typeof KoboRange> = {
-  title: 'common/KoboRange',
+  title: 'Design system old/KoboRange',
   component: KoboRange,
   argTypes: {
     color: {

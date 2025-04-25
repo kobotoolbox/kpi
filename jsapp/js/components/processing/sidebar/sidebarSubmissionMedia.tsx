@@ -54,7 +54,7 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
                 <AttachmentActionsDropdown
                   asset={props.asset}
                   submissionData={store.data.submissionData}
-                  attachmentId={attachment.id}
+                  attachmentUid={attachment.uid}
                   onDeleted={() => {
                     // TODO: this might be done with a bit more elegant UX, as calling the function causes a whole page
                     // spinner to appear. I feel like redoing `singleProcessingStore` in a `react-query` way would

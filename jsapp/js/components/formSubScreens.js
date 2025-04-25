@@ -12,7 +12,7 @@ import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
 import RESTServices from './RESTServices'
-import FormMap from './map/map'
+import { FormMap } from './map'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'
 import SharingForm from './permissions/sharingForm.component'
@@ -26,7 +26,7 @@ const ProjectDownloads = React.lazy(
 )
 const FormGallery = React.lazy(() => import(/* webpackPrefetch: true */ './formGallery/formGallery.component'))
 
-const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/formActivity'))
+const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ './activity/FormActivity'))
 
 export class FormSubScreens extends React.Component {
   constructor(props) {
