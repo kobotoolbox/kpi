@@ -203,7 +203,7 @@ class Organization(AbstractOrganization):
             return True
 
         if not settings.STRIPE_ENABLED:
-            False
+            return False
 
         return (
             Organization.objects.prefetch_related('djstripe_customers')
