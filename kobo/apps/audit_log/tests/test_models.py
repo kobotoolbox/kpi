@@ -579,6 +579,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                     'asset_id': asset.id,
                     'old_name': asset.name,
                     'new_name': asset.name,
+                    'project_owner': asset.owner.username,
                 }
             ]
         }
@@ -597,6 +598,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'source': 'source',
                 'latest_version_uid': 'av12345',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': asset.owner.username,
             },
         )
 
@@ -616,6 +618,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                     'asset_id': asset.id,
                     'old_name': old_name,
                     'new_name': 'new_name',
+                    'project_owner': asset.owner.username,
                 }
             ]
         }
@@ -632,6 +635,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'source': 'source',
                 'latest_version_uid': 'av12345',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': asset.owner.username,
             },
         )
         name_log = ProjectHistoryLog.objects.filter(
@@ -648,6 +652,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'latest_version_uid': 'av12345',
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'name': {'old': old_name, 'new': 'new_name'},
+                'project_owner': asset.owner.username,
             },
         )
 
