@@ -17,10 +17,10 @@ admin.site.login = staff_member_required(admin.site.login, login_url=settings.LO
 
 urlpatterns = [
     path(
-        'api/schema/', SpectacularAPIView.as_view(api_version='api_v2'), name='schema'
+        'api/v2/schema/', SpectacularAPIView.as_view(api_version='api_v2'), name='schema'
     ),
     path(
-        'api/schema/swagger/',
+        'api/v2/docs/',
         SpectacularSwaggerView.as_view(url_name='schema'),
         name='swagger-ui',
     ),
