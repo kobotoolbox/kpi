@@ -485,6 +485,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
+                'project_owner': initial_data['asset.owner.username'],
             },
         )
 
@@ -734,6 +735,7 @@ class ProjectHistoryLog(AuditLog):
             'source': get_human_readable_client_user_agent(request),
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
+            'project_owner': source_data['asset.owner.username'],
         }
         # we'll be bulk creating logs instead of using .create, so we have to set
         # all fields manually

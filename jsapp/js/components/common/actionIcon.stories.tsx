@@ -1,7 +1,8 @@
-import type { ElementProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, within } from '@storybook/test'
+import type { ForwardRefExoticComponent } from 'react'
 import { IconNames } from '#/k-icons'
+import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
 import ActionIcon, { type ActionIconProps } from './ActionIcon'
 
 const actionIconVariants: Array<ActionIconProps['variant']> = [
@@ -15,6 +16,9 @@ const actionIconVariants: Array<ActionIconProps['variant']> = [
 ]
 
 const actionIconSizes: Array<ActionIconProps['size']> = ['sm', 'md', 'lg']
+
+type StoryArgs = StoryArgsFromPolymorphic<'button', ActionIconProps & { 'data-testid'?: string }>
+type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
 
 const meta = {
   title: 'Design system/ActionIcon',
@@ -38,11 +42,9 @@ const meta = {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
-} satisfies Meta<typeof ActionIcon>
+} satisfies Meta<StoryArgs>
 
 export default meta
-type StoryArgs = ActionIconProps & ElementProps<'button', keyof ActionIconProps> & { 'data-testid'?: string }
-type Story = StoryObj<typeof ActionIcon> & { args: StoryArgs }
 
 export const Default: Story = {
   args: {
