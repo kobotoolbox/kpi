@@ -814,7 +814,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     >       ]
     >
     """
-    
+
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
             user=request.user,
@@ -847,7 +847,44 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
-
+    """
+    Access logs export
+    Lists all access logs export tasks for all users. Only available to superusers.
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/access-logs/export
+    </pre>
+    > Example
+    >
+    >       curl -X GET https://[kpi-url]/access-logs/export
+    > Response 200
+    >
+    >       [
+    >           {
+    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T21:27:08.403181Z"
+    >           },
+    >           {
+    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
+    >               "status": "complete",
+    >               "date_created": "2024-11-26T20:18:55.982974Z"
+    >           }
+    >       ]
+    ### Creates an export task
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/access-log/export
+    </pre>
+    > Example
+    >
+    >       curl -X POST https://[kpi-url]/access-logs/export
+    > Response 202
+    >
+    >       [
+    >           "status: created"
+    >       ]
+    >
+    """
+    
     permission_classes = (SuperUserPermission,)
 
     def create(self, request, *args, **kwargs):
