@@ -2,8 +2,8 @@ import React from 'react'
 
 import cx from 'classnames'
 import { ORGANIZATION_TYPES, type OrganizationTypeName } from '#/account/organization/organizationQuery'
-import KoboAccessibleSelect from '#/components/special/koboAccessibleSelect'
 import { addRequiredToLabel } from '#/textUtils'
+import Select from '../components/common/Select'
 import Checkbox from '../components/common/checkbox'
 import TextBox from '../components/common/textBox'
 import envStore from '../envStore'
@@ -213,17 +213,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={styles.field}>
-              <KoboAccessibleSelect
+              <Select
+                size='sm'
                 label={getLabel('gender')}
                 required={isRequired('gender')}
                 name='gender'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('gender')}
-                // selectedOption={props.values.gender}
+                clearable={!isFieldRequired('gender')}
                 value={props.values.gender}
                 onChange={(value: string | null) => onAnyFieldChange('gender', value || '')}
-                options={GENDER_SELECT_OPTIONS}
+                data={GENDER_SELECT_OPTIONS}
                 error={props.errors?.gender}
               />
             </div>
@@ -242,17 +240,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={styles.field}>
-              <KoboAccessibleSelect
+              <Select
+                size='sm'
                 label={getLabel('country')}
                 required={isRequired('country')}
                 name='country'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('country')}
-                // isSearchable
+                clearable={!isFieldRequired('country')}
                 value={props.values.country}
                 onChange={(value: string | null) => onAnyFieldChange('country', value || '')}
-                options={envStore.data.country_choices}
+                data={envStore.data.country_choices}
                 error={props.errors?.country}
               />
             </div>
@@ -277,17 +273,15 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={styles.field}>
-              <KoboAccessibleSelect
+              <Select
+                size='sm'
                 label={getLabel('sector')}
                 required={isRequired('sector')}
                 name='sector'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('sector')}
-                // isSearchable
+                clearable={!isFieldRequired('sector')}
                 value={props.values.sector}
                 onChange={(value: string | null) => onAnyFieldChange('sector', value || '')}
-                options={envStore.data.sector_choices}
+                data={envStore.data.sector_choices}
                 error={props.errors?.sector}
               />
             </div>
@@ -298,18 +292,16 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
           (fieldCount++,
           (
             <div className={cx(styles.field, styles.orgTypeDropdown)}>
-              <KoboAccessibleSelect
+              <Select
+                size='sm'
                 label={getLabel('organization_type')}
                 required={isRequired('organization_type')}
                 name='organization_type'
-                // type='outline'
-                // size='l'
-                isClearable={!isFieldRequired('organization_type')}
+                clearable={!isFieldRequired('organization_type')}
                 value={props.values.organization_type}
                 onChange={(value: string | null) => onAnyFieldChange('organization_type', value || '')}
-                options={ORGANIZATION_TYPE_SELECT_OPTIONS}
+                data={ORGANIZATION_TYPE_SELECT_OPTIONS}
                 error={props.errors?.organization_type}
-                noMaxMenuHeight
               />
             </div>
           ))}
