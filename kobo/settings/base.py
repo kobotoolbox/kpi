@@ -980,7 +980,6 @@ SPECTACULAR_SETTINGS = {
     'PREPROCESSING_HOOKS': [
         'kpi.utils.spectacular_processing.pre_processing_filtering'
     ],
-    # 'POSTPROCESSING_HOOKS': ['kpi.utils.spectacular_print.postProcess_schema_enums'],
 }
 
 OPENROSA_REST_FRAMEWORK = {
