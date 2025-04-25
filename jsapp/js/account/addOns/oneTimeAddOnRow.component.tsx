@@ -7,7 +7,7 @@ import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
 import { isChangeScheduled } from '#/account/stripe.utils'
-import KoboSelect3 from '#/components/special/koboAccessibleSelect'
+import Select from '#/components/common/Select'
 
 interface OneTimeAddOnRowProps {
   products: Product[]
@@ -55,8 +55,8 @@ export const OneTimeAddOnRow = ({
     [subscribedAddOns, selectedPrice],
   )
 
-  const onChangeProduct = (productId: string) => {
-    const product = products.find((product) => product.id === productId)
+  const onChangeProduct = (productId: string | null) => {
+    const product = products.find((item) => item.id === productId)
     if (product) {
       setSelectedProduct(product)
       setSelectedPrice(product.prices[0])
@@ -135,20 +135,22 @@ export const OneTimeAddOnRow = ({
       </td>
       <td className={styles.price}>
         <div className={styles.oneTime}>
-          <KoboSelect3
-            size={'fit'}
+          <Select
+            size='sm'
+            className={styles.selectProducts}
             name='products'
-            options={products.map((product) => {
+            data={products.map((product) => {
               return { value: product.id, label: product.name }
             })}
-            onChange={(productId) => onChangeProduct(productId as string)}
+            onChange={(productId: string | null) => onChangeProduct(productId)}
             value={selectedProduct.id}
           />
           {displayName === 'File Storage' && (
-            <KoboSelect3
-              size={'fit'}
-              name={t('prices')}
-              options={priceOptions}
+            <Select
+              size='sm'
+              className={styles.selectPrices}
+              name='prices'
+              data={priceOptions}
               onChange={onChangePrice}
               value={selectedPrice.id}
             />
