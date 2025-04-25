@@ -6,9 +6,17 @@ from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.celery import celery_app
-from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from .account import empty_account
+from .attachment import empty_attachment
+from .project import empty_project
+from ..constants import (
+    DELETE_ATTACHMENT_STR_PREFIX,
+    DELETE_PROJECT_STR_PREFIX,
+    DELETE_USER_STR_PREFIX,
+)
 from ..models import TrashStatus
 from ..models.account import AccountTrash
+from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..utils import temporarily_disconnect_signals
 from .account import empty_account
@@ -31,6 +39,15 @@ def garbage_collector():
                 pk__in=ProjectTrash.objects.values_list('periodic_task_id', flat=True),
             ).filter(
                 name__startswith=DELETE_PROJECT_STR_PREFIX, clocked__isnull=False
+            ).delete()
+
+            PeriodicTask.objects.exclude(
+                pk__in=AttachmentTrash.objects.values_list(
+                    'periodic_task_id', flat=True
+                ),
+            ).filter(
+                name__startswith=DELETE_ATTACHMENT_STR_PREFIX,
+                clocked__isnull=False,
             ).delete()
 
             # Then, remove clocked schedules
@@ -64,3 +81,12 @@ def task_restarter():
     )
     for stuck_project_id in stuck_project_ids:
         empty_project.delay(stuck_project_id, force=True)
+
+    stuck_attachment_ids = AttachmentTrash.objects.values_list(
+        'pk', flat=True
+    ).filter(
+        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+        date_modified__lte=stuck_threshold,
+    )
+    for stuck_attachment_id in stuck_attachment_ids:
+        empty_attachment.delay(stuck_attachment_id, force=True)

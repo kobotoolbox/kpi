@@ -141,6 +141,7 @@ class AssetFileViewSet(
         'md5_hash',
         'download_url',
         ('object_id', 'asset.id'),
+        'asset.owner.username',
     ]
 
     def get_queryset(self):
