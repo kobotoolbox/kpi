@@ -22,6 +22,8 @@ class AssetJsonRenderer(renderers.JSONRenderer):
 
 
 class MediaFileRenderer(renderers.BaseRenderer):
+    #FIXME: Need to see if format accept a '' instead of a NONE (required for api doc)
+
     media_type = '*/*'
     format = 'TODO'
     charset = None
