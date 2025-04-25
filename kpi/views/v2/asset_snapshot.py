@@ -28,25 +28,13 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.views.docs.asset_snapshot.asset_snapshot_doc import (
-    asset_snapshot_create,
-    asset_snapshot_destroy,
-    asset_snapshot_list,
-    asset_snapshot_partial_update,
-    asset_snapshot_retrieve,
-    asset_snapshot_update,
-    form_list_method,
-    manifest_method,
-    submission_method,
-    xform_method,
-    xlm_method,
-)
+from kpi.views.docs.asset_snapshot.asset_snapshot_doc import *
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
 @extend_schema(
-    tags=['asset_snapshots'],
+    tags=['Asset_Snapshots'],
 )
 @extend_schema_view(
     # description for list
@@ -83,13 +71,13 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
         description=submission_method,
     ),
     preview=extend_schema(
-        description='Write preview function documentation',
+        description=preview_method,
     ),
     xform=extend_schema(
        description=xform_method
     ),
     xml_with_disclaimer=extend_schema(
-        description=xlm_method
+        description=xml_disclaimer_method
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
