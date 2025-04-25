@@ -202,19 +202,19 @@ class Organization(AbstractOrganization):
         if self.mmo_override:
             return True
 
-        if settings.STRIPE_ENABLED:
-            return (
-                Organization.objects.prefetch_related('djstripe_customers')
-                .filter(
-                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,  # noqa
-                    djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
-                    djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
-                    djstripe_customers__subscriber=self.id,
-                )
-                .exists()
-            )
+        if not settings.STRIPE_ENABLED:
+            False
 
-        return False
+        return (
+            Organization.objects.prefetch_related('djstripe_customers')
+            .filter(
+                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+                djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
+                djstripe_customers__subscriber=self.id,
+            )
+            .exists()
+        )
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
