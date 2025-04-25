@@ -87,4 +87,4 @@ def task_restarter():
         date_modified__lte=stuck_threshold,
     )
     for stuck_attachment_id in stuck_attachment_ids:
-        empty_project.delay(stuck_attachment_id, force=True)
+        empty_attachment.delay(stuck_attachment_id, force=True)
