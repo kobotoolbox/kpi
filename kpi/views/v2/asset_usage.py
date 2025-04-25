@@ -9,7 +9,7 @@ from kpi.serializers.v2.service_usage import AssetUsageSerializer
 from kpi.views.docs.asset_usage.asset_usage_docs import assset_usage_documentation
 
 @extend_schema(
-    tags=['asset-usage'],
+    tags=['Asset-Usage'],
     description=assset_usage_documentation,
 )
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
