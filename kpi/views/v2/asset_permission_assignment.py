@@ -33,6 +33,7 @@ from kpi.serializers.v2.asset_permission_assignment import (
 from kpi.utils.object_permission import get_user_permission_assignments_queryset
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
+
 @extend_schema(
     tags=['permission-assignments'],
 )

@@ -1,9 +1,9 @@
 # coding: utf-8
 from drf_spectacular.utils import extend_schema
 
-from .base import BaseViewSet
 from ..models.transcription import TranscriptionService
 from ..serializers import TranscriptionServiceSerializer
+from .base import BaseViewSet
 
 
 @extend_schema(

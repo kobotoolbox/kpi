@@ -25,6 +25,7 @@ from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from .models.project_view import ProjectView
 from .serializers import ProjectViewSerializer
 
+
 @extend_schema(
     tags=['project-views'],
 )

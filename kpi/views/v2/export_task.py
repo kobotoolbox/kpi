@@ -1,9 +1,6 @@
 # coding: utf-8
 from drf_spectacular.utils import extend_schema
-from rest_framework import (
-    filters,
-    renderers,
-)
+from rest_framework import filters, renderers
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
@@ -14,6 +11,7 @@ from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
 
 @extend_schema(
     tags=['exports'],

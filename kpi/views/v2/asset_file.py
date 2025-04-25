@@ -14,6 +14,7 @@ from kpi.permissions import AssetEditorPermission
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
+
 @extend_schema(
     tags=['files'],
 )

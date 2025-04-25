@@ -2,10 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import mixins, renderers
 
 from kobo.apps.openrosa.libs.utils.storage import rmdir
-from kpi.models.asset import Asset
 from ..permissions import UserDeletePermission
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
-from kpi.serializers.v2.user import UserSerializer
+
 
 class UserViewSet(mixins.DestroyModelMixin, OpenRosaGenericViewSet):
 
