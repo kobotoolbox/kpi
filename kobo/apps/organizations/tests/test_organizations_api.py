@@ -127,6 +127,8 @@ class OrganizationApiTestCase(BaseTestCase):
         Test that is_mmo is True when there is an active MMO subscription.
         """
         self._insert_data(mmo_override=False)
+        # Patch query in is_mmo method that checks whether org has an active
+        # subscription with a product_type of 'plan'.
         mock_query.return_value.filter.return_value.exists.return_value = True
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
