@@ -206,7 +206,7 @@ class Organization(AbstractOrganization):
             return (
                 Organization.objects.prefetch_related('djstripe_customers')
                 .filter(
-                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                    djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,  # noqa
                     djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
                     djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
                     djstripe_customers__subscriber=self.id,
