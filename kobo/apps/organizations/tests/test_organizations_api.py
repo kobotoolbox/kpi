@@ -4,6 +4,7 @@ from unittest.mock import patch
 import responses
 from ddt import data, ddt, unpack
 from django.contrib.auth.models import Permission
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import parse_http_date
@@ -120,6 +121,7 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch(
         'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
+    @override_settings(STRIPE_ENABLED=True)
     def test_api_response_includes_is_mmo_with_subscription(
         self, mock_query
     ):
@@ -137,6 +139,7 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch(
         'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
+    @override_settings(STRIPE_ENABLED=True)
     def test_api_response_includes_is_mmo_with_no_override_and_no_subscription(
         self, mock_query
     ):
@@ -153,6 +156,7 @@ class OrganizationApiTestCase(BaseTestCase):
     @patch(
         'kobo.apps.organizations.models.Organization.objects.prefetch_related'
     )
+    @override_settings(STRIPE_ENABLED=True)
     def test_api_response_includes_is_mmo_with_override_and_subscription(
         self, mock_query
     ):
