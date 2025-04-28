@@ -28,7 +28,7 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.views.docs.asset_snapshot.asset_snapshot_doc import *
+from kpi.docs.asset_snapshot_doc import *
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 

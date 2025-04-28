@@ -8,10 +8,6 @@ class AssetNestedObjectViewsetMixin:
 
     @property
     def asset(self):
-        # FIXME
-        #   Remove the return None and find why we cannot generate the api with
-        #   the below code
-        # return None
         if hasattr(self, 'swagger_fake_view'):
             return None
 

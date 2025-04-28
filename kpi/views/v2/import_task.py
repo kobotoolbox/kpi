@@ -18,6 +18,7 @@ from kpi.serializers.v2.import_task import (
 from kpi.tasks import import_in_background
 from kpi.utils.strings import to_str
 
+
 @extend_schema(
     tags=['imports'],
 )

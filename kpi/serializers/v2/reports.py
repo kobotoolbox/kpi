@@ -40,7 +40,4 @@ class ReportListSerializer(ReportsDetailSerializer):
 
     def to_representation(self, obj):
         request = self.context['request']
-        return {
-            'url': reverse('reports-detail', args=(obj.uid,),
-request=request)
-        }
+        return {'url': reverse('reports-detail', args=(obj.uid,), request=request)}

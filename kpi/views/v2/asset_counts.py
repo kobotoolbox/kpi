@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.http import Http404
-
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
@@ -10,6 +9,7 @@ from kpi.models.asset import Asset
 from kpi.permissions import ViewSubmissionPermission
 from kpi.serializers.v2.asset_counts import AssetCountsSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
 
 @extend_schema(
     tags=['counts'],

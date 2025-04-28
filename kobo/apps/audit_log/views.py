@@ -1,6 +1,5 @@
 from django.db import transaction
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from jsonschema.validators import create
+from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -24,14 +23,7 @@ from .serializers import (
     AuditLogSerializer,
     ProjectHistoryLogSerializer,
 )
-from kobo.apps.audit_log.docs.access_log import (
-    access_logs_get,
-    access_logs_me,
-    access_logs_export_get,
-    access_logs_export_post,
-    access_logs_me_export_get,
-    access_logs_me_export_post,
-)
+
 
 @extend_schema(
     tags=['audit-logs'],
@@ -181,10 +173,8 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'metadata__icontains',
     ]
 
-@extend_schema(
-    tags=['access-logs'],
-    description=access_logs_get
-)
+
+@extend_schema(tags=['access-logs'])
 class AllAccessLogViewSet(AuditLogViewSet):
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
@@ -192,7 +182,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 @extend_schema(
     tags=['access-logs'],
-    description=access_logs_me,
 )
 class AccessLogViewSet(AuditLogViewSet):
 
@@ -518,6 +507,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             status=status.HTTP_202_ACCEPTED,
         )
 
+
 @extend_schema(
     tags=['history'],
 )
@@ -655,16 +645,9 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
         return Response(tasks_data, status=status.HTTP_200_OK)
 
+
 @extend_schema(
     tags=['access-logs'],
-)
-@extend_schema_view(
-    list=extend_schema(
-        description=access_logs_me_export_get,
-    ),
-    create=extend_schema(
-        description=access_logs_me_export_post,
-    ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
@@ -690,14 +673,6 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 @extend_schema(
     tags=['access-logs'],
-)
-@extend_schema_view(
-    list=extend_schema(
-        description=access_logs_export_get,
-    ),
-    create=extend_schema(
-        description=access_logs_export_post,
-    ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
