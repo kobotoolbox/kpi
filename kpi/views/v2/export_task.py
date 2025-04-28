@@ -1,5 +1,5 @@
 # coding: utf-8
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import (
     filters,
     renderers,
@@ -14,18 +14,36 @@ from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kobo.apps.organizations.docs.v2.export_docs import *
 
 @extend_schema(
     tags=['exports'],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=export_create,
+    ),
+    destroy=extend_schema(
+        description=export_delete,
+    ),
+    list=extend_schema(
+        description=export_list,
+    ),
+    retrieve=extend_schema(
+        description=export_retrieve,
+    ),
+    partial_update=extend_schema(
+        exclude=True,
+    ),
+    update=extend_schema(
+        exclude=True,
+    ),
 )
 class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, AuditLoggedNoUpdateModelViewSet
 ):
     """
     ## List of export tasks endpoints
-
-    Lists the export tasks accessible to requesting user, for anonymous access
-    nothing is returned.
 
     > Required permissions: `view_submissions` (View submissions)
 
@@ -34,12 +52,6 @@ class ExportTaskViewSet(
     </pre>
 
     > Examples
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/
-
-    > The list can be filtered with the [query parser](https://github.com/kobotoolbox/kpi#searching)
-    > Query searches within `uid` by default if no field is provided in `q`.
-
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/?q=zVEkrWg5Gd
 
     Otherwise, the search can be more specific:
