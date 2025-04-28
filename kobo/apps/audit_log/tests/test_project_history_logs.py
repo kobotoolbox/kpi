@@ -1361,11 +1361,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             added,
         )
         self.assertIn(
-            {'codename': PERM_VIEW_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_VIEW_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
         self.assertIn(
-            {'codename': PERM_ADD_SUBMISSIONS, 'filters': [{'_submitted_by': 'someuser'}]},
+            {
+                'codename': PERM_ADD_SUBMISSIONS,
+                'filters': [{'_submitted_by': 'someuser'}],
+            },
             added,
         )
 
