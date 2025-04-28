@@ -85,7 +85,7 @@ class LanguagesStore {
         $.ajax({
           dataType: 'json',
           method: 'GET',
-          url: `${ROOT_URL}${endpoints.LANGUAGES_LIST_URL.replace(':language_id', languageCode)}`,
+          url: `${ROOT_URL}${endpoints.LANGUAGE_DETAIL_URL.replace(':language_id', languageCode)}`,
         })
           .done((response: DetailedLanguage) => {
             this.detailedLanguages.set(response.code, response)
