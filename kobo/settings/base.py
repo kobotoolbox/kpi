@@ -977,8 +977,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
     'VERSION': '0.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
-    'PREPROCESSING_HOOKS': ['kpi.utils.spectacular_processing.pre_processing_filtering'],
-    # 'POSTPROCESSING_HOOKS': ['kpi.utils.spectacular_print.postProcess_schema_enums'],
+    'PREPROCESSING_HOOKS': [
+        'kpi.utils.spectacular_processing.pre_processing_filtering'
+    ],
 }
 
 OPENROSA_REST_FRAMEWORK = {
@@ -1298,10 +1299,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every hour, every day
+    # Schedule every 15 minutes
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
-        'schedule': crontab(minute=0),
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
@@ -1891,8 +1892,6 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/geo+json',
 ]
 
-LOG_DELETION_BATCH_SIZE = 1000
-
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
@@ -1904,7 +1903,6 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 # checks as if they were.
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
 
-USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 
 # Import/Export Celery
 IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
@@ -1920,4 +1918,8 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
+# Batch sizes
+LOG_DELETION_BATCH_SIZE = 1000
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
+LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000

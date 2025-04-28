@@ -1,8 +1,11 @@
-import type { MantineSize, PolymorphicComponentProps, TooltipProps } from '@mantine/core'
+import type { MantineSize, TooltipProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react'
+import { expect, fn, userEvent, within } from '@storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
+import type { ForwardRefExoticComponent } from 'react'
+import type { StoryArgsFromPolymorphic } from '#/storybookUtils'
 
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
@@ -16,7 +19,6 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   //// Custom:
   'danger',
   'danger-secondary',
-
   'transparent',
 ]
 
@@ -43,7 +45,10 @@ const tooltipPositions: Array<NonNullable<TooltipProps['position']>> = [
   'left-start',
 ] as const
 
-const meta: Meta<typeof Button> = {
+type StoryArgs = StoryArgsFromPolymorphic<'button', ButtonProps & { 'data-testid'?: string }>
+type Story = StoryObj<ForwardRefExoticComponent<StoryArgs>>
+
+const meta = {
   title: 'Design system/Button',
   component: Button,
   argTypes: {
@@ -102,47 +107,13 @@ const meta: Meta<typeof Button> = {
       },
     },
   },
-}
+} satisfies Meta<StoryArgs>
 
 export default meta
 
-type Story = StoryObj<typeof Button>
-
-export const Primary: Story = {
+export const Default: Story = {
   args: {
     variant: 'filled',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Secondary: Story = {
-  args: {
-    variant: 'light',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Danger: Story = {
-  args: {
-    variant: 'danger',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const SecondaryDanger: Story = {
-  args: {
-    variant: 'danger-secondary',
-    size: 'lg',
-    children: 'Click me',
-  },
-}
-
-export const Text: Story = {
-  args: {
-    variant: 'transparent',
     size: 'lg',
     children: 'Click me',
   },
@@ -171,7 +142,7 @@ const demoButtons: Array<{ label?: string; leftIconName?: IconName }> = [
  * - with label x icon configurations,
  * - and in idle, pending, and disabled states.
  */
-export const AllButtons = () => (
+export const Preview = () => (
   <div
     style={{
       display: 'grid',
@@ -185,13 +156,13 @@ export const AllButtons = () => (
     {buttonVariants.map((variant) =>
       buttonSizes.map((size) =>
         demoButtons.map(({ label, leftIconName }) => {
-          const buttonProps: PolymorphicComponentProps<'button', ButtonProps> = {
+          const buttonProps = {
             variant,
             size: size,
             leftIcon: leftIconName,
             onClick: () => console.info('Clicked!', variant, size, label, leftIconName),
             tooltip: label,
-          }
+          } satisfies StoryArgs
           return (
             <>
               <Button {...buttonProps}>{label}</Button>
@@ -208,3 +179,30 @@ export const AllButtons = () => (
     )}
   </div>
 )
+
+export const TestClick: Story = {
+  args: {
+    children: 'Click me',
+    onClick: fn(),
+    'data-testid': 'Button-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId(args['data-testid']!))
+    await expect(args.onClick).toHaveBeenCalledTimes(1)
+  },
+}
+
+export const TestClickDisabled: Story = {
+  args: {
+    disabled: true,
+    children: 'Click me',
+    onClick: fn(),
+    'data-testid': 'Button-click-test',
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(canvas.getByTestId(args['data-testid']!))
+    await expect(args.onClick).toHaveBeenCalledTimes(0)
+  },
+}

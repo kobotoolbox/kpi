@@ -1,7 +1,5 @@
 access_logs_get = """
-Access logs
-
-Lists all access logs for all users. Only available to superusers.
+### Lists all access logs for all users. Only available to superusers.
 
 Submissions will be grouped together by user by hour
 
@@ -100,9 +98,7 @@ This endpoint can be paginated with 'offset' and 'limit' parameters, eg
 """
 
 access_logs_me = """
-Access logs
-
-Lists all access logs for the authenticated user
+### Lists all access logs for the authenticated user
 
 Submissions will be grouped together by hour
 
@@ -153,9 +149,7 @@ will return entries 100-149
 """
 
 access_logs_export_get = """
-Access logs export
-
-Lists all access logs export tasks for all users. Only available to superusers.
+### Lists all access logs export tasks for all users. Only available to superusers.
 
 <pre class="prettyprint">
 <b>GET</b> /api/v2/access-logs/export
@@ -183,8 +177,6 @@ Lists all access logs export tasks for all users. Only available to superusers.
 """
 
 access_logs_export_post = """
-Access logs export
-
 ### Creates an export task
 
 <pre class="prettyprint">
@@ -204,9 +196,7 @@ Access logs export
 """
 
 access_logs_me_export_get = """
-Access logs export
-
-Lists all access logs export tasks for the authenticated user
+### Lists all access logs export tasks for the authenticated user
 
 <pre class="prettyprint">
 <b>GET</b> /api/v2/access-logs/me/export
@@ -233,9 +223,7 @@ Lists all access logs export tasks for the authenticated user
 """
 
 access_logs_me_export_post = """
-Access logs export
-
-Creates an export task
+### Creates an export task
 
 <pre class="prettyprint">
 <b>POST</b> /api/v2/access-log/me/export

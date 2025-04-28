@@ -465,6 +465,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
@@ -494,6 +495,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
@@ -522,11 +524,13 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'object_id': 1,
             'field_1': 'a',
             'field_2': 'b',
+            'asset.owner.username': 'fred',
         }
         request.updated_data = {
             'object_id': 1,
             'field_1': 'new_field1',
             'field_2': 'new_field2',
+            'asset.owner.username': 'fred',
         }
         ProjectHistoryLog._related_request_base(
             request,
@@ -655,9 +659,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         request.user = User.objects.get(username='someuser')
         request.resolver_match = Mock()
         request.resolver_match.kwargs = {'parent_lookup_asset': 'a12345'}
-        request.updated_data = {
-            'asset.id': 1,
-        }
+        request.updated_data = {'asset.id': 1, 'asset.owner.username': 'fred'}
         request.permissions_added = {
             # these permissions are not allowed for anonymous users,
             # pretend something went wrong/changed and they were assigned anyway
