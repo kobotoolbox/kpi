@@ -17,7 +17,9 @@ admin.site.login = staff_member_required(admin.site.login, login_url=settings.LO
 
 urlpatterns = [
     path(
-        'api/v2/schema/', SpectacularAPIView.as_view(api_version='api_v2'), name='schema'
+        'api/v2/schema/',
+        SpectacularAPIView.as_view(api_version='api_v2'),
+        name='schema',
     ),
     path(
         'api/v2/docs/',
