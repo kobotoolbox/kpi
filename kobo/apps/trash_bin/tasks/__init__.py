@@ -80,9 +80,7 @@ def task_restarter():
     for stuck_project_id in stuck_project_ids:
         empty_project.delay(stuck_project_id, force=True)
 
-    stuck_attachment_ids = AttachmentTrash.objects.values_list(
-        'pk', flat=True
-    ).filter(
+    stuck_attachment_ids = AttachmentTrash.objects.values_list('pk', flat=True).filter(
         status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
         date_modified__lte=stuck_threshold,
     )

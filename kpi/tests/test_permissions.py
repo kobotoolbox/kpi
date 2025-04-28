@@ -25,7 +25,6 @@ from kpi.constants import (
 from kpi.exceptions import BadPermissionsException
 from kpi.permissions import AssetSnapshotPermission
 from kpi.utils.object_permission import get_all_objects_for_user
-
 from ..models import ObjectPermission
 from ..models.asset import Asset
 
