@@ -6,14 +6,6 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.docs.access_log import (
-    access_logs_export_get,
-    access_logs_export_post,
-    access_logs_get,
-    access_logs_me,
-    access_logs_me_export_get,
-    access_logs_me_export_post,
-)
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
