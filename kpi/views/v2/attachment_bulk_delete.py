@@ -24,8 +24,7 @@ class AttachmentBulkDeleteViewSet(
 
         > Example
         >
-        >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/\
-        attachments/bulk/
+        >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/attachments/bulk/ # noqa
 
         > **Payload**
         >
@@ -42,11 +41,9 @@ class AttachmentBulkDeleteViewSet(
           to delete
         """
 
-        print('here in the viewset')
         serializer = AttachmentBulkDeleteSerializer(
             data=request.data, context={'request': request, 'asset': self.asset}
         )
-        print('here after the seralizer')
         serializer.is_valid(raise_exception=True)
 
         result = serializer.save(request=request, asset=self.asset)

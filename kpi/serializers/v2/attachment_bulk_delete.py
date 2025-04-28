@@ -1,7 +1,7 @@
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
-from kpi.exceptions import ObjectDeploymentDoesNotExist
+from kpi.exceptions import AttachmentUidMismatchException, ObjectDeploymentDoesNotExist
 
 
 class AttachmentBulkDeleteSerializer(serializers.Serializer):
@@ -13,9 +13,14 @@ class AttachmentBulkDeleteSerializer(serializers.Serializer):
 
     def save(self, request, asset):
         deployment = self._get_deployment(asset)
-        attachment_count = deployment.delete_attachments(
-            request.user, self.data['attachment_uids']
-        )
+        try:
+            attachment_count = deployment.delete_attachments(
+                request.user, self.data['attachment_uids']
+            )
+        except AttachmentUidMismatchException:
+            raise serializers.ValidationError(
+                t('One or more of the provided attachment UIDs are invalid')
+            )
 
         if attachment_count is None:
             raise serializers.ValidationError(

@@ -299,10 +299,40 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        print(response.data)
         assert response.data == {
             'detail': ErrorDetail(
                 string='You do not have permission to perform this action.',
                 code='permission_denied',
             )
         }
+
+    def test_bulk_delete_attachments_uid_mismatch(self):
+        response = self.client.delete(
+            self.bulk_delete_url,
+            data=json.dumps(
+                {
+                    'attachment_uids': [
+                        self.attachment_uid_1,
+                        self.attachment_uid_2,
+                        'nonexistent_uid',
+                    ]
+                }
+            ),
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            [
+                ErrorDetail(
+                    string='One or more of the provided attachment UIDs are invalid',
+                    code='invalid',
+                )
+            ],
+        )
+
+        assert Attachment.objects.filter(uid=self.attachment_uid_1).exists()
+        assert Attachment.objects.filter(uid=self.attachment_uid_2).exists()
+        assert not Attachment.objects.filter(uid='nonexistent_uid').exists()
+        assert AttachmentTrash.objects.count() == 0
