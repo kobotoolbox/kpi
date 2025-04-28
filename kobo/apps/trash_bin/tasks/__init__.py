@@ -6,9 +6,6 @@ from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.celery import celery_app
-from .account import empty_account
-from .attachment import empty_attachment
-from .project import empty_project
 from ..constants import (
     DELETE_ATTACHMENT_STR_PREFIX,
     DELETE_PROJECT_STR_PREFIX,
@@ -19,6 +16,9 @@ from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..utils import temporarily_disconnect_signals
+from .account import empty_account
+from .attachment import empty_attachment
+from .project import empty_project
 
 
 @celery_app.task

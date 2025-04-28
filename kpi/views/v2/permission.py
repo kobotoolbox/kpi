@@ -1,11 +1,15 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 
 from kpi.models.asset import Asset
 from kpi.serializers.v2.permission import PermissionSerializer
 
 
+@extend_schema(
+    tags=['permissions'],
+)
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
     """
     **Display all assignable permissions for `Asset`**

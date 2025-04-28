@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -6,11 +7,15 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.filters import SearchFilter
+from kpi.models.asset import Asset
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.user import UserListSerializer, UserSerializer
 from kpi.tasks import sync_kobocat_xforms
 
 
+@extend_schema(
+    tags=['users'],
+)
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
     This viewset provides only the `detail` action; `list` is *not* provided to
@@ -26,6 +31,10 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     search_default_field_lookups = [
         'username__icontains',
     ]
+
+    class Meta:
+        model = Asset
+        fields = '__all__'
 
     def get_serializer_class(self):
         if self.action == 'list':

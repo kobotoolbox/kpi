@@ -1,16 +1,8 @@
 from django.db import transaction
-from django.db.models import (
-    Case,
-    CharField,
-    F,
-    OuterRef,
-    Q,
-    QuerySet,
-    Value,
-    When,
-)
+from django.db.models import Case, CharField, F, OuterRef, Q, QuerySet, Value, When
 from django.db.models.expressions import Exists
 from django.utils.http import http_date
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -27,25 +19,28 @@ from kpi.serializers.v2.service_usage import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.views.v2.asset import AssetViewSet
-from .models import Organization, OrganizationOwner, OrganizationUser
+from ..accounts.mfa.models import MfaMethod
 from .models import (
+    Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
+    OrganizationOwner,
+    OrganizationUser,
 )
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
-    OrgMembershipInvitePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
+    OrgMembershipInvitePermission,
 )
 from .renderers import OnlyGetBrowsableAPIRenderer
 from .serializers import (
-    OrgMembershipInviteSerializer
+    OrganizationSerializer,
+    OrganizationUserSerializer,
+    OrgMembershipInviteSerializer,
 )
-from .serializers import OrganizationSerializer, OrganizationUserSerializer
 from .utils import revoke_org_asset_perms
-from ..accounts.mfa.models import MfaMethod
 
 
 class OrganizationAssetViewSet(AssetViewSet):
@@ -86,6 +81,9 @@ class OrganizationAssetViewSet(AssetViewSet):
             raise NotImplementedError
 
 
+@extend_schema(
+    tags=['organizations'],
+)
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
     Organizations are groups of users with assigned permissions and configurations
@@ -263,6 +261,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return self.get_paginated_response(serializer.data)
 
 
+@extend_schema(
+    tags=['members'],
+)
 class OrganizationMemberViewSet(viewsets.ModelViewSet):
     """
     The API uses `ModelViewSet` instead of `NestedViewSetMixin` to maintain
@@ -542,6 +543,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             super().perform_destroy(member)
 
 
+@extend_schema(
+    tags=['invites'],
+)
 class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     """
     ### List Organization Invites
