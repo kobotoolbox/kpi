@@ -536,9 +536,9 @@ const assetHistoryResponsePage3rd: PaginatedResponse<ActivityLogsItem> = {
       date_created: '2025-04-16T07:36:29Z',
     },
     {
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
-      username: 'kobo',
+      user: 'http://kf.kobo.local/api/v2/users/karina/',
+      user_uid: 'umBqhq3XSkkeNEzrFpCfTx',
+      username: 'karina',
       action: AuditActions['add-media'],
       metadata: {
         source: 'Firefox (Mac OS X)',
@@ -608,9 +608,9 @@ const assetHistoryFilteredResponse: PaginatedResponse<ActivityLogsItem> = {
   previous: null,
   results: [
     {
-      user: 'http://kf.kobo.local/api/v2/users/kobo/',
-      user_uid: 'umBqhq3XSkkeNEzrFpCfTZ',
-      username: 'kobo',
+      user: 'http://kf.kobo.local/api/v2/users/karina/',
+      user_uid: 'umBqhq3XSkkeNEzrFpCfTx',
+      username: 'karina',
       action: AuditActions['add-media'],
       metadata: {
         source: 'Firefox (Mac OS X)',
