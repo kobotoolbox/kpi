@@ -20,6 +20,7 @@ module.exports = {
     //   well.
     'storybook-dark-mode',
     '@storybook/addon-webpack5-compiler-swc',
+    'storybook-addon-remix-react-router',
   ],
 
   framework: {
