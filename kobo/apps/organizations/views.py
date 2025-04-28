@@ -80,6 +80,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         else:
             raise NotImplementedError
 
+
 @extend_schema(
     tags=['organizations'],
 )
@@ -258,6 +259,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             page, many=True, context=context
         )
         return self.get_paginated_response(serializer.data)
+
 
 @extend_schema(
     tags=['members'],
@@ -539,6 +541,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
+
 
 @extend_schema(
     tags=['invites'],
