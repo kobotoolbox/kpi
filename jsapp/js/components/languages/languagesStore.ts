@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import { endpoints } from '#/api.endpoints'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
 
@@ -84,7 +85,7 @@ class LanguagesStore {
         $.ajax({
           dataType: 'json',
           method: 'GET',
-          url: `${ROOT_URL}/api/v2/languages/${languageCode}/`,
+          url: `${ROOT_URL}${endpoints.LANGUAGES_LIST_URL.replace(':language_id', languageCode)}`,
         })
           .done((response: DetailedLanguage) => {
             this.detailedLanguages.set(response.code, response)

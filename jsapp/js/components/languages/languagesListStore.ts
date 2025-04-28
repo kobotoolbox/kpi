@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 import { handleApiFail } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
 import languagesStore from './languagesStore'
@@ -37,7 +38,7 @@ export default class LanguagesListStore {
     $.ajax({
       dataType: 'json',
       method: 'GET',
-      url: `${ROOT_URL}/api/v2/languages/` + (searchPhrase ? `?q=${searchPhrase}` : ''),
+      url: `${ROOT_URL}${endpoints.LANGUAGES_LIST_URL}` + (searchPhrase ? `?q=${searchPhrase}` : ''),
     })
       .done(this.onFetchLanguagesDone.bind(this))
       .fail(this.onAnyFail.bind(this))
