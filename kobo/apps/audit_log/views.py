@@ -174,7 +174,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
 
 
-@extend_schema(tags=['access-logs'], description=access_logs_get)
+@extend_schema(tags=['access-logs'])
 class AllAccessLogViewSet(AuditLogViewSet):
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
@@ -182,7 +182,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 @extend_schema(
     tags=['access-logs'],
-    description=access_logs_me,
 )
 class AccessLogViewSet(AuditLogViewSet):
 
@@ -650,14 +649,6 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 @extend_schema(
     tags=['access-logs'],
 )
-@extend_schema_view(
-    list=extend_schema(
-        description=access_logs_me_export_get,
-    ),
-    create=extend_schema(
-        description=access_logs_me_export_post,
-    ),
-)
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
     def create(self, request, *args, **kwargs):
@@ -682,14 +673,6 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 @extend_schema(
     tags=['access-logs'],
-)
-@extend_schema_view(
-    list=extend_schema(
-        description=access_logs_export_get,
-    ),
-    create=extend_schema(
-        description=access_logs_export_post,
-    ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
