@@ -537,12 +537,14 @@ class MongoHelper:
 
         command = {
             'update': cls.COLLECTION,
-            'updates': [{
-                'q': query,
-                'u': safe_update,
-                'multi': many,
-            }],
-            'maxTimeMS': cls.get_max_time_ms()
+            'updates': [
+                {
+                    'q': query,
+                    'u': safe_update,
+                    'multi': many,
+                }
+            ],
+            'maxTimeMS': cls.get_max_time_ms(),
         }
         result = settings.MONGO_DB.command(command)
 
