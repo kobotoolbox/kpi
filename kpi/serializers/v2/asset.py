@@ -15,7 +15,6 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
-from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
@@ -47,7 +46,6 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetExportSettings,
     AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
@@ -324,7 +322,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.SerializerMethodField()
     effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
-    export_settings = serializers.SerializerMethodField()
+    export_settings = AssetExportSettingsSerializer(
+        many=True, read_only=True, source='asset_export_settings'
+    )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -342,7 +342,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__submission_count = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
-
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
@@ -760,14 +759,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
-
-    def get_export_settings(self, obj: Asset) -> ReturnList:
-        return AssetExportSettingsSerializer(
-            AssetExportSettings.objects.filter(asset=obj),
-            many=True,
-            read_only=True,
-            context=self.context,
-        ).data
 
     def get_access_types(self, asset):
         """
