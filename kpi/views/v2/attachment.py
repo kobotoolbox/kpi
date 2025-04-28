@@ -173,7 +173,7 @@ class AttachmentViewSet(
         deployment = self.asset.deployment
 
         attachments = Attachment.objects.filter(
-            xform_id=deployment.xform_id, instance__pk=submission_id_or_uuid
+            xform_id=deployment.xform_id, instance_id=submission_id_or_uuid
         )
 
         attachment_uids = list(attachments.values_list('uid', flat=True))

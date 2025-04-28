@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -109,6 +110,12 @@ class AttachmentApiTests(BaseAssetTestCase):
             self.asset.deployment.mock_submissions(submissions)
 
         self.submissions = submissions
+
+        attachments = Attachment.objects.filter(
+            xform_id=self.asset.deployment.xform_id,
+            instance_id=self.submissions[0]['_id'],
+        )
+        self.attachment_uids = list(attachments.values_list('uid', flat=True))
 
     def test_convert_mp4_to_mp3(self):
         query_dict = QueryDict('', mutable=True)
@@ -350,8 +357,12 @@ class AttachmentApiTests(BaseAssetTestCase):
             )
         )
 
+        deleted_attachments = Attachment.objects.filter(uid__in=self.attachment_uids)
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {'message': '2 attachments deleted'}
+        for attachment in deleted_attachments:
+            assert attachment.status == 'pending-delete'
 
     def test_bulk_delete_attachments_from_submission_unauthenticated(self):
         self.client.logout()
@@ -388,8 +399,12 @@ class AttachmentApiTests(BaseAssetTestCase):
                 },
             )
         )
+        deleted_attachments = Attachment.objects.filter(uid__in=self.attachment_uids)
+
         assert response.status_code == status.HTTP_200_OK
         assert response.data == {'message': '2 attachments deleted'}
+        for attachment in deleted_attachments:
+            assert attachment.status == 'pending-delete'
 
     def test_bulk_delete_attachments_from_submission_with_partial_perms_accepted(self):
         user_partial_perms = User.objects.create_user(
@@ -441,7 +456,6 @@ class AttachmentApiTests(BaseAssetTestCase):
             )
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        print(response.data)
         assert response.data == {
             'detail': ErrorDetail(
                 string='You do not have permission to perform this action.',
