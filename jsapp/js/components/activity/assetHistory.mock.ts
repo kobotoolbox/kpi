@@ -599,6 +599,9 @@ const assetHistoryResponsePage3rd: PaginatedResponse<ActivityLogsItem> = {
   ],
 }
 
+/**
+ * Response to be used when filtering by action `add-media`.
+ */
 const assetHistoryFilteredResponse: PaginatedResponse<ActivityLogsItem> = {
   count: 1,
   next: null,
