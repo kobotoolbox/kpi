@@ -987,7 +987,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
     for id_, instance in instances.items():
         (pi, created) = ParsedInstance.objects.get_or_create(instance=instance)
         try:
-            save_success = pi.save(asynchronous=False)
+            save_success = pi.save(asynchronous=False, cached_xform=xform)
         except InstanceEmptyError:
             print(
                 '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '

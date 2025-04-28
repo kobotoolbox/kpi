@@ -83,17 +83,18 @@ class ParsedInstance(models.Model):
 
     @classmethod
     def get_base_query(
-        cls, username: str, id_string: str, xform: Optional[XForm] = None
+        cls, username: str, id_string: str, mongo_uuid: Optional[str] = None
     ) -> dict:
 
-        if xform is None:
+        if not mongo_uuid:
             xform = XForm.objects.only('mongo_uuid').get(
                 id_string=id_string, user__username=username
             )
+            mongo_uuid = xform.mongo_uuid
 
         userform_id = (
-            xform.mongo_uuid
-            if xform.mongo_uuid
+            mongo_uuid
+            if mongo_uuid
             else f'{username}_{id_string}'
         )
 
@@ -282,8 +283,8 @@ class ParsedInstance(models.Model):
         cursor.batch_size = cls.DEFAULT_BATCHSIZE
         return cursor
 
-    def to_dict_for_mongo(self):
-        d = self.to_dict()
+    def to_dict_for_mongo(self, cached_xform=None):
+        d = self.to_dict(cached_xform=cached_xform)
 
         # TODO remove this check when `root_uuid` has been backfilled
         #   by long-running migration 0005.
@@ -305,14 +306,20 @@ class ParsedInstance(models.Model):
             if self.instance.user else None
         }
 
-        xform = self.instance.xform
-        username = xform.user.username
-        id_string = xform.id_string
+        # IDK, SEEMS UGLY…
+        if cached_xform:
+            mongo_uuid = cached_xform.mongo_uuid
+            username = cached_xform.user.username
+            id_string = cached_xform.id_string
+        else:
+            mongo_uuid, username, id_string = XForm.objects.filter(
+                pk=self.instance.xform_id
+            ).values_list('mongo_uuid', 'user__username', 'id_string')[0]
 
         # Add USERFORM_ID
         d.update(
             self.get_base_query(
-                username=username, id_string=id_string, xform=xform
+                username=username, id_string=id_string, mongo_uuid=mongo_uuid
             )
         )
 
@@ -320,8 +327,8 @@ class ParsedInstance(models.Model):
 
         return MongoHelper.to_safe_dict(d)
 
-    def update_mongo(self, asynchronous=True):
-        d = self.to_dict_for_mongo()
+    def update_mongo(self, asynchronous=True, cached_xform=None):
+        d = self.to_dict_for_mongo(cached_xform=cached_xform)
         if d.get('_xform_id_string') is None:
             # if _xform_id_string, Instance could not be parsed.
             # so, we don't update mongo.
@@ -351,9 +358,9 @@ class ParsedInstance(models.Model):
     def bulk_delete(query):
         return MongoHelper.delete_many(query)
 
-    def to_dict(self):
+    def to_dict(self, cached_xform=None):
         if not hasattr(self, '_dict_cache'):
-            self._dict_cache = self.instance.get_dict()
+            self._dict_cache = self.instance.get_dict(cached_xform=cached_xform)
         return self._dict_cache
 
     @classmethod
@@ -393,7 +400,7 @@ class ParsedInstance(models.Model):
             self.lat = self.instance.point.y
             self.lng = self.instance.point.x
 
-    def save(self, asynchronous=False, *args, **kwargs):
+    def save(self, asynchronous=False, cached_xform=None, *args, **kwargs):
         # start/end_time obsolete: originally used to approximate for
         # instanceID, before instanceIDs were implemented
         created = self.pk is None
@@ -405,7 +412,7 @@ class ParsedInstance(models.Model):
         # insert into Mongo.
         # Signal has been removed because of a race condition.
         # Rest Services were called before data was saved in DB.
-        success = self.update_mongo(asynchronous)
+        success = self.update_mongo(asynchronous, cached_xform=cached_xform)
         if success and created:
             records = ParsedInstance.objects.filter(
                 instance_id=self.instance_id

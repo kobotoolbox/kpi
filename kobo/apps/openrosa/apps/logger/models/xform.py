@@ -168,9 +168,20 @@ class XForm(AbstractTimeStampedModel):
         if not use_cache:
             return DataDictionary.all_objects.get(pk=self.pk)
 
+        if deferred_field_names := self.get_deferred_fields():
+            # The below method of constructing a `DataDictionary` by copying
+            # attributes from this object will silently fail if fields have
+            # been deferred with `only()` or `defer()`. For example, if the
+            # `xml` attribute was deferred, the `DataDictionary` will end up
+            # with its `xml` attribute being an empty string. Avoid that by
+            # loading all deferred fields now
+            self.refresh_from_db(fields=deferred_field_names)
+
         xform_dict = deepcopy(self.__dict__)
         xform_dict.pop('_state', None)
         xform_dict.pop('_cached_asset', None)
+        # This seems like whack-a-mole…
+        xform_dict.pop('_prefetched_objects_cache', None)
         return DataDictionary(**xform_dict)
 
     def file_name(self):

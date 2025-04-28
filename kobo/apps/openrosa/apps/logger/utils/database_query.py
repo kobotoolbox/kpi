@@ -28,7 +28,7 @@ def build_db_queries(xform: XForm, request_data: dict) -> tuple[dict, dict]:
     """
 
     mongo_query = ParsedInstance.get_base_query(
-        xform.user.username, xform.id_string, xform
+        xform.user.username, xform.id_string, xform.mongo_uuid
     )
     postgres_query = {'xform_id': xform.id}
     instance_ids = None

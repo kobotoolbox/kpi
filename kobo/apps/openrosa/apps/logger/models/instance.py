@@ -183,10 +183,12 @@ class Instance(AbstractTimeStampedModel):
             if self.user is not None else None
         self.json = doc
 
-    def _set_parser(self):
+    def _set_parser(self, cached_xform=None):
+        xform = cached_xform if cached_xform else self.xform
         if not hasattr(self, '_parser'):
             self._parser = XFormInstanceParser(
-                self.xml, self.xform.data_dictionary())
+                self.xml, xform.data_dictionary(use_cache=bool(cached_xform))
+            )
 
     def _set_survey_type(self):
         self.survey_type, created = \
@@ -276,9 +278,9 @@ class Instance(AbstractTimeStampedModel):
         self._set_parser()
         return self._parser.get(abbreviated_xpath)
 
-    def get_dict(self, force_new=False, flat=True):
+    def get_dict(self, force_new=False, flat=True, cached_xform=None):
         """Return a python object representation of this instance's XML."""
-        self._set_parser()
+        self._set_parser(cached_xform=cached_xform)
 
         return self._parser.get_flat_dict_with_attributes() if flat else\
             self._parser.to_dict()
