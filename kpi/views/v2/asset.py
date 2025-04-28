@@ -401,6 +401,7 @@ class AssetViewSet(
         'data_sharing',
         'content',
         'advanced_features.qual.qual_survey',
+        'owner.username',
     ]
     log_type = AuditType.PROJECT_HISTORY
 

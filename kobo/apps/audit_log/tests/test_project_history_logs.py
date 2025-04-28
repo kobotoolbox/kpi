@@ -101,9 +101,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
         self.assertEqual(metadata_dict['log_subtype'], expected_subtype)
-        # TODO: remove this parameter when all ph logs have project owners included
-        if expect_owner:
-            self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
+        self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
         self, metadata, expected_username, expected_root_uuid
