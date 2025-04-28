@@ -8,9 +8,8 @@ from kobo.apps.openrosa.apps.logger.models.attachment import (
     Attachment,
     AttachmentDeleteStatus,
 )
-from kobo.apps.openrosa.apps.logger.signals import (
-    pre_delete_attachment,
-    post_save_attachment
+from kobo.apps.openrosa.apps.logger.utils.attachment import (
+    bulk_update_attachment_storage_counters
 )
 from kpi.fields import KpiUidField
 from . import BaseTrash
@@ -63,22 +62,24 @@ class AttachmentTrash(BaseTrash):
         """
         Toggle statuses of attachments based on their `uid`.
         """
-        delete_status = AttachmentDeleteStatus.PENDING_DELETE if not active else None
-        with transaction.atomic():
-            queryset = Attachment.all_objects.filter(uid__in=object_identifiers)
-            for attachment in queryset:
-                current_status = attachment.delete_status
-                if not active:
-                    # Decrement counters when moving to trash
-                    if current_status != AttachmentDeleteStatus.PENDING_DELETE:
-                        pre_delete_attachment(attachment, only_update_counters=True)
-                else:
-                    # Increment counters when restoring from trash
-                    if current_status == AttachmentDeleteStatus.PENDING_DELETE:
-                        post_save_attachment(attachment, created=True)
+        if not active:
+            current_delete_status = None
+            new_delete_status = AttachmentDeleteStatus.PENDING_DELETE
+            subtract = True
+        else:
+            current_delete_status = AttachmentDeleteStatus.PENDING_DELETE
+            new_delete_status = None
+            subtract = False
 
+        queryset = Attachment.all_objects.filter(
+            uid__in=object_identifiers,
+            delete_status=current_delete_status
+        )
+
+        with transaction.atomic():
+            bulk_update_attachment_storage_counters(queryset, subtract=subtract)
             updated = queryset.update(
-                delete_status=delete_status,
+                delete_status=new_delete_status,
                 date_modified=timezone.now(),
             )
-            return queryset, updated
+        return queryset, updated
