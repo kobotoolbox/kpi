@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
-import envStoreMock from '#/envStore.mock'
+import environmentMock from '#/endpoints/environment.mock'
+import languagesMock from '#/endpoints/languages.mock'
 import LanguageSelector from './languageSelector'
-import languagesListStoreMock from './languagesListStore.mock'
 
 const meta: Meta<typeof LanguageSelector> = {
   title: 'Components/LanguageSelector',
@@ -10,7 +10,7 @@ const meta: Meta<typeof LanguageSelector> = {
   argTypes: {},
   parameters: {
     msw: {
-      handlers: [languagesListStoreMock, envStoreMock],
+      handlers: [languagesMock, environmentMock],
     },
   },
 }
