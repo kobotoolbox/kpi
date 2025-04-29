@@ -35,7 +35,6 @@ import {MantineProvider} from '@mantine/core';
 // Query-related
 import {QueryClientProvider} from '@tanstack/react-query';
 import {queryClient} from './query/queryClient.ts';
-import {RequireOrg} from './router/RequireOrg';
 import {themeKobo} from './theme';
 
 class App extends React.Component {
