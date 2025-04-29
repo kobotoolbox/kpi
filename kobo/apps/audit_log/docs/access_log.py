@@ -1,4 +1,4 @@
-access_logs_get = """
+access_logs_list = """
 ### Lists all access logs for all users. Only available to superusers.
 
 Submissions will be grouped together by user by hour
@@ -97,7 +97,7 @@ This endpoint can be paginated with 'offset' and 'limit' parameters, eg
 >      curl -X GET https://[kpi-url]/access-logs/?offset=100&limit=50
 """
 
-access_logs_me = """
+access_logs_me_list = """
 ### Lists all access logs for the authenticated user
 
 Submissions will be grouped together by hour
@@ -148,7 +148,7 @@ will return entries 100-149
 
 """
 
-access_logs_export_get = """
+access_logs_export_list = """
 ### Lists all access logs export tasks for all users. Only available to superusers.
 
 <pre class="prettyprint">
@@ -176,7 +176,7 @@ access_logs_export_get = """
 >       ]
 """
 
-access_logs_export_post = """
+access_logs_export_create = """
 ### Creates an export task
 
 <pre class="prettyprint">
@@ -189,13 +189,13 @@ access_logs_export_post = """
 
 > Response 202
 >
->       [
->           "status: created"
->       ]
+>       {
+>           "status": "created"
+>       }
 >
 """
 
-access_logs_me_export_get = """
+access_logs_me_export_list = """
 ### Lists all access logs export tasks for the authenticated user
 
 <pre class="prettyprint">
@@ -222,7 +222,7 @@ access_logs_me_export_get = """
 >       ]
 """
 
-access_logs_me_export_post = """
+access_logs_me_export_create = """
 ### Creates an export task
 
 <pre class="prettyprint">
@@ -235,8 +235,8 @@ access_logs_me_export_post = """
 
 > Response 202
 >
->       [
->           "status: created"
->       ]
+>       {
+>           "status": "created"
+>       }
 >
 """

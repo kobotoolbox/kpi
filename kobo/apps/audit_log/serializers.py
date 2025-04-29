@@ -87,3 +87,12 @@ class ProjectHistoryLogSerializer(AuditLogSerializer):
             'metadata',
             'date_created',
         )
+
+class AccessLogExportSerializerList(serializers.Serializer):
+    uid = serializers.CharField(max_length=399)
+    status = serializers.CharField(max_length=200)
+    date_created = serializers.DateTimeField()
+
+
+class AccessLogExportSerializerCreate(serializers.Serializer):
+    status = serializers.CharField(max_length=100)
