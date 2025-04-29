@@ -30,7 +30,7 @@ type Story = StoryObj<typeof FormActivity>
 
 export const Default: Story = {}
 
-export const FilteringTest: Story = {
+export const TestFilteringByActivityType: Story = {
   play: async ({ canvasElement, step }) => {
     const canvas = within(canvasElement)
 
