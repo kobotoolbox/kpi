@@ -983,21 +983,22 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
     done = 0
     for id_, instance in instances.items():
         (pi, created) = ParsedInstance.objects.get_or_create(instance=instance)
-        try:
-            save_success = pi.save(asynchronous=False)
-        except InstanceEmptyError:
-            print(
-                '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
-                'it is empty\033[0m'.format(id_, instance.uuid)
-            )
-        else:
-            if not save_success:
+        if not created:
+            try:
+                save_success = pi.save(asynchronous=False)
+            except InstanceEmptyError:
                 print(
-                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
-                    'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
+                    'it is empty\033[0m'.format(id_, instance.uuid)
                 )
             else:
-                done += 1
+                if not save_success:
+                    print(
+                        '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                        'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    )
+                else:
+                    done += 1
 
         progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
