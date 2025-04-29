@@ -48,7 +48,7 @@ class ObjectPermissionsWithViewRestricted(DjangoObjectPermissions):
 
         # `PATCH` should already be set properly by DRF, but it used to be
         # explicitly assigned here as well. Double-check that it's right
-        # assert self.perms_map['PATCH'] == ['%(app_label)s.change_%(model_name)s']
+        assert self.perms_map['PATCH'] == ['%(app_label)s.change_%(model_name)s']
 
     def get_required_permissions(self, method, model_cls):
 
