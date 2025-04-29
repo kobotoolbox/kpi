@@ -106,6 +106,13 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     const publicPerms = permissionAssignments.filter((assignment) => assignment.user === ANON_USERNAME_URL)
     const nonOwnerPerms = parseUserWithPermsList(parsedPerms).filter((perm) => perm.user !== ownerUrl)
 
+    console.log('parsed---------------')
+    console.dir(parsedPerms)
+    console.log('public---------------')
+    console.dir(publicPerms)
+    console.log('nonOwner---------------')
+    console.dir(nonOwnerPerms)
+
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
@@ -197,6 +204,8 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
       'extra_details' in sessionStore.currentAccount &&
       sessionStore.currentAccount.extra_details?.require_auth !== true &&
       assetType === ASSET_TYPES.survey.id
+
+    console.log('---------------------', this.state)
 
     return (
       <bem.FormModal m='sharing-form'>
