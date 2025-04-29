@@ -30,13 +30,13 @@ import {isAnyProcessingRouteActive} from 'js/components/processing/routes.utils'
 import pageState from 'js/pageState.store';
 
 import '@mantine/core/styles.css';
-import { MantineProvider } from '@mantine/core';
+import {MantineProvider} from '@mantine/core';
 
 // Query-related
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from './query/queryClient.ts';
-import { RequireOrg } from './router/RequireOrg';
-import { themeKobo } from './theme';
+import {QueryClientProvider} from '@tanstack/react-query';
+import {queryClient} from './query/queryClient.ts';
+import {RequireOrg} from './router/RequireOrg';
+import {themeKobo} from './theme';
 
 class App extends React.Component {
   constructor(props) {
@@ -98,9 +98,8 @@ class App extends React.Component {
     };
 
     if (typeof this.state.pageState.modal === 'object') {
-      pageWrapperModifiers[
-        `is-modal-${this.state.pageState.modal.type}`
-      ] = true;
+      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] =
+        true;
     }
 
     // TODO: We have multiple routes that shouldn't display `MainHeader`,
@@ -112,47 +111,44 @@ class App extends React.Component {
         <QueryClientProvider client={queryClient}>
           <MantineProvider theme={themeKobo}>
             <RootContextProvider>
-              <RequireOrg>
-                <Tracking />
-                <ToasterConfig />
+              <Tracking />
+              <ToasterConfig />
 
-                {this.shouldDisplayMainLayoutElements() &&
-                  <div className='header-stretch-bg' />
-                }
+              {this.shouldDisplayMainLayoutElements() && (
+                <div className='header-stretch-bg' />
+              )}
 
-                <bem.PageWrapper
-                  m={pageWrapperModifiers}
-                  className='mdl-layout mdl-layout--fixed-header'
+              <bem.PageWrapper
+                m={pageWrapperModifiers}
+                className='mdl-layout mdl-layout--fixed-header'
+              >
+                {this.state.pageState.modal && (
+                  <BigModal params={this.state.pageState.modal} />
+                )}
+
+                {this.shouldDisplayMainLayoutElements() && (
+                  <>
+                    <MainHeader assetUid={assetid} />
+                    <Drawer />
+                  </>
+                )}
+
+                <bem.PageWrapper__content
+                  className='mdl-layout__content'
+                  m={pageWrapperContentModifiers}
                 >
-                  {this.state.pageState.modal && (
-                    <BigModal params={this.state.pageState.modal} />
-                  )}
-
                   {this.shouldDisplayMainLayoutElements() && (
                     <>
-                      <MainHeader assetUid={assetid} />
-                      <Drawer />
+                      {this.isFormSingle() && <ProjectTopTabs />}
+                      <FormViewSideTabs show={this.isFormSingle()} />
                     </>
                   )}
 
-                  <bem.PageWrapper__content
-                    className='mdl-layout__content'
-                    m={pageWrapperContentModifiers}
-                  >
-                    {this.shouldDisplayMainLayoutElements() && (
-                      <>
-                        {this.isFormSingle() && <ProjectTopTabs />}
-                        <FormViewSideTabs show={this.isFormSingle()} />
-                      </>
-                    )}
-
-                    <Outlet />
-                  </bem.PageWrapper__content>
-                </bem.PageWrapper>
-              </RequireOrg>
+                  <Outlet />
+                </bem.PageWrapper__content>
+              </bem.PageWrapper>
             </RootContextProvider>
           </MantineProvider>
-
 
           {/* React Query Devtools - GUI for inspecting and modifying query status
               (https://tanstack.com/query/latest/docs/framework/react/devtools)
@@ -166,14 +162,11 @@ class App extends React.Component {
             <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
             <ReactQueryDevtools />
           */}
-
-
         </QueryClientProvider>
       </DocumentTitle>
     );
   }
 }
-
 
 reactMixin(App.prototype, Reflux.connect(pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
