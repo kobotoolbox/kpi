@@ -29,6 +29,7 @@ import {
   PARTIAL_BY_RESPONSES_LABEL,
   PARTIAL_BY_USERS_LABEL,
 } from './permConstants'
+import {check} from '@placemarkio/check-geojson'
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
@@ -450,6 +451,9 @@ export function getPermLabel(perm: PermissionResponse) {
     const checkboxName = getCheckboxNameByPermission(permDef.codename)
 
     if (checkboxName) {
+      if (hasChangingLabelSuffix(checkboxName)) {
+        return CHECKBOX_LABELS[checkboxName] + getPermLabelSuffix(checkboxName)
+      }
       return CHECKBOX_LABELS[checkboxName]
     }
   }
@@ -458,6 +462,25 @@ export function getPermLabel(perm: PermissionResponse) {
   // something is terribly wrong. But this case is ~impossible to get, and we
   // mostly have it for TS reasons.
   return '???'
+}
+
+function hasChangingLabelSuffix(checkboxName: string) {
+  console.log('what', checkboxName)
+      return (checkboxName === CHECKBOX_LABELS.formView || checkboxName === CHECKBOX_LABELS.formEdit || checkboxName === CHECKBOX_LABELS.formManage)
+}
+
+function getPermLabelSuffix(checkboxName: string) {
+  if (hasChangingLabelSuffix(checkboxName)) {
+    switch (checkboxName) {
+      case CHECKBOX_LABELS.formView || CHECKBOX_LABELS.formEdit:
+        return 'form'
+      case CHECKBOX_LABELS.formManage:
+        return 'project'
+      default:
+        return ''
+    }
+  }
+  return ''
 }
 
 /**

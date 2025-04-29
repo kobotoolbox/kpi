@@ -101,6 +101,8 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
       <bem.UserRow__perms>
         {permissions.map((perm) => {
           const permLabel = getPermLabel(perm)
+          // TODO: find everywhere that uses CHECKBOX_LABELS
+          console.log('label', permLabel)
 
           const friendlyPermName = getFriendlyPermName(perm)
 
