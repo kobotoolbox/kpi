@@ -1,12 +1,5 @@
 from django.db import transaction
-from django.template.base import kwarg_re
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (
-    extend_schema,
-    extend_schema_view,
-    OpenApiResponse,
-    OpenApiExample
-)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -27,11 +20,11 @@ from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
 from .serializers import (
+    AccessLogExportSerializerCreate,
+    AccessLogExportSerializerList,
     AccessLogSerializer,
     AuditLogSerializer,
     ProjectHistoryLogSerializer,
-    AccessLogExportSerializerList,
-    AccessLogExportSerializerCreate
 )
 
 
@@ -682,11 +675,7 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
     create=extend_schema(
         description=access_logs_me_export_create,
         request=None,
-        responses={
-            202: OpenApiResponse(
-                response=AccessLogExportSerializerCreate
-            )
-        }
+        responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -727,6 +716,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     >       ]
     >
     """
+
     serializer_class = AccessLogExportSerializerList
 
     def create(self, request, *args, **kwargs):
@@ -759,11 +749,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     create=extend_schema(
         description=access_logs_export_create,
         request=None,
-        responses={
-            202: OpenApiResponse(
-                response=AccessLogExportSerializerCreate
-            )
-        }
+        responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
