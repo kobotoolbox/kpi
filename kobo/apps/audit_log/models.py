@@ -939,12 +939,14 @@ class ProjectHistoryLog(AuditLog):
             # request failed, don't try to log
             return
         object_id = source_data.pop('object_id')
+        owner = source_data.pop('asset.owner.username')
 
         metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
             'ip_address': get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
+            'project_owner': owner,
         }
         if label:
             metadata.update({label: source_data})
