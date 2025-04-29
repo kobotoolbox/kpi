@@ -1,7 +1,7 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
+import { type ActivityLogsItem, AuditActions, AuditSubTypes } from '#/components/activity/activity.constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import { type ActivityLogsItem, AuditActions, AuditSubTypes } from './activity.constants'
 
 export const mockAssetUid = 'a1234567890bcdEFGhijkl'
 

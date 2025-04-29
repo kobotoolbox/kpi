@@ -1,6 +1,6 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
-import type { AssetHistoryActionsResponse } from './activity.constants'
+import type { AssetHistoryActionsResponse } from '#/components/activity/activity.constants'
 import { mockAssetUid } from './assetHistory.mock'
 
 /**
