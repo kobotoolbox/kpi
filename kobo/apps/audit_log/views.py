@@ -6,7 +6,14 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.docs.access_log import *
+from kobo.apps.audit_log.docs.access_log import (
+    access_logs_export_create,
+    access_logs_export_list,
+    access_logs_list,
+    access_logs_me_export_create,
+    access_logs_me_export_list,
+    access_logs_me_list,
+)
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
@@ -521,7 +528,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         )
 
         return Response(
-            {f'status': export_task.status},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -619,7 +626,7 @@ class ProjectHistoryLogViewSet(
             )
         )
         return Response(
-            {f'status': export_task.status},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -647,7 +654,7 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
         )
 
         return Response(
-            {f'status': export_task.status},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
