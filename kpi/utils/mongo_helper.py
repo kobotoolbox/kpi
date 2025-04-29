@@ -458,6 +458,25 @@ class MongoHelper:
         return False
 
     @classmethod
+    def _normalize_update(cls, update: dict) -> dict:
+        """
+        Normalize a MongoDB update to ensure it uses update operators like $set.
+
+        If the update dict already uses an operator (e.g., $set, $unset), it is
+        returned as-is.
+        If not, it wraps the update inside a $set operator.
+        """
+        # Check if the first key is an operator (starts with "$")
+        first_key = next(iter(update), None)
+
+        if first_key is not None and first_key.startswith('$'):
+            # Update already uses an operator, return as-is
+            return update
+
+        # Otherwise, wrap inside $set
+        return {'$set': update}
+
+    @classmethod
     def _raw_delete(cls, query: dict, many: bool = True) -> int:
         """
         PyMongo's delete_one and delete_many methods do not support maxTimeMS queries.
@@ -514,14 +533,18 @@ class MongoHelper:
                 'modified_count': result.modified_count,
             }
 
+        safe_update = cls._normalize_update(update)
+
         command = {
             'update': cls.COLLECTION,
-            'updates': [{
-                'q': query,
-                'u': update,
-                'multi': many,
-            }],
-            'maxTimeMS': cls.get_max_time_ms()
+            'updates': [
+                {
+                    'q': query,
+                    'u': safe_update,
+                    'multi': many,
+                }
+            ],
+            'maxTimeMS': cls.get_max_time_ms(),
         }
         result = settings.MONGO_DB.command(command)
 
