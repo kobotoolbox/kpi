@@ -50,7 +50,7 @@ class TestDataViewSet(TestBase):
         self._make_submissions()
         view = DataViewSet.as_view({'get': 'list'})
 
-        # Access the list endpoint as Bob.
+        # Access the list endpoint as Bob
         request = self.factory.get('/', **self.extra)
         response = view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -432,3 +432,29 @@ class TestDataViewSet(TestBase):
         response = view(request, pk=self.xform.pk, format='xlsx')
         assert response.status_code == status.HTTP_200_OK
         assert response.headers['Content-Type'] == 'application/vnd.openxmlformats'
+
+    def test_query_counts(self):
+        self._make_submissions()
+        view = DataViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/', **self.extra)
+        formid = self.xform.pk
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+        # test adding submissions does not increase query count
+        self._make_submissions()
+        self._make_submissions()
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+
+    def test_query_counts_with_attachments(self):
+        self._submit_transport_instance_w_attachment()
+        self._submit_transport_instance_w_attachment()
+        view = DataViewSet.as_view({'get': 'list'})
+        request = self.factory.get('/', **self.extra)
+        formid = self.xform.pk
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
+        self._submit_transport_instance_w_attachment()
+        self._submit_transport_instance_w_attachment()
+        with self.assertNumQueries(10):
+            view(request, pk=formid)
