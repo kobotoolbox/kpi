@@ -37,6 +37,7 @@ from kpi.tests.base_test_case import (
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
@@ -406,6 +407,23 @@ class AssetListApiTests(BaseAssetTestCase):
         assert asset.has_perm(anotheruser, PERM_DELETE_SUBMISSIONS)
         assert asset.has_perm(anotheruser, PERM_VALIDATE_SUBMISSIONS)
         assert asset.has_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+
+    def test_query_counts(self):
+        self.create_asset()
+        # 45 when stripe is disabled, 46 when enabled
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url)
+        # test query count does not increase with more assets
+        # add several assets so the fuzziness of the count doesn't hide an O(n) addition
+        self.create_asset()
+        self.create_asset()
+        self.create_asset()
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url)
+
+        # test query counts with search filter
+        with self.assertNumQueries(FuzzyInt(45, 46)):
+            self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
