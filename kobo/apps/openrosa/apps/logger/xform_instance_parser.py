@@ -390,35 +390,16 @@ def get_xform_media_question_xpaths(
 ) -> list:
     parser = XFormInstanceParser(xform.xml, xform.data_dictionary(use_cache=True))
     all_attributes = _get_all_attributes(parser.get_root_node())
-    media_field_xpaths = []
-    # This code expects that the attributes from Enketo Express are **always**
-    # sent in the same order.
-    # For example:
-    #   <upload mediatype="application/*" ref="/azx11113333/Question_Name"/>
-    # `ref` attribute should always come right after `mediatype`
-    for (key, value) in all_attributes:
-        if key.lower() == 'mediatype':
-            try:
-                next_attribute = next(all_attributes)
-            except StopIteration:
-                logging.error(
-                    f'`ref` attribute seems to be missing in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
+    media_field_xpaths, current_node_attrs = [], {}
+    for key, value in all_attributes:
+        key_lower = key.lower()
+        current_node_attrs[key_lower] = value
 
-            next_attribute_key, next_attribute_value = next_attribute
-            try:
-                assert next_attribute_key.lower() == 'ref'
-            except AssertionError:
-                logging.error(
-                    f'`ref` should come after `mediatype:{value}` in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
-
-            # We are returning XPaths, leading slash should be removed
-            media_field_xpaths.append(next_attribute_value[1:])
+        if key_lower == 'ref':
+            # Append ref only if a mediatype is present in the same XML node
+            if 'mediatype' in current_node_attrs:
+                media_field_xpaths.append(current_node_attrs['ref'][1:])
+            current_node_attrs.clear()
 
     return media_field_xpaths
 
