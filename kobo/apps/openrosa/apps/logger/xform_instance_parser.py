@@ -295,27 +295,28 @@ def _get_all_attributes(node):
 
 class XFormInstanceParser:
 
-    def __init__(self, xml_str, data_dictionary):
+    def __init__(self, xml_str, data_dictionary, delay_parse=False):
         self.dd = data_dictionary
         # The two following variables need to be initialized in the constructor, in case parsing fails.
         self._flat_dict = {}
         self._attributes = {}
-        try:
-            self.parse(xml_str)
-        except Exception as e:
-            logging.error(
-                f"Failed to parse instance '{xml_str}'", exc_info=True
-            )
-            # `self.parse()` has been wrapped in to try/except but it makes the
-            # exception silently ignored.
-            # `logger_tool.py::safe_create_instance()` needs the exception
-            # to return the correct HTTP code
-            six.reraise(*sys.exc_info())
+        if not delay_parse:
+            try:
+                self.parse(xml_str)
+            except Exception as e:
+                logging.error(
+                    f"Failed to parse instance '{xml_str}'", exc_info=True
+                )
+                # `self.parse()` has been wrapped in to try/except but it makes the
+                # exception silently ignored.
+                # `logger_tool.py::safe_create_instance()` needs the exception
+                # to return the correct HTTP code
+                six.reraise(*sys.exc_info())
 
-    def parse(self, xml_str):
+    def parse(self, xml_str, repeats=None):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = [
+        repeats = repeats or [
             get_abbreviated_xpath(e)
             for e in self.dd.get_survey_elements_of_type('repeat')
         ]
