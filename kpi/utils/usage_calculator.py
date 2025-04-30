@@ -54,6 +54,7 @@ def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int,
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
         for org_id, dates in current_billing_dates_by_org.items()
+        if org_id in owner_by_org
     }
     return get_submission_counts_in_date_range_by_user_id(
         current_billing_dates_by_owner
@@ -103,6 +104,7 @@ def get_nlp_usage_for_current_billing_period_by_user_id(
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
         for org_id, dates in current_billing_dates_by_org.items()
+        if org_id in owner_by_org
     }
     return get_nlp_usage_in_date_range_by_user_id(current_billing_dates_by_owner)
 
