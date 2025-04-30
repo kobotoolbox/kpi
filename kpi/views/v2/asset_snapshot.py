@@ -2,8 +2,9 @@ import copy
 
 import requests
 from django.conf import settings
+from django.db.models import JSONField
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import inline_serializer, OpenApiResponse, extend_schema, extend_schema_view
 from responses import delete
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -28,11 +29,19 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
+from kpi.utils.docs.markdown import read_md
 from kpi.docs.asset_snapshot_doc import *
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
-
+SnapshotInlineSerializer = inline_serializer(
+    name='SnapshotInlineSerializer',
+    fields={
+        'asset': serializers.IntegerField(),
+        'source': serializers.JSONField(),
+        'details': serializers.JSONField(),
+    }
+)  # noqa
 @extend_schema(
     tags=['Asset_Snapshots'],
 )
@@ -72,6 +81,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
     ),
     preview=extend_schema(
         description=preview_method,
+        responses={202: OpenApiResponse(response=SnapshotInlineSerializer)}
     ),
     xform=extend_schema(
        description=xform_method
@@ -83,9 +93,56 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """
-    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+    ViewSet for managing the current user's asset snapshots
 
-    ### CURRENT ENDPOINT
+    Available actions:
+    - list       → GET /api/v2/asset_snapshots/
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/list.md
+
+
+    - create       → POST /api/v2/asset_snapshots/
+# payload utilise ou un asset ou un snapshot.
+# asset -> url de l'asset
+    Documentation:
+    - docs/api/v2/asset_snapshots/create.md
+
+
+    - retrieve       → GET /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/retrieve.md
+
+
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/patch.md
+
+
+    - delete       → DELETE /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/delete.md
+
+
+    - formlist       → PATCH /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/patch.md
+
+
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/patch.md
+
+
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/patch.md
     """
 
     serializer_class = AssetSnapshotSerializer
