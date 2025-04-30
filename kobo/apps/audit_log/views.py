@@ -125,7 +125,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 @extend_schema(
     tags=['Access-Logs'],
-    description=access_logs_me_list,
+    description=read_md('audit_log', 'access_logs/me/list'),
 )
 class AccessLogViewSet(AuditLogViewSet):
     """
