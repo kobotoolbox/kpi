@@ -336,4 +336,3 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         assert Attachment.objects.filter(uid=self.attachment_uid_2).exists()
         assert not Attachment.objects.filter(uid='nonexistent_uid').exists()
         assert AttachmentTrash.objects.count() == 0
-

@@ -4,7 +4,6 @@ from rest_framework import serializers
 from kpi.exceptions import AttachmentUidMismatchException, ObjectDeploymentDoesNotExist
 
 
-
 class AttachmentBulkDeleteSerializer(serializers.Serializer):
     attachment_uids = serializers.ListField(
         child=serializers.CharField(),
