@@ -416,11 +416,6 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             }
             for org in Organization.objects.all()
         }
-        orgs_with_owners = sorted(
-            Organization.objects.filter(owner__isnull=False).values_list(
-                'id', flat=True
-            )
-        )
         with patch(
             'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
             return_value=mock_billing_periods,
