@@ -405,6 +405,9 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage_by_user[self.someuser.id]['characters'] == 40
         assert nlp_usage_by_user[self.anotheruser.id]['characters'] == 20
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_counters_ignore_orgs_with_no_owner(self):
         six_months_ago = timezone.now() - relativedelta(months=6)
         six_months_from_now = six_months_ago + relativedelta(years=1)
