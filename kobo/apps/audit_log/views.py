@@ -659,7 +659,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs_C'],
+    tags=['Access-Logs'],
 )
 @extend_schema_view(
     list=extend_schema(
