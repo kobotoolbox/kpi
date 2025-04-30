@@ -12,12 +12,12 @@ from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
 from django_request_cache import cache_for_request
-from taggit.managers import TaggableManager, _TaggableManager
-from taggit.utils import require_instance_manager
-
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+from taggit.managers import TaggableManager, _TaggableManager
+from taggit.utils import require_instance_manager
+
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -263,9 +263,7 @@ class Asset(
         blank=True,
         db_index=True
     )
-    created_by = models.CharField(
-        max_length=150, null=True, blank=True, db_index=True
-    )
+    created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
     last_modified_by = models.CharField(
         max_length=150, null=True, blank=True, db_index=True
     )
@@ -871,32 +869,38 @@ class Asset(
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
-        """ Used by serializers to improve performance when listing assets """
-        queryset = queryset.defer(
-            # Avoid pulling these from the database because they are often huge
-            # and we don't need them for list views.
-            'content', 'report_styles'
-        ).select_related(
-            # We only need `username`, but `select_related('owner__username')`
-            # actually pulled in the entire `auth_user` table under Django 1.8.
-            # In Django 1.9+, "select_related() prohibits non-relational fields
-            # for nested relations."
-            'owner',
-        ).prefetch_related(
-            'permissions__permission',
-            'permissions__user',
-            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
-            # related objects in a list (`prefetched_list`) that we can use in
-            # other methods to avoid additional queries; see:
-            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
-            Prefetch('tags', to_attr='prefetched_tags'),
-            Prefetch(
-                'asset_versions',
-                queryset=AssetVersion.objects.order_by(
-                    '-date_modified'
-                ).only('uid', 'asset', 'date_modified', 'deployed'),
-                to_attr='prefetched_latest_versions',
-            ),
+        """Used by serializers to improve performance when listing assets"""
+        queryset = (
+            queryset.defer(
+                # Avoid pulling these from the database because they are often huge
+                # and we don't need them for list views.
+                'content',
+                'report_styles',
+            )
+            .select_related(
+                # We only need `username`, but `select_related('owner__username')`
+                # actually pulled in the entire `auth_user` table under Django 1.8.
+                # In Django 1.9+, "select_related() prohibits non-relational fields
+                # for nested relations."
+                'owner',
+            )
+            .prefetch_related(
+                'permissions__permission',
+                'permissions__user',
+                # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+                # related objects in a list (`prefetched_list`) that we can use in
+                # other methods to avoid additional queries; see:
+                # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+                Prefetch('tags', to_attr='prefetched_tags'),
+                Prefetch(
+                    'asset_versions',
+                    queryset=AssetVersion.objects.order_by('-date_modified').only(
+                        'uid', 'asset', 'date_modified', 'deployed'
+                    ),
+                    to_attr='prefetched_latest_versions',
+                ),
+                Prefetch('asset_export_settings'),
+            )
         )
         return queryset
 
