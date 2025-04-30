@@ -77,9 +77,21 @@ jobs:
       - name: Build Storybook
         run: npm run build:storybook
 
-      # Install Playwright (for Storybook tests)
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+      # Install Playwright (with cache) for Storybook tests
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package-lock.json').dependencies['@playwright/test'].version)")" >> $GITHUB_ENV
+      - name: Cache playwright binaries
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+      - run: npx playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - run: npx playwright install-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       # Run the storybook test suite
       - name: Serve Storybook and run tests
