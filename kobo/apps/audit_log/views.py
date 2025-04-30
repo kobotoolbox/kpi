@@ -6,14 +6,6 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.audit_log.docs.access_log import (
-    access_logs_export_create,
-    access_logs_export_list,
-    access_logs_list,
-    access_logs_me_export_create,
-    access_logs_me_export_list,
-    access_logs_me_list,
-)
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
@@ -647,10 +639,16 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
 )
 @extend_schema_view(
     list=extend_schema(
-        description=access_logs_me_export_list,
+        description=read_md(
+            'audit_log',
+            'access_logs/me/exports/list'
+        ),
     ),
     create=extend_schema(
-        description=access_logs_me_export_create,
+        description=read_md(
+            'audit_log',
+            'access_logs/me/exports/create'
+        ),
         request=None,
         responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
     ),
@@ -721,10 +719,10 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 )
 @extend_schema_view(
     list=extend_schema(
-        description=access_logs_export_list,
+        description=read_md('audit_log', 'access_logs/exports/list'),
     ),
     create=extend_schema(
-        description=access_logs_export_create,
+        description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
         responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
     ),
