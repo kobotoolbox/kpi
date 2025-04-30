@@ -23,6 +23,7 @@ from kpi.models.import_export_task import (
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.utils.docs.markdown import read_md
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
@@ -114,48 +115,17 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 @extend_schema(
     tags=['Access-Logs'],
-    description=access_logs_list,
+    description=read_md('audit_log', 'access_logs/list'),
 )
 class AllAccessLogViewSet(AuditLogViewSet):
     """
-    Access logs
-    Lists all access logs for all users. Only available to superusers.
-    Submissions will be grouped together by user by hour
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/
-    > Response 200
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "digest",
-    >                        "ip_address": "172.18.0.6"
-    >                   },
-    >                    "date_created": "2024-08-19T16:48:58Z",
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/someuser/",
-    >                    "user_uid": "u5678",
-    >                    "username": "someuser",
-    >                    "metadata": {
-    >                        "auth_type": "submission-group",
-    >                    },
-    >                    "date_created": "2024-08-19T16:00:00Z"
-    >                },
-    >                ...
-    >           ]
-    >       }
+    ViewSet for managing superusers' access logs.
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/exports/
+
+    Documentation:
+    - docs/api/v2/access_logs/list.md
     """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
