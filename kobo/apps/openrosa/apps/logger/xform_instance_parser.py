@@ -293,6 +293,18 @@ def _get_all_attributes(node):
             yield pair
 
 
+def _get_attributes_by_node(node):
+    """
+    Traverse the XML tree and yield each node with its attributes as a dictionary.
+    Only yields nodes that have attributes.
+    """
+    if hasattr(node, 'hasAttributes') and node.hasAttributes():
+        attrs = {key: node.getAttribute(key) for key in node.attributes.keys()}
+        yield node, attrs
+    for child in getattr(node, 'childNodes', []):
+        yield from _get_attributes_by_node(child)
+
+
 class XFormInstanceParser:
 
     def __init__(self, xml_str, data_dictionary):
@@ -385,40 +397,15 @@ def parse_xform_instance(xml_str, data_dictionary):
     return parser.get_flat_dict_with_attributes()
 
 
-def get_xform_media_question_xpaths(
-    xform: 'kobo.apps.openrosa.apps.logger.models.XForm',
-) -> list:
+def get_xform_media_question_xpaths(xform: 'logger.XForm') -> list:
     parser = XFormInstanceParser(xform.xml, xform.data_dictionary(use_cache=True))
-    all_attributes = _get_all_attributes(parser.get_root_node())
+    attributes_by_node = _get_attributes_by_node(parser.get_root_node())
     media_field_xpaths = []
-    # This code expects that the attributes from Enketo Express are **always**
-    # sent in the same order.
-    # For example:
-    #   <upload mediatype="application/*" ref="/azx11113333/Question_Name"/>
-    # `ref` attribute should always come right after `mediatype`
-    for (key, value) in all_attributes:
-        if key.lower() == 'mediatype':
-            try:
-                next_attribute = next(all_attributes)
-            except StopIteration:
-                logging.error(
-                    f'`ref` attribute seems to be missing in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
 
-            next_attribute_key, next_attribute_value = next_attribute
-            try:
-                assert next_attribute_key.lower() == 'ref'
-            except AssertionError:
-                logging.error(
-                    f'`ref` should come after `mediatype:{value}` in {xform.xml}',
-                    exc_info=True,
-                )
-                continue
-
+    for node, attributes in attributes_by_node:
+        if 'mediatype' in attributes:
             # We are returning XPaths, leading slash should be removed
-            media_field_xpaths.append(next_attribute_value[1:])
+            media_field_xpaths.append(attributes['ref'][1:])
 
     return media_field_xpaths
 
