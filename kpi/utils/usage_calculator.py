@@ -48,8 +48,10 @@ def get_submission_counts_in_date_range_by_user_id(
 def get_submissions_for_current_billing_period_by_user_id(**kwargs) -> dict[int, int]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
-        org.id: org.owner.organization_user.user.id
-        for org in Organization.objects.filter(owner__isnull=False)
+        org_vals['id']: org_vals['owner__organization_user__user__id']
+        for org_vals in Organization.objects.values(
+            'id', 'owner__organization_user__user__id'
+        ).filter(owner__isnull=False)
     }
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
@@ -98,8 +100,10 @@ def get_nlp_usage_for_current_billing_period_by_user_id(
 ) -> dict[int, NLPUsage]:
     current_billing_dates_by_org = get_current_billing_period_dates_by_org()
     owner_by_org = {
-        org.id: org.owner.organization_user.user.id
-        for org in Organization.objects.filter(owner__isnull=False)
+        org_vals['id']: org_vals['owner__organization_user__user__id']
+        for org_vals in Organization.objects.values(
+            'id', 'owner__organization_user__user__id'
+        ).filter(owner__isnull=False)
     }
     current_billing_dates_by_owner = {
         owner_by_org[org_id]: dates
