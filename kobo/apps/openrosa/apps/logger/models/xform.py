@@ -17,8 +17,6 @@ from taggit.managers import TaggableManager
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import XLSFormError
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import get_abbreviated_xpath, XFormInstanceParser
-from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.koboform.pyxform_utils import convert_csv_to_xls
 from kobo.apps.openrosa.libs.constants import (
     CAN_ADD_SUBMISSIONS,
@@ -359,6 +357,3 @@ class XForm(AbstractTimeStampedModel):
                     return convert_csv_to_xls(ff.read())
                 else:
                     return BytesIO(ff.read())
-
-
-
