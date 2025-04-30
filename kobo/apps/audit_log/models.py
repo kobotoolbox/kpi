@@ -346,6 +346,7 @@ class ProjectHistoryLog(AuditLog):
                 'ip_address': audit_log_info['ip_address'],
                 'source': audit_log_info['source'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                'project_owner': audit_log_info['project_owner'],
             }
             ProjectHistoryLog.objects.create(
                 user=task.user,
@@ -795,6 +796,7 @@ class ProjectHistoryLog(AuditLog):
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
                 'ip_address': get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
+                'project_owner': updated_data['project_owner'],
             },
         )
 
