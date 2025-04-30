@@ -76,3 +76,14 @@ jobs:
       # Check that the storybook build succeeds
       - name: Build Storybook
         run: npm run build:storybook
+
+      # Install Playwright (for Storybook tests)
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      # Run the storybook test suite
+      - name: Serve Storybook and run tests
+        run: |
+          npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+            "npx http-server storybook-static --port 6006 --silent" \
+            "npx wait-on tcp:127.0.0.1:6006 && npx test-storybook"
