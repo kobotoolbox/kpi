@@ -16,11 +16,11 @@ from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.docs.markdown import read_md
+from kobo.apps.audit_log.docs.api.v2.access_logs.serializers.access_logs_serializers import *
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
 from .serializers import (
-    AccessLogExportSerializerCreate,
     AccessLogExportSerializerList,
     AccessLogSerializer,
     AuditLogSerializer,
@@ -616,7 +616,7 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
             'access_logs/me/exports/create'
         ),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
+        responses={202: OpenApiResponse(response=AccessLogMeCreateInlineSerializer)},
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -668,7 +668,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogExportSerializerCreate)},
+        responses={202: OpenApiResponse(response=AccessLogMeCreateInlineSerializer)},
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
