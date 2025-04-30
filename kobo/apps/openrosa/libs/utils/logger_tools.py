@@ -983,6 +983,9 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
     done = 0
     for id_, instance in instances.items():
         (pi, created) = ParsedInstance.objects.get_or_create(instance=instance)
+        if created:
+            done += 1
+            continue
         try:
             save_success = pi.save(asynchronous=False)
         except InstanceEmptyError:
