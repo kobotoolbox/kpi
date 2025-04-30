@@ -129,47 +129,13 @@ class AllAccessLogViewSet(AuditLogViewSet):
 )
 class AccessLogViewSet(AuditLogViewSet):
     """
-    Access logs
-    Lists all access logs for the authenticated user
-    Submissions will be grouped together by hour
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/me/
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/me/
-    > Response 200
-    >       {
-    >           "count": 10,
-    >           "next": null,
-    >           "previous": null,
-    >           "results": [
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "source": "Firefox (Ubuntu)",
-    >                        "auth_type": "Digest",
-    >                        "ip_address": "172.18.0.6"
-    >                    },
-    >                    "date_created": "2024-08-19T16:48:58Z"
-    >                },
-    >                {
-    >                    "user": "http://localhost/api/v2/users/admin/",
-    >                    "user_uid": "u12345",
-    >                    "username": "admin",
-    >                    "metadata": {
-    >                        "auth_type": "submission-group",
-    >                    },
-    >                    "date_created": "2024-08-19T16:00:00Z"
-    >                },
-    >                ...
-    >           ]
-    >       }
-    This endpoint can be paginated with 'offset' and 'limit' parameters, eg
-    >      curl -X GET https://[kpi-url]/access-logs/me/?offset=100&limit=50
-    will return entries 100-149
+    ViewSet for listing a user's access logs
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/list.md
     """
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
@@ -655,41 +621,19 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-    Access logs export
-    Lists all access logs export tasks for the authenticated user
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/me/export
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/me/export
-    > Response 200
-    >
-    >       [
-    >           {
-    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T21:27:08.403181Z"
-    >           },
-    >           {
-    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T20:18:55.982974Z"
-    >           }
-    >       ]
-    ### Creates an export task
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/access-log/me/export
-    </pre>
-    > Example
-    >
-    >       curl -X POST https://[kpi-url]/access-logs/me/export
-    > Response 202
-    >
-    >       [
-    >           "status: created"
-    >       ]
-    >
+    ViewSet for managing the current user's access logs export
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
+
+
+    - create       → POST /api/v2/access-logs/me/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/create.md
     """
 
     serializer_class = AccessLogExportSerializerList
@@ -715,7 +659,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs'],
+    tags=['Access-Logs_C'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -729,41 +673,20 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-    Access logs export
-    Lists all access logs export tasks for all users. Only available to superusers.
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/access-logs/export
-    </pre>
-    > Example
-    >
-    >       curl -X GET https://[kpi-url]/access-logs/export
-    > Response 200
-    >
-    >       [
-    >           {
-    >               "uid": "aleooVUrhe3cRrLY5urRhxLA",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T21:27:08.403181Z"
-    >           },
-    >           {
-    >               "uid": "aleMzK7RnuaPokb86TZF2N4d",
-    >               "status": "complete",
-    >               "date_created": "2024-11-26T20:18:55.982974Z"
-    >           }
-    >       ]
-    ### Creates an export task
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/access-log/export
-    </pre>
-    > Example
-    >
-    >       curl -X POST https://[kpi-url]/access-logs/export
-    > Response 202
-    >
-    >       [
-    >           "status: created"
-    >       ]
-    >
+   ViewSet for managing every user's access logs export
+
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
+
+
+    - create       → POST /api/v2/access-logs/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/create.md
     """
 
     permission_classes = (SuperUserPermission,)
