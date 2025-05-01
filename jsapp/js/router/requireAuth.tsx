@@ -1,9 +1,9 @@
 import type React from 'react'
-import {Suspense, useEffect, useState} from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import sessionStore from '#/stores/session'
 import LoadingSpinner from '../components/common/loadingSpinner'
-import {redirectToLogin} from './routerUtils'
 import { RequireOrg } from './RequireOrg'
+import { redirectToLogin } from './routerUtils'
 
 interface Props {
   children: React.ReactNode

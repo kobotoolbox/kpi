@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from constance import config
 from ddt import data, ddt, unpack
@@ -78,7 +79,7 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now()
-        AccountTrash.toggle_user_statuses([someuser.pk], active=False)
+        AccountTrash.toggle_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
         after = timezone.now()
@@ -165,7 +166,7 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now() + timedelta(days=grace_period)
-        AccountTrash.toggle_user_statuses([someuser.pk], active=False)
+        AccountTrash.toggle_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
 
