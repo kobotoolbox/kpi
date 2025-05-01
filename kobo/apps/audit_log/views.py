@@ -634,9 +634,18 @@ class ProjectHistoryLogViewSet(
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
-    # By default, we need to specify the class because of drf-spectacular that will
-    # read the default from the settings, even if it doesn't need it.
+
+    # By default, we explicitly set the pagination class because drf-spectacular uses
+    # the `pagination_class` to generate the schema — even if the actual response
+    # from the viewset actions does not use pagination.
+    # If `pagination_class` is not specified, drf-spectacular falls back to the global
+    # DRF setting, which can result in incorrect schema generation.
     pagination_class = None
+
+    # We explicitly set `renderer_classes` because drf-spectacular uses it to generate
+    # the schema, even if the viewset doesn’t override the renderers or return content
+    # that would need them. Without this, it falls back to the default DRF settings,
+    # which may not reflect the actual behavior of the viewset.
     renderer_classes = (JSONRenderer,)
 
     def create_task(self, request, get_all_logs):
