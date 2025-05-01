@@ -1,22 +1,27 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from constance import config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.utils.timezone import now
+from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
+from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
+from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.project import ProjectTrash
-from ..tasks import empty_account, empty_project
+from ..tasks import empty_account, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
 
 
+@ddt
 class AccountTrashTestCase(TestCase):
 
     fixtures = ['test_data']
@@ -75,14 +80,14 @@ class AccountTrashTestCase(TestCase):
         grace_period = 1
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
-        before = now()
+        before = timezone.now()
         AccountTrash.toggle_user_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
-        after = now()
+        after = timezone.now()
         assert before <= someuser.extra_details.date_removal_requested <= after
 
-        before = now() + timedelta(days=grace_period)
+        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=someuser,
             objects_list=[
@@ -94,7 +99,7 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
@@ -162,7 +167,7 @@ class AccountTrashTestCase(TestCase):
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
-        before = now() + timedelta(days=grace_period)
+        before = timezone.now() + timedelta(days=grace_period)
         AccountTrash.toggle_user_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
@@ -183,7 +188,7 @@ class AccountTrashTestCase(TestCase):
         with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
             mock_delete_kc_user.return_value = True
             empty_account.apply([account_trash.pk])
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
         assert someuser.assets.count() == 0
@@ -203,7 +208,76 @@ class AccountTrashTestCase(TestCase):
             log_type=AuditType.USER_MANAGEMENT,
         ).exists()
 
+    @data(
+        # Format: (task status, within grace period, is stuck, expected restart count)
 
+        # Trivial case: Task is pending and still within the grace period
+        (TrashStatus.PENDING, False, False, 0),
+        # Task is pending but the grace period has expired — it should be restarted
+        (TrashStatus.PENDING, True, False, 1),
+        # Task has started and is still running normally
+        (TrashStatus.IN_PROGRESS, True, False, 0),
+        # Task has started but is now stuck — it should be restarted
+        (TrashStatus.IN_PROGRESS, True, True, 1),
+        # Task failed but is not considered stuck — no restart needed
+        (TrashStatus.FAILED, True, False, 0),
+        # Task failed and is considered stuck — still no restart (handled differently)
+        (TrashStatus.FAILED, True, True, 0),
+    )
+    @unpack
+    def test_task_restarter(self, status, is_time_frozen, is_stuck, restart_count):
+        """
+        A freshly created task should not be restarted if it is in grace period.
+        """
+        someuser = get_user_model().objects.get(username='someuser')
+        grace_period = config.ACCOUNT_TRASH_GRACE_PERIOD
+        admin = get_user_model().objects.get(username='adminuser')
+
+        if is_time_frozen:
+            frozen_time = '2023-12-10'
+        else:
+            frozen_time = str(timezone.now())
+
+        with freeze_time(frozen_time):
+            move_to_trash(
+                request_author=admin,
+                objects_list=[
+                    {
+                        'pk': someuser.pk,
+                        'username': someuser.username,
+                    }
+                ],
+                grace_period=grace_period,
+                trash_type='user',
+                retain_placeholder=True,
+            )
+
+        if status != TrashStatus.PENDING:
+            # Only tasks that are not pending can be considered as stuck
+            if is_stuck:
+                # Fake the task was started but is now stuck (its last run is older than
+                # the expected threshold).
+                last_run = timezone.now() - timedelta(
+                    seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
+                )
+            else:
+                last_run = timezone.now()
+
+            AccountTrash.objects.filter(user=someuser).update(
+                status=status,
+                date_modified=last_run,
+            )
+
+        with patch('kobo.apps.trash_bin.tasks.empty_account', return_value=True):
+            with patch(
+                'kobo.apps.trash_bin.tasks.empty_account.delay'
+            ) as patched_spawned_task:
+                task_restarter()
+
+                assert patched_spawned_task.call_count == restart_count
+
+
+@ddt
 class ProjectTrashTestCase(TestCase):
 
     fixtures = ['test_data']
@@ -234,7 +308,7 @@ class ProjectTrashTestCase(TestCase):
         assert asset.pending_delete
         assert asset.deployment.xform.pending_delete
 
-        before = now() + timedelta(days=grace_period)
+        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=asset.owner,
             objects_list=[
@@ -247,7 +321,7 @@ class ProjectTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='asset',
         )
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
@@ -336,3 +410,70 @@ class ProjectTrashTestCase(TestCase):
             )
             == 0
         )
+
+    @data(
+        # Format: (task status, within grace period, is stuck, expected restart count)
+        # Trivial case: Task is pending and still within the grace period
+        (TrashStatus.PENDING, False, False, 0),
+        # Task is pending but the grace period has expired — it should be restarted
+        (TrashStatus.PENDING, True, False, 1),
+        # Task has started and is still running normally
+        (TrashStatus.IN_PROGRESS, True, False, 0),
+        # Task has started but is now stuck — it should be restarted
+        (TrashStatus.IN_PROGRESS, True, True, 1),
+        # Task failed but is not considered stuck — no restart needed
+        (TrashStatus.FAILED, True, False, 0),
+        # Task failed and is considered stuck — still no restart (handled differently)
+        (TrashStatus.FAILED, True, True, 0),
+    )
+    @unpack
+    def test_task_restarter(self, status, is_time_frozen, is_stuck, restart_count):
+        """
+        A freshly created task should not be restarted if it is in grace period.
+        """
+        someuser = get_user_model().objects.get(username='someuser')
+        asset = someuser.assets.first()
+        grace_period = config.PROJECT_TRASH_GRACE_PERIOD
+
+        if is_time_frozen:
+            frozen_time = '2024-12-10'
+        else:
+            frozen_time = str(timezone.now())
+
+        with freeze_time(frozen_time):
+            move_to_trash(
+                request_author=asset.owner,
+                objects_list=[
+                    {
+                        'pk': asset.pk,
+                        'asset_uid': asset.uid,
+                        'asset_name': asset.name,
+                    }
+                ],
+                grace_period=grace_period,
+                trash_type='asset',
+            )
+
+        if status != TrashStatus.PENDING:
+            # Only tasks that are not pending can be considered as stuck
+            if is_stuck:
+                # Fake the task was started but is now stuck (its last run is older than
+                # the expected threshold).
+                last_run = timezone.now() - timedelta(
+                    seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5 + 10
+                )
+            else:
+                last_run = timezone.now()
+
+            ProjectTrash.objects.filter(asset=asset).update(
+                status=status,
+                date_modified=last_run,
+            )
+
+        with patch('kobo.apps.trash_bin.tasks.empty_project', return_value=True):
+            with patch(
+                'kobo.apps.trash_bin.tasks.empty_project.delay'
+            ) as patched_spawned_task:
+                task_restarter()
+
+                assert patched_spawned_task.call_count == restart_count
