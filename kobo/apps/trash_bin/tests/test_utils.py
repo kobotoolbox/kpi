@@ -99,7 +99,7 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
@@ -167,7 +167,7 @@ class AccountTrashTestCase(TestCase):
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
-        before = now() + timedelta(days=grace_period)
+        before = timezone.now() + timedelta(days=grace_period)
         AccountTrash.toggle_user_statuses([someuser.pk], active=False)
         someuser.refresh_from_db()
         assert not someuser.is_active
@@ -188,7 +188,7 @@ class AccountTrashTestCase(TestCase):
         with patch('kobo.apps.trash_bin.tasks.delete_kc_user') as mock_delete_kc_user:
             mock_delete_kc_user.return_value = True
             empty_account.apply([account_trash.pk])
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
         assert someuser.assets.count() == 0
@@ -308,7 +308,7 @@ class ProjectTrashTestCase(TestCase):
         assert asset.pending_delete
         assert asset.deployment.xform.pending_delete
 
-        before = now() + timedelta(days=grace_period)
+        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=asset.owner,
             objects_list=[
@@ -321,7 +321,7 @@ class ProjectTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='asset',
         )
-        after = now() + timedelta(days=grace_period)
+        after = timezone.now() + timedelta(days=grace_period)
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
