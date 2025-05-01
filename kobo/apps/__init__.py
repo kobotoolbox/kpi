@@ -12,6 +12,7 @@ class KpiConfig(AppConfig):
     def ready(self, *args, **kwargs):
         # Register signals only when the app is ready to avoid issues with models
         # not loaded yet.
+        import kpi.utils.docs.extensions  # noqa
         import kpi.signals  # noqa
 
         return super().ready(*args, **kwargs)

@@ -2,9 +2,9 @@ import copy
 
 import requests
 from django.conf import settings
-from django.db.models import JSONField
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import inline_serializer, OpenApiResponse, extend_schema, extend_schema_view
+from django_extensions.db.fields.json import JSONField
+from drf_spectacular.utils import inline_serializer, extend_schema_field,OpenApiResponse, extend_schema, extend_schema_view
 from responses import delete
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -38,10 +38,25 @@ SnapshotInlineSerializer = inline_serializer(
     name='SnapshotInlineSerializer',
     fields={
         'asset': serializers.IntegerField(),
-        'source': serializers.JSONField(),
+        'source' : serializers.JSONField(),
         'details': serializers.JSONField(),
     }
 )  # noqa
+
+
+class AbcdJSONField(serializers.JSONField):
+    pass
+
+class QwertJSONField(serializers.JSONField):
+    pass
+
+class testSerializer(serializers.Serializer):
+    # json schema
+    name = serializers.CharField(max_length=23)
+    abcd = AbcdJSONField(help_text='Some JSON', default=dict)
+    qwert = QwertJSONField(help_text='Some JSON', default=dict)
+
+
 @extend_schema(
     tags=['Asset_Snapshots'],
 )
@@ -81,7 +96,7 @@ SnapshotInlineSerializer = inline_serializer(
     ),
     preview=extend_schema(
         description=preview_method,
-        responses={202: OpenApiResponse(response=SnapshotInlineSerializer)}
+        responses={202: OpenApiResponse(response=testSerializer)}
     ),
     xform=extend_schema(
        description=xform_method
