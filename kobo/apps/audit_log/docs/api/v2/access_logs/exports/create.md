@@ -1,1 +1,1 @@
-### Creates an export task. Only available to superusers.
+### Creates an export task for all users. Only available to superusers.
