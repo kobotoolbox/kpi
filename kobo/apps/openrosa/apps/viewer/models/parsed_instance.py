@@ -352,7 +352,7 @@ class ParsedInstance(models.Model):
         return MongoHelper.delete_many(query)
 
     def to_dict(self):
-        if hasattr(self, '_mongo_dict_override') and self._mongo_dict_override is not None:
+        if hasattr(self, '_mongo_dict_override'):
             return self._mongo_dict_override
         if not hasattr(self, '_dict_cache'):
             self._dict_cache = self.instance.get_dict()
