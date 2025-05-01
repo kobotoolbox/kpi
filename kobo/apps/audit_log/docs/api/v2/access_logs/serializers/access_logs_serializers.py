@@ -13,6 +13,6 @@ AccessLogExportListInlineSerializer = inline_serializer(
     fields={
         'uid': serializers.CharField(max_length=24),
         'status': serializers.CharField(max_length=32),
-        'date_create': serializers.DateTimeField(),
+        'date_created': serializers.DateTimeField(),
     },
 )

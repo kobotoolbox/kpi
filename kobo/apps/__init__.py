@@ -13,7 +13,9 @@ class KpiConfig(AppConfig):
         # Register signals only when the app is ready to avoid issues with models
         # not loaded yet.
         import kpi.signals  # noqa
-
+        # The extension is included so the drf-spectacular extension can recognise
+        # hidden endpoints.
+        import kpi.utils.docs.schema_extensions  # noqa
         return super().ready(*args, **kwargs)
 
 

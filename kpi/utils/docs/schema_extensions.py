@@ -16,19 +16,21 @@ class DigestAuthExtension(OpenApiAuthenticationExtension):
     def get_security_definition(self, auto_schema):
         return {
             'type': 'http',
-            'scheme': 'digest',  # 'digest' is nonstandard but used in some tools
+            'scheme': 'digest',
         }
 
 
-class TokenAuthExtension(OpenApiAuthenticationExtension):
-    target_class = 'kpi.authentication.TokenAuthentication'
-    name = 'TokenAuth'
+class OAuth2AuthExtension(OpenApiAuthenticationExtension):
+    target_class = 'kpi.authentication.OAuth2Authentication'
+    name = 'OAuth2'
 
     def get_security_definition(self, auto_schema):
         return {
-            # TODO
-            #   finish token auth extension
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
         }
+
 
 class SessionAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.SessionAuthentication'
@@ -41,14 +43,16 @@ class SessionAuthExtension(OpenApiAuthenticationExtension):
             'name': 'sessionid',
         }
 
-#Token
-class OAuth2AuthExtension(OpenApiAuthenticationExtension):
-    target_class = 'kpi.authentication.OAuth2Authentication'
-    name = 'OAuth2'
+
+class TokenAuthExtension(OpenApiAuthenticationExtension):
+    target_class = 'kpi.authentication.TokenAuthentication'
+    name = 'TokenAuth'
 
     def get_security_definition(self, auto_schema):
         return {
-            'type': 'http',
-            'scheme': 'bearer',
-            'bearerFormat': 'JWT',
+            'type': '',
+            'scheme': '',
+            # TODO
+            #   finish token auth extension
         }
+
