@@ -3,7 +3,10 @@ from __future__ import annotations
 from django.db import models, transaction
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.models import XForm, Attachment
+from kobo.apps.openrosa.apps.logger.utils.attachment import (
+    bulk_update_attachment_storage_counters
+)
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.fields import KpiUidField
@@ -83,4 +86,11 @@ class ProjectTrash(BaseTrash):
                 )
                 assert updated >= kc_updated
 
+                # Update attachment storage counters
+                attachments = Attachment.objects.filter(
+                    xform__kpi_asset_uid__in=object_identifiers
+                )
+                bulk_update_attachment_storage_counters(
+                    attachments, subtract=not active
+                )
         return queryset, updated

@@ -1,13 +1,16 @@
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.test import TestCase
 from django.utils.timezone import now
 from django_celery_beat.models import PeriodicTask
 from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
@@ -338,6 +341,87 @@ class ProjectTrashTestCase(TestCase):
             )
             == 0
         )
+
+    def test_attachment_storage_updates_on_project_trash_and_restore(self):
+        """
+        Ensure that `attachment_storage_bytes` in UserProfile and XForm is
+        updated correctly when a project is moved to the trash and restored
+        """
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.create(
+            asset_type='survey',
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
+                    {'type': 'file', 'label': 'q2', 'name': 'q2'}
+                ]
+            },
+            owner=user
+        )
+        asset.save()
+        asset.deploy(backend='mock')
+
+        username = user.username
+        submission = {
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_image.jpg',
+                    'mimetype': 'image/jpeg',
+                },
+            ],
+            '_submitted_by': username,
+        }
+        asset.deployment.mock_submissions([submission])
+
+        # Fetch the storage data before moving the project to trash
+        xform_before = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+        user_profile_before = UserProfile.objects.filter(user_id=user.pk).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+
+        # Move project to trash
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=False, toggle_delete=True
+        )
+
+        xform_after = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+        user_profile_after = UserProfile.objects.filter(user_id=user.pk).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=True, toggle_delete=True
+        )
+
+        # Re-fetch user storage after restore
+        xform_restored = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+        user_profile_restored = UserProfile.objects.filter(user_id=user.pk).aggregate(
+            total_bytes=Sum('attachment_storage_bytes')
+        )['total_bytes']
+
+        self.assertGreater(xform_before, 0)
+        self.assertGreater(user_profile_before, 0)
+        self.assertEqual(xform_after, 0)
+        self.assertEqual(user_profile_after, 0)
+        self.assertGreater(xform_restored, 0)
+        self.assertGreater(user_profile_restored, 0)
+        self.assertEqual(xform_before, xform_restored)
+        self.assertEqual(user_profile_before, user_profile_restored)
 
 
 class TestAttachmentTrashStorageCounters(TestBase):
