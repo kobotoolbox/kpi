@@ -1,12 +1,12 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
 import type { PaginatedResponse } from '#/dataInterface'
-import type { ListLanguage } from './languagesStore'
+import type { ListLanguage } from '../components/languages/languagesStore'
 
 /**
  * Mock API for languages list. Use it in Storybook tests in `parameters.msw.handlers[]`.
  */
-const languagesListStoreMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<ListLanguage>>(
+const languagesMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, PaginatedResponse<ListLanguage>>(
   endpoints.LANGUAGES_LIST_URL,
   (info) => {
     const searchParams = new URL(info.request.url).searchParams
@@ -19,7 +19,7 @@ const languagesListStoreMock = http.get<PathParams<'limit' | 'offset' | 'q'>, ne
     }
   },
 )
-export default languagesListStoreMock
+export default languagesMock
 
 /** This is being returned for `q=swed` */
 const languagesResponseQuerySwed: PaginatedResponse<ListLanguage> = {
