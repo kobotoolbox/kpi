@@ -404,3 +404,28 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage_by_user[self.anotheruser.id]['seconds'] == 10
         assert nlp_usage_by_user[self.someuser.id]['characters'] == 40
         assert nlp_usage_by_user[self.anotheruser.id]['characters'] == 20
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_counters_ignore_orgs_with_no_owner(self):
+        six_months_ago = timezone.now() - relativedelta(months=6)
+        six_months_from_now = six_months_ago + relativedelta(years=1)
+        org_no_owner = baker.make(Organization, id='org_abcd1234', mmo_override=True)
+        mock_billing_periods = {
+            org.id: {
+                'start': six_months_ago,
+                'end': six_months_from_now,
+            }
+            for org in Organization.objects.all()
+        }
+        with patch(
+            'kpi.utils.usage_calculator.get_current_billing_period_dates_by_org',
+            return_value=mock_billing_periods,
+        ):
+            nlp_usage_by_user = get_nlp_usage_for_current_billing_period_by_user_id()
+            submissions_by_user = (
+                get_submissions_for_current_billing_period_by_user_id()
+            )
+        assert org_no_owner not in nlp_usage_by_user
+        assert org_no_owner not in submissions_by_user

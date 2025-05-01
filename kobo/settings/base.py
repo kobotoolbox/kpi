@@ -455,6 +455,12 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
+    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep attachments in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
@@ -747,6 +753,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Trash bin': (
         'ACCOUNT_TRASH_GRACE_PERIOD',
+        'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
     ),
     'Regular maintenance settings': (
