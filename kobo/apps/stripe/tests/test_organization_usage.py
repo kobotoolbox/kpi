@@ -704,5 +704,17 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
         subscription.save()
 
         product_metadata['mmo_enabled'] = 'true'
-        generate_plan_subscription(self.organization, metadata=product_metadata)
+        mmo_subscription = generate_plan_subscription(
+            self.organization, metadata=product_metadata
+        )
         assert self.organization.is_mmo is True
+
+        # Ensure non-plan subscriptions are ignored
+        addon_metadata = {'product_type': 'addon'}
+        generate_plan_subscription(self.organization, metadata=addon_metadata)
+        assert self.organization.is_mmo is True
+
+        # ensure inactive mmo-enabled subscriptions are ignored
+        mmo_subscription.status = 'canceled'
+        mmo_subscription.save()
+        assert self.organization.is_mmo is False
