@@ -1,9 +1,14 @@
 import { http, HttpResponse } from 'msw'
-import type { EnvironmentResponse } from './envStore'
+import { endpoints } from '#/api.endpoints'
+import type { EnvironmentResponse } from '../envStore'
 
-export default http.get<never, never, EnvironmentResponse>('/environment/', () =>
+/**
+ * Mock API for environment config. Use it in Storybook tests in `parameters.msw.handlers[]`.
+ */
+const environmentMock = http.get<never, never, EnvironmentResponse>(endpoints.ENVIRONMENT, () =>
   HttpResponse.json(environmentResponse),
 )
+export default environmentMock
 
 const environmentResponse: EnvironmentResponse = {
   terms_of_service_url: '',

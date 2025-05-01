@@ -1,4 +1,5 @@
 export const endpoints = {
+  ENVIRONMENT: '/environment/',
   /** Note: currently this endpoint only handles DELETE */
   ATTACHMENT_BULK_URL: '/api/v2/asset/:asset_uid/attachments/bulk',
   /** Note: currently this endpoint only handles DELETE */
@@ -30,4 +31,6 @@ export const endpoints = {
   ACCESS_LOGS_URL: '/api/v2/access-logs/me',
   ACCESS_LOGS_EXPORT_URL: '/api/v2/access-logs/me/export/',
   LOGOUT_ALL: '/logout-all/',
+  LANGUAGES_LIST_URL: '/api/v2/languages/',
+  LANGUAGE_DETAIL_URL: '/api/v2/languages/:language_id/',
 } as const
