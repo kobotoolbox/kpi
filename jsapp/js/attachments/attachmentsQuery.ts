@@ -8,10 +8,12 @@ import { endpoints } from '#/api.endpoints'
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
  */
-function removeAttachment(assetUid: string, attachmentUid: string) {
-  return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), {
-    attachment_uids: [attachmentUid],
-  })
+function removeAttachment(assetUid: string, submissionId: string, attachmentUid: string) {
+  return fetchDelete(
+    endpoints.ATTACHMENT_DETAIL_URL.replace(':asset_uid', assetUid)
+      .replace(':submission_id', submissionId)
+      .replace(':attachment_uid', attachmentUid),
+  )
 }
 
 /**
@@ -21,29 +23,15 @@ function removeAttachment(assetUid: string, attachmentUid: string) {
  * will be marked with `is_deleted` flag.
  */
 function removeBulkAttachments(assetUid: string, submissionIds: number[]) {
-  // TODO: remove this when BE is ready. For now we mock the delete request
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(() => {
-      // 1/3 of the time we fail:
-      if (Math.random() < 1 / 3) {
-        reject(new Error('MOCK Remove bulk attachments failed'))
-        console.error('MOCK Remove bulk attachments failed', assetUid, submissionIds)
-      } else {
-        resolve()
-        console.log('MOCK Remove bulk attachments succeeded', assetUid, submissionIds)
-      }
-    }, 1000)
+  return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), {
+    submissionIds: submissionIds,
   })
-
-  // return fetchDelete(
-  //   endpoints.ATTACHMENT_DETAIL_BULK_URL.replace(':asset_uid', assetUid), {submissionIds: submissionIds},
-  // )
 }
 
-export function useRemoveAttachment(assetUid: string) {
+export function useRemoveAttachment(assetUid: string, submissionId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, attachmentUid),
+    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, submissionId, attachmentUid),
     onSettled: () => {
       // TODO: successful removal of single attachment should cause a refresh of UI that uses submission data. When we
       // migrate Data Table code to use query, we need to make sure we invalidate things here.
