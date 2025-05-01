@@ -6,6 +6,7 @@ from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.audit_log.docs.api.v2.access_logs.serializers.access_logs_serializers import *
 from kpi.filters import SearchFilter
 from kpi.models.import_export_task import (
     AccessLogExportTask,
@@ -14,14 +15,12 @@ from kpi.models.import_export_task import (
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
-from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.docs.markdown import read_md
-from kobo.apps.audit_log.docs.api.v2.access_logs.serializers.access_logs_serializers import *
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
 from .serializers import (
-    AccessLogExportSerializerList,
     AccessLogSerializer,
     AuditLogSerializer,
     ProjectHistoryLogSerializer,
@@ -605,16 +604,12 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md(
-            'audit_log',
-            'access_logs/me/exports/list'
-        ),
+        description=read_md('audit_log', 'access_logs/me/exports/list'),
+        request=None,
+        responses={200: OpenApiResponse(response=AccessLogListExportSerializer)},
     ),
     create=extend_schema(
-        description=read_md(
-            'audit_log',
-            'access_logs/me/exports/create'
-        ),
+        description=read_md('audit_log', 'access_logs/me/exports/create'),
         request=None,
         responses={202: OpenApiResponse(response=AccessLogMeCreateInlineSerializer)},
     ),
@@ -625,18 +620,13 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
     Available actions:
     - list       → GET /api/v2/access-logs/me/export/
-
-    Documentation:
-    - docs/api/v2/access_logs/me/exports/list.md
-
-
     - create       → POST /api/v2/access-logs/me/export/
 
     Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
     - docs/api/v2/access_logs/me/exports/create.md
     """
 
-    serializer_class = AccessLogExportSerializerList
 
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
@@ -664,6 +654,8 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 @extend_schema_view(
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/list'),
+        request=None,
+        responses={200: OpenApiResponse(response=AccessLogListExportSerializer)},
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
@@ -673,24 +665,20 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-   ViewSet for managing every user's access logs export
+    ViewSet for managing every user's access logs export
 
 
     Available actions:
     - list       → GET /api/v2/access-logs/export/
-
-    Documentation:
-    - docs/api/v2/access_logs/me/exports/list.md
-
-
     - create       → POST /api/v2/access-logs/export/
 
     Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
     - docs/api/v2/access_logs/me/exports/create.md
     """
 
     permission_classes = (SuperUserPermission,)
-    serializer_class = AccessLogExportSerializerList
+    # serializer_class = AccessLogListExportSerializer
 
     def create(self, request, *args, **kwargs):
         # Check if the superuser has a task running for all
