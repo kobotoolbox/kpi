@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-// import { fetchDelete } from '#/api'
-// import { endpoints } from '#/api.endpoints'
+import { fetchDelete } from '#/api'
+import { endpoints } from '#/api.endpoints'
 
 /**
  * Makes a request to endpoint that deletes a single attachment.
@@ -8,26 +8,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
  */
-function removeAttachment(assetUid: string, submissionId: string, attachmentUid: string) {
-  // TODO: remove this when BE is ready. For now we mock the delete request
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(() => {
-      // 1/3 of the time we fail:
-      if (Math.random() < 1 / 3) {
-        reject(new Error('MOCK Remove attachment failed'))
-        console.error('MOCK Remove attachment failed', assetUid, submissionId, attachmentUid)
-      } else {
-        resolve()
-        console.log('MOCK Remove attachment succeeded', assetUid, submissionId, attachmentUid)
-      }
-    }, 1000)
+function removeAttachment(assetUid: string, attachmentUid: string) {
+  return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), {
+    attachment_uids: [attachmentUid],
   })
-
-  // return fetchDelete(
-  //   endpoints.ATTACHMENT_DETAIL_URL.replace(':asset_uid', assetUid)
-  //     .replace(':submission_id', submissionId)
-  //     .replace(':attachment_uid', attachmentUid),
-  // )
 }
 
 /**
@@ -56,13 +40,15 @@ function removeBulkAttachments(assetUid: string, submissionIds: number[]) {
   // )
 }
 
-export function useRemoveAttachment(assetUid: string, submissionId: string) {
+export function useRemoveAttachment(assetUid: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, submissionId, attachmentUid),
+    mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, attachmentUid),
     onSettled: () => {
-      // TODO: successful removal of single attachment should cause a refresh of UI that uses submission data
-      // TODO: when we migrate Data Table code to use query, we need to make sure we invalidate things here:
+      // TODO: successful removal of single attachment should cause a refresh of UI that uses submission data. When we
+      // migrate Data Table code to use query, we need to make sure we invalidate things here.
+      // For now let's rely on components handling this themselves (e.g. by refetching data or using
+      // `actions.resources.refreshTableSubmissions`)
       queryClient.invalidateQueries({ queryKey: [] })
     },
   })
@@ -73,8 +59,7 @@ export function useRemoveBulkAttachments(assetUid: string) {
   return useMutation({
     mutationFn: async (submissionIds: number[]) => removeBulkAttachments(assetUid, submissionIds),
     onSettled: () => {
-      // TODO: successful removal of single attachment should cause a refresh of UI that uses submission data
-      // TODO: when we migrate Data Table code to use query, we need to make sure we invalidate things here:
+      // TODO: same as in `useRemoveAttachment` aboce.
       queryClient.invalidateQueries({ queryKey: [] })
     },
   })
