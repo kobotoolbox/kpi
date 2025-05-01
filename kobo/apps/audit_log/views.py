@@ -558,10 +558,13 @@ class ProjectHistoryLogViewSet(
         )
 
 
-class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
+class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
-    pagination_class = []
+    # By default, we need to specify the class because of drf-spectacular that will
+    # read the default from the settings, even if it doesn't need it.
+    pagination_class = None
+    renderer_classes = (JSONRenderer,)
 
     def create_task(self, request, get_all_logs):
 
@@ -606,12 +609,12 @@ class BaseAccessLogsExportViewSet(viewsets.GenericViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/list'),
         request=None,
-        responses={200: OpenApiResponse(response=AccessLogListExportSerializer)},
+        responses={200: OpenApiResponse(response=AccessLogListExportInlineSerializer)},
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/create'),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogMeCreateInlineSerializer)},
+        responses={202: OpenApiResponse(response=AccessLogCreateInlineSerializer)},
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -620,7 +623,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
     Available actions:
     - list       → GET /api/v2/access-logs/me/export/
-    - create       → POST /api/v2/access-logs/me/export/
+    - create     → POST /api/v2/access-logs/me/export/
 
     Documentation:
     - docs/api/v2/access_logs/me/exports/list.md
@@ -655,12 +658,12 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/list'),
         request=None,
-        responses={200: OpenApiResponse(response=AccessLogListExportSerializer)},
+        responses={200: OpenApiResponse(response=AccessLogListExportInlineSerializer)},
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogMeCreateInlineSerializer)},
+        responses={202: OpenApiResponse(response=AccessLogCreateInlineSerializer)},
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -670,7 +673,7 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
     Available actions:
     - list       → GET /api/v2/access-logs/export/
-    - create       → POST /api/v2/access-logs/export/
+    - create     → POST /api/v2/access-logs/export/
 
     Documentation:
     - docs/api/v2/access_logs/me/exports/list.md
@@ -678,7 +681,6 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
 
     permission_classes = (SuperUserPermission,)
-    # serializer_class = AccessLogListExportSerializer
 
     def create(self, request, *args, **kwargs):
         # Check if the superuser has a task running for all

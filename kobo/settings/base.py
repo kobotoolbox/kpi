@@ -981,10 +981,10 @@ SPECTACULAR_SETTINGS = {
         'kpi.utils.spectacular_processing.pre_processing_filtering'
     ],
     'EXTENSIONS': [
-        'kpi.schema_extensions.CustomBasicAuthExtension',
-        'kpi.schema_extensions.CustomDigestAuthExtension',
-        'kpi.schema_extensions.CustomSessionAuthExtension',
-        'kpi.schema_extensions.CustomOAuth2AuthExtension',
+        'kpi.schema_extensions.BasicAuthExtension',
+        'kpi.schema_extensions.DigestAuthExtension',
+        'kpi.schema_extensions.SessionAuthExtension',
+        'kpi.schema_extensions.OAuth2AuthExtension',
     ],
 }
 

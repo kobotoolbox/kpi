@@ -1,7 +1,7 @@
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 
 
-class CustomBasicAuthExtension(OpenApiAuthenticationExtension):
+class BasicAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.BasicAuthentication'
     name = 'BasicAuth'
 
@@ -9,7 +9,7 @@ class CustomBasicAuthExtension(OpenApiAuthenticationExtension):
         return {'type': 'http', 'scheme': 'basic'}
 
 
-class CustomDigestAuthExtension(OpenApiAuthenticationExtension):
+class DigestAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.DigestAuthentication'
     name = 'DigestAuth'
 
@@ -20,7 +20,17 @@ class CustomDigestAuthExtension(OpenApiAuthenticationExtension):
         }
 
 
-class CustomSessionAuthExtension(OpenApiAuthenticationExtension):
+class TokenAuthExtension(OpenApiAuthenticationExtension):
+    target_class = 'kpi.authentication.TokenAuthentication'
+    name = 'TokenAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            # TODO
+            #   finish token auth extension
+        }
+
+class SessionAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.SessionAuthentication'
     name = 'SessionAuth'
 
@@ -28,11 +38,11 @@ class CustomSessionAuthExtension(OpenApiAuthenticationExtension):
         return {
             'type': 'apiKey',
             'in': 'cookie',
-            'name': 'sessionid',  # or whatever cookie your session uses
+            'name': 'sessionid',
         }
 
-
-class CustomOAuth2AuthExtension(OpenApiAuthenticationExtension):
+#Token
+class OAuth2AuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.OAuth2Authentication'
     name = 'OAuth2'
 
@@ -40,5 +50,5 @@ class CustomOAuth2AuthExtension(OpenApiAuthenticationExtension):
         return {
             'type': 'http',
             'scheme': 'bearer',
-            'bearerFormat': 'JWT',  # or whatever you use
+            'bearerFormat': 'JWT',
         }
