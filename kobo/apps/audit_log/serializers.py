@@ -5,12 +5,6 @@ from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from .models import AuditLog, ProjectHistoryLog
 
 
-class AccessLogExportSerializerList(serializers.Serializer):
-    uid = serializers.CharField(max_length=24)
-    status = serializers.CharField(max_length=32)
-    date_created = serializers.DateTimeField()
-
-
 class AuditLogSerializer(serializers.ModelSerializer):
 
     user = serializers.HyperlinkedRelatedField(
