@@ -8,11 +8,13 @@ import { endpoints } from '#/api.endpoints'
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
  */
-function removeAttachment(assetUid: string, submissionId: string, attachmentUid: string) {
+function removeAttachment(assetUid: string, submissionId: number, attachmentUid: string) {
   return fetchDelete(
-    endpoints.ATTACHMENT_DETAIL_URL.replace(':asset_uid', assetUid)
-      .replace(':submission_id', submissionId)
-      .replace(':attachment_uid', attachmentUid),
+    endpoints.ATTACHMENT_DETAIL_BULK_URL.replace(':asset_uid', assetUid).replace(
+      ':submission_id',
+      String(submissionId),
+    ),
+    { attachment_uids: [attachmentUid] },
   )
 }
 
@@ -23,12 +25,10 @@ function removeAttachment(assetUid: string, submissionId: string, attachmentUid:
  * will be marked with `is_deleted` flag.
  */
 function removeBulkAttachments(assetUid: string, submissionIds: number[]) {
-  return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), {
-    submissionIds: submissionIds,
-  })
+  return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), { submission_ids: submissionIds })
 }
 
-export function useRemoveAttachment(assetUid: string, submissionId: string) {
+export function useRemoveAttachment(assetUid: string, submissionId: number) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (attachmentUid: string) => removeAttachment(assetUid, submissionId, attachmentUid),
