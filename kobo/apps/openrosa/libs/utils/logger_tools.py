@@ -989,24 +989,26 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         parser = XFormInstanceParser(instance.xml, data_dictionary=None, delay_parse=True)
         parser.parse(instance.xml, repeats=repeat_groups)
         as_dict = parser.get_flat_dict_with_attributes()
-        breakpoint()
         try:
             (pi, created) = ParsedInstance.objects.get_or_create(instance=instance, defaults={'mongo_dict_override': as_dict})
             if not created:
-                save_success = pi.save(asynchronous=False, mongo_dict_override=as_dict)
+                pi.mongo_dict_override = as_dict
+                save_success = pi.save(asynchronous=False)
+                if not save_success:
+                    print(
+                        '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                        'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    )
+                else:
+                    done += 1
+            else:
+                done += 1
         except InstanceEmptyError:
             print(
                 '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
                 'it is empty\033[0m'.format(id_, instance.uuid)
             )
-        else:
-            if not save_success:
-                print(
-                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
-                    'the parsed instance\033[0m'.format(id_, instance.uuid)
-                )
-            else:
-                done += 1
+
 
         progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
