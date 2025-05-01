@@ -15,17 +15,17 @@ const assetHistoryMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, P
     if (searchParams.get('q') === 'action:add-media') {
       return HttpResponse.json(assetHistoryFilteredResponse)
     } else if (searchParams.get('limit') === '10' && searchParams.get('offset') === '20') {
-      return HttpResponse.json(assetHistoryResponsePage3rd)
+      return HttpResponse.json(assetHistoryResponsePage3)
     } else if (searchParams.get('limit') === '10' && searchParams.get('offset') === '10') {
-      return HttpResponse.json(assetHistoryResponsePage2nd)
+      return HttpResponse.json(assetHistoryResponsePage2)
     } else {
-      return HttpResponse.json(assetHistoryResponsePage1st)
+      return HttpResponse.json(assetHistoryResponsePage1)
     }
   },
 )
 export default assetHistoryMock
 
-const assetHistoryResponsePage1st: PaginatedResponse<ActivityLogsItem> = {
+const assetHistoryResponsePage1: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
   next: '/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&offset=10&q=NOT+action%3A%27add-submission%27',
   previous: null,
@@ -239,7 +239,7 @@ const assetHistoryResponsePage1st: PaginatedResponse<ActivityLogsItem> = {
   ],
 }
 
-const assetHistoryResponsePage2nd: PaginatedResponse<ActivityLogsItem> = {
+const assetHistoryResponsePage2: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
   next: 'http://kf.kobo.local/api/v2/assets/a1234567890bcdEFGhijkl/history/?limit=10&offset=20&q=NOT+action%3A%27add-submission%27',
   previous:
@@ -493,7 +493,7 @@ const assetHistoryResponsePage2nd: PaginatedResponse<ActivityLogsItem> = {
   ],
 }
 
-const assetHistoryResponsePage3rd: PaginatedResponse<ActivityLogsItem> = {
+const assetHistoryResponsePage3: PaginatedResponse<ActivityLogsItem> = {
   count: 26,
   next: null,
   previous:
