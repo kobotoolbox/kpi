@@ -3,9 +3,7 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from django_extensions.db.fields.json import JSONField
 from drf_spectacular.utils import inline_serializer, extend_schema_field,OpenApiResponse, extend_schema, extend_schema_view
-from responses import delete
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -32,16 +30,7 @@ from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.utils.docs.markdown import read_md
 from kpi.docs.asset_snapshot_doc import *
 from kpi.views.no_update_model import NoUpdateModelViewSet
-from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
-
-SnapshotInlineSerializer = inline_serializer(
-    name='SnapshotInlineSerializer',
-    fields={
-        'asset': serializers.IntegerField(),
-        'source' : serializers.JSONField(),
-        'details': serializers.JSONField(),
-    }
-)  # noqa
+from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
 
 class AbcdJSONField(serializers.JSONField):
@@ -50,12 +39,27 @@ class AbcdJSONField(serializers.JSONField):
 class QwertJSONField(serializers.JSONField):
     pass
 
+
+class SnapshotDetailsField(serializers.JSONField):
+    pass
+
+class SnapshotSourceField(serializers.JSONField):
+    pass
+
 class testSerializer(serializers.Serializer):
     # json schema
     name = serializers.CharField(max_length=23)
     abcd = AbcdJSONField(help_text='Some JSON', default=dict)
     qwert = QwertJSONField(help_text='Some JSON', default=dict)
 
+SnapshotInlineSerializer = inline_serializer(
+    name='SnapshotInlineSerializer',
+    fields={
+        'asset': serializers.IntegerField(),
+        'source' : SnapshotDetailsField(),
+        'details': QwertJSONField(help_text='some json', default=dict),
+    }
+)
 
 @extend_schema(
     tags=['Asset_Snapshots'],
@@ -96,7 +100,7 @@ class testSerializer(serializers.Serializer):
     ),
     preview=extend_schema(
         description=preview_method,
-        responses={202: OpenApiResponse(response=testSerializer)}
+        responses={202: OpenApiResponse(response=SnapshotInlineSerializer)}
     ),
     xform=extend_schema(
        description=xform_method
