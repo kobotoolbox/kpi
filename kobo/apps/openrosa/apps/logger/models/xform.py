@@ -169,7 +169,7 @@ class XForm(AbstractTimeStampedModel):
             return DataDictionary.all_objects.get(pk=self.pk)
         fields = [field.name for field in self._meta.get_fields()]
         xform_dict = deepcopy(self.__dict__)
-        xform_dict = { key: val for key, val in xform_dict.items() if key in fields}
+        xform_dict = {key: val for key, val in xform_dict.items() if key in fields}
         return DataDictionary(**xform_dict)
 
     def file_name(self):

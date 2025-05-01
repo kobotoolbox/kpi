@@ -63,6 +63,7 @@ def update_mongo_instance(record):
         raise Exception('Submission could not be saved to Mongo') from e
     return True
 
+
 class ParsedInstance(models.Model):
     USERFORM_ID = '_userform_id'
     STATUS = '_status'

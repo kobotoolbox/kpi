@@ -34,8 +34,6 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
@@ -67,11 +65,13 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_submission_count,
 )
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    XFormInstanceParser,
     clean_and_parse_xml,
+    get_abbreviated_xpath,
     get_deprecated_uuid_from_xml,
     get_submission_date_from_xml,
     get_uuid_from_xml,
-    get_xform_media_question_xpaths, get_abbreviated_xpath, XFormInstanceParser,
+    get_xform_media_question_xpaths,
 )
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
@@ -84,6 +84,8 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -979,18 +981,27 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
 
     # get instances
     sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
-    instances = Instance.objects.only('id', 'xml', 'json').in_bulk([id_ for id_ in instance_ids])
+    instances = Instance.objects.only('id', 'xml', 'json').in_bulk(
+        [id_ for id_ in instance_ids]
+    )
     total = len(instances)
     done = 0
 
     data_dict = xform.data_dictionary(use_cache=True)
-    repeat_groups = [get_abbreviated_xpath(e) for e in data_dict.get_survey_elements_of_type('repeat')]
+    repeat_groups = [
+        get_abbreviated_xpath(e)
+        for e in data_dict.get_survey_elements_of_type('repeat')
+    ]
     for id_, instance in instances.items():
-        parser = XFormInstanceParser(instance.xml, data_dictionary=None, delay_parse=True)
+        parser = XFormInstanceParser(
+            instance.xml, data_dictionary=None, delay_parse=True
+        )
         parser.parse(instance.xml, repeats=repeat_groups)
         as_dict = parser.get_flat_dict_with_attributes()
         try:
-            (pi, created) = ParsedInstance.objects.get_or_create(instance=instance, defaults={'mongo_dict_override': as_dict})
+            (pi, created) = ParsedInstance.objects.get_or_create(
+                instance=instance, defaults={'mongo_dict_override': as_dict}
+            )
             if not created:
                 pi.mongo_dict_override = as_dict
                 save_success = pi.save(asynchronous=False)
