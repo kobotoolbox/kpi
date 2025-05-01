@@ -2,15 +2,13 @@ import logging
 from datetime import timedelta
 
 from celery.signals import task_failure, task_retry
+from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
-from django_celery_beat.models import (
-    ClockedSchedule,
-    PeriodicTask,
-)
+from django_celery_beat.models import ClockedSchedule, PeriodicTask
 from requests.exceptions import HTTPError
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -298,6 +296,11 @@ def task_restarter():
     This task restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed.
     """
+
+    # 1) Restart account deletion tasks
+    pending_grace_period = timezone.now() - timedelta(
+        days=config.ACCOUNT_TRASH_GRACE_PERIOD
+    )
     stuck_threshold = timezone.now() - timedelta(
         seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
     )
@@ -307,17 +310,23 @@ def task_restarter():
         .filter(
             status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
             date_modified__lte=stuck_threshold,
+            periodic_task__clocked__clocked_time__lte=pending_grace_period,
         )
         .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
     for stuck_account_id in stuck_account_ids:
         empty_account.delay(stuck_account_id, force=True)
 
+    # 2) Restart project deletion tasks
+    pending_grace_period = timezone.now() - timedelta(
+        days=config.PROJECT_TRASH_GRACE_PERIOD
+    )
     stuck_project_ids = (
         ProjectTrash.objects.values_list('pk', flat=True)
         .filter(
             status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
             date_modified__lte=stuck_threshold,
+            periodic_task__clocked__clocked_time__lte=pending_grace_period,
         )
         .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
