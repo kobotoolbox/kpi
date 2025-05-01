@@ -302,20 +302,24 @@ def task_restarter():
         seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
     )
 
-    stuck_account_ids = AccountTrash.objects.values_list(
-        'pk', flat=True
-    ).filter(
-        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
-        date_modified__lte=stuck_threshold,
+    stuck_account_ids = (
+        AccountTrash.objects.values_list('pk', flat=True)
+        .filter(
+            status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+            date_modified__lte=stuck_threshold,
+        )
+        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
     for stuck_account_id in stuck_account_ids:
         empty_account.delay(stuck_account_id, force=True)
 
-    stuck_project_ids = ProjectTrash.objects.values_list(
-        'pk', flat=True
-    ).filter(
-        status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
-        date_modified__lte=stuck_threshold,
+    stuck_project_ids = (
+        ProjectTrash.objects.values_list('pk', flat=True)
+        .filter(
+            status__in=[TrashStatus.PENDING, TrashStatus.IN_PROGRESS],
+            date_modified__lte=stuck_threshold,
+        )
+        .order_by('date_modified')[:settings.MAX_RESTARTED_TASKS]
     )
     for stuck_project_id in stuck_project_ids:
         empty_project.delay(stuck_project_id, force=True)
