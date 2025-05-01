@@ -980,12 +980,6 @@ SPECTACULAR_SETTINGS = {
     'PREPROCESSING_HOOKS': [
         'kpi.utils.spectacular_processing.pre_processing_filtering'
     ],
-    'EXTENSIONS': [
-        'kpi.schema_extensions.BasicAuthExtension',
-        'kpi.schema_extensions.DigestAuthExtension',
-        'kpi.schema_extensions.SessionAuthExtension',
-        'kpi.schema_extensions.OAuth2AuthExtension',
-    ],
 }
 
 OPENROSA_REST_FRAMEWORK = {
