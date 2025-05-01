@@ -316,10 +316,11 @@ class XFormInstanceParser:
     def parse(self, xml_str, repeats=None):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = repeats or [
-            get_abbreviated_xpath(e)
-            for e in self.dd.get_survey_elements_of_type('repeat')
-        ]
+        if repeats is None:
+            repeats = [
+                get_abbreviated_xpath(e)
+                for e in self.dd.get_survey_elements_of_type('repeat')
+            ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
         if self._dict is None:
             raise InstanceEmptyError

@@ -63,12 +63,6 @@ def update_mongo_instance(record):
         raise Exception('Submission could not be saved to Mongo') from e
     return True
 
-class ParsedInstanceManager(models.manager):
-    def create(self, mongo_dict_override=None, *args, **kwargs):
-        new_pi = self.model(*args, **kwargs)
-        new_pi.save(mongo_dict_override=mongo_dict_override)
-        return new_pi
-
 class ParsedInstance(models.Model):
     USERFORM_ID = '_userform_id'
     STATUS = '_status'
@@ -83,7 +77,14 @@ class ParsedInstance(models.Model):
     # TODO: decide if decimal field is better than float field.
     lat = models.FloatField(null=True)
     lng = models.FloatField(null=True)
-    objects = ParsedInstanceManager()
+
+    @property
+    def mongo_dict_override(self):
+        return None
+
+    @mongo_dict_override.setter
+    def mongo_dict_override(self, mongo_dict_override):
+        self._mongo_dict_override = mongo_dict_override
 
     class Meta:
         app_label = 'viewer'
@@ -319,8 +320,8 @@ class ParsedInstance(models.Model):
 
         return MongoHelper.to_safe_dict(d)
 
-    def update_mongo(self, asynchronous=True, mongo_dict_override=None):
-        d = mongo_dict_override or self.to_dict_for_mongo()
+    def update_mongo(self, asynchronous=True):
+        d = self.to_dict_for_mongo()
         if d.get('_xform_id_string') is None:
             # if _xform_id_string, Instance could not be parsed.
             # so, we don't update mongo.
@@ -351,6 +352,8 @@ class ParsedInstance(models.Model):
         return MongoHelper.delete_many(query)
 
     def to_dict(self):
+        if hasattr(self, '_mongo_dict_override') and self._mongo_dict_override is not None:
+            return self._mongo_dict_override
         if not hasattr(self, '_dict_cache'):
             self._dict_cache = self.instance.get_dict()
         return self._dict_cache
@@ -392,7 +395,7 @@ class ParsedInstance(models.Model):
             self.lat = self.instance.point.y
             self.lng = self.instance.point.x
 
-    def save(self, asynchronous=False, mongo_dict_override=None, *args, **kwargs):
+    def save(self, asynchronous=False, *args, **kwargs):
         # start/end_time obsolete: originally used to approximate for
         # instanceID, before instanceIDs were implemented
         created = self.pk is None
@@ -404,7 +407,7 @@ class ParsedInstance(models.Model):
         # insert into Mongo.
         # Signal has been removed because of a race condition.
         # Rest Services were called before data was saved in DB.
-        success = self.update_mongo(asynchronous, mongo_dict_override=mongo_dict_override)
+        success = self.update_mongo(asynchronous)
         if success and created:
             records = ParsedInstance.objects.filter(
                 instance_id=self.instance_id

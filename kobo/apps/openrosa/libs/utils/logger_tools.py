@@ -955,6 +955,7 @@ def _has_edit_xform_permission(
 
 
 def _update_mongo_for_xform(xform, only_update_missing=True):
+    xform.refresh_from_db(fields=xform.get_deferred_fields())
 
     instance_ids = set(
         [i.id for i in Instance.objects.only('id').filter(xform=xform)])
@@ -978,7 +979,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
 
     # get instances
     sys.stdout.write('Total no of instances to update: %d\n' % len(instance_ids))
-    instances = Instance.objects.only('id', 'xml').in_bulk([id_ for id_ in instance_ids])
+    instances = Instance.objects.only('id', 'xml', 'json').in_bulk([id_ for id_ in instance_ids])
     total = len(instances)
     done = 0
 
@@ -988,6 +989,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         parser = XFormInstanceParser(instance.xml, data_dictionary=None, delay_parse=True)
         parser.parse(instance.xml, repeats=repeat_groups)
         as_dict = parser.get_flat_dict_with_attributes()
+        breakpoint()
         try:
             (pi, created) = ParsedInstance.objects.get_or_create(instance=instance, defaults={'mongo_dict_override': as_dict})
             if not created:
