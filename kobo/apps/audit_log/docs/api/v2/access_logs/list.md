@@ -2,6 +2,9 @@
 
 Submissions will be grouped together by user by hour
 
+The metadata field will always return the `auth-type` field but `source` and `ip_address` are only returned when the
+`auth-type` is equal to `submission-group`.
+
 Results from this endpoint can be filtered by a Boolean query
 specified in the `q` parameter.
 

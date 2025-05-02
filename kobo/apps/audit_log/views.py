@@ -23,7 +23,8 @@ from kpi.utils.docs.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from .docs.api.v2.access_logs.serializers.access_logs_serializers import (
+from .docs.api.v2.access_logs.serializers import (
+    AccessLogListInlineSerializer,
     AccessLogExportCreateInlineSerializer,
     AccessLogExportListInlineSerializer,
 )
@@ -180,6 +181,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 @extend_schema(
     tags=['Access-Logs'],
     description=read_md('audit_log', 'access_logs/list'),
+    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
 )
 class AllAccessLogViewSet(AuditLogViewSet):
     """
@@ -198,6 +200,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 @extend_schema(
     tags=['Access-Logs'],
     description=read_md('audit_log', 'access_logs/me/list'),
+    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
 )
 class AccessLogViewSet(AuditLogViewSet):
     """
