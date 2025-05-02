@@ -455,6 +455,12 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
+    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep attachments in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
@@ -747,6 +753,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Trash bin': (
         'ACCOUNT_TRASH_GRACE_PERIOD',
+        'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
     ),
     'Regular maintenance settings': (
@@ -1236,10 +1243,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 10 minutes
+    # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     'perform-maintenance': {
@@ -1260,13 +1267,13 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'organization-invite-mark-as-expired': {
         'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
@@ -1923,3 +1930,6 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+
+# Number of stuck tasks should be restarted at a time
+MAX_RESTARTED_TASKS = 100
