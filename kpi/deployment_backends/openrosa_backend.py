@@ -72,7 +72,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
-from ..exceptions import AttachmentUidMismatchException, BadFormatException
+from ..exceptions import BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import assign_applicable_kc_permissions, kc_transaction_atomic
 
@@ -201,11 +201,11 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         super().delete()
 
     def delete_attachments(
-        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+        self, user: settings.AUTH_USER_MODEL, submission_ids: list
     ) -> list:
         """
-        Validates if a list of attachments can be deleted by the user and then
-        deletes them.
+        Validates if the attachments in the list of submissions can be deleted by
+        the user and then deletes them.
         Returns a count of deleted attachments.
 
         The user must have either partial or full edit submission permissions
@@ -214,14 +214,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Import within delete_attachments() to avoid a circular dependency error
         from kobo.apps.trash_bin.utils.trash import move_to_trash
 
-        if not attachment_uids:
+        if not submission_ids:
             return
-
-        submission_ids = (
-            Attachment.objects.values_list('instance_id', flat=True)
-            .filter(uid__in=attachment_uids)
-            .distinct()
-        )
 
         authorized_submission_ids = self.validate_access_with_partial_perms(
             user=user,
@@ -234,7 +228,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 raise exceptions.PermissionDenied()
 
         attachments = (
-            Attachment.objects.filter(xform_id=self.xform_id, uid__in=attachment_uids)
+            Attachment.objects.filter(
+                xform_id=self.xform_id, instance_id__in=submission_ids
+            )
             .annotate(
                 attachment_basename=F('media_file_basename'),
                 attachment_uid=F('uid'),
@@ -242,11 +238,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             .values('pk', 'attachment_basename', 'attachment_uid')
         )
 
-        count = len(attachment_uids)
-        if count != len(attachments):
-            raise AttachmentUidMismatchException
-
         attachment_uids = [att['attachment_uid'] for att in attachments]
+        count = len(attachments)
 
         AttachmentTrash.toggle_statuses(attachment_uids, active=False)
         move_to_trash(

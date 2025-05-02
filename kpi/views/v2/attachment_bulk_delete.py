@@ -29,15 +29,15 @@ class AttachmentBulkDeleteViewSet(
         > **Payload**
         >
         >        {
-        >           "attachment_uids": [
-        >               "attYAsK3XHh4Mv5JJ69k72kq",
-        >               "attVvwvLqzLPfdHtqgstPTCJ"
+        >           "submission_ids": [
+        >               1,
+        >               2
         >           ]
         >        }
 
         where:
 
-        * "attachment_uids" (required) is a list of the attachments on the asset
+        * "submission_ids" (required) is a list of submission ids on the asset
           to delete
         """
 

@@ -129,6 +129,16 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         second_instance = Instance.objects.get(root_uuid='test_uuid2')
         third_instance = Instance.objects.get(root_uuid='test_uuid3')
 
+        self.submission_id_1 = first_instance.id
+        self.submission_id_2 = second_instance.id
+        self.submission_id_3 = third_instance.id
+
+        self.submission_ids = [
+            self.submission_id_1,
+            self.submission_id_2,
+            self.submission_id_3,
+        ]
+
         self.attachment_uid_1 = first_instance.attachments.all()[0].uid
         self.attachment_uid_2 = first_instance.attachments.all()[1].uid
         self.attachment_uid_3 = second_instance.attachments.all()[0].uid
@@ -149,7 +159,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_ids': self.submission_ids}),
             content_type='application/json',
         )
 
@@ -163,7 +173,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': []}),
+            data=json.dumps({'submission_ids': []}),
             content_type='application/json',
         )
 
@@ -172,7 +182,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             response.data,
             [
                 ErrorDetail(
-                    string='The list of attachment UIDs cannot be empty', code='invalid'
+                    string='The list of submission ids cannot be empty', code='invalid'
                 )
             ],
         )
@@ -203,7 +213,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.logout()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_ids': self.submission_ids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -221,7 +231,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(another_user)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_ids': self.submission_ids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -242,7 +252,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         self.client.force_login(user_edit_perms)
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps({'attachment_uids': self.attachment_uids}),
+            data=json.dumps({'submission_ids': self.submission_ids}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -263,9 +273,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
         initial_trash_count = AttachmentTrash.objects.count()
         response = self.client.delete(
             self.bulk_delete_url,
-            data=json.dumps(
-                {'attachment_uids': [self.attachment_uid_5, self.attachment_uid_6]}
-            ),
+            data=json.dumps({'submission_ids': [self.submission_id_3]}),
             content_type='application/json',
         )
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -288,11 +296,9 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             self.bulk_delete_url,
             data=json.dumps(
                 {
-                    'attachment_uids': [
-                        self.attachment_uid_1,
-                        self.attachment_uid_2,
-                        self.attachment_uid_3,
-                        self.attachment_uid_4,
+                    'submission_ids': [
+                        self.submission_id_1,
+                        self.submission_id_2,
                     ]
                 }
             ),
@@ -305,34 +311,3 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
                 code='permission_denied',
             )
         }
-
-    def test_bulk_delete_attachments_uid_mismatch(self):
-        response = self.client.delete(
-            self.bulk_delete_url,
-            data=json.dumps(
-                {
-                    'attachment_uids': [
-                        self.attachment_uid_1,
-                        self.attachment_uid_2,
-                        'nonexistent_uid',
-                    ]
-                }
-            ),
-            content_type='application/json',
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data,
-            [
-                ErrorDetail(
-                    string='One or more of the provided attachment UIDs are invalid',
-                    code='invalid',
-                )
-            ],
-        )
-
-        assert Attachment.objects.filter(uid=self.attachment_uid_1).exists()
-        assert Attachment.objects.filter(uid=self.attachment_uid_2).exists()
-        assert not Attachment.objects.filter(uid='nonexistent_uid').exists()
-        assert AttachmentTrash.objects.count() == 0

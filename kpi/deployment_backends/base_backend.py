@@ -227,7 +227,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def delete_attachments(
-        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+        self, user: settings.AUTH_USER_MODEL, submission_ids: list
     ) -> list:
         pass
 
