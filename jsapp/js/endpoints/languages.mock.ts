@@ -11,11 +11,11 @@ const languagesMock = http.get<PathParams<'limit' | 'offset' | 'q'>, never, Pagi
   (info) => {
     const searchParams = new URL(info.request.url).searchParams
     if (searchParams.get('limit') === '100' && searchParams.get('offset') === '100') {
-      return HttpResponse.json(languagesResponsePage2nd)
+      return HttpResponse.json(languagesResponsePage2)
     } else if (searchParams.get('q') === 'swed') {
       return HttpResponse.json(languagesResponseQuerySwed)
     } else {
-      return HttpResponse.json(languagesResponsePage1st)
+      return HttpResponse.json(languagesResponsePage1)
     }
   },
 )
@@ -55,7 +55,7 @@ const languagesResponseQuerySwed: PaginatedResponse<ListLanguage> = {
 // 1. first page - set `count` to `150` (original set of languages is around 6k)
 // 2. second page - mimic last page of results = set `count` to `150`, kept only 50 results, changed `next` to `null`
 
-const languagesResponsePage1st: PaginatedResponse<ListLanguage> = {
+const languagesResponsePage1: PaginatedResponse<ListLanguage> = {
   count: 150,
   next: '/api/v2/languages/?limit=100&offset=100',
   previous: null,
@@ -943,7 +943,7 @@ const languagesResponsePage1st: PaginatedResponse<ListLanguage> = {
   ],
 }
 
-const languagesResponsePage2nd: PaginatedResponse<ListLanguage> = {
+const languagesResponsePage2: PaginatedResponse<ListLanguage> = {
   count: 150,
   next: null,
   previous: '/api/v2/languages/?limit=100',
