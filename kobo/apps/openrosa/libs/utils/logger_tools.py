@@ -1020,6 +1020,7 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
                 'it is empty\033[0m'.format(id_, instance.uuid)
             )
 
+
         progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
         sys.stdout.flush()
