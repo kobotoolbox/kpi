@@ -15,6 +15,13 @@ from kpi.models.import_export_task import (
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.docs.markdown import read_md
+from kpi.utils.docs.response import (
+    open_api_generic_response,
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_202_accepted_response,
+    open_api_204_empty_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .docs.api.v2.access_logs.serializers.access_logs_serializers import (
     AccessLogExportCreateInlineSerializer,
@@ -141,7 +148,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     5. All deleted submissions submitted after a specific date **and time**<br>
         `/api/v2/audit-logs/?q=action:delete AND date_created__gte:"2022-11-15 20:34"`
-        
+
     6. All authentications from superusers<br>
         `api/v2/audit-logs/?q=action:auth AND user__is_superuser:True`
 
@@ -675,12 +682,12 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/list'),
         request=None,
-        responses={200: OpenApiResponse(response=AccessLogExportListInlineSerializer)},
+        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/create'),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogExportCreateInlineSerializer)},
+        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -724,12 +731,12 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/list'),
         request=None,
-        responses={200: OpenApiResponse(response=AccessLogExportListInlineSerializer)},
+        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
-        responses={202: OpenApiResponse(response=AccessLogExportCreateInlineSerializer)},
+        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
