@@ -536,7 +536,6 @@ class OrganizationAssetUsageAPITestCase(AssetUsageAPITestCase):
         assert response.data['count'] == 2
 
 
-@override_settings(STRIPE_ENABLED=True)
 class OrganizationsModelIntegrationTestCase(BaseTestCase):
     fixtures = ['test_data']
 
