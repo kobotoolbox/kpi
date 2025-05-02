@@ -10,6 +10,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.models.asset import Asset, AssetFile
+from kpi.utils.log import logging
 from .constants import ASYNC_TASK_HEARTBEAT
 from .exceptions import AsyncTaskException
 from .models.choices import TransferStatusChoices, TransferStatusTypeChoices
@@ -98,6 +99,7 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
 
     heartbeat = int(time.time())
     # Moving files is pretty slow, thus it should run in a celery task.
+    errors = False
     for attachment in attachments.iterator():
         if not (
             target_folder := get_target_folder(
@@ -111,10 +113,19 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # There is no way to ensure atomicity when moving the file and saving the
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
-            attachment.media_file.move(target_folder)
-            attachment.save(update_fields=['media_file'])
+            if attachment.media_file.move(target_folder):
+                attachment.save(update_fields=['media_file'])
+            else:
+                errors = True
+                logging.error(
+                    f'File {attachment.media_file_basename} (#{attachment.pk}) '
+                    f'could not be moved to {target_folder}'
+                )
 
             heartbeat = _update_heartbeat(heartbeat, transfer, async_task_type)
+
+    if errors:
+        raise AsyncTaskException('Some attachments could not be moved')
 
     _mark_task_as_successful(transfer, async_task_type)
 
