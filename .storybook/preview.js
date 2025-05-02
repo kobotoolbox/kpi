@@ -48,6 +48,7 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  a11y: { test: 'error' },
 }
 
 window.t = (str) => str

@@ -140,6 +140,7 @@
     "@types/zxcvbn": "^4.4.4",
     "@vusion/webfonts-generator": "^0.7.3",
     "autoprefixer": "^10.4.19",
+    "axe-playwright": "^2.1.0",
     "chai": "^4.2.0",
     "chai-exclude": "^2.1.0",
     "chart.js": "^4.4.0",
