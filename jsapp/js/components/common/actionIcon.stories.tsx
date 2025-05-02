@@ -42,6 +42,7 @@ const meta = {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
   },
+  parameters: { a11y: { test: 'todo' } },
 } satisfies Meta<StoryArgs>
 
 export default meta

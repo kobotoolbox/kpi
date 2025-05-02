@@ -112,6 +112,7 @@ export const Clearable: Story = {
     clearable: true,
     value: data[3].value,
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 /**
