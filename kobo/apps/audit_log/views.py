@@ -1,5 +1,5 @@
 from django.db import transaction
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -16,21 +16,18 @@ from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
 from kpi.utils.docs.markdown import read_md
 from kpi.utils.docs.response import (
-    open_api_generic_response,
     open_api_200_ok_response,
-    open_api_201_created_response,
     open_api_202_accepted_response,
-    open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from .schema_extensions.v2.access_logs.serializers import (
-    AccessLogListInlineSerializer,
-    AccessLogExportCreateInlineSerializer,
-    AccessLogExportListInlineSerializer,
-)
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
+from .schema_extensions.v2.access_logs.serializers import (
+    AccessLogExportCreateInlineSerializer,
+    AccessLogExportListInlineSerializer,
+    AccessLogListInlineSerializer,
+)
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,

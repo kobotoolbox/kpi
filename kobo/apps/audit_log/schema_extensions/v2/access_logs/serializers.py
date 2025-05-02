@@ -25,7 +25,7 @@ AccessLogListInlineSerializer = inline_serializer(
         'metadata': AccessLogMetadataField(),
         'user_uid': serializers.CharField(),
         'count': serializers.IntegerField(),
-    }
+    },
 )
 
 

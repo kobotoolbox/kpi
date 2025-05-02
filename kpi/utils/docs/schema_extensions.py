@@ -1,15 +1,13 @@
-from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from django.conf import settings
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
+
 
 class BasicAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.BasicAuthentication'
     name = 'BasicAuth'
 
     def get_security_definition(self, auto_schema):
-        return {
-            'type': 'http',
-            'scheme': 'basic'
-        }
+        return {'type': 'http', 'scheme': 'basic'}
 
 
 class DigestAuthExtension(OpenApiAuthenticationExtension):
@@ -34,6 +32,7 @@ class EnketoAuthExtension(OpenApiAuthenticationExtension):
             'name': settings.ENKETO_CSRF_COOKIE_NAME,
         }
 
+
 class HttpOnlyBasicAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication'
     name = 'HttpsOnlyBasicAuth'
@@ -43,6 +42,7 @@ class HttpOnlyBasicAuthExtension(OpenApiAuthenticationExtension):
             'type': 'http',
             'scheme': 'basic',
         }
+
 
 class OAuth2AuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.OAuth2Authentication'
@@ -77,4 +77,3 @@ class TokenAuthExtension(OpenApiAuthenticationExtension):
             'type': 'http',
             'scheme': 'bearer',
         }
-

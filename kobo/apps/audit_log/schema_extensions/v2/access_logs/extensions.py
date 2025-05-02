@@ -2,6 +2,7 @@ from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
 
+
 # This drf-extension made for the metadata field of AccessLog targets the external class
 # and tells it what it should return when generating the schema.
 class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
@@ -17,5 +18,5 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'user_id': build_basic_type(OpenApiTypes.STR),
                 'username': build_basic_type(OpenApiTypes.STR),
                 'app_name': build_basic_type(OpenApiTypes.STR),
-            }
+            },
         }
