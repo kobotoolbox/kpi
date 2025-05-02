@@ -227,11 +227,19 @@ class Organization(AbstractOrganization):
         if self.mmo_override:
             return True
 
-        if billing_details := self.active_subscription_billing_details():
-            if product_metadata := billing_details.get('product_metadata'):
-                return product_metadata.get('mmo_enabled') == 'true'
+        if not settings.STRIPE_ENABLED:
+            return False
 
-        return False
+        return (
+            Organization.objects.prefetch_related('djstripe_customers')
+            .filter(
+                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+                djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
+                djstripe_customers__subscriber=self.id,
+            )
+            .exists()
+        )
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
@@ -296,6 +304,7 @@ class OrganizationUser(AbstractOrganizationUser):
     @classmethod
     def export_resource_classes(cls):
         from .admin.organization_user import OrgUserResource
+
         return {
             'organization_users': ('Organization users resource', OrgUserResource),
         }
