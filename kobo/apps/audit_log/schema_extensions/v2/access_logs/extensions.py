@@ -15,8 +15,8 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'source': build_basic_type(OpenApiTypes.STR),
                 'auth_type': build_basic_type(OpenApiTypes.STR),
                 'ip_address': build_basic_type(OpenApiTypes.STR),
-                'user_id': build_basic_type(OpenApiTypes.STR),
-                'username': build_basic_type(OpenApiTypes.STR),
-                'app_name': build_basic_type(OpenApiTypes.STR),
+                'initial_user_uid': build_basic_type(OpenApiTypes.STR),
+                'initial_user_username': build_basic_type(OpenApiTypes.STR),
+                'authorized_app_name': build_basic_type(OpenApiTypes.STR),
             },
         }
