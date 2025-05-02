@@ -17,7 +17,7 @@ class KpiConfig(AppConfig):
 
         # The extension is loaded to help drf-spectacular correctly detect and document
         # the appropriate API extension type (e.g., drf-auth)
-        import kpi.utils.docs.schema_extensions  # noqa F401
+        import kpi.utils.schema_extensions.extensions  # noqa F401
 
         return super().ready(*args, **kwargs)
 

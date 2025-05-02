@@ -14,8 +14,8 @@ from kpi.models.import_export_task import (
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
-from kpi.utils.docs.markdown import read_md
-from kpi.utils.docs.response import (
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_202_accepted_response,
 )
@@ -711,7 +711,6 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     - docs/api/v2/access_logs/me/exports/list.md
     - docs/api/v2/access_logs/me/exports/create.md
     """
-
 
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
