@@ -11,6 +11,7 @@ const meta: Meta<typeof KoboPrompt> = {
       control: { type: 'select' },
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

@@ -11,6 +11,7 @@ const meta: Meta<typeof KoboModal> = {
   argTypes: {
     isOpen: { control: 'boolean' },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

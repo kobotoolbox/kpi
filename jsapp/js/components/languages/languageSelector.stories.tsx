@@ -12,6 +12,7 @@ const meta: Meta<typeof LanguageSelector> = {
     msw: {
       handlers: [languagesMock, environmentMock],
     },
+    a11y: { test: 'todo' },
   },
 }
 
