@@ -23,7 +23,7 @@ from kpi.utils.docs.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from .docs.api.v2.access_logs.serializers import (
+from .schema_extensions.v2.access_logs.serializers import (
     AccessLogListInlineSerializer,
     AccessLogExportCreateInlineSerializer,
     AccessLogExportListInlineSerializer,
@@ -761,8 +761,8 @@ class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     - create     → POST /api/v2/access-logs/export/
 
     Documentation:
-    - docs/api/v2/access_logs/me/exports/list.md
-    - docs/api/v2/access_logs/me/exports/create.md
+    - docs/api/v2/access_logs/exports/list.md
+    - docs/api/v2/access_logs/exports/create.md
     """
 
     permission_classes = (SuperUserPermission,)

@@ -1,5 +1,5 @@
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
-
+from django.conf import settings
 
 class BasicAuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.BasicAuthentication'
@@ -31,7 +31,7 @@ class EnketoAuthExtension(OpenApiAuthenticationExtension):
         return {
             'type': 'apiKey',
             'in': 'cookie',
-            'name': '__csrf',
+            'name': settings.ENKETO_CSRF_COOKIE_NAME,
         }
 
 class HttpOnlyBasicAuthExtension(OpenApiAuthenticationExtension):

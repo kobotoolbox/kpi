@@ -15,7 +15,7 @@ AccessLogExportCreateInlineSerializer = inline_serializer(
 
 # AccessLogMetadataField is in references to a JSON object. Since the schema generation
 # has a problem with generating JSON object (instead putting strings), we need to use
-# an external class that will be called by a schema util (kpi.utils.docs.schema.py)
+# an external class that will be called by a schema util
 AccessLogListInlineSerializer = inline_serializer(
     name='AccessLogsListInlineSerializer',
     fields={
