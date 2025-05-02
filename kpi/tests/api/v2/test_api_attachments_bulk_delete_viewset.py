@@ -182,7 +182,7 @@ class AttachmentBulkDeleteApiTests(BaseAssetTestCase):
             response.data,
             [
                 ErrorDetail(
-                    string='The list of submission ids cannot be empty', code='invalid'
+                    string='The list of attachment UIDs cannot be empty', code='invalid'
                 )
             ],
         )

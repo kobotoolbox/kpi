@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kpi.permissions import AttachmentDeletionPermission
 from kpi.serializers.v2.attachment_bulk_delete import AttachmentBulkDeleteSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -41,9 +42,21 @@ class AttachmentBulkDeleteViewSet(
           to delete
         """
 
-        serializer = AttachmentBulkDeleteSerializer(
-            data=request.data, context={'request': request, 'asset': self.asset}
+        deployment = self.asset.deployment
+        print(request.data)
+
+        attachments = Attachment.objects.filter(
+            xform_id=deployment.xform_id, instance_id__in=request.data['submission_ids']
         )
+
+        attachment_uids = list(attachments.values_list('uid', flat=True))
+        print(attachment_uids)
+
+        serializer = AttachmentBulkDeleteSerializer(
+            data={'attachment_uids': attachment_uids},
+            context={'asset': self.asset, 'request': request},
+        )
+
         serializer.is_valid(raise_exception=True)
 
         result = serializer.save(request=request, asset=self.asset)

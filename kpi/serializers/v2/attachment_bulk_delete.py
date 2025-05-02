@@ -1,26 +1,31 @@
 from django.utils.translation import gettext as t
 from rest_framework import serializers
 
-from kpi.exceptions import ObjectDeploymentDoesNotExist
+from kpi.exceptions import AttachmentUidMismatchException, ObjectDeploymentDoesNotExist
 
 
 class AttachmentBulkDeleteSerializer(serializers.Serializer):
-    submission_ids = serializers.ListField(
+    attachment_uids = serializers.ListField(
         child=serializers.CharField(),
         required=True,
-        help_text=t('List of submission ids to delete.'),
+        help_text=t('List of attachment UIDs to delete.'),
     )
 
     def save(self, request, asset):
         deployment = self._get_deployment(asset)
 
-        attachment_count = deployment.delete_attachments(
-            request.user, self.data['submission_ids']
-        )
+        try:
+            attachment_count = deployment.delete_attachments(
+                request.user, self.data['attachment_uids']
+            )
+        except AttachmentUidMismatchException:
+            raise serializers.ValidationError(
+                t('One or more of the attachment UIDs are invalid')
+            )
 
         if attachment_count is None:
             raise serializers.ValidationError(
-                t('The list of submission ids cannot be empty')
+                t('The list of attachment UIDs cannot be empty')
             )
 
         return {'message': f'{attachment_count} attachments deleted'}
