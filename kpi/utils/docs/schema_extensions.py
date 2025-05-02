@@ -6,7 +6,10 @@ class BasicAuthExtension(OpenApiAuthenticationExtension):
     name = 'BasicAuth'
 
     def get_security_definition(self, auto_schema):
-        return {'type': 'http', 'scheme': 'basic'}
+        return {
+            'type': 'http',
+            'scheme': 'basic'
+        }
 
 
 class DigestAuthExtension(OpenApiAuthenticationExtension):
@@ -19,6 +22,27 @@ class DigestAuthExtension(OpenApiAuthenticationExtension):
             'scheme': 'digest',
         }
 
+
+class EnketoAuthExtension(OpenApiAuthenticationExtension):
+    target_class = 'kpi.authentication.EnketoSessionAuthentication'
+    name = 'EnketoSessionAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'apiKey',
+            'in': 'cookie',
+            'name': '__csrf',
+        }
+
+class HttpOnlyBasicAuthExtension(OpenApiAuthenticationExtension):
+    target_class = 'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication'
+    name = 'HttpsOnlyBasicAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'http',
+            'scheme': 'basic',
+        }
 
 class OAuth2AuthExtension(OpenApiAuthenticationExtension):
     target_class = 'kpi.authentication.OAuth2Authentication'
@@ -50,9 +74,7 @@ class TokenAuthExtension(OpenApiAuthenticationExtension):
 
     def get_security_definition(self, auto_schema):
         return {
-            'type': '',
-            'scheme': '',
-            # TODO
-            #   finish token auth extension
+            'type': 'http',
+            'scheme': 'bearer',
         }
 
