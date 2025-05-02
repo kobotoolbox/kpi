@@ -34,8 +34,6 @@ from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
 from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.openrosa.apps.logger.exceptions import (
@@ -84,6 +82,8 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
+from pyxform.errors import PyXFormError
+from pyxform.xform2json import create_survey_element_from_xml
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
 HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
@@ -985,22 +985,22 @@ def _update_mongo_for_xform(xform, only_update_missing=True):
         (pi, created) = ParsedInstance.objects.get_or_create(instance=instance)
         if created:
             done += 1
-            continue
-        try:
-            save_success = pi.save(asynchronous=False)
-        except InstanceEmptyError:
-            print(
-                '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
-                'it is empty\033[0m'.format(id_, instance.uuid)
-            )
         else:
-            if not save_success:
+            try:
+                save_success = pi.save(asynchronous=False)
+            except InstanceEmptyError:
                 print(
-                    '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
-                    'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    '\033[91m[WARNING] - Skipping Instance #{}/uuid:{} because '
+                    'it is empty\033[0m'.format(id_, instance.uuid)
                 )
             else:
-                done += 1
+                if not save_success:
+                    print(
+                        '\033[91m[ERROR] - Instance #{}/uuid:{} - Could not save '
+                        'the parsed instance\033[0m'.format(id_, instance.uuid)
+                    )
+                else:
+                    done += 1
 
         progress = '\r%.2f %% done...' % ((float(done) / float(total)) * 100)
         sys.stdout.write(progress)
