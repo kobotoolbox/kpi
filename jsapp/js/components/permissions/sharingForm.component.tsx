@@ -33,7 +33,7 @@ import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import UserPermissionRow from './userPermissionRow.component'
 
 interface SharingFormProps {
-  assetUid: string
+  asset: AssetResponse
 }
 
 /**
@@ -79,8 +79,8 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
       actions.permissions.bulkSetAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
       actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
     )
-    if (this.props.assetUid) {
-      actions.resources.loadAsset({ id: this.props.assetUid })
+    if (this.props.asset.uid) {
+      actions.resources.loadAsset({ id: this.props.asset.uid })
     }
 
     this.onAllAssetsChange()
@@ -114,7 +114,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
   }
 
   onAssetChange(data: AssetStoreData) {
-    const asset = Object.values(data).find((item) => item.uid === this.props.assetUid)
+    const asset = Object.values(data).find((item) => item.uid === this.props.asset.uid)
 
     if (!asset) {
       return
@@ -170,7 +170,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     ) {
       return (
         <UserPermissionRow
-          assetUid={this.props.assetUid}
+          assetUid={this.props.asset.uid}
           userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
@@ -237,8 +237,8 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
             }
             return (
               <UserPermissionRow
-                key={`perm.${this.props.assetUid}.${perm.user.name}`}
-                assetUid={this.props.assetUid}
+                key={`perm.${this.props.asset.uid}.${perm.user.name}`}
+                assetUid={this.props.asset.uid}
                 userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
@@ -272,7 +272,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
               />
 
               <UserAssetPermsEditor
-                assetUid={this.props.assetUid}
+                assetUid={this.props.asset.uid}
                 assignablePerms={this.state.assignablePerms}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}
@@ -287,7 +287,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
             <bem.FormModal__item m='share-settings'>
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
-                assetUid={this.props.assetUid}
+                assetUid={this.props.asset.uid}
                 deploymentActive={this.state.asset.deployment__active}
                 userCanShare={isManagingPossible}
               />
@@ -307,7 +307,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
             {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 && (
               <>
                 <bem.Modal__hr />
-                <CopyTeamPermissions assetUid={this.props.assetUid} />
+                <CopyTeamPermissions assetUid={this.props.asset.uid} />
               </>
             )}
           </>

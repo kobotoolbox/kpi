@@ -17,6 +17,7 @@ import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,
   CheckboxNamePartialByUsers,
+  CheckboxNameRegularPerAsset,
   PartialByResponsesQuestionName,
   PartialByResponsesValueName,
   PartialByUsersListName,
@@ -30,6 +31,7 @@ import {
   PARTIAL_BY_USERS_LABEL,
 } from './permConstants'
 import {check} from '@placemarkio/check-geojson'
+import {AssetTypeName} from '#/constants'
 
 /** For `.find`-ing the permissions */
 function _doesPermMatch(
@@ -318,7 +320,7 @@ export function userHasPermForSubmission(
  * For given checkbox name, it returns its partial "by users" counterpart -
  * another checkbox name (if there is one).
  */
-export function getPartialByUsersCheckboxName(checkboxName: CheckboxNameAll): CheckboxNamePartialByUsers | undefined {
+export function getPartialByUsersCheckboxName(checkboxName: CheckboxNameAll | CheckboxNameRegularPerAsset): CheckboxNamePartialByUsers | undefined {
   switch (checkboxName) {
     case 'submissionsView':
       return 'submissionsViewPartialByUsers'
@@ -354,7 +356,7 @@ export function getPartialByUsersListName(checkboxName: CheckboxNamePartialByUse
  * another checkbox name (if there is one).
  */
 export function getPartialByResponsesCheckboxName(
-  checkboxName: CheckboxNameAll,
+  checkboxName: CheckboxNameAll | CheckboxNameRegularPerAsset,
 ): CheckboxNamePartialByResponses | undefined {
   switch (checkboxName) {
     case 'submissionsView':
@@ -411,14 +413,55 @@ export function getPartialByResponsesValueName(
 /**
  * For given permission name it returns a matching checkbox name (non-partial).
  * It should never return `undefined`, but TypeScript has some limitations.
+ *
+ * Supply an asset type if we need a per asset suffix to the permission label. Only necessary for view, edit, or manage
+ * assets with block, template, or colleciton types.
  */
-export function getCheckboxNameByPermission(permName: PermissionCodename): CheckboxNameAll | undefined {
-  let found: CheckboxNameAll | undefined
-  for (const [checkboxName, permissionName] of Object.entries(CHECKBOX_PERM_PAIRS)) {
-    // We cast it here because for..of doesn't keep the type of the keys
-    const checkboxNameCast = checkboxName as CheckboxNameAll
-    if (permName === permissionName) {
-      found = checkboxNameCast
+export function getCheckboxNameByPermission(permName: PermissionCodename, assetType?: AssetTypeName): (CheckboxNameAll | CheckboxNameRegularPerAsset) | undefined {
+  let found: (CheckboxNameAll | CheckboxNameRegularPerAsset) | undefined
+  if (!assetType) {
+    for (const [checkboxName, permissionName] of Object.entries(CHECKBOX_PERM_PAIRS)) {
+      // We cast it here because for..of doesn't keep the type of the keys
+      const checkboxNameCast = checkboxName as (CheckboxNameAll | CheckboxNameRegularPerAsset)
+      if (permName === permissionName) {
+        found = checkboxNameCast
+      }
+    }
+  }
+
+  // If the permission is not any of these three then supplying an asset type is not valid
+  if (assetType && permName === 'view_asset' || permName === 'change_asset' || permName === 'manage_asset') {
+    for (const [, permissionName] of Object.entries(CHECKBOX_PERM_PAIRS)) {
+      // We cast it here because for..of doesn't keep the type of the keys
+      if (permName === permissionName) {
+        switch (assetType) {
+          case AssetTypeName.collection:
+            if (permName === 'view_asset')
+              found = 'collectionView'
+            if (permName === 'change_asset')
+              found = 'collectionEdit'
+            if (permName === 'manage_asset')
+              found = 'collectionManage'
+            break;
+          case AssetTypeName.block:
+            if (permName === 'view_asset')
+              found = 'blockView'
+            if (permName === 'change_asset')
+              found = 'blockEdit'
+            if (permName === 'manage_asset')
+              found = 'blockManage'
+            break;
+          case AssetTypeName.template:
+            if (permName === 'view_asset')
+              found = 'templateView'
+            if (permName === 'change_asset')
+              found = 'templateEdit'
+            if (permName === 'manage_asset')
+              found = 'templateManage'
+            break;
+          default: found = undefined
+        }
+      }
     }
   }
   return found
@@ -428,7 +471,7 @@ export function getCheckboxNameByPermission(permName: PermissionCodename): Check
  * Returns a human readable permission label, has to do some juggling for
  * partial permissions. Fallback is permission codename.
  */
-export function getPermLabel(perm: PermissionResponse) {
+export function getPermLabel(perm: PermissionResponse, assetType?: AssetTypeName) {
   // For partial permissions we return a general label that matches all possible
   // partial permissions (i.e. same label for "View submissions only from
   // specific users" and "Edit submissions only from specific users" etc.). With
@@ -448,12 +491,9 @@ export function getPermLabel(perm: PermissionResponse) {
   const permDef = permConfig.getPermission(perm.permission)
 
   if (permDef) {
-    const checkboxName = getCheckboxNameByPermission(permDef.codename)
+    const checkboxName = getCheckboxNameByPermission(permDef.codename, assetType)
 
     if (checkboxName) {
-      if (hasChangingLabelSuffix(checkboxName)) {
-        return CHECKBOX_LABELS[checkboxName] + getPermLabelSuffix(checkboxName)
-      }
       return CHECKBOX_LABELS[checkboxName]
     }
   }
@@ -462,25 +502,6 @@ export function getPermLabel(perm: PermissionResponse) {
   // something is terribly wrong. But this case is ~impossible to get, and we
   // mostly have it for TS reasons.
   return '???'
-}
-
-function hasChangingLabelSuffix(checkboxName: string) {
-  console.log('what', checkboxName)
-      return (checkboxName === CHECKBOX_LABELS.formView || checkboxName === CHECKBOX_LABELS.formEdit || checkboxName === CHECKBOX_LABELS.formManage)
-}
-
-function getPermLabelSuffix(checkboxName: string) {
-  if (hasChangingLabelSuffix(checkboxName)) {
-    switch (checkboxName) {
-      case CHECKBOX_LABELS.formView || CHECKBOX_LABELS.formEdit:
-        return 'form'
-      case CHECKBOX_LABELS.formManage:
-        return 'project'
-      default:
-        return ''
-    }
-  }
-  return ''
 }
 
 /**

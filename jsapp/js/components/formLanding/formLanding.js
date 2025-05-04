@@ -145,7 +145,7 @@ class FormLanding extends React.Component {
     evt.preventDefault()
     pageState.showModal({
       type: MODAL_TYPES.SHARING,
-      assetid: this.state.uid,
+      asset: this.state
     })
   }
   showReplaceProjectModal(evt) {

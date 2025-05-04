@@ -105,6 +105,9 @@ function applyValidityRulesForCheckbox(checkboxName: CheckboxNameAll, stateObj: 
  *
  * Returns updated state object
  */
+
+// TODO: Learn how to associate different labels with the same permission on the frontend.
+// "View [colleciton, block, template]" should be able to be mapped to the formView checkboxName somehow
 export function applyValidityRules(stateObj: UserAssetPermsEditorState) {
   // Step 1: Avoid mutation
   let output = clonedeep(stateObj)

@@ -97,6 +97,19 @@ export type CheckboxNamePartialByResponses =
   | 'submissionsEditPartialByResponses'
   | 'submissionsValidatePartialByResponses'
   | 'submissionsDeletePartialByResponses'
+/** Duplicate permisison names for view, edit, and manage permssions that need different asset type suffixes
+ * (collection, block, template)
+ **/
+export type CheckboxNameRegularPerAsset =
+  | 'collectionView'
+  | 'collectionEdit'
+  | 'collectionManage'
+  | 'blockView'
+  | 'blockEdit'
+  | 'blockManage'
+  | 'templateView'
+  | 'templateEdit'
+  | 'templateManage'
 /** All checkboxes names combined. */
 export type CheckboxNameAll = CheckboxNameRegular | CheckboxNamePartialByUsers | CheckboxNamePartialByResponses
 
@@ -226,11 +239,22 @@ Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS)
  * in the `assignable_permissions` property. Unfortunately due to how the data
  * is architectured, the labels for partial permissions are not going to be
  * available for multiple types.
+ *
+ * Note: we have some dulicate permissions here in order to display the correct asset type in the checkbox label
  */
-export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
-  formView: t('View'),
-  formEdit: t('Edit'),
-  formManage: t('Manage'),
+export const CHECKBOX_LABELS: { [key in (CheckboxNameAll | CheckboxNameRegularPerAsset)]: string } = {
+  formView: t('View form'),
+  formEdit: t('Edit form'),
+  formManage: t('Manage project'),
+  collectionView: t('View collection'),
+  collectionEdit: t('Edit collection'),
+  collectionManage: t('Manage collection'),
+  blockView: t('View block'),
+  blockEdit: t('Edit block'),
+  blockManage: t('Manage block'),
+  templateView: t('View template'),
+  templateEdit: t('Edit template'),
+  templateManage: t('Manage template'),
   submissionsAdd: t('Add submissions'),
   submissionsView: t('View submissions'),
   submissionsViewPartialByUsers: t('View submissions only from specific users'),

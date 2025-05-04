@@ -22,6 +22,7 @@ import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,
   CheckboxNamePartialByUsers,
+  CheckboxNameRegularPerAsset,
   PartialByUsersListName,
   PermissionCodename,
 } from './permConstants'
@@ -381,7 +382,7 @@ export default class UserAssetPermsEditor extends React.Component<
   /**
    * Displays UI for endabling/disabling given regular or partial permission
    */
-  renderCheckbox(checkboxName: CheckboxNameAll) {
+  renderCheckbox(checkboxName: CheckboxNameAll | CheckboxNameRegularPerAsset) {
     // We need to trick TypeScript here, because we don't want to refactor too
     // much code to make it perfect
     const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
