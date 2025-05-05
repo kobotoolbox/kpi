@@ -44,11 +44,13 @@ class ProjectTrash(BaseTrash):
             object_identifiers (list[str]): List of project UIDs to toggle.
             active (bool): If True, the projects are activated/untrashed;
                            if False, they are deactivated/trashed.
-            toggle_delete (bool): If True, the projects are marked for trashing/restoring;
-                                  if False, the projects are marked for archived/unarchived.
+            toggle_delete (bool): If True, the projects are marked for
+                                  trashing/restoring; if False, the projects are
+                                  marked for archived/unarchived.
 
         - If `active` is False and `toggle_delete` is False, the assets are archived.
-        - If `active` is False and `toggle_delete` is True, the assets are marked for deletion/trashed.
+        - If `active` is False and `toggle_delete` is True, the assets are marked
+          for deletion/trashed.
         - If `active` is True and `toggle_delete` is False, the assets are unarchived.
         - If `active` is True and `toggle_delete` is True, the assets are untrashed.
         """
