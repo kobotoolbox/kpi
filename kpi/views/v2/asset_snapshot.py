@@ -28,38 +28,14 @@ from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import *
 from kpi.docs.asset_snapshot_doc import *
+from kpi.schema_extensions.v2.asset_snapshots.serializers import (
+    AssetSnapshotResultInlineSerializer,
+)
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
-
-class AbcdJSONField(serializers.JSONField):
-    pass
-
-class QwertJSONField(serializers.JSONField):
-    pass
-
-
-class SnapshotDetailsField(serializers.JSONField):
-    pass
-
-class SnapshotSourceField(serializers.JSONField):
-    pass
-
-class testSerializer(serializers.Serializer):
-    # json schema
-    name = serializers.CharField(max_length=23)
-    abcd = AbcdJSONField(help_text='Some JSON', default=dict)
-    qwert = QwertJSONField(help_text='Some JSON', default=dict)
-
-SnapshotInlineSerializer = inline_serializer(
-    name='SnapshotInlineSerializer',
-    fields={
-        'asset': serializers.IntegerField(),
-        'source' : SnapshotDetailsField(),
-        'details': QwertJSONField(help_text='some json', default=dict),
-    }
-)
 
 @extend_schema(
     tags=['Asset_Snapshots'],
@@ -67,7 +43,10 @@ SnapshotInlineSerializer = inline_serializer(
 @extend_schema_view(
     # description for list
     list=extend_schema(
-        description=asset_snapshot_list,
+        description='asset_snapshot_list',
+        request=None,
+        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer)
+
     ),
     # description for get item
     retrieve=extend_schema(
@@ -100,7 +79,6 @@ SnapshotInlineSerializer = inline_serializer(
     ),
     preview=extend_schema(
         description=preview_method,
-        responses={202: OpenApiResponse(response=SnapshotInlineSerializer)}
     ),
     xform=extend_schema(
        description=xform_method
