@@ -466,7 +466,7 @@ export function getPermLabel(perm: PermissionResponse) {
  *
  * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
  */
-export function getPermLabelSuffix(
+export function getFriendlyPermLabelWithSuffix(
   assetType: AssetTypeName | undefined,
   perm?: PermissionResponse,
   checkboxNameParam?: CheckboxNameAll,

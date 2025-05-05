@@ -16,7 +16,7 @@ import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import { getFriendlyPermName, getPermLabel, getPermLabelSuffix } from './utils'
+import { getFriendlyPermName, getPermLabel, getFriendlyPermLabelWithSuffix } from './utils'
 
 interface UserPermissionRowProps {
   assetUid: string
@@ -107,7 +107,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
           let friendlyPermName = ''
 
           if (this.props.assetType !== AssetTypeName.survey) {
-            friendlyPermName = getPermLabelSuffix(this.props.assetType, perm)
+            friendlyPermName = getFriendlyPermLabelWithSuffix(this.props.assetType, perm)
           } else {
             friendlyPermName = getFriendlyPermName(perm)
           }

@@ -39,7 +39,7 @@ import {
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
   getPartialByUsersListName,
-  getPermLabelSuffix,
+  getFriendlyPermLabelWithSuffix,
 } from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
@@ -395,7 +395,7 @@ export default class UserAssetPermsEditor extends React.Component<
 
     let checkboxLabel = ''
     if (this.props.assetType !== AssetTypeName.survey) {
-      checkboxLabel = getPermLabelSuffix(this.props.assetType, undefined, checkboxName)
+      checkboxLabel = getFriendlyPermLabelWithSuffix(this.props.assetType, undefined, checkboxName)
     } else {
       checkboxLabel = CHECKBOX_LABELS[checkboxName]
     }
