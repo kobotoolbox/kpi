@@ -13,7 +13,7 @@ import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
-import { ASSET_TYPES } from '#/constants'
+import { ASSET_TYPES, AssetTypeName } from '#/constants'
 import type {
   AssetResponse,
   AssignablePermission,
@@ -171,6 +171,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
       return (
         <UserPermissionRow
           assetUid={this.props.assetUid}
+          assetType={this.state.asset.asset_type}
           userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
@@ -232,13 +233,14 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
           {this.state.permissions.map((perm) => {
             // don't show anonymous user permissions in UI
-            if (perm.user.name === ANON_USERNAME) {
+            if (perm.user.name === ANON_USERNAME || !this.state.asset) {
               return null
             }
             return (
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
                 assetUid={this.props.assetUid}
+                assetType={assetType}
                 userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
@@ -273,6 +275,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
 
               <UserAssetPermsEditor
                 assetUid={this.props.assetUid}
+                assetType={assetType}
                 assignablePerms={this.state.assignablePerms}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}

@@ -300,7 +300,7 @@ class BigModal extends React.Component {
         disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
-          {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} />}
+          {this.props.params.type === MODAL_TYPES.SHARING && <SharingForm assetUid={uid} assetType={'wtf'}/>}
           {this.props.params.type === MODAL_TYPES.NEW_FORM && (
             <ProjectSettings context={PROJECT_SETTINGS_CONTEXTS.NEW} onSetModalTitle={this.setModalTitle} />
           )}

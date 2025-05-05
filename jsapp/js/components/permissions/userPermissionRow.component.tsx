@@ -6,7 +6,7 @@ import assetStore from '#/assetStore'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
@@ -16,9 +16,11 @@ import permConfig from './permConfig'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import { getFriendlyPermName, getPermLabel } from './utils'
+import {AssetTypeName} from '#/constants'
 
 interface UserPermissionRowProps {
   assetUid: string
+  assetType: AssetTypeName
   userCanEditPerms: boolean
   nonOwnerPerms: PermissionBase[]
   assignablePerms: AssignablePermsMap
@@ -102,7 +104,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
         {permissions.map((perm) => {
           const permLabel = getPermLabel(perm)
 
-          const friendlyPermName = getFriendlyPermName(perm)
+          const friendlyPermName = getFriendlyPermName(perm, this.props.assetType)
 
           return <bem.UserRow__perm key={permLabel}>{friendlyPermName}</bem.UserRow__perm>
         })}
@@ -158,6 +160,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
           <bem.UserRow__editor>
             <UserAssetPermsEditor
               assetUid={this.props.assetUid}
+              assetType={this.props.assetType}
               username={this.props.username}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}

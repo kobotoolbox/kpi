@@ -228,9 +228,9 @@ Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS)
  * available for multiple types.
  */
 export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
-  formView: t('View form'),
-  formEdit: t('Edit form'),
-  formManage: t('Manage project'),
+  formView: t('View'),
+  formEdit: t('Edit'),
+  formManage: t('Manage'),
   submissionsAdd: t('Add submissions'),
   submissionsView: t('View submissions'),
   submissionsViewPartialByUsers: t('View submissions only from specific users'),

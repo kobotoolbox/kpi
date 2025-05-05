@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import { isSelfOwned } from '#/assetUtils'
+import {AssetTypeName} from '#/constants'
 import type {
   AssetResponse,
   PartialPermission,
@@ -460,6 +461,49 @@ export function getPermLabel(perm: PermissionResponse) {
   return '???'
 }
 
+export function getPermLabelSuffix(assetType: AssetTypeName | undefined, perm?: PermissionResponse, checkboxNameParam?: CheckboxNameAll) {
+  let checkboxNameSuffix = ''
+  let checkboxNameAll = ''
+
+  if (perm) {
+    const permDef = permConfig.getPermission(perm.permission)
+
+    if (permDef) {
+      checkboxNameAll = getCheckboxNameByPermission(permDef.codename) || ''
+    }
+  }
+
+  if (checkboxNameParam) {
+    checkboxNameAll = checkboxNameParam
+  }
+
+  if (checkboxNameAll === 'formView' || checkboxNameAll === 'formEdit' ||checkboxNameAll === 'formManage') {
+    switch (assetType) {
+      case AssetTypeName.block:
+        checkboxNameSuffix = 'block'
+        break
+      case AssetTypeName.collection:
+        checkboxNameSuffix = 'collection'
+        break
+      case AssetTypeName.template:
+        checkboxNameSuffix = 'template'
+        break
+      case AssetTypeName.question:
+        checkboxNameSuffix = 'question'
+        break
+      case AssetTypeName.survey:
+        if (checkboxNameAll === 'formManage') {
+          checkboxNameSuffix = 'project'
+        } else {
+          checkboxNameSuffix = 'form'
+        }
+        break
+    }
+  }
+
+  return checkboxNameSuffix
+}
+
 /**
  * Displays a bit more user friendly name (than `getPermLabel`) of given
  * permission. For partial "by users" permission it will include the list of
@@ -469,7 +513,7 @@ export function getPermLabel(perm: PermissionResponse) {
  * it happens given permission is both "by users" and "by responses" we return
  * combined name.
  */
-export function getFriendlyPermName(perm: PermissionResponse, maxParentheticalUsernames = 3) {
+export function getFriendlyPermName(perm: PermissionResponse, assetType: AssetTypeName, maxParentheticalUsernames = 3) {
   const permLabel = getPermLabel(perm)
 
   const hasByUsers = hasPartialByUsers(perm)
@@ -483,7 +527,7 @@ export function getFriendlyPermName(perm: PermissionResponse, maxParentheticalUs
   }
 
   // In all other scenarios we return the same thing as `getPermLabel`.
-  return permLabel
+  return permLabel + ' ' + getPermLabelSuffix(assetType, perm)
 }
 
 function getByUsersFriendlyPermName(perm: PermissionResponse, maxParentheticalUsernames = 3) {

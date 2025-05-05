@@ -12,7 +12,7 @@ import Checkbox from '#/components/common/checkbox'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
-import { KEY_CODES } from '#/constants'
+import { AssetTypeName, KEY_CODES } from '#/constants'
 import type { PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
@@ -35,13 +35,14 @@ import {
   isPartialByResponsesValid,
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
+import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName, getPermLabelSuffix } from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','
 
 interface UserAssetPermsEditorProps {
   assetUid: string
+  assetType: AssetTypeName
   /** Permissions user username (could be empty for new) */
   username?: string
   /** list of permissions (could be empty for new) */
@@ -391,7 +392,7 @@ export default class UserAssetPermsEditor extends React.Component<
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={CHECKBOX_LABELS[checkboxName]}
+        label={CHECKBOX_LABELS[checkboxName] + ' ' + getPermLabelSuffix(this.props.assetType, undefined, checkboxName)}
       />
     )
   }
