@@ -45,13 +45,23 @@ specified in the `q` parameter.
 
     b. metadata__source
 
+      _The metadata field is only returned when the `auth-type` is not equal to `submission-group`._
+
     c. metadata__ip_address
+
+      _The metadata field is only returned when the `auth-type` is not equal to `submission-group`._
 
     d. metadata__initial_user_uid
 
+     _The metadata field is only returned when the `auth-type` is not equal to `django-loginas`._
+
     e. metadata__initial_user_username
 
+     _The metadata field is only returned when the `auth-type` is not equal to `django-loginas`._
+
     f. metadata__authorized_app_name
+
+    _The metadata field is only returned when the `auth-type` is equal to `oauth2`._
 
 This endpoint can be paginated with `offset` and `limit` parameters, e.g.:
 

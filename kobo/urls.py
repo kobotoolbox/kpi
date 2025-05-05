@@ -10,8 +10,6 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-# The extension is included so the drf-auth extension can recognise hidden endpoints
-import kpi.schema_extensions  # noqa
 from kpi.utils.urls import is_request_for_html
 
 admin.autodiscover()
