@@ -345,7 +345,10 @@ class ProjectTrashTestCase(TestCase):
     def test_attachment_storage_updates_on_project_trash_and_restore(self):
         """
         Ensure that `attachment_storage_bytes` in UserProfile and XForm is
-        updated correctly when a project is moved to the trash and restored
+        updated correctly when a project is moved to the trash and restored.
+
+        The storage bytes should only be affected when the project is moved to
+        trash or restored, not when archived.
         """
         user = User.objects.get(username='someuser')
         asset = Asset.objects.create(
@@ -381,47 +384,63 @@ class ProjectTrashTestCase(TestCase):
             '_submitted_by': username,
         }
         asset.deployment.mock_submissions([submission])
+        asset.deployment.xform.refresh_from_db()
 
-        # Fetch the storage data before moving the project to trash
-        xform_before = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
-        user_profile_before = UserProfile.objects.filter(user_id=user.pk).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
+        # Fetch references to the XForm and UserProfile
+        xform = asset.deployment.xform
+        user_profile = UserProfile.objects.get(user=user)
 
-        # Move project to trash
+        # 1. Fetch the storage data before moving the project to trash
+        initial_xform_storage = xform.attachment_storage_bytes
+        initial_user_profile_storage = user_profile.attachment_storage_bytes
+        self.assertGreater(initial_xform_storage, 0)
+        self.assertGreater(initial_user_profile_storage, 0)
+
+        # 2. Simulate archiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=False, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        archived_xform_storage = xform.attachment_storage_bytes
+        archived_user_profile_storage = user_profile.attachment_storage_bytes
+        self.assertEqual(initial_xform_storage, archived_xform_storage)
+        self.assertEqual(initial_user_profile_storage, archived_user_profile_storage)
+
+        # 3. Simulate moving the project to trash by updating the status
         ProjectTrash.toggle_statuses(
             [asset.uid], active=False, toggle_delete=True
         )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        deleted_xform_storage = xform.attachment_storage_bytes
+        deleted_user_profile_storage = user_profile.attachment_storage_bytes
+        self.assertEqual(deleted_xform_storage, 0)
+        self.assertEqual(deleted_user_profile_storage, 0)
 
-        xform_after = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
-        user_profile_after = UserProfile.objects.filter(user_id=user.pk).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
+        # 4. Simulate unarchiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=True, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        unarchived_xform_storage = xform.attachment_storage_bytes
+        unarchived_user_profile_storage = user_profile.attachment_storage_bytes
+        self.assertEqual(unarchived_xform_storage, 0)
+        self.assertEqual(unarchived_user_profile_storage, 0)
 
+        # 5. Simulate restoring the project by updating the status
         ProjectTrash.toggle_statuses(
             [asset.uid], active=True, toggle_delete=True
         )
-
-        # Re-fetch user storage after restore
-        xform_restored = XForm.all_objects.filter(kpi_asset_uid=asset.uid).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
-        user_profile_restored = UserProfile.objects.filter(user_id=user.pk).aggregate(
-            total_bytes=Sum('attachment_storage_bytes')
-        )['total_bytes']
-
-        self.assertGreater(xform_before, 0)
-        self.assertGreater(user_profile_before, 0)
-        self.assertEqual(xform_after, 0)
-        self.assertEqual(user_profile_after, 0)
-        self.assertGreater(xform_restored, 0)
-        self.assertGreater(user_profile_restored, 0)
-        self.assertEqual(xform_before, xform_restored)
-        self.assertEqual(user_profile_before, user_profile_restored)
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        restored_xform_storage = xform.attachment_storage_bytes
+        restored_user_profile_storage = user_profile.attachment_storage_bytes
+        self.assertGreater(restored_xform_storage, 0)
+        self.assertGreater(restored_user_profile_storage, 0)
+        self.assertEqual(initial_xform_storage, restored_xform_storage)
+        self.assertEqual(initial_user_profile_storage, restored_user_profile_storage)
 
 
 class TestAttachmentTrashStorageCounters(TestBase):
