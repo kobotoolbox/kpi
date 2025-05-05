@@ -16,6 +16,7 @@ import permConfig from './permConfig'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import { getFriendlyPermName, getPermLabel } from './utils'
+import {PERMISSIONS_CODENAMES} from './permConstants'
 
 interface UserPermissionRowProps {
   assetUid: string
@@ -100,6 +101,12 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
     return (
       <bem.UserRow__perms>
         {permissions.map((perm) => {
+          // UI already shows if a collection is discoverable, and we should not explcitly assign this permission, so
+          // we display nothing if we run into it
+          if (perm.permission.includes(PERMISSIONS_CODENAMES.discover_asset)) {
+            return null
+          }
+
           const permLabel = getPermLabel(perm)
 
           const friendlyPermName = getFriendlyPermName(perm)
