@@ -10,12 +10,17 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.organizations.utils import get_real_owner
 from kpi.constants import PERM_MANAGE_ASSET
 from kpi.deployment_backends.kc_access.utils import (
     assign_applicable_kc_permissions,
     kc_transaction_atomic,
     reset_kc_permissions,
+)
+from kpi.exceptions import (
+    InvalidXFormException,
+    MissingXFormException,
 )
 from kpi.fields import KpiUidField
 from kpi.models import Asset, ObjectPermission
@@ -135,6 +140,29 @@ class Transfer(AbstractTimeStampedModel):
                 with transaction.atomic():
                     with kc_transaction_atomic():
                         deployment = self.asset.deployment
+                        try:
+                            xform = deployment.xform
+                        except (InvalidXFormException, MissingXFormException):
+                            id_string = deployment.backend_response.get('id_string')
+                            self.status = (
+                                TransferStatusChoices.FAILED,
+                                f'Project `{self.asset.uid}` could not be transferred '
+                                f'because XForm `{id_string}` does not exist.',
+                            )
+                            return
+
+                        if XForm.objects.filter(
+                            id_string=xform.id_string,
+                            user_id=new_owner.pk,
+                        ).exists():
+                            self.status = (
+                                TransferStatusChoices.FAILED,
+                                f'Project `{self.asset.uid}` could not be transferred '
+                                f'because XForm IdString `{xform.id_string}`'
+                                f' for new owner (#{new_owner.pk}) already exists.',
+                            )
+                            return
+
                         with deployment.suspend_submissions(
                             [self.asset.owner_id, new_owner.pk]
                         ):

@@ -26,6 +26,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 )
 from kobo.apps.openrosa.libs.utils.decorators import apply_form_field_names
 from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.celery import celery_app
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -54,10 +55,10 @@ def datetime_from_str(text):
 @celery_app.task
 def update_mongo_instance(record):
     # since our dict always has an id, save will always result in an upsert op
-    # - so we dont need to worry whether its an edit or not
-    # https://api.mongodb.com/python/current/api/pymongo/collection.html#pymongo.collection.Collection.replace_one
+    # - so we do not need to worry whether it is an edit or not
+    # https://www.mongodb.com/docs/manual/reference/method/db.collection.replaceOne/
     try:
-        xform_instances.replace_one({'_id': record['_id']}, record, upsert=True)
+        MongoHelper.replace_one(record)
     except PyMongoError as e:
         raise Exception('Submission could not be saved to Mongo') from e
     return True
@@ -91,15 +92,7 @@ class ParsedInstance(models.Model):
                 id_string=id_string, user__username=username
             )
 
-        userform_id = (
-            xform.mongo_uuid
-            if xform.mongo_uuid
-            else f'{username}_{id_string}'
-        )
-
-        return {
-            cls.USERFORM_ID: userform_id
-        }
+        return {cls.USERFORM_ID: get_mongo_userform_id(xform, username)}
 
     @classmethod
     @apply_form_field_names
@@ -345,14 +338,11 @@ class ParsedInstance(models.Model):
 
     @staticmethod
     def bulk_update_validation_statuses(query, validation_status):
-        return xform_instances.update_many(
-            query,
-            {'$set': {VALIDATION_STATUS: validation_status}},
-        )
+        return MongoHelper.update_many(query, {VALIDATION_STATUS: validation_status})
 
     @staticmethod
     def bulk_delete(query):
-        return xform_instances.delete_many(query)
+        return MongoHelper.delete_many(query)
 
     def to_dict(self):
         if not hasattr(self, '_dict_cache'):
