@@ -13,10 +13,10 @@ import sessionStore from '#/stores/session'
 import { escapeHtml } from '#/utils'
 import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
+import { PERMISSIONS_CODENAMES } from './permConstants'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import { getFriendlyPermName, getPermLabel } from './utils'
-import {PERMISSIONS_CODENAMES} from './permConstants'
 
 interface UserPermissionRowProps {
   assetUid: string
