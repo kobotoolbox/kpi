@@ -45,11 +45,11 @@ specified in the `q` parameter.
 
     b. metadata__source
 
-      _The metadata field is only returned when the `auth-type` is not equal to `submission-group`._
+      _The metadata field is only returned when the `auth-type` is not `submission-group`._
 
     c. metadata__ip_address
 
-      _The metadata field is only returned when the `auth-type` is not equal to `submission-group`._
+      _The metadata field is only returned when the `auth-type` is not `submission-group`._
 
     d. metadata__initial_user_uid
 
@@ -61,7 +61,7 @@ specified in the `q` parameter.
 
     f. metadata__authorized_app_name
 
-    _The metadata field is only returned when the `auth-type` is equal to `authorized-application`._
+    _The metadata field is only returned when the `auth-type` is `authorized-application`._
 
 This endpoint can be paginated with `offset` and `limit` parameters, e.g.:
 
