@@ -87,6 +87,11 @@ def move_to_trash(
     audit_logs = []
     empty_manually = grace_period == -1
 
+    log_type_map = {
+        'user': AuditType.USER_MANAGEMENT,
+        'attachment': AuditType.ATTACHMENT_MANAGEMENT,
+    }
+
     for obj_dict in objects_list:
         trash_objects.append(
             trash_model(
@@ -97,10 +102,8 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
-        log_type = (
-            AuditType.USER_MANAGEMENT
-            if related_model._meta.model_name == 'user'
-            else AuditType.ASSET_MANAGEMENT
+        log_type = log_type_map.get(
+            related_model._meta.model_name, AuditType.ASSET_MANAGEMENT
         )
         audit_logs.append(
             AuditLog(

@@ -3,6 +3,8 @@ from __future__ import annotations
 from django.db import transaction
 from django.utils import timezone
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.openrosa.apps.logger.models.attachment import (
     Attachment,
     AttachmentDeleteStatus,
@@ -21,5 +23,16 @@ def delete_attachment(attachment_trash: AttachmentTrash):
             delete_status=AttachmentDeleteStatus.DELETED,
             date_modified=timezone.now(),
         )
-        # TODO log deletion
         attachment_trash.delete()
+        AuditLog.objects.create(
+            app_label=attachment._meta.app_label,
+            model_name=attachment._meta.model_name,
+            object_id=attachment_id,
+            user=attachment_trash.request_author,
+            action=AuditAction.DELETE,
+            metadata={
+                'attachment_uid': attachment.uid,
+                'attachment_name': attachment.media_file_basename,
+            },
+            log_type=AuditType.ATTACHMENT_MANAGEMENT,
+        )

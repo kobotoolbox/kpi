@@ -1,12 +1,15 @@
 from django.contrib import admin, messages
 from django.db.models import F
 
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
+
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
+from .models.attachment import AttachmentTrash
 from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
-from .tasks import empty_account, empty_project
+from .tasks import empty_account, empty_project, empty_attachment
 from .utils import put_back
 
 
@@ -156,5 +159,73 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
             )
 
 
+class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
+    list_display = [
+        'get_attachment_name',
+        'request_author',
+        'status',
+        'get_start_time',
+        'get_failure_error',
+    ]
+    list_filter = [StatusListFilter]
+    search_fields = ['attachment__uid', 'request_author__username']
+    ordering = ['-date_created']
+    actions = ['empty_trash', 'put_back']
+    task = empty_attachment
+    trash_type = 'attachment'
+
+    @admin.action(description='Empty trash for selected attachments')
+    def empty_trash(self, request, queryset, **kwargs):
+        super().empty_trash(request, queryset, **kwargs)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related(
+            'periodic_task'
+        )
+
+    @admin.display(description='Attachment')
+    def get_attachment_name(self, obj):
+        attachment_uid = obj.metadata.get('attachment_uid')
+        attachment_name = obj.metadata.get('attachment_basename')
+        if not attachment_uid or not attachment_name:
+            # The information should be stored in metadata - which avoids loading
+            # Attachment object - but in case something is wrong, let's fall back
+            # on it.
+            return str(obj.attachment)
+        return f'{attachment_name} ({attachment_uid})'
+
+    @admin.action(description='Put back selected attachments')
+    def put_back(self, request, queryset, **kwargs):
+        # attachment_ids = queryset.values_list('attachment_id', flat=True)
+        attachment_uids = Attachment.objects.filter(
+            id__in=queryset.values_list('attachment_id', flat=True)
+        ).values_list('uid', flat=True)
+        attachments_queryset, _ = AttachmentTrash.toggle_statuses(
+            attachment_uids, active=True
+        )
+        attachments = attachments_queryset.annotate(
+            attachment_uid=F('uid'), attachment_basename=F('media_file_basename')
+        ).values('pk', 'attachment_uid', 'media_file_basename')
+
+        try:
+            put_back(request.user, attachments, 'user')
+        except TrashTaskInProgressError:
+            self.message_user(
+                request,
+                'One or many attachments are already being deleted!',
+                messages.ERROR
+            )
+        else:
+            self.message_user(
+                request,
+                'Attachment has been successfully put back to users’ account'
+                if len(attachments) == 1
+                else 'Attachments have been successfully put back to users’ account',
+                messages.SUCCESS,
+            )
+
+
 admin.site.register(AccountTrash, AccountTrashAdmin)
 admin.site.register(ProjectTrash, ProjectTrashAdmin)
+admin.site.register(AttachmentTrash, AttachmentTrashAdmin)
