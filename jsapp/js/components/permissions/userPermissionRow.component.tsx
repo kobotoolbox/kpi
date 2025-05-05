@@ -16,7 +16,7 @@ import { permissionsActions } from '../../actions/permissions'
 import permConfig from './permConfig'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import { getFriendlyPermName, getPermLabel, getFriendlyPermLabelWithSuffix } from './utils'
+import { getFriendlyPermLabelWithSuffix, getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
   assetUid: string

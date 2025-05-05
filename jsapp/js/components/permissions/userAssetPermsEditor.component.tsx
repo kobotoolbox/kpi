@@ -36,10 +36,10 @@ import {
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
 import {
+  getFriendlyPermLabelWithSuffix,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
   getPartialByUsersListName,
-  getFriendlyPermLabelWithSuffix,
 } from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
