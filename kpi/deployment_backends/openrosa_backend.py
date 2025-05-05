@@ -241,6 +241,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             )
             .values('pk', 'attachment_basename', 'attachment_uid')
         )
+
         count = len(attachment_uids)
         if count != len(attachments):
             raise AttachmentUidMismatchException

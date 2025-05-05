@@ -300,7 +300,7 @@ class AttachmentApiTests(BaseAssetTestCase):
                 self.asset.uid,
                 submission['_id'],
                 submission['_attachments'][1]['id'],
-                'small',
+                'small'
             ),
         )
         self.client.get(thumb_url)
