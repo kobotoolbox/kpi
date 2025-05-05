@@ -518,7 +518,7 @@ class TestAttachmentTrashStorageCounters(TestBase):
         original_xform_bytes = self.xform.attachment_storage_bytes
         original_user_bytes = self.user_profile.attachment_storage_bytes
 
-        # Move to trash
+        # Change the status to simulate moving to trash
         AttachmentTrash.toggle_statuses([self.attachment.uid])
         self._refresh_all()
 
@@ -529,7 +529,7 @@ class TestAttachmentTrashStorageCounters(TestBase):
             self.attachment.delete_status, AttachmentDeleteStatus.PENDING_DELETE
         )
 
-        # Restore from trash
+        # Change the status to simulate the restoration from trash
         AttachmentTrash.toggle_statuses(
             [self.attachment.uid], active=True
         )
@@ -549,7 +549,7 @@ class TestAttachmentTrashStorageCounters(TestBase):
         Test that storage counters are not decremented twice when an attachment
         is trashed and its parent submission is later deleted
         """
-        # Move to trash
+        # Change the status to simulate moving to trash
         AttachmentTrash.toggle_statuses([self.attachment.uid])
         self._refresh_all()
         decremented_xform_bytes = self.xform.attachment_storage_bytes
