@@ -182,7 +182,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 )
 class AllAccessLogViewSet(AuditLogViewSet):
     """
-    ViewSet for managing superusers' access logs.
+    ViewSet for managing superusers' access logs. Only available to superusers.
 
     Available actions:
     - list       → GET /api/v2/access-logs/exports/
@@ -749,7 +749,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     """
-    ViewSet for managing every user's access logs export
+    ViewSet for managing exports of every users' access logs
 
 
     Available actions:
