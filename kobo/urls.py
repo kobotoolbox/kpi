@@ -11,8 +11,7 @@ from rest_framework import status
 from rest_framework.exceptions import server_error
 
 from kpi.utils.urls import is_request_for_html
-# The extension is included so the drf-auth extension can recognise hidden endpoints
-import kpi.schema_extensions  # noqa
+
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
 

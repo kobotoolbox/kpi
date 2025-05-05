@@ -39,6 +39,7 @@ from kobo.apps.openrosa.apps.logger.utils.instance import (
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
@@ -610,7 +611,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                             'count': {'$sum': 1},
                         }
                     },
-                ]
+                ],
+                maxTimeMS=MongoHelper.get_max_time_ms(),
             )
             return {doc['_id']: doc['count'] for doc in documents}
 
@@ -811,10 +813,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def mongo_userform_id(self):
-        return (
-            self.xform.mongo_uuid
-            or f'{self.asset.owner.username}_{self.xform_id_string}'
-        )
+        return get_mongo_userform_id(self.xform, self.asset.owner.username)
 
     @staticmethod
     def nlp_tracking_data(
@@ -1349,14 +1348,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
     def transfer_submissions_ownership(self, previous_owner_username: str) -> bool:
 
-        results = settings.MONGO_DB.instances.update_many(
+        results = MongoHelper.update_many(
             {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},
-            {'$set': {'_userform_id': self.mongo_userform_id}},
+            {'_userform_id': self.mongo_userform_id},
         )
 
-        return results.matched_count == 0 or (
-            results.matched_count > 0
-            and results.matched_count == results.modified_count
+        return results['matched_count'] == 0 or (
+            results['matched_count'] > 0
+            and results['matched_count'] == results['modified_count']
         )
 
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
