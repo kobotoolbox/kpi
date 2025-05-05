@@ -1,6 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import { isSelfOwned } from '#/assetUtils'
-import {AssetTypeName} from '#/constants'
+import { AssetTypeName } from '#/constants'
 import type {
   AssetResponse,
   PartialPermission,
@@ -461,7 +461,16 @@ export function getPermLabel(perm: PermissionResponse) {
   return '???'
 }
 
-export function getPermLabelSuffix(assetType: AssetTypeName | undefined, perm?: PermissionResponse, checkboxNameParam?: CheckboxNameAll) {
+/**
+ * Returns the permission label with the correct suffix depending on the given asset type.
+ *
+ * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
+ */
+export function getPermLabelSuffix(
+  assetType: AssetTypeName | undefined,
+  perm?: PermissionResponse,
+  checkboxNameParam?: CheckboxNameAll,
+) {
   let checkboxNameSuffix = ''
   let checkboxNameAll = ''
 
@@ -477,19 +486,27 @@ export function getPermLabelSuffix(assetType: AssetTypeName | undefined, perm?: 
     checkboxNameAll = checkboxNameParam
   }
 
-  if (checkboxNameAll === 'formView' || checkboxNameAll === 'formEdit' ||checkboxNameAll === 'formManage') {
+  if (checkboxNameAll === 'formView' || checkboxNameAll === 'formEdit' || checkboxNameAll === 'formManage') {
     switch (assetType) {
       case AssetTypeName.block:
-        checkboxNameSuffix = 'block'
+        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View block')
+        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit block')
+        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage block')
         break
       case AssetTypeName.collection:
-        checkboxNameSuffix = 'collection'
+        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View collection')
+        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit collection')
+        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage collection')
         break
       case AssetTypeName.template:
-        checkboxNameSuffix = 'template'
+        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View template')
+        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit template')
+        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage template')
         break
       case AssetTypeName.question:
-        checkboxNameSuffix = 'question'
+        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View question')
+        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit question')
+        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage question')
         break
       case AssetTypeName.survey:
         if (checkboxNameAll === 'formManage') {
@@ -513,7 +530,7 @@ export function getPermLabelSuffix(assetType: AssetTypeName | undefined, perm?: 
  * it happens given permission is both "by users" and "by responses" we return
  * combined name.
  */
-export function getFriendlyPermName(perm: PermissionResponse, assetType: AssetTypeName, maxParentheticalUsernames = 3) {
+export function getFriendlyPermName(perm: PermissionResponse, maxParentheticalUsernames = 3) {
   const permLabel = getPermLabel(perm)
 
   const hasByUsers = hasPartialByUsers(perm)
@@ -527,7 +544,7 @@ export function getFriendlyPermName(perm: PermissionResponse, assetType: AssetTy
   }
 
   // In all other scenarios we return the same thing as `getPermLabel`.
-  return permLabel + ' ' + getPermLabelSuffix(assetType, perm)
+  return permLabel
 }
 
 function getByUsersFriendlyPermName(perm: PermissionResponse, maxParentheticalUsernames = 3) {

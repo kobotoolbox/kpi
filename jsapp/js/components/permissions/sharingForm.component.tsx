@@ -13,7 +13,7 @@ import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { TransferStatuses } from '#/components/permissions/transferProjects/transferProjects.api'
 import { userCan } from '#/components/permissions/utils'
-import { ASSET_TYPES, AssetTypeName } from '#/constants'
+import { ASSET_TYPES } from '#/constants'
 import type {
   AssetResponse,
   AssignablePermission,

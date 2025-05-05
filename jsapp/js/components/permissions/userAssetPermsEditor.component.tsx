@@ -35,7 +35,12 @@ import {
   isPartialByResponsesValid,
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName, getPermLabelSuffix } from './utils'
+import {
+  getPartialByResponsesQuestionName,
+  getPartialByResponsesValueName,
+  getPartialByUsersListName,
+  getPermLabelSuffix,
+} from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','
@@ -387,12 +392,20 @@ export default class UserAssetPermsEditor extends React.Component<
     // much code to make it perfect
     const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
     const isDisabled = Boolean(this.state[disabledPropName])
+
+    let checkboxLabel = ''
+    if (this.props.assetType !== AssetTypeName.survey) {
+      checkboxLabel = getPermLabelSuffix(this.props.assetType, undefined, checkboxName)
+    } else {
+      checkboxLabel = CHECKBOX_LABELS[checkboxName]
+    }
+
     return (
       <Checkbox
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={CHECKBOX_LABELS[checkboxName] + ' ' + getPermLabelSuffix(this.props.assetType, undefined, checkboxName)}
+        label={checkboxLabel}
       />
     )
   }
