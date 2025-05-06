@@ -2,6 +2,7 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
 from .fields import (
+    AssetSnapshotCreateDetailsField,
     AssetSnapshotDetailsField,
     AssetSnapshotSourceField,
 )
@@ -19,5 +20,14 @@ AssetSnapshotResultInlineSerializer = inline_serializer(
         'asset_version_id': serializers.IntegerField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),
-    }
+    },
+)
+
+AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
+    name='AssetSnapshotCreateRequestInlineSerializer',
+    fields={
+        'asset': serializers.CharField(),
+        'details': AssetSnapshotCreateDetailsField(),
+        'source': serializers.CharField(),
+    },
 )
