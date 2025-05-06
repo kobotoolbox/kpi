@@ -17,10 +17,33 @@ class AssetSnapshotDetailsField(OpenApiSerializerFieldExtension):
                         'type': 'object',
                         'properties': {
                             'code': build_basic_type(OpenApiTypes.STR),
-                            'message': build_basic_type(OpenApiTypes.STR)
-                        }
-                    }
+                            'message': build_basic_type(OpenApiTypes.STR),
+                        },
+                    },
                 },
+            },
+        }
+
+
+class AssetSnapshotDetailsExportField(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotCreateDetailsField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'object',
+            'properties': {
+                'status': build_basic_type(OpenApiTypes.STR),
+                'warnings': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'code': build_basic_type(OpenApiTypes.STR),
+                            'message': build_basic_type(OpenApiTypes.STR),
+                        },
+                    },
+                },
+                'note': build_basic_type(OpenApiTypes.STR),
             },
         }
 
@@ -40,15 +63,15 @@ class AssetSnapshotSourceField(OpenApiSerializerFieldExtension):
                         'properties': {
                             'name': build_basic_type(OpenApiTypes.STR),
                             'type': build_basic_type(OpenApiTypes.STR),
-                            '$autoname': build_basic_type(OpenApiTypes.STR)
-                        }
+                            '$autoname': build_basic_type(OpenApiTypes.STR),
+                        },
                     },
                 },
                 'settings': {
                     'type': 'object',
                     'properties': {
                         'form_title': build_basic_type(OpenApiTypes.STR),
-                    }
+                    },
                 },
                 'translated': {
                     'type': 'array',

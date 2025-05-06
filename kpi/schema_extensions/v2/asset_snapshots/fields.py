@@ -8,3 +8,6 @@ class AssetSnapshotDetailsField(serializers.JSONField):
 class AssetSnapshotSourceField(serializers.JSONField):
     pass
 
+
+class AssetSnapshotCreateDetailsField(serializers.JSONField):
+    pass
