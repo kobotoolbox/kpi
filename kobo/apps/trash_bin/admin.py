@@ -9,7 +9,7 @@ from .models.account import AccountTrash
 from .models.attachment import AttachmentTrash
 from .models.project import ProjectTrash
 from .mixins.admin import TrashMixin
-from .tasks import empty_account, empty_project, empty_attachment
+from .tasks import empty_account, empty_attachment, empty_project
 from .utils import put_back
 
 
@@ -168,7 +168,7 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_failure_error',
     ]
     list_filter = [StatusListFilter]
-    search_fields = ['attachment__uid', 'request_author__username']
+    search_fields = ['attachment_id', 'request_author__username']
     ordering = ['-date_created']
     actions = ['empty_trash', 'put_back']
     task = empty_attachment
@@ -197,19 +197,19 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     @admin.action(description='Put back selected attachments')
     def put_back(self, request, queryset, **kwargs):
-        # attachment_ids = queryset.values_list('attachment_id', flat=True)
-        attachment_uids = Attachment.objects.filter(
-            id__in=queryset.values_list('attachment_id', flat=True)
-        ).values_list('uid', flat=True)
-        attachments_queryset, _ = AttachmentTrash.toggle_statuses(
-            attachment_uids, active=True
-        )
-        attachments = attachments_queryset.annotate(
+        # The main goal of the annotation below is to pass always the same
+        # metadata attributes to AuditLog model whatever the model and the action
+        attachments = Attachment.all_objects.filter(
+            id__in=list(queryset.values_list('attachment_id', flat=True))
+        ).annotate(
             attachment_uid=F('uid'), attachment_basename=F('media_file_basename')
-        ).values('pk', 'attachment_uid', 'media_file_basename')
+        ).values('pk', 'attachment_uid', 'attachment_basename')
 
+        AttachmentTrash.toggle_statuses(
+            [att['attachment_uid'] for att in attachments], active=True
+        )
         try:
-            put_back(request.user, attachments, 'user')
+            put_back(request.user, attachments, 'attachment')
         except TrashTaskInProgressError:
             self.message_user(
                 request,
