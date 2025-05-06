@@ -3,8 +3,8 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
-from rest_framework import renderers, serializers, status
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework import renderers, serializers
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -63,9 +63,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
         responses={
-            204: OpenApiResponse(
-                description='',
-            )
+            204: OpenApiResponse()
         },
         tags=['Asset_Snapshots'],
     ),
@@ -148,15 +146,8 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
-    renderer_classes = [
-        JSONRenderer,
-    ]
+    renderer_classes = [JSONRenderer]
     log_type = AuditType.PROJECT_HISTORY
-
-    def get_renderers(self):
-        if self.action == 'retrieve':
-            return [JSONRenderer, XMLRenderer]
-        return super().get_renderers()
 
     @property
     def asset(self):
@@ -226,6 +217,11 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         self.check_object_permissions(self.request, snapshot)
 
         return self._add_disclaimer(snapshot)
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [JSONRenderer(), XMLRenderer()]
+        return super().get_renderers()
 
     @action(
         detail=True,
@@ -363,7 +359,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
                                                                  **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
-    @action(detail=True)
+    @action(detail=True, renderer_classes=[XMLRenderer])
     def xml_with_disclaimer(self, request, *args, **kwargs):
         """
         Same behaviour as `retrieve()` from DRF, but makes it easier to target
