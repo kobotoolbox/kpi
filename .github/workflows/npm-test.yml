@@ -78,10 +78,11 @@ jobs:
         run: npm run build:storybook
 
       # Install Playwright (with cache) for Storybook tests
-      - name: Get installed Playwright version
+      - name: "Playwright: get installed version"
         id: playwright-version
         run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package-lock.json').dependencies['@playwright/test'].version)")" >> $GITHUB_ENV
-      - name: Cache playwright binaries
+
+      - name: "Playwright: cache binaries"
         uses: actions/cache@v4
         id: playwright-cache
         with:
@@ -92,6 +93,12 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
       - run: npx playwright install-deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: "Playwright: install system dependencies for WebKit"
+        # Some WebKit dependencies seem to lay outside the cache and will need to be installed separately
+        # See bug: https://github.com/microsoft/playwright/issues/30538
+        if: ${{ inputs.browser == 'webkit' && steps.playwright-cache.outputs.cache-hit == 'true' }}
+        run: npx playwright install-deps webkit
 
       # Run the storybook test suite
       - name: Serve Storybook and run tests
