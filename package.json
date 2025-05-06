@@ -222,7 +222,7 @@
     "watch": "npm run hint watch && webpack-dev-server --config webpack/dev.server.js",
     "watch:storybook:": "storybook dev -p 6006 --no-open",
     "ci": "npm run lint && SKIP_TS_CHECK=true npm run build && npm run test",
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:storybook",
     "test:storybook": "playwright install && test-storybook",
     "test:unit": "jest --config ./jsapp/jest/unit.config.ts",
     "test-watch": "jest --config ./jsapp/jest/unit.config.ts --watch",
