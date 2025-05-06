@@ -37,54 +37,64 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
 
-@extend_schema(
-    tags=['Asset_Snapshots'],
-)
+
 @extend_schema_view(
     # description for list
     list=extend_schema(
         description='asset_snapshot_list',
         request=None,
-        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer)
-
+        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
         description=asset_snapshot_retrieve,
+        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for post
     create=extend_schema(
         description=asset_snapshot_create,
+        responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for delete
     destroy=extend_schema(
         description=asset_snapshot_destroy,
+        tags=['Asset_Snapshots'],
     ),
     # description for put
     update=extend_schema(
-        description=asset_snapshot_update,
+        exclude=True
     ),
     # description for patch
     partial_update=extend_schema(
         description=asset_snapshot_partial_update,
+        tags=['Asset_Snapshots'],
     ),
     form_list=extend_schema(
         description=form_list_method,
+        tags=['OpenRosa'],
     ),
     manifest=extend_schema(
         description=manifest_method,
+        tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=submission_method,
+        tags=['OpenRosa'],
     ),
     preview=extend_schema(
         description=preview_method,
+        tags=['OpenRosa'],
     ),
     xform=extend_schema(
-       description=xform_method
+        description=xform_method,
+        tags=['OpenRosa'],
     ),
     xml_with_disclaimer=extend_schema(
-        description=xml_disclaimer_method
+        description=xml_disclaimer_method,
+        tags=['OpenRosa'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
@@ -94,52 +104,40 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
     Available actions:
     - list       → GET /api/v2/asset_snapshots/
-
-    Documentation:
-    - docs/api/v2/asset_snapshots/list.md
-
-
     - create       → POST /api/v2/asset_snapshots/
-# payload utilise ou un asset ou un snapshot.
-# asset -> url de l'asset
-    Documentation:
-    - docs/api/v2/asset_snapshots/create.md
-
-
     - retrieve       → GET /api/v2/asset_snapshots/{uid}
-
-    Documentation:
-    - docs/api/v2/asset_snapshots/retrieve.md
-
-
     - patch       → PATCH /api/v2/asset_snapshots/{uid}
-
-    Documentation:
-    - docs/api/v2/asset_snapshots/patch.md
-
-
     - delete       → DELETE /api/v2/asset_snapshots/{uid}
 
     Documentation:
+    - docs/api/v2/asset_snapshots/list.md
+    # payload utilise ou un asset ou un snapshot.
+    # asset -> url de l'asset
+    - docs/api/v2/asset_snapshots/create.md
+    - docs/api/v2/asset_snapshots/retrieve.md
+    - docs/api/v2/asset_snapshots/patch.md
     - docs/api/v2/asset_snapshots/delete.md
 
 
-    - formlist       → PATCH /api/v2/asset_snapshots/{uid}
 
-    Documentation:
-    - docs/api/v2/asset_snapshots/patch.md
+    OpenRosa Endpoints Documentation
+    - formlist       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/form_list/form_list.md
 
+    - manifest       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/manifest/manifest.md
 
-    - patch       → PATCH /api/v2/asset_snapshots/{uid}
+    - preview       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/preview/preview.md
 
-    Documentation:
-    - docs/api/v2/asset_snapshots/patch.md
+    - submission       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/submission/submission.md
 
+    - xform       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/xform/xform.md
 
-    - patch       → PATCH /api/v2/asset_snapshots/{uid}
-
-    Documentation:
-    - docs/api/v2/asset_snapshots/patch.md
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/xml_with_disclaimer/xml_with_disclaimer.md
     """
 
     serializer_class = AssetSnapshotSerializer
@@ -151,6 +149,9 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         XMLRenderer,
     ]
     log_type = AuditType.PROJECT_HISTORY
+
+    def partial_update(self, request, *args, **kwargs):
+        1/0
 
     @property
     def asset(self):
