@@ -3,8 +3,8 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import renderers, serializers
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -14,7 +14,14 @@ from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import DigestAuthentication, EnketoSessionAuthentication
-from kpi.docs.asset_snapshot_doc import *
+from kpi.docs.asset_snapshot_doc import (
+    form_list_method,
+    manifest_method,
+    preview_method,
+    submission_method,
+    xform_method,
+    xml_disclaimer_method,
+)
 from kpi.exceptions import SubmissionIntegrityError
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
@@ -33,7 +40,10 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import *
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+)
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
@@ -62,9 +72,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
-        responses={
-            204: OpenApiResponse()
-        },
+        responses={204: OpenApiResponse()},
         tags=['Asset_Snapshots'],
     ),
     update=extend_schema(
