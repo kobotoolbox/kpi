@@ -61,6 +61,12 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
+        responses={
+            204:
+                OpenApiResponse(
+                    description='',
+                )
+        },
         tags=['Asset_Snapshots'],
     ),
     update=extend_schema(
