@@ -33,6 +33,7 @@ from kpi.utils.schema_extensions.response import *
 from kpi.docs.asset_snapshot_doc import *
 from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotResultInlineSerializer,
+    AssetSnapshotCreateRequestInlineSerializer,
 )
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
@@ -55,6 +56,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for post
     create=extend_schema(
         description=read_md('kpi', 'asset_snapshots/create.md'),
+        request=AssetSnapshotCreateRequestInlineSerializer,
         responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
         tags=['Asset_Snapshots'],
     ),

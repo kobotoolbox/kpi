@@ -1,6 +1,7 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension, _SchemaType
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import Direction
 
 
 class AssetSnapshotDetailsField(OpenApiSerializerFieldExtension):
@@ -21,6 +22,29 @@ class AssetSnapshotDetailsField(OpenApiSerializerFieldExtension):
                         }
                     }
                 },
+            },
+        }
+
+
+class AssetSnapshotDetailsExportField(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotCreateDetailsField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'object',
+            'properties': {
+                'status': build_basic_type(OpenApiTypes.STR),
+                'warnings': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'code': build_basic_type(OpenApiTypes.STR),
+                            'message': build_basic_type(OpenApiTypes.STR)
+                        }
+                    }
+                },
+                'note': build_basic_type(OpenApiTypes.STR)
             },
         }
 

@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .fields import (
     AssetSnapshotDetailsField,
     AssetSnapshotSourceField,
+    AssetSnapshotCreateDetailsField,
 )
 
 AssetSnapshotResultInlineSerializer = inline_serializer(
@@ -19,5 +20,14 @@ AssetSnapshotResultInlineSerializer = inline_serializer(
         'asset_version_id': serializers.IntegerField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),
+    }
+)
+
+AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
+    name='AssetSnapshotCreateRequestInlineSerializer',
+    fields={
+        'asset': serializers.CharField(),
+        'details': AssetSnapshotCreateDetailsField(),
+        'source': serializers.CharField(),
     }
 )
