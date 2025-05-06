@@ -1,7 +1,6 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension, _SchemaType
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import Direction
 
 
 class AssetSnapshotDetailsField(OpenApiSerializerFieldExtension):
@@ -18,9 +17,9 @@ class AssetSnapshotDetailsField(OpenApiSerializerFieldExtension):
                         'type': 'object',
                         'properties': {
                             'code': build_basic_type(OpenApiTypes.STR),
-                            'message': build_basic_type(OpenApiTypes.STR)
-                        }
-                    }
+                            'message': build_basic_type(OpenApiTypes.STR),
+                        },
+                    },
                 },
             },
         }
@@ -40,11 +39,11 @@ class AssetSnapshotDetailsExportField(OpenApiSerializerFieldExtension):
                         'type': 'object',
                         'properties': {
                             'code': build_basic_type(OpenApiTypes.STR),
-                            'message': build_basic_type(OpenApiTypes.STR)
-                        }
-                    }
+                            'message': build_basic_type(OpenApiTypes.STR),
+                        },
+                    },
                 },
-                'note': build_basic_type(OpenApiTypes.STR)
+                'note': build_basic_type(OpenApiTypes.STR),
             },
         }
 
@@ -64,15 +63,15 @@ class AssetSnapshotSourceField(OpenApiSerializerFieldExtension):
                         'properties': {
                             'name': build_basic_type(OpenApiTypes.STR),
                             'type': build_basic_type(OpenApiTypes.STR),
-                            '$autoname': build_basic_type(OpenApiTypes.STR)
-                        }
+                            '$autoname': build_basic_type(OpenApiTypes.STR),
+                        },
                     },
                 },
                 'settings': {
                     'type': 'object',
                     'properties': {
                         'form_title': build_basic_type(OpenApiTypes.STR),
-                    }
+                    },
                 },
                 'translated': {
                     'type': 'array',
