@@ -15,7 +15,6 @@ from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
-from rest_framework.utils.serializer_helpers import ReturnList
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
@@ -47,7 +46,6 @@ from kpi.fields import (
 )
 from kpi.models import (
     Asset,
-    AssetExportSettings,
     AssetVersion,
     ObjectPermission,
     UserAssetSubscription,
@@ -324,7 +322,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     permissions = serializers.SerializerMethodField()
     effective_permissions = serializers.SerializerMethodField()
     exports = serializers.SerializerMethodField()
-    export_settings = serializers.SerializerMethodField()
+    export_settings = AssetExportSettingsSerializer(
+        many=True, read_only=True, source='asset_export_settings'
+    )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -342,7 +342,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__submission_count = serializers.SerializerMethodField()
     deployment_status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
-
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
@@ -429,6 +428,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 validated_data['owner'] = real_owner
                 validated_data['is_excluded_from_projects_list'] = True
                 instance = super().create(validated_data)
+                # Does not assign any `*_submissions` permissions because the asset
+                # type equals 'empty'.
                 instance.assign_perm(current_owner, PERM_MANAGE_ASSET)
         else:
             validated_data['is_excluded_from_projects_list'] = False
@@ -440,16 +441,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         request = self.context['request']
         user = request.user
 
+        perms = asset.get_perms(user)
         validated_data['last_modified_by'] = user.username
         self._set_asset_ids_cache(asset)
 
-        if (
-            not asset.has_perm(user, PERM_CHANGE_ASSET)
-            and user_has_project_view_asset_perm(asset, user, PERM_CHANGE_METADATA_ASSET)
+        if PERM_CHANGE_ASSET not in perms and user_has_project_view_asset_perm(
+            asset, user, PERM_CHANGE_METADATA_ASSET
         ):
             _validated_data = {}
-            if settings := validated_data.get('settings'):
-                _validated_data['settings'] = settings
+            if settings_ := validated_data.get('settings'):
+                _validated_data['settings'] = settings_
             if name := validated_data.get('name'):
                 _validated_data['name'] = name
             return super().update(asset, _validated_data)
@@ -467,7 +468,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     'translations': str(err)
                 })
             validated_data['content'] = asset_content
-        return super().update(asset, validated_data)
+        asset = super().update(asset, validated_data)
+
+        # Restore submission related permissions to the creator of the form
+        if (
+            not asset.has_deployment
+            and asset.asset_type == ASSET_TYPE_SURVEY
+            and PERM_MANAGE_ASSET in perms
+            and not any([perm.endswith('_submissions') for perm in perms])
+        ):
+            # This should only occur when a member of an organization creates a project.
+            # In that case, the request user is the one who just created the project.
+            # If not, something went wrong — we raise a 500 to avoid accidentally
+            # granting full permissions to the wrong user.
+            assert user.username == asset.created_by
+            # Reset permission. Safer than adding missing permissions.
+            asset.remove_perm(user, PERM_MANAGE_ASSET)
+            asset.assign_perm(user, PERM_MANAGE_ASSET)
+
+        return asset
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -740,14 +759,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             args=(obj.uid,),
             request=self.context.get('request', None),
         )
-
-    def get_export_settings(self, obj: Asset) -> ReturnList:
-        return AssetExportSettingsSerializer(
-            AssetExportSettings.objects.filter(asset=obj),
-            many=True,
-            read_only=True,
-            context=self.context,
-        ).data
 
     def get_access_types(self, asset):
         """

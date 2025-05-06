@@ -3,10 +3,10 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from responses import delete
+from drf_spectacular.utils import inline_serializer, extend_schema_field,OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -28,70 +28,113 @@ from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.views.docs.asset_snapshot.asset_snapshot_doc import (
-    form_list_method,
-    manifest_method,
-    submission_method,
-    xform_method,
-    xlm_method,
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import *
+from kpi.docs.asset_snapshot_doc import *
+from kpi.schema_extensions.v2.asset_snapshots.serializers import (
+    AssetSnapshotResultInlineSerializer,
 )
-from kpi.views.no_update_model import NoUpdateModelViewSet
-from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
+from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
 
-@extend_schema(
-    tags=['asset_snapshots'],
-)
+
 @extend_schema_view(
     # description for list
     list=extend_schema(
-        description="List documentation for snapshot",
+        description=read_md('kpi', 'asset_snapshots/list.md'),
+        request=None,
+        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
-        description="Get documentation for snapshot retrieve",
+        description=read_md('kpi', 'asset_snapshots/retrieve.md'),
+        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for post
     create=extend_schema(
-        description="Post documentation for snapshot",
+        description=read_md('kpi', 'asset_snapshots/create.md'),
+        responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
+        tags=['Asset_Snapshots'],
     ),
     # description for delete
     destroy=extend_schema(
-        description="Delete documentation for snapshot",
+        description=read_md('kpi', 'asset_snapshots/delete.md'),
+        tags=['Asset_Snapshots'],
     ),
-    # description for put
     update=extend_schema(
-        description='Put documentation for snapshot',
+        exclude=True,
     ),
-    # description for patch
     partial_update=extend_schema(
-        description='Patch documentation for snapshot',
+        exclude=True,
     ),
     form_list=extend_schema(
         description=form_list_method,
+        tags=['OpenRosa'],
     ),
     manifest=extend_schema(
         description=manifest_method,
+        tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=submission_method,
+        tags=['OpenRosa'],
     ),
     preview=extend_schema(
-        description='Write preview function documentation',
+        description=preview_method,
+        tags=['OpenRosa'],
     ),
     xform=extend_schema(
-       description=xform_method
+        description=xform_method,
+        tags=['OpenRosa'],
     ),
     xml_with_disclaimer=extend_schema(
-        description=xlm_method
+        description=xml_disclaimer_method,
+        tags=['OpenRosa'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
 
     """
-    <span class='label label-danger'>TODO Documentation for this endpoint</span>
+    ViewSet for managing the current user's asset snapshots
 
-    ### CURRENT ENDPOINT
+    Available actions:
+    - list       → GET /api/v2/asset_snapshots/
+    - create       → POST /api/v2/asset_snapshots/
+    - retrieve       → GET /api/v2/asset_snapshots/{uid}
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}
+    - delete       → DELETE /api/v2/asset_snapshots/{uid}
+
+    Documentation:
+    - docs/api/v2/asset_snapshots/list.md
+    # payload utilise ou un asset ou un snapshot.
+    # asset -> url de l'asset
+    - docs/api/v2/asset_snapshots/create.md
+    - docs/api/v2/asset_snapshots/retrieve.md
+    - docs/api/v2/asset_snapshots/patch.md
+    - docs/api/v2/asset_snapshots/delete.md
+
+
+
+    OpenRosa Endpoints Documentation
+    - formlist       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/form_list/form_list.md
+
+    - manifest       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/manifest/manifest.md
+
+    - preview       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/preview/preview.md
+
+    - submission       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/submission/submission.md
+
+    - xform       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/xform/xform.md
+
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}
+    - docs/api/v2/asset_snapshots/xml_with_disclaimer/xml_with_disclaimer.md
     """
 
     serializer_class = AssetSnapshotSerializer
@@ -99,10 +142,15 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
-    renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        XMLRenderer,
+    renderer_classes = [
+        JSONRenderer,
     ]
     log_type = AuditType.PROJECT_HISTORY
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [JSONRenderer, XMLRenderer]
+        return super().get_renderers()
 
     @property
     def asset(self):

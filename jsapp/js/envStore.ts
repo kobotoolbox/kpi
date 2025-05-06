@@ -1,9 +1,8 @@
 import { makeAutoObservable } from 'mobx'
 import { fetchGet } from '#/api'
+import { endpoints } from '#/api.endpoints'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
-
-const ENV_ENDPOINT = '/environment/'
 
 export interface EnvironmentResponse {
   mfa_has_availability_list: boolean
@@ -179,7 +178,7 @@ class EnvStore {
 
   async fetchData() {
     // Error handling is done inside `fetchGet`
-    const response = await fetchGet<EnvironmentResponse>(ENV_ENDPOINT)
+    const response = await fetchGet<EnvironmentResponse>(endpoints.ENVIRONMENT)
     this.onGetEnvCompleted(response)
   }
 

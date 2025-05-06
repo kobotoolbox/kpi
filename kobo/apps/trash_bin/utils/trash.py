@@ -42,19 +42,30 @@ def move_to_trash(
     retain_placeholder: bool = True,
 ):
     """
-    Create trash objects and their related scheduled celery tasks.
+    Move the objects listed in `objects_list` to trash and create their associated
+    scheduled Celery tasks.
 
-    `objects_list` must be a list of dictionaries which contain at a 'pk' key
-    and any other key that would be saved as attributes in AuditLog.metadata.
-    If `trash_type` is 'asset', dictionaries of `objects_list` should contain
-    'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
-    they should contain 'pk' and 'username'.
+    Each entry in `objects_list` must be a dictionary containing at least a `'pk'` key,
+    along with any other keys that will be stored as attributes in `AuditLog.metadata`.
 
-    Projects, accounts and attachments stay in trash for `grace_period` and then are
-    hard-deleted when their related scheduled task runs.
+    The expected keys depend on the `trash_type`:
+    - If `trash_type` is `'asset'`, each dictionary must include:
+        - `'pk'`
+        - `'asset_uid'`
+        - `'asset_name'`
+    - If `trash_type` is `'user'`, each dictionary must include:
+        - `'pk'`
+        - `'username'`
+    - If `trash_type` is `'attachment'`, each dictionary must include:
+        - `'pk'`
+        - `'attachment_basename'`
 
-    If `retain_placeholder` is True, in instance of `kobo_auth.User` with the same
-    username and primary key is retained after deleting all other data.
+    Projects, accounts, and attachments remain in trash for the duration of the
+    `grace_period`.
+    After this period, they are hard-deleted by the related scheduled Celery task.
+
+    If `retain_placeholder` is True, a `kobo_auth.User` instance with the same
+    primary key and username is retained while all other associated data is deleted.
     """
 
     (trash_model, fk_field_name, related_model, task, task_name_placeholder) = (
@@ -185,11 +196,21 @@ def put_back(
     """
     Remove related objects from trash.
 
-    `objects_list` must a list of dictionaries which contain at a 'pk' key and
-    any other key that would be saved as attributes in AuditLog.metadata.
-    If `trash_type` is 'asset', dictionaries of `objects_list should contain
-    'pk', 'asset_uid' and 'asset_name'. Otherwise, if `trash_type` is 'user',
-    they should contain 'pk' and 'username'
+    `objects_list` must be a list of dictionaries, each containing at least a 'pk' key,
+    along with any other keys that will be stored as attributes in `AuditLog.metadata`.
+
+    The expected keys depend on the `trash_type`:
+    - If `trash_type` is `'asset'`, each dictionary must include:
+        - `'pk'`
+        - `'asset_uid'`
+        - `'asset_name'`
+    - If `trash_type` is `'user'`, each dictionary must include:
+        - `'pk'`
+        - `'username'`
+    - If `trash_type` is `'attachment'`, each dictionary must include:
+        - `'pk'`
+        - `'attachment_basename'`
+        - `'attachment_uid'`
     """
 
     trash_model, fk_field_name, related_model, *others = _get_settings(trash_type)

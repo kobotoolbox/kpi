@@ -3,9 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
-from kpi.serializers.v2.user_asset_subscription import (
-    UserAssetSubscriptionSerializer,
-)
+from kpi.serializers.v2.user_asset_subscription import UserAssetSubscriptionSerializer
 from kpi.utils.object_permission import get_database_user
 from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     asset_subscription_create,
@@ -15,6 +13,7 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     asset_subscription_update,
     asset_subscription_partial_update
 )
+
 
 @extend_schema(
     tags=['asset-subscriptions'],

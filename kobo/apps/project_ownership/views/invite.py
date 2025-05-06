@@ -6,6 +6,7 @@ from ..filters import InviteFilter
 from ..models import Invite
 from ..serializers import InviteSerializer
 
+
 @extend_schema(
     tags=['project-ownership-invites'],
 )
