@@ -199,6 +199,11 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         url_path='formList',
     )
     def form_list(self, request, *args, **kwargs):
+        """
+        Implements part of the OpenRosa Form List API.
+        This route is used by Enketo when it fetches external resources.
+        It lets us specify manifests for preview
+        """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -229,7 +234,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         renderer_classes=[OpenRosaManifestRenderer],
     )
     def manifest(self, request, *args, **kwargs):
-
+        """
+        Implements part of the OpenRosa Form List API.
+        This route is used by Enketo when it fetches external resources.
+        It returns form media files location in order to display them within
+        Enketo preview
+        """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -307,6 +317,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
         ],
     )
     def submission(self, request, *args, **kwargs):
+        """ Implements the OpenRosa Form Submission API """
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
@@ -338,7 +349,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
-
+        """
+        This route will render the XForm into syntax-highlighted HTML.
+        It is useful for debugging pyxform transformations
+        """
         # **Not** part of the OpenRosa API
         snapshot = self.get_object()
         response_data = copy.copy(snapshot.details)
@@ -353,6 +367,10 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
     @action(detail=True)
     def xml_with_disclaimer(self, request, *args, **kwargs):
+        """
+        Same behaviour as `retrieve()` from DRF, but makes it easier to target
+        OpenRosa endpoints calls from Enketo to inject disclaimers (if any).
+        """
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
