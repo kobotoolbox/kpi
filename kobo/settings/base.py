@@ -984,7 +984,6 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
     'VERSION': '0.0.1',
     'SERVE_INCLUDE_SCHEMA': False,
-    'GENERIC_ADDITIONAL_PROPERTIES': 'dict',
     'PREPROCESSING_HOOKS': [
         'kpi.utils.spectacular_processing.pre_processing_filtering'
     ],
