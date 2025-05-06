@@ -73,7 +73,7 @@ jobs:
       - name: Run unit tests and xlform tests
         run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
-      # Check that the storybook build succeeds
+      # Check that the storybook build succeeds (and ensure tests will be run on non-cached build)
       - name: Build Storybook
         run: npm run build:storybook
 
@@ -95,7 +95,4 @@ jobs:
 
       # Run the storybook test suite
       - name: Serve Storybook and run tests
-        run: |
-          npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
-            "npx http-server storybook-static --port 6006 --silent" \
-            "npx wait-on tcp:6006 && npx test-storybook"
+        run: npm run test:storybook-ci
