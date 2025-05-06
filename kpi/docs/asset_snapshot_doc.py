@@ -56,17 +56,3 @@ xform_method = """
 This route will render the XForm into syntax-highlighted HTML.
 It is useful for debugging pyxform transformations
 """
-
-xml_disclaimer_method = """
-Implements part of the OpenRosa Form List API.
-This route is used by Enketo when it fetches and returns the full xml form.
-
-<pre class="prettyprint">
-<b>GET</b>  /api/v2/asset_snapshots/<code>{asset_snapshot_uid}</code>/xlm_with_disclaimer.xml  # noqa
-</pre>
-
-> Example
->
->       curl -X GET https://[kpi]/api/v2/asset_snapshots/szkzxHbuQSF8w2bhN9CTdt/xlm_with_disclaimer.xml  # noqa
-
-"""

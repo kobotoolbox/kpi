@@ -1,1 +1,1 @@
-### Create an asset
+### Create a snapshot of an asset
