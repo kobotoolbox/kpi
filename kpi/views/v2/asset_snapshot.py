@@ -6,6 +6,7 @@ from django.http import Http404, HttpResponseRedirect
 from drf_spectacular.utils import inline_serializer, extend_schema_field,OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -33,7 +34,6 @@ from kpi.docs.asset_snapshot_doc import *
 from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotResultInlineSerializer,
 )
-from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 
 
@@ -41,36 +41,33 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
 @extend_schema_view(
     # description for list
     list=extend_schema(
-        description='asset_snapshot_list',
+        description=read_md('kpi', 'asset_snapshots/list.md'),
         request=None,
         responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
         tags=['Asset_Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
-        description=asset_snapshot_retrieve,
+        description=read_md('kpi', 'asset_snapshots/retrieve.md'),
         responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
         tags=['Asset_Snapshots'],
     ),
     # description for post
     create=extend_schema(
-        description=asset_snapshot_create,
+        description=read_md('kpi', 'asset_snapshots/create.md'),
         responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
         tags=['Asset_Snapshots'],
     ),
     # description for delete
     destroy=extend_schema(
-        description=asset_snapshot_destroy,
+        description=read_md('kpi', 'asset_snapshots/delete.md'),
         tags=['Asset_Snapshots'],
     ),
-    # description for put
     update=extend_schema(
-        exclude=True
+        exclude=True,
     ),
-    # description for patch
     partial_update=extend_schema(
-        description=asset_snapshot_partial_update,
-        tags=['Asset_Snapshots'],
+        exclude=True,
     ),
     form_list=extend_schema(
         description=form_list_method,
@@ -145,13 +142,15 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     queryset = AssetSnapshot.objects.all()
     permission_classes = [AssetSnapshotPermission]
 
-    renderer_classes = NoUpdateModelViewSet.renderer_classes + [
-        XMLRenderer,
+    renderer_classes = [
+        JSONRenderer,
     ]
     log_type = AuditType.PROJECT_HISTORY
 
-    def partial_update(self, request, *args, **kwargs):
-        1/0
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [JSONRenderer, XMLRenderer]
+        return super().get_renderers()
 
     @property
     def asset(self):

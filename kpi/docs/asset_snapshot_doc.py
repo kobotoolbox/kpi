@@ -45,44 +45,6 @@ asset_snapshot_destroy = """
 >       curl -X DELETE https://[kpi]/api/v2/asset_snapshots/szkzxHbuQSF8w2bhN9CTdt/
 """
 
-asset_snapshot_update = """
-## PUT a snapshot of an asset
-<pre class="prettyprint">
-<b>PUT</b>  /api/v2/asset_snapshots/<code>{asset_snapshot_uid}</code>
-</pre>
-
-> Example
->
->       curl -X PUT https://[kpi]/api/v2/asset_snapshots/szkzxHbuQSF8w2bhN9CTdt/
-
-> **Payload**
->
->        {
->           "asset": "szkzxHbuQSF8w2bhN9CTdt",
->           "details": "string",
->           "source": "user/docs/file/",
->        }
-"""
-
-asset_snapshot_partial_update = """
-## PATCH a snapshot of an asset
-<pre class="prettyprint">
-<b>PATCH</b>  /api/v2/asset_snapshots/<code>{asset_snapshot_uid}</code>
-</pre>
-
-> Example
->
->       curl -X PATCH https://[kpi]/api/v2/asset_snapshots/szkzxHbuQSF8w2bhN9CTdt/
-
-> **Payload**
->
->        {
->           "asset": "szkzxHbuQSF8w2bhN9CTdt",
->           "details": "string",
->           "source": "user/docs/file/",
->        }
-"""
-
 form_list_method = """
 Implements part of the OpenRosa Form List API.
 This route returns the xml blank form file used by Enketo to preview the form.
