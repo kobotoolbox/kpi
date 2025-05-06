@@ -1,5 +1,5 @@
 from django.db import transaction
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
@@ -14,10 +14,20 @@ from kpi.models.import_export_task import (
 )
 from kpi.permissions import IsAuthenticated
 from kpi.tasks import export_task_in_background
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_202_accepted_response,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
+from .schema_extensions.v2.access_logs.serializers import (
+    AccessLogExportCreateInlineSerializer,
+    AccessLogExportListInlineSerializer,
+    AccessLogListInlineSerializer,
+)
 from .serializers import (
     AccessLogSerializer,
     AuditLogSerializer,
@@ -78,6 +88,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     >       }
 
     Results from this endpoint can be filtered by a Boolean query specified in the
+
     `q` parameter.
 
     **Filterable fields:**
@@ -87,9 +98,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     2. model_name
 
     3. action
-
         a. Available actions:
-
         * create
         * delete
         * in-trash
@@ -99,9 +108,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         * auth
 
     4. log_type
-
         a. Available log types:
-
         * access
         * project-history
         * data-editing
@@ -114,19 +121,13 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     6. user_uid
 
     7. user__*
-
         a. user__username
-
         b. user__email
-
         c. user__is_superuser
 
     8. metadata__*
-
         a. metadata__asset_uid
-
         b. metadata__auth_type
-
         c. some logs may have additional filterable fields in the metadata
 
     **Some examples:**
@@ -174,16 +175,40 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     ]
 
 
-@extend_schema(tags=['access-logs'])
+@extend_schema(
+    tags=['Access-Logs'],
+    description=read_md('audit_log', 'access_logs/list'),
+    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
+)
 class AllAccessLogViewSet(AuditLogViewSet):
+    """
+    ViewSet for managing all users' access logs. Only available to superusers.
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/exports/
+
+    Documentation:
+    - docs/api/v2/access_logs/list.md
+    """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
 
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
+    description=read_md('audit_log', 'access_logs/me/list'),
+    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
 )
 class AccessLogViewSet(AuditLogViewSet):
+    """
+    ViewSet for listing a user's access logs
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/list.md
+    """
 
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     permission_classes = (IsAuthenticated,)
@@ -503,7 +528,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
         )
 
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -601,7 +626,7 @@ class ProjectHistoryLogViewSet(
             )
         )
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -609,6 +634,19 @@ class ProjectHistoryLogViewSet(
 class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'uid'
+
+    # By default, we explicitly set the pagination class because drf-spectacular uses
+    # the `pagination_class` to generate the schema — even if the actual response
+    # from the viewset actions does not use pagination.
+    # If `pagination_class` is not specified, drf-spectacular falls back to the global
+    # DRF setting, which can result in incorrect schema generation.
+    pagination_class = None
+
+    # We explicitly set `renderer_classes` because drf-spectacular uses it to generate
+    # the schema, even if the viewset doesn’t override the renderers or return content
+    # that would need them. Without this, it falls back to the default DRF settings,
+    # which may not reflect the actual behavior of the viewset.
+    renderer_classes = (JSONRenderer,)
 
     def create_task(self, request, get_all_logs):
 
@@ -628,7 +666,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
         )
 
         return Response(
-            {f'status: {export_task.status}'},
+            {'status': export_task.status},
             status=status.HTTP_202_ACCEPTED,
         )
 
@@ -647,9 +685,32 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'access_logs/me/exports/list'),
+        request=None,
+        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
+    ),
+    create=extend_schema(
+        description=read_md('audit_log', 'access_logs/me/exports/create'),
+        request=None,
+        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
+    ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
+    """
+    ViewSet for managing the current user's access logs export
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/me/export/
+    - create     → POST /api/v2/access-logs/me/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/me/exports/list.md
+    - docs/api/v2/access_logs/me/exports/create.md
+    """
 
     def create(self, request, *args, **kwargs):
         if AccessLogExportTask.objects.filter(
@@ -672,9 +733,33 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['access-logs'],
+    tags=['Access-Logs'],
+)
+@extend_schema_view(
+    list=extend_schema(
+        description=read_md('audit_log', 'access_logs/exports/list'),
+        request=None,
+        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
+    ),
+    create=extend_schema(
+        description=read_md('audit_log', 'access_logs/exports/create'),
+        request=None,
+        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
+    ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
+    """
+    ViewSet for managing exports of every users' access logs
+
+
+    Available actions:
+    - list       → GET /api/v2/access-logs/export/
+    - create     → POST /api/v2/access-logs/export/
+
+    Documentation:
+    - docs/api/v2/access_logs/exports/list.md
+    - docs/api/v2/access_logs/exports/create.md
+    """
 
     permission_classes = (SuperUserPermission,)
 

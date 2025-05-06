@@ -65,9 +65,7 @@ class Command(BaseCommand):
                 self.stdout.write(f'\tProcessing uuid `{uuid}` in XForm #{xform_id}…')
 
             # Get all instances with the same UUID
-            duplicates_queryset = Instance.objects.filter(
-                uuid=uuid, xform_id=xform_id
-            )
+            duplicates_queryset = Instance.objects.filter(uuid=uuid, xform_id=xform_id)
 
             instances = duplicates_queryset.values(
                 'id', 'uuid', 'xml_hash', 'xform_id', 'date_created'

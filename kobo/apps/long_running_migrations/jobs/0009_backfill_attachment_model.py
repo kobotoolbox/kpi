@@ -77,7 +77,7 @@ def get_queryset(attachment_pk: int) -> QuerySet[Attachment]:
             'instance_id',
             'instance__xform_id',
             'instance__xform__user_id',
-            'instance__date_created'
+            'instance__date_created',
         )
         .filter(
             Q(date_created__isnull=True) | Q(date_modified__isnull=True),
