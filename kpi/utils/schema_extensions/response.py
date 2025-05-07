@@ -77,3 +77,15 @@ def open_api_204_empty_response(
             given_serializer
         )
     return open_api_generic_response(status.HTTP_204_NO_CONTENT, given_serializer)
+
+def open_api_302_found(
+    given_serializer: Optional[Serializer] = None,
+    **kwargs,
+) -> OpenApiGenericResponse:
+    if kwargs:
+        return open_api_media_generic_response(
+            status.HTTP_302_FOUND,
+            kwargs['media'],
+            given_serializer
+        )
+    return open_api_generic_response(status.HTTP_302_FOUND, given_serializer)

@@ -6,3 +6,9 @@ class OpenRosaMetaFields(serializers.JSONField):
 
 class OpenRosaFormHubFields(serializers.JSONField):
     pass
+
+class OpenRosaXFormFields(serializers.JSONField):
+    pass
+
+class OpenRosaXFileRequestFields(serializers.JSONField):
+    pass

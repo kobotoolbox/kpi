@@ -4,7 +4,9 @@ from rest_framework import serializers
 
 from .fields import (
     OpenRosaFormHubFields,
-    OpenRosaMetaFields
+    OpenRosaMetaFields,
+    OpenRosaXFormFields,
+    OpenRosaXFileRequestFields,
 )
 
 OpenRosaSubmissionInlineSerializer = inline_serializer(
@@ -20,18 +22,36 @@ OpenRosaSubmissionInlineSerializer = inline_serializer(
 OpenRosaSubmissionPayloadInlineSerializer = inline_serializer(
     name='OpenRosaSubmissionPayloadInlineSerializer',
     fields={
-        'source': serializers.CharField(),
+        'xml_submission_file': serializers.FileField(),
     },
 )
 
 OpenRosaFormListInlineSerializer = inline_serializer(
     name='OpenRosaFormListInlineSerializer',
     fields={
-        'formID': serializers.CharField(),
-        'name': serializers.CharField(),
-        'hash': serializers.CharField(),
-        'descriptionText': serializers.CharField(),
-        'downloadUrl': serializers.CharField(),
-        'manifestUrl': serializers.CharField(),
+        'xform': OpenRosaXFormFields(),
+    }
+)
+
+OpenRosaManifestInlineSerializer = inline_serializer(
+    name='OpenRosaManifestInlineSerializer',
+    fields={
+        'manifest': serializers.URLField(),
+    }
+)
+
+
+OpenRosaPreviewURLInlineSerializer = inline_serializer(
+    name='OpenRosaPreviewURLInlineSerializer',
+    fields={
+        'url': serializers.URLField(),
+    }
+)
+
+OpenRosaXFormActionInlineSerializer = inline_serializer(
+    name='OpenRosaXFormActionInlineSerializer',
+    fields={
+        'html': OpenRosaXFileRequestFields(),
+        'test2': serializers.CharField(),
     }
 )

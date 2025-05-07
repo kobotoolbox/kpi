@@ -1,1 +1,1 @@
-### Return the preview of an asset
+### Returns the preview of an asset

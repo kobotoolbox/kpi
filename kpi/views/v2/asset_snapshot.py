@@ -29,9 +29,12 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotResultInlineSerializer,
 )
 from kpi.schema_extensions.v2.openrosa.serializers import (
+    OpenRosaFormListInlineSerializer,
+    OpenRosaManifestInlineSerializer,
+    OpenRosaPreviewURLInlineSerializer,
     OpenRosaSubmissionInlineSerializer,
     OpenRosaSubmissionPayloadInlineSerializer,
-    OpenRosaFormListInlineSerializer
+    OpenRosaXFormActionInlineSerializer,
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
@@ -40,6 +43,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_201_created_response,
+    open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
@@ -88,28 +92,40 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     ),
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaManifestInlineSerializer,
+            media='application/xml',
+        ),
         tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
-        request={'multiform/data': OpenRosaSubmissionPayloadInlineSerializer},
+        request={'multipart/form-data': OpenRosaSubmissionPayloadInlineSerializer},
         responses=open_api_201_created_response(
             OpenRosaSubmissionInlineSerializer,
-            media='application/xml',
+            media='text/xml',
         ),
         tags=['OpenRosa'],
     ),
     preview=extend_schema(
         description=read_md('kpi', 'openrosa/preview.md'),
+        responses=open_api_302_found(
+            OpenRosaPreviewURLInlineSerializer,
+            media='application/xml',
+        ),
         tags=['OpenRosa'],
     ),
     xform=extend_schema(
         description=read_md('kpi', 'openrosa/xform.md'),
+        responses=open_api_200_ok_response(
+            OpenRosaXFormActionInlineSerializer,
+            media='application/xml',
+        ),
         tags=['OpenRosa'],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'openrosa/xml_with_disclaimer.md'),
-        responses=open_api_200_ok_response(OpenRosaSubmissionInlineSerializer),
+        responses=open_api_200_ok_response(OpenRosaXFormActionInlineSerializer),
         tags=['OpenRosa'],
     ),
 )
@@ -332,7 +348,6 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
 
         asset_snapshot = self.get_object()
         xml_submission_file = request.data['xml_submission_file']
-
         # Remove 'xml_submission_file' since it is already handled
         request.FILES.pop('xml_submission_file')
         try:
