@@ -28,6 +28,7 @@ const config: TestRunnerConfig = {
       },
       // pass axe options defined in @storybook/addon-a11y
       axeOptions: storyContext.parameters?.a11y?.options,
+      verbose: false,
     })
   },
 }
