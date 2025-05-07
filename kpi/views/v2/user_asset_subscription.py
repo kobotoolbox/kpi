@@ -4,6 +4,11 @@ from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
 from kpi.serializers.v2.user_asset_subscription import UserAssetSubscriptionSerializer
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_201_created_response,
+    open_api_204_empty_response
+)
 from kpi.utils.object_permission import get_database_user
 from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     asset_subscription_create,
@@ -16,14 +21,15 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
 
 
 @extend_schema(
-    tags=['asset-subscriptions'],
+    tags=['Asset-Subscriptions'],
 )
 @extend_schema_view(
     create=extend_schema(
-        description=asset_subscription_create,
+        description=asset_subscription_create
     ),
     destroy=extend_schema(
         description=asset_subscription_destroy,
+        responses=open_api_204_empty_response(),
     ),
     list=extend_schema(
         description=asset_subscription_list,
@@ -33,9 +39,11 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     ),
     update=extend_schema(
         description=asset_subscription_update,
+        exclude=True,
     ),
     partial_update=extend_schema(
         description=asset_subscription_partial_update,
+        exclude=True,
     ),
 )
 class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
