@@ -148,6 +148,7 @@
     "coffee-loader": "^0.9.0",
     "coffeelint": "^1.16.2",
     "coffeescript": "^1.12.0",
+    "concurrently": "^9.1.2",
     "css-loader": "^6.11.0",
     "eslint": "^9.17.0",
     "eslint-formatter-compact": "^8.40.0",
@@ -251,6 +252,8 @@
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
   "homepage": "https://github.com/kobotoolbox/kpi",
   "msw": {
-    "workerDirectory": ["msw-mocks"]
+    "workerDirectory": [
+      "msw-mocks"
+    ]
   }
 }
