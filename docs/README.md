@@ -38,7 +38,7 @@ requests and responses.
 
 ---
 
-## @extend_schema
+## @extend\_schema
 
 The `@extend_schema` decorator is used to enrich individual view methods or custom
 actions with additional metadata for documentation purposes. It allows you to manually
@@ -65,7 +65,7 @@ dynamic serializers, or skip request bodies.
 
 ---
 
-## @extend_schema_view
+## @extend\_schema\_view
 
 The `@extend_schema_view` decorator allows you to annotate standard `ViewSet` methods like
 `list`, `create`, `retrieve`, `update`, or `destroy` in a grouped way. It is helpful when
@@ -221,6 +221,37 @@ Alternatively, you could directly use `'rest_framework.fields.JSONField'` as the
 `target_class` to apply the extension to all JSONField instances globally. However,
 this is not recommended if you use multiple JSONFields in your API, as they would all
 share the same schema definition, which may not reflect their actual structure.
+
+---
+
+
+### Extension Loading
+
+To ensure that schema extensions are properly registered, the extension modules must be
+imported during app initialization. This is typically done inside the `ready()` method of
+your Django app's AppConfig class.
+
+This ensures DRF-Spectacular has access to all custom extensions when generating the
+schema.
+
+Example:
+
+```python
+class MyCategoryConfig(AppConfig):
+    name = 'projects.apps.category'
+
+    def ready(self):
+        # Load signals (if any)
+        from . import signals  # noqa F401
+
+        # Load all schema extension modules to register them
+        from .schema_extensions.v2.category import extensions  # noqa F401
+
+        super().ready()
+```
+
+You must explicitly import the module containing your extension class. Using `noqa F401`
+ensures the import is not stripped away by linters even if unused directly.
 
 ---
 
