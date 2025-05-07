@@ -60,3 +60,13 @@ All project icons are kept in `jsapp/svg-icons/`. Adding new icon requires addin
 ## Supported Browsers
 
 See [browsers list config](./.browserslistrc)
+
+### API Documentation
+
+The OpenAPI documentation is available at:
+
+- **Swagger UI**: [`/api/v2/docs/`](https://kf.kobotoolbox.org/api/v2/docs/)
+- **Raw schema**: [`/api/v2/schema/`](https://kf.kobotoolbox.org/api/v2/schema/)
+
+For details about how the API documentation is implemented in each Django app,
+see [`./docs/README`](./docs/README).
