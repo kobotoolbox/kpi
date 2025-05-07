@@ -33,7 +33,7 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaManifestInlineSerializer,
     OpenRosaPreviewURLInlineSerializer,
     OpenRosaSubmissionInlineSerializer,
-    OpenRosaSubmissionPayloadInlineSerializer,
+    OpenRosaSubmissionRequestInlineSerializer,
     OpenRosaXFormActionInlineSerializer,
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
@@ -43,6 +43,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_201_created_response,
+    open_api_204_empty_response,
     open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
@@ -73,7 +74,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
-        responses={204: OpenApiResponse()},
+        responses=open_api_204_empty_response(),
         tags=['Asset_Snapshots'],
     ),
     update=extend_schema(
@@ -86,7 +87,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
         description=read_md('kpi', 'openrosa/form_list.md'),
         responses=open_api_200_ok_response(
             OpenRosaFormListInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
         tags=['OpenRosa'],
     ),
@@ -94,39 +95,39 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
         description=read_md('kpi', 'openrosa/manifest.md'),
         responses=open_api_200_ok_response(
             OpenRosaManifestInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
         tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
-        request={'multipart/form-data': OpenRosaSubmissionPayloadInlineSerializer},
+        request={'multipart/form-data': OpenRosaSubmissionRequestInlineSerializer},
         responses=open_api_201_created_response(
             OpenRosaSubmissionInlineSerializer,
-            media='text/xml',
+            media_type='text/xml',
         ),
         tags=['OpenRosa'],
     ),
     preview=extend_schema(
-        description=read_md('kpi', 'openrosa/preview.md'),
+        description=read_md('kpi', 'asset_snapshots/preview.md'),
         responses=open_api_302_found(
             OpenRosaPreviewURLInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
-        tags=['OpenRosa'],
+        tags=['Asset_Snapshots'],
     ),
     xform=extend_schema(
-        description=read_md('kpi', 'openrosa/xform.md'),
+        description=read_md('kpi', 'asset_snapshots/xform.md'),
         responses=open_api_200_ok_response(
             OpenRosaXFormActionInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
-        tags=['OpenRosa'],
+        tags=['Asset_Snapshots'],
     ),
     xml_with_disclaimer=extend_schema(
-        description=read_md('kpi', 'openrosa/xml_with_disclaimer.md'),
+        description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
         responses=open_api_200_ok_response(OpenRosaXFormActionInlineSerializer),
-        tags=['OpenRosa'],
+        tags=['Asset_Snapshots'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):

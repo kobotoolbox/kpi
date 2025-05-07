@@ -7,6 +7,15 @@ from .fields import (
     AssetSnapshotSourceField,
 )
 
+AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
+    name='AssetSnapshotCreateRequestInlineSerializer',
+    fields={
+        'asset': serializers.CharField(),
+        'details': AssetSnapshotCreateDetailsField(),
+        'source': serializers.CharField(),
+    },
+)
+
 AssetSnapshotResultInlineSerializer = inline_serializer(
     name='AssetSnapshotResultInlineSerializer',
     fields={
@@ -20,14 +29,5 @@ AssetSnapshotResultInlineSerializer = inline_serializer(
         'asset_version_id': serializers.IntegerField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),
-    },
-)
-
-AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
-    name='AssetSnapshotCreateRequestInlineSerializer',
-    fields={
-        'asset': serializers.CharField(),
-        'details': AssetSnapshotCreateDetailsField(),
-        'source': serializers.CharField(),
     },
 )
