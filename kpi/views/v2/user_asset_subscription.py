@@ -9,6 +9,9 @@ from kpi.utils.schema_extensions.response import (
     open_api_201_created_response,
     open_api_204_empty_response
 )
+from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
+    AssetSubscriptionPostRequestInlineSerializer,
+)
 from kpi.utils.object_permission import get_database_user
 from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     asset_subscription_create,
@@ -25,7 +28,7 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
 )
 @extend_schema_view(
     create=extend_schema(
-        description=asset_subscription_create
+        description=asset_subscription_create,
     ),
     destroy=extend_schema(
         description=asset_subscription_destroy,
@@ -36,6 +39,11 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
     ),
     retrieve=extend_schema(
         description=asset_subscription_get,
+        request={'application/json': AssetSubscriptionPostRequestInlineSerializer},
+        responses=open_api_200_ok_response(
+            AssetSubscriptionPostRequestInlineSerializer,
+            media='application/json'
+        )
     ),
     update=extend_schema(
         description=asset_subscription_update,
