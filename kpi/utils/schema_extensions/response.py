@@ -27,12 +27,17 @@ def open_api_media_generic_response(
 ) -> dict:
     return {(http_code, media_type): given_serializer}
 
+
 # Returns an OpenApiResponse with the given serializer and a 200 http code
 def open_api_200_ok_response(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
 ) -> OpenApiGenericResponse:
-    return open_api_generic_response(status.HTTP_200_OK, given_serializer, media_type,)
+    return open_api_generic_response(
+        status.HTTP_200_OK,
+        given_serializer,
+        media_type,
+    )
 
 
 # Returns an OpenApiResponse with the given serializer and a 201 http code
@@ -41,7 +46,9 @@ def open_api_201_created_response(
     media_type: Optional[str] = None,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
-        status.HTTP_201_CREATED, given_serializer, media_type,
+        status.HTTP_201_CREATED,
+        given_serializer,
+        media_type,
     )
 
 
@@ -51,7 +58,9 @@ def open_api_202_accepted_response(
     media_type: Optional[str] = None,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
-        status.HTTP_202_ACCEPTED, given_serializer, media_type,
+        status.HTTP_202_ACCEPTED,
+        given_serializer,
+        media_type,
     )
 
 
@@ -63,11 +72,14 @@ def open_api_204_empty_response(
         status.HTTP_204_NO_CONTENT, media_type=media_type, given_serializer=None
     )
 
+
 def open_api_302_found(
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
 ) -> OpenApiGenericResponse:
 
     return open_api_generic_response(
-        status.HTTP_302_FOUND, given_serializer, media_type,
+        status.HTTP_302_FOUND,
+        given_serializer,
+        media_type,
     )

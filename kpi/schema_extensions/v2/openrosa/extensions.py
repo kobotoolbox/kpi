@@ -4,7 +4,9 @@ from drf_spectacular.types import OpenApiTypes
 
 
 class OpenRosaFormHubFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaFormHubField'  # noqa
+    target_class = (
+        'kpi.schema_extensions.v2.openrosa.fields.OpenRosaFormHubField'  # noqa
+    )
 
     def map_serializer_field(self, auto_schema, direction):
         return {
@@ -30,7 +32,9 @@ class OpenRosaMetaFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaFileRequestField'  # noqa
+    target_class = (
+        'kpi.schema_extensions.v2.openrosa.fields.OpenRosaFileRequestField'  # noqa
+    )
 
     def map_serializer_field(self, auto_schema, direction):
         return {
@@ -50,12 +54,14 @@ class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
                                             'type': 'object',
                                             'properties': {
                                                 'fieldName': build_basic_type(
-                                                    OpenApiTypes.NONE),
+                                                    OpenApiTypes.NONE
+                                                ),
                                                 'meta': {
                                                     'type': 'object',
                                                     'properties': {
                                                         'instanceID': build_basic_type(
-                                                            OpenApiTypes.NONE),
+                                                            OpenApiTypes.NONE
+                                                        ),
                                                     },
                                                 },
                                             },
@@ -95,5 +101,5 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                 'descriptionText': build_basic_type(OpenApiTypes.STR),
                 'downloadUrl': build_basic_type(OpenApiTypes.STR),
                 'manifestUrl': build_basic_type(OpenApiTypes.STR),
-            }
+            },
         }

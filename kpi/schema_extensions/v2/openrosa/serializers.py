@@ -2,18 +2,17 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
 from .fields import (
+    OpenRosaFileRequestField,
     OpenRosaFormHubField,
     OpenRosaMetaField,
     OpenRosaXFormField,
-    OpenRosaFileRequestField,
 )
-
 
 OpenRosaFormListInlineSerializer = inline_serializer(
     name='OpenRosaFormListInlineSerializer',
     fields={
         'xform': OpenRosaXFormField(),
-    }
+    },
 )
 
 
@@ -21,7 +20,7 @@ OpenRosaManifestInlineSerializer = inline_serializer(
     name='OpenRosaManifestInlineSerializer',
     fields={
         'manifest': serializers.URLField(),
-    }
+    },
 )
 
 
@@ -29,7 +28,7 @@ OpenRosaPreviewURLInlineSerializer = inline_serializer(
     name='OpenRosaPreviewURLInlineSerializer',
     fields={
         'url': serializers.URLField(),
-    }
+    },
 )
 
 
@@ -55,5 +54,5 @@ OpenRosaXFormActionInlineSerializer = inline_serializer(
     name='OpenRosaXFormActionInlineSerializer',
     fields={
         'html': OpenRosaFileRequestField(),
-    }
+    },
 )

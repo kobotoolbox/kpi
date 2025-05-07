@@ -11,4 +11,3 @@ class AssetSnapshotDetailsField(serializers.JSONField):
 
 class AssetSnapshotSourceField(serializers.JSONField):
     pass
-
