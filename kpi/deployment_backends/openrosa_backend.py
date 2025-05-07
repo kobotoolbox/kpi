@@ -872,7 +872,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             enketo_redis_client = get_redis_connection('enketo_redis_main')
             enketo_redis_client.rename(
                 src=f'or:{domain_name}/{previous_owner_username},{project_identifier}',
-                dst=f'or:{domain_name}/{self.asset.owner.username},{self.xform.id_string}',
+                dst=f'or:{domain_name}/{self.asset.owner.username},{self.xform.id_string}',  # noqa E501
             )
         except InvalidCacheBackendError:
             # TODO: This handles the case when the cache is disabled and
@@ -1320,9 +1320,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             mongo_query = {
                 '$or': [
                     {'_userform_id': f'{previous_owner_username}_{previous_id_string}'},
-                    {
-                        '_userform_id': f'{previous_owner_username}_{self.xform_id_string}'
-                    },  # noqa
+                    {'_userform_id': f'{previous_owner_username}_{self.xform_id_string}'},  # noqa E501
                 ],
             }
         else:
