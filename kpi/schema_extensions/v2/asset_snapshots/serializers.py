@@ -10,9 +10,9 @@ from .fields import (
 AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
     name='AssetSnapshotCreateRequestInlineSerializer',
     fields={
-        'asset': serializers.CharField(),
+        'asset': serializers.URLField(),
         'details': AssetSnapshotCreateDetailsField(),
-        'source': serializers.CharField(),
+        'source': AssetSnapshotSourceField(),
     },
 )
 

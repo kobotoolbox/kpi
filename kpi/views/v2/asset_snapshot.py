@@ -138,39 +138,34 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     Available actions:
     - list       → GET /api/v2/asset_snapshots/
     - create       → POST /api/v2/asset_snapshots/
-    - retrieve       → GET /api/v2/asset_snapshots/{uid}
-    - patch       → PATCH /api/v2/asset_snapshots/{uid}
-    - delete       → DELETE /api/v2/asset_snapshots/{uid}
+    - retrieve       → GET /api/v2/asset_snapshots/{uid}/
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}/
+    - delete       → DELETE /api/v2/asset_snapshots/{uid}/
+    - xform       → GET /api/v2/asset_snapshots/{uid}/xform/
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/
+    - preview       → GET /api/v2/asset_snapshots/{uid}/preview/
 
     Documentation:
     - docs/api/v2/asset_snapshots/list.md
-    # payload utilise ou un asset ou un snapshot.
-    # asset -> url de l'asset
     - docs/api/v2/asset_snapshots/create.md
     - docs/api/v2/asset_snapshots/retrieve.md
     - docs/api/v2/asset_snapshots/patch.md
     - docs/api/v2/asset_snapshots/delete.md
+    - docs/api/v2/asset_snapshots/xform.md
+    - docs/api/v2/asset_snapshots/xml_with_disclaimer.md
+    - docs/api/v2/asset_snapshots/preview.md
 
 
 
     OpenRosa Endpoints Documentation
-    - formlist       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/form_list/form_list.md
+    - formlist       → GET /api/v2/asset_snapshots/{uid}/formList
+    - docs/api/v2/openrosa/form_list.md
 
-    - manifest       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/manifest/manifest.md
+    - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
+    - docs/api/v2/openrosa/manifest.md
 
-    - preview       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/preview/preview.md
-
-    - submission       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/submission/submission.md
-
-    - xform       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/xform/xform.md
-
-    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/xml_with_disclaimer/xml_with_disclaimer.md
+    - submission       → GET /api/v2/asset_snapshots/{uid}/submission
+    - docs/api/v2/openrosa/submission.md
     """
 
     serializer_class = AssetSnapshotSerializer

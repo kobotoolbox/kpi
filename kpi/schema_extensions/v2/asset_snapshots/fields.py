@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
 
+class AssetSnapshotCreateDetailsField(serializers.JSONField):
+    pass
+
+
 class AssetSnapshotDetailsField(serializers.JSONField):
     pass
 
@@ -8,6 +12,3 @@ class AssetSnapshotDetailsField(serializers.JSONField):
 class AssetSnapshotSourceField(serializers.JSONField):
     pass
 
-
-class AssetSnapshotCreateDetailsField(serializers.JSONField):
-    pass

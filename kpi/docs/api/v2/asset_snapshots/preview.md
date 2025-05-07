@@ -1,1 +1,1 @@
-### Redirect towards the url of enketo preview
+### Redirect towards the URL of enketo preview

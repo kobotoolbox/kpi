@@ -1,7 +1,6 @@
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
-
 from .fields import (
     OpenRosaFormHubField,
     OpenRosaMetaField,
