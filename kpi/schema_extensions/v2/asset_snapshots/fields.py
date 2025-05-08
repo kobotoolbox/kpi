@@ -11,3 +11,19 @@ class AssetSnapshotDetailsField(serializers.JSONField):
 
 class AssetSnapshotSourceField(serializers.JSONField):
     pass
+
+
+class AssetSnapshotURLField(serializers.JSONField):
+    pass
+
+
+class AssetSnapshotURLUserField(serializers.JSONField):
+    pass
+
+
+class AssetSnapshotURLPreviewField(serializers.JSONField):
+    pass
+
+
+class AssetSnapshotURLXMLField(serializers.JSONField):
+    pass

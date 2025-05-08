@@ -12,7 +12,7 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
         return {
             'type': 'object',
             'properties': {
-                'source': build_basic_type(OpenApiTypes.STR),
+                'Source': build_basic_type(OpenApiTypes.STR),
                 'auth_type': build_basic_type(OpenApiTypes.STR),
                 'ip_address': build_basic_type(OpenApiTypes.STR),
                 'initial_user_uid': build_basic_type(OpenApiTypes.STR),

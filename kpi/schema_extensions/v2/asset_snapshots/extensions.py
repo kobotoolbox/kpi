@@ -1,6 +1,7 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.extensions import OpenApiSerializerFieldExtension, _SchemaType
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import Direction
 
 
 class AssetSnapshotDetailsExportFieldExtension(OpenApiSerializerFieldExtension):
@@ -71,4 +72,49 @@ class AssetSnapshotSourceFieldExtension(OpenApiSerializerFieldExtension):
                     'items': build_basic_type(OpenApiTypes.STR),
                 },
             },
+        }
+
+
+class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'uri',
+            'example': 'http://kf.kobo.local/api/v2/asset_anapshots/sEMPghTguZsxj4rn4s9dvS/',  # noqa
+        }
+
+
+class AssetSnapshotURLUserFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLUserField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'uri',
+            'example': 'http://kf.kobo.local/api/v2/users/username/',  # noqa
+        }
+
+
+
+class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLPreviewField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'uri',
+            'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/',  # noqa
+        }
+
+
+class AssetSnapshotURLXMLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLXMLField'  # noqa
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'uri',
+            'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS.xml',  # noqa
         }
