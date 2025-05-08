@@ -134,7 +134,7 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                 'manifestUrl': {
                     'type': 'string',
                     'format': 'url',
-                    'example': example_manifest_url,  # noqa
+                    'example': example_manifest_url,
                 },
             },
         }
