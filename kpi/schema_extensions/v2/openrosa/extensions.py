@@ -39,7 +39,7 @@ class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
             'api_v2:assetsnapshot-manifest-alias',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
         )
 
         return {
@@ -112,11 +112,11 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         example_download_url = settings.KOBOFORM_URL + reverse(
             'api_v2:assetsnapshot-xml-with-disclaimer',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
         )
         example_manifest_url = settings.KOBOFORM_URL + reverse(
             'api_v2:assetsnapshot-manifest-alias',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
         )
 
         return {

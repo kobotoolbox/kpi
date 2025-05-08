@@ -4,6 +4,7 @@ from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.reverse import reverse
 
+
 # This drf-extension made for the metadata field of AccessLog targets the external class
 # and tells it what it should return when generating the schema.
 class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
@@ -28,12 +29,7 @@ class AccessLogUserFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
-            'api_v2:user-kpi-detail',
-            kwargs={'username': 'bob'}
+            'api_v2:user-kpi-detail', kwargs={'username': 'bob'}
         )
 
-        return {
-            'type': 'string',
-            'format': 'url',
-            'example': example_url
-        }
+        return {'type': 'string', 'format': 'url', 'example': example_url}

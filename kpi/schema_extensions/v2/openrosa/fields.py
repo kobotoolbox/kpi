@@ -19,4 +19,3 @@ class OpenRosaManifestURLField(serializers.URLField):
 
 class OpenRosaXFormField(serializers.JSONField):
     pass
-

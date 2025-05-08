@@ -77,12 +77,13 @@ class AssetSnapshotSourceFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLField'
+    target_class = (
+        'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLField'
+    )
 
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
-            'api_v2:assetsnapshot-detail',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+            'api_v2:assetsnapshot-detail', kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
         )
 
         return {
@@ -97,8 +98,7 @@ class AssetSnapshotURLUserFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
-            'api_v2:user-kpi-detail',
-            kwargs={'username': 'bob'}
+            'api_v2:user-kpi-detail', kwargs={'username': 'bob'}
         )
 
         return {
@@ -108,14 +108,12 @@ class AssetSnapshotURLUserFieldExtension(OpenApiSerializerFieldExtension):
         }
 
 
-
 class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLPreviewField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
-            'api_v2:assetsnapshot-preview',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+            'api_v2:assetsnapshot-preview', kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
         )
 
         return {

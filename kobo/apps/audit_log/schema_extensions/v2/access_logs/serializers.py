@@ -1,10 +1,7 @@
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
-from .fields import (
-    AccessLogMetadataField,
-    AccessLogUserURLField,
-)
+from .fields import AccessLogMetadataField, AccessLogUserURLField
 
 # Inline serializers are created to actually give the right fields that are
 # received and/or given in a payload when the schema generates the wrong
