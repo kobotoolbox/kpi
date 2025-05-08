@@ -6,22 +6,14 @@ if (process.env.MEASURE) {
 }
 module.exports = {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
-  addons: [
-    '@storybook/addon-links',
-    '@storybook/addon-essentials',
-    '@storybook/addon-interactions',
-    '@storybook/addon-a11y',
-    // NB:
-    // 'storybook-addon-swc' may improve build speed in the future.
-    // - At time of writing, the build performance gains are negated because it
-    //   switches to a slower refresh plugin and also causes other compatibility
-    //   issues in Storybook 6.
-    // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
-    //   well.
-    'storybook-dark-mode',
-    '@storybook/addon-webpack5-compiler-swc',
-    'storybook-addon-remix-react-router',
-  ],
+  addons: ['@storybook/addon-links', // NB:
+  '@storybook/addon-a11y', // 'storybook-addon-swc' may improve build speed in the future.
+  // - At time of writing, the build performance gains are negated because it
+  //   switches to a slower refresh plugin and also causes other compatibility
+  //   issues in Storybook 6.
+  // - Testing with React 16.14.0 and Storybook 7 (beta) seemed to perform
+  //   well.
+  'storybook-dark-mode', '@storybook/addon-webpack5-compiler-swc', 'storybook-addon-remix-react-router', '@storybook/addon-docs'],
 
   framework: {
     name: '@storybook/react-webpack5',

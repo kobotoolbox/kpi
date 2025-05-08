@@ -2,12 +2,9 @@ import 'scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
 
-import { useEffect } from 'react'
-
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
-import { addons } from '@storybook/preview-api'
 import * as mswAddon from 'msw-storybook-addon'
-import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
+import { addons } from 'storybook/preview-api'
 import { themeKobo } from '#/theme'
 
 // Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
@@ -18,11 +15,6 @@ const channel = addons.getChannel()
 function ColorSchemeWrapper({ children }) {
   const { setColorScheme } = useMantineColorScheme()
   const handleColorScheme = (value) => setColorScheme(value ? 'dark' : 'light')
-
-  useEffect(() => {
-    channel.on(DARK_MODE_EVENT_NAME, handleColorScheme)
-    return () => channel.off(DARK_MODE_EVENT_NAME, handleColorScheme)
-  }, [channel])
 
   return <>{children}</>
 }

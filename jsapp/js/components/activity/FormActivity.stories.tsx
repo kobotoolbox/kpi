@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { expect, userEvent, waitFor, within } from '@storybook/test'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import assetHistoryMock, { mockAssetUid } from '#/endpoints/assetHistory.mock'
 import assetHistoryActionsMock from '#/endpoints/assetHistoryActions.mock'
