@@ -82,7 +82,7 @@ class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):
         return {
             'type': 'string',
             'format': 'uri',
-            'example': 'http://kf.kobo.local/api/v2/asset_anapshots/sEMPghTguZsxj4rn4s9dvS/',  # noqa
+            'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/',  # noqa
         }
 
 

@@ -31,6 +31,27 @@ class OpenRosaMetaFieldExtension(OpenApiSerializerFieldExtension):
         }
 
 
+class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaManifestURLField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'url',
+            'example': 'http://openrosa.org/xforms/xformsManifest',
+        }
+
+
+class OpenRosaPreviewURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaPreviewField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return {
+            'type': 'string',
+            'format': 'url',
+            'example': 'http://ee.kobo.local/preview/i/Sjc6BSWH',
+        }
+
 class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
         'kpi.schema_extensions.v2.openrosa.fields.OpenRosaFileRequestField'  # noqa
@@ -99,7 +120,15 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                 'name': build_basic_type(OpenApiTypes.STR),
                 'hash': build_basic_type(OpenApiTypes.STR),
                 'descriptionText': build_basic_type(OpenApiTypes.STR),
-                'downloadUrl': build_basic_type(OpenApiTypes.STR),
-                'manifestUrl': build_basic_type(OpenApiTypes.STR),
+                'downloadUrl': {
+                    'type': 'string',
+                    'format': 'url',
+                    'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/manifest.xml',
+                },
+                'manifestUrl': {
+                    'type': 'string',
+                    'format': 'url',
+                    'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/manifest.xml',  # noqa
+                },
             },
         }
