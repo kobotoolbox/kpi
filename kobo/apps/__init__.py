@@ -11,6 +11,9 @@ class KpiConfig(AppConfig):
 
     def ready(self, *args, **kwargs):
 
+        # Load all schema extension modules to register them
+        import kpi.schema_extensions.imports  # noqa F401
+
         # Register signals only when the app is ready to avoid issues with models
         # not loaded yet.
         import kpi.signals  # noqa F401
