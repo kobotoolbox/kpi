@@ -1,2 +1,3 @@
 ### Implements part of the OpenRosa Form List API.
-This route returns the XML blank form file used by Enketo to preview the form.
+
+This endpoint returns the blank XML form used by Enketo to render the form interface.

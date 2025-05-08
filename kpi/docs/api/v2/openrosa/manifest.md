@@ -1,4 +1,5 @@
 ### Implements part of the OpenRosa Form List API.
-This route is used by Enketo when it fetches external resources.
-It returns form media files location in order to display them within
-Enketo preview.
+
+This endpoint is used by Enketo when loading a form.
+It returns the URLs of form media files so they can be fetched and displayed as
+needed during form rendering.

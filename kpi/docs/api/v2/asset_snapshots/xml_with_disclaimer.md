@@ -1,3 +1,5 @@
 ### Implements part of the OpenRosa Form List API.
-This route is used by Enketo when it fetches and returns the full xml form. It is the same as the retrieve endpoint but
-adds the disclaimer, if any, as a note node.
+
+This endpoint is used by Enketo to fetch and return the full XML form.
+It behaves like the standard retrieve endpoint but includes an additional `<note>`
+node containing the disclaimer, if one exists.
