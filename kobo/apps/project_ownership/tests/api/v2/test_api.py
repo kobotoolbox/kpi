@@ -9,6 +9,7 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.constants import PERM_VIEW_ASSET
@@ -593,6 +594,93 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
                 {'_userform_id': original_userform_id}
             ) == 0
         )
+
+    @patch(
+        'kobo.apps.project_ownership.models.transfer.reset_kc_permissions',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_attachments',
+        MagicMock()
+    )
+    @patch(
+        'kobo.apps.project_ownership.tasks.move_media_files',
+        MagicMock()
+    )
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def test_transfer_to_user_with_identical_id_string(self):
+
+        # This is not strictly an API test, but its logic overlaps significantly with
+        # other tests in this class. It is placed here to simplify code review and
+        # avoid duplicating shared logic.
+
+        content_source_asset = {
+            'survey': [
+                {
+                    'type': 'audio',
+                    'label': 'q1',
+                    'required': 'false',
+                },
+                {
+                    'type': 'file',
+                    'label': 'q2',
+                    'required': 'false',
+                },
+            ]
+        }
+        asset_someuser = Asset.objects.create(
+            content=content_source_asset,
+            owner=self.someuser,
+            asset_type='survey',
+        )
+        asset_another = Asset.objects.create(
+            content=content_source_asset,
+            owner=self.anotheruser,
+            asset_type='survey',
+        )
+
+        with patch.object(
+            XForm,
+            '_set_id_string',
+            lambda self: setattr(self, 'id_string', 'foo'),
+        ):
+            asset_someuser.deploy(backend='mock', active=True)
+            asset_another.deploy(backend='mock', active=True)
+
+        assert asset_someuser.deployment.xform.id_string == 'foo'
+        assert asset_another.deployment.xform.id_string == 'foo'
+
+        # Transfer the project from someuser to anotheruser
+        self.client.login(username='someuser', password='someuser')
+        payload = {
+            'recipient': self.absolute_reverse(
+                self._get_endpoint('user-kpi-detail'),
+                args=[self.anotheruser.username]
+            ),
+            'assets': [asset_someuser.uid]
+        }
+
+        with immediate_on_commit():
+            response = self.client.post(
+                self.invite_url, data=payload, format='json'
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # anotheruser is the owner and should see the project
+        url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': asset_someuser.uid},
+        )
+        self.client.login(username='anotheruser', password='anotheruser')
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+
+        asset_someuser.deployment._xform.refresh_from_db()
+        asset_another.deployment._xform.refresh_from_db()
+
+        assert asset_another.deployment.xform.id_string == 'foo'
+        # Make sure XForm id_string does not equal 'foo' anymore
+        assert asset_someuser.deployment.xform.id_string == asset_someuser.uid
 
 
 class ProjectOwnershipInAppMessageAPITestCase(KpiTestCase):
