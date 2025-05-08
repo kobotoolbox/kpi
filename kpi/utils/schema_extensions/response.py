@@ -10,7 +10,7 @@ from kpi.typing_aliases import OpenApiGenericResponse
 # Generic function that builds an OpenApiResponse with the given http_code and
 # given serializer.
 def open_api_generic_response(
-    http_code: str,
+    http_code: int,
     given_serializer: Optional[Serializer] = None,
     media_type: Optional[str] = None,
 ) -> OpenApiGenericResponse:
@@ -18,14 +18,6 @@ def open_api_generic_response(
         return {(http_code, media_type): OpenApiResponse(response=given_serializer)}
 
     return {http_code: OpenApiResponse(response=given_serializer)}
-
-
-def open_api_media_generic_response(
-    http_code: str,
-    media_type: str,
-    given_serializer: Optional[Serializer] = None,
-) -> dict:
-    return {(http_code, media_type): given_serializer}
 
 
 # Returns an OpenApiResponse with the given serializer and a 200 http code

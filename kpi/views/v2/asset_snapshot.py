@@ -31,7 +31,6 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
 from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaFormListInlineSerializer,
     OpenRosaManifestInlineSerializer,
-    OpenRosaPreviewURLInlineSerializer,
     OpenRosaSubmissionInlineSerializer,
     OpenRosaSubmissionRequestInlineSerializer,
     OpenRosaXFormActionInlineSerializer,
@@ -110,10 +109,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
-        responses=open_api_302_found(
-            OpenRosaPreviewURLInlineSerializer,
-            media_type='application/xml',
-        ),
+        responses=open_api_302_found(media_type='text/html'),
         tags=['Asset_Snapshots'],
     ),
     xform=extend_schema(

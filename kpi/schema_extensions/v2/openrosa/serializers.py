@@ -24,14 +24,6 @@ OpenRosaManifestInlineSerializer = inline_serializer(
 )
 
 
-OpenRosaPreviewURLInlineSerializer = inline_serializer(
-    name='OpenRosaPreviewURLInlineSerializer',
-    fields={
-        'url': serializers.URLField(),
-    },
-)
-
-
 OpenRosaSubmissionInlineSerializer = inline_serializer(
     name='OpenRosaSubmissionInlineSerializer',
     fields={
