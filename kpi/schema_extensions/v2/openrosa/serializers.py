@@ -5,8 +5,6 @@ from .fields import (
     OpenRosaFileRequestField,
     OpenRosaFormHubField,
     OpenRosaMetaField,
-    OpenRosaManifestURLField,
-    OpenRosaPreviewField,
     OpenRosaXFormField,
 )
 
@@ -29,7 +27,7 @@ OpenRosaManifestInlineSerializer = inline_serializer(
 OpenRosaPreviewURLInlineSerializer = inline_serializer(
     name='OpenRosaPreviewURLInlineSerializer',
     fields={
-        'url': OpenRosaPreviewField(),
+        'url': serializers.URLField(),
     },
 )
 
