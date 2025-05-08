@@ -1,6 +1,8 @@
+from django.conf import settings
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
+from rest_framework.reverse import reverse
 
 
 class OpenRosaFormHubFieldExtension(OpenApiSerializerFieldExtension):
@@ -35,22 +37,17 @@ class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaManifestURLField'
 
     def map_serializer_field(self, auto_schema, direction):
+        example_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-manifest-alias',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+        )
+
         return {
             'type': 'string',
             'format': 'url',
-            'example': 'http://openrosa.org/xforms/xformsManifest',
+            'example': example_url,
         }
 
-
-class OpenRosaPreviewURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaPreviewField'
-
-    def map_serializer_field(self, auto_schema, direction):
-        return {
-            'type': 'string',
-            'format': 'url',
-            'example': 'http://ee.kobo.local/preview/i/Sjc6BSWH',
-        }
 
 class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
     target_class = (
@@ -113,6 +110,15 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaXFormField'
 
     def map_serializer_field(self, auto_schema, direction):
+        example_download_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-xml-with-disclaimer',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+        )
+        example_manifest_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-manifest-alias',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}
+        )
+
         return {
             'type': 'object',
             'properties': {
@@ -123,12 +129,12 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                 'downloadUrl': {
                     'type': 'string',
                     'format': 'url',
-                    'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/manifest.xml',
+                    'example': example_download_url,
                 },
                 'manifestUrl': {
                     'type': 'string',
                     'format': 'url',
-                    'example': 'http://kf.kobo.local/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/manifest.xml',  # noqa
+                    'example': example_manifest_url,  # noqa
                 },
             },
         }

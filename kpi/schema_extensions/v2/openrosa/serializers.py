@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .fields import (
     OpenRosaFileRequestField,
     OpenRosaFormHubField,
+    OpenRosaManifestURLField,
     OpenRosaMetaField,
     OpenRosaXFormField,
 )
@@ -20,14 +21,6 @@ OpenRosaManifestInlineSerializer = inline_serializer(
     name='OpenRosaManifestInlineSerializer',
     fields={
         'manifest': OpenRosaManifestURLField(),
-    },
-)
-
-
-OpenRosaPreviewURLInlineSerializer = inline_serializer(
-    name='OpenRosaPreviewURLInlineSerializer',
-    fields={
-        'url': serializers.URLField(),
     },
 )
 
