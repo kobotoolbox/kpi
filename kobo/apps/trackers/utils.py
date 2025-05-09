@@ -52,11 +52,11 @@ def update_nlp_counter(
     # Update the total counters by the usage amount to keep them current
     deduct = settings.STRIPE_ENABLED
     kwargs = {}
-    if service.endswith('asr_seconds'):
+    if service.endswith(UsageType.ASR_SECONDS):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
         if deduct and asset_id is not None:
             handle_usage_deduction(organization, UsageType.ASR_SECONDS, amount)
-    if service.endswith('mt_characters'):
+    if service.endswith(UsageType.MT_CHARACTERS):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if deduct and asset_id is not None:
             handle_usage_deduction(organization, UsageType.MT_CHARACTERS, amount)

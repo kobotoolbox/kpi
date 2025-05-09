@@ -89,8 +89,8 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     results = {}
     for row in nlp_tracking:
         results[row['user_id']] = {
-            'asr_seconds': row['asr_seconds_current_period'],
-            'mt_characters': row['mt_characters_current_period'],
+            UsageType.ASR_SECONDS: row['asr_seconds_current_period'],
+            UsageType.MT_CHARACTERS: row['mt_characters_current_period'],
         }
     return results
 
