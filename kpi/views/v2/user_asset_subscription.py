@@ -3,23 +3,17 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 
 from kpi.models import UserAssetSubscription
+from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
+    AssetSubscriptionPostRequestInlineSerializer,
+    AssetSubscriptionPostResponseInlineSerializer,
+)
 from kpi.serializers.v2.user_asset_subscription import UserAssetSubscriptionSerializer
+from kpi.utils.object_permission import get_database_user
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_201_created_response,
-    open_api_204_empty_response
-)
-from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
-    AssetSubscriptionPostRequestInlineSerializer,
-)
-from kpi.utils.object_permission import get_database_user
-from kpi.views.docs.asset_subscription.asset_subscription_doc import (
-    asset_subscription_create,
-    asset_subscription_destroy,
-    asset_subscription_list,
-    asset_subscription_get,
-    asset_subscription_update,
-    asset_subscription_partial_update
+    open_api_204_empty_response,
 )
 
 
@@ -28,29 +22,34 @@ from kpi.views.docs.asset_subscription.asset_subscription_doc import (
 )
 @extend_schema_view(
     create=extend_schema(
-        description=asset_subscription_create,
+        description=read_md('kpi', 'asset_subscriptions/create.md'),
+        request={'application/json': AssetSubscriptionPostRequestInlineSerializer},
+        responses=open_api_201_created_response(
+            AssetSubscriptionPostResponseInlineSerializer,
+            media_type='application/json',
+        ),
     ),
     destroy=extend_schema(
-        description=asset_subscription_destroy,
+        description=read_md('kpi', 'asset_subscriptions/delete.md'),
         responses=open_api_204_empty_response(),
     ),
     list=extend_schema(
-        description=asset_subscription_list,
+        description=read_md('kpi', 'asset_subscriptions/list.md'),
+        responses=open_api_200_ok_response(
+            AssetSubscriptionPostResponseInlineSerializer,
+            media_type='application/json',
+        ),
     ),
     retrieve=extend_schema(
-        description=asset_subscription_get,
-        request={'application/json': AssetSubscriptionPostRequestInlineSerializer},
+        description=read_md('kpi', 'asset_subscriptions/retrieve.md'),
         responses=open_api_200_ok_response(
-            AssetSubscriptionPostRequestInlineSerializer,
-            media='application/json'
-        )
+            AssetSubscriptionPostResponseInlineSerializer, media_type='application/json'
+        ),
     ),
     update=extend_schema(
-        description=asset_subscription_update,
         exclude=True,
     ),
     partial_update=extend_schema(
-        description=asset_subscription_partial_update,
         exclude=True,
     ),
 )

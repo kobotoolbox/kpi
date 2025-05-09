@@ -11,7 +11,7 @@ class AssetSubscriptionURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
             'api_v2:userassetsubscription-detail',
-            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'}  # noqa
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
         )
 
         return {
@@ -22,14 +22,11 @@ class AssetSubscriptionURLFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class AssetSubscriptionAssetURLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = (
-        'kpi.schema_extensions.v2.asset_subscriptions.fields.AssetSubscriptionAssetURLField'  # noqa
-    )
+    target_class = 'kpi.schema_extensions.v2.asset_subscriptions.fields.AssetSubscriptionAssetURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         example_url = settings.KOBOFORM_URL + reverse(
-            'asset-detail',
-            kwargs={'uid': 'aBeA23YCYjkGTFvYVHuAyU'}  # noqa
+            'asset-detail', kwargs={'uid': 'aBeA23YCYjkGTFvYVHuAyU'}
         )
 
         return {
