@@ -4,30 +4,19 @@ from unittest.mock import patch
 from constance import config
 from ddt import data, ddt, unpack
 from django.conf import settings
-from django.contrib.admin.sites import site
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
-from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
-from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    Attachment,
-    AttachmentDeleteStatus
-)
-from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 
 from kpi.models import Asset
-from ..admin import AttachmentTrashAdmin
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
-from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import empty_account, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
@@ -485,201 +474,3 @@ class ProjectTrashTestCase(TestCase):
                 task_restarter()
 
                 assert patched_spawned_task.call_count == restart_count
-
-
-class TestAttachmentTrashStorageCounters(TestBase):
-    """
-    Test that AttachmentTrash.toggle_statuses() correctly updates storage
-    counters and attachment statuses when moving to trash or restoring
-    """
-    def setUp(self):
-        super().setUp()
-        self._create_user_and_login()
-        self._publish_transportation_form()
-        self._submit_transport_instance_w_attachment()
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
-        self.extra = {
-            'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token
-        }
-
-    def _refresh_all(self):
-        """
-        Refresh all relevant objects from the database to get updated values.
-        """
-        self.attachment.refresh_from_db()
-        self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
-
-    def test_toggle_statuses_updates_storage_counters(self):
-        """
-        Toggling an attachment to trash should decrease storage counters.
-        Toggling it back should restore them.
-        """
-        # Check initial values
-        self._refresh_all()
-        self.assertIsNotNone(self.attachment.media_file_size)
-        self.assertGreater(self.xform.attachment_storage_bytes, 0)
-        self.assertGreater(self.user_profile.attachment_storage_bytes, 0)
-        original_xform_bytes = self.xform.attachment_storage_bytes
-        original_user_bytes = self.user_profile.attachment_storage_bytes
-
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
-
-        # Counters should be decremented
-        self.assertEqual(self.xform.attachment_storage_bytes, 0)
-        self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
-        self.assertEqual(
-            self.attachment.delete_status, AttachmentDeleteStatus.PENDING_DELETE
-        )
-
-        # Change the status to simulate the restoration from trash
-        AttachmentTrash.toggle_statuses(
-            [self.attachment.uid], active=True
-        )
-        self._refresh_all()
-
-        # Counters should be restored to original values
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, original_xform_bytes
-        )
-        self.assertEqual(
-            self.user_profile.attachment_storage_bytes, original_user_bytes
-        )
-        self.assertIsNone(self.attachment.delete_status)
-
-    def test_deleting_submission_does_not_decrease_counters_twice(self):
-        """
-        Test that storage counters are not decremented twice when an attachment
-        is trashed and its parent submission is later deleted
-        """
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
-        decremented_xform_bytes = self.xform.attachment_storage_bytes
-        decremented_user_bytes = self.user_profile.attachment_storage_bytes
-
-        # Delete the submission
-        view = DataViewSet.as_view({'delete': 'destroy'})
-        request = self.factory.delete('/', **self.extra)
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # Verify that the attachment storage counter is not decreased twice
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, decremented_xform_bytes
-        )
-        self.assertEqual(
-            self.user_profile.attachment_storage_bytes, decremented_user_bytes
-        )
-
-
-class AttachmentTrashAdminTest(TestBase):
-    """
-    Test that AttachmentTrashAdmin actions correctly delete or restore attachments
-    """
-    def setUp(self):
-        super().setUp()
-        self._create_user_and_login()
-        self._publish_transportation_form()
-        self._submit_transport_instance_w_attachment()
-        self.attachment = Attachment.objects.last()
-
-        # Get the initial storage counters
-        self.xform.refresh_from_db()
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
-        self.initial_xform_storage = self.xform.attachment_storage_bytes
-        self.initial_user_storage = self.user_profile.attachment_storage_bytes
-
-        # Create superuser for admin actions
-        self.admin = get_user_model().objects.create_user(
-            username='admin', password='admin', is_superuser=True, is_staff=True
-        )
-        self.client.login(username='admin', password='admin')
-
-        # Move attachment to trash
-        self.att_trash = self._move_attachment_to_trash(self.attachment, self.admin)
-
-        # Admin model instance
-        self.model_admin = AttachmentTrashAdmin(AttachmentTrash, site)
-
-    def _move_attachment_to_trash(self, attachment, user):
-        AttachmentTrash.toggle_statuses([attachment.uid])
-        move_to_trash(
-            request_author=user,
-            objects_list=[{
-                'pk': attachment.pk,
-                'attachment_uid': attachment.uid,
-                'attachment_basename': attachment.media_file_basename,
-            }],
-            grace_period=1,
-            trash_type='attachment',
-            retain_placeholder=False,
-        )
-        attachment.refresh_from_db()
-        self._assert_storage_counters(xform_bytes=0, user_bytes=0)
-        return AttachmentTrash.objects.get(attachment_id=attachment.pk)
-
-    def _assert_storage_counters(self, xform_bytes, user_bytes):
-        self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
-        self.assertEqual(self.xform.attachment_storage_bytes, xform_bytes)
-        self.assertEqual(self.user_profile.attachment_storage_bytes, user_bytes)
-
-    def test_empty_trash_action_deletes_attachment(self):
-        self.xform.refresh_from_db()
-        request = self.client.request().wsgi_request
-        queryset = AttachmentTrash.objects.filter(pk=self.att_trash.pk)
-        self.model_admin.empty_trash(request, queryset)
-
-        self.xform.refresh_from_db()
-        self.attachment.refresh_from_db()
-        self.assertFalse(
-            AttachmentTrash.objects.filter(pk=self.att_trash.pk).exists()
-        )
-        self.assertEqual(
-            self.attachment.delete_status, AttachmentDeleteStatus.DELETED
-        )
-
-        # Ensure action is logged
-        assert AuditLog.objects.filter(
-            app_label='logger',
-            model_name='attachment',
-            object_id=self.attachment.pk,
-            user=self.admin,
-            action=AuditAction.DELETE,
-            log_type=AuditType.ATTACHMENT_MANAGEMENT,
-            metadata={
-                'attachment_uid': self.attachment.uid,
-                'attachment_name': self.attachment.media_file_basename,
-                'instance__root_uuid': self.attachment.instance.root_uuid,
-            },
-        ).exists()
-
-    def test_put_back_action_restores_attachment(self):
-        request = self.client.request().wsgi_request
-        queryset = AttachmentTrash.objects.filter(pk=self.att_trash.pk)
-        self.model_admin.put_back(request, queryset)
-
-        self.attachment.refresh_from_db()
-        self.assertFalse(
-            AttachmentTrash.objects.filter(pk=self.att_trash.pk).exists()
-        )
-        self.assertEqual(self.attachment.delete_status, None)
-        self._assert_storage_counters(
-            xform_bytes=self.initial_xform_storage,
-            user_bytes=self.initial_user_storage,
-        )
-
-        # Ensure action is logged
-        assert AuditLog.objects.filter(
-            app_label='logger',
-            model_name='attachment',
-            object_id=self.attachment.pk,
-            user=self.admin,
-            action=AuditAction.PUT_BACK,
-            log_type=AuditType.ATTACHMENT_MANAGEMENT,
-        ).exists()
