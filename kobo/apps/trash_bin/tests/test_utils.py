@@ -287,6 +287,52 @@ class ProjectTrashTestCase(TestCase):
 
     fixtures = ['test_data']
 
+    def _create_asset_and_submission(self):
+        """
+        Helper method to create an asset and its associated submission
+        with attachments
+        """
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.create(
+            asset_type='survey',
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
+                    {'type': 'file', 'label': 'q2', 'name': 'q2'}
+                ]
+            },
+            owner=user
+        )
+        asset.save()
+        asset.deploy(backend='mock')
+
+        username = user.username
+        submission = {
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_image.jpg',
+                    'mimetype': 'image/jpeg',
+                },
+            ],
+            '_submitted_by': username,
+        }
+        asset.deployment.mock_submissions([submission])
+        asset.deployment.xform.refresh_from_db()
+
+        # Fetch references to the XForm and UserProfile
+        xform = asset.deployment.xform
+        user_profile = UserProfile.objects.get(user=user)
+        return asset, xform, user_profile
+
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
         asset.save()  # create a version
@@ -483,105 +529,68 @@ class ProjectTrashTestCase(TestCase):
 
                 assert patched_spawned_task.call_count == restart_count
 
-    def test_attachment_storage_updates_on_project_trash_and_restore(self):
+    def test_storage_updates_on_project_trash_and_restore(self):
         """
-        Ensure that `attachment_storage_bytes` in UserProfile and XForm is
-        updated correctly when a project is moved to the trash and restored.
-
-        The storage bytes should only be affected when the project is moved to
-        trash or restored, not when archived.
+        Test that attachment storage counters in XForm and UserProfile are
+        cleared on trash, and restored properly on untrash
         """
-        user = User.objects.get(username='someuser')
-        asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                    {'type': 'file', 'label': 'q2', 'name': 'q2'}
-                ]
-            },
-            owner=user
-        )
-        asset.save()
-        asset.deploy(backend='mock')
+        asset, xform, user_profile = self._create_asset_and_submission()
 
-        username = user.username
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            'q2': 'audio_conversion_test_image.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_image.jpg',
-                    'mimetype': 'image/jpeg',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        asset.deployment.mock_submissions([submission])
-        asset.deployment.xform.refresh_from_db()
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
 
-        # Fetch references to the XForm and UserProfile
-        xform = asset.deployment.xform
-        user_profile = UserProfile.objects.get(user=user)
-
-        # 1. Fetch the storage data before moving the project to trash
-        initial_xform_storage = xform.attachment_storage_bytes
-        initial_user_profile_storage = user_profile.attachment_storage_bytes
-        self.assertGreater(initial_xform_storage, 0)
-        self.assertGreater(initial_user_profile_storage, 0)
-
-        # 2. Simulate archiving the project by updating the status
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=False
-        )
-        xform.refresh_from_db()
-        user_profile.refresh_from_db()
-        archived_xform_storage = xform.attachment_storage_bytes
-        archived_user_profile_storage = user_profile.attachment_storage_bytes
-        self.assertEqual(initial_xform_storage, archived_xform_storage)
-        self.assertEqual(initial_user_profile_storage, archived_user_profile_storage)
-
-        # 3. Simulate moving the project to trash by updating the status
+        # Simulate moving to trash by updating the status
+        # ToDo: Replace this with move_to_trash() after kpi#5747 is merged
         ProjectTrash.toggle_statuses(
             [asset.uid], active=False, toggle_delete=True
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        deleted_xform_storage = xform.attachment_storage_bytes
-        deleted_user_profile_storage = user_profile.attachment_storage_bytes
-        self.assertEqual(deleted_xform_storage, 0)
-        self.assertEqual(deleted_user_profile_storage, 0)
+        self.assertEqual(xform.attachment_storage_bytes, 0)
+        self.assertEqual(user_profile.attachment_storage_bytes, 0)
 
-        # 4. Simulate unarchiving the project by updating the status
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=False
-        )
-        xform.refresh_from_db()
-        user_profile.refresh_from_db()
-        unarchived_xform_storage = xform.attachment_storage_bytes
-        unarchived_user_profile_storage = user_profile.attachment_storage_bytes
-        self.assertEqual(unarchived_xform_storage, 0)
-        self.assertEqual(unarchived_user_profile_storage, 0)
-
-        # 5. Simulate restoring the project by updating the status
+        # Simulate restoring the project by updating the status
+        # ToDo: Replace this with put_back() after kpi#5747 is merged
         ProjectTrash.toggle_statuses(
             [asset.uid], active=True, toggle_delete=True
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
-        restored_xform_storage = xform.attachment_storage_bytes
-        restored_user_profile_storage = user_profile.attachment_storage_bytes
-        self.assertGreater(restored_xform_storage, 0)
-        self.assertGreater(restored_user_profile_storage, 0)
-        self.assertEqual(initial_xform_storage, restored_xform_storage)
-        self.assertEqual(initial_user_profile_storage, restored_user_profile_storage)
+        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertGreater(user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+    def test_storage_does_not_change_on_archive_unarchive(self):
+        """
+        Test that attachment storage counters in XForm and UserProfile remain
+        unchanged when a project is archived or unarchived
+        """
+        asset, xform, user_profile = self._create_asset_and_submission()
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
+
+        # Simulate archiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=False, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+        # Simulate unarchiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=True, toggle_delete=False
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
 
 
 class TestAttachmentTrashStorageCounters(TestBase):
