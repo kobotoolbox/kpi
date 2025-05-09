@@ -139,6 +139,12 @@ def get_users_within_range_of_usage_limit(
     return User.objects.filter(id__in=user_ids)
 
 
+def get_users_over_80_percent_of_storage_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=['storage'], minimum=0.8, maximum=0.9
+    )
+
+
 def get_users_over_90_percent_of_storage_limit() -> QuerySet:
     return get_users_within_range_of_usage_limit(
         usage_types=['storage'], minimum=0.9, maximum=1
@@ -149,6 +155,12 @@ def get_users_over_100_percent_of_storage_limit() -> QuerySet:
     return get_users_within_range_of_usage_limit(usage_types=['storage'], minimum=1)
 
 
+def get_users_over_80_percent_of_submission_limit() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=['submission'], minimum=0.8, maximum=0.9
+    )
+
+
 def get_users_over_90_percent_of_submission_limit() -> QuerySet:
     return get_users_within_range_of_usage_limit(
         usage_types=['submission'], minimum=0.9, maximum=1
@@ -157,6 +169,12 @@ def get_users_over_90_percent_of_submission_limit() -> QuerySet:
 
 def get_users_over_100_percent_of_submission_limit() -> QuerySet:
     return get_users_within_range_of_usage_limit(usage_types=['submission'], minimum=1)
+
+
+def get_users_over_80_percent_of_nlp_limits() -> QuerySet:
+    return get_users_within_range_of_usage_limit(
+        usage_types=['characters', 'seconds'], minimum=0.8, maximum=0.9
+    )
 
 
 def get_users_over_90_percent_of_nlp_limits() -> QuerySet:
