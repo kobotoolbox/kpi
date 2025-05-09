@@ -22,7 +22,6 @@ from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
-from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import empty_account, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
@@ -54,7 +53,6 @@ class AccountTrashTestCase(TestCase):
         grace_period = 0
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -86,13 +84,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-        after = timezone.now()
-        assert before <= someuser.extra_details.date_removal_requested <= after
-
-        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=someuser,
             objects_list=[
@@ -104,11 +95,19 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = timezone.now() + timedelta(days=grace_period)
+        after = timezone.now()
+
+        someuser.refresh_from_db()
+        assert not someuser.is_active
+        assert before <= someuser.extra_details.date_removal_requested <= after
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
-        assert before <= account_trash.periodic_task.clocked.clocked_time <= after
+        assert (
+            before + timedelta(days=grace_period)
+            <= account_trash.periodic_task.clocked.clocked_time
+            <= after + timedelta(days=grace_period)
+        )
         assert account_trash.periodic_task.name.startswith(DELETE_USER_STR_PREFIX)
 
         # Ensure action is logged
@@ -140,7 +139,6 @@ class AccountTrashTestCase(TestCase):
             trash_type='user',
         )
 
-        AccountTrash.toggle_statuses([someuser.pk], active=True)
         someuser.refresh_from_db()
         assert someuser.is_active
 
@@ -173,10 +171,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now() + timedelta(days=grace_period)
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -194,6 +188,7 @@ class AccountTrashTestCase(TestCase):
         after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
+        assert not someuser.is_active
         assert someuser.assets.count() == 0
         assert someuser.email == ''
         assert someuser.extra_details.data.get('name') == ''
@@ -302,14 +297,6 @@ class ProjectTrashTestCase(TestCase):
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
-        )
-
-        asset.refresh_from_db()
-        asset.deployment.xform.refresh_from_db()
-        assert asset.pending_delete
-        assert asset.deployment.xform.pending_delete
 
         before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
@@ -325,6 +312,11 @@ class ProjectTrashTestCase(TestCase):
             trash_type='asset',
         )
         after = timezone.now() + timedelta(days=grace_period)
+
+        asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
+        assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
@@ -364,9 +356,7 @@ class ProjectTrashTestCase(TestCase):
             ],
             trash_type='asset',
         )
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
-        )
+
         asset.refresh_from_db()
         asset.deployment.xform.refresh_from_db()
         assert not asset.pending_delete
@@ -505,6 +495,38 @@ class TestAttachmentTrashStorageCounters(TestBase):
         self.xform.refresh_from_db()
         self.user_profile.refresh_from_db()
 
+    def _move_to_trash(self):
+        """
+        Move the attachment to trash and refresh all objects
+        """
+        move_to_trash(
+            request_author=self.user,
+            objects_list=[{
+                'pk': self.attachment.pk,
+                'attachment_uid': self.attachment.uid,
+                'attachment_basename': self.attachment.media_file_basename,
+            }],
+            grace_period=1,
+            trash_type='attachment',
+            retain_placeholder=False,
+        )
+        self._refresh_all()
+
+    def _put_back_from_trash(self):
+        """
+        Restore the attachment from trash and refresh all objects
+        """
+        put_back(
+            request_author=self.user,
+            objects_list=[{
+                'pk': self.attachment.pk,
+                'attachment_uid': self.attachment.uid,
+                'attachment_basename': self.attachment.media_file_basename,
+            }],
+            trash_type='attachment',
+        )
+        self._refresh_all()
+
     def test_toggle_statuses_updates_storage_counters(self):
         """
         Toggling an attachment to trash should decrease storage counters.
@@ -518,9 +540,8 @@ class TestAttachmentTrashStorageCounters(TestBase):
         original_xform_bytes = self.xform.attachment_storage_bytes
         original_user_bytes = self.user_profile.attachment_storage_bytes
 
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
+        # Move the attachment to trash
+        self._move_to_trash()
 
         # Counters should be decremented
         self.assertEqual(self.xform.attachment_storage_bytes, 0)
@@ -529,11 +550,8 @@ class TestAttachmentTrashStorageCounters(TestBase):
             self.attachment.delete_status, AttachmentDeleteStatus.PENDING_DELETE
         )
 
-        # Change the status to simulate the restoration from trash
-        AttachmentTrash.toggle_statuses(
-            [self.attachment.uid], active=True
-        )
-        self._refresh_all()
+        # Restore the attachment
+        self._put_back_from_trash()
 
         # Counters should be restored to original values
         self.assertEqual(
@@ -549,9 +567,8 @@ class TestAttachmentTrashStorageCounters(TestBase):
         Test that storage counters are not decremented twice when an attachment
         is trashed and its parent submission is later deleted
         """
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
+        # Move the attachment to trash
+        self._move_to_trash()
         decremented_xform_bytes = self.xform.attachment_storage_bytes
         decremented_user_bytes = self.user_profile.attachment_storage_bytes
 

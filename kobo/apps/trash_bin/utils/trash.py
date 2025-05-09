@@ -68,8 +68,17 @@ def move_to_trash(
     primary key and username is retained while all other associated data is deleted.
     """
 
-    (trash_model, fk_field_name, related_model, task, task_name_placeholder) = (
-        _get_settings(trash_type, retain_placeholder)
+    (
+        trash_model,
+        fk_field_name,
+        related_model,
+        unique_identifier,
+        task,
+        task_name_placeholder
+    ) = _get_settings(trash_type, retain_placeholder)
+
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=False
     )
 
     if not retain_placeholder:
@@ -149,6 +158,7 @@ def move_to_trash(
     trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
 
     AuditLog.objects.bulk_create(audit_logs)
+    return updated_items, update_count
 
 
 def process_deletion(
@@ -213,7 +223,13 @@ def put_back(
         - `'attachment_uid'`
     """
 
-    trash_model, fk_field_name, related_model, *others = _get_settings(trash_type)
+    trash_model, fk_field_name, related_model, unique_identifier, *others = (
+        _get_settings(trash_type)
+    )
+
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=True
+    )
 
     obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
     queryset = trash_model.objects.filter(
@@ -250,6 +266,7 @@ def put_back(
 
     with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
+    return updated_items, update_count
 
 
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
@@ -278,6 +295,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             ProjectTrash,
             'asset_id',
             Asset,
+            'asset_uid',
             'empty_project',
             f'{DELETE_PROJECT_STR_PREFIX} {{asset_name}} ({{asset_uid}})',
         )
@@ -287,6 +305,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             AccountTrash,
             'user_id',
             get_user_model(),
+            'pk',
             'empty_account',
             (
                 f'{DELETE_USER_STR_PREFIX} data ({{username}})'
@@ -300,6 +319,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             AttachmentTrash,
             'attachment_id',
             Attachment,
+            'attachment_uid',
             'empty_attachment',
             f'{DELETE_ATTACHMENT_STR_PREFIX} {{attachment_basename}} ({{attachment_uid}})',  # noqa E501
         )

@@ -1,6 +1,8 @@
 from django.contrib import admin, messages
 from django.db.models import F
 
+from kpi.models import Asset
+
 from .exceptions import TrashTaskInProgressError
 from .models import TrashStatus
 from .models.account import AccountTrash
@@ -64,7 +66,6 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         users = queryset.annotate(pk=F('user_id'), username=F('user__username')).values(
             'pk', 'username'
         )
-        AccountTrash.toggle_statuses([u['pk'] for u in users], active=True)
 
         try:
             put_back(request.user, users, 'user')
@@ -124,9 +125,6 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
     @admin.action(description='Put back selected projects')
     def put_back(self, request, queryset, **kwargs):
         asset_uids = list(queryset.values_list('asset__uid', flat=True))
-        assets_queryset, _ = ProjectTrash.toggle_statuses(
-            asset_uids, active=True, toggle_delete=True
-        )
         # The main goal of the annotation below is to pass always the same
         # metadata attributes to AuditLog model whatever the model and the action.
         # `self._delete_tasks` and `self._create_tasks` both call utilities which
@@ -135,7 +133,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
         # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
         # all deleted submissions and actions on the asset itself.
-        assets = assets_queryset.annotate(
+        assets = Asset.all_objects.filter(uid__in=asset_uids).annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'asset_uid', 'asset_name')
         try:

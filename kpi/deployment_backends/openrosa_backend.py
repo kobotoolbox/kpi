@@ -42,7 +42,6 @@ from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils import stream_with_extras
 from kobo.apps.trackers.models import NLPUsageCounter
-from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -246,9 +245,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if count != len(attachments):
             raise AttachmentUidMismatchException
 
-        attachment_uids = [att['attachment_uid'] for att in attachments]
-
-        AttachmentTrash.toggle_statuses(attachment_uids, active=False)
         move_to_trash(
             request_author=user,
             objects_list=attachments,
