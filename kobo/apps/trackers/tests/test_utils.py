@@ -8,7 +8,6 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.utils import requires_stripe
 from kobo.apps.trackers.utils import (
     get_organization_remaining_usage,
@@ -95,10 +94,10 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @data('characters', 'seconds')
+    @data('mt_characters', 'asr_seconds')
     def test_organization_usage_utils(self, usage_type):
         from kobo.apps.stripe.tests.utils import generate_plan_subscription
-        usage_key = f'{USAGE_LIMIT_MAP[usage_type]}_limit'
+        usage_key = f'{usage_type}_limit'
         sub_metadata = {
             usage_key: '1000',
             'product_type': 'plan',
@@ -121,14 +120,14 @@ class TrackersUtilitiesTestCase(BaseTestCase):
         assert remaining == total_limit
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1000, self.someuser.id, self.asset.id
+            usage_type, 1000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit - 1000
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 1500, self.someuser.id, self.asset.id
+            usage_type, 1500, self.someuser.id, self.asset.id
         )
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == total_limit - 2500
@@ -136,13 +135,13 @@ class TrackersUtilitiesTestCase(BaseTestCase):
     @pytest.mark.skipif(
         settings.STRIPE_ENABLED, reason='Tests non-stripe functionality'
     )
-    @data('characters', 'seconds')
+    @data('mt_characters', 'asr_seconds')
     def test_org_usage_utils_without_stripe(self, usage_type):
         remaining = get_organization_remaining_usage(self.organization, usage_type)
         assert remaining == inf
 
         update_nlp_counter(
-            USAGE_LIMIT_MAP[usage_type], 10000, self.someuser.id, self.asset.id
+            usage_type, 10000, self.someuser.id, self.asset.id
         )
 
         remaining = get_organization_remaining_usage(self.organization, usage_type)

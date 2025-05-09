@@ -10,9 +10,9 @@ from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES, USAGE_LIMIT_MAP
+from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
 from kobo.apps.stripe.utils import get_default_add_on_limits
 from kpi.fields import KpiUidField
 from kpi.utils.django_orm_helper import DeductUsageValue
@@ -122,15 +122,11 @@ class PlanAddOn(models.Model):
 
     @staticmethod
     def get_limits_remaining_field(usage_type):
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
-        return f'limits_remaining__{limit_key}'
+        return f'limits_remaining__{usage_type}_limit'
 
     @staticmethod
     def get_usage_limits_field(usage_type):
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
-        return f'usage_limits__{limit_key}'
+        return f'usage_limits__{usage_type}_limit'
 
     @staticmethod
     def get_organizations_totals(organizations: list['Organization'] = None):
@@ -139,47 +135,43 @@ class PlanAddOn(models.Model):
             organizations_filter = Q(
                 organization__id__in=[org.id for org in organizations]
             )
-        fields_by_usage_type = {}
-        for usage_type in get_args(UsageType):
-            fields_by_usage_type[usage_type] = {
-                'limits': PlanAddOn.get_limits_remaining_field(usage_type),
-                'usage': PlanAddOn.get_usage_limits_field(usage_type),
-            }
         all_add_on_totals = (
             PlanAddOn.objects.filter(organizations_filter & Q(charge__refunded=False))
             .values('organization_id')
             .annotate(
-                seconds_remaining=Coalesce(
+                asr_seconds_remaining=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_limits_remaining_field('seconds'),
+                            PlanAddOn.get_limits_remaining_field(UsageType.ASR_SECONDS),
                             output_field=IntegerField(),
                         )
                     ),
                     0,
                 ),
-                total_seconds_limit=Coalesce(
+                total_asr_seconds_limit=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_usage_limits_field('seconds'),
+                            PlanAddOn.get_usage_limits_field(UsageType.ASR_SECONDS),
                             output_field=IntegerField(),
                         )
                     ),
                     0,
                 ),
-                characters_remaining=Coalesce(
+                mt_characters_remaining=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_limits_remaining_field('characters'),
+                            PlanAddOn.get_limits_remaining_field(
+                                UsageType.MT_CHARACTERS
+                            ),
                             output_field=IntegerField(),
                         )
                     ),
                     0,
                 ),
-                total_characters_limit=Coalesce(
+                total_mt_characters_limit=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_usage_limits_field('characters'),
+                            PlanAddOn.get_usage_limits_field(UsageType.MT_CHARACTERS),
                             output_field=IntegerField(),
                         )
                     ),
@@ -188,7 +180,7 @@ class PlanAddOn(models.Model):
                 submission_remaining=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_limits_remaining_field('submission'),
+                            PlanAddOn.get_limits_remaining_field(UsageType.SUBMISSION),
                             output_field=IntegerField(),
                         )
                     ),
@@ -197,7 +189,7 @@ class PlanAddOn(models.Model):
                 total_submission_limit=Coalesce(
                     Sum(
                         Cast(
-                            PlanAddOn.get_usage_limits_field('submission'),
+                            PlanAddOn.get_usage_limits_field(UsageType.SUBMISSION),
                             output_field=IntegerField(),
                         )
                     ),
@@ -280,8 +272,7 @@ class PlanAddOn(models.Model):
 
         Returns the amount of usage that was not applied to an add-on.
         """
-        usage_mapped = USAGE_LIMIT_MAP[usage_type]
-        limit_key = f'{usage_mapped}_limit'
+        limit_key = f'{usage_type}_limit'
         metadata_key = f'limits_remaining__{limit_key}'
         add_ons = PlanAddOn.objects.filter(
             organization__id=organization.id,

@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage
 from kobo.apps.organizations.utils import get_billing_dates
@@ -88,8 +89,8 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     results = {}
     for row in nlp_tracking:
         results[row['user_id']] = {
-            'seconds': row['asr_seconds_current_period'],
-            'characters': row['mt_characters_current_period'],
+            'asr_seconds': row['asr_seconds_current_period'],
+            'mt_characters': row['mt_characters_current_period'],
         }
     return results
 
@@ -135,18 +136,18 @@ class ServiceUsageCalculator(CachedClass):
         self.current_period_filter = Q(date__range=[self.current_period_start, now])
         self._setup_cache()
 
-    def get_nlp_usage_by_type(self, usage_key: str) -> int:
-        """Returns the usage for a given organization and usage key. The usage key
-        should be the value from the USAGE_LIMIT_MAP found in the stripe kobo app.
-        """
+    def get_nlp_usage_by_type(self, usage_type: UsageType) -> int:
+        """Returns the usage for a given organization and usage type"""
         nlp_usage = self.get_nlp_usage_counters()
 
         cached_usage = {
-            'asr_seconds': nlp_usage['asr_seconds_current_period'],
-            'mt_characters': nlp_usage['mt_characters_current_period'],
+            UsageType.ASR_SECONDS: nlp_usage[f'{UsageType.ASR_SECONDS}_current_period'],
+            UsageType.MT_CHARACTERS: nlp_usage[
+                f'{UsageType.MT_CHARACTERS}_current_period'
+            ],
         }
 
-        return cached_usage[usage_key]
+        return cached_usage[usage_type]
 
     def get_last_updated(self):
         return self._cache_last_updated()

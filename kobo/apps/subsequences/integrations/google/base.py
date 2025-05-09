@@ -117,7 +117,7 @@ class GoogleService(ABC):
 
     def update_counters(self, amount) -> None:
         update_nlp_counter(
-            self.counter_name,
+            self.counter_name, 
             amount,
             self.asset.owner_id,
             self.asset.id,

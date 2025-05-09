@@ -7,9 +7,8 @@ from django.db.models import F
 from django.utils import timezone
 from django_request_cache import cache_for_request
 
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import UsageType
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.stripe.utils import get_organization_subscription_limit, requires_stripe
 from kpi.utils.django_orm_helper import IncrementValue
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -56,11 +55,11 @@ def update_nlp_counter(
     if service.endswith('asr_seconds'):
         kwargs['total_asr_seconds'] = F('total_asr_seconds') + amount
         if deduct and asset_id is not None:
-            handle_usage_deduction(organization, 'seconds', amount)
+            handle_usage_deduction(organization, UsageType.ASR_SECONDS, amount)
     if service.endswith('mt_characters'):
         kwargs['total_mt_characters'] = F('total_mt_characters') + amount
         if deduct and asset_id is not None:
-            handle_usage_deduction(organization, 'characters', amount)
+            handle_usage_deduction(organization, UsageType.MT_CHARACTERS, amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
@@ -76,7 +75,7 @@ def get_organization_usage(organization: Organization, usage_type: UsageType) ->
     usage_calc = ServiceUsageCalculator(
         organization.owner.organization_user.user, disable_cache=True
     )
-    usage = usage_calc.get_nlp_usage_by_type(USAGE_LIMIT_MAP[usage_type])
+    usage = usage_calc.get_nlp_usage_by_type(usage_type)
 
     return usage
 
