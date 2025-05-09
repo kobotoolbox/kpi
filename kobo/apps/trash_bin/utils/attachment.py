@@ -33,6 +33,7 @@ def delete_attachment(attachment_trash: AttachmentTrash):
             metadata={
                 'attachment_uid': attachment.uid,
                 'attachment_name': attachment.media_file_basename,
+                'instance__root_uuid': attachment.instance.root_uuid,
             },
             log_type=AuditType.ATTACHMENT_MANAGEMENT,
         )

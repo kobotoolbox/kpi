@@ -652,6 +652,11 @@ class AttachmentTrashAdminTest(TestBase):
             user=self.admin,
             action=AuditAction.DELETE,
             log_type=AuditType.ATTACHMENT_MANAGEMENT,
+            metadata={
+                'attachment_uid': self.attachment.uid,
+                'attachment_name': self.attachment.media_file_basename,
+                'instance__root_uuid': self.attachment.instance.root_uuid,
+            },
         ).exists()
 
     def test_put_back_action_restores_attachment(self):
