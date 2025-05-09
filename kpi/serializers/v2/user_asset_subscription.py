@@ -49,7 +49,13 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
     )
     uid = serializers.ReadOnlyField()
 
-    # @extend_schema_field({"type": "string", "format": "url", "example": "https://google.com/"})
+    # @extend_schema_field(
+    #   {
+    #       "type": "string",
+    #       "format": "url",
+    #       "example": "https://google.com/",
+    #   }
+    # )
     # def get_url(self, object):
     #     return self.url
 
