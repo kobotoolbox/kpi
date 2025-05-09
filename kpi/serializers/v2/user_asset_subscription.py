@@ -1,5 +1,8 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
+from drf_spectacular.plumbing import build_basic_type
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field, OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
 
 from kpi.constants import (
@@ -16,17 +19,48 @@ from kpi.utils.object_permission import (
 )
 
 
+# @extend_schema_serializer(
+#     examples=[
+#         OpenApiExample(
+#             'Base Example',
+#             value={
+#                 'AAAAAA': 'string',
+#                 'BBB': {
+#                     'type': 'string',
+#                     'format': 'url',
+#                     'example': 'https://google.com/',
+#                 },
+#                 'asset': {
+#                     'type': 'integer',
+#                 },
+#             },
+#             response_only=True
+#         )
+#     ]
+# )
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
+
+    url = extend_schema_field({
+        "type": "string", "format": "url", "example": "https://google.com/"
+    })(serializers.HyperlinkedIdentityField(
         lookup_field='uid',
         view_name='userassetsubscription-detail'
-    )
+    ))
+
+    # url = serializers.HyperlinkedIdentityField(
+    #     lookup_field='uid',
+    #     view_name='userassetsubscription-detail'
+    # )
     asset = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         view_name='asset-detail',
         queryset=Asset.objects.none()  # will be set in __init__()
     )
     uid = serializers.ReadOnlyField()
+
+    # @extend_schema_field({"type": "string", "format": "url", "example": "https://google.com/"})
+    # def get_url(self, object):
+    #     return self.url
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
