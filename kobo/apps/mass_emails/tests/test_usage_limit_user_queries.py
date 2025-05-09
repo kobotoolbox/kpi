@@ -113,7 +113,7 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             False,
             True,
         ),
-                (
+        (
             'asr_seconds',
             'get_nlp_usage_for_current_billing_period_by_user_id',
             False,
