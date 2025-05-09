@@ -3,7 +3,7 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -31,9 +31,8 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
 from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaFormListInlineSerializer,
     OpenRosaManifestInlineSerializer,
-    OpenRosaPreviewURLInlineSerializer,
     OpenRosaSubmissionInlineSerializer,
-    OpenRosaSubmissionPayloadInlineSerializer,
+    OpenRosaSubmissionRequestInlineSerializer,
     OpenRosaXFormActionInlineSerializer,
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
@@ -43,6 +42,7 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
     open_api_201_created_response,
+    open_api_204_empty_response,
     open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
@@ -73,7 +73,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
-        responses={204: OpenApiResponse()},
+        responses=open_api_204_empty_response(),
         tags=['Asset_Snapshots'],
     ),
     update=extend_schema(
@@ -86,7 +86,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
         description=read_md('kpi', 'openrosa/form_list.md'),
         responses=open_api_200_ok_response(
             OpenRosaFormListInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
         tags=['OpenRosa'],
     ),
@@ -94,39 +94,36 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
         description=read_md('kpi', 'openrosa/manifest.md'),
         responses=open_api_200_ok_response(
             OpenRosaManifestInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
         tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
-        request={'multipart/form-data': OpenRosaSubmissionPayloadInlineSerializer},
+        request={'multipart/form-data': OpenRosaSubmissionRequestInlineSerializer},
         responses=open_api_201_created_response(
             OpenRosaSubmissionInlineSerializer,
-            media='text/xml',
+            media_type='text/xml',
         ),
         tags=['OpenRosa'],
     ),
     preview=extend_schema(
-        description=read_md('kpi', 'openrosa/preview.md'),
-        responses=open_api_302_found(
-            OpenRosaPreviewURLInlineSerializer,
-            media='application/xml',
-        ),
-        tags=['OpenRosa'],
+        description=read_md('kpi', 'asset_snapshots/preview.md'),
+        responses=open_api_302_found(media_type='text/html'),
+        tags=['Asset_Snapshots'],
     ),
     xform=extend_schema(
-        description=read_md('kpi', 'openrosa/xform.md'),
+        description=read_md('kpi', 'asset_snapshots/xform.md'),
         responses=open_api_200_ok_response(
             OpenRosaXFormActionInlineSerializer,
-            media='application/xml',
+            media_type='application/xml',
         ),
-        tags=['OpenRosa'],
+        tags=['Asset_Snapshots'],
     ),
     xml_with_disclaimer=extend_schema(
-        description=read_md('kpi', 'openrosa/xml_with_disclaimer.md'),
+        description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
         responses=open_api_200_ok_response(OpenRosaXFormActionInlineSerializer),
-        tags=['OpenRosa'],
+        tags=['Asset_Snapshots'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
@@ -137,39 +134,34 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     Available actions:
     - list       → GET /api/v2/asset_snapshots/
     - create       → POST /api/v2/asset_snapshots/
-    - retrieve       → GET /api/v2/asset_snapshots/{uid}
-    - patch       → PATCH /api/v2/asset_snapshots/{uid}
-    - delete       → DELETE /api/v2/asset_snapshots/{uid}
+    - retrieve       → GET /api/v2/asset_snapshots/{uid}/
+    - patch       → PATCH /api/v2/asset_snapshots/{uid}/
+    - delete       → DELETE /api/v2/asset_snapshots/{uid}/
+    - xform       → GET /api/v2/asset_snapshots/{uid}/xform/
+    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/
+    - preview       → GET /api/v2/asset_snapshots/{uid}/preview/
 
     Documentation:
     - docs/api/v2/asset_snapshots/list.md
-    # payload utilise ou un asset ou un snapshot.
-    # asset -> url de l'asset
     - docs/api/v2/asset_snapshots/create.md
     - docs/api/v2/asset_snapshots/retrieve.md
     - docs/api/v2/asset_snapshots/patch.md
     - docs/api/v2/asset_snapshots/delete.md
+    - docs/api/v2/asset_snapshots/xform.md
+    - docs/api/v2/asset_snapshots/xml_with_disclaimer.md
+    - docs/api/v2/asset_snapshots/preview.md
 
 
 
     OpenRosa Endpoints Documentation
-    - formlist       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/form_list/form_list.md
+    - formlist       → GET /api/v2/asset_snapshots/{uid}/formList
+    - docs/api/v2/openrosa/form_list.md
 
-    - manifest       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/manifest/manifest.md
+    - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
+    - docs/api/v2/openrosa/manifest.md
 
-    - preview       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/preview/preview.md
-
-    - submission       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/submission/submission.md
-
-    - xform       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/xform/xform.md
-
-    - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}
-    - docs/api/v2/asset_snapshots/xml_with_disclaimer/xml_with_disclaimer.md
+    - submission       → GET /api/v2/asset_snapshots/{uid}/submission
+    - docs/api/v2/openrosa/submission.md
     """
 
     serializer_class = AssetSnapshotSerializer

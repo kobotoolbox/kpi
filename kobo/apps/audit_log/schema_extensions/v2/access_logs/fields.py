@@ -6,3 +6,7 @@ from rest_framework import serializers
 # when paired with a corresponding OpenApiSerializerFieldExtension.
 class AccessLogMetadataField(serializers.JSONField):
     pass
+
+
+class AccessLogUserURLField(serializers.URLField):
+    pass

@@ -1,14 +1,21 @@
 from rest_framework import serializers
 
 
-class OpenRosaMetaFields(serializers.JSONField):
+class OpenRosaFileRequestField(serializers.JSONField):
     pass
 
-class OpenRosaFormHubFields(serializers.JSONField):
+
+class OpenRosaFormHubField(serializers.JSONField):
     pass
 
-class OpenRosaXFormFields(serializers.JSONField):
+
+class OpenRosaMetaField(serializers.JSONField):
     pass
 
-class OpenRosaXFileRequestFields(serializers.JSONField):
+
+class OpenRosaManifestURLField(serializers.URLField):
+    pass
+
+
+class OpenRosaXFormField(serializers.JSONField):
     pass
