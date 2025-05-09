@@ -1,16 +1,24 @@
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
-# from .fields import (
-#     # AssetSnapshotCreateDetailsField,
-# )
-
+from .fields import (
+    AssetSubscriptionURLField,
+    AssetSubscriptionAssetURLField,
+)
 
 AssetSubscriptionPostRequestInlineSerializer = inline_serializer(
-    name='AssetSubscriptionRequestInlineSerializer',
+    name='AssetSubscriptionPostRequestInlineSerializer',
     fields={
-        'url': serializers.CharField(),
-        'asset': serializers.CharField(),
+        'asset': AssetSubscriptionAssetURLField(),
+    },
+)
+
+
+AssetSubscriptionPostResponseInlineSerializer = inline_serializer(
+    name='AssetSubscriptionPostResponseInlineSerializer',
+    fields={
+        'url': AssetSubscriptionURLField(),
+        'asset': AssetSubscriptionAssetURLField(),
         'uid': serializers.CharField(),
     },
 )
