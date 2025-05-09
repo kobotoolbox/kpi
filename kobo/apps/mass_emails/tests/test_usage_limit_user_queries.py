@@ -59,7 +59,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_types=[UsageType.STORAGE_BYTES], minimum=minimum, maximum=maximum
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=minimum,
+                    maximum=maximum,
                 )
         aslist = list(results.order_by('username'))
         assert aslist == list(
@@ -89,7 +91,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
                 return_value=storage_by_user_id,
             ):
                 results = get_users_within_range_of_usage_limit(
-                    usage_types=[UsageType.STORAGE_BYTES], minimum=minimum, maximum=maximum
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=minimum,
+                    maximum=maximum,
                 )
 
         # result should always be empty no matter what min/max were given if user has
@@ -109,7 +113,12 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
             False,
             True,
         ),
-        ('asr_seconds', 'get_nlp_usage_for_current_billing_period_by_user_id', False, True),
+                (
+            'asr_seconds',
+            'get_nlp_usage_for_current_billing_period_by_user_id',
+            False,
+            True,
+        ),
         (
             'mt_characters',
             'get_nlp_usage_for_current_billing_period_by_user_id',

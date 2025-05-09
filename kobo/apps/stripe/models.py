@@ -1,4 +1,4 @@
-from typing import List, get_args
+from typing import List
 
 from django.contrib import admin
 from django.core.exceptions import ObjectDoesNotExist
