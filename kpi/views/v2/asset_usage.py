@@ -11,6 +11,7 @@ from kpi.views.docs.asset_usage.asset_usage_docs import assset_usage_documentati
 @extend_schema(
     tags=['Asset-Usage'],
     description=assset_usage_documentation,
+    responses={},
 )
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
 
