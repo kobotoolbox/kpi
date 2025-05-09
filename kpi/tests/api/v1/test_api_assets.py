@@ -4,10 +4,10 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
-from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, SubmissionExportTask
@@ -19,6 +19,7 @@ from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.transaction import immediate_on_commit
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -47,6 +48,23 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     @unittest.skip(reason='`owner_label` field only exists in v2 endpoint')
     def test_asset_owner_label(self):
         pass
+
+    @unittest.skip(reason='Only needed for v2')
+    def test_creator_permissions_on_import(self):
+        pass
+
+    def test_query_counts(self):
+        # expected query counts are different in v1 and v2 so override the test here
+        self.create_asset()
+
+        with self.assertNumQueries(FuzzyInt(31, 32)):
+            self.client.get(self.list_url)
+        # test query count does not increase with more assets
+        self.create_asset()
+        self.create_asset()
+        self.create_asset()
+        with self.assertNumQueries(FuzzyInt(31, 32)):
+            self.client.get(self.list_url)
 
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):

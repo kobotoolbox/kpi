@@ -15,6 +15,8 @@ import responses
 from constance.test import override_config
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
@@ -57,6 +59,7 @@ from kpi.tests.utils.mock import (
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -419,6 +422,47 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         self.client.logout()
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_query_counts_for_list_submissions(self):
+        # query count differs when stripe is enabled/disabled
+        with self.assertNumQueries(FuzzyInt(16, 17)):
+            # regular
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        with self.assertNumQueries(16):
+            # with params
+            self.client.get(
+                self.submission_list_url,
+                {
+                    'format': 'json',
+                    'start': 1,
+                    'limit': 5,
+                    'sort': '{"q1": -1}',
+                    'fields': '["q1", "_submitted_by"]',
+                    'query': '{"_submitted_by": {'
+                             '  "$in": '
+                             '    ["unknownuser", "someuser", "anotheruser"]'
+                             ' }'
+                             '}',
+                },
+            )
+
+    def test_query_count_does_not_increase_with_more_submissions(self):
+        with CaptureQueriesContext(connection) as context:
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        count = context.final_queries - context.initial_queries
+        # add a few submissions
+        self._add_submissions()
+        with self.assertNumQueries(count):
+            self.client.get(self.submission_list_url, {'format': 'json'})
+        # get second page
+        with self.assertNumQueries(count):
+            self.client.get(
+                self.submission_list_url, {
+                    'format': 'json',
+                    'start': 6,
+                    'limit': 5
+                }
+            )
 
     def test_list_submissions_as_owner(self):
         """

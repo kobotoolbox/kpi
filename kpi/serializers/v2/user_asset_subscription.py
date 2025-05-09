@@ -1,32 +1,63 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from kpi.constants import (
-    ASSET_TYPE_COLLECTION,
-    PERM_DISCOVER_ASSET,
-    PERM_VIEW_ASSET
-)
+from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET, PERM_VIEW_ASSET
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
-from kpi.models import Asset
-from kpi.models import UserAssetSubscription
-from kpi.utils.object_permission import (
-    get_anonymous_user,
-    get_objects_for_user,
-)
+from kpi.models import Asset, UserAssetSubscription
+from kpi.utils.object_permission import get_anonymous_user, get_objects_for_user
 
 
+# @extend_schema_serializer(
+#     examples=[
+#         OpenApiExample(
+#             'Base Example',
+#             value={
+#                 'AAAAAA': 'string',
+#                 'BBB': {
+#                     'type': 'string',
+#                     'format': 'url',
+#                     'example': 'https://google.com/',
+#                 },
+#                 'asset': {
+#                     'type': 'integer',
+#                 },
+#             },
+#             response_only=True
+#         )
+#     ]
+# )
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        lookup_field='uid',
-        view_name='userassetsubscription-detail'
+
+    url = extend_schema_field(
+        {'type': 'string', 'format': 'url', 'example': 'https://google.com/'}
+    )(
+        serializers.HyperlinkedIdentityField(
+            lookup_field='uid', view_name='userassetsubscription-detail'
+        )
     )
+
+    # url = serializers.HyperlinkedIdentityField(
+    #     lookup_field='uid',
+    #     view_name='userassetsubscription-detail'
+    # )
     asset = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         view_name='asset-detail',
         queryset=Asset.objects.none()  # will be set in __init__()
     )
     uid = serializers.ReadOnlyField()
+
+    # @extend_schema_field(
+    #   {
+    #       "type": "string",
+    #       "format": "url",
+    #       "example": "https://google.com/",
+    #   }
+    # )
+    # def get_url(self, object):
+    #     return self.url
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

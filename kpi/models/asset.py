@@ -109,8 +109,8 @@ class AssetSetting:
 
     Parameters:
       setting_type [type]: can be str, dict, or list
-      default_val [object|Callable]: can be either a value or a callable on an asset
-      force_default [boolean]: if true, always use the default value
+      default_val [object|Callable]: can be either a value or a callable on an
+      asset force_default [boolean]: if true, always use the default value
     """
     def __init__(self, setting_type, default_val=None, force_default=False):
         standard_defaults = {
@@ -154,7 +154,8 @@ class AssetWithoutPendingDeletedManager(models.Manager):
 
     def deployed(self):
         """
-        Filter for deployed assets (i.e. assets without a null value for `date_deployed`)
+        Filter for deployed assets, i.e.: assets without a null value for
+        `date_deployed`.
         """
         return self.exclude(date_deployed__isnull=True)
 
@@ -209,12 +210,19 @@ class Asset(
     advanced_features = LazyDefaultJSONBField(default=dict)
     known_cols = LazyDefaultJSONBField(default=list)
     asset_type = models.CharField(
-        choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY, db_index=True
+        choices=ASSET_TYPES,
+        max_length=20,
+        default=ASSET_TYPE_SURVEY,
+        db_index=True,
     )
     parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assets', null=True,
-                              on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='assets',
+        null=True,
+        on_delete=models.CASCADE,
+    )
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = models.JSONField(default=dict)
@@ -256,14 +264,15 @@ class Asset(
         db_index=True
     )
     created_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
-    last_modified_by = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    last_modified_by = models.CharField(
+        max_length=150, null=True, blank=True, db_index=True
+    )
 
     # Distinguish between projects created by the organization owner and those
     # created by other members by introducing a flag to manage project
     # visibility in the "My Projects" list. (#5451)
-    is_excluded_from_projects_list = models.BooleanField(default=False)
-
-    search_field = models.JSONField(default=dict)
+    is_excluded_from_projects_list = models.BooleanField(null=True)
+    search_field = LazyDefaultJSONBField(default=dict)
 
     objects = AssetWithoutPendingDeletedManager()
     all_objects = AssetAllManager()
@@ -278,6 +287,8 @@ class Asset(
             GinIndex(
                 F('settings__country_codes'), name='settings__country_codes_idx'
             ),
+            # ToDo remove this index. It is wrong. It should be
+            #  `_deployment_data__backend_response__formid` but not used anymore.
             BTreeIndex(
                 F('_deployment_data__formid'), name='deployment_data__formid_idx'
             ),
@@ -286,7 +297,7 @@ class Asset(
         # Example in Django documentation  represents `ordering` as a list
         # (even if it can be a list or a tuple). We enforce the type to `list`
         # because `rest_framework.filters.OrderingFilter` work with lists.
-        # `AssetOrderingFilter` inherits from this class and it is used `
+        # `AssetOrderingFilter` inherits from this class, and it is used `
         # in `AssetViewSet to sort the result.
         # It avoids back and forth between types and/or coercing where
         # ordering is needed
@@ -320,7 +331,7 @@ class Asset(
         # - change
         # - delete
         # - view
-        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions
+        # See https://docs.djangoproject.com/en/2.2/topics/auth/default/#default-permissions  # noqa
         # for more detail.
         # `view_asset` clashes with newly built-in one.
         # The simplest way to fix this is to keep old behaviour
@@ -456,9 +467,9 @@ class Asset(
     KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
         PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can change XForm" in KC shell
         PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can view XForm" in KC shell
-        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell
-        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell
-        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell
+        PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can make submissions to the form" in KC shell  # noqa
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can delete submissions" in KC shell  # noqa
+        PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can validate submissions" in KC shell  # noqa
         PERM_DELETE_ASSET: 'delete_xform',  # "Can delete XForm" in KC shell
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
@@ -858,32 +869,38 @@ class Asset(
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
-        """ Used by serializers to improve performance when listing assets """
-        queryset = queryset.defer(
-            # Avoid pulling these from the database because they are often huge
-            # and we don't need them for list views.
-            'content', 'report_styles'
-        ).select_related(
-            # We only need `username`, but `select_related('owner__username')`
-            # actually pulled in the entire `auth_user` table under Django 1.8.
-            # In Django 1.9+, "select_related() prohibits non-relational fields
-            # for nested relations."
-            'owner',
-        ).prefetch_related(
-            'permissions__permission',
-            'permissions__user',
-            # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
-            # related objects in a list (`prefetched_list`) that we can use in
-            # other methods to avoid additional queries; see:
-            # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
-            Prefetch('tags', to_attr='prefetched_tags'),
-            Prefetch(
-                'asset_versions',
-                queryset=AssetVersion.objects.order_by(
-                    '-date_modified'
-                ).only('uid', 'asset', 'date_modified', 'deployed'),
-                to_attr='prefetched_latest_versions',
-            ),
+        """Used by serializers to improve performance when listing assets"""
+        queryset = (
+            queryset.defer(
+                # Avoid pulling these from the database because they are often huge
+                # and we don't need them for list views.
+                'content',
+                'report_styles',
+            )
+            .select_related(
+                # We only need `username`, but `select_related('owner__username')`
+                # actually pulled in the entire `auth_user` table under Django 1.8.
+                # In Django 1.9+, "select_related() prohibits non-relational fields
+                # for nested relations."
+                'owner',
+            )
+            .prefetch_related(
+                'permissions__permission',
+                'permissions__user',
+                # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
+                # related objects in a list (`prefetched_list`) that we can use in
+                # other methods to avoid additional queries; see:
+                # https://docs.djangoproject.com/en/1.8/ref/models/querysets/#prefetch-objects
+                Prefetch('tags', to_attr='prefetched_tags'),
+                Prefetch(
+                    'asset_versions',
+                    queryset=AssetVersion.objects.order_by('-date_modified').only(
+                        'uid', 'asset', 'date_modified', 'deployed'
+                    ),
+                    to_attr='prefetched_latest_versions',
+                ),
+                Prefetch('asset_export_settings'),
+            )
         )
         return queryset
 
@@ -1140,6 +1157,8 @@ class Asset(
         return flatten_content(self.content, in_place=False)
 
     def update_search_field(self, **kwargs):
+        if self.search_field is None:
+            self.search_field = {}
         for key, value in kwargs.items():
             self.search_field[key] = value
         jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)

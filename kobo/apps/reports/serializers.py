@@ -1,6 +1,6 @@
+from kpi.serializers.v2.reports import ReportListSerializer as ReportsListSerializerV2
 from kpi.serializers.v2.reports import (
     ReportsDetailSerializer as ReportsDetailSerializerV2,
-    ReportListSerializer as ReportsListSerializerV2,
 )
 
 

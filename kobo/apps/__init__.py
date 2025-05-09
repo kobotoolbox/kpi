@@ -10,9 +10,17 @@ class KpiConfig(AppConfig):
     name = 'kpi'
 
     def ready(self, *args, **kwargs):
+
+        # Load all schema extension modules to register them
+        import kpi.schema_extensions.imports  # noqa F401
+
         # Register signals only when the app is ready to avoid issues with models
         # not loaded yet.
-        import kpi.signals  # noqa
+        import kpi.signals  # noqa F401
+
+        # The extension is loaded to help drf-spectacular correctly detect and document
+        # the appropriate API extension type (e.g., drf-auth)
+        import kpi.utils.schema_extensions.extensions  # noqa F401
 
         return super().ready(*args, **kwargs)
 

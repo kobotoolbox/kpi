@@ -6,6 +6,7 @@ from rest_framework import viewsets
 from kpi.models.asset import Asset
 from kpi.serializers.v2.permission import PermissionSerializer
 
+
 @extend_schema(
     tags=['permissions'],
 )
