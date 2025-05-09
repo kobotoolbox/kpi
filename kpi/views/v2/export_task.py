@@ -161,7 +161,7 @@ class ExportTaskViewSet(
         'uid__icontains',
     ]
     log_type = AuditType.PROJECT_HISTORY
-    logged_fields = [('object_id', 'asset.id')]
+    logged_fields = [('object_id', 'asset.id'), 'asset.owner.username']
 
     def get_queryset(self):
         user = get_database_user(self.request.user)

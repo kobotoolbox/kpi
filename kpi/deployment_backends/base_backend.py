@@ -226,6 +226,12 @@ class BaseDeploymentBackend(abc.ABC):
         self.asset._deployment_data.clear()  # noqa
 
     @abc.abstractmethod
+    def delete_attachments(
+        self, user: settings.AUTH_USER_MODEL, attachment_uids: list
+    ) -> list:
+        pass
+
+    @abc.abstractmethod
     def delete_submission(
         self, submission_id: int, user: settings.AUTH_USER_MODEL
     ) -> dict:

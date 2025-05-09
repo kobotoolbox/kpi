@@ -3,8 +3,10 @@ import unittest
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
+from rest_framework.permissions import DjangoObjectPermissions
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.api.permissions import XFormPermissions
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
@@ -21,6 +23,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import BadPermissionsException
+from kpi.permissions import AssetSnapshotPermission
 from kpi.utils.object_permission import get_all_objects_for_user
 
 from ..models import ObjectPermission
@@ -907,3 +910,18 @@ class PermissionsTestCase(BasePermissionsTestCase):
             # …but they still access to someuser's org projects
             for expected_perm in expected_perms:
                 assert asset.has_perm(self.anotheruser, expected_perm)
+
+    def test_perms_map_is_not_mutated_on_inherance(self):
+        django_perm_class = DjangoObjectPermissions()
+        assert django_perm_class.perms_map['PATCH'] == [
+            '%(app_label)s.change_%(model_name)s'
+        ]
+        snap_perm_class = AssetSnapshotPermission()
+        assert snap_perm_class.perms_map['PATCH'] == ['kpi.change_asset']
+        xform_perm_class = XFormPermissions()
+        assert xform_perm_class.perms_map['PATCH'] == [
+            '%(app_label)s.change_%(model_name)s'
+        ]
+        assert django_perm_class.perms_map['PATCH'] == [
+            '%(app_label)s.change_%(model_name)s'
+        ]

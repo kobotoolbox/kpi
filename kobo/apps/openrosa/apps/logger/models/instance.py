@@ -5,9 +5,9 @@ import reversion
 from django.apps import apps
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GeometryCollection, Point
+from django.db.models import UniqueConstraint
 from django.utils import timezone
 from django.utils.encoding import smart_str
-from django.db.models import UniqueConstraint
 from jsonfield import JSONField
 from taggit.managers import TaggableManager
 
@@ -39,6 +39,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
     XFORM_ID_STRING,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
@@ -289,9 +290,7 @@ class Instance(AbstractTimeStampedModel):
         data = {
             UUID: self.uuid,
             ID: self.id,
-            self.USERFORM_ID: '%s_%s' % (
-                self.user.username,
-                self.xform.id_string),
+            self.USERFORM_ID: get_mongo_userform_id(self.xform, self.user.username),
             ATTACHMENTS: [a.media_file.name for a in
                           self.attachments.all()],
             self.STATUS: self.status,

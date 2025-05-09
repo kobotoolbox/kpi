@@ -20,6 +20,7 @@ module.exports = {
     //   well.
     'storybook-dark-mode',
     '@storybook/addon-webpack5-compiler-swc',
+    'storybook-addon-remix-react-router',
   ],
 
   framework: {
@@ -85,6 +86,7 @@ module.exports = {
     return config
   },
   docs: {},
+  staticDirs: ['../msw-mocks'],
 }
 
 /// Apply some customizations to the config, intended to decrease build time

@@ -1,8 +1,10 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 import responses
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.urls import reverse
 from django.utils import timezone
@@ -12,7 +14,6 @@ from rest_framework import status
 
 from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
@@ -108,62 +109,66 @@ class OrganizationApiTestCase(BaseTestCase):
         last_updated_timestamp = parse_http_date(response.headers['Date'])
         assert (now.timestamp() - last_updated_timestamp) > 3
 
-    def test_api_response_includes_is_mmo_with_mmo_override(self):
+    def test_api_response_for_mmo_override(self):
         """
-        Test that is_mmo is True when mmo_override is enabled and there is no
-        active subscription.
-        """
-        self._insert_data(mmo_override=True)
-        response = self.client.get(self.url_detail)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['is_mmo'], True)
-
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=MMO_SUBSCRIPTION_DETAILS,
-    )
-    def test_api_response_includes_is_mmo_with_subscription(
-        self, mock_active_subscription
-    ):
-        """
-        Test that is_mmo is True when there is an active MMO subscription.
-        """
-        self._insert_data(mmo_override=False)
-        response = self.client.get(self.url_detail)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['is_mmo'], True)
-
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=None
-    )
-    def test_api_response_includes_is_mmo_with_no_override_and_no_subscription(
-        self, mock_active_subscription
-    ):
-        """
-        Test that is_mmo is False when neither mmo_override nor active
-        subscription is present.
+        Test that mmo_override status is properly reflected in API response.
         """
         self._insert_data(mmo_override=False)
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], False)
 
-    @patch.object(
-        Organization,
-        'active_subscription_billing_details',
-        return_value=MMO_SUBSCRIPTION_DETAILS,
+        self._insert_data(mmo_override=True)
+        response = self.client.get(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['is_mmo'], True)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
+    def test_api_response_includes_is_mmo_with_subscription(self, mock_query):
+        """
+        Test that is_mmo is True when there is an active MMO subscription.
+        """
+        self._insert_data(mmo_override=False)
+        # Patch query in is_mmo method that checks whether org has an active
+        # subscription with a product_type of 'plan'.
+        mock_query.return_value.filter.return_value.exists.return_value = True
+        response = self.client.get(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['is_mmo'], True)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
+    def test_api_response_includes_is_mmo_with_no_override_and_no_subscription(
+        self, mock_query
+    ):
+        """
+        Test that is_mmo is False when neither mmo_override nor active
+        subscription is present.
+        """
+        self._insert_data(mmo_override=False)
+        mock_query.return_value.filter.return_value.exists.return_value = False
+        response = self.client.get(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['is_mmo'], False)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
     def test_api_response_includes_is_mmo_with_override_and_subscription(
-        self, mock_active_subscription
+        self, mock_query
     ):
         """
         Test that is_mmo is True when both mmo_override and active
         MMO subscription is present.
         """
         self._insert_data(mmo_override=True)
+        mock_query.return_value.filter.return_value.exists.return_value = True
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)

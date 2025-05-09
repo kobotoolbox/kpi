@@ -454,6 +454,12 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
+    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+        7,
+        'Number of days to keep attachments in trash after users (soft-)deleted '
+        'them and before automatically hard-deleting them by the system',
+        'positive_int',
+    ),
     # Toggle for ZXCVBN
     'ENABLE_PASSWORD_ENTROPY_METER': (
         True,
@@ -746,6 +752,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Trash bin': (
         'ACCOUNT_TRASH_GRACE_PERIOD',
+        'ATTACHMENT_TRASH_GRACE_PERIOD',
         'PROJECT_TRASH_GRACE_PERIOD',
     ),
     'Regular maintenance settings': (
@@ -1223,10 +1230,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 10 minutes
+    # Schedule every 30 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     'perform-maintenance': {
@@ -1247,13 +1254,13 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 30 minutes
     'organization-invite-mark-as-expired': {
         'task': 'kobo.apps.organizations.tasks.mark_organization_invite_as_expired',
-        'schedule': crontab(minute=30),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
-        'schedule': crontab(minute='*/10'),
+        'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 30 minutes
@@ -1286,10 +1293,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every hour, every day
+    # Schedule every 15 minutes
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
-        'schedule': crontab(minute=0),
+        'schedule': crontab(minute='*/15'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every day at midnight UTC
@@ -1407,7 +1414,7 @@ MASS_EMAIL_SLEEP_SECONDS = 1
 # change the interval between "daily" email sends for testing. this will set both
 # the frequency of the task and the expiry time of the cached email limits. should
 # only be True on small testing instances
-MASS_EMAILS_CONDENSE_SEND = False
+MASS_EMAILS_CONDENSE_SEND = env.bool('MASS_EMAILS_CONDENSE_SEND', False)
 if MASS_EMAILS_CONDENSE_SEND:
     CELERY_BEAT_SCHEDULE['mass-emails-send'] = {
         'task': 'kobo.apps.mass_emails.tasks.send_emails',
@@ -1879,8 +1886,6 @@ SUPPORTED_MEDIA_UPLOAD_TYPES = [
     'application/geo+json',
 ]
 
-LOG_DELETION_BATCH_SIZE = 1000
-
 # Silence Django Guardian warning. Authentication backend is hooked, but
 # Django Guardian does not recognize it because it is extended
 SILENCED_SYSTEM_CHECKS = ['guardian.W001']
@@ -1892,7 +1897,6 @@ DIGEST_LOGIN_FACTORY = 'django_digest.NoEmailLoginFactory'
 # checks as if they were.
 ADMIN_ORG_INHERITED_PERMS = [PERM_DELETE_ASSET, PERM_MANAGE_ASSET]
 
-USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 
 # Import/Export Celery
 IMPORT_EXPORT_CELERY_INIT_MODULE = 'kobo.celery'
@@ -1908,4 +1912,11 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
+# Batch sizes
+LOG_DELETION_BATCH_SIZE = 1000
+USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
+LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+
+# Number of stuck tasks should be restarted at a time
+MAX_RESTARTED_TASKS = 100

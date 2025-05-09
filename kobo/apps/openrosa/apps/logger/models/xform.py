@@ -143,18 +143,13 @@ class XForm(AbstractTimeStampedModel):
                     'pk', 'name', 'uid', 'owner_id'
                 ).get(uid=self.kpi_asset_uid)
             except Asset.DoesNotExist:
-                try:
-                    asset = Asset.all_objects.only(
-                        'pk', 'name', 'uid', 'owner_id'
-                    ).get(_deployment_data__backend_response__formid=self.pk)
-                except Asset.DoesNotExist:
-                    # An `Asset` object needs to be returned to avoid 500 while
-                    # Enketo is fetching for project XML (e.g: /formList, /manifest)
-                    asset = Asset(
-                        uid=self.id_string,
-                        name=self.title,
-                        owner_id=self.user.id,
-                    )
+                # An `Asset` object needs to be returned to avoid 500 while
+                # Enketo is fetching for project XML (e.g: /formList, /manifest)
+                asset = Asset(
+                    uid=self.id_string,
+                    name=self.title,
+                    owner_id=self.user.id,
+                )
 
             setattr(self, '_cached_asset', asset)
 
