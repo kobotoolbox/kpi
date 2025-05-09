@@ -1,6 +1,8 @@
+from django.conf import settings
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
+from rest_framework.reverse import reverse
 
 
 class OpenRosaFormHubFieldExtension(OpenApiSerializerFieldExtension):
@@ -28,6 +30,22 @@ class OpenRosaMetaFieldExtension(OpenApiSerializerFieldExtension):
                 'rootUuid': build_basic_type(OpenApiTypes.STR),
                 'deprecatedID': build_basic_type(OpenApiTypes.STR),
             },
+        }
+
+
+class OpenRosaManifestURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaManifestURLField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        example_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-manifest-alias',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
+        )
+
+        return {
+            'type': 'string',
+            'format': 'url',
+            'example': example_url,
         }
 
 
@@ -92,6 +110,15 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaXFormField'
 
     def map_serializer_field(self, auto_schema, direction):
+        example_download_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-xml-with-disclaimer',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
+        )
+        example_manifest_url = settings.KOBOFORM_URL + reverse(
+            'api_v2:assetsnapshot-manifest-alias',
+            kwargs={'uid': 'sEMPghTguZsxj4rn4s9dvS'},
+        )
+
         return {
             'type': 'object',
             'properties': {
@@ -99,7 +126,15 @@ class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
                 'name': build_basic_type(OpenApiTypes.STR),
                 'hash': build_basic_type(OpenApiTypes.STR),
                 'descriptionText': build_basic_type(OpenApiTypes.STR),
-                'downloadUrl': build_basic_type(OpenApiTypes.STR),
-                'manifestUrl': build_basic_type(OpenApiTypes.STR),
+                'downloadUrl': {
+                    'type': 'string',
+                    'format': 'url',
+                    'example': example_download_url,
+                },
+                'manifestUrl': {
+                    'type': 'string',
+                    'format': 'url',
+                    'example': example_manifest_url,
+                },
             },
         }
