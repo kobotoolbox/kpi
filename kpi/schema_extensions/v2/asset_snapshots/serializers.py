@@ -5,29 +5,33 @@ from .fields import (
     AssetSnapshotCreateDetailsField,
     AssetSnapshotDetailsField,
     AssetSnapshotSourceField,
-)
-
-AssetSnapshotResultInlineSerializer = inline_serializer(
-    name='AssetSnapshotResultInlineSerializer',
-    fields={
-        'url': serializers.URLField(),
-        'uid': serializers.CharField(),
-        'owner': serializers.CharField(),
-        'date_created': serializers.DateTimeField(),
-        'xml': serializers.URLField(),
-        'enketopreviewlink': serializers.URLField(),
-        'asset': serializers.URLField(),
-        'asset_version_id': serializers.IntegerField(),
-        'details': AssetSnapshotDetailsField(),
-        'source': AssetSnapshotSourceField(),
-    },
+    AssetSnapshotURLField,
+    AssetSnapshotURLPreviewField,
+    AssetSnapshotURLUserField,
+    AssetSnapshotURLXMLField,
 )
 
 AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
     name='AssetSnapshotCreateRequestInlineSerializer',
     fields={
-        'asset': serializers.CharField(),
+        'asset': AssetSnapshotURLField(),
         'details': AssetSnapshotCreateDetailsField(),
-        'source': serializers.CharField(),
+        'source': AssetSnapshotSourceField(),
+    },
+)
+
+AssetSnapshotResultInlineSerializer = inline_serializer(
+    name='AssetSnapshotResultInlineSerializer',
+    fields={
+        'url': AssetSnapshotURLField(),
+        'uid': serializers.CharField(),
+        'owner': AssetSnapshotURLUserField(),
+        'date_created': serializers.DateTimeField(),
+        'xml': AssetSnapshotURLXMLField(),
+        'enketopreviewlink': AssetSnapshotURLPreviewField(),
+        'asset': AssetSnapshotURLField(),
+        'asset_version_id': serializers.IntegerField(),
+        'details': AssetSnapshotDetailsField(),
+        'source': AssetSnapshotSourceField(),
     },
 )

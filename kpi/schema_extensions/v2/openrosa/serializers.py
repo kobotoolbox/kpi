@@ -1,57 +1,51 @@
 from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
-
 from .fields import (
-    OpenRosaFormHubFields,
-    OpenRosaMetaFields,
-    OpenRosaXFormFields,
-    OpenRosaXFileRequestFields,
-)
-
-OpenRosaSubmissionInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionInlineSerializer',
-    fields={
-        'question': serializers.URLField(),
-        'meta': OpenRosaMetaFields(),
-        'formhub': OpenRosaFormHubFields(),
-    },
-)
-
-
-OpenRosaSubmissionPayloadInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionPayloadInlineSerializer',
-    fields={
-        'xml_submission_file': serializers.FileField(),
-    },
+    OpenRosaFileRequestField,
+    OpenRosaFormHubField,
+    OpenRosaManifestURLField,
+    OpenRosaMetaField,
+    OpenRosaXFormField,
 )
 
 OpenRosaFormListInlineSerializer = inline_serializer(
     name='OpenRosaFormListInlineSerializer',
     fields={
-        'xform': OpenRosaXFormFields(),
-    }
+        'xform': OpenRosaXFormField(),
+    },
 )
+
 
 OpenRosaManifestInlineSerializer = inline_serializer(
     name='OpenRosaManifestInlineSerializer',
     fields={
-        'manifest': serializers.URLField(),
-    }
+        'manifest': OpenRosaManifestURLField(),
+    },
 )
 
 
-OpenRosaPreviewURLInlineSerializer = inline_serializer(
-    name='OpenRosaPreviewURLInlineSerializer',
+OpenRosaSubmissionInlineSerializer = inline_serializer(
+    name='OpenRosaSubmissionInlineSerializer',
     fields={
-        'url': serializers.URLField(),
-    }
+        'question': serializers.URLField(),
+        'meta': OpenRosaMetaField(),
+        'formhub': OpenRosaFormHubField(),
+    },
 )
+
+
+OpenRosaSubmissionRequestInlineSerializer = inline_serializer(
+    name='OpenRosaSubmissionRequestInlineSerializer',
+    fields={
+        'xml_submission_file': serializers.FileField(),
+    },
+)
+
 
 OpenRosaXFormActionInlineSerializer = inline_serializer(
     name='OpenRosaXFormActionInlineSerializer',
     fields={
-        'html': OpenRosaXFileRequestFields(),
-        'test2': serializers.CharField(),
-    }
+        'html': OpenRosaFileRequestField(),
+    },
 )
