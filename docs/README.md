@@ -72,6 +72,15 @@ The `@extend_schema_view` decorator allows you to annotate standard `ViewSet` me
 you want to document multiple methods within a `ViewSet` without repeating
 `@extend_schema` on each one.
 
+It is also useful when your `ViewSet class relies on DRF’s default method implementations
+(e.g., `list`) and you don’t want to override them just to attach schema metadata.
+This allows you to target each method explicitly without writing boilerplate like
+
+```python
+def list(self, request, *args, **kwargs):
+  return super().list(self.request, *args, **kwargs)
+```
+
 You can also use it to document custom actions with specific serializers or descriptions.
 
 Example:
@@ -143,7 +152,7 @@ Example:
 CategoryListInlineSerializer = inline_serializer(
     name='CategoryListInlineSerializer',
     fields={
-        'url': serializers.URLField(),
+        'url': serializers.URLField(),  # It's better to use a custom field (like `metadata` below) to generate the desired schema.  # noqa
         'date_created': serializers.DateTimeField(),
         'name': serializers.CharField(),
         'metadata': CategoryMetaDataField()  # custom field, see below
