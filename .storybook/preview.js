@@ -1,11 +1,9 @@
 import 'scss/main.scss'
 import '#/bemComponents'
 import '@mantine/core/styles.css'
-
-import { useEffect } from 'react'
-
 import { MantineProvider, useMantineColorScheme } from '@mantine/core'
 import * as mswAddon from 'msw-storybook-addon'
+import { useEffect } from 'react'
 import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { addons } from 'storybook/preview-api'
 import { themeKobo } from '#/theme'
