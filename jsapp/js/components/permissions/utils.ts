@@ -470,7 +470,6 @@ export function getContextualPermLabel(
   assetType: AssetTypeName | undefined,
   checkboxName: CheckboxNameAll | undefined,
 ) {
-
   if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
     switch (assetType) {
       case AssetTypeName.block:

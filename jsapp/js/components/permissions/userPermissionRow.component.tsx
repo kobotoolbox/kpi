@@ -122,7 +122,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
             if (this.props.assetType !== AssetTypeName.survey) {
               friendlyPermName = getContextualPermLabel(
                 this.props.assetType,
-                getCheckboxNameByPermission(permDef.codename)
+                getCheckboxNameByPermission(permDef.codename),
               )
             } else {
               friendlyPermName = getFriendlyPermName(perm)
