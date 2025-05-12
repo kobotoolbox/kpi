@@ -2,6 +2,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -10,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
@@ -24,6 +26,8 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormManifestSerializer,
 )
 from kpi.authentication import DigestAuthentication
+from kpi.constants import PERM_MANAGE_ASSET
+from kpi.models.object_permission import ObjectPermission
 from ..utils.rest_framework.viewsets import OpenRosaReadOnlyModelViewSet
 
 
@@ -87,10 +91,30 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
                 # including those shared by other users
                 queryset = super().filter_queryset(queryset)
         else:
-            # Only return projects that allow anonymous submissions when path
-            # starts with a username
+            # Only return projects that allow anonymous submissions and are managed
+            # by the user matching the given username.
+            try:
+                openrosa_user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                # Intentionally returns an empty list instead of a 404 to indicate
+                # no results found.
+                return XForm.objects.none()
+
+            # No need to filter by asset_type or archive status (and trigger additional
+            # joins), since OpenRosa only handles surveys and already excludes archived
+            # forms.
+            asset_uids = list(ObjectPermission.objects.values_list(
+                'asset__uid', flat=True
+            ).filter(
+                permission__codename=PERM_MANAGE_ASSET,
+                deny=False,
+                user_id=openrosa_user.pk,
+            ))
+
             queryset = queryset.filter(
-                user__username=username.lower(), require_auth=False
+                Q(user__username=username.lower())
+                | Q(kpi_asset_uid__in=asset_uids),
+                require_auth=False,
             )
 
         try:

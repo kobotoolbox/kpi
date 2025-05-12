@@ -1,12 +1,16 @@
+import json
 import os
 import re
+from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django_digest.test import DigestAuth
 from guardian.models import UserObjectPermission
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
@@ -15,6 +19,9 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS, CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.organizations.models import Organization
+from kpi.constants import PERM_MANAGE_ASSET, PERM_ADD_SUBMISSIONS
+from kpi.models import Asset, ImportTask
+from kpi.utils.strings import to_str
 
 
 class TestXFormListApiBase(TestAbstractViewSet):
@@ -47,36 +54,55 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
 
     """
     Tests should point to `https://kc/<username>/*`
+
+    Since May 2025 (version 2.025.02i), retrieving XForms that allow anonymous
+    submissions no longer depends solely on the username provided in the URL. Instead,
+    it requires that the user matching the given username also has the `manage_asset`
+    permission in KPI.
+
+    Previously, OpenRosa was agnostic to KPI assets, but this change introduces
+    a tighter integration between form access and KPI permissions.
+
+    To reflect this behaviour correctly, this test class now relies on the full KPI
+    asset deployment mechanism (added in `setUp`) to ensure that the expected
+    permissions are applied, and the tests remain valid.
     """
 
     def setUp(self):
-        super().setUp()
-        self.xform_without_auth = self.xform
-        self.xform_without_auth.require_auth = False
-        self.xform_without_auth.save(update_fields=['require_auth'])
+        super(TestXFormListApiBase, self).setUp()
+        self.view = XFormListApi.as_view({'get': 'list'})
 
-        data = {
-            'owner': self.user.username,
-            'public': False,
-            'public_data': False,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
-        path = os.path.join(
-            settings.OPENROSA_APP_DIR,
-            'apps',
-            'main',
-            'tests',
-            'fixtures',
-            'transportation',
-            'transportation_with_attachment.xls',
+        self.asset_1 = Asset.objects.create(
+            content={
+                'survey': [{'type': 'text', 'label': 'q1'}],
+                'settings': {
+                    'title': 'transportation_2011_07_25'
+                }
+            },
+            owner=self.user,
         )
-        self.publish_xls_form(data=data, path=path)
-        self.assertNotEqual(self.xform.pk, self.xform_without_auth)
+        self.asset_2 = Asset.objects.create(
+            content={
+                'survey': [{'type': 'text', 'label': 'q2'}]
+            },
+            owner=self.user,
+        )
+
+        # Force id_string to be "transportation_2011_07_25" for retro-compatibility
+        with patch.object(
+            XForm,
+            '_set_id_string',
+            lambda self: setattr(self, 'id_string', 'transportation_2011_07_25'),
+        ):
+            self.asset_1.deploy(backend='mock', active=True)
+        self.asset_2.deploy(active=True, backend='mock')
+        # Allow anonymous to submit data
+        self.asset_1.assign_perm(AnonymousUser(), PERM_ADD_SUBMISSIONS)
+
+        self.xform_without_auth = self.asset_1.deployment.xform
+        self.xform = self.asset_2.deployment.xform
+
+        self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(XForm.objects.filter(require_auth=False).count(), 1)
 
@@ -100,23 +126,27 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
-            os.path.dirname(__file__), '..', 'fixtures', 'formList.xml'
+            os.path.dirname(__file__), '..', 'fixtures', 'formList_with_version.xml'
         )
         # Response should contain only xform
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
+            xform_json = json.loads(self.xform_without_auth.json)
             data = {
                 'hash': self.xform_without_auth.md5_hash,
                 'pk': self.xform_without_auth.pk,
+                'version': xform_json['version'],
             }
             content = response.render().content
-            self.assertEqual(content.decode('utf-8'), form_list_xml % data)
+            self.assertEqual(content.decode(), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length'))
+                response.has_header('X-OpenRosa-Accept-Content-Length')
+            )
             self.assertTrue(response.has_header('Date'))
-            self.assertEqual(response['Content-Type'],
-                             'text/xml; charset=utf-8')
+            self.assertEqual(
+                response['Content-Type'], 'text/xml; charset=utf-8'
+            )
 
     def test_get_xform_list_as_owner(self):
 
@@ -135,23 +165,27 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         path = os.path.join(
-            os.path.dirname(__file__), '..', 'fixtures', 'formList.xml'
+            os.path.dirname(__file__), '..', 'fixtures', 'formList_with_version.xml'
         )
         # Response should contain only xform
         with open(path, 'r') as f:
             form_list_xml = f.read().strip()
+            xform_json = json.loads(self.xform_without_auth.json)
             data = {
                 'hash': self.xform_without_auth.md5_hash,
                 'pk': self.xform_without_auth.pk,
+                'version': xform_json['version'],
             }
             content = response.render().content
             self.assertEqual(content.decode('utf-8'), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length'))
+                response.has_header('X-OpenRosa-Accept-Content-Length')
+            )
             self.assertTrue(response.has_header('Date'))
-            self.assertEqual(response['Content-Type'],
-                             'text/xml; charset=utf-8')
+            self.assertEqual(
+                response['Content-Type'], 'text/xml; charset=utf-8'
+            )
 
     def test_retrieve_xform_manifest_as_owner(self):
 
@@ -217,6 +251,42 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             format='png',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_manager_xform_list_as_anonymous_user(self):
+
+        manager = User.objects.create_user(username='manager', password='manager')
+        # Allow anonymous user to submit data to 2nd project too
+        self.asset_2.assign_perm(AnonymousUser(), PERM_ADD_SUBMISSIONS)
+
+        # Retrieve manager's formList as an anonymous user, no XForms should be present
+        response = self.client.get(reverse('form-list', kwargs={'username': 'manager'}))
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_empty_xforms_list = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'
+        )
+        assert response.content.decode() == expected_empty_xforms_list
+
+        # Give "manager" the permission to manage the first project (but not the second)
+        self.asset_1.assign_perm(manager, PERM_MANAGE_ASSET)
+
+        # Retrieve manager's formList as an anonymous user
+        response = self.client.get(reverse('form-list', kwargs={'username': 'manager'}))
+        xml_response = response.content.decode()
+        # Make sure, there is only one XForm in response
+        assert xml_response.count('<formID>') == 1
+        assert f'<formID>{self.xform_without_auth.id_string}</formID>' in xml_response
+        assert f'<formID>{self.xform.id_string}</formID>' not in xml_response
+
+        # Retrieve owner's formList as an anonymous user, just to validate the response
+        # is different
+        response = self.client.get(reverse('form-list', kwargs={'username': 'bob'}))
+        xml_response = response.content.decode()
+        # Make sure both projects are present in formList
+        assert xml_response.count('<formID>') == 2
+        assert f'<formID>{self.xform_without_auth.id_string}</formID>' in xml_response
+        assert f'<formID>{self.xform.id_string}</formID>' in xml_response
 
 
 class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
