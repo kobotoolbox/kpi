@@ -9,39 +9,12 @@ from kpi.models import Asset, UserAssetSubscription
 from kpi.utils.object_permission import get_anonymous_user, get_objects_for_user
 
 
-# @extend_schema_serializer(
-#     examples=[
-#         OpenApiExample(
-#             'Base Example',
-#             value={
-#                 'AAAAAA': 'string',
-#                 'BBB': {
-#                     'type': 'string',
-#                     'format': 'url',
-#                     'example': 'https://google.com/',
-#                 },
-#                 'asset': {
-#                     'type': 'integer',
-#                 },
-#             },
-#             response_only=True
-#         )
-#     ]
-# )
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
 
-    url = extend_schema_field(
-        {'type': 'string', 'format': 'url', 'example': 'https://google.com/'}
-    )(
-        serializers.HyperlinkedIdentityField(
-            lookup_field='uid', view_name='userassetsubscription-detail'
-        )
+    url = serializers.HyperlinkedIdentityField(
+        lookup_field='uid',
+        view_name='userassetsubscription-detail'
     )
-
-    # url = serializers.HyperlinkedIdentityField(
-    #     lookup_field='uid',
-    #     view_name='userassetsubscription-detail'
-    # )
     asset = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         view_name='asset-detail',
@@ -49,15 +22,6 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
     )
     uid = serializers.ReadOnlyField()
 
-    # @extend_schema_field(
-    #   {
-    #       "type": "string",
-    #       "format": "url",
-    #       "example": "https://google.com/",
-    #   }
-    # )
-    # def get_url(self, object):
-    #     return self.url
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
