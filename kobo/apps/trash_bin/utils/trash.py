@@ -33,6 +33,17 @@ from ..type_aliases import DeletionCallback, TrashBinModel, TrashBinModelInstanc
 from ..utils import temporarily_disconnect_signals
 
 
+def get_log_type(related_model):
+    log_type_map = {
+        'user': AuditType.USER_MANAGEMENT,
+        'attachment': AuditType.ATTACHMENT_MANAGEMENT,
+    }
+
+    return log_type_map.get(
+        related_model._meta.model_name, AuditType.ASSET_MANAGEMENT
+    )
+
+
 @transaction.atomic
 def move_to_trash(
     request_author: settings.AUTH_USER_MODEL,
@@ -106,11 +117,8 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
-        log_type = (
-            AuditType.USER_MANAGEMENT
-            if related_model._meta.model_name == 'user'
-            else AuditType.ASSET_MANAGEMENT
-        )
+
+        log_type = get_log_type(related_model)
         audit_logs.append(
             AuditLog(
                 app_label=related_model._meta.app_label,
@@ -242,11 +250,8 @@ def put_back(
 
     if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
-    log_type = (
-        AuditType.USER_MANAGEMENT
-        if related_model._meta.model_name == 'user'
-        else AuditType.ASSET_MANAGEMENT
-    )
+
+    log_type = get_log_type(related_model)
 
     AuditLog.objects.bulk_create(
         [

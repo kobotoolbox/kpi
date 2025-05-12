@@ -73,6 +73,30 @@ jobs:
       - name: Run unit tests and xlform tests
         run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
-      # Check that the storybook build succeeds
-      - name: Build Storybook
-        run: npm run build:storybook
+      # Install Playwright (with cache) for Storybook tests
+      - name: "Playwright: get installed version"
+        id: playwright-version
+        run: echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./package-lock.json').dependencies['@playwright/test'].version)")" >> $GITHUB_ENV
+
+      - name: "Playwright: cache binaries"
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+      - run: npx playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - run: npx playwright install-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      - name: "Playwright: install system dependencies for WebKit"
+        # Some WebKit dependencies seem to lay outside the cache and will need to be installed separately
+        # See bug: https://github.com/microsoft/playwright/issues/30538
+        # It will add around 1 minute to total run-time
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps webkit
+
+      # Check that the storybook build succeeds.
+      - name: Build and serve Storybook, test stories.
+        run: npm run test:storybook
