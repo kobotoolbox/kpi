@@ -2,8 +2,8 @@ from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
-
 from kpi.utils.schema_extensions.url_builder import build_url_type
+
 
 # This drf-extension made for the metadata field of AccessLog targets the external class
 # and tells it what it should return when generating the schema.
@@ -18,7 +18,7 @@ class AccessLogMetadataFieldExtension(OpenApiSerializerFieldExtension):
                 'ip_address': build_basic_type(OpenApiTypes.STR),
                 'initial_user_uid': build_basic_type(OpenApiTypes.STR),
                 'initial_user_username': build_basic_type(OpenApiTypes.STR),
-                'authorized_app_name': build_basic_type(OpenApiTypes.STR)
+                'authorized_app_name': build_basic_type(OpenApiTypes.STR),
             }
         )
 
