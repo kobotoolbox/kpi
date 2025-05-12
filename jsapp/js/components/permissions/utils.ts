@@ -466,24 +466,10 @@ export function getPermLabel(perm: PermissionResponse) {
  *
  * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
  */
-export function getFriendlyPermLabelWithSuffix(
+export function getContextualPermLabel(
   assetType: AssetTypeName | undefined,
-  perm?: PermissionResponse,
-  checkboxNameParam?: CheckboxNameAll,
+  checkboxName: CheckboxNameAll | undefined,
 ) {
-  let checkboxName = ''
-
-  if (perm) {
-    const permDef = permConfig.getPermission(perm.permission)
-
-    if (permDef) {
-      checkboxName = getCheckboxNameByPermission(permDef.codename) || ''
-    }
-  }
-
-  if (checkboxNameParam) {
-    checkboxName = checkboxNameParam
-  }
 
   if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
     switch (assetType) {

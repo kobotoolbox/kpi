@@ -36,7 +36,7 @@ import {
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
 import {
-  getFriendlyPermLabelWithSuffix,
+  getContextualPermLabel,
   getPartialByResponsesQuestionName,
   getPartialByResponsesValueName,
   getPartialByUsersListName,
@@ -395,7 +395,7 @@ export default class UserAssetPermsEditor extends React.Component<
 
     let checkboxLabel = ''
     if (this.props.assetType !== AssetTypeName.survey) {
-      checkboxLabel = getFriendlyPermLabelWithSuffix(this.props.assetType, undefined, checkboxName)
+      checkboxLabel = getContextualPermLabel(this.props.assetType, checkboxName)
     } else {
       checkboxLabel = CHECKBOX_LABELS[checkboxName]
     }

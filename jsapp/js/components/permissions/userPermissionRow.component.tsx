@@ -17,7 +17,7 @@ import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
 import type { AssignablePermsMap } from './sharingForm.component'
 import UserAssetPermsEditor from './userAssetPermsEditor.component'
-import { getFriendlyPermLabelWithSuffix, getFriendlyPermName, getPermLabel } from './utils'
+import { getCheckboxNameByPermission, getContextualPermLabel, getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
   assetUid: string
@@ -112,11 +112,21 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
           const permLabel = getPermLabel(perm)
 
           let friendlyPermName = ''
-
-          if (this.props.assetType !== AssetTypeName.survey) {
-            friendlyPermName = getFriendlyPermLabelWithSuffix(this.props.assetType, perm)
-          } else {
-            friendlyPermName = getFriendlyPermName(perm)
+          // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
+          // significantly different starting point. To avoid deeper compliations we do a little bit of redundant work
+          // here (to get the permission definition) needed to generate contextual labels.
+          //
+          // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
+          const permDef = permConfig.getPermission(perm.permission)
+          if (permDef) {
+            if (this.props.assetType !== AssetTypeName.survey) {
+              friendlyPermName = getContextualPermLabel(
+                this.props.assetType,
+                getCheckboxNameByPermission(permDef.codename)
+              )
+            } else {
+              friendlyPermName = getFriendlyPermName(perm)
+            }
           }
 
           return <bem.UserRow__perm key={permLabel}>{friendlyPermName}</bem.UserRow__perm>
