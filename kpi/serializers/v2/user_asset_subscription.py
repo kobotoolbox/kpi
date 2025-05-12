@@ -1,6 +1,5 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from kpi.constants import ASSET_TYPE_COLLECTION, PERM_DISCOVER_ASSET, PERM_VIEW_ASSET
@@ -21,7 +20,6 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
         queryset=Asset.objects.none()  # will be set in __init__()
     )
     uid = serializers.ReadOnlyField()
-
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
