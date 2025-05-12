@@ -10,21 +10,16 @@ from django.test import TestCase
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
-from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
-from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
-from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import empty_account, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
