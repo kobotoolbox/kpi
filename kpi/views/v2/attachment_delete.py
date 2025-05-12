@@ -15,6 +15,7 @@ class AttachmentDeleteViewSet(
     # avoid checking validating partial permissions in both the permission class
     # here and in the backend
     permission_classes = [AttachmentDeletionPermission]
+    http_method_names = ['delete']
 
     def _perform_attachment_deletion(self, request, data, success_status):
         serializer = AttachmentDeleteSerializer(
