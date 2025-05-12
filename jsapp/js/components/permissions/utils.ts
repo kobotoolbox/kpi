@@ -471,54 +471,45 @@ export function getFriendlyPermLabelWithSuffix(
   perm?: PermissionResponse,
   checkboxNameParam?: CheckboxNameAll,
 ) {
-  let checkboxNameSuffix = ''
-  let checkboxNameAll = ''
+  let checkboxName = ''
 
   if (perm) {
     const permDef = permConfig.getPermission(perm.permission)
 
     if (permDef) {
-      checkboxNameAll = getCheckboxNameByPermission(permDef.codename) || ''
+      checkboxName = getCheckboxNameByPermission(permDef.codename) || ''
     }
   }
 
   if (checkboxNameParam) {
-    checkboxNameAll = checkboxNameParam
+    checkboxName = checkboxNameParam
   }
 
-  if (checkboxNameAll === 'formView' || checkboxNameAll === 'formEdit' || checkboxNameAll === 'formManage') {
+  if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
     switch (assetType) {
       case AssetTypeName.block:
-        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View block')
-        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit block')
-        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage block')
-        break
+        if (checkboxName === 'formView') return t('View block')
+        else if (checkboxName === 'formEdit') return t('Edit block')
+        else return t('Manage block')
       case AssetTypeName.collection:
-        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View collection')
-        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit collection')
-        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage collection')
+        if (checkboxName === 'formView') return t('View collection')
+        if (checkboxName === 'formEdit') return t('Edit collection')
+        if (checkboxName === 'formManage') return t('Manage collection')
         break
       case AssetTypeName.template:
-        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View template')
-        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit template')
-        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage template')
+        if (checkboxName === 'formView') return t('View template')
+        if (checkboxName === 'formEdit') return t('Edit template')
+        if (checkboxName === 'formManage') return t('Manage template')
         break
       case AssetTypeName.question:
-        if (checkboxNameAll === 'formView') checkboxNameSuffix = t('View question')
-        if (checkboxNameAll === 'formEdit') checkboxNameSuffix = t('Edit question')
-        if (checkboxNameAll === 'formManage') checkboxNameSuffix = t('Manage question')
-        break
-      case AssetTypeName.survey:
-        if (checkboxNameAll === 'formManage') {
-          checkboxNameSuffix = 'project'
-        } else {
-          checkboxNameSuffix = 'form'
-        }
+        if (checkboxName === 'formView') return t('View question')
+        if (checkboxName === 'formEdit') return t('Edit question')
+        if (checkboxName === 'formManage') return t('Manage question')
         break
     }
   }
 
-  return checkboxNameSuffix
+  return ''
 }
 
 /**
