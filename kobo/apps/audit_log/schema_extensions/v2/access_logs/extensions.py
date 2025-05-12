@@ -1,9 +1,9 @@
-from django.conf import settings
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
 from drf_spectacular.plumbing import build_basic_type
 from drf_spectacular.types import OpenApiTypes
-from rest_framework.reverse import reverse
 
+
+from kpi.utils.schema_extensions.url_builder import build_url_type
 
 # This drf-extension made for the metadata field of AccessLog targets the external class
 # and tells it what it should return when generating the schema.
@@ -28,8 +28,4 @@ class AccessLogUserFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kobo.apps.audit_log.schema_extensions.v2.access_logs.fields.AccessLogUserURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        example_url = settings.KOBOFORM_URL + reverse(
-            'api_v2:user-kpi-detail', kwargs={'username': 'bob'}
-        )
-
-        return {'type': 'string', 'format': 'url', 'example': example_url}
+        return build_url_type('api_v2:user-kpi-detail', username='bob')
