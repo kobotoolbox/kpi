@@ -1,7 +1,5 @@
-import json
 import os
 import re
-from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -19,9 +17,8 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.constants import CAN_ADD_SUBMISSIONS, CAN_VIEW_XFORM
 from kobo.apps.openrosa.libs.utils.guardian import assign_perm
 from kobo.apps.organizations.models import Organization
-from kpi.constants import PERM_MANAGE_ASSET, PERM_ADD_SUBMISSIONS
-from kpi.models import Asset, ImportTask
-from kpi.utils.strings import to_str
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET
+from kpi.models import Asset
 
 
 class TestXFormListApiBase(TestAbstractViewSet):
@@ -131,13 +128,9 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             content = response.render().content
             self.assertEqual(content.decode(), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
-            self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length')
-            )
+            self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
             self.assertTrue(response.has_header('Date'))
-            self.assertEqual(
-                response['Content-Type'], 'text/xml; charset=utf-8'
-            )
+            self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_get_xform_list_as_owner(self):
 
@@ -168,13 +161,9 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             content = response.render().content
             self.assertEqual(content.decode(), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
-            self.assertTrue(
-                response.has_header('X-OpenRosa-Accept-Content-Length')
-            )
+            self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))
             self.assertTrue(response.has_header('Date'))
-            self.assertEqual(
-                response['Content-Type'], 'text/xml; charset=utf-8'
-            )
+            self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_retrieve_xform_manifest_as_owner(self):
 
@@ -245,9 +234,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
 
         manager = User.objects.create_user(username='manager', password='manager')
         asset = Asset.objects.create(
-            content={
-                'survey': [{'type': 'text', 'label': 'q1'}]
-            },
+            content={'survey': [{'type': 'text', 'label': 'q1'}]},
             owner=self.user,
         )
         asset.deploy(active=True, backend='mock')
@@ -341,7 +328,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
             form_list_xml = f.read().strip()
             data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
-            self.assertEqual(content .decode(), form_list_xml % data)
+            self.assertEqual(content.decode(), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(
                 response.has_header('X-OpenRosa-Accept-Content-Length'))
@@ -362,7 +349,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
 
         xml = '<?xml version="1.0" encoding="utf-8"?>\n<xforms '
         xml += 'xmlns="http://openrosa.org/xforms/xformsList"></xforms>'
-        content = response.render().content .decode()
+        content = response.render().content.decode()
         self.assertEqual(content, xml)
         self.assertTrue(response.has_header('X-OpenRosa-Version'))
         self.assertTrue(
@@ -396,7 +383,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request.META.update(auth(request.META, response))
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.render().content .decode()
+        content = response.render().content.decode()
         self.assertNotIn(self.xform.id_string, content)
         self.assertEqual(
             content, '<?xml version="1.0" encoding="utf-8"?>\n<xforms '
@@ -427,7 +414,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         request.META.update(auth(request.META, response))
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.render().content .decode()
+        content = response.render().content.decode()
         self.assertNotIn(self.xform.id_string, content)
         self.assertEqual(
             content, '<?xml version="1.0" encoding="utf-8"?>\n<xforms '
@@ -470,7 +457,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
             form_list_xml = f.read().strip()
             data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
             content = response.render().content
-            self.assertEqual(content .decode(), form_list_xml % data)
+            self.assertEqual(content.decode(), form_list_xml % data)
             self.assertTrue(response.has_header('X-OpenRosa-Version'))
             self.assertTrue(
                 response.has_header('X-OpenRosa-Accept-Content-Length'))
@@ -510,7 +497,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         with open(path) as f:
             form_list_xml = f.read().strip()
             data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
-            content = response.render().content .decode()
+            content = response.render().content.decode()
             self.assertEqual(content, form_list_xml % data)
 
     def test_retrieve_xform_xml(self):
@@ -539,7 +526,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
         with open(path) as f:
             form_xml = f.read().strip()
             data = {'form_uuid': self.xform.uuid}
-            content = response.render().content .decode().strip()
+            content = response.render().content.decode().strip()
             self.assertEqual(content, form_xml % data)
 
     def test_retrieve_xform_manifest(self):
@@ -573,7 +560,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
             'pk': self.metadata.pk,
             'xform': self.xform.pk,
         }
-        content = response.render().content .decode().strip()
+        content = response.render().content.decode().strip()
         self.assertEqual(content, manifest_xml % data)
         self.assertTrue(response.has_header('X-OpenRosa-Version'))
         self.assertTrue(
@@ -731,7 +718,7 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         with open(path) as f:
             form_list_xml = f.read().strip()
             data = {'hash': self.xform.md5_hash, 'pk': self.xform.pk}
-            content = response.render().content .decode()
+            content = response.render().content.decode()
             self.assertEqual(content, form_list_xml % data)
 
     def test_retrieve_xform_xml(self):
@@ -759,7 +746,7 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         with open(path) as f:
             form_xml = f.read().strip()
             data = {'form_uuid': self.xform.uuid}
-            content = response.render().content .decode().strip()
+            content = response.render().content.decode().strip()
             self.assertEqual(content, form_xml % data)
 
     def test_retrieve_xform_manifest(self):
@@ -791,7 +778,7 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
             'pk': self.metadata.pk,
             'xform': self.xform.pk,
         }
-        content = response.render().content .decode().strip()
+        content = response.render().content.decode().strip()
         self.assertEqual(content, manifest_xml % data)
         self.assertTrue(response.has_header('X-OpenRosa-Version'))
         self.assertTrue(response.has_header('X-OpenRosa-Accept-Content-Length'))

@@ -252,6 +252,7 @@ class TestUserViewSet(TestAbstractViewSet):
 
         # Need to deactivate auth on XForm when using OpenRosa endpoints with username
         from kpi.models import Asset
+
         dummy_asset = Asset.objects.create(
             owner=self.user, asset_type=ASSET_TYPE_SURVEY, content={}
         )

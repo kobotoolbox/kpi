@@ -103,17 +103,16 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             # No need to filter by asset_type or archive status (and trigger additional
             # joins), since OpenRosa only handles surveys and already excludes archived
             # forms.
-            asset_uids = list(ObjectPermission.objects.values_list(
-                'asset__uid', flat=True
-            ).filter(
-                permission__codename=PERM_MANAGE_ASSET,
-                deny=False,
-                user_id=openrosa_user.pk,
-            ))
+            asset_uids = list(
+                ObjectPermission.objects.values_list('asset__uid', flat=True).filter(
+                    permission__codename=PERM_MANAGE_ASSET,
+                    deny=False,
+                    user_id=openrosa_user.pk,
+                )
+            )
 
             queryset = queryset.filter(
-                Q(user__username=username.lower())
-                | Q(kpi_asset_uid__in=asset_uids),
+                Q(user__username=username.lower()) | Q(kpi_asset_uid__in=asset_uids),
                 require_auth=False,
             )
 
