@@ -114,7 +114,8 @@ def move_attachments(transfer: 'project_ownership.Transfer'):
             # object to the database. Fingers crossed that the process doesn't get
             # interrupted between these two operations.
             if attachment.media_file.move(target_folder):
-                attachment.save(update_fields=['media_file'])
+                attachment.user_id = transfer.invite.recipient.pk
+                attachment.save(update_fields=['media_file', 'user_id'])
             else:
                 errors = True
                 logging.error(
