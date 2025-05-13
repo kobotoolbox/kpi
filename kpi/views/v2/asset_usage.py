@@ -26,7 +26,7 @@ class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     - list       → GET /api/v2/asset_usage/
 
     Documentation:
-    - docs/api/v2/asset_sage/list.md
+    - docs/api/v2/asset_usage/list.md
     """
 
     renderer_classes = (
