@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kpi.constants import ASSET_TYPE_SURVEY
 from .test_abstract_viewset import TestAbstractViewSet
 
 
@@ -250,7 +251,15 @@ class TestUserViewSet(TestAbstractViewSet):
         assert response.status_code == status.HTTP_200_OK
 
         # Need to deactivate auth on XForm when using OpenRosa endpoints with username
-        XForm.objects.filter(pk=xform_id).update(require_auth=False)
+        from kpi.models import Asset
+
+        dummy_asset = Asset.objects.create(
+            owner=self.user, asset_type=ASSET_TYPE_SURVEY, content={}
+        )
+        XForm.objects.filter(pk=xform_id).update(
+            require_auth=False,
+            kpi_asset_uid=dummy_asset.uid,
+        )
         response = self.client.get(
             reverse('manifest-url', kwargs={'pk': xform_id, 'username': 'bob'}),
             **headers,
