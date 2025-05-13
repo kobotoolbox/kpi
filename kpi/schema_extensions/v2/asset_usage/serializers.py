@@ -7,11 +7,12 @@ from .fields import (
     AssetUsageCurrentPeriodField
 )
 
-AssetSubscriptionPostRequestInlineSerializer = inline_serializer(
-    name='AssetSubscriptionPostRequestInlineSerializer',
+
+AssetUsageResponseInlineSerializer = inline_serializer(
+    name='AssetUsageResponseInlineSerializer',
     fields={
-        'asset_url': AssetUsageURLField(),
-        'asset_name': serializers.CharField(),
+        'asset': AssetUsageURLField(),
+        'asset__name': serializers.CharField(),
         'nlp_usage_current_period': AssetUsageCurrentPeriodField(),
         'nlp_usage_all_time': AssetUsageAllTimePeriodField(),
         'storage_bytes': serializers.IntegerField(),
