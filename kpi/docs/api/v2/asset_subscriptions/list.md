@@ -1,4 +1,4 @@
-### List all asset subscriptions of a user
+## List all asset subscriptions of a user
 
 This endpoint can be paginated with `offset` and `limit` parameters, e.g.:
 

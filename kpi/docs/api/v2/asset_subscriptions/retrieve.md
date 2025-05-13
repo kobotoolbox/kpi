@@ -1,1 +1,1 @@
-### Retrieve an asset subscription
+## Retrieve an asset subscription
