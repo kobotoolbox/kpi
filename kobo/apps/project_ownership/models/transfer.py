@@ -163,9 +163,7 @@ class Transfer(AbstractTimeStampedModel):
                             )
                             return
 
-                        with deployment.suspend_submissions(
-                            [self.asset.owner_id, new_owner.pk]
-                        ):
+                        with deployment.suspend_submissions():
                             # Update counters
                             deployment.transfer_counters_ownership(new_owner)
                             previous_owner_username = self.asset.owner.username
