@@ -1,4 +1,6 @@
-### Lists all access logs for all users. Only available to superusers.
+### List all access logs for all users
+
+<sup>*</sup> _Only available to superusers_
 
 Submissions will be grouped together by user by hour
 

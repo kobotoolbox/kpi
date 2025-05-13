@@ -1,1 +1,1 @@
-### Creates an export task for authenticated user
+## Create an export task for authenticated user
