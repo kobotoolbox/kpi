@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 
 from django.utils.translation import gettext as t
@@ -7,6 +6,7 @@ from rest_framework.exceptions import ParseError
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.utils.mongo_helper import MongoHelper
 
 
@@ -33,10 +33,7 @@ class DataListSerializer(serializers.Serializer):
             return super().to_representation(obj)
 
         query_params = (request and request.query_params) or {}
-        query = {
-            ParsedInstance.USERFORM_ID:
-            '%s_%s' % (obj.user.username, obj.id_string)
-        }
+        query = {ParsedInstance.USERFORM_ID: get_mongo_userform_id(obj)}
         limit = query_params.get('limit', False)
         start = query_params.get('start', False)
         count = query_params.get('count', False)
@@ -44,8 +41,9 @@ class DataListSerializer(serializers.Serializer):
         try:
             query.update(json.loads(query_params.get('query', '{}')))
         except ValueError:
-            raise ParseError(t("Invalid query: %(query)s"
-                             % {'query': query_params.get('query')}))
+            raise ParseError(
+                t('Invalid query: %(query)s' % {'query': query_params.get('query')})
+            )
 
         query_kwargs = {
             'query': json.dumps(query),
@@ -85,8 +83,7 @@ class DataInstanceSerializer(serializers.Serializer):
         request = self.context.get('request')
         query_params = (request and request.query_params) or {}
         query = {
-            ParsedInstance.USERFORM_ID:
-            '%s_%s' % (obj.xform.user.username, obj.xform.id_string),
+            ParsedInstance.USERFORM_ID: get_mongo_userform_id(obj.xform),
             '_id': obj.pk
         }
         query_kwargs = {
