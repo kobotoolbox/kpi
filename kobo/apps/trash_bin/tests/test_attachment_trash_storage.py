@@ -111,8 +111,8 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
     attachments are trashed and restored.
     """
     def setUp(self):
-        self.owner = User.objects.create(username="owner")
-        self.new_owner = User.objects.create(username="new_owner")
+        self.owner = User.objects.create(username='owner')
+        self.new_owner = User.objects.create(username='new_owner')
         self.owner_profile = UserProfile.objects.create(user=self.owner)
         self.new_owner_profile = UserProfile.objects.create(user=self.new_owner)
 
@@ -193,7 +193,9 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
         self._refresh_all()
         xform_storage_after_transfer = self.xform.attachment_storage_bytes
         owner_storage_after_transfer = self.owner_profile.attachment_storage_bytes
-        new_owner_storage_after_transfer = self.new_owner_profile.attachment_storage_bytes
+        new_owner_storage_after_transfer = (
+            self.new_owner_profile.attachment_storage_bytes
+        )
 
         self.assertGreater(xform_storage_after_transfer, 0)
         self.assertEqual(owner_storage_after_transfer, 0)
@@ -223,7 +225,9 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
 
         xform_storage_after_restore = self.xform.attachment_storage_bytes
         owner_storage_after_restore = self.owner_profile.attachment_storage_bytes
-        new_owner_storage_after_restore = self.new_owner_profile.attachment_storage_bytes
+        new_owner_storage_after_restore = (
+            self.new_owner_profile.attachment_storage_bytes
+        )
 
         # After restore: values should match post-transfer values
         self.assertEqual(xform_storage_after_restore, xform_storage_after_transfer)
