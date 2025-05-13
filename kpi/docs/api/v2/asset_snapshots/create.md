@@ -1,4 +1,4 @@
-### Create an asset snapshot
+## Create an asset snapshot
 
 When creating an asset snapshot, you must provide either:
 
