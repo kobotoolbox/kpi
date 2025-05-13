@@ -6,7 +6,7 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -57,7 +57,12 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 @extend_schema(
-    tags=['asset'],
+    tags=['Asset'],
+)
+@extend_schema_view(
+    deployment=extend_schema(
+        tags=['Deployment']
+    )
 )
 class AssetViewSet(
     AssetViewSetListMixin,
