@@ -14,9 +14,9 @@ from .fields import (
 AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
     name='AssetSnapshotCreateRequestInlineSerializer',
     fields={
-        'asset': AssetSnapshotURLField(),
-        'details': AssetSnapshotCreateDetailsField(),
-        'source': AssetSnapshotSourceField(),
+        'asset': AssetSnapshotURLField(allow_null=True, required=False),
+        'details': AssetSnapshotCreateDetailsField(allow_null=True, required=False),
+        'source': AssetSnapshotSourceField(allow_null=True, required=False),
     },
 )
 

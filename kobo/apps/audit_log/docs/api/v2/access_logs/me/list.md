@@ -1,4 +1,4 @@
-### Lists all access logs for current user
+## List all access logs for current user
 
 Results from this endpoint can be filtered by a Boolean query
 specified in the `q` parameter.

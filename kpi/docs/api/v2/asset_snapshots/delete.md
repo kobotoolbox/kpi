@@ -1,1 +1,1 @@
-### Delete an asset snapshot
+## Delete an asset snapshot
