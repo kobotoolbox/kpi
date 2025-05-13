@@ -19,6 +19,15 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
     ),
 )
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
+    """
+    Viewset for managing the current user's asset-usage
+
+    Available actions:
+    - list       → GET /api/v2/asset_usage/
+
+    Documentation:
+    - docs/api/v2/asset_sage/list.md
+    """
 
     renderer_classes = (
         renderers.BrowsableAPIRenderer,
