@@ -6,11 +6,12 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
 from kpi.utils.urls import is_request_for_html
+from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
@@ -23,7 +24,7 @@ urlpatterns = [
     ),
     path(
         'api/v2/docs/',
-        SpectacularSwaggerView.as_view(url_name='schema'),
+        ExtendedSwaggerUIView.as_view(url_name='schema'),
         name='swagger-ui',
     ),
     # https://github.com/stochastic-technologies/django-loginas
