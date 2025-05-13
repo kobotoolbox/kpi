@@ -982,10 +982,18 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     'TITLE': 'KoboToolbox API',
     'DESCRIPTION': 'Powerful and intuitive data collection tools to make an impact',
-    'VERSION': '0.0.1',
+    'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'PREPROCESSING_HOOKS': [
         'kpi.utils.spectacular_processing.pre_processing_filtering'
+    ],
+    'SWAGGER_UI_FAVICON_HREF': '/static/favicon.png',
+    'SWAGGER_UI_SETTINGS': {
+        'filter': True,
+    },
+    'AUTHENTICATION_WHITELIST': [
+        'kpi.authentication.BasicAuthentication',
+        'kpi.authentication.TokenAuthentication',
     ],
 }
 
