@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from enum import Enum
 
 from django.db import models
 
@@ -33,6 +34,7 @@ USER_QUERIES: dict[str, Callable] = {
     'test_users': get_all_test_users,
 }
 USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
+EmailType = Enum('EmailType', ['RECURRING', 'ONE_TIME'])
 
 
 class EmailStatus(models.TextChoices):
@@ -61,6 +63,12 @@ class MassEmailConfig(AbstractTimeStampedModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def type(self):
+        if self.frequency == -1:
+            return EmailType.ONE_TIME
+        return EmailType.RECURRING
 
 
 class MassEmailJob(AbstractTimeStampedModel):
