@@ -2,11 +2,10 @@ from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
 from .fields import (
-    AssetUsageURLField,
     AssetUsageAllTimePeriodField,
-    AssetUsageCurrentPeriodField
+    AssetUsageCurrentPeriodField,
+    AssetUsageURLField,
 )
-
 
 AssetUsageResponseInlineSerializer = inline_serializer(
     name='AssetUsageResponseInlineSerializer',

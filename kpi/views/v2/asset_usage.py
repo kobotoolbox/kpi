@@ -5,10 +5,13 @@ from rest_framework.mixins import ListModelMixin
 from kpi.models.asset import Asset
 from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
-from kpi.schema_extensions.v2.asset_usage.serializers import AssetUsageResponseInlineSerializer  # noqa
+from kpi.schema_extensions.v2.asset_usage.serializers import (
+    AssetUsageResponseInlineSerializer,
+)
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
+
 
 @extend_schema(
     tags=['Asset Usage'],
