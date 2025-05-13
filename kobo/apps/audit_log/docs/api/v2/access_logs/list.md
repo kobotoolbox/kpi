@@ -1,4 +1,4 @@
-### List all access logs for all users
+## List all access logs for all users
 
 <sup>*</sup> _Only available to superusers_
 
