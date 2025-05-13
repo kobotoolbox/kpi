@@ -89,6 +89,7 @@ class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
             },
         )
 
+
 class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.openrosa.fields.OpenRosaXFormField'
 
