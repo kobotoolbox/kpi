@@ -20,6 +20,7 @@ def open_api_generic_response(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
     success_key = http_code
@@ -54,6 +55,20 @@ def open_api_generic_response(
             ]
         )
 
+    if raise_not_found:
+        response[status.HTTP_404_NOT_FOUND] = OpenApiResponse(
+            response=ErrorDetailSerializer(),
+            examples=[
+                OpenApiExample(
+                    name='Not Found',
+                    value={
+                        'detail': 'Not found.'
+                    },
+                    response_only=True,
+                )
+            ]
+        )
+
     if validate_payload:
         validation_errors = kwargs.get(
             'validations_errors', {'field_name': ['Error message']}
@@ -79,6 +94,7 @@ def open_api_200_ok_response(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -99,6 +115,7 @@ def open_api_201_created_response(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -119,6 +136,7 @@ def open_api_202_accepted_response(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -138,6 +156,7 @@ def open_api_204_empty_response(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
     return open_api_generic_response(
@@ -156,6 +175,7 @@ def open_api_302_found(
     require_auth: bool = True,
     validate_payload: bool = True,
     raise_access_forbidden: bool = True,
+    raise_not_found: bool = True,
     **kwargs,
 ) -> OpenApiGenericResponse:
 
