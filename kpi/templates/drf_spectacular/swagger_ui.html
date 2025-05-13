@@ -1,0 +1,14 @@
+{% extends "drf_spectacular/swagger_ui.html" %}
+{%  load static %}
+
+{% block head %}
+  {{ block.super }}
+  <style>
+  </style>
+
+{% endblock %}
+
+{% block body %}
+    {{ block.super }}
+    <script src="{% static 'js/swagger-smart-search.js' %}"></script>
+{% endblock %}
