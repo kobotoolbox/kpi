@@ -180,7 +180,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
                 ),
               )
 
-              // reset default report groupBy if it fails and notify user
+              // reset default report groupBy if it fails
               reportStyles.default.groupDataBy = undefined
               this.setState({ reportStyles: reportStyles }, () => {
                 // Retry loading report data without groupBy
