@@ -101,9 +101,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['ip_address'], '127.0.0.1')
         self.assertEqual(metadata_dict['source'], 'source')
         self.assertEqual(metadata_dict['log_subtype'], expected_subtype)
-        # TODO: remove this parameter when all ph logs have project owners included
-        if expect_owner:
-            self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
+        self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
         self, metadata, expected_username, expected_root_uuid
@@ -930,7 +928,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
         self.assertEqual(form_replace_log.object_id, self.asset.id)
         self._check_common_metadata(
-            form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
+            form_replace_log.metadata,
+            PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            expect_owner=True,
         )
         self.assertEqual(
             form_replace_log.metadata['latest_version_uid'],
@@ -1009,7 +1009,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         self.assertEqual(log_query.count(), 1)
         log = log_query.first()
-        self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
+        self._check_common_metadata(
+            log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE, expect_owner=True
+        )
         self.assertEqual(log.object_id, self.asset.id)
 
     @data(
