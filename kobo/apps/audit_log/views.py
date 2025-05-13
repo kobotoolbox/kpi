@@ -176,7 +176,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs'],
+    tags=['Access Logs'],
     description=read_md('audit_log', 'access_logs/list'),
     responses=open_api_200_ok_response(AccessLogListInlineSerializer),
 )
@@ -195,7 +195,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs'],
+    tags=['Access Logs'],
     description=read_md('audit_log', 'access_logs/me/list'),
     responses=open_api_200_ok_response(AccessLogListInlineSerializer),
 )
@@ -685,7 +685,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs'],
+    tags=['Access Logs'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -733,7 +733,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Access-Logs'],
+    tags=['Access Logs'],
 )
 @extend_schema_view(
     list=extend_schema(
