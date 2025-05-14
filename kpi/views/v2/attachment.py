@@ -6,11 +6,11 @@ from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status, viewsets
+from rest_framework import serializers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kpi.exceptions import (
     AttachmentNotFoundException,
     FFMpegException,
@@ -19,9 +19,8 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
-from kpi.permissions import AttachmentDeletionPermission, SubmissionPermission
+from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
-from kpi.serializers.v2.attachment_bulk_delete import AttachmentBulkDeleteSerializer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 thumbnail_suffixes_pattern = 'original|' + '|'.join(
@@ -164,28 +163,3 @@ class AttachmentViewSet(
         }
         response = Response(content_type='', headers=headers)
         return response
-
-    @action(
-        detail=False,
-        methods=['delete'],
-        url_path='bulk',
-        permission_classes=[AttachmentDeletionPermission],
-    )
-    def bulk_destroy(self, request, *args, **kwargs):
-        submission_id_or_uuid = kwargs['parent_lookup_data']
-        deployment = self.asset.deployment
-
-        attachments = Attachment.objects.filter(
-            xform_id=deployment.xform_id, instance_id=submission_id_or_uuid
-        )
-
-        attachment_uids = list(attachments.values_list('uid', flat=True))
-
-        serializer = AttachmentBulkDeleteSerializer(
-            data={'attachment_uids': attachment_uids},
-            context={'asset': self.asset, 'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(request=request, asset=self.asset)
-
-        return Response(result, status=status.HTTP_200_OK)
