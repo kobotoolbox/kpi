@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
@@ -11,6 +12,8 @@ from django.db import IntegrityError
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from model_bakery import baker
+from model_bakery.recipe import seq
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
@@ -92,6 +95,17 @@ class BaseMassEmailsTestCase(BaseTestCase):
             date_modified=timezone.now() - timedelta(days=days_ago)
         )
 
+    def _enqueue_records_for_config(self, email_config, count):
+        job = MassEmailJob.objects.create(email_config=email_config)
+        users = User.objects.all()
+        for i in range(count):
+            self._create_email_record(
+                email_config=email_config,
+                user=users[i],
+                status=EmailStatus.ENQUEUED,
+                job=job,
+            )
+
 
 @ddt
 class TestMassEmailSender(BaseMassEmailsTestCase):
@@ -108,6 +122,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         self.jobs = []
         cache.clear()
 
+    def _setup_common_test_data(self):
         for i in range(0, 100):
             config = self._create_email_config(
                 name=f'Config {i}', template=self.template
@@ -136,6 +151,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=310)
     def test_daily_limits_less_than_max(self):
+        self._setup_common_test_data()
         sender = MassEmailSender()
         assert sender.total_limit == 300
         assert len(sender.limits) == 100
@@ -143,19 +159,30 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=180)
     def test_daily_limits_more_than_max(self):
+        self._setup_common_test_data()
         sender = MassEmailSender()
         assert sender.total_limit == 180
         assert sum(sender.limits.values()) == 180
         assert list(sender.limits.values())[0] == 2
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=10)
-    @patch('django.utils.timezone.now')
-    def test_send_emails_limits(self, now_mock):
-        now_mock.return_value = datetime(2025, 1, 1, 0, 0, 0, 0, pytz.UTC)
+    def test_send_emails_limits(self):
+        self._setup_common_test_data()
+        now_mock = patch(
+            'django.utils.timezone.now',
+            return_value=datetime(2025, 1, 1, 0, 0, 0, 0, pytz.UTC),
+        )
+        now_mock.start()
         sender = MassEmailSender()
         sender.send_day_emails()
+        now_mock.stop()
+
         assert len(mail.outbox) == 10
-        now_mock.return_value = datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC)
+        now_mock = patch(
+            'django.utils.timezone.now',
+            return_value=datetime(2025, 1, 2, 0, 0, 0, 0, pytz.UTC),
+        )
+        now_mock.start()
         sender = MassEmailSender()
         sender.send_day_emails()
         assert len(mail.outbox) == 20
@@ -168,6 +195,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         sender = MassEmailSender()
         assert sum([0 if lim is None else lim for lim in sender.limits.values()]) == 0
         assert sender.total_limit == 0
+        now_mock.stop()
 
     @pytest.mark.skipif(settings.STRIPE_ENABLED, reason='Test non-stripe functionality')
     def test_get_plan_name_stripe_disabled(self):
@@ -178,6 +206,7 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
 
     @override_settings(MASS_EMAIL_THROTTLE_PER_SECOND=2)
     def test_send_is_throttled(self):
+        self._setup_common_test_data()
         calls = []
         with patch(
             'kobo.apps.mass_emails.tasks.sleep',
@@ -217,14 +246,63 @@ class TestMassEmailSender(BaseMassEmailsTestCase):
         assert sender.get_cache_key_date(send_date=current_time) == expected_time
 
     def test_send_recurring_emails_exits_when_incomplete_init(self):
+        self._setup_common_test_data()
         _send_emails()
         assert len(mail.outbox) == 0
 
     @override_settings(MAX_MASS_EMAILS_PER_DAY=100)
     def test_send_recurring_emails_when_initialized(self):
+        self._setup_common_test_data()
         generate_mass_email_user_lists()
         _send_emails()
         assert len(mail.outbox) == 100
+
+    @data(
+        # max emails per day, expected limits for one-time emails 1 and 2
+        (20, 2, 8),
+        (15, 1, 4),
+        (40, 5, 20),
+        (10, 0, 0),
+    )
+    @unpack
+    def test_one_time_emails_deprioritized(
+        self, max_per_day, expected_limit_1, expected_limit_2
+    ):
+        # make sure we have at least 20 users
+        total_users = User.objects.count()
+        if total_users < 20:
+            remaining = 20 - total_users
+            baker.make(User, username=seq('User'), _quantity=remaining)
+
+        # create 1 recurring email (ie frequency > -1) with 10 enqueued records
+        recurring_config = self._create_email_config(
+            name=f'Recurring config',
+            template=self.template,
+            frequency=random.randint(0, 10),
+        )
+        self._enqueue_records_for_config(email_config=recurring_config, count=10)
+
+        # create 1 one-time email to send to 5 users
+        recurring_config_1 = self._create_email_config(
+            name=f'One-time config 5 enqueued', template=self.template, frequency=-1
+        )
+        self._enqueue_records_for_config(email_config=recurring_config_1, count=5)
+
+        # create 1 one-time email to send to 20 users
+        recurring_config_2 = self._create_email_config(
+            name=f'One-time config 20 enqueued', template=self.template, frequency=-1
+        )
+        self._enqueue_records_for_config(email_config=recurring_config_2, count=20)
+
+        with override_settings(MAX_MASS_EMAILS_PER_DAY=max_per_day):
+            sender = MassEmailSender()
+
+        # all max_per_day options are > 10,
+        # so the recurring emails should send all its emails
+        assert sender.limits[recurring_config.id] == 10
+
+        assert sender.limits.get(recurring_config_1.id, 0) == expected_limit_1
+        assert sender.limits.get(recurring_config_2.id, 0) == expected_limit_2
 
 
 @ddt

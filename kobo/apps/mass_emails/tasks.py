@@ -1,4 +1,5 @@
 from datetime import date, datetime, time, timedelta
+from enum import Enum
 from math import ceil
 from time import sleep
 from typing import Optional
@@ -14,6 +15,7 @@ from django.utils.translation import gettext
 from kobo.apps.mass_emails.models import (
     USER_QUERIES,
     EmailStatus,
+    EmailType,
     MassEmailConfig,
     MassEmailJob,
     MassEmailRecord,
@@ -128,6 +130,32 @@ class MassEmailSender:
 
         cache.set(cache_key, limit, TTL)
 
+    def get_config_limit(
+        self,
+        email_config: MassEmailConfig,
+        current_total: int,
+        total_records_by_type: dict[Enum, int],
+        limit_by_type: dict[Enum, int],
+    ) -> int:
+        """
+        Determine the number of emails to be sent for the given config
+
+        :param email_config: MassEmailConfig
+        :param current_total: Total limits already calculated (for both types)
+        :param total_records_by_type: Total enqueued records for recurring and one-time sends
+        :param limit_by_type: Send limits for recurring and one-time sends
+        """
+        email_type = email_config.type
+        total_records = total_records_by_type[email_type]
+        limit = limit_by_type[email_type]
+        if total_records_by_type[email_type] < limit_by_type[email_type]:
+            return email_config.enqueued_records_count
+        config_limit = ceil(email_config.enqueued_records_count / total_records * limit)
+
+        if current_total + config_limit > settings.MAX_MASS_EMAILS_PER_DAY:
+            config_limit = settings.MAX_MASS_EMAILS_PER_DAY - current_total
+        return config_limit
+
     def get_day_limits(self):
         MAX_EMAILS = settings.MAX_MASS_EMAILS_PER_DAY
         self.limits = {}
@@ -139,6 +167,8 @@ class MassEmailSender:
                 self.limits[email_config.id] = stored_limit
         else:
             logging.info('Setting up MassEmailConfig limits for the current day')
+            # if the total number of emails to be sent is < MAX allowed, just
+            # send all emails
             if self.total_records < MAX_EMAILS:
                 for email_config in self.configs:
                     self.cache_limit_value(
@@ -146,19 +176,62 @@ class MassEmailSender:
                     )
                 self.cache_limit_value(None, self.total_records)
             else:
+                # divide configs into daily sends and one-time sends
+                recurring_emails = [
+                    email_config
+                    for email_config in self.configs
+                    if email_config.frequency > -1
+                ]
+                total_recurring_records = sum(
+                    email_config.enqueued_records_count
+                    for email_config in recurring_emails
+                )
+                one_time_sends = [
+                    email_config
+                    for email_config in self.configs
+                    if email_config.frequency == -1
+                ]
+                total_one_time_records = sum(
+                    email_config.enqueued_records_count
+                    for email_config in one_time_sends
+                )
+                total_records_by_type = {
+                    EmailType.RECURRING: total_recurring_records,
+                    EmailType.ONE_TIME: total_one_time_records,
+                }
+                max_available_by_type = {
+                    EmailType.RECURRING: MAX_EMAILS,
+                    EmailType.ONE_TIME: max(MAX_EMAILS - total_recurring_records, 0),
+                }
+
                 day_limit = 0
-                for email_config in self.configs:
+                # recurring sends get priority. limits are allotted proportionally
+                # with the total number of recurring emails to be sent
+                for email_config in recurring_emails:
                     if day_limit >= MAX_EMAILS:
                         break
-                    config_limit = ceil(
-                        email_config.enqueued_records_count
-                        / self.total_records
-                        * MAX_EMAILS
+                    config_limit = self.get_config_limit(
+                        email_config,
+                        day_limit,
+                        total_records_by_type,
+                        max_available_by_type,
                     )
-                    if day_limit + config_limit > MAX_EMAILS:
-                        config_limit = MAX_EMAILS - day_limit
                     self.cache_limit_value(email_config, config_limit)
                     day_limit += config_limit
+                # if there is still capacity, divide the remaining number of emails
+                # allowed among the one-time sends using the same system
+                if day_limit < MAX_EMAILS:
+                    for email_config in one_time_sends:
+                        if day_limit >= MAX_EMAILS:
+                            break
+                        config_limit = self.get_config_limit(
+                            email_config,
+                            day_limit,
+                            total_records_by_type,
+                            max_available_by_type,
+                        )
+                        self.cache_limit_value(email_config, config_limit)
+                        day_limit += config_limit
                 self.cache_limit_value(None, MAX_EMAILS)
 
     def get_plan_name(self, org_user: OrganizationUser) -> str:
