@@ -1,4 +1,7 @@
-from drf_spectacular.extensions import OpenApiSerializerFieldExtension
+from drf_spectacular.extensions import (
+    OpenApiSerializerExtension,
+    OpenApiSerializerFieldExtension,
+)
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -7,6 +10,32 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from .schema import ASSET_SNAPSHOT_DETAILS_SCHEMA, ASSET_SNAPSHOT_SOURCE_SCHEMA
+from ..assets.schema import ASSET_URL_SCHEMA
+
+
+class AssetSnapshotCreateRequestInlineSerializerExtension(OpenApiSerializerExtension):
+
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.serializers.AssetSnapshotCreateRequestInlineSerializer'  # noqa
+
+    def map_serializer(self, auto_schema, direction):
+
+        return {
+            'oneOf': [
+                build_object_type(
+                    properties={
+                        'asset': ASSET_URL_SCHEMA,
+                        'details': ASSET_SNAPSHOT_DETAILS_SCHEMA,
+                    }
+                ),
+                build_object_type(
+                    properties={
+                        'source': ASSET_SNAPSHOT_SOURCE_SCHEMA,
+                        'details': ASSET_SNAPSHOT_DETAILS_SCHEMA,
+                    }
+                ),
+            ]
+        }
 
 
 class AssetSnapshotDetailsExportFieldExtension(OpenApiSerializerFieldExtension):
@@ -24,50 +53,14 @@ class AssetSnapshotDetailsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotDetailsField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'status': build_basic_type(OpenApiTypes.STR),
-                'warnings': build_array_type(
-                    schema=build_object_type(
-                        properties={
-                            'code': build_basic_type(OpenApiTypes.STR),
-                            'message': build_basic_type(OpenApiTypes.STR),
-                        }
-                    )
-                ),
-            }
-        )
+        return ASSET_SNAPSHOT_DETAILS_SCHEMA
 
 
 class AssetSnapshotSourceFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotSourceField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'schema': build_basic_type(OpenApiTypes.STR),
-                'survey': build_array_type(
-                    schema=build_object_type(
-                        properties={
-                            'name': build_basic_type(OpenApiTypes.STR),
-                            'type': build_basic_type(OpenApiTypes.STR),
-                            '$autoname': build_basic_type(OpenApiTypes.STR),
-                        }
-                    )
-                ),
-                'settings': build_object_type(
-                    properties={
-                        'form_title': build_basic_type(OpenApiTypes.STR),
-                    }
-                ),
-                'translated': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR),
-                ),
-                'translation': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.STR)
-                ),
-            }
-        )
+        return ASSET_SNAPSHOT_SOURCE_SCHEMA
 
 
 class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):

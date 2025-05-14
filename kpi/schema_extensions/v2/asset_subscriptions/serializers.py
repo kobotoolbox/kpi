@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .fields import AssetSubscriptionAssetURLField, AssetSubscriptionURLField
 
+
 AssetSubscriptionPostRequestInlineSerializer = inline_serializer(
     name='AssetSubscriptionPostRequestInlineSerializer',
     fields={
