@@ -66,7 +66,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     # description for post
     create=extend_schema(
         description=read_md('kpi', 'asset_snapshots/create.md'),
-        request=AssetSnapshotCreateRequestInlineSerializer,
+        request={'application/json': AssetSnapshotCreateRequestInlineSerializer},
         responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
         tags=['Asset Snapshots'],
     ),
