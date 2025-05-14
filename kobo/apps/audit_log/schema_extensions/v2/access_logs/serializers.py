@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.inline_serializer_class import inline_serializer_class
-
 from .fields import AccessLogMetadataField, AccessLogUserURLField
 
 # Inline serializers are created to actually give the right fields that are
@@ -11,7 +10,7 @@ ExportCreateResponse = inline_serializer_class(
     name='ExportCreateResponse',
     fields={
         'status': serializers.CharField(max_length=32),
-    }
+    },
 )
 
 # AccessLogMetadataField is in references to a JSON object. Since the schema generation

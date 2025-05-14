@@ -24,9 +24,9 @@ from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
 from .schema_extensions.v2.access_logs.serializers import (
+    AccessLogResponse,
     ExportCreateResponse,
     ExportListResponse,
-    AccessLogResponse,
 )
 from .serializers import (
     AccessLogSerializer,

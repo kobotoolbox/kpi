@@ -31,8 +31,8 @@ from kpi.schema_extensions.v2.asset_snapshots.serializers import (
 from kpi.schema_extensions.v2.openrosa.serializers import (
     OpenRosaFormListResponse,
     OpenRosaManifestResponse,
-    OpenRosaSubmissionResponse,
     OpenRosaSubmissionRequest,
+    OpenRosaSubmissionResponse,
     OpenRosaXFormResponse,
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
