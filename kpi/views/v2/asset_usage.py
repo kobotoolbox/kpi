@@ -5,46 +5,33 @@ from rest_framework.mixins import ListModelMixin
 from kpi.models.asset import Asset
 from kpi.paginators import AssetUsagePagination
 from kpi.permissions import IsAuthenticated
+from kpi.schema_extensions.v2.asset_usage.serializers import (
+    AssetUsageResponse,
+)
 from kpi.serializers.v2.service_usage import AssetUsageSerializer
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 
 
 @extend_schema(
-    tags=['asset-usage'],
+    tags=['Asset Usage'],
+    description=read_md('kpi', 'asset_usage/list.md'),
+    responses=open_api_200_ok_response(
+        AssetUsageResponse,
+        media_type='application/json',
+    ),
 )
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
     """
-    ## Asset Usage Tracker
-    Tracks the total and monthly submissions per asset, as well as NLP usage and total storage use
+    Viewset for managing the current user's asset-usage
 
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/asset_usage/
-    </pre>
+    Available actions:
+    - list       → GET /api/v2/asset_usage/
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/asset_usage/
-    >       {
-    >           "count": {integer},
-    >           "next": {url_to_next_page},
-    >           "previous": {url_to_previous_page},
-    >           "results": [
-    >               {
-    >                   "asset": {asset_url},
-    >                   "asset_name": {string},
-    >                   "nlp_usage_current_period": {
-    >                       "total_asr_seconds": {integer},
-    >                       "total_mt_characters": {integer},
-    >                   }
-    >                   "nlp_usage_all_time": {
-    >                       "total_asr_seconds": {integer},
-    >                       "total_mt_characters": {integer},
-    >                   }
-    >                   "storage_bytes": {integer},
-    >                   "submission_count_current_period": {integer},
-    >                   "submission_count_all_time": {integer},
-    >               },{...}
-    >           ]
+    Documentation:
+    - docs/api/v2/asset_usage/list.md
     """
+
     renderer_classes = (
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,

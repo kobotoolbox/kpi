@@ -311,7 +311,6 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             current_billing_period_end = current_billing_period_end.replace(
                 day=last_day_of_billing_period
             )
-
         response = self.client.get(self.detail_url)
 
         assert (
