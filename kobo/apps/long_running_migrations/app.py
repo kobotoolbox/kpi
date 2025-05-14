@@ -1,6 +1,7 @@
 from django.apps import AppConfig
-from django.core.checks import Error, register, Tags
+from django.core.checks import Error, Tags, register
 from django.db import connection
+from django.db.utils import OperationalError, ProgrammingError
 
 from .constants import MUST_COMPLETE_LONG_RUNNING_MIGRATIONS
 
@@ -11,6 +12,16 @@ class LongRunningMigrationAppConfig(AppConfig):
 
 
 def check_must_complete_long_running_migrations(app_configs, **kwargs):
+
+    try:
+        existing_tables = connection.introspection.table_names()
+    except (OperationalError, ProgrammingError):
+        # DB does not exist yet
+        return []
+
+    if 'long_running_migrations_longrunningmigration' not in existing_tables:
+        # Migrations have not run yet
+        return []
 
     placeholders = ', '.join(['%s'] * len(MUST_COMPLETE_LONG_RUNNING_MIGRATIONS))
     sql = f"""
