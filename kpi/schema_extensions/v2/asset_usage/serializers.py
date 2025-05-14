@@ -7,8 +7,8 @@ from .fields import (
     AssetUsageURLField,
 )
 
-AssetUsageResponseInlineSerializer = inline_serializer(
-    name='AssetUsageResponseInlineSerializer',
+AssetUsageResponse = inline_serializer(
+    name='AssetUsageResponse',
     fields={
         'asset': AssetUsageURLField(),
         'asset__name': serializers.CharField(),

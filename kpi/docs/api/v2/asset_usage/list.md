@@ -1,1 +1,1 @@
-## List all asset usage of a user
+## Get user's asset usage
