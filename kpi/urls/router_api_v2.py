@@ -24,7 +24,7 @@ from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
-from kpi.views.v2.attachment_bulk_delete import AttachmentBulkDeleteViewSet
+from kpi.views.v2.attachment_delete import AttachmentDeleteViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
@@ -126,7 +126,7 @@ asset_routes.register(
 
 asset_routes.register(
     r'attachments',
-    AttachmentBulkDeleteViewSet,
+    AttachmentDeleteViewSet,
     basename='asset-attachments',
     parents_query_lookups=['asset'],
 )
