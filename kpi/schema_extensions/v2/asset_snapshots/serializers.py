@@ -1,5 +1,6 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
+
+from kpi.utils.schema_extensions.inline_serializer_class import inline_serializer_class
 
 from .fields import (
     AssetSnapshotCreateDetailsField,
@@ -11,7 +12,7 @@ from .fields import (
     AssetSnapshotXMLURLField,
 )
 
-AssetSnapshotCreateRequest = inline_serializer(
+AssetSnapshotCreateRequest = inline_serializer_class(
     name='AssetSnapshotCreateRequest',
     fields={
         'asset': AssetSnapshotURLField(allow_null=True, required=False),
@@ -20,7 +21,7 @@ AssetSnapshotCreateRequest = inline_serializer(
     },
 )
 
-AssetSnapshotResponse = inline_serializer(
+AssetSnapshotResponse = inline_serializer_class(
     name='AssetSnapshotResponse',
     fields={
         'url': AssetSnapshotURLField(),

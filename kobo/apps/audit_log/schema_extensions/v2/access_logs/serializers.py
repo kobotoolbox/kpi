@@ -1,22 +1,23 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
+
+from kpi.utils.schema_extensions.inline_serializer_class import inline_serializer_class
 
 from .fields import AccessLogMetadataField, AccessLogUserURLField
 
 # Inline serializers are created to actually give the right fields that are
 # received and/or given in a payload when the schema generates the wrong
 # attributes.
-ExportCreateResponse = inline_serializer(
+ExportCreateResponse = inline_serializer_class(
     name='ExportCreateResponse',
     fields={
         'status': serializers.CharField(max_length=32),
-    },
+    }
 )
 
 # AccessLogMetadataField is in references to a JSON object. Since the schema generation
 # has a problem with generating JSON object (instead putting strings), we need to use
 # an external class that will be called by a schema util
-AccessLogResponse = inline_serializer(
+AccessLogResponse = inline_serializer_class(
     name='AccessLogResponse',
     fields={
         'user': AccessLogUserURLField(),
@@ -29,7 +30,7 @@ AccessLogResponse = inline_serializer(
 )
 
 
-ExportListResponse = inline_serializer(
+ExportListResponse = inline_serializer_class(
     name='ExportListResponse',
     fields={
         'uid': serializers.CharField(max_length=24),

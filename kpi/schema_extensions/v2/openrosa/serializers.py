@@ -1,5 +1,6 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
+
+from kpi.utils.schema_extensions.inline_serializer_class import inline_serializer_class
 
 from .fields import (
     OpenRosaFileRequestField,
@@ -9,7 +10,7 @@ from .fields import (
     OpenRosaXFormField,
 )
 
-OpenRosaFormListResponse = inline_serializer(
+OpenRosaFormListResponse = inline_serializer_class(
     name='OpenRosaFormListResponse',
     fields={
         'xform': OpenRosaXFormField(),
@@ -17,7 +18,7 @@ OpenRosaFormListResponse = inline_serializer(
 )
 
 
-OpenRosaManifestResponse = inline_serializer(
+OpenRosaManifestResponse = inline_serializer_class(
     name='OpenRosaManifestResponse',
     fields={
         'manifest': OpenRosaManifestURLField(),
@@ -25,7 +26,7 @@ OpenRosaManifestResponse = inline_serializer(
 )
 
 
-OpenRosaSubmissionResponse = inline_serializer(
+OpenRosaSubmissionResponse = inline_serializer_class(
     name='OpenRosaSubmissionResponse',
     fields={
         'question': serializers.CharField(),
@@ -35,7 +36,7 @@ OpenRosaSubmissionResponse = inline_serializer(
 )
 
 
-OpenRosaSubmissionRequest = inline_serializer(
+OpenRosaSubmissionRequest = inline_serializer_class(
     name='OpenRosaSubmissionRequest',
     fields={
         'xml_submission_file': serializers.FileField(),
@@ -43,7 +44,7 @@ OpenRosaSubmissionRequest = inline_serializer(
 )
 
 
-OpenRosaXFormResponse = inline_serializer(
+OpenRosaXFormResponse = inline_serializer_class(
     name='OpenRosaXFormResponse',
     fields={
         'html': OpenRosaFileRequestField(),
