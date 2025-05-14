@@ -20,7 +20,7 @@ function removeAttachment(assetUid: string, attachmentUid: string) {
  * Note: As a result, deleted attachment file(s) will be removed, and the attachment object (`SubmissionAttachment`)
  * will be marked with `is_deleted` flag.
  */
-function removeBulkAttachments(assetUid: string, submissionRootUuids: number[]) {
+function removeBulkAttachments(assetUid: string, submissionRootUuids: string[]) {
   return fetchDelete(endpoints.ATTACHMENT_BULK_URL.replace(':asset_uid', assetUid), {
     submission_root_uuids: submissionRootUuids,
   })
@@ -49,7 +49,7 @@ export function useRemoveAttachment(assetUid: string) {
 export function useRemoveBulkAttachments(assetUid: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (submissionRootUuids: number[]) => removeBulkAttachments(assetUid, submissionRootUuids),
+    mutationFn: async (submissionRootUuids: string[]) => removeBulkAttachments(assetUid, submissionRootUuids),
     onSettled: () => {
       // TODO: same as in `useRemoveAttachment` above.
       queryClient.invalidateQueries({ queryKey: [] })

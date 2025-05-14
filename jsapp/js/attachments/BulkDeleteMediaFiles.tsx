@@ -36,11 +36,11 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
   )
 
   const handleConfirmDelete = async () => {
-    const selectedIds = props.selectedSubmissions.map((submission) => submission._id)
+    const selectedRootUuids = props.selectedSubmissions.map((submission) => submission._uuid)
     setIsDeletePending(true)
 
     try {
-      await removeBulkAttachments.mutateAsync(selectedIds)
+      await removeBulkAttachments.mutateAsync(selectedRootUuids)
       handleCloseModal()
       notify(
         t('Media files from ##number_of_selected_submissions## submission(s) have been deleted').replace(
@@ -88,14 +88,14 @@ export default function BulkDeleteMediaFiles(props: BulkDeleteMediaFilesProps) {
                   {getMediaCount(filteredSubmissions)}
                 </Text>
               }
-              onClick={() => setWarningAcknowledged(!warningAcknowledged)}
+              onChange={(evt: React.ChangeEvent<HTMLInputElement>) => setWarningAcknowledged(evt.currentTarget.checked)}
               checked={warningAcknowledged}
             />
             <Alert iconName='warning' type='error'>
               {t('Careful - it is not possible to recover deleted media files')}
             </Alert>
             <Group justify='flex-end'>
-              <Button variant='light' size='lg' onClick={close} disabled={isDeletePending}>
+              <Button variant='light' size='lg' onClick={handleCloseModal} disabled={isDeletePending}>
                 {t('Cancel')}
               </Button>
 
