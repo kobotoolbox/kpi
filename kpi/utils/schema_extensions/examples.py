@@ -1,13 +1,5 @@
-from importlib import import_module
-from typing import Union
 
-
-def generate_example_from_schema(schema: Union[dict, str]) -> dict:
-
-    if isinstance(schema, str):
-        module_path, var_name = schema.rsplit('.', 1)
-        module = import_module(module_path)
-        schema = getattr(module, var_name)
+def generate_example_from_schema(schema: dict) -> dict:
 
     if 'example' in schema:
         return schema['example']

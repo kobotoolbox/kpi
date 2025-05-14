@@ -14,9 +14,9 @@ from .schema import ASSET_SNAPSHOT_DETAILS_SCHEMA, ASSET_SNAPSHOT_SOURCE_SCHEMA
 from ..assets.schema import ASSET_URL_SCHEMA
 
 
-class AssetSnapshotCreateRequestInlineSerializerExtension(OpenApiSerializerExtension):
+class AssetSnapshotCreateRequestSerializerExtension(OpenApiSerializerExtension):
 
-    target_class = 'kpi.schema_extensions.v2.asset_snapshots.serializers.AssetSnapshotCreateRequestInlineSerializer'  # noqa
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.serializers.AssetSnapshotCreateRequest'  # noqa
 
     def map_serializer(self, auto_schema, direction):
 

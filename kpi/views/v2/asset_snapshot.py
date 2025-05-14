@@ -89,7 +89,7 @@ class AssetSnapshotSchema(AutoSchema):
             ] = {
                 'UsingAsset': {
                     'value': {
-                        'asset': ASSET_URL_SCHEMA,
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
                         'details': generate_example_from_schema(
                             ASSET_SNAPSHOT_DETAILS_SCHEMA
                         ),
@@ -222,7 +222,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
     - docs/api/v2/openrosa/manifest.md
 
-    - submission       → GET /api/v2/asset_snapshots/{uid}/submission
+    - submission     → GET /api/v2/asset_snapshots/{uid}/submission
     - docs/api/v2/openrosa/submission.md
     """
     schema = AssetSnapshotSchema()
