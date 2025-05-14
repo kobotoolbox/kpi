@@ -83,14 +83,14 @@ class AssetSnapshotURLFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class AssetSnapshotURLUserFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLUserField'  # noqa
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotUserURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('api_v2:user-kpi-detail', username='bob')
 
 
 class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLPreviewField'  # noqa
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotPreviewURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
@@ -100,7 +100,7 @@ class AssetSnapshotURLPreviewFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class AssetSnapshotURLXMLFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotURLXMLField'  # noqa
+    target_class = 'kpi.schema_extensions.v2.asset_snapshots.fields.AssetSnapshotXMLURLField'  # noqa
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(

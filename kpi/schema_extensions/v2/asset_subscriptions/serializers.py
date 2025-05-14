@@ -1,18 +1,18 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import AssetSubscriptionAssetURLField, AssetSubscriptionURLField
 
-AssetSubscriptionPostRequestInlineSerializer = inline_serializer(
-    name='AssetSubscriptionPostRequestInlineSerializer',
+AssetSubscriptionRequest = inline_serializer_class(
+    name='AssetSubscriptionRequest',
     fields={
         'asset': AssetSubscriptionAssetURLField(),
     },
 )
 
 
-AssetSubscriptionPostResponseInlineSerializer = inline_serializer(
-    name='AssetSubscriptionPostResponseInlineSerializer',
+AssetSubscriptionResponse = inline_serializer_class(
+    name='AssetSubscriptionResponse',
     fields={
         'url': AssetSubscriptionURLField(),
         'asset': AssetSubscriptionAssetURLField(),

@@ -5,8 +5,8 @@ from rest_framework.renderers import JSONRenderer
 
 from kpi.models import UserAssetSubscription
 from kpi.schema_extensions.v2.asset_subscriptions.serializers import (
-    AssetSubscriptionPostRequestInlineSerializer,
-    AssetSubscriptionPostResponseInlineSerializer,
+    AssetSubscriptionRequest,
+    AssetSubscriptionResponse,
 )
 from kpi.serializers.v2.user_asset_subscription import UserAssetSubscriptionSerializer
 from kpi.utils.object_permission import get_database_user
@@ -24,9 +24,9 @@ from kpi.utils.schema_extensions.response import (
 @extend_schema_view(
     create=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/create.md'),
-        request={'application/json': AssetSubscriptionPostRequestInlineSerializer},
+        request={'application/json': AssetSubscriptionRequest},
         responses=open_api_201_created_response(
-            AssetSubscriptionPostResponseInlineSerializer,
+            AssetSubscriptionResponse,
             media_type='application/json',
         ),
     ),
@@ -37,14 +37,14 @@ from kpi.utils.schema_extensions.response import (
     list=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/list.md'),
         responses=open_api_200_ok_response(
-            AssetSubscriptionPostResponseInlineSerializer,
+            AssetSubscriptionResponse,
             media_type='application/json',
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/retrieve.md'),
         responses=open_api_200_ok_response(
-            AssetSubscriptionPostResponseInlineSerializer, media_type='application/json'
+            AssetSubscriptionResponse, media_type='application/json'
         ),
     ),
     update=extend_schema(
