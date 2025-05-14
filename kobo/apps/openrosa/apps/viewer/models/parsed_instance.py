@@ -79,6 +79,14 @@ class ParsedInstance(models.Model):
     lat = models.FloatField(null=True)
     lng = models.FloatField(null=True)
 
+    @property
+    def mongo_dict_override(self):
+        return None
+
+    @mongo_dict_override.setter
+    def mongo_dict_override(self, mongo_dict_override):
+        self._mongo_dict_override = mongo_dict_override
+
     class Meta:
         app_label = 'viewer'
 
@@ -345,6 +353,8 @@ class ParsedInstance(models.Model):
         return MongoHelper.delete_many(query)
 
     def to_dict(self):
+        if hasattr(self, '_mongo_dict_override'):
+            return self._mongo_dict_override
         if not hasattr(self, '_dict_cache'):
             self._dict_cache = self.instance.get_dict()
         return self._dict_cache

@@ -193,7 +193,7 @@ class Command(BaseCommand):
             subquery = UserProfile.objects.values_list('user_id', flat=True).filter(
                 metadata__attachments_counting_status='complete'
             )
-            users = users.exclude(pk__in=subquery)
+            users = users.using(settings.OPENROSA_DB_ALIAS).exclude(pk__in=subquery)
 
         if self._sync:
             subquery = list(profile_queryset.values_list('user_id', flat=True))

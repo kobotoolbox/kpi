@@ -247,7 +247,10 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         )
 
     def get_search_results(self, request, queryset, search_term):
-        if request.path != '/admin/auth/user/':
+
+        user_change_list_url = reverse('admin:kobo_auth_user_changelist')
+
+        if request.path != user_change_list_url:
             queryset = self._filter_queryset(request, queryset)
 
             # If search comes from autocomplete field, use parent class method
