@@ -55,26 +55,26 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
         description=read_md('kpi', 'asset_snapshots/list.md'),
         request=None,
         responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_snapshots/retrieve.md'),
         responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     # description for post
     create=extend_schema(
         description=read_md('kpi', 'asset_snapshots/create.md'),
         request=AssetSnapshotCreateRequestInlineSerializer,
         responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
         responses=open_api_204_empty_response(),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     update=extend_schema(
         exclude=True,
@@ -110,7 +110,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
         responses=open_api_302_found(media_type='text/html'),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     xform=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xform.md'),
@@ -118,12 +118,12 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
             OpenRosaXFormActionInlineSerializer,
             media_type='application/xml',
         ),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
         responses=open_api_200_ok_response(OpenRosaXFormActionInlineSerializer),
-        tags=['Asset_Snapshots'],
+        tags=['Asset Snapshots'],
     ),
 )
 class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet):
