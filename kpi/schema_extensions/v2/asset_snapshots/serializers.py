@@ -11,8 +11,8 @@ from .fields import (
     AssetSnapshotXMLURLField,
 )
 
-AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
-    name='AssetSnapshotCreateRequestInlineSerializer',
+AssetSnapshotCreateRequest = inline_serializer(
+    name='AssetSnapshotCreateRequest',
     fields={
         'asset': AssetSnapshotURLField(allow_null=True, required=False),
         'details': AssetSnapshotCreateDetailsField(allow_null=True, required=False),
@@ -20,8 +20,8 @@ AssetSnapshotCreateRequestInlineSerializer = inline_serializer(
     },
 )
 
-AssetSnapshotResultInlineSerializer = inline_serializer(
-    name='AssetSnapshotResultInlineSerializer',
+AssetSnapshotResponse = inline_serializer(
+    name='AssetSnapshotResponse',
     fields={
         'url': AssetSnapshotURLField(),
         'uid': serializers.CharField(),

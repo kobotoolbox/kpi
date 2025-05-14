@@ -25,15 +25,15 @@ from kpi.renderers import (
     XMLRenderer,
 )
 from kpi.schema_extensions.v2.asset_snapshots.serializers import (
-    AssetSnapshotCreateRequestInlineSerializer,
-    AssetSnapshotResultInlineSerializer,
+    AssetSnapshotCreateRequest,
+    AssetSnapshotResponse,
 )
 from kpi.schema_extensions.v2.openrosa.serializers import (
-    OpenRosaFormListInlineSerializer,
-    OpenRosaManifestInlineSerializer,
-    OpenRosaSubmissionInlineSerializer,
-    OpenRosaSubmissionRequestInlineSerializer,
-    OpenRosaXFormActionInlineSerializer,
+    OpenRosaFormListResponse,
+    OpenRosaManifestResponse,
+    OpenRosaSubmissionResponse,
+    OpenRosaSubmissionRequest,
+    OpenRosaXFormResponse,
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
@@ -54,20 +54,20 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     list=extend_schema(
         description=read_md('kpi', 'asset_snapshots/list.md'),
         request=None,
-        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        responses=open_api_200_ok_response(AssetSnapshotResponse),
         tags=['Asset_Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_snapshots/retrieve.md'),
-        responses=open_api_200_ok_response(AssetSnapshotResultInlineSerializer),
+        responses=open_api_200_ok_response(AssetSnapshotResponse),
         tags=['Asset_Snapshots'],
     ),
     # description for post
     create=extend_schema(
         description=read_md('kpi', 'asset_snapshots/create.md'),
-        request=AssetSnapshotCreateRequestInlineSerializer,
-        responses=open_api_201_created_response(AssetSnapshotResultInlineSerializer),
+        request=AssetSnapshotCreateRequest,
+        responses=open_api_201_created_response(AssetSnapshotResponse),
         tags=['Asset_Snapshots'],
     ),
     # description for delete
@@ -85,7 +85,7 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     form_list=extend_schema(
         description=read_md('kpi', 'openrosa/form_list.md'),
         responses=open_api_200_ok_response(
-            OpenRosaFormListInlineSerializer,
+            OpenRosaFormListResponse,
             media_type='application/xml',
         ),
         tags=['OpenRosa'],
@@ -93,16 +93,16 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     manifest=extend_schema(
         description=read_md('kpi', 'openrosa/manifest.md'),
         responses=open_api_200_ok_response(
-            OpenRosaManifestInlineSerializer,
+            OpenRosaManifestResponse,
             media_type='application/xml',
         ),
         tags=['OpenRosa'],
     ),
     submission=extend_schema(
         description=read_md('kpi', 'openrosa/submission.md'),
-        request={'multipart/form-data': OpenRosaSubmissionRequestInlineSerializer},
+        request={'multipart/form-data': OpenRosaSubmissionRequest},
         responses=open_api_201_created_response(
-            OpenRosaSubmissionInlineSerializer,
+            OpenRosaSubmissionResponse,
             media_type='text/xml',
         ),
         tags=['OpenRosa'],
@@ -115,14 +115,14 @@ from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
     xform=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xform.md'),
         responses=open_api_200_ok_response(
-            OpenRosaXFormActionInlineSerializer,
+            OpenRosaXFormResponse,
             media_type='application/xml',
         ),
         tags=['Asset_Snapshots'],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
-        responses=open_api_200_ok_response(OpenRosaXFormActionInlineSerializer),
+        responses=open_api_200_ok_response(OpenRosaXFormResponse),
         tags=['Asset_Snapshots'],
     ),
 )

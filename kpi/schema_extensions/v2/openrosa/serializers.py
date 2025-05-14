@@ -9,42 +9,42 @@ from .fields import (
     OpenRosaXFormField,
 )
 
-OpenRosaFormListInlineSerializer = inline_serializer(
-    name='OpenRosaFormListInlineSerializer',
+OpenRosaFormListResponse = inline_serializer(
+    name='OpenRosaFormListResponse',
     fields={
         'xform': OpenRosaXFormField(),
     },
 )
 
 
-OpenRosaManifestInlineSerializer = inline_serializer(
-    name='OpenRosaManifestInlineSerializer',
+OpenRosaManifestResponse = inline_serializer(
+    name='OpenRosaManifestResponse',
     fields={
         'manifest': OpenRosaManifestURLField(),
     },
 )
 
 
-OpenRosaSubmissionInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionInlineSerializer',
+OpenRosaSubmissionResponse = inline_serializer(
+    name='OpenRosaSubmissionResponse',
     fields={
-        'question': serializers.URLField(),
+        'question': serializers.CharField(),
         'meta': OpenRosaMetaField(),
         'formhub': OpenRosaFormHubField(),
     },
 )
 
 
-OpenRosaSubmissionRequestInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionRequestInlineSerializer',
+OpenRosaSubmissionRequest = inline_serializer(
+    name='OpenRosaSubmissionRequest',
     fields={
         'xml_submission_file': serializers.FileField(),
     },
 )
 
 
-OpenRosaXFormActionInlineSerializer = inline_serializer(
-    name='OpenRosaXFormActionInlineSerializer',
+OpenRosaXFormResponse = inline_serializer(
+    name='OpenRosaXFormResponse',
     fields={
         'html': OpenRosaFileRequestField(),
     },

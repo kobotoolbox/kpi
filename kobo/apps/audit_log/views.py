@@ -24,9 +24,9 @@ from .filters import AccessLogPermissionsFilter
 from .models import AccessLog, AuditLog, ProjectHistoryLog
 from .permissions import SuperUserPermission, ViewProjectHistoryLogsPermission
 from .schema_extensions.v2.access_logs.serializers import (
-    AccessLogExportCreateInlineSerializer,
-    AccessLogExportListInlineSerializer,
-    AccessLogListInlineSerializer,
+    ExportCreateResponse,
+    ExportListResponse,
+    AccessLogResponse,
 )
 from .serializers import (
     AccessLogSerializer,
@@ -178,7 +178,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 @extend_schema(
     tags=['Access-Logs'],
     description=read_md('audit_log', 'access_logs/list'),
-    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
+    responses=open_api_200_ok_response(AccessLogResponse),
 )
 class AllAccessLogViewSet(AuditLogViewSet):
     """
@@ -197,7 +197,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
 @extend_schema(
     tags=['Access-Logs'],
     description=read_md('audit_log', 'access_logs/me/list'),
-    responses=open_api_200_ok_response(AccessLogListInlineSerializer),
+    responses=open_api_200_ok_response(AccessLogResponse),
 )
 class AccessLogViewSet(AuditLogViewSet):
     """
@@ -691,12 +691,12 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/list'),
         request=None,
-        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
+        responses=open_api_200_ok_response(ExportListResponse),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/create'),
         request=None,
-        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
+        responses=open_api_202_accepted_response(ExportCreateResponse),
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -739,12 +739,12 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/list'),
         request=None,
-        responses=open_api_200_ok_response(AccessLogExportListInlineSerializer),
+        responses=open_api_200_ok_response(ExportListResponse),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
-        responses=open_api_202_accepted_response(AccessLogExportCreateInlineSerializer),
+        responses=open_api_202_accepted_response(ExportCreateResponse),
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):
