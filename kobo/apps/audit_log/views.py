@@ -178,7 +178,12 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 @extend_schema(
     tags=['Access Logs'],
     description=read_md('audit_log', 'access_logs/list'),
-    responses=open_api_200_ok_response(AccessLogResponse),
+    responses=open_api_200_ok_response(
+        AccessLogResponse,
+        require_auth=False,
+        validate_payload=False,
+        raise_not_found=False,
+    ),
 )
 class AllAccessLogViewSet(AuditLogViewSet):
     """
@@ -197,7 +202,12 @@ class AllAccessLogViewSet(AuditLogViewSet):
 @extend_schema(
     tags=['Access Logs'],
     description=read_md('audit_log', 'access_logs/me/list'),
-    responses=open_api_200_ok_response(AccessLogResponse),
+    responses=open_api_200_ok_response(
+        AccessLogResponse,
+        validate_payload=False,
+        raise_access_forbidden=False,
+        raise_not_found=False,
+    ),
 )
 class AccessLogViewSet(AuditLogViewSet):
     """
@@ -691,12 +701,22 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/list'),
         request=None,
-        responses=open_api_200_ok_response(ExportListResponse),
+        responses=open_api_200_ok_response(
+            ExportListResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/me/exports/create'),
         request=None,
-        responses=open_api_202_accepted_response(ExportCreateResponse),
+        responses=open_api_202_accepted_response(
+            ExportCreateResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
     ),
 )
 class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
@@ -739,12 +759,21 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
     list=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/list'),
         request=None,
-        responses=open_api_200_ok_response(ExportListResponse),
+        responses=open_api_200_ok_response(
+            ExportListResponse,
+            require_auth=False,
+            validate_payload=False,
+            raise_not_found=False,
+        ),
     ),
     create=extend_schema(
         description=read_md('audit_log', 'access_logs/exports/create'),
         request=None,
-        responses=open_api_202_accepted_response(ExportCreateResponse),
+        responses=open_api_202_accepted_response(
+            ExportCreateResponse,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
     ),
 )
 class AllAccessLogsExportViewSet(BaseAccessLogsExportViewSet):

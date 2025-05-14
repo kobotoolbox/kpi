@@ -116,26 +116,42 @@ class AssetSnapshotSchema(AutoSchema):
     list=extend_schema(
         description=read_md('kpi', 'asset_snapshots/list.md'),
         request=None,
-        responses=open_api_200_ok_response(AssetSnapshotResponse),
+        responses=open_api_200_ok_response(
+            AssetSnapshotResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
         tags=['Asset Snapshots'],
     ),
     # description for get item
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_snapshots/retrieve.md'),
-        responses=open_api_200_ok_response(AssetSnapshotResponse),
+        responses=open_api_200_ok_response(
+            AssetSnapshotResponse,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
         tags=['Asset Snapshots'],
     ),
     # description for post
     create=extend_schema(
         description=read_md('kpi', 'asset_snapshots/create.md'),
         request={'application/json': AssetSnapshotCreateRequest},
-        responses=open_api_201_created_response(AssetSnapshotResponse),
+        responses=open_api_201_created_response(
+            AssetSnapshotResponse,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+        ),
         tags=['Asset Snapshots'],
     ),
     # description for delete
     destroy=extend_schema(
         description=read_md('kpi', 'asset_snapshots/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
         tags=['Asset Snapshots'],
     ),
     update=extend_schema(
@@ -149,6 +165,9 @@ class AssetSnapshotSchema(AutoSchema):
         responses=open_api_200_ok_response(
             OpenRosaFormListResponse,
             media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
         ),
         tags=['OpenRosa'],
     ),
@@ -157,6 +176,9 @@ class AssetSnapshotSchema(AutoSchema):
         responses=open_api_200_ok_response(
             OpenRosaManifestResponse,
             media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
         ),
         tags=['OpenRosa'],
     ),
@@ -166,12 +188,20 @@ class AssetSnapshotSchema(AutoSchema):
         responses=open_api_201_created_response(
             OpenRosaSubmissionResponse,
             media_type='text/xml',
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
         ),
         tags=['OpenRosa'],
     ),
     preview=extend_schema(
         description=read_md('kpi', 'asset_snapshots/preview.md'),
-        responses=open_api_302_found(media_type='text/html'),
+        responses=open_api_302_found(
+            media_type='text/html',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
         tags=['Asset Snapshots'],
     ),
     xform=extend_schema(
@@ -179,12 +209,20 @@ class AssetSnapshotSchema(AutoSchema):
         responses=open_api_200_ok_response(
             OpenRosaXFormResponse,
             media_type='application/xml',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
         ),
         tags=['Asset Snapshots'],
     ),
     xml_with_disclaimer=extend_schema(
         description=read_md('kpi', 'asset_snapshots/xml_with_disclaimer.md'),
-        responses=open_api_200_ok_response(OpenRosaXFormResponse),
+        responses=open_api_200_ok_response(
+            OpenRosaXFormResponse,
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
         tags=['Asset Snapshots'],
     ),
 )
