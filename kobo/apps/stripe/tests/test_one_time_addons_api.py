@@ -5,6 +5,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.tests.utils import _create_one_time_addon_product, _create_payment
@@ -33,7 +34,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         if not metadata:
             metadata = {
                 'product_type': 'addon_onetime',
-                'submission_limit': 2000,
+                f'{UsageType.SUBMISSION}_limit': 2000,
                 'valid_tags': 'all',
             }
         product = _create_one_time_addon_product(limit_metadata=metadata)
@@ -46,7 +47,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             price=self.price,
             product=self.product,
             payment_status=payment_status,
-            refunded=refunded
+            refunded=refunded,
         )
         self.charge = charge
 
@@ -74,7 +75,10 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
 
     def test_no_addons_for_invalid_product_metadata(self):
         self._create_product(
-            metadata={'product_type': 'subscription', 'submission_limit': 2000}
+            metadata={
+                'product_type': 'subscription',
+                f'{UsageType.SUBMISSION}_limit': 2000,
+            }
         )
         self._create_payment()
         response = self.client.get(self.url)
@@ -144,9 +148,7 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         assert total_limit == limit * 3
         assert remaining == limit * 3
 
-        PlanAddOn.deduct_add_ons_for_organization(
-            self.organization, usage_type, limit
-        )
+        PlanAddOn.deduct_add_ons_for_organization(self.organization, usage_type, limit)
         total_limit, remaining = PlanAddOn.get_organization_totals(
             self.organization, usage_type
         )
@@ -156,9 +158,9 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
     def test_get_organizations_totals(self):
         addon = _create_one_time_addon_product(
             limit_metadata={
-                'mt_characters_limit': 2000,
+                f'{UsageType.MT_CHARACTERS}_limit': 2000,
                 'valid_tags': 'all',
-                'asr_seconds_limit': 3000,
+                f'{UsageType.ASR_SECONDS}_limit': 3000,
             }
         )
         anotheruser = User.objects.get(username='anotheruser')
@@ -169,7 +171,19 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
         _create_payment(self.customer, product=addon, price=addon.default_price)
         _create_payment(self.customer, product=addon, price=addon.default_price)
         results = PlanAddOn.get_organizations_totals()
-        assert results[self.organization.id]['total_asr_seconds_limit'] == 6000
-        assert results[self.organization.id]['total_mt_characters_limit'] == 4000
-        assert results[second_organization.id]['total_asr_seconds_limit'] == 3000
-        assert results[second_organization.id]['total_mt_characters_limit'] == 2000
+        assert (
+            results[self.organization.id][f'total_{UsageType.ASR_SECONDS}_limit']
+            == 6000
+        )
+        assert (
+            results[self.organization.id][f'total_{UsageType.MT_CHARACTERS}_limit']
+            == 4000
+        )
+        assert (
+            results[second_organization.id][f'total_{UsageType.ASR_SECONDS}_limit']
+            == 3000
+        )
+        assert (
+            results[second_organization.id][f'total_{UsageType.MT_CHARACTERS}_limit']
+            == 2000
+        )

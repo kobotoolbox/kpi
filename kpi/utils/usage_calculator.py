@@ -77,11 +77,11 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
         .filter(filters)
         .annotate(
             asr_seconds_current_period=Coalesce(
-                Sum('total_asr_seconds'),
+                Sum(f'total_{UsageType.ASR_SECONDS}'),
                 0,
             ),
             mt_characters_current_period=Coalesce(
-                Sum('total_mt_characters'),
+                Sum(f'total_{UsageType.MT_CHARACTERS}'),
                 0,
             ),
         )
@@ -89,8 +89,8 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
     results = {}
     for row in nlp_tracking:
         results[row['user_id']] = {
-            UsageType.ASR_SECONDS: row['asr_seconds_current_period'],
-            UsageType.MT_CHARACTERS: row['mt_characters_current_period'],
+            UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
+            UsageType.MT_CHARACTERS: row[f'{UsageType.MT_CHARACTERS}_current_period'],
         }
     return results
 
@@ -160,20 +160,30 @@ class ServiceUsageCalculator(CachedClass):
 
         nlp_tracking = (
             NLPUsageCounter.objects.only(
-                'date', 'total_asr_seconds', 'total_mt_characters'
+                'date',
+                f'total_{UsageType.ASR_SECONDS}',
+                f'total_{UsageType.MT_CHARACTERS}',
             )
             .filter(user_id=self._user_id)
             .aggregate(
                 asr_seconds_current_period=Coalesce(
-                    Sum('total_asr_seconds', filter=self.current_period_filter),
+                    Sum(
+                        f'total_{UsageType.ASR_SECONDS}',
+                        filter=self.current_period_filter,
+                    ),
                     0,
                 ),
                 mt_characters_current_period=Coalesce(
-                    Sum('total_mt_characters', filter=self.current_period_filter),
+                    Sum(
+                        f'total_{UsageType.MT_CHARACTERS}',
+                        filter=self.current_period_filter,
+                    ),
                     0,
                 ),
-                asr_seconds_all_time=Coalesce(Sum('total_asr_seconds'), 0),
-                mt_characters_all_time=Coalesce(Sum('total_mt_characters'), 0),
+                asr_seconds_all_time=Coalesce(Sum(f'total_{UsageType.ASR_SECONDS}'), 0),
+                mt_characters_all_time=Coalesce(
+                    Sum(f'total_{UsageType.MT_CHARACTERS}'), 0
+                ),
             )
         )
 

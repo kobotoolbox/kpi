@@ -310,9 +310,9 @@ def get_current_billing_period_dates_for_active_plans(
 
 def get_default_add_on_limits():
     return {
-        'submission_limit': 0,
-        'asr_seconds_limit': 0,
-        'mt_characters_limit': 0,
+        f'{UsageType.SUBMISSION}_limit': 0,
+        f'{UsageType.ASR_SECONDS}_limit': 0,
+        f'{UsageType.MT_CHARACTERS}_limit': 0,
     }
 
 
