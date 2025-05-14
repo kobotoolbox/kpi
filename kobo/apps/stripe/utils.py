@@ -384,7 +384,7 @@ def get_organizations_subscription_limits(
                 for usage_type, _ in UsageType.choices
             }
         elif row['product_type'] == 'addon':
-            row_limits['addon_storage_limit'] = row['storage_bytes_limit']
+            row_limits['addon_storage_limit'] = row[f'{UsageType.STORAGE_BYTES}_limit']
         subscription_limits_by_org_id[row['org_id']] = row_limits
 
     storage_limit = _get_limit_key(UsageType.STORAGE_BYTES)
