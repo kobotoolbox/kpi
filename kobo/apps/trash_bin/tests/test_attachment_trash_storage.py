@@ -22,46 +22,6 @@ class AttachmentTrashStorageCountersTestCase(TestBase):
             'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token
         }
 
-    def _refresh_all(self):
-        """
-        Refresh all relevant objects from the database to get updated values.
-        """
-        self.attachment.refresh_from_db()
-        self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
-
-    def _move_to_trash(self):
-        """
-        Move the attachment to trash and refresh all objects
-        """
-        move_to_trash(
-            request_author=self.user,
-            objects_list=[{
-                'pk': self.attachment.pk,
-                'attachment_uid': self.attachment.uid,
-                'attachment_basename': self.attachment.media_file_basename,
-            }],
-            grace_period=1,
-            trash_type='attachment',
-            retain_placeholder=False,
-        )
-        self._refresh_all()
-
-    def _put_back_from_trash(self):
-        """
-        Restore the attachment from trash and refresh all objects
-        """
-        put_back(
-            request_author=self.user,
-            objects_list=[{
-                'pk': self.attachment.pk,
-                'attachment_uid': self.attachment.uid,
-                'attachment_basename': self.attachment.media_file_basename,
-            }],
-            trash_type='attachment',
-        )
-        self._refresh_all()
-
     def test_toggle_statuses_updates_storage_counters(self):
         """
         Toggling an attachment to trash should decrease storage counters.
@@ -122,3 +82,43 @@ class AttachmentTrashStorageCountersTestCase(TestBase):
         self.assertEqual(
             self.user_profile.attachment_storage_bytes, decremented_user_bytes
         )
+
+    def _move_to_trash(self):
+        """
+        Move the attachment to trash and refresh all objects
+        """
+        move_to_trash(
+            request_author=self.user,
+            objects_list=[{
+                'pk': self.attachment.pk,
+                'attachment_uid': self.attachment.uid,
+                'attachment_basename': self.attachment.media_file_basename,
+            }],
+            grace_period=1,
+            trash_type='attachment',
+            retain_placeholder=False,
+        )
+        self._refresh_all()
+
+    def _put_back_from_trash(self):
+        """
+        Restore the attachment from trash and refresh all objects
+        """
+        put_back(
+            request_author=self.user,
+            objects_list=[{
+                'pk': self.attachment.pk,
+                'attachment_uid': self.attachment.uid,
+                'attachment_basename': self.attachment.media_file_basename,
+            }],
+            trash_type='attachment',
+        )
+        self._refresh_all()
+
+    def _refresh_all(self):
+        """
+        Refresh all relevant objects from the database to get updated values.
+        """
+        self.attachment.refresh_from_db()
+        self.xform.refresh_from_db()
+        self.user_profile.refresh_from_db()

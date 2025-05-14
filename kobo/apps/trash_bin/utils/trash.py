@@ -8,6 +8,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from django.db.models.query import QuerySet
 from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
@@ -29,7 +30,12 @@ from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kpi.models import Asset
-from ..type_aliases import DeletionCallback, TrashBinModel, TrashBinModelInstance
+from ..type_aliases import (
+    DeletionCallback,
+    TrashBinModel,
+    TrashBinModelInstance,
+    TrashObject
+)
 from ..utils import temporarily_disconnect_signals
 
 
@@ -47,11 +53,11 @@ def get_log_type(related_model):
 @transaction.atomic
 def move_to_trash(
     request_author: settings.AUTH_USER_MODEL,
-    objects_list: list[dict],
+    objects_list: list[TrashObject],
     grace_period: int,
     trash_type: str,
     retain_placeholder: bool = True,
-):
+) -> tuple[QuerySet, int]:
     """
     Move the objects listed in `objects_list` to trash and create their associated
     scheduled Celery tasks.
@@ -209,8 +215,10 @@ def process_deletion(
 
 @transaction.atomic()
 def put_back(
-    request_author: settings.AUTH_USER_MODEL, objects_list: list[dict], trash_type: str
-):
+    request_author: settings.AUTH_USER_MODEL,
+    objects_list: list[TrashObject],
+    trash_type: str
+) -> tuple[QuerySet, int]:
     """
     Remove related objects from trash.
 
