@@ -1,6 +1,6 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     OpenRosaFileRequestField,
     OpenRosaFormHubField,
@@ -9,42 +9,42 @@ from .fields import (
     OpenRosaXFormField,
 )
 
-OpenRosaFormListInlineSerializer = inline_serializer(
-    name='OpenRosaFormListInlineSerializer',
+OpenRosaFormListResponse = inline_serializer_class(
+    name='OpenRosaFormListResponse',
     fields={
         'xform': OpenRosaXFormField(),
     },
 )
 
 
-OpenRosaManifestInlineSerializer = inline_serializer(
-    name='OpenRosaManifestInlineSerializer',
+OpenRosaManifestResponse = inline_serializer_class(
+    name='OpenRosaManifestResponse',
     fields={
         'manifest': OpenRosaManifestURLField(),
     },
 )
 
 
-OpenRosaSubmissionInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionInlineSerializer',
+OpenRosaSubmissionResponse = inline_serializer_class(
+    name='OpenRosaSubmissionResponse',
     fields={
-        'question': serializers.URLField(),
+        'question': serializers.CharField(),
         'meta': OpenRosaMetaField(),
         'formhub': OpenRosaFormHubField(),
     },
 )
 
 
-OpenRosaSubmissionRequestInlineSerializer = inline_serializer(
-    name='OpenRosaSubmissionRequestInlineSerializer',
+OpenRosaSubmissionRequest = inline_serializer_class(
+    name='OpenRosaSubmissionRequest',
     fields={
         'xml_submission_file': serializers.FileField(),
     },
 )
 
 
-OpenRosaXFormActionInlineSerializer = inline_serializer(
-    name='OpenRosaXFormActionInlineSerializer',
+OpenRosaXFormResponse = inline_serializer_class(
+    name='OpenRosaXFormResponse',
     fields={
         'html': OpenRosaFileRequestField(),
     },

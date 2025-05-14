@@ -1,39 +1,38 @@
-from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers
 
-from ..assets.fields import AssetURLField
+from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetSnapshotCreateDetailsField,
     AssetSnapshotDetailsField,
+    AssetSnapshotPreviewURLField,
     AssetSnapshotSourceField,
     AssetSnapshotURLField,
-    AssetSnapshotURLPreviewField,
-    AssetSnapshotURLUserField,
-    AssetSnapshotURLXMLField,
+    AssetSnapshotUserURLField,
+    AssetSnapshotXMLURLField,
 )
+from ..assets.fields import AssetURLField
 
-
-AssetSnapshotCreateRequestInlineSerializer = type(inline_serializer(
-    name='AssetSnapshotCreateRequestInlineSerializer',
+AssetSnapshotCreateRequest = inline_serializer_class(
+    name='AssetSnapshotCreateRequest',
     fields={
         'asset': AssetURLField(allow_null=True, required=False),
         'details': AssetSnapshotCreateDetailsField(allow_null=True, required=False),
         'source': AssetSnapshotSourceField(allow_null=True, required=False),
     },
-))
+)
 
 
-AssetSnapshotResultInlineSerializer = inline_serializer(
-    name='AssetSnapshotResultInlineSerializer',
+AssetSnapshotResponse = inline_serializer_class(
+    name='AssetSnapshotResponse',
     fields={
         'url': AssetSnapshotURLField(),
         'uid': serializers.CharField(),
-        'owner': AssetSnapshotURLUserField(),
+        'owner': AssetSnapshotUserURLField(),
         'date_created': serializers.DateTimeField(),
-        'xml': AssetSnapshotURLXMLField(),
-        'enketopreviewlink': AssetSnapshotURLPreviewField(),
+        'xml': AssetSnapshotXMLURLField(),
+        'enketopreviewlink': AssetSnapshotPreviewURLField(),
         'asset': AssetURLField(),
-        'asset_version_id': serializers.IntegerField(),
+        'asset_version_id': serializers.CharField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),
     },

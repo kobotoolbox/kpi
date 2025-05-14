@@ -17,17 +17,13 @@ class AssetSnapshotURLField(serializers.URLField):
     pass
 
 
-class AssetURLField(serializers.URLField):
+class AssetSnapshotUserURLField(serializers.URLField):
     pass
 
 
-class AssetSnapshotURLUserField(serializers.URLField):
+class AssetSnapshotPreviewURLField(serializers.URLField):
     pass
 
 
-class AssetSnapshotURLPreviewField(serializers.URLField):
-    pass
-
-
-class AssetSnapshotURLXMLField(serializers.URLField):
+class AssetSnapshotXMLURLField(serializers.URLField):
     pass
