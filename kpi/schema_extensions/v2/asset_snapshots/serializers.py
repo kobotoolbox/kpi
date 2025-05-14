@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
+from ..assets.fields import AssetURLField
 from .fields import (
     AssetSnapshotCreateDetailsField,
     AssetSnapshotDetailsField,
@@ -10,7 +11,6 @@ from .fields import (
     AssetSnapshotUserURLField,
     AssetSnapshotXMLURLField,
 )
-from ..assets.fields import AssetURLField
 
 AssetSnapshotCreateRequest = inline_serializer_class(
     name='AssetSnapshotCreateRequest',

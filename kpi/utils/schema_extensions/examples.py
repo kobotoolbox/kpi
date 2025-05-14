@@ -1,4 +1,3 @@
-
 def generate_example_from_schema(schema: dict) -> dict:
 
     if 'example' in schema:

@@ -2,16 +2,12 @@ from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
 )
-from drf_spectacular.plumbing import (
-    build_array_type,
-    build_basic_type,
-    build_object_type,
-)
+from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ASSET_SNAPSHOT_DETAILS_SCHEMA, ASSET_SNAPSHOT_SOURCE_SCHEMA
 from ..assets.schema import ASSET_URL_SCHEMA
+from .schema import ASSET_SNAPSHOT_DETAILS_SCHEMA, ASSET_SNAPSHOT_SOURCE_SCHEMA
 
 
 class AssetSnapshotCreateRequestSerializerExtension(OpenApiSerializerExtension):

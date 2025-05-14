@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -43,6 +43,7 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -51,7 +52,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
@@ -59,20 +59,22 @@ class AssetSnapshotSchema(AutoSchema):
     """
     Custom schema used to inject OpenAPI examples for AssetSnapshotViewSet at runtime.
 
-    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)` directly
-    for these examples because the values rely on variables (e.g., `ASSET_URL_SCHEMA`) that
-    trigger Django's URL resolver via `reverse()`. Since those decorators are evaluated at
-    module import time—before the full Django application and URL config are guaranteed to be
-    loaded—this leads to circular import errors.
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
 
-    By overriding `get_operation()` here, we defer the evaluation of those dynamic values
-    until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`), when all apps
-    and routes are fully initialized. This ensures a clean, safe injection of complex or
-    reverse-dependent examples.
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
 
-    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint to inject
-    multiple request examples, such as referencing an asset or a source.
+    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
     """
+
     def get_operation(self, *args, **kwargs):
 
         from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
@@ -84,9 +86,7 @@ class AssetSnapshotSchema(AutoSchema):
 
         if operation.get('operationId') == 'api_v2_asset_snapshots_create':
 
-            operation['requestBody']['content']['application/json'][
-                'examples'
-            ] = {
+            operation['requestBody']['content']['application/json']['examples'] = {
                 'UsingAsset': {
                     'value': {
                         'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
@@ -225,6 +225,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     - submission     → GET /api/v2/asset_snapshots/{uid}/submission
     - docs/api/v2/openrosa/submission.md
     """
+
     schema = AssetSnapshotSchema()
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
