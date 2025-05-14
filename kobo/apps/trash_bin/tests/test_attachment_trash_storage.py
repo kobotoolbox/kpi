@@ -116,65 +116,6 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
         self.owner_profile = UserProfile.objects.create(user=self.owner)
         self.new_owner_profile = UserProfile.objects.create(user=self.new_owner)
 
-    def _create_asset_and_submission(self):
-        """
-        Helper method to create an asset and its associated submission
-        with attachments
-        """
-        self.asset = Asset.objects.create(
-            asset_type='survey',
-            content={
-                'survey': [
-                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
-                ]
-            },
-            owner=self.owner
-        )
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-
-        username = self.owner.username
-        submission = {
-            'q1': 'audio_conversion_test_clip.3gp',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
-                    'filename': f'{username}/audio_conversion_test_clip.3gp',
-                    'mimetype': 'video/3gpp',
-                },
-            ],
-            '_submitted_by': username,
-        }
-        self.asset.deployment.mock_submissions([submission])
-        self.xform = self.asset.deployment.xform
-        self.attachment = self.xform.attachments.first()
-        self._refresh_all()
-
-    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
-    def _transfer_project(self):
-        """
-        Helper method to transfer the project to another user
-        """
-        with immediate_on_commit():
-            create_invite(
-                self.owner,
-                self.new_owner,
-                [self.asset],
-                'Invite'
-            )
-        self._refresh_all()
-        assert self.asset.owner == self.new_owner
-
-    def _refresh_all(self):
-        """
-        Refresh all test objects from the database to get updated values
-        """
-        self.asset.refresh_from_db()
-        self.xform.refresh_from_db()
-        self.owner_profile.refresh_from_db()
-        self.new_owner_profile.refresh_from_db()
-
     def test_counters_are_updated_when_attachments_are_trashed_after_transfer(self):
         self._create_asset_and_submission()
 
@@ -235,3 +176,62 @@ class TransferredProjectAttachmentTrashCounterTestCase(TestCase):
         self.assertEqual(
             new_owner_storage_after_restore, new_owner_storage_after_transfer
         )
+
+    def _create_asset_and_submission(self):
+        """
+        Helper method to create an asset and its associated submission
+        with attachments
+        """
+        self.asset = Asset.objects.create(
+            asset_type='survey',
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
+                ]
+            },
+            owner=self.owner
+        )
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+        username = self.owner.username
+        submission = {
+            'q1': 'audio_conversion_test_clip.3gp',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+            ],
+            '_submitted_by': username,
+        }
+        self.asset.deployment.mock_submissions([submission])
+        self.xform = self.asset.deployment.xform
+        self.attachment = self.xform.attachments.first()
+        self._refresh_all()
+
+    @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
+    def _transfer_project(self):
+        """
+        Helper method to transfer the project to another user
+        """
+        with immediate_on_commit():
+            create_invite(
+                self.owner,
+                self.new_owner,
+                [self.asset],
+                'Invite'
+            )
+        self._refresh_all()
+        assert self.asset.owner == self.new_owner
+
+    def _refresh_all(self):
+        """
+        Refresh all test objects from the database to get updated values
+        """
+        self.asset.refresh_from_db()
+        self.xform.refresh_from_db()
+        self.owner_profile.refresh_from_db()
+        self.new_owner_profile.refresh_from_db()
