@@ -30,7 +30,7 @@ AssetSnapshotResultInlineSerializer = inline_serializer(
         'xml': AssetSnapshotXMLURLField(),
         'enketopreviewlink': AssetSnapshotPreviewURLField(),
         'asset': AssetSnapshotURLField(),
-        'asset_version_id': serializers.IntegerField(),
+        'asset_version_id': serializers.CharField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),
     },
