@@ -1,12 +1,13 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
-from .fields import AssetSubscriptionAssetURLField, AssetSubscriptionURLField
+from ..assets.fields import AssetURLField
+from .fields import AssetSubscriptionURLField
 
 AssetSubscriptionRequest = inline_serializer_class(
     name='AssetSubscriptionRequest',
     fields={
-        'asset': AssetSubscriptionAssetURLField(),
+        'asset': AssetURLField(),
     },
 )
 
@@ -15,7 +16,7 @@ AssetSubscriptionResponse = inline_serializer_class(
     name='AssetSubscriptionResponse',
     fields={
         'url': AssetSubscriptionURLField(),
-        'asset': AssetSubscriptionAssetURLField(),
+        'asset': AssetURLField(),
         'uid': serializers.CharField(),
     },
 )

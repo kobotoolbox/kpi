@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
+from ..assets.fields import AssetURLField
 from .fields import (
     AssetSnapshotCreateDetailsField,
     AssetSnapshotDetailsField,
@@ -14,11 +15,12 @@ from .fields import (
 AssetSnapshotCreateRequest = inline_serializer_class(
     name='AssetSnapshotCreateRequest',
     fields={
-        'asset': AssetSnapshotURLField(allow_null=True, required=False),
+        'asset': AssetURLField(allow_null=True, required=False),
         'details': AssetSnapshotCreateDetailsField(allow_null=True, required=False),
         'source': AssetSnapshotSourceField(allow_null=True, required=False),
     },
 )
+
 
 AssetSnapshotResponse = inline_serializer_class(
     name='AssetSnapshotResponse',
@@ -29,7 +31,7 @@ AssetSnapshotResponse = inline_serializer_class(
         'date_created': serializers.DateTimeField(),
         'xml': AssetSnapshotXMLURLField(),
         'enketopreviewlink': AssetSnapshotPreviewURLField(),
-        'asset': AssetSnapshotURLField(),
+        'asset': AssetURLField(),
         'asset_version_id': serializers.CharField(),
         'details': AssetSnapshotDetailsField(),
         'source': AssetSnapshotSourceField(),

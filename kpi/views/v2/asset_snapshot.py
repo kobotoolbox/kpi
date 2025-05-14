@@ -3,6 +3,7 @@ import copy
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
+from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -24,6 +25,10 @@ from kpi.renderers import (
     OpenRosaManifestRenderer,
     XMLRenderer,
 )
+from kpi.schema_extensions.v2.asset_snapshots.schema import (
+    ASSET_SNAPSHOT_DETAILS_SCHEMA,
+    ASSET_SNAPSHOT_SOURCE_SCHEMA,
+)
 from kpi.schema_extensions.v2.asset_snapshots.serializers import (
     AssetSnapshotCreateRequest,
     AssetSnapshotResponse,
@@ -38,6 +43,7 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.tasks import enketo_flush_cached_preview
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -46,7 +52,63 @@ from kpi.utils.schema_extensions.response import (
     open_api_302_found,
 )
 from kpi.utils.xml import XMLFormWithDisclaimer
-from kpi.views.v2.open_rosa import OpenRosaViewSetMixin  # noqa
+from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
+
+
+class AssetSnapshotSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetSnapshotViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.assets.schema import ASSET_URL_SCHEMA
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_asset_snapshots_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAsset': {
+                    'value': {
+                        'asset': generate_example_from_schema(ASSET_URL_SCHEMA),
+                        'details': generate_example_from_schema(
+                            ASSET_SNAPSHOT_DETAILS_SCHEMA
+                        ),
+                    },
+                    'summary': 'Using asset',
+                },
+                'UsingSource': {
+                    'value': {
+                        'source': generate_example_from_schema(
+                            ASSET_SNAPSHOT_SOURCE_SCHEMA
+                        ),
+                        'details': generate_example_from_schema(
+                            ASSET_SNAPSHOT_DETAILS_SCHEMA
+                        ),
+                    },
+                    'summary': 'Using source',
+                },
+            }
+        return operation
 
 
 @extend_schema_view(
@@ -132,12 +194,12 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     ViewSet for managing the current user's asset snapshots
 
     Available actions:
-    - list       → GET /api/v2/asset_snapshots/
-    - create       → POST /api/v2/asset_snapshots/
-    - retrieve       → GET /api/v2/asset_snapshots/{uid}/
-    - patch       → PATCH /api/v2/asset_snapshots/{uid}/
-    - delete       → DELETE /api/v2/asset_snapshots/{uid}/
-    - xform       → GET /api/v2/asset_snapshots/{uid}/xform/
+    - list          → GET /api/v2/asset_snapshots/
+    - create        → POST /api/v2/asset_snapshots/
+    - retrieve      → GET /api/v2/asset_snapshots/{uid}/
+    - patch         → PATCH /api/v2/asset_snapshots/{uid}/
+    - delete        → DELETE /api/v2/asset_snapshots/{uid}/
+    - xform         → GET /api/v2/asset_snapshots/{uid}/xform/
     - xml_with_disclaimer       → GET /api/v2/asset_snapshots/{uid}/xml_with_disclaimer/
     - preview       → GET /api/v2/asset_snapshots/{uid}/preview/
 
@@ -160,10 +222,11 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, AuditLoggedNoUpdateModelViewSet
     - manifest       → GET /api/v2/asset_snapshots/{uid}/manifest
     - docs/api/v2/openrosa/manifest.md
 
-    - submission       → GET /api/v2/asset_snapshots/{uid}/submission
+    - submission     → GET /api/v2/asset_snapshots/{uid}/submission
     - docs/api/v2/openrosa/submission.md
     """
 
+    schema = AssetSnapshotSchema()
     serializer_class = AssetSnapshotSerializer
     lookup_field = 'uid'
     queryset = AssetSnapshot.objects.all()
