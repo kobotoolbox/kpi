@@ -47,6 +47,7 @@ export const parameters = {
     },
   },
   a11y: { test: 'error' },
+  verbose: false,
 }
 
 window.t = (str) => str
