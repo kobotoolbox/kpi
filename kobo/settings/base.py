@@ -1201,18 +1201,22 @@ if HUBSPOT_ID:
     CSP_FRAME_SRC.extend([
         '*.hs-sites.com',  # Calls-to-action (pop-up)
         '*.hs-sites-eu1.com',  # Calls-to-action (pop-up) (European data hosting only)
-        'play.hubspotvideo.com ',  # Files (videos)
+        'play.hubspotvideo.com',  # Files (videos)
         'play-eu1.hubspotvideo.com',  # Files (videos) (European data hosting only)
-        'Your domain connected to HubSpot',  # Files, stylesheets
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
         '*.hubspot.com',  # Calls-to-action (pop-up), chatflows
         '*.hubspot.net',  # Files
         '*.hsforms.net',  # Forms, surveys
         '*.hsforms.com',  # Forms, surveys
     ])
     CSP_STYLE_SRC.extend([
-        'Your domain connected to HubSpot',  # Files, stylesheets
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
         'cdn2.hubspot.net',  # Files, stylesheets
-        '*.hubspotusercontent##.net (## can be 00, 10, 20, 30, or 40)',  # Files
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
     ])
     CSP_IMG_SRC.extend([
         'no-cache.hubspot.com',  # Calls-to-action (button)
@@ -1223,10 +1227,14 @@ if HUBSPOT_ID:
         '*.hubspot.net',  # Files
         '*.hsforms.net',  # Forms, surveys
         '*.hsforms.com',  # Forms, surveys
-        '*.hubspotusercontent##.net (## can be 00, 10, 20, 30, or 40)',  # Files
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
     ])
     CSP_SCRIPT_SRC.extend([
-        'Your domain connected to HubSpot',  # Files, stylesheets
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
         '*.hsadspixel.net',  # Ads
         'static.hsappstatic.net',  # Content (sprocket menu, video embedding)
         '*.usemessages.com',  # Conversations, chatflows
@@ -1244,7 +1252,11 @@ if HUBSPOT_ID:
         '*.hubspot.net',  # Files
         '*.hsforms.net',  # Forms, surveys
         '*.hsforms.com',  # Forms, surveys
-        '*.hubspotusercontent##.net (## can be 00, 10, 20, 30, or 40)',  # Files
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
     ])
     CSP_CONNECT_SRC.extend([
         '*.hsforms.com',  # Forms, surveys
