@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, waitFor, within } from '@storybook/test'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import environmentMock from '#/endpoints/environment.mock'
 import languagesMock from '#/endpoints/languages.mock'
 import LanguageSelector from './languageSelector'

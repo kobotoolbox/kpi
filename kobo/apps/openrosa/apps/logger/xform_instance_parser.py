@@ -309,11 +309,13 @@ def _get_attributes_by_node(node):
 
 class XFormInstanceParser:
 
-    def __init__(self, xml_str, data_dictionary):
+    def __init__(self, xml_str, data_dictionary, delay_parse=False):
         self.dd = data_dictionary
         # The two following variables need to be initialized in the constructor, in case parsing fails.
         self._flat_dict = {}
         self._attributes = {}
+        if delay_parse:
+            return
         try:
             self.parse(xml_str)
         except Exception as e:
@@ -326,13 +328,14 @@ class XFormInstanceParser:
             # to return the correct HTTP code
             six.reraise(*sys.exc_info())
 
-    def parse(self, xml_str):
+    def parse(self, xml_str, repeats=None):
         self._xml_obj = clean_and_parse_xml(xml_str)
         self._root_node = self._xml_obj.documentElement
-        repeats = [
-            get_abbreviated_xpath(e)
-            for e in self.dd.get_survey_elements_of_type('repeat')
-        ]
+        if repeats is None:
+            repeats = [
+                get_abbreviated_xpath(e)
+                for e in self.dd.get_survey_elements_of_type('repeat')
+            ]
         self._dict = _xml_node_to_dict(self._root_node, repeats)
         if self._dict is None:
             raise InstanceEmptyError

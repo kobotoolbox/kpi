@@ -73,10 +73,6 @@ jobs:
       - name: Run unit tests and xlform tests
         run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
-      # Check that the storybook build succeeds (and ensure tests will be run on non-cached build)
-      - name: Build Storybook
-        run: npm run build:storybook
-
       # Install Playwright (with cache) for Storybook tests
       - name: "Playwright: get installed version"
         id: playwright-version
@@ -102,5 +98,5 @@ jobs:
         run: npx playwright install-deps webkit
 
       # Run the storybook test suite
-      - name: Serve Storybook and run tests
-        run: npm run test:storybook-ci
+      - name: Build and serve Storybook, test stories.
+        run: npm run test:storybook

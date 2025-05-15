@@ -1,5 +1,5 @@
 import { Button, Card, Center, LoadingOverlay, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 /**
  * Mantine [LoadingOverlay](https://mantine.dev/core/loading-overlay/) component stories.

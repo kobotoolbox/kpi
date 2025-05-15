@@ -1,10 +1,11 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 import responses
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import parse_http_date
@@ -108,23 +109,25 @@ class OrganizationApiTestCase(BaseTestCase):
         last_updated_timestamp = parse_http_date(response.headers['Date'])
         assert (now.timestamp() - last_updated_timestamp) > 3
 
-    def test_api_response_includes_is_mmo_with_mmo_override(self):
+    def test_api_response_for_mmo_override(self):
         """
-        Test that is_mmo is True when mmo_override is enabled and there is no
-        active subscription.
+        Test that mmo_override status is properly reflected in API response.
         """
+        self._insert_data(mmo_override=False)
+        response = self.client.get(self.url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['is_mmo'], False)
+
         self._insert_data(mmo_override=True)
         response = self.client.get(self.url_detail)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
 
-    @patch(
-        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_settings(STRIPE_ENABLED=True)
-    def test_api_response_includes_is_mmo_with_subscription(
-        self, mock_query
-    ):
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
+    def test_api_response_includes_is_mmo_with_subscription(self, mock_query):
         """
         Test that is_mmo is True when there is an active MMO subscription.
         """
@@ -136,10 +139,10 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], True)
 
-    @patch(
-        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_settings(STRIPE_ENABLED=True)
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
     def test_api_response_includes_is_mmo_with_no_override_and_no_subscription(
         self, mock_query
     ):
@@ -153,10 +156,10 @@ class OrganizationApiTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['is_mmo'], False)
 
-    @patch(
-        'kobo.apps.organizations.models.Organization.objects.prefetch_related'
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
     )
-    @override_settings(STRIPE_ENABLED=True)
+    @patch('kobo.apps.organizations.models.Organization.objects.prefetch_related')
     def test_api_response_includes_is_mmo_with_override_and_subscription(
         self, mock_query
     ):
