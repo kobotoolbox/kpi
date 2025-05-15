@@ -29,9 +29,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
     >           "server_time": "YYYY-MM-DDTHH:MM:SSZ",
     >           "date_joined": "YYYY-MM-DDTHH:MM:SSZ",
     >           "projects_url": "https://[kobocat]/{username}",
-    >           "is_superuser": boolean,
     >           "gravatar": url,
-    >           "is_staff": boolean,
     >           "last_login": "YYYY-MM-DDTHH:MM:SSZ",
     >           "extra_details": {
     >               "bio": string,
