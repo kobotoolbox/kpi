@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { queryClientDecorator } from '#/query/queryClient.mock'
 import AttachmentActionsDropdown from './AttachmentActionsDropdown'
 import { assetWithImage, assetWithImageSubmission } from './AttachmentActionsDropdown.mocks'
