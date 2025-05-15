@@ -47,6 +47,9 @@ from kpi.serializers.v2.asset import (
     AssetListSerializer,
     AssetSerializer,
 )
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response
+)
 from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
@@ -60,9 +63,55 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
     tags=['Asset'],
 )
 @extend_schema_view(
+    bulk=extend_schema(
+        description='documentation',
+    ),
+    content=extend_schema(
+        description='documentation',
+    ),
+    create=extend_schema(
+        description='documentation',
+    ),
+    destroy=extend_schema(
+        description='documentation',
+    ),
     deployment=extend_schema(
         tags=['Deployment']
-    )
+    ),
+    hash=extend_schema(
+        description='documentation',
+    ),
+    list=extend_schema(
+        description='documentation',
+    ),
+    metadata=extend_schema(
+        description='documentation',
+    ),
+    partial_update=extend_schema(
+        description='documentation',
+    ),
+    update=extend_schema(
+        description='documentation',
+    ),
+    reports=extend_schema(
+        description='documentation',
+    ),
+    retrieve=extend_schema(
+        description='documentation',
+    ),
+
+    table_view=extend_schema(
+        description='documentation',
+    ),
+    valid_content=extend_schema(
+        description='documentation',
+    ),
+    xform=extend_schema(
+        description='documentation',
+    ),
+    xls=extend_schema(
+        description='documentation',
+    ),
 )
 class AssetViewSet(
     AssetViewSetListMixin,

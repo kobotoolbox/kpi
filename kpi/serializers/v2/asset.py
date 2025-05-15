@@ -11,6 +11,9 @@ from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
+from drf_spectacular.plumbing import build_basic_type
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
@@ -67,6 +70,19 @@ from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_version import AssetVersionListSerializer
+from ...schema_extensions.v2.assets.fields import (
+    UserURLField,
+    OwnerURLField,
+    ParentURLField,
+    SettingsField, FileListField, SummaryField, VersionCountField, HasDeploymentField,
+    DeployedVersionField, DeploymentLinkField, DeploymentActiveField,
+    DeploymentDataDownloadLinksField, DeploymentSubmissionCountField, ReportStyleField,
+    ReportCustomField, AdvancedFeatureField, AdvancedSubmissionSchemaField,
+    AnalysisFormJsonField, MapStylesField, MapCustomField, ContentField, DownloadsField,
+    XFormLinkField, HooksUrlField, XLSLinkField, AssignablePermissionField,
+    PermissionsField, EffectivePermissionField, ExportsURLField, DataURLField,
+    ChildrenField, SubscribersCountField, DataSharingField, PairedDataURLField,
+)
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -286,75 +302,74 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
-    owner = RelativePrefixHyperlinkedRelatedField(
+    owner = OwnerURLField(
         view_name='user-kpi-detail', lookup_field='username', read_only=True)
     owner__username = serializers.ReadOnlyField(source='owner.username')
     owner_label = serializers.SerializerMethodField()
-    url = HyperlinkedIdentityField(
-        lookup_field='uid', view_name='asset-detail')
+    url = UserURLField(lookup_field='uid', view_name='asset-detail')
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
-    settings = WritableJSONField(required=False, allow_blank=True)
-    content = WritableJSONField(required=False)
-    report_styles = WritableJSONField(required=False)
-    report_custom = WritableJSONField(required=False)
-    map_styles = WritableJSONField(required=False)
-    map_custom = WritableJSONField(required=False)
-    advanced_features = WritableAdvancedFeaturesField(required=False)
-    advanced_submission_schema = serializers.SerializerMethodField()
-    files = serializers.SerializerMethodField()
-    analysis_form_json = serializers.SerializerMethodField()
-    xls_link = serializers.SerializerMethodField()
-    summary = serializers.ReadOnlyField()
-    xform_link = serializers.SerializerMethodField()
-    version_count = serializers.SerializerMethodField()
-    downloads = serializers.SerializerMethodField()
-    embeds = serializers.SerializerMethodField()
-    parent = RelativePrefixHyperlinkedRelatedField(
+    settings = SettingsField(required=False, allow_blank=True)
+    content = ContentField(required=False)
+    report_styles = ReportStyleField(required=False)
+    report_custom = ReportCustomField(required=False)
+    map_styles = MapStylesField(required=False)
+    map_custom = MapCustomField(required=False)
+    advanced_features = AdvancedFeatureField(required=False)
+    advanced_submission_schema = AdvancedSubmissionSchemaField()
+    files = FileListField()
+    analysis_form_json = AnalysisFormJsonField()
+    xls_link = XLSLinkField()
+    summary = SummaryField()
+    xform_link = XFormLinkField()
+    version_count = VersionCountField()
+    downloads = DownloadsField()
+    embeds = DownloadsField()
+    parent = ParentURLField(
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
-        required=False,
-        allow_null=True
     )
-    assignable_permissions = serializers.SerializerMethodField()
-    permissions = serializers.SerializerMethodField()
-    effective_permissions = serializers.SerializerMethodField()
-    exports = serializers.SerializerMethodField()
+    assignable_permissions = AssignablePermissionField()
+    permissions = PermissionsField()
+    effective_permissions = EffectivePermissionField()
+    exports = ExportsURLField()
     export_settings = AssetExportSettingsSerializer(
         many=True, read_only=True, source='asset_export_settings'
     )
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
-    has_deployment = serializers.ReadOnlyField()
+    has_deployment = HasDeploymentField(read_only=True)
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = PaginatedApiField(
+    deployed_versions = DeployedVersionField(
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
         default_limit=100
     )
-    deployment__active = serializers.SerializerMethodField()
-    deployment__links = serializers.SerializerMethodField()
-    deployment__data_download_links = serializers.SerializerMethodField()
-    deployment__submission_count = serializers.SerializerMethodField()
+    deployment__active = DeploymentActiveField()
+    deployment__links = DeploymentLinkField()
+    deployment__data_download_links = DeploymentDataDownloadLinksField()
+    deployment__submission_count = DeploymentSubmissionCountField()
     deployment_status = serializers.SerializerMethodField()
-    data = serializers.SerializerMethodField()
+    data = DataURLField()
     # Only add link instead of hooks list to avoid multiple access to DB.
-    hooks_link = serializers.SerializerMethodField()
+    hooks_link = HooksUrlField()
 
-    children = serializers.SerializerMethodField()
-    subscribers_count = serializers.SerializerMethodField()
+
+    children = ChildrenField()
+    subscribers_count = SubscribersCountField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
-    data_sharing = WritableJSONField(required=False)
-    paired_data = serializers.SerializerMethodField()
+    data_sharing = DataSharingField(required=False)
+    paired_data = PairedDataURLField()
     project_ownership = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
         lookup_field = 'uid'
-        fields = ('url',
+        fields = (
+                  'url',
                   'owner',
                   'owner__username',
                   'parent',
