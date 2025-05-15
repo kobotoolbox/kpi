@@ -256,7 +256,7 @@ class Command(BaseCommand):
             self.stdout.write('Resetting user profile storage counters…')
 
         subquery = Subquery(
-            XForm.all_objects.filter(user_id=OuterRef('user_id'))
+            XForm.objects.filter(user_id=OuterRef('user_id'))
             .values('user_id')
             .annotate(total=Sum('attachment_storage_bytes'))
             .values('total')
@@ -288,7 +288,7 @@ class Command(BaseCommand):
         # right away. See https://stackoverflow.com/a/56122354/1141214 for
         # details.
         subquery = (
-            XForm.all_objects.filter(user_id=user.pk)
+            XForm.objects.filter(user_id=user.pk)
             .values('user_id')
             .annotate(total=Sum('attachment_storage_bytes'))
             .values('total')
