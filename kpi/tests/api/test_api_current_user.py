@@ -147,3 +147,15 @@ class CurrentUserTestCase(BaseTestCase):
     def test_cannot_update_organization_fields_with_mmo(self):
         self.user.organization.mmo_override = True
         self.user.organization.save()
+
+    def test_cannot_change_statuses(self):
+        self.client.force_authenticate(self.user)
+        for flag in ['is_superuser', 'is_staff']:
+            payload = {flag: True}
+            assert getattr(self.user, flag, False) is False
+            response = self.client.patch(self.url, data=payload, format='json')
+            # Field is ignored because it's not in Serializer fields
+            assert response.status_code == status.HTTP_200_OK
+            self.user.refresh_from_db()
+            # Validate the flag kept the original value
+            assert getattr(self.user, flag, False) is False
