@@ -308,6 +308,9 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
                 current_billing_period_end.year,
                 current_billing_period_end.month,
             )[1]
+            if last_day_of_billing_period > canceled_at.day:
+                last_day_of_billing_period = canceled_at.day
+
             current_billing_period_end = current_billing_period_end.replace(
                 day=last_day_of_billing_period
             )

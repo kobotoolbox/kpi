@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { ColumnPinningPosition } from '@tanstack/react-table'
 import moment from 'moment'
 import Avatar from '#/components/common/avatar'
