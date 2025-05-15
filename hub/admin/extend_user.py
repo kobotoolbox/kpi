@@ -322,8 +322,6 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             )
             return
 
-        AccountTrash.toggle_statuses([u['pk'] for u in users], active=False)
-
         self.message_user(
             request,
             self._get_message(len(users) == 1, grace_period),

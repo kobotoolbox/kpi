@@ -51,7 +51,6 @@ class AccountTrashTestCase(TestCase):
         grace_period = 0
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -83,13 +82,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-        after = timezone.now()
-        assert before <= someuser.extra_details.date_removal_requested <= after
-
-        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=someuser,
             objects_list=[
@@ -101,11 +93,19 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = timezone.now() + timedelta(days=grace_period)
+        after = timezone.now()
+
+        someuser.refresh_from_db()
+        assert not someuser.is_active
+        assert before <= someuser.extra_details.date_removal_requested <= after
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
-        assert before <= account_trash.periodic_task.clocked.clocked_time <= after
+        assert (
+            before + timedelta(days=grace_period)
+            <= account_trash.periodic_task.clocked.clocked_time
+            <= after + timedelta(days=grace_period)
+        )
         assert account_trash.periodic_task.name.startswith(DELETE_USER_STR_PREFIX)
 
         # Ensure action is logged
@@ -137,7 +137,6 @@ class AccountTrashTestCase(TestCase):
             trash_type='user',
         )
 
-        AccountTrash.toggle_statuses([someuser.pk], active=True)
         someuser.refresh_from_db()
         assert someuser.is_active
 
@@ -170,10 +169,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now() + timedelta(days=grace_period)
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -191,6 +186,7 @@ class AccountTrashTestCase(TestCase):
         after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
+        assert not someuser.is_active
         assert someuser.assets.count() == 0
         assert someuser.email == ''
         assert someuser.extra_details.data.get('name') == ''
@@ -345,14 +341,6 @@ class ProjectTrashTestCase(TestCase):
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
-        )
-
-        asset.refresh_from_db()
-        asset.deployment.xform.refresh_from_db()
-        assert asset.pending_delete
-        assert asset.deployment.xform.pending_delete
 
         before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
@@ -368,6 +356,11 @@ class ProjectTrashTestCase(TestCase):
             trash_type='asset',
         )
         after = timezone.now() + timedelta(days=grace_period)
+
+        asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
+        assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
@@ -407,9 +400,7 @@ class ProjectTrashTestCase(TestCase):
             ],
             trash_type='asset',
         )
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
-        )
+
         asset.refresh_from_db()
         asset.deployment.xform.refresh_from_db()
         assert not asset.pending_delete
@@ -536,20 +527,35 @@ class ProjectTrashTestCase(TestCase):
         self.assertGreater(xform_storage_init, 0)
         self.assertGreater(user_storage_init, 0)
 
-        # Simulate moving to trash by updating the status
-        # ToDo: Replace this with move_to_trash() after kpi#5747 is merged
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
+        # Move the project to trash
+        move_to_trash(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
         self.assertEqual(xform.attachment_storage_bytes, 0)
         self.assertEqual(user_profile.attachment_storage_bytes, 0)
 
-        # Simulate restoring the project by updating the status
-        # ToDo: Replace this with put_back() after kpi#5747 is merged
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
+        # Restore the project
+        put_back(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            trash_type='asset',
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
