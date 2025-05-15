@@ -527,20 +527,35 @@ class ProjectTrashTestCase(TestCase):
         self.assertGreater(xform_storage_init, 0)
         self.assertGreater(user_storage_init, 0)
 
-        # Simulate moving to trash by updating the status
-        # ToDo: Replace this with move_to_trash() after kpi#5747 is merged
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
+        # Move the project to trash
+        move_to_trash(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
         self.assertEqual(xform.attachment_storage_bytes, 0)
         self.assertEqual(user_profile.attachment_storage_bytes, 0)
 
-        # Simulate restoring the project by updating the status
-        # ToDo: Replace this with put_back() after kpi#5747 is merged
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
+        # Restore the project
+        put_back(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            trash_type='asset',
         )
         xform.refresh_from_db()
         user_profile.refresh_from_db()
