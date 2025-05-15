@@ -143,3 +143,15 @@ class CurrentUserTestCase(BaseTestCase):
         assert self.user.extra_details.validated_password
         assert self.user.extra_details.password_date_changed is not None
         assert self.user.extra_details.password_date_changed >= now
+
+    def test_cannot_change_statuses(self):
+        self.client.force_authenticate(self.user)
+        for flag in ['is_superuser', 'is_staff']:
+            payload = {flag: True}
+            assert getattr(self.user, flag, False) is False
+            response = self.client.patch(self.url, data=payload, format='json')
+            # Field is ignored because it's not in Serializer fields
+            assert response.status_code == status.HTTP_200_OK
+            self.user.refresh_from_db()
+            # Validate the flag kept the original value
+            assert getattr(self.user, flag, False) is False
