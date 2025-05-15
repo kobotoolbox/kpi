@@ -28,7 +28,7 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
     </div>
   ),
   decorators: [queryClientDecorator],
-  // parameters: { a11y: { test: 'todo' } },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta
