@@ -7,7 +7,7 @@ from typing import Optional
 from constance import config
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, QuerySet
+from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
@@ -97,16 +97,15 @@ class AssetBulkActionsSerializer(serializers.Serializer):
                 )
             )
 
-        queryset, projects_count = ProjectTrash.toggle_statuses(
-            object_identifiers=asset_uids,
-            active=put_back_,
-            toggle_delete=delete_request,
-        )
-        validated_data['project_counts'] = projects_count
-
         if delete_request:
-            self._toggle_trash(queryset, put_back_)
-
+            queryset, projects_count = self._toggle_trash(asset_uids, put_back_)
+        else:
+            queryset, projects_count = ProjectTrash.toggle_statuses(
+                object_identifiers=asset_uids,
+                active=put_back_,
+                toggle_delete=delete_request,
+            )
+        validated_data['project_counts'] = projects_count
         return validated_data
 
     def validate_payload(self, payload: dict) -> dict:
@@ -158,7 +157,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _create_tasks(self, assets: list[dict]):
         try:
-            move_to_trash(
+            return move_to_trash(
                 self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
             )
         except TrashIntegrityError:
@@ -170,7 +169,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
 
     def _delete_tasks(self, assets: list[dict]):
         try:
-            put_back(self.__user, assets, 'asset')
+            return put_back(self.__user, assets, 'asset')
         except TrashTaskInProgressError:
             raise serializers.ValidationError(
                 {'detail': t('One or many projects are already being deleted!')}
@@ -226,8 +225,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         if objects_count != len(asset_uids):
             raise exceptions.PermissionDenied()
 
-    def _toggle_trash(self, queryset: QuerySet, put_back_: bool):
-
+    def _toggle_trash(self, asset_uids: list[str], put_back_: bool):
         # The main goal of the annotation below is to pass always the same
         # metadata attributes to AuditLog model whatever the model and the action.
         # `self._delete_tasks and self._create_tasks` both call utilities which
@@ -236,14 +234,14 @@ class AssetBulkActionsSerializer(serializers.Serializer):
         # E.g: retrieve all actions on asset 'aSWwcERCgsGTsgIx` would be done
         # with `q=metadata__asset_uid:aSWwcERCgsGTsgIx`. It will return
         # all delete submissions and action on the asset itself.
-        assets = queryset.annotate(
+        assets = Asset.all_objects.filter(uid__in=asset_uids).annotate(
             asset_uid=F('uid'), asset_name=F('name')
         ).values('pk', 'asset_uid', 'asset_name')
 
         if put_back_:
-            self._delete_tasks(assets)
+            return self._delete_tasks(assets)
         else:
-            self._create_tasks(assets)
+            return self._create_tasks(assets)
 
     def _validate_action(self, payload: dict):
         try:
