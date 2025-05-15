@@ -12,7 +12,7 @@ import Checkbox from '#/components/common/checkbox'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
-import { KEY_CODES } from '#/constants'
+import { AssetTypeName, KEY_CODES } from '#/constants'
 import type { PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
@@ -35,13 +35,19 @@ import {
   isPartialByResponsesValid,
   isPartialByUsersValid,
 } from './userAssetPermsEditor.utils'
-import { getPartialByResponsesQuestionName, getPartialByResponsesValueName, getPartialByUsersListName } from './utils'
+import {
+  getContextualPermLabel,
+  getPartialByResponsesQuestionName,
+  getPartialByResponsesValueName,
+  getPartialByUsersListName,
+} from './utils'
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','
 
 interface UserAssetPermsEditorProps {
   assetUid: string
+  assetType: AssetTypeName
   /** Permissions user username (could be empty for new) */
   username?: string
   /** list of permissions (could be empty for new) */
@@ -386,12 +392,20 @@ export default class UserAssetPermsEditor extends React.Component<
     // much code to make it perfect
     const disabledPropName = (checkboxName + CHECKBOX_DISABLED_SUFFIX) as keyof UserAssetPermsEditorState
     const isDisabled = Boolean(this.state[disabledPropName])
+
+    let checkboxLabel = ''
+    if (this.props.assetType !== AssetTypeName.survey) {
+      checkboxLabel = getContextualPermLabel(this.props.assetType, checkboxName)
+    } else {
+      checkboxLabel = CHECKBOX_LABELS[checkboxName]
+    }
+
     return (
       <Checkbox
         checked={this.state[checkboxName]}
         disabled={isDisabled}
         onChange={this.onCheckboxChange.bind(this, checkboxName)}
-        label={CHECKBOX_LABELS[checkboxName]}
+        label={checkboxLabel}
       />
     )
   }

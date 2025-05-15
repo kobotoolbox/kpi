@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import { isSelfOwned } from '#/assetUtils'
+import { AssetTypeName } from '#/constants'
 import type {
   AssetResponse,
   PartialPermission,
@@ -458,6 +459,42 @@ export function getPermLabel(perm: PermissionResponse) {
   // something is terribly wrong. But this case is ~impossible to get, and we
   // mostly have it for TS reasons.
   return '???'
+}
+
+/**
+ * Returns the permission label with the correct suffix depending on the given asset type.
+ *
+ * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
+ */
+export function getContextualPermLabel(
+  assetType: AssetTypeName | undefined,
+  checkboxName: CheckboxNameAll | undefined,
+) {
+  if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
+    switch (assetType) {
+      case AssetTypeName.block:
+        if (checkboxName === 'formView') return t('View block')
+        else if (checkboxName === 'formEdit') return t('Edit block')
+        else return t('Manage block')
+      case AssetTypeName.collection:
+        if (checkboxName === 'formView') return t('View collection')
+        if (checkboxName === 'formEdit') return t('Edit collection')
+        if (checkboxName === 'formManage') return t('Manage collection')
+        break
+      case AssetTypeName.template:
+        if (checkboxName === 'formView') return t('View template')
+        if (checkboxName === 'formEdit') return t('Edit template')
+        if (checkboxName === 'formManage') return t('Manage template')
+        break
+      case AssetTypeName.question:
+        if (checkboxName === 'formView') return t('View question')
+        if (checkboxName === 'formEdit') return t('Edit question')
+        if (checkboxName === 'formManage') return t('Manage question')
+        break
+    }
+  }
+
+  return ''
 }
 
 /**
