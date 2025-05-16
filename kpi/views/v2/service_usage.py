@@ -1,7 +1,5 @@
-from rest_framework import (
-    renderers,
-    viewsets,
-)
+from drf_spectacular.utils import extend_schema
+from rest_framework import renderers, viewsets
 from rest_framework.response import Response
 
 from kpi.permissions import IsAuthenticated
@@ -9,6 +7,9 @@ from kpi.serializers.v2.service_usage import ServiceUsageSerializer
 from kpi.utils.object_permission import get_database_user
 
 
+@extend_schema(
+    tags=['service-usage'],
+)
 class ServiceUsageViewSet(viewsets.GenericViewSet):
     """
     <span class='label label-warning'>⚠️ Deprecated</span>

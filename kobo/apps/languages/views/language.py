@@ -1,14 +1,16 @@
 # coding: utf-8
 from collections import defaultdict
 
-from .base import BaseViewSet
+from drf_spectacular.utils import extend_schema
+
 from ..models.language import Language
-from ..serializers import (
-    LanguageSerializer,
-    LanguageListSerializer,
+from ..serializers import LanguageListSerializer, LanguageSerializer
+from .base import BaseViewSet
+
+
+@extend_schema(
+    tags=['languages'],
 )
-
-
 class LanguageViewSet(BaseViewSet):
     """
 

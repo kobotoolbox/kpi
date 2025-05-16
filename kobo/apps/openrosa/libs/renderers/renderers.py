@@ -1,12 +1,14 @@
 # coding: utf-8
 import io
 
-from django.utils.xmlutils import SimplerXMLGenerator
 from django.utils.encoding import smart_str
+from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework.negotiation import DefaultContentNegotiation
-from rest_framework.renderers import BaseRenderer
-from rest_framework.renderers import TemplateHTMLRenderer
-from rest_framework.renderers import StaticHTMLRenderer
+from rest_framework.renderers import (
+    BaseRenderer,
+    StaticHTMLRenderer,
+    TemplateHTMLRenderer,
+)
 from rest_framework_xml.renderers import XMLRenderer
 
 
@@ -57,8 +59,10 @@ class MediaFileContentNegotiation(DefaultContentNegotiation):
 
 
 class MediaFileRenderer(BaseRenderer):
+    # FIXME: Need to see if format accept a '' instead of a NONE (required for api doc)
+
     media_type = '*/*'
-    format = None
+    format = 'TODO'
     charset = None
     render_style = 'binary'
 
@@ -76,7 +80,7 @@ class XFormListRenderer(BaseRenderer):
     charset = 'utf-8'
     root_node = 'xforms'
     element_node = 'xform'
-    xmlns = "http://openrosa.org/xforms/xformsList"
+    xmlns = 'http://openrosa.org/xforms/xformsList'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         """
@@ -121,9 +125,9 @@ class XFormListRenderer(BaseRenderer):
 
 
 class XFormManifestRenderer(XFormListRenderer):
-    root_node = "manifest"
-    element_node = "mediaFile"
-    xmlns = "http://openrosa.org/xforms/xformsManifest"
+    root_node = 'manifest'
+    element_node = 'mediaFile'
+    xmlns = 'http://openrosa.org/xforms/xformsManifest'
 
 
 class TemplateXMLRenderer(TemplateHTMLRenderer):

@@ -1,4 +1,5 @@
 # coding: utf-8
+from drf_spectacular.utils import extend_schema
 from rest_framework import viewsets
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -11,6 +12,9 @@ from kpi.serializers.v2.asset_version import (
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
+@extend_schema(
+    tags=['versions'],
+)
 class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
                           NestedViewSetMixin, viewsets.ModelViewSet):
     """
