@@ -46,6 +46,10 @@ class ContentField(WritableJSONField):
     pass
 
 
+class CountDailySubmissionResponseField(serializers.JSONField):
+    pass
+
+
 class DataSharingField(WritableJSONField):
     pass
 

@@ -5,6 +5,7 @@ from .fields import (
     AssetSettingsField,
     AssetCloneField,
     AssetUpdateField,
+    CountDailySubmissionResponseField,
 )
 
 AssetCreateRequest = inline_serializer_class(
@@ -25,3 +26,10 @@ AssetUpdateRequest = inline_serializer_class(
     },
 )
 
+AssetCountResponse = inline_serializer_class(
+    name='AssetCountResponse',
+    fields={
+        'daily_submission_count': CountDailySubmissionResponseField(),
+        'total_submission_count': serializers.IntegerField(),
+    }
+)
