@@ -14,6 +14,9 @@ mswAddon.initialize()
 
 const channel = addons.getChannel()
 
+// To make it possible for the code to know if running in the context of Storybook
+window.isStorybook = true
+
 function ColorSchemeWrapper({ children }: { children: JSX.Element }) {
   const { setColorScheme } = useMantineColorScheme()
   const handleColorScheme = (value: string) => setColorScheme(value ? 'dark' : 'light')
