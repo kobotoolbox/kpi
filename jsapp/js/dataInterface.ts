@@ -259,6 +259,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
   _uuid: string
   'formhub/uuid': string
   'meta/instanceID': string
+  /** Most probably you want to use it with `removeDefaultUuidPrefix` */
   'meta/rootUuid': string
   phonenumber?: string
   start?: string

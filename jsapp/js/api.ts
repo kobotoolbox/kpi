@@ -197,16 +197,20 @@ const fetchData = async <T>(
     return Promise.reject(failResponse)
   }
 
-  if (contentType && contentType.indexOf('application/json') !== -1) {
-    if (options?.includeHeaders) {
-      return {
-        headers: response.headers,
-        ...(await response.json()),
-      } as { headers: Headers } & T
-    }
-    return (await response.json()) as Promise<T>
+  let responseJson = {}
+  // There is no response for 204
+  if (response.status !== 204 && contentType && contentType.indexOf('application/json') !== -1) {
+    responseJson = await response.json()
   }
-  return {} as T
+
+  if (options?.includeHeaders) {
+    return {
+      headers: response.headers,
+      ...responseJson,
+    } as { headers: Headers } & T
+  }
+
+  return responseJson as T
 }
 
 /** GET Kobo API at path */
