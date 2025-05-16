@@ -1,47 +1,28 @@
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/
-    </pre>
+## Get user's assets
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/
 
-    Search can be made with `q` parameter.
-    Search filters can be returned with results by passing `metadata=on` to querystring.
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?metadata=on
-    >       {
-    >           "count": 0
-    >           "next": ...
-    >           "previous": ...
-    >           "results": []
-    >           "metadata": {
-    >               "languages": [],
-    >               "countries": [],
-    >               "sectors": [],
-    >               "organizations": []
-    >           }
-    >       }
+Search can be made with `q` parameter.
+Search filters can be returned with results by passing `metadata=on` to querystring.
 
-    Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
-    for more details.
 
-    Results can be sorted with `ordering` parameter.
-    Allowed fields are:
+Results can be sorted with `ordering` parameter, e.g.:
 
-    - `asset_type`
-    - `date_modified`
-    - `name`
-    - `owner__username`
-    - `subscribers_count`
+```shell
+curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
+```
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
 
-    _Note: Collections can be displayed first with parameter `collections_first`_
+Allowed fields are:
 
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+- `asset_type`
+- `date_modified`
+- `name`
+- `owner__username`
+- `subscribers_count`
+
+
+Note: Collections can be displayed first with parameter `collections_first`, e.g.:
+
+```shell
+curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+```

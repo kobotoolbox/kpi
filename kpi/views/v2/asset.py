@@ -75,6 +75,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
+        responses=open_api_200_ok_response(),
     ),
     deployment=extend_schema(
         tags=['Deployment']
@@ -84,12 +85,22 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer,
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     metadata=extend_schema(
         description=read_md('kpi', 'assets/metadata.md'),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer
+        ),
     ),
     update=extend_schema(
         exclude=True
@@ -99,9 +110,11 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),
-        responses=open_api_200_ok_response(AssetSerializer),
+        responses=open_api_200_ok_response(
+            AssetSerializer
+        ),
     ),
-    
+
     table_view=extend_schema(
         description=read_md('kpi', 'assets/table_view.md'),
     ),
