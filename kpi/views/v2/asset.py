@@ -180,7 +180,10 @@ class AssetSchema(AutoSchema):
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),
         responses=open_api_200_ok_response(
-            AssetSerializer
+            AssetSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
         ),
     ),
 
