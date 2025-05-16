@@ -13,7 +13,6 @@ from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.constants import USAGE_LIMIT_MAP
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -244,8 +243,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         assert calculator.get_storage_usage() == 5 * self.expected_file_size()
 
-        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['characters']) == 5473
-        assert calculator.get_nlp_usage_by_type(USAGE_LIMIT_MAP['seconds']) == 4586
+        assert calculator.get_nlp_usage_by_type('mt_characters') == 5473
+        assert calculator.get_nlp_usage_by_type('asr_seconds') == 4586
 
     def test_storage_usage_all_users(self):
         asset_2 = self._create_asset(self.someuser)
@@ -400,10 +399,10 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             return_value=mock_billing_periods,
         ):
             nlp_usage_by_user = get_nlp_usage_for_current_billing_period_by_user_id()
-        assert nlp_usage_by_user[self.someuser.id]['seconds'] == 20
-        assert nlp_usage_by_user[self.anotheruser.id]['seconds'] == 10
-        assert nlp_usage_by_user[self.someuser.id]['characters'] == 40
-        assert nlp_usage_by_user[self.anotheruser.id]['characters'] == 20
+        assert nlp_usage_by_user[self.someuser.id]['asr_seconds'] == 20
+        assert nlp_usage_by_user[self.anotheruser.id]['asr_seconds'] == 10
+        assert nlp_usage_by_user[self.someuser.id]['mt_characters'] == 40
+        assert nlp_usage_by_user[self.anotheruser.id]['mt_characters'] == 20
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
