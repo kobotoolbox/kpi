@@ -9,12 +9,19 @@ from kpi.models.asset import Asset
 from kpi.permissions import ViewSubmissionPermission
 from kpi.serializers.v2.asset_counts import AssetCountsSerializer
 from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import open_api_200_ok_response
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.schema_extensions.v2.assets.serializers import AssetCountResponse
 
 
 @extend_schema(
     tags=['Asset'],
     description=read_md('kpi', 'assets/count.md'),
+    responses=open_api_200_ok_response(
+            AssetCountResponse,
+            raise_access_forbidden=False,
+            validate_payload=False,
+    ),
 )
 class AssetCountsViewSet(
     AssetNestedObjectViewsetMixin,
