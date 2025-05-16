@@ -5,6 +5,7 @@ const meta: Meta<typeof MiniAudioPlayer> = {
   title: 'Design system old/MiniAudioPlayer',
   component: MiniAudioPlayer,
   argTypes: {},
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta

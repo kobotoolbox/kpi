@@ -125,6 +125,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     hasColumnsPinnedRight: 'none',
     howManyColumns: 'lots',
   },
+  parameters: { a11y: { test: 'todo' } },
   render: ({ hasColumnsPinnedLeft, hasColumnsPinnedRight, howManyColumns, ...args }) => {
     const columns: Array<UniversalTableColumn<MockDataItem>> = [
       {

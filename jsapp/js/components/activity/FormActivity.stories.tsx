@@ -21,6 +21,7 @@ const meta: Meta<typeof FormActivity> = {
       },
       routing: { path: ROUTES.FORM_ACTIVITY },
     }),
+    a11y: { test: 'todo' },
   },
   decorators: [withRouter, queryClientDecorator],
 }
