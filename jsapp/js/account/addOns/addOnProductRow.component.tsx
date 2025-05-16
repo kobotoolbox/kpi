@@ -8,7 +8,7 @@ import type { Product, SubscriptionInfo } from '#/account/stripe.types'
 import Button from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
 
-interface addOnProductRowProps {
+interface AddOnProductRowProps {
   products: Product[]
   isBusy: boolean
   setIsBusy: (value: boolean) => void
@@ -22,7 +22,7 @@ export const AddOnProductRow = ({
   setIsBusy,
   subscribedAddOns,
   organization,
-}: addOnProductRowProps) => {
+}: AddOnProductRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
   const displayPrice = useDisplayPrice(selectedPrice)
