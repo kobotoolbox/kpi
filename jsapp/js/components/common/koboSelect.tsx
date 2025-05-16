@@ -80,7 +80,6 @@ interface KoboSelectProps {
    * option id or `null` when cleared.
    */
   onChange: (newSelectedOption: string | null) => void
-  'data-cy'?: string
   placeholder?: string
   error?: string
   className?: string
@@ -321,7 +320,6 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           hideOnMenuClick
           triggerContent={this.renderTrigger()}
           menuContent={this.renderMenu()}
-          data-cy={this.props['data-cy']}
         />
 
         {this.props.error && <bem.KoboSelect__error>{this.props.error}</bem.KoboSelect__error>}

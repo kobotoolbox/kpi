@@ -40,7 +40,6 @@ interface KoboPromptProps {
   children?: React.ReactNode
   /** A list of buttons to be displayed on the bottom right of the prompt. */
   buttons: KoboPromptButton[]
-  'data-cy'?: string
 }
 
 /**
@@ -52,7 +51,6 @@ export default function KoboPrompt(props: KoboPromptProps) {
       isOpen={props.isOpen}
       onRequestClose={props.onRequestClose}
       isDismissableByDefaultMeans={props.isDismissableByDefaultMeans}
-      data-cy={props['data-cy']}
     >
       <KoboModalHeader icon={props.titleIcon} iconColor={props.titleIconColor}>
         {props.title}

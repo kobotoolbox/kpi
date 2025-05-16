@@ -10,7 +10,6 @@ bem.KoboImage__image = makeBem(bem.KoboImage, 'image', 'img')
 
 interface KoboImageProps {
   src: string
-  'data-cy'?: string
 }
 
 interface KoboImageState {
@@ -52,7 +51,7 @@ class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
       <bem.KoboImage>
         {this.state.isLoading && <LoadingSpinner message={false} />}
 
-        {!this.state.isLoading && <bem.KoboImage__image src={this.props.src} data-cy={this.props['data-cy']} />}
+        {!this.state.isLoading && <bem.KoboImage__image src={this.props.src} />}
       </bem.KoboImage>
     )
   }

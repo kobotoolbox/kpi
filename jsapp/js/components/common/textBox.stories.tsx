@@ -62,7 +62,6 @@ const meta: Meta<typeof TextBox> = {
     className: {
       description: 'Adds custom class name to topmost wrapper',
     },
-    'data-cy': { description: 'Cypress identifier' },
   },
   parameters: {
     docs: {

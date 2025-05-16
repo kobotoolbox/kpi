@@ -32,7 +32,6 @@
 
 # Default owner
 /.storybook/                        @magicznyleszek
-/cypress/                           @magicznyleszek
 /jsapp/                             @magicznyleszek
 /patches/                           @p2edwards
 /static/                            @magicznyleszek
