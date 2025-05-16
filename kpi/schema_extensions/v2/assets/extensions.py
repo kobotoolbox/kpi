@@ -4,7 +4,7 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ASSET_URL_SCHEMA
+from .schema import ASSET_NAME, ASSET_TYPE, ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_URL_SCHEMA
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
@@ -56,6 +56,46 @@ class AssignablePermissionFieldExtension(OpenApiSerializerFieldExtension):
                 properties={}
             )
         )
+
+
+class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
+
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetCreateRequest'  # noqa
+
+    def map_serializer(self, auto_schema, direction):
+
+        return {
+            'oneOf': [
+                build_object_type(
+                    properties={
+                        'name': ASSET_NAME,
+                        'clone_from': ASSET_CLONE_FROM,
+                        'asset_type': ASSET_TYPE,
+                    }
+                ),
+                build_object_type(
+                    properties={
+                        'name': ASSET_NAME,
+                        'settings': ASSET_SETTINGS,
+                        'asset_type': ASSET_TYPE,
+                    }
+                ),
+            ]
+        }
+
+
+class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetSettingsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return ASSET_SETTINGS
+
+
+class AssetCloneFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetCloneField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return ASSET_CLONE_FROM
 
 
 class ChildrenFieldExtension(OpenApiSerializerFieldExtension):

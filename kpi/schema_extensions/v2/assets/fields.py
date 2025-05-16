@@ -22,6 +22,14 @@ class AssetURLField(serializers.URLField):
     pass
 
 
+class AssetSettingsField(serializers.JSONField):
+    pass
+
+
+class AssetCloneField(serializers.CharField):
+    pass
+
+
 class AssignablePermissionField(serializers.SerializerMethodField):
     pass
 

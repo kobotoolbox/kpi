@@ -12,7 +12,7 @@ from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-
+from drf_spectacular.openapi import AutoSchema
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
@@ -51,14 +51,77 @@ from kpi.serializers.v2.asset import (
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response
 )
+
 from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+
+
+from kpi.schema_extensions.v2.assets.serializers import AssetCreateRequest
+
+
+class AssetSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetSnapshotViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_TYPE, ASSET_NAME
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_assets_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAsset': {
+                    'value': {
+                        'name': generate_example_from_schema(ASSET_NAME),
+                        'settings': generate_example_from_schema(
+                            ASSET_SETTINGS
+                        ),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE)
+                    },
+                    'summary': 'Creating an asset',
+                },
+                'UsingSource': {
+                    'value': {
+                        'name': generate_example_from_schema(ASSET_NAME),
+                        'clone_from': generate_example_from_schema(
+                            ASSET_CLONE_FROM
+                        ),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE)
+                    },
+                    'summary': 'Cloning an asset',
+                },
+            }
+        return operation
+
+
 
 @extend_schema(
     tags=['Asset'],
@@ -72,6 +135,12 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
     ),
     create=extend_schema(
         description=read_md('kpi', 'assets/create.md'),
+        request={'application/json': AssetCreateRequest},
+        responses=open_api_200_ok_response(
+            AssetSerializer,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+        )
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
@@ -200,7 +269,7 @@ class AssetViewSet(
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
-
+    schema = AssetSchema()
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
