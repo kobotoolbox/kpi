@@ -49,7 +49,7 @@ from kpi.serializers.v2.asset import (
     AssetSerializer,
 )
 from kpi.utils.schema_extensions.response import (
-    open_api_200_ok_response
+    open_api_200_ok_response, open_api_204_empty_response
 )
 
 from kpi.serializers.v2.deployment import DeploymentSerializer
@@ -147,7 +147,10 @@ class AssetSchema(AutoSchema):
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
-        responses=open_api_200_ok_response(),
+        responses=open_api_204_empty_response(
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     deployment=extend_schema(
         tags=['Deployment']
