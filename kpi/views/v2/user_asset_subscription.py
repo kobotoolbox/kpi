@@ -28,23 +28,38 @@ from kpi.utils.schema_extensions.response import (
         responses=open_api_201_created_response(
             AssetSubscriptionResponse,
             media_type='application/json',
+            require_auth=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
         ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/delete.md'),
-        responses=open_api_204_empty_response(),
+        responses=open_api_204_empty_response(
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/list.md'),
         responses=open_api_200_ok_response(
             AssetSubscriptionResponse,
             media_type='application/json',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
+            raise_not_found=False,
         ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'asset_subscriptions/retrieve.md'),
         responses=open_api_200_ok_response(
-            AssetSubscriptionResponse, media_type='application/json'
+            AssetSubscriptionResponse,
+            media_type='application/json',
+            require_auth=False,
+            validate_payload=False,
+            raise_access_forbidden=False,
         ),
     ),
     update=extend_schema(

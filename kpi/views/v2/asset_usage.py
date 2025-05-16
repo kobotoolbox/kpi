@@ -19,6 +19,9 @@ from kpi.utils.schema_extensions.response import open_api_200_ok_response
     responses=open_api_200_ok_response(
         AssetUsageResponse,
         media_type='application/json',
+        validate_payload=False,
+        raise_access_forbidden=False,
+        raise_not_found=False,
     ),
 )
 class AssetUsageViewSet(ListModelMixin, viewsets.GenericViewSet):
