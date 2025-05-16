@@ -16,6 +16,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kpi.utils.mongo_helper import MongoHelper
 
 
 class Command(BaseCommand):

@@ -15,3 +15,7 @@ f82d494ab36f502aa35a7880b726c6df89738754
 
 # Run prettier on miniAudioPlayer
 2e65d24e8595f7732670ab7c378782fceeda27b3
+
+# Biome
+d5796bd4e412aac55c519bf629ae650ff25af4d5 # 2025-03-05 13:58:44 +0200 - style(frontend): organize imports with Biome TASK-1640 (#5568)
+06c05bb1036bf40675cb358bdba99392b390d45e # 2025-02-10 16:08:52 +0200 - style(frontend): format with Biome and enforce in CI (#5498)
