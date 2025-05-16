@@ -24,7 +24,6 @@ const AddOnList = (props: {
 }) => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>([])
   const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>([])
-  const [activeSubscriptions, setActiveSubscriptions] = useState<SubscriptionInfo[]>([])
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([])
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
@@ -55,7 +54,6 @@ const AddOnList = (props: {
     () => {
       setSubscribedAddOns(subscriptionStore.addOnsResponse)
       setSubscribedPlans(subscriptionStore.planResponse)
-      setActiveSubscriptions(subscriptionStore.activeSubscriptions)
     },
     [],
   )
@@ -153,7 +151,6 @@ const AddOnList = (props: {
               isBusy={props.isBusy}
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
               organization={props.organization}
             />
           )}
@@ -164,7 +161,6 @@ const AddOnList = (props: {
               isBusy={props.isBusy}
               setIsBusy={props.setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              activeSubscriptions={activeSubscriptions}
               organization={props.organization}
             />
           )}

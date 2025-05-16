@@ -5,7 +5,6 @@ import type { Organization } from '#/account/organization/organizationQuery'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-import { isChangeScheduled } from '#/account/stripe.utils'
 import Button from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
 
@@ -13,7 +12,6 @@ interface addOnProductRowProps {
   products: Product[]
   isBusy: boolean
   setIsBusy: (value: boolean) => void
-  activeSubscriptions: SubscriptionInfo[]
   subscribedAddOns: SubscriptionInfo[]
   organization: Organization
 }
@@ -22,7 +20,6 @@ export const AddOnProductRow = ({
   products,
   isBusy,
   setIsBusy,
-  activeSubscriptions,
   subscribedAddOns,
   organization,
 }: addOnProductRowProps) => {
@@ -52,7 +49,6 @@ export const AddOnProductRow = ({
   // will only end up being true/relevant for recurring addons
   const userAlreadyHasCategoryProduct = useMemo(
     () =>
-      isChangeScheduled(selectedPrice, activeSubscriptions) ||
       subscribedAddOns.some((subscription) =>
         products.map((product) => product.id).includes(subscription.items[0].price.product.id),
       ),
