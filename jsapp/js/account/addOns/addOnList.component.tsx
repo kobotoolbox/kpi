@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-import { OneTimeAddOnRow } from '#/account/addOns/oneTimeAddOnRow.component'
+import { AddOnProductRow } from '#/account/addOns/addOnProductRow.component'
 import type { Organization } from '#/account/organization/organizationQuery'
 import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/stripe.types'
 import { isAddonProduct } from '#/account/stripe.utils'
@@ -147,7 +147,7 @@ const AddOnList = (props: {
         </caption>
         <tbody>
           {showRecurringAddons && (
-            <OneTimeAddOnRow
+            <AddOnProductRow
               key={recurringAddOnProducts.map((product) => product.id).join('-')}
               products={recurringAddOnProducts}
               isBusy={props.isBusy}
@@ -158,7 +158,7 @@ const AddOnList = (props: {
             />
           )}
           {!!oneTimeAddOnProducts.length && (
-            <OneTimeAddOnRow
+            <AddOnProductRow
               key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
               products={oneTimeAddOnProducts}
               isBusy={props.isBusy}
