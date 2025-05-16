@@ -6,6 +6,7 @@ from rest_framework import serializers
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import ASSET_URL_SCHEMA
 
+
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
 
@@ -338,10 +339,12 @@ class SummaryFieldExtension(OpenApiSerializerFieldExtension):
             }
         )
 
+
 class VersionCountFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.VersionCountField'
     def map_serializer_field(self, auto_schema, direction):
         return build_basic_type(OpenApiTypes.INT)
+
 
 class XLSLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XLSLinkField'

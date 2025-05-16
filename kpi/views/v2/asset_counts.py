@@ -8,11 +8,13 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.models.asset import Asset
 from kpi.permissions import ViewSubmissionPermission
 from kpi.serializers.v2.asset_counts import AssetCountsSerializer
+from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['counts'],
+    tags=['Asset'],
+    description=read_md('kpi', 'assets/count.md'),
 )
 class AssetCountsViewSet(
     AssetNestedObjectViewsetMixin,
