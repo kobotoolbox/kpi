@@ -104,6 +104,7 @@ def open_api_200_ok_response(
         require_auth=require_auth,
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
         **kwargs,
     )
 
@@ -125,6 +126,7 @@ def open_api_201_created_response(
         require_auth=require_auth,
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
         **kwargs,
     )
 
@@ -146,6 +148,7 @@ def open_api_202_accepted_response(
         require_auth=require_auth,
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
         **kwargs,
     )
 
@@ -166,6 +169,8 @@ def open_api_204_empty_response(
         require_auth=require_auth,
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
+        **kwargs,
     )
 
 
@@ -186,5 +191,6 @@ def open_api_302_found(
         require_auth=require_auth,
         validate_payload=validate_payload,
         raise_access_forbidden=raise_access_forbidden,
+        raise_not_found=raise_not_found,
         **kwargs,
     )
