@@ -62,7 +62,7 @@ class DeployedVersionField(PaginatedApiField):
     pass
 
 
-class DownloadsField(WritableJSONField):
+class DownloadsField(serializers.SerializerMethodField):
     pass
 
 
