@@ -30,6 +30,10 @@ class AssetCloneField(serializers.CharField):
     pass
 
 
+class AssetUpdateField(serializers.JSONField):
+    pass
+
+
 class AssignablePermissionField(serializers.SerializerMethodField):
     pass
 

@@ -63,7 +63,10 @@ from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
-from kpi.schema_extensions.v2.assets.serializers import AssetCreateRequest
+from kpi.schema_extensions.v2.assets.serializers import (
+    AssetCreateRequest,
+    AssetUpdateRequest,
+)
 
 
 class AssetSchema(AutoSchema):
@@ -167,8 +170,10 @@ class AssetSchema(AutoSchema):
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
+        request={'application/json': AssetUpdateRequest},
         responses=open_api_200_ok_response(
-            AssetSerializer
+            AssetSerializer,
+            raise_access_forbidden=False,
         ),
     ),
     update=extend_schema(

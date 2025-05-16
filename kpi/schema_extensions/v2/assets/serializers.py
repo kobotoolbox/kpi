@@ -4,6 +4,7 @@ from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetSettingsField,
     AssetCloneField,
+    AssetUpdateField,
 )
 
 AssetCreateRequest = inline_serializer_class(
@@ -15,3 +16,12 @@ AssetCreateRequest = inline_serializer_class(
         'asset_type': serializers.CharField(),
     },
 )
+
+
+AssetUpdateRequest = inline_serializer_class(
+    name='AssetUpdateRequest',
+    fields={
+        'data_sharing': AssetUpdateField(),
+    },
+)
+

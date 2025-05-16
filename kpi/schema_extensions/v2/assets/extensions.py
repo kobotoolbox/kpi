@@ -98,6 +98,18 @@ class AssetCloneFieldExtension(OpenApiSerializerFieldExtension):
         return ASSET_CLONE_FROM
 
 
+class AssetUpdateRequestFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AssetUpdateField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'enabled': build_basic_type(OpenApiTypes.BOOL),
+                'fields': build_array_type(schema={}),
+            }
+        )
+
+
 class ChildrenFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.ChildrenField'
 
