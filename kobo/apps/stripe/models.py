@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from djstripe.enums import PaymentIntentStatus
 from djstripe.models import Charge, Price, Subscription
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.constants import ACTIVE_STRIPE_STATUSES
@@ -308,3 +309,15 @@ class PlanAddOn(models.Model):
 @receiver(post_save, sender=Charge)
 def make_add_on_for_charge(sender, instance, created, **kwargs):
     PlanAddOn.create_or_update_one_time_add_on(instance)
+
+
+class ExceededQuotaCounter(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='exceeded_quota_counters',
+        on_delete=models.CASCADE,
+    )
+    days = models.PositiveSmallIntegerField(default=0)
+    quota_type = models.CharField(choices=UsageType.choices, max_length=20)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
