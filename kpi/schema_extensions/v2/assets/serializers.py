@@ -6,6 +6,7 @@ from .fields import (
     AssetCloneField,
     AssetUpdateField,
     CountDailySubmissionResponseField,
+    ContentDataField,
     ReportListField,
     ReportURLField,
 )
@@ -34,6 +35,16 @@ AssetCountResponse = inline_serializer_class(
     fields={
         'daily_submission_count': CountDailySubmissionResponseField(),
         'total_submission_count': serializers.IntegerField(),
+    }
+)
+
+
+ContentResponse = inline_serializer_class(
+    name='ContentResponse',
+    fields={
+        'kind': serializers.CharField(),
+        'uid': serializers.CharField(),
+        'data': ContentDataField(),
     }
 )
 

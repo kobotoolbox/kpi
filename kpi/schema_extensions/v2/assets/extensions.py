@@ -150,6 +150,19 @@ class CountDailySubmissionResponseFieldExtension(OpenApiSerializerFieldExtension
             }
         )
 
+
+class ContentDataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.ContentDataField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'survey': build_array_type(schema={}),
+                'settings': build_object_type(properties={}),
+            }
+        )
+
+
 class DataFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.DataURLField'
 
