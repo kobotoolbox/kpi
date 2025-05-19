@@ -1,0 +1,48 @@
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  check_date:
+    runs-on: ubuntu-22.04
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+
+      - id: should_run
+        continue-on-error: true
+        name: check latest commit is less than a day
+        if: ${{ github.event_name == 'schedule' }}
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+
+  chromatic:
+    name: Run Chromatic
+    runs-on: ubuntu-22.04
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.17.0
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          # Enable TurboSnap™
+          onlyChanged: true
+          # Builds that contain visual changes need to be verified. The task
+          # will fail if there are any. Once you accept all the changes (on the
+          # chromatic website), re-run the workflow, and the chromatic job will
+          # pass.
+          exitZeroOnChanges: false
+
