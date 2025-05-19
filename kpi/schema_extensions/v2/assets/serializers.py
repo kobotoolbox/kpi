@@ -69,3 +69,11 @@ ReportResponse = inline_serializer_class(
         'list': ReportListField(),
     }
 )
+
+
+HashResponse = inline_serializer_class(
+    name='HashResponse',
+    fields={
+        'hash': serializers.CharField(),
+    }
+)
