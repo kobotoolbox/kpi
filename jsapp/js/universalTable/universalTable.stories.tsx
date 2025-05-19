@@ -46,7 +46,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     const columns: Array<UniversalTableColumn<MockDataItem>> = getMockDataColumns(
       hasColumnsPinnedLeft,
       hasColumnsPinnedRight,
-      howManyColumns === 'lots'
+      howManyColumns === 'lots',
     )
     const dataLimited = mockData.slice(0, args.pageSize)
     return <UniversalTable {...args} columns={columns} data={dataLimited} />
