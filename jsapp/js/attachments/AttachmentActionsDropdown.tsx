@@ -30,7 +30,7 @@ interface AttachmentActionsDropdownProps {
 export default function AttachmentActionsDropdown(props: AttachmentActionsDropdownProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
-  const removeAttachmentMutation = useRemoveAttachment(props.asset.uid, props.submissionData['meta/rootUuid'])
+  const removeAttachmentMutation = useRemoveAttachment(props.asset.uid)
   const isFeatureEnabled = useFeatureFlag(FeatureFlag.removingAttachmentsEnabled)
 
   const attachment = props.submissionData._attachments.find((item) => item.uid === props.attachmentUid)
