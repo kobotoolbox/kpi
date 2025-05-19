@@ -138,6 +138,14 @@ class ReportStyleField(WritableJSONField):
     pass
 
 
+class ReportListField(serializers.JSONField):
+    pass
+
+
+class ReportURLField(serializers.URLField):
+    pass
+
+
 class SettingsField(WritableJSONField):
     pass
 

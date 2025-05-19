@@ -65,13 +65,13 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
-    AssetUpdateRequest,
+    AssetUpdateRequest, ReportResponse,
 )
 
 
 class AssetSchema(AutoSchema):
     """
-    Custom schema used to inject OpenAPI examples for AssetSnapshotViewSet at runtime.
+    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
 
     We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
     directly for these examples because the values rely on variables
@@ -85,7 +85,7 @@ class AssetSchema(AutoSchema):
     when all apps and routes are fully initialized. This ensures a clean, safe injection
     of complex or reverse-dependent examples.
 
-    This class matches the `operationId` for the `POST /asset_snapshots/` endpoint
+    This class matches the `operationId` for the `POST /assets/` endpoint
     to inject multiple request examples, such as referencing an asset or a source.
     """
 
@@ -184,6 +184,13 @@ class AssetSchema(AutoSchema):
     ),
     reports=extend_schema(
         description=read_md('kpi', 'assets/reports.md'),
+        request={},
+        responses=open_api_200_ok_response(
+            ReportResponse(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),

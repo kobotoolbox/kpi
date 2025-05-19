@@ -362,6 +362,41 @@ class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
+class ReportListFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.ReportListField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_object_type(
+                properties={
+                    'name': build_basic_type(OpenApiTypes.STR),
+                    'row': build_object_type(
+                        properties={
+                            'type': build_basic_type(OpenApiTypes.STR),
+                        },
+                    ),
+                    'data': build_object_type(
+                        properties={
+                            'total_count': build_basic_type(OpenApiTypes.INT),
+                            'not_provided': build_basic_type(OpenApiTypes.INT),
+                            'provided': build_basic_type(OpenApiTypes.INT),
+                            'show_graph': build_basic_type(OpenApiTypes.BOOL)
+                        }
+                    ),
+                    'kuid': build_basic_type(OpenApiTypes.STR),
+                    'style': build_object_type(properties={}),
+                }
+            )
+        )
+
+
+class ReportURLFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.ReportURLField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_url_type(viewname='api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
+
+
 class SettingsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.SettingsField'
     def map_serializer_field(self, auto_schema, direction):
