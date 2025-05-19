@@ -4,7 +4,7 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .schema import ASSET_NAME, ASSET_TYPE, ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_URL_SCHEMA
+from .schema import ASSET_NAME, ASSET_TYPE, ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_URL_SCHEMA, BULK_ASSET_UIDS, BULK_ACTION, BULK_CONFIRM
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
@@ -60,7 +60,7 @@ class AssignablePermissionFieldExtension(OpenApiSerializerFieldExtension):
 
 class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
 
-    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetCreateRequest'  # noqa
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetCreateRequest'
 
     def map_serializer(self, auto_schema, direction):
 
@@ -82,6 +82,59 @@ class AssetCreateRequestSerializerExtension(OpenApiSerializerFieldExtension):
                 ),
             ]
         }
+
+
+class BulkPayloadSerializerExtension(OpenApiSerializerFieldExtension):
+
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.AssetBulkRequest'
+
+    def map_serializer(self, auto_schema, direction):
+
+        return {
+            'oneOf': [
+                build_object_type(
+                    properties={
+                        'asset_uids': BULK_ASSET_UIDS,
+                        'action': BULK_ACTION,
+                    }
+                ),
+                build_object_type(
+                    properties={
+                        'confirm': BULK_CONFIRM,
+                        'action': BULK_ACTION,
+                    }
+                ),
+            ]
+        }
+
+
+class BulkActionFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkActionField'
+
+    def map_serializer(self, auto_schema, direction):
+        return build_object_type(properties={})
+
+
+class BulkAssetUidsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkAssetUidsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'asset_uids': build_array_type(
+                    schema=build_object_type(
+                        properties={},
+                    ),
+                ),
+            }
+        )
+
+
+class BulkConfirmFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.serializers.BulkAssetConfirmField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_basic_type(OpenApiTypes.BOOL)
 
 
 class AssetSettingsFieldExtension(OpenApiSerializerFieldExtension):

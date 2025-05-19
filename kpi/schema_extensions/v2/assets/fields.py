@@ -50,6 +50,17 @@ class ContentDataField(WritableJSONField):
     pass
 
 
+class BulkActionField(WritableJSONField):
+    pass
+
+
+class BulkAssetUidsField(serializers.JSONField):
+    pass
+
+
+class BulkAssetConfirmField(serializers.BooleanField):
+    pass
+
 class CountDailySubmissionResponseField(serializers.JSONField):
     pass
 

@@ -9,6 +9,9 @@ from .fields import (
     ContentDataField,
     ReportListField,
     ReportURLField,
+    BulkActionField,
+    BulkAssetUidsField,
+    BulkAssetConfirmField,
 )
 
 AssetCreateRequest = inline_serializer_class(
@@ -35,6 +38,15 @@ AssetCountResponse = inline_serializer_class(
     fields={
         'daily_submission_count': CountDailySubmissionResponseField(),
         'total_submission_count': serializers.IntegerField(),
+    }
+)
+
+AssetBulkRequest = inline_serializer_class(
+    name='AssetBulkRequest',
+    fields={
+        'asset_uids': BulkAssetUidsField(),
+        'confirm': BulkAssetConfirmField(),
+        'action': BulkActionField(),
     }
 )
 

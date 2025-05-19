@@ -65,7 +65,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
-    AssetUpdateRequest, ReportResponse, ContentResponse,
+    AssetUpdateRequest, ReportResponse, ContentResponse, AssetBulkRequest,
 )
 
 
@@ -91,7 +91,16 @@ class AssetSchema(AutoSchema):
 
     def get_operation(self, *args, **kwargs):
 
-        from kpi.schema_extensions.v2.assets.schema import ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_TYPE, ASSET_NAME
+        from kpi.schema_extensions.v2.assets.schema import (
+            ASSET_CLONE_FROM,
+            ASSET_SETTINGS,
+            ASSET_TYPE,
+            ASSET_NAME,
+            BULK_ASSET_UIDS,
+            BULK_CONFIRM,
+            BULK_ACTION,
+        )
+
 
         operation = super().get_operation(*args, **kwargs)
 
@@ -122,8 +131,27 @@ class AssetSchema(AutoSchema):
                     'summary': 'Cloning an asset',
                 },
             }
-        return operation
 
+        if operation.get('operationId') == 'api_v2_assets_bulk_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAssets': {
+                    'value': {
+                        'asset_uids': generate_example_from_schema(BULK_ASSET_UIDS),
+                        'action': generate_example_from_schema(BULK_ACTION),
+                    },
+                    'summary': 'Perform action on one or more asset',
+                },
+                'UsingConfirm': {
+                    'value': {
+                        'confirm': generate_example_from_schema(BULK_CONFIRM),
+                        'action': generate_example_from_schema(BULK_ACTION),
+                    },
+                    'summary': 'Perform bulk on ALL asset',
+                },
+            }
+
+        return operation
 
 @extend_schema(
     tags=['Asset'],
@@ -131,6 +159,12 @@ class AssetSchema(AutoSchema):
 @extend_schema_view(
     bulk=extend_schema(
         description=read_md('kpi', 'assets/bulk.md'),
+        responses=open_api_200_ok_response(
+            # BulkRequest(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     content=extend_schema(
         description=read_md('kpi', 'assets/content.md'),
@@ -207,7 +241,6 @@ class AssetSchema(AutoSchema):
             validate_payload=False,
         ),
     ),
-
     table_view=extend_schema(
         description=read_md('kpi', 'assets/table_view.md'),
     ),
