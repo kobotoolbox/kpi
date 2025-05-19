@@ -5,8 +5,8 @@ import type { Organization } from '#/account/organization/organizationQuery'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
+import KoboSelect3 from '#/components/special/koboAccessibleSelect'
 import Button from '#/components/common/ButtonNew'
-import { Select } from '#/components/common/Select'
 
 interface AddOnProductRowProps {
   products: Product[]
@@ -112,22 +112,20 @@ export const AddOnProductRow = ({
       </td>
       <td className={styles.price}>
         <div className={styles.oneTime}>
-          <Select
-            size='sm'
-            className={styles.selectProducts}
+          <KoboSelect3
+            size={'fit'}
             name='products'
-            data={products.map((product) => {
+            options={products.map((product) => {
               return { value: product.id, label: product.name }
             })}
-            onChange={(productId: string | null) => onChangeProduct(productId)}
+            onChange={(productId) => onChangeProduct(productId as string)}
             value={selectedProduct.id}
           />
           {displayName === 'File Storage' && (
-            <Select
-              size='sm'
-              className={styles.selectPrices}
-              name='prices'
-              data={priceOptions}
+            <KoboSelect3
+              size={'fit'}
+              name={t('prices')}
+              options={priceOptions}
               onChange={onChangePrice}
               value={selectedPrice.id}
             />
