@@ -328,6 +328,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
+        required=False,
+        allow_null=True,
     )
     assignable_permissions = AssignablePermissionField()
     permissions = PermissionsField()
