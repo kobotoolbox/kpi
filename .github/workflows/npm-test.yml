@@ -5,8 +5,6 @@ jobs:
   read-playwright-version:
     name: 'Read Playwright Version'
     runs-on: ubuntu-22.04
-    inputs:
-      no-version-found: 'error'
     outputs:
       playwright-version: ${{ steps.get_playwright_version.outputs.playwright-version }}
     steps:
