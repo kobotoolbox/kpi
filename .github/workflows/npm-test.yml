@@ -2,8 +2,22 @@ name: npm-test
 
 on: workflow_call
 jobs:
+  read-playwright-version:
+    name: 'Read Playwright Version'
+    runs-on: ubuntu-22.04
+    inputs:
+      no-version-found: 'error'
+    outputs:
+      playwright-version: ${{ steps.get_playwright_version.outputs.playwright-version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: get_playwright_version
+        uses: eviden-actions/get-playwright-version@v1
+
   build:
     runs-on: ubuntu-22.04
+
+    needs: read-playwright-version
 
     strategy:
 
@@ -74,16 +88,12 @@ jobs:
         run: npx jest --config ./jsapp/jest/unit.config.ts --ci
 
       # Install Playwright (with cache) for Storybook tests
-      - name: "Playwright: get installed version"
-        id: playwright-version
-        run: echo "PLAYWRIGHT_VERSION=$(jq -r '.devDependencies["@playwright/test"]' package.json | sed 's/^[^0-9]*//')" >> $GITHUB_ENV
-
       - name: "Playwright: cache binaries"
         uses: actions/cache@v4
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: 'playwright-browsers-${{ github.head_ref }}-${{ env.PLAYWRIGHT_VERSION }}'
+          key: 'playwright-browsers-${{ github.head_ref }}-${{ needs.read-playwright-version.outputs.playwright-version }}'
 
       - run: npx playwright install --with-deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'
