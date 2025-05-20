@@ -1,1 +1,1 @@
-## Get an user's current asset
+## Get a user's current asset

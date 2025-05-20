@@ -1,4 +1,4 @@
-## Data sharing
+## Share a user's asset
 
 Control sharing of submission data from this project to other projects
 
