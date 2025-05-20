@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import UniversalTable, { type UniversalTableColumn } from './universalTable.component'
-import { type MockDataItem, getMockDataColumns, mockData } from './universalTable.mocks'
+import {
+  type UniversalTableExampleDataItem,
+  createUniversalTableExampleDataColumns,
+  mockData,
+} from './universalTable.mocks'
 
 interface CustomArgs {
   hasColumnsPinnedLeft: 'none' | 'one' | 'multiple'
@@ -43,7 +47,7 @@ const meta: Meta<UniversalTablePropsAndCustomArgs> = {
     howManyColumns: 'lots',
   },
   render: ({ hasColumnsPinnedLeft, hasColumnsPinnedRight, howManyColumns, ...args }) => {
-    const columns: Array<UniversalTableColumn<MockDataItem>> = getMockDataColumns(
+    const columns: Array<UniversalTableColumn<UniversalTableExampleDataItem>> = createUniversalTableExampleDataColumns(
       hasColumnsPinnedLeft,
       hasColumnsPinnedRight,
       howManyColumns === 'lots',

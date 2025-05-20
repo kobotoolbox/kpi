@@ -13,7 +13,7 @@ import type { UniversalTableColumn } from './universalTable.component'
  * Note: if we install newer version of the package, there is a chance that given seeds would produce different results
  * than now.
  */
-function getMockDataItem(index: number): MockDataItem {
+function createUniversalTableExampleData(index: number): UniversalTableExampleDataItem {
   const activities = ['created', 'updated', 'deleted', 'added', 'removed', 'reversed', 'rotated']
   const sources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux', 'Firefox', 'Safari', 'Gossip']
 
@@ -37,12 +37,12 @@ function getMockDataItem(index: number): MockDataItem {
   }
 }
 
-export function getMockDataColumns(
+export function createUniversalTableExampleDataColumns(
   hasColumnsPinnedLeft: 'none' | 'one' | 'multiple',
   hasColumnsPinnedRight: 'none' | 'one' | 'multiple',
   hasManyColumns: boolean,
 ) {
-  const columns: Array<UniversalTableColumn<MockDataItem>> = [
+  const columns: Array<UniversalTableColumn<UniversalTableExampleDataItem>> = [
     {
       key: 'date_created',
       label: 'Date created',
@@ -67,7 +67,9 @@ export function getMockDataColumns(
       label: 'Your name',
       // is pinned when "multiple" selected
       isPinned: hasColumnsPinnedRight === 'multiple' ? ('right' as ColumnPinningPosition) : false,
-      cellFormatter: (dataItem: MockDataItem) => <Avatar size='s' username={dataItem.your_name} isUsernameVisible />,
+      cellFormatter: (dataItem: UniversalTableExampleDataItem) => (
+        <Avatar size='s' username={dataItem.your_name} isUsernameVisible />
+      ),
     },
   ]
 
@@ -89,7 +91,7 @@ export function getMockDataColumns(
   return columns
 }
 
-export interface MockDataItem {
+export interface UniversalTableExampleDataItem {
   date_created: string
   ip: string
   age: number
@@ -106,4 +108,4 @@ export interface MockDataItem {
   g: string
 }
 
-export const mockData = Array.from({ length: 101 }, (_, index) => getMockDataItem(index))
+export const mockData = Array.from({ length: 101 }, (_, index) => createUniversalTableExampleData(index))
