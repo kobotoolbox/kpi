@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -178,6 +178,14 @@ class AssetSchema(AutoSchema):
     create=extend_schema(
         description=read_md('kpi', 'assets/create.md'),
         request={'application/json': AssetCreateRequest},
+        parameters=[OpenApiParameter(
+            name='format',
+            location=OpenApiParameter.QUERY,
+            required=False,
+            style='form',
+            explode=False,
+            enum=['json'],
+        )],
         responses=open_api_200_ok_response(
             AssetSerializer(),
             raise_not_found=False,
@@ -186,6 +194,14 @@ class AssetSchema(AutoSchema):
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
+        parameters=[OpenApiParameter(
+            name='format',
+            location=OpenApiParameter.QUERY,
+            required=False,
+            style='form',
+            explode=False,
+            enum=['json'],
+        )],
         responses=open_api_204_empty_response(
             raise_access_forbidden=False,
             validate_payload=False,
@@ -203,6 +219,14 @@ class AssetSchema(AutoSchema):
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
+        parameters=[OpenApiParameter(
+            name='format',
+            location=OpenApiParameter.QUERY,
+            required=False,
+            style='form',
+            explode=False,
+            enum=['json'],
+        )],
         responses=open_api_200_ok_response(
             AssetSerializer,
             require_auth=False,
@@ -224,6 +248,14 @@ class AssetSchema(AutoSchema):
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
         request={'application/json': AssetUpdateRequest},
+        parameters=[OpenApiParameter(
+            name='format',
+            location=OpenApiParameter.QUERY,
+            required=False,
+            style='form',
+            explode=False,
+            enum=['json'],
+        )],
         responses=open_api_200_ok_response(
             AssetSerializer(),
             raise_access_forbidden=False,
