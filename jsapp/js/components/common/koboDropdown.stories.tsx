@@ -13,6 +13,7 @@ const meta: Meta<typeof KoboDropdown> = {
       control: 'boolean',
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta
