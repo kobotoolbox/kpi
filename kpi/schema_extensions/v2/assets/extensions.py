@@ -406,7 +406,6 @@ class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-
 class PermissionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.PermissionsField'
 
@@ -582,4 +581,3 @@ class XLSLinkFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('api_v2:asset-xls', uid='aBeA23YCYjkGTFvYVHuAyU')
-

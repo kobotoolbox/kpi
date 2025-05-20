@@ -111,4 +111,3 @@ AssetXFormResponse = inline_serializer_class(
         'html': XFormField(),
     },
 )
-
