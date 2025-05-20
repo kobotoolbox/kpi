@@ -1,3 +1,13 @@
+from django.db import models
+
+
+class UsageType(models.TextChoices):
+    SUBMISSION = 'submission'
+    STORAGE_BYTES = 'storage_bytes'
+    MT_CHARACTERS = 'mt_characters'
+    ASR_SECONDS = 'asr_seconds'
+
+
 INVITE_OWNER_ERROR = (
     'This account is already the owner of ##organization_name##. '
     'You cannot join multiple organizations with the same account. '

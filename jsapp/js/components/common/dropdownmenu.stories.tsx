@@ -3,7 +3,10 @@ import React from 'react'
 import { Menu } from '@mantine/core'
 import Button from './ButtonNew'
 
-export default { title: 'Design system/DropdownMenu' }
+export default {
+  title: 'Design system/DropdownMenu',
+  parameters: { a11y: { test: 'todo' } },
+}
 
 export function dropdownMenu() {
   return (

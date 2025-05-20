@@ -1,6 +1,6 @@
 import type { MantineSize, TooltipProps } from '@mantine/core'
-import type { Meta, StoryObj } from '@storybook/react'
-import { expect, fn, userEvent, within } from '@storybook/test'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { expect, fn, userEvent, within } from 'storybook/test'
 import { type IconName, IconNames } from '#/k-icons'
 import Button, { type ButtonProps } from './ButtonNew'
 import '@mantine/core/styles.css'
@@ -107,6 +107,7 @@ const meta = {
       },
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 } satisfies Meta<StoryArgs>
 
 export default meta

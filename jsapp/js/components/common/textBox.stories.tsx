@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { IconNames } from '#/k-icons'
 import TextBox from './textBox'
 import type { TextBoxSize, TextBoxType } from './textBox'
