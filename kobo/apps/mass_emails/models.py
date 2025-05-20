@@ -4,6 +4,7 @@ from django.db import models
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    get_all_test_users,
     get_inactive_users,
     get_users_over_80_percent_of_nlp_limits,
     get_users_over_80_percent_of_storage_limit,
@@ -29,6 +30,7 @@ USER_QUERIES: dict[str, Callable] = {
     'users_above_80_percent_nlp_usage': get_users_over_80_percent_of_nlp_limits,
     'users_above_90_percent_nlp_usage': get_users_over_90_percent_of_nlp_limits,
     'users_above_100_percent_nlp_usage': get_users_over_100_percent_of_nlp_limits,
+    'test_users': get_all_test_users,
 }
 USER_QUERY_CHOICES = [(name, name.lower()) for name in USER_QUERIES.keys()]
 

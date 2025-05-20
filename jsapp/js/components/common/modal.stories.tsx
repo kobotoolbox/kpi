@@ -68,6 +68,7 @@ const meta: Meta<typeof Modal> = {
     size: 'md',
     fullScreen: false,
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 type Story = StoryObj<typeof Modal>

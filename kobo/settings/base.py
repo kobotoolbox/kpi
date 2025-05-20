@@ -629,6 +629,11 @@ CONSTANCE_CONFIG = {
         True,
         'Use the term "Team" instead of "Organization" when Stripe is not enabled',
     ),
+    'MASS_EMAIL_TEST_EMAILS': (
+        '',
+        'List (one per line) users who will be sent test emails when using the \n'
+        '"test_users" query for MassEmailConfigs',
+    ),
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
@@ -697,7 +702,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACCESS_LOG_LIFESPAN',
         'PROJECT_HISTORY_LOG_LIFESPAN',
         'ORGANIZATION_INVITE_EXPIRY',
-        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY'
+        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+        'MASS_EMAIL_TEST_EMAILS',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1421,7 +1427,6 @@ if MASS_EMAILS_CONDENSE_SEND:
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_queue'},
     }
-
 
 """ AWS configuration (email and storage) """
 if env.str('AWS_ACCESS_KEY_ID', False):
