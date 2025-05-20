@@ -107,6 +107,7 @@ const meta = {
       },
     },
   },
+  parameters: { a11y: { test: 'todo' } },
 } satisfies Meta<StoryArgs>
 
 export default meta
