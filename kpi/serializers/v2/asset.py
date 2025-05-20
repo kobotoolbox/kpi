@@ -11,19 +11,14 @@ from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from django_request_cache import cache_for_request
-from drf_spectacular.plumbing import build_basic_type
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
 from rest_framework.fields import empty
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 
 from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -43,8 +38,6 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import (
-    PaginatedApiField,
-    RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
 from kpi.models import (
@@ -66,23 +59,46 @@ from kpi.utils.project_views import (
     view_has_perm,
 )
 
+from ...schema_extensions.v2.assets.fields import (
+    AdvancedFeatureField,
+    AdvancedSubmissionSchemaField,
+    AnalysisFormJsonField,
+    AssignablePermissionField,
+    ChildrenField,
+    ContentField,
+    DataSharingField,
+    DataURLField,
+    DeployedVersionField,
+    DeploymentActiveField,
+    DeploymentDataDownloadLinksField,
+    DeploymentLinkField,
+    DeploymentSubmissionCountField,
+    DownloadsField,
+    EffectivePermissionField,
+    ExportsURLField,
+    FileListField,
+    HasDeploymentField,
+    HooksUrlField,
+    MapCustomField,
+    MapStylesField,
+    OwnerURLField,
+    PairedDataURLField,
+    ParentURLField,
+    PermissionsField,
+    ReportCustomField,
+    ReportStyleField,
+    SettingsField,
+    SubscribersCountField,
+    SummaryField,
+    UserURLField,
+    VersionCountField,
+    XFormLinkField,
+    XLSLinkField,
+)
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_version import AssetVersionListSerializer
-from ...schema_extensions.v2.assets.fields import (
-    UserURLField,
-    OwnerURLField,
-    ParentURLField,
-    SettingsField, FileListField, SummaryField, VersionCountField, HasDeploymentField,
-    DeployedVersionField, DeploymentLinkField, DeploymentActiveField,
-    DeploymentDataDownloadLinksField, DeploymentSubmissionCountField, ReportStyleField,
-    ReportCustomField, AdvancedFeatureField, AdvancedSubmissionSchemaField,
-    AnalysisFormJsonField, MapStylesField, MapCustomField, ContentField, DownloadsField,
-    XFormLinkField, HooksUrlField, XLSLinkField, AssignablePermissionField,
-    PermissionsField, EffectivePermissionField, ExportsURLField, DataURLField,
-    ChildrenField, SubscribersCountField, DataSharingField, PairedDataURLField,
-)
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -371,61 +387,61 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         model = Asset
         lookup_field = 'uid'
         fields = (
-                  'url',
-                  'owner',
-                  'owner__username',
-                  'parent',
-                  'settings',
-                  'asset_type',
-                  'files',
-                  'summary',
-                  'date_created',
-                  'date_modified',
-                  'date_deployed',
-                  'version_id',
-                  'version__content_hash',
-                  'version_count',
-                  'has_deployment',
-                  'deployed_version_id',
-                  'deployed_versions',
-                  'deployment__links',
-                  'deployment__active',
-                  'deployment__data_download_links',
-                  'deployment__submission_count',
-                  'deployment_status',
-                  'report_styles',
-                  'report_custom',
-                  'advanced_features',
-                  'advanced_submission_schema',
-                  'analysis_form_json',
-                  'map_styles',
-                  'map_custom',
-                  'content',
-                  'downloads',
-                  'embeds',
-                  'xform_link',
-                  'hooks_link',
-                  'tag_string',
-                  'uid',
-                  'kind',
-                  'xls_link',
-                  'name',
-                  'assignable_permissions',
-                  'permissions',
-                  'effective_permissions',
-                  'exports',
-                  'export_settings',
-                  'settings',
-                  'data',
-                  'children',
-                  'subscribers_count',
-                  'status',
-                  'access_types',
-                  'data_sharing',
-                  'paired_data',
-                  'project_ownership',
-                  'owner_label',
-                  )
+            'url',
+            'owner',
+            'owner__username',
+            'parent',
+            'settings',
+            'asset_type',
+            'files',
+            'summary',
+            'date_created',
+            'date_modified',
+            'date_deployed',
+            'version_id',
+            'version__content_hash',
+            'version_count',
+            'has_deployment',
+            'deployed_version_id',
+            'deployed_versions',
+            'deployment__links',
+            'deployment__active',
+            'deployment__data_download_links',
+            'deployment__submission_count',
+            'deployment_status',
+            'report_styles',
+            'report_custom',
+            'advanced_features',
+            'advanced_submission_schema',
+            'analysis_form_json',
+            'map_styles',
+            'map_custom',
+            'content',
+            'downloads',
+            'embeds',
+            'xform_link',
+            'hooks_link',
+            'tag_string',
+            'uid',
+            'kind',
+            'xls_link',
+            'name',
+            'assignable_permissions',
+            'permissions',
+            'effective_permissions',
+            'exports',
+            'export_settings',
+            'settings',
+            'data',
+            'children',
+            'subscribers_count',
+            'status',
+            'access_types',
+            'data_sharing',
+            'paired_data',
+            'project_ownership',
+            'owner_label',
+        )
         extra_kwargs = {
             'parent': {
                 'lookup_field': 'uid',

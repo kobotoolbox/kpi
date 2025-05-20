@@ -2,8 +2,11 @@ from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
 from kobo.apps.subsequences.utils.deprecation import WritableAdvancedFeaturesField
-from kpi.fields import WritableJSONField, RelativePrefixHyperlinkedRelatedField, \
-    PaginatedApiField
+from kpi.fields import (
+    PaginatedApiField,
+    RelativePrefixHyperlinkedRelatedField,
+    WritableJSONField,
+)
 
 
 class AdvancedFeatureField(WritableAdvancedFeaturesField):
@@ -60,6 +63,7 @@ class BulkAssetUidsField(serializers.JSONField):
 
 class BulkAssetConfirmField(serializers.BooleanField):
     pass
+
 
 class CountDailySubmissionResponseField(serializers.JSONField):
     pass
@@ -184,14 +188,18 @@ class XFormLinkField(serializers.SerializerMethodField):
 class XLSLinkField(serializers.SerializerMethodField):
     pass
 
+
 class XFormField(serializers.JSONField):
     pass
+
 
 class MetadataSectorField(serializers.ListField):
     pass
 
+
 class MetadataListField(serializers.ListField):
     pass
+
 
 class ValidContentDataField(serializers.JSONField):
     pass

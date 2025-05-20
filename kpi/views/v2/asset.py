@@ -2,17 +2,17 @@ import copy
 import json
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
-from xml.etree.ElementInclude import include
 
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from drf_spectacular.openapi import AutoSchema
+
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.constants import (
@@ -43,15 +43,21 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.schema_extensions.v2.assets.serializers import (
+    AssetContentResponse,
+    AssetCreateRequest,
+    AssetHashResponse,
+    AssetMetadataResponse,
+    AssetReportResponse,
+    AssetUpdateRequest,
+    AssetValidContentResponse,
+    AssetXFormResponse,
+)
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
     AssetSerializer,
 )
-from kpi.utils.schema_extensions.response import (
-    open_api_200_ok_response, open_api_204_empty_response
-)
-
 from kpi.serializers.v2.deployment import DeploymentSerializer
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.bugfix import repair_file_column_content_and_save
@@ -60,14 +66,11 @@ from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
-
-
-from kpi.schema_extensions.v2.assets.serializers import (
-    AssetCreateRequest,
-    AssetUpdateRequest, AssetReportResponse, AssetContentResponse, AssetHashResponse,
-    AssetXFormResponse, AssetMetadataResponse, AssetValidContentResponse
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response,
 )
+from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 class AssetSchema(AutoSchema):
@@ -94,14 +97,13 @@ class AssetSchema(AutoSchema):
 
         from kpi.schema_extensions.v2.assets.schema import (
             ASSET_CLONE_FROM,
+            ASSET_NAME,
             ASSET_SETTINGS,
             ASSET_TYPE,
-            ASSET_NAME,
+            BULK_ACTION,
             BULK_ASSET_UIDS,
             BULK_CONFIRM,
-            BULK_ACTION,
         )
-
 
         operation = super().get_operation(*args, **kwargs)
 
@@ -114,20 +116,16 @@ class AssetSchema(AutoSchema):
                 'UsingAsset': {
                     'value': {
                         'name': generate_example_from_schema(ASSET_NAME),
-                        'settings': generate_example_from_schema(
-                            ASSET_SETTINGS
-                        ),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE)
+                        'settings': generate_example_from_schema(ASSET_SETTINGS),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE),
                     },
                     'summary': 'Creating an asset',
                 },
                 'UsingSource': {
                     'value': {
                         'name': generate_example_from_schema(ASSET_NAME),
-                        'clone_from': generate_example_from_schema(
-                            ASSET_CLONE_FROM
-                        ),
-                        'asset_type': generate_example_from_schema(ASSET_TYPE)
+                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE),
                     },
                     'summary': 'Cloning an asset',
                 },
@@ -165,7 +163,7 @@ class AssetSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     content=extend_schema(
         description=read_md('kpi', 'assets/content.md'),
@@ -184,7 +182,7 @@ class AssetSchema(AutoSchema):
             AssetSerializer(),
             raise_not_found=False,
             raise_access_forbidden=False,
-        )
+        ),
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
@@ -193,9 +191,7 @@ class AssetSchema(AutoSchema):
             validate_payload=False,
         ),
     ),
-    deployment=extend_schema(
-        tags=['Deployment']
-    ),
+    deployment=extend_schema(tags=['Deployment']),
     hash=extend_schema(
         description=read_md('kpi', 'assets/hash.md'),
         responses=open_api_200_ok_response(
@@ -203,7 +199,7 @@ class AssetSchema(AutoSchema):
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
-        )
+        ),
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
@@ -213,7 +209,7 @@ class AssetSchema(AutoSchema):
             raise_not_found=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     metadata=extend_schema(
         description=read_md('kpi', 'assets/metadata.md'),
@@ -233,9 +229,7 @@ class AssetSchema(AutoSchema):
             raise_access_forbidden=False,
         ),
     ),
-    update=extend_schema(
-        exclude=True
-    ),
+    update=extend_schema(exclude=True),
     reports=extend_schema(
         description=read_md('kpi', 'assets/reports.md'),
         request={},
@@ -261,9 +255,8 @@ class AssetSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
-
     valid_content=extend_schema(
         description=read_md('kpi', 'assets/valid_content.md'),
         responses=open_api_200_ok_response(
@@ -271,7 +264,7 @@ class AssetSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     xform=extend_schema(
         description=read_md('kpi', 'assets/xform.md'),
@@ -281,7 +274,7 @@ class AssetSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
     xls=extend_schema(
         description=read_md('kpi', 'assets/xls.md'),
@@ -289,10 +282,9 @@ class AssetSchema(AutoSchema):
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
-        )
+        ),
     ),
 )
-
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,

@@ -2,18 +2,18 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
-    AssetSettingsField,
     AssetCloneField,
+    AssetSettingsField,
     AssetUpdateField,
-    CountDailySubmissionResponseField,
+    BulkActionField,
+    BulkAssetConfirmField,
+    BulkAssetUidsField,
     ContentDataField,
+    CountDailySubmissionResponseField,
+    MetadataListField,
+    MetadataSectorField,
     ReportListField,
     ReportURLField,
-    BulkActionField,
-    BulkAssetUidsField,
-    BulkAssetConfirmField,
-    MetadataSectorField,
-    MetadataListField,
     ValidContentDataField,
     XFormField,
 )
@@ -42,7 +42,7 @@ AssetCountResponse = inline_serializer_class(
     fields={
         'daily_submission_count': CountDailySubmissionResponseField(),
         'total_submission_count': serializers.IntegerField(),
-    }
+    },
 )
 
 AssetBulkRequest = inline_serializer_class(
@@ -51,7 +51,7 @@ AssetBulkRequest = inline_serializer_class(
         'asset_uids': BulkAssetUidsField(),
         'confirm': BulkAssetConfirmField(),
         'action': BulkActionField(),
-    }
+    },
 )
 
 
@@ -61,7 +61,7 @@ AssetContentResponse = inline_serializer_class(
         'kind': serializers.CharField(),
         'uid': serializers.CharField(),
         'data': ContentDataField(),
-    }
+    },
 )
 
 
@@ -71,7 +71,7 @@ AssetValidContentResponse = inline_serializer_class(
         'kind': serializers.CharField(),
         'uid': serializers.CharField(),
         'data': ValidContentDataField(),
-    }
+    },
 )
 
 
@@ -81,7 +81,7 @@ AssetReportResponse = inline_serializer_class(
         'url': ReportURLField(),
         'count': serializers.IntegerField(),
         'list': ReportListField(),
-    }
+    },
 )
 
 
@@ -89,14 +89,14 @@ AssetHashResponse = inline_serializer_class(
     name='HashResponse',
     fields={
         'hash': serializers.CharField(),
-    }
+    },
 )
 
 AssetXFormResponse = inline_serializer_class(
     name='XFormResponse',
     fields={
         'html': XFormField(),
-    }
+    },
 )
 
 
@@ -107,5 +107,5 @@ AssetMetadataResponse = inline_serializer_class(
         'countries': MetadataListField(),
         'sectors': MetadataSectorField(),
         'organizations': MetadataListField(),
-    }
+    },
 )
