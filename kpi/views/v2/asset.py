@@ -263,7 +263,7 @@ class AssetSchema(AutoSchema):
             validate_payload=False,
         )
     ),
-    
+
     valid_content=extend_schema(
         description=read_md('kpi', 'assets/valid_content.md'),
         responses=open_api_200_ok_response(
@@ -285,6 +285,11 @@ class AssetSchema(AutoSchema):
     ),
     xls=extend_schema(
         description=read_md('kpi', 'assets/xls.md'),
+        responses=open_api_200_ok_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
 )
 
