@@ -25,6 +25,10 @@ import type {
 } from './permConstants'
 import {
   CHECKBOX_LABELS,
+  CHECKBOX_LABELS_BLOCK,
+  CHECKBOX_LABELS_COLLECTION,
+  CHECKBOX_LABELS_QUESTION,
+  CHECKBOX_LABELS_TEMPLATE,
   CHECKBOX_PERM_PAIRS,
   PARTIAL_BY_MULTIPLE_LABEL,
   PARTIAL_BY_RESPONSES_LABEL,
@@ -477,24 +481,13 @@ export function getContextualPermLabel(
   if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
     switch (assetType) {
       case AssetTypeName.block:
-        if (checkboxName === 'formView') return t('View block')
-        else if (checkboxName === 'formEdit') return t('Edit block')
-        else return t('Manage block')
+        return CHECKBOX_LABELS_BLOCK[checkboxName]
       case AssetTypeName.collection:
-        if (checkboxName === 'formView') return t('View collection')
-        if (checkboxName === 'formEdit') return t('Edit collection')
-        if (checkboxName === 'formManage') return t('Manage collection')
-        break
+        return CHECKBOX_LABELS_COLLECTION[checkboxName]
       case AssetTypeName.template:
-        if (checkboxName === 'formView') return t('View template')
-        if (checkboxName === 'formEdit') return t('Edit template')
-        if (checkboxName === 'formManage') return t('Manage template')
-        break
+        return CHECKBOX_LABELS_TEMPLATE[checkboxName]
       case AssetTypeName.question:
-        if (checkboxName === 'formView') return t('View question')
-        if (checkboxName === 'formEdit') return t('Edit question')
-        if (checkboxName === 'formManage') return t('Manage question')
-        break
+        return CHECKBOX_LABELS_QUESTION[checkboxName]
       default:
         return CHECKBOX_LABELS[checkboxName]
     }

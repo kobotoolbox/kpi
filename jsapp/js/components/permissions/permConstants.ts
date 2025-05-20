@@ -247,6 +247,34 @@ export const CHECKBOX_LABELS: { [key in CheckboxNameAll]: string } = {
 }
 Object.freeze(CHECKBOX_LABELS)
 
+export const CHECKBOX_LABELS_BLOCK: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+  formView: t('View block'),
+  formEdit: t('Edit block'),
+  formManage: t('Manage block'),
+}
+Object.freeze(CHECKBOX_LABELS_BLOCK)
+
+export const CHECKBOX_LABELS_QUESTION: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+  formView: t('View question'),
+  formEdit: t('Edit question'),
+  formManage: t('Manage question'),
+}
+Object.freeze(CHECKBOX_LABELS_QUESTION)
+
+export const CHECKBOX_LABELS_TEMPLATE: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+  formView: t('View template'),
+  formEdit: t('Edit template'),
+  formManage: t('Manage template'),
+}
+Object.freeze(CHECKBOX_LABELS_TEMPLATE)
+
+export const CHECKBOX_LABELS_COLLECTION: { [key in 'formView' | 'formEdit' | 'formManage']: string } = {
+  formView: t('View collection'),
+  formEdit: t('Edit collection'),
+  formManage: t('Manage collection'),
+}
+Object.freeze(CHECKBOX_LABELS_COLLECTION)
+
 export const PARTIAL_BY_USERS_LABEL = t('Act on submissions only from specific users')
 
 export const PARTIAL_BY_RESPONSES_LABEL = t('Act on submissions based on a condition')
