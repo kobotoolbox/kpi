@@ -465,6 +465,10 @@ export function getPermLabel(perm: PermissionResponse) {
  * Returns the permission label with the correct suffix depending on the given asset type.
  *
  * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
+ *
+ * Note: if used with `survey` asset types, this function would do nothing (as the default suffix in CHECKBOX_LABELS is
+ * expecting this type anyway)
+ *
  */
 export function getContextualPermLabel(
   assetType: AssetTypeName | undefined,
@@ -491,6 +495,8 @@ export function getContextualPermLabel(
         if (checkboxName === 'formEdit') return t('Edit question')
         if (checkboxName === 'formManage') return t('Manage question')
         break
+      default:
+        return CHECKBOX_LABELS[checkboxName]
     }
   }
 
