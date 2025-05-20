@@ -1,6 +1,7 @@
 from datetime import timedelta
 from math import inf
 
+from constance import config
 from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.utils.timezone import now
@@ -195,3 +196,9 @@ def get_users_over_100_percent_of_nlp_limits() -> QuerySet:
     return get_users_within_range_of_usage_limit(
         usage_types=[UsageType.MT_CHARACTERS, UsageType.ASR_SECONDS], minimum=1
     )
+
+
+def get_all_test_users() -> QuerySet:
+    # for testing only
+    test_emails = config.MASS_EMAIL_TEST_EMAILS.split('\n')
+    return User.objects.filter(email__in=test_emails)
