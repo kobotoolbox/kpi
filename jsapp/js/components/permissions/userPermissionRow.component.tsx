@@ -112,7 +112,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
 
           let friendlyPermName = ''
           // Between UserPermissionRow and UserAssetPermsEditor, generation of permission labels takes a small but
-          // significantly different starting point. To avoid deeper compliations we do a little bit of redundant work
+          // significantly different starting point. To avoid deeper complications we do a little bit of redundant work
           // here (to get the permission definition) needed to generate contextual labels.
           //
           // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
