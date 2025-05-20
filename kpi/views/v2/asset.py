@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -159,7 +159,6 @@ class AssetSchema(AutoSchema):
     bulk=extend_schema(
         description=read_md('kpi', 'assets/bulk.md'),
         responses=open_api_200_ok_response(
-            # BulkRequest(),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -178,14 +177,6 @@ class AssetSchema(AutoSchema):
     create=extend_schema(
         description=read_md('kpi', 'assets/create.md'),
         request={'application/json': AssetCreateRequest},
-        parameters=[OpenApiParameter(
-            name='format',
-            location=OpenApiParameter.QUERY,
-            required=False,
-            style='form',
-            explode=False,
-            enum=['json'],
-        )],
         responses=open_api_200_ok_response(
             AssetSerializer(),
             raise_not_found=False,
@@ -194,14 +185,6 @@ class AssetSchema(AutoSchema):
     ),
     destroy=extend_schema(
         description=read_md('kpi', 'assets/delete.md'),
-        parameters=[OpenApiParameter(
-            name='format',
-            location=OpenApiParameter.QUERY,
-            required=False,
-            style='form',
-            explode=False,
-            enum=['json'],
-        )],
         responses=open_api_204_empty_response(
             raise_access_forbidden=False,
             validate_payload=False,
@@ -219,14 +202,6 @@ class AssetSchema(AutoSchema):
     ),
     list=extend_schema(
         description=read_md('kpi', 'assets/list.md'),
-        parameters=[OpenApiParameter(
-            name='format',
-            location=OpenApiParameter.QUERY,
-            required=False,
-            style='form',
-            explode=False,
-            enum=['json'],
-        )],
         responses=open_api_200_ok_response(
             AssetSerializer,
             require_auth=False,
@@ -248,14 +223,6 @@ class AssetSchema(AutoSchema):
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
         request={'application/json': AssetUpdateRequest},
-        parameters=[OpenApiParameter(
-            name='format',
-            location=OpenApiParameter.QUERY,
-            required=False,
-            style='form',
-            explode=False,
-            enum=['json'],
-        )],
         responses=open_api_200_ok_response(
             AssetSerializer(),
             raise_access_forbidden=False,
@@ -402,13 +369,7 @@ class AssetViewSet(
         SearchFilter,
         AssetOrderingFilter,
     ]
-    renderer_classes = [
-        renderers.BrowsableAPIRenderer,
-        AssetJsonRenderer,
-        SSJsonRenderer,
-        XFormRenderer,
-        XlsRenderer,
-    ]
+    renderer_classes = [AssetJsonRenderer]
     # Terms that can be used to search and filter return values
     # from a query `q`
     search_default_field_lookups = [
@@ -692,6 +653,11 @@ class AssetViewSet(
         """
         assert self.paginator is not None
         return self.paginator.get_paginated_response(data, metadata)
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [AssetJsonRenderer(), SSJsonRenderer(), XFormRenderer(), XlsRenderer()]
+        return super().get_renderers()
 
     def get_serializer_class(self):
         if self.action == 'list':
