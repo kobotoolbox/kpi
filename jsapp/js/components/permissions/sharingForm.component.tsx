@@ -81,10 +81,9 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     )
     if (this.props.assetUid) {
       actions.resources.loadAsset({ id: this.props.assetUid })
+      // Update permissions on modal open
+      actions.permissions.getAssetPermissions(this.props.assetUid)
     }
-
-    // Update permissions on modal open
-    actions.permissions.getAssetPermissions(this.props.assetUid)
 
     this.onAllAssetsChange()
   }
