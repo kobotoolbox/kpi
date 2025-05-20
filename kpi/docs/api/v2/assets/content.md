@@ -1,3 +1,1 @@
-## Content
-
-Returns the content of a user's asset.
+## Returns the content of a user's asset.
