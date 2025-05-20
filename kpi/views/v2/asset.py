@@ -7,7 +7,7 @@ from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -151,6 +151,7 @@ class AssetSchema(AutoSchema):
             }
 
         return operation
+
 
 @extend_schema(
     tags=['Asset'],
@@ -656,7 +657,12 @@ class AssetViewSet(
 
     def get_renderers(self):
         if self.action == 'retrieve':
-            return [AssetJsonRenderer(), SSJsonRenderer(), XFormRenderer(), XlsRenderer()]
+            return [
+                AssetJsonRenderer(),
+                SSJsonRenderer(),
+                XFormRenderer(),
+                XlsRenderer(),
+            ]
         return super().get_renderers()
 
     def get_serializer_class(self):
