@@ -14,6 +14,7 @@ from .fields import (
     BulkAssetConfirmField,
     MetadataSectorField,
     MetadataListField,
+    ValidContentDataField,
     XFormField,
 )
 
@@ -60,6 +61,16 @@ AssetContentResponse = inline_serializer_class(
         'kind': serializers.CharField(),
         'uid': serializers.CharField(),
         'data': ContentDataField(),
+    }
+)
+
+
+AssetValidContentResponse = inline_serializer_class(
+    name='ContentResponse',
+    fields={
+        'kind': serializers.CharField(),
+        'uid': serializers.CharField(),
+        'data': ValidContentDataField(),
     }
 )
 

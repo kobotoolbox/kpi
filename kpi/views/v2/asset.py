@@ -66,7 +66,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
     AssetUpdateRequest, AssetReportResponse, AssetContentResponse, AssetBulkRequest, AssetHashResponse,
-    AssetXFormResponse, AssetMetadataResponse,
+    AssetXFormResponse, AssetMetadataResponse, AssetValidContentResponse
 )
 
 
@@ -260,6 +260,12 @@ class AssetSchema(AutoSchema):
     ),
     valid_content=extend_schema(
         description=read_md('kpi', 'assets/valid_content.md'),
+        responses=open_api_200_ok_response(
+            AssetValidContentResponse(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     xform=extend_schema(
         description=read_md('kpi', 'assets/xform.md'),

@@ -192,3 +192,6 @@ class MetadataSectorField(serializers.ListField):
 
 class MetadataListField(serializers.ListField):
     pass
+
+class ValidContentDataField(serializers.JSONField):
+    pass

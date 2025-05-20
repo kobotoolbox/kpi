@@ -542,3 +542,26 @@ class MetadataListFieldExtension(OpenApiSerializerFieldExtension):
         return build_array_type(
             schema={},
         )
+
+class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.ValidContentDataField'
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'schema': build_basic_type(OpenApiTypes.STR),
+                'survey': build_array_type(
+                    schema=build_object_type(
+                        properties={
+                            "name": build_basic_type(OpenApiTypes.STR),
+                            "type": build_basic_type(OpenApiTypes.STR),
+                            "$kuid": build_basic_type(OpenApiTypes.STR),
+                            "$xpath": build_basic_type(OpenApiTypes.STR),
+                            "$autoname": build_basic_type(OpenApiTypes.STR),
+                        },
+                    )
+                ),
+                'settings': build_object_type(properties={}),
+                'translated': build_array_type(schema={}),
+                'translations': build_array_type(schema={}),
+            }
+        )
