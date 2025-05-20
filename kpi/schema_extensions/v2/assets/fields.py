@@ -186,3 +186,9 @@ class XLSLinkField(serializers.SerializerMethodField):
 
 class XFormField(serializers.JSONField):
     pass
+
+class MetadataSectorField(serializers.ListField):
+    pass
+
+class MetadataListField(serializers.ListField):
+    pass

@@ -527,3 +527,18 @@ class XFormFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XFormField'
     def map_serializer_field(self, auto_schema, direction):
         return XFORM_SCHEMA
+
+
+class MetadataSectorFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.MetadataSectorField'
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema=build_array_type(schema={}),
+        )
+
+class MetadataListFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.MetadataListField'
+    def map_serializer_field(self, auto_schema, direction):
+        return build_array_type(
+            schema={},
+        )

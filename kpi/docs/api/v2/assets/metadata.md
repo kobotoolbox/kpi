@@ -1,1 +1,1 @@
-## Metadata
+## Get metadata for all assets

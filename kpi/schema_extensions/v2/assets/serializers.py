@@ -12,6 +12,8 @@ from .fields import (
     BulkActionField,
     BulkAssetUidsField,
     BulkAssetConfirmField,
+    MetadataSectorField,
+    MetadataListField,
     XFormField,
 )
 
@@ -52,7 +54,7 @@ AssetBulkRequest = inline_serializer_class(
 )
 
 
-ContentResponse = inline_serializer_class(
+AssetContentResponse = inline_serializer_class(
     name='ContentResponse',
     fields={
         'kind': serializers.CharField(),
@@ -62,7 +64,7 @@ ContentResponse = inline_serializer_class(
 )
 
 
-ReportResponse = inline_serializer_class(
+AssetReportResponse = inline_serializer_class(
     name='ReportResponse',
     fields={
         'url': ReportURLField(),
@@ -72,7 +74,7 @@ ReportResponse = inline_serializer_class(
 )
 
 
-HashResponse = inline_serializer_class(
+AssetHashResponse = inline_serializer_class(
     name='HashResponse',
     fields={
         'hash': serializers.CharField(),
@@ -83,5 +85,16 @@ AssetXFormResponse = inline_serializer_class(
     name='XFormResponse',
     fields={
         'html': XFormField(),
+    }
+)
+
+
+AssetMetadataResponse = inline_serializer_class(
+    name='AssetMetadataResponse',
+    fields={
+        'languages': MetadataListField(),
+        'countries': MetadataListField(),
+        'sectors': MetadataSectorField(),
+        'organizations': MetadataListField(),
     }
 )

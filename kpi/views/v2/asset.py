@@ -65,8 +65,8 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
-    AssetUpdateRequest, ReportResponse, ContentResponse, AssetBulkRequest, HashResponse,
-    AssetXFormResponse
+    AssetUpdateRequest, AssetReportResponse, AssetContentResponse, AssetBulkRequest, AssetHashResponse,
+    AssetXFormResponse, AssetMetadataResponse,
 )
 
 
@@ -171,7 +171,7 @@ class AssetSchema(AutoSchema):
         description=read_md('kpi', 'assets/content.md'),
         request={},
         responses=open_api_200_ok_response(
-            ContentResponse(),
+            AssetContentResponse(),
             validate_payload=False,
             require_auth=False,
             raise_access_forbidden=False,
@@ -199,7 +199,7 @@ class AssetSchema(AutoSchema):
     hash=extend_schema(
         description=read_md('kpi', 'assets/hash.md'),
         responses=open_api_200_ok_response(
-            HashResponse,
+            AssetHashResponse,
             raise_access_forbidden=False,
             raise_not_found=False,
             validate_payload=False,
@@ -217,6 +217,13 @@ class AssetSchema(AutoSchema):
     ),
     metadata=extend_schema(
         description=read_md('kpi', 'assets/metadata.md'),
+        responses=open_api_200_ok_response(
+            AssetMetadataResponse(),
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
     ),
     partial_update=extend_schema(
         description=read_md('kpi', 'assets/patch.md'),
@@ -233,7 +240,7 @@ class AssetSchema(AutoSchema):
         description=read_md('kpi', 'assets/reports.md'),
         request={},
         responses=open_api_200_ok_response(
-            ReportResponse(),
+            AssetReportResponse(),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
