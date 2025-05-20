@@ -65,7 +65,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
-    AssetUpdateRequest, AssetReportResponse, AssetContentResponse, AssetBulkRequest, AssetHashResponse,
+    AssetUpdateRequest, AssetReportResponse, AssetContentResponse, AssetHashResponse,
     AssetXFormResponse, AssetMetadataResponse, AssetValidContentResponse
 )
 
