@@ -11,17 +11,7 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 Common schemas to avoid redundancy
 """
 
-ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
-
-
-ASSET_NAME = build_basic_type(OpenApiTypes.STR)
-
-
-ASSET_TYPE = build_basic_type(OpenApiTypes.STR)
-
-
 ASSET_CLONE_FROM = build_basic_type(OpenApiTypes.STR)
-
 
 ASSET_SETTINGS = build_object_type(
     properties={
@@ -32,7 +22,11 @@ ASSET_SETTINGS = build_object_type(
     }
 )
 
-BULK_CONFIRM = build_basic_type(OpenApiTypes.BOOL)
+ASSET_NAME = build_basic_type(OpenApiTypes.STR)
+
+ASSET_TYPE = build_basic_type(OpenApiTypes.STR)
+
+ASSET_URL_SCHEMA = build_url_type('api_v2:asset-detail', uid='a5owyo85mHyFazzgsZK45c')
 
 BULK_ACTION = build_object_type(properties={})
 
@@ -45,3 +39,5 @@ BULK_ASSET_UIDS = build_object_type(
         ),
     }
 )
+
+BULK_CONFIRM = build_basic_type(OpenApiTypes.BOOL)

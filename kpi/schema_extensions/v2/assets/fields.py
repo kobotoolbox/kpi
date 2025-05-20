@@ -21,7 +21,7 @@ class AnalysisFormJsonField(serializers.SerializerMethodField):
     pass
 
 
-class AssetURLField(serializers.URLField):
+class AssetCloneField(serializers.CharField):
     pass
 
 
@@ -29,7 +29,7 @@ class AssetSettingsField(serializers.JSONField):
     pass
 
 
-class AssetCloneField(serializers.CharField):
+class AssetURLField(serializers.URLField):
     pass
 
 
@@ -41,19 +41,11 @@ class AssignablePermissionField(serializers.SerializerMethodField):
     pass
 
 
-class ChildrenField(serializers.SerializerMethodField):
-    pass
-
-
-class ContentField(WritableJSONField):
-    pass
-
-
-class ContentDataField(WritableJSONField):
-    pass
-
-
 class BulkActionField(WritableJSONField):
+    pass
+
+
+class BulkAssetConfirmField(serializers.BooleanField):
     pass
 
 
@@ -61,7 +53,15 @@ class BulkAssetUidsField(serializers.JSONField):
     pass
 
 
-class BulkAssetConfirmField(serializers.BooleanField):
+class ChildrenField(serializers.SerializerMethodField):
+    pass
+
+
+class ContentDataField(WritableJSONField):
+    pass
+
+
+class ContentField(WritableJSONField):
     pass
 
 
@@ -77,7 +77,7 @@ class DataURLField(serializers.SerializerMethodField):
     pass
 
 
-class DeploymentLinkField(serializers.SerializerMethodField):
+class DeployedVersionField(PaginatedApiField):
     pass
 
 
@@ -89,19 +89,15 @@ class DeploymentDataDownloadLinksField(serializers.SerializerMethodField):
     pass
 
 
+class DeploymentLinkField(serializers.SerializerMethodField):
+    pass
+
+
 class DeploymentSubmissionCountField(serializers.SerializerMethodField):
     pass
 
 
-class DeployedVersionField(PaginatedApiField):
-    pass
-
-
 class DownloadsField(serializers.SerializerMethodField):
-    pass
-
-
-class FileListField(serializers.SerializerMethodField):
     pass
 
 
@@ -113,6 +109,10 @@ class ExportsURLField(serializers.SerializerMethodField):
     pass
 
 
+class FileListField(serializers.SerializerMethodField):
+    pass
+
+
 class HasDeploymentField(serializers.ReadOnlyField):
     pass
 
@@ -121,15 +121,19 @@ class HooksUrlField(serializers.SerializerMethodField):
     pass
 
 
-class MapStylesField(WritableJSONField):
-    pass
-
-
 class MapCustomField(WritableJSONField):
     pass
 
 
-class UserURLField(HyperlinkedIdentityField):
+class MapStylesField(WritableJSONField):
+    pass
+
+
+class MetadataListField(serializers.ListField):
+    pass
+
+
+class MetadataSectorField(serializers.ListField):
     pass
 
 
@@ -153,11 +157,11 @@ class ReportCustomField(WritableJSONField):
     pass
 
 
-class ReportStyleField(WritableJSONField):
+class ReportListField(serializers.JSONField):
     pass
 
 
-class ReportListField(serializers.JSONField):
+class ReportStyleField(WritableJSONField):
     pass
 
 
@@ -177,7 +181,19 @@ class SummaryField(serializers.ReadOnlyField):
     pass
 
 
+class UserURLField(HyperlinkedIdentityField):
+    pass
+
+
+class ValidContentDataField(serializers.JSONField):
+    pass
+
+
 class VersionCountField(serializers.SerializerMethodField):
+    pass
+
+
+class XFormField(serializers.JSONField):
     pass
 
 
@@ -186,20 +202,4 @@ class XFormLinkField(serializers.SerializerMethodField):
 
 
 class XLSLinkField(serializers.SerializerMethodField):
-    pass
-
-
-class XFormField(serializers.JSONField):
-    pass
-
-
-class MetadataSectorField(serializers.ListField):
-    pass
-
-
-class MetadataListField(serializers.ListField):
-    pass
-
-
-class ValidContentDataField(serializers.JSONField):
     pass

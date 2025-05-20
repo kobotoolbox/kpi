@@ -29,10 +29,12 @@ AssetCreateRequest = inline_serializer_class(
 )
 
 
-AssetUpdateRequest = inline_serializer_class(
-    name='AssetUpdateRequest',
+AssetBulkRequest = inline_serializer_class(
+    name='AssetBulkRequest',
     fields={
-        'data_sharing': AssetUpdateField(),
+        'asset_uids': BulkAssetUidsField(),
+        'confirm': BulkAssetConfirmField(),
+        'action': BulkActionField(),
     },
 )
 
@@ -42,15 +44,6 @@ AssetCountResponse = inline_serializer_class(
     fields={
         'daily_submission_count': CountDailySubmissionResponseField(),
         'total_submission_count': serializers.IntegerField(),
-    },
-)
-
-AssetBulkRequest = inline_serializer_class(
-    name='AssetBulkRequest',
-    fields={
-        'asset_uids': BulkAssetUidsField(),
-        'confirm': BulkAssetConfirmField(),
-        'action': BulkActionField(),
     },
 )
 
@@ -65,12 +58,21 @@ AssetContentResponse = inline_serializer_class(
 )
 
 
-AssetValidContentResponse = inline_serializer_class(
-    name='ContentResponse',
+AssetHashResponse = inline_serializer_class(
+    name='HashResponse',
     fields={
-        'kind': serializers.CharField(),
-        'uid': serializers.CharField(),
-        'data': ValidContentDataField(),
+        'hash': serializers.CharField(),
+    },
+)
+
+
+AssetMetadataResponse = inline_serializer_class(
+    name='AssetMetadataResponse',
+    fields={
+        'languages': MetadataListField(),
+        'countries': MetadataListField(),
+        'sectors': MetadataSectorField(),
+        'organizations': MetadataListField(),
     },
 )
 
@@ -85,12 +87,23 @@ AssetReportResponse = inline_serializer_class(
 )
 
 
-AssetHashResponse = inline_serializer_class(
-    name='HashResponse',
+AssetUpdateRequest = inline_serializer_class(
+    name='AssetUpdateRequest',
     fields={
-        'hash': serializers.CharField(),
+        'data_sharing': AssetUpdateField(),
     },
 )
+
+
+AssetValidContentResponse = inline_serializer_class(
+    name='ContentResponse',
+    fields={
+        'kind': serializers.CharField(),
+        'uid': serializers.CharField(),
+        'data': ValidContentDataField(),
+    },
+)
+
 
 AssetXFormResponse = inline_serializer_class(
     name='XFormResponse',
@@ -99,13 +112,3 @@ AssetXFormResponse = inline_serializer_class(
     },
 )
 
-
-AssetMetadataResponse = inline_serializer_class(
-    name='AssetMetadataResponse',
-    fields={
-        'languages': MetadataListField(),
-        'countries': MetadataListField(),
-        'sectors': MetadataSectorField(),
-        'organizations': MetadataListField(),
-    },
-)
