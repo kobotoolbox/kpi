@@ -6,12 +6,17 @@ import type { UniversalTableColumn } from './universalTable.component'
 
 /**
  * This function is useful to generate a (big) test data for the table.
+ *
+ * Given the fact that we need reproducible mock data for visual testing. We use `index` to get consistent (but varied)
+ * rows of data between runs.
+ *
+ * Note: if we install newer version of the package, there is a chance that given seeds would produce different results
+ * than now.
  */
 function getMockDataItem(index: number): MockDataItem {
   const activities = ['created', 'updated', 'deleted', 'added', 'removed', 'reversed', 'rotated']
   const sources = ['MacOS', 'iOS', 'Windows 98', 'CrunchBang Linux', 'Firefox', 'Safari', 'Gossip']
 
-  // We need consistent mock data for visual testing. We use index to get consistend but different rows
   faker.seed(index)
 
   return {
