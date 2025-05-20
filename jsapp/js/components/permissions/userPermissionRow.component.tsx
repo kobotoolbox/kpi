@@ -7,7 +7,7 @@ import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
 import { AssetTypeName } from '#/constants'
-import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
@@ -20,8 +20,7 @@ import UserAssetPermsEditor from './userAssetPermsEditor.component'
 import { getCheckboxNameByPermission, getContextualPermLabel, getFriendlyPermName, getPermLabel } from './utils'
 
 interface UserPermissionRowProps {
-  assetUid: string
-  assetType: AssetTypeName
+  asset: AssetResponse
   userCanEditPerms: boolean
   nonOwnerPerms: PermissionBase[]
   assignablePerms: AssignablePermsMap
@@ -76,7 +75,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
       (perm) => perm.permission === permConfig.getPermissionByCodename('view_asset')?.url,
     )
     const isCurrentUser = this.props.username === sessionStore.currentAccount.username
-    actions.permissions.removeAssetPermission(this.props.assetUid, userAssetPermUrl?.url, true)
+    actions.permissions.removeAssetPermission(this.props.asset.uid, userAssetPermUrl?.url, true)
     permissionsActions.removeAssetPermission.completed.listen(() => {
       // If the user deletes their own permissions, they will be routed to the form landing page
       if (isCurrentUser) {
@@ -119,9 +118,9 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
           // See https://github.com/kobotoolbox/kpi/pull/5736#discussion_r2085252485
           const permDef = permConfig.getPermission(perm.permission)
           if (permDef) {
-            if (this.props.assetType !== AssetTypeName.survey) {
+            if (this.props.asset.asset_type !== AssetTypeName.survey) {
               friendlyPermName = getContextualPermLabel(
-                this.props.assetType,
+                this.props.asset.asset_type,
                 getCheckboxNameByPermission(permDef.codename),
               )
             } else {
@@ -182,8 +181,8 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
         {this.state.isEditFormVisible && (
           <bem.UserRow__editor>
             <UserAssetPermsEditor
-              assetUid={this.props.assetUid}
-              assetType={this.props.assetType}
+              assetUid={this.props.asset.uid}
+              assetType={this.props.asset.asset_type}
               username={this.props.username}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}

@@ -170,8 +170,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     ) {
       return (
         <UserPermissionRow
-          assetUid={this.props.assetUid}
-          assetType={this.state.asset.asset_type}
+          asset={this.state.asset}
           userCanEditPerms={userCanEditPerms}
           nonOwnerPerms={this.state.nonOwnerPerms}
           assignablePerms={this.state.assignablePerms}
@@ -239,8 +238,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
             return (
               <UserPermissionRow
                 key={`perm.${this.props.assetUid}.${perm.user.name}`}
-                assetUid={this.props.assetUid}
-                assetType={assetType}
+                asset={this.state.asset}
                 userCanEditPerms={isManagingPossible}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 assignablePerms={this.state.assignablePerms}
