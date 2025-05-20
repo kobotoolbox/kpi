@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
 from .schema import ASSET_NAME, ASSET_TYPE, ASSET_CLONE_FROM, ASSET_SETTINGS, ASSET_URL_SCHEMA, BULK_ASSET_UIDS, BULK_ACTION, BULK_CONFIRM
+from ..openrosa.schema import XFORM_SCHEMA
 
 
 class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
@@ -519,3 +520,10 @@ class XFormLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XFormLinkField'
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type('api_v2:asset-xform', uid='aBeA23YCYjkGTFvYVHuAyU')
+
+
+
+class XFormFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.XFormField'
+    def map_serializer_field(self, auto_schema, direction):
+        return XFORM_SCHEMA

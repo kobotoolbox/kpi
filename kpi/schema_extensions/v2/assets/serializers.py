@@ -12,6 +12,7 @@ from .fields import (
     BulkActionField,
     BulkAssetUidsField,
     BulkAssetConfirmField,
+    XFormField,
 )
 
 AssetCreateRequest = inline_serializer_class(
@@ -75,5 +76,12 @@ HashResponse = inline_serializer_class(
     name='HashResponse',
     fields={
         'hash': serializers.CharField(),
+    }
+)
+
+AssetXFormResponse = inline_serializer_class(
+    name='XFormResponse',
+    fields={
+        'html': XFormField(),
     }
 )

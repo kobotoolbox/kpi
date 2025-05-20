@@ -65,7 +65,8 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 from kpi.schema_extensions.v2.assets.serializers import (
     AssetCreateRequest,
-    AssetUpdateRequest, ReportResponse, ContentResponse, AssetBulkRequest, HashResponse
+    AssetUpdateRequest, ReportResponse, ContentResponse, AssetBulkRequest, HashResponse,
+    AssetXFormResponse
 )
 
 
@@ -180,7 +181,7 @@ class AssetSchema(AutoSchema):
         description=read_md('kpi', 'assets/create.md'),
         request={'application/json': AssetCreateRequest},
         responses=open_api_200_ok_response(
-            AssetSerializer,
+            AssetSerializer(),
             raise_not_found=False,
             raise_access_forbidden=False,
         )
@@ -221,7 +222,7 @@ class AssetSchema(AutoSchema):
         description=read_md('kpi', 'assets/patch.md'),
         request={'application/json': AssetUpdateRequest},
         responses=open_api_200_ok_response(
-            AssetSerializer,
+            AssetSerializer(),
             raise_access_forbidden=False,
         ),
     ),
@@ -241,7 +242,7 @@ class AssetSchema(AutoSchema):
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),
         responses=open_api_200_ok_response(
-            AssetSerializer,
+            AssetSerializer(),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -255,11 +256,19 @@ class AssetSchema(AutoSchema):
     ),
     xform=extend_schema(
         description=read_md('kpi', 'assets/xform.md'),
+        responses=open_api_200_ok_response(
+            AssetXFormResponse(),
+            media_type='application/xml',
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        )
     ),
     xls=extend_schema(
         description=read_md('kpi', 'assets/xls.md'),
     ),
 )
+
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,

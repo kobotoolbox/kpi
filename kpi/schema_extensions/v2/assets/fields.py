@@ -183,3 +183,6 @@ class XFormLinkField(serializers.SerializerMethodField):
 
 class XLSLinkField(serializers.SerializerMethodField):
     pass
+
+class XFormField(serializers.JSONField):
+    pass
