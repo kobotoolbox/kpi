@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ExceededQuotaCounter',
+            name='ExceededLimitCounter',
             fields=[
                 (
                     'id',
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ),
                 ('days', models.PositiveSmallIntegerField(default=0)),
                 (
-                    'quota_type',
+                    'limit_type',
                     models.CharField(
                         choices=[
                             ('submission', 'Submission'),
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                     'user',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='exceeded_quota_counters',
+                        related_name='exceeded_limit_counters',
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),

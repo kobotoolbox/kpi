@@ -311,13 +311,13 @@ def make_add_on_for_charge(sender, instance, created, **kwargs):
     PlanAddOn.create_or_update_one_time_add_on(instance)
 
 
-class ExceededQuotaCounter(models.Model):
+class ExceededLimitCounter(models.Model):
     user = models.ForeignKey(
         User,
-        related_name='exceeded_quota_counters',
+        related_name='exceeded_limit_counters',
         on_delete=models.CASCADE,
     )
     days = models.PositiveSmallIntegerField(default=0)
-    quota_type = models.CharField(choices=UsageType.choices, max_length=20)
+    limit_type = models.CharField(choices=UsageType.choices, max_length=20)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
