@@ -29,8 +29,8 @@ jobs:
     needs: check-date
     if: ${{ needs.check-date.outputs.should-run != 'false' }}
     outputs:
-    - chromatic-code: ${{ steps.run-chromatic.outputs.code }}
-    - chromatic-url: ${{ steps.run-chromatic.outputs.url }}
+      chromatic-code: ${{ steps.run-chromatic.outputs.code }}
+      chromatic-url: ${{ steps.run-chromatic.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
