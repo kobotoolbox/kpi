@@ -1,8 +1,8 @@
-# on:
-#   schedule:
-#     - cron: "0 0 * * *"
+name: Daily Chromatic test
 
-on: pull_request
+on:
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
   check_date:
