@@ -106,7 +106,6 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
     const publicPerms = permissionAssignments.filter((assignment) => assignment.user === ANON_USERNAME_URL)
     const nonOwnerPerms = parseUserWithPermsList(parsedPerms).filter((perm) => perm.user !== ownerUrl)
 
-    console.log('the get')
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
