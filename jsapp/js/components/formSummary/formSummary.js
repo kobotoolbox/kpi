@@ -29,21 +29,27 @@ class FormSummary extends React.Component {
 
   unlisteners = []
 
+  // Copying how sharingForm.component.tsx does their listeners
   componentDidMount() {
     this.unlisteners.push(
       actions.permissions.bulkSetAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
+      // This is the call to listen to for the permissions list as a response after removing a user's permissions
       actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
     )
-  }
-
-  onAssetPermissionsUpdated(permissions) {
-    this.setState({ permissions: permissions })
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {
       clb()
     })
+  }
+
+  onAssetPermissionsUpdated(permissionsResponse) {
+    // HACK-FIX: "update" the state's permissions with the response from adding/removing all permissions from a user
+    //
+    // TODO: Replacing our permissions api logic with react query is the best solution, but in the meantime the
+    // "Team members" component should updated based on changes made in the sharing modal
+    this.setState({ permissions: permissionsResponse })
   }
 
   renderQuickLinks() {
