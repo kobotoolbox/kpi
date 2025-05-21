@@ -1,8 +1,10 @@
 name: Daily Chromatic test
 
-on:
-  schedule:
-    - cron: "0 0 * * *"
+# on:
+#   schedule:
+#     - cron: "0 0 * * *"
+
+on: pull_request
 
 jobs:
   check_date:
@@ -47,5 +49,5 @@ jobs:
           # chromatic website), re-run the workflow, and the chromatic job will
           # pass.
           exitZeroOnChanges: false
-          buildScriptName: build:storybook
+          buildScriptName: storybook build
 
