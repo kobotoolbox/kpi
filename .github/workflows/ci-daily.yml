@@ -76,4 +76,4 @@ jobs:
           type: "stream"
           to: "Kobo Dev"
           topic: "Github Actions (chromatic)"
-          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at \"${{ toJson(steps.title.outputs.fragment) }}\". View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
+          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at ${{ github.event.workflow_run.head_commit.message }}. View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
