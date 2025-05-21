@@ -14,10 +14,10 @@ jobs:
       title: ${{ steps.get-head-commit-title.outputs.title }}
       sha: ${{ steps.get-head-commit-sha.outputs.sha }}
     steps:
-      - name: Get repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: "main"
       - id: get-head-commit-title
         run: echo "title=$(git log --format=%B -n 1 HEAD | head -n 1)" >> $GITHUB_OUTPUT
       - name: Print head commit title
@@ -34,6 +34,8 @@ jobs:
       should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: "main"
       - name: Print latest commit
         run: echo ${{ github.sha }}
       - id: should-run
@@ -55,6 +57,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: "main"
       - uses: actions/setup-node@v4
         with:
           node-version: 20.17.0
