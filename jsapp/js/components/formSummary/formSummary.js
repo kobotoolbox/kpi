@@ -7,6 +7,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link, NavLink } from 'react-router-dom'
 import Reflux from 'reflux'
+import { actions } from '#/actions'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Icon from '#/components/common/icon'
@@ -24,6 +25,25 @@ class FormSummary extends React.Component {
     super(props)
     this.state = {}
     autoBind(this)
+  }
+
+  unlisteners = []
+
+  componentDidMount() {
+    this.unlisteners.push(
+      actions.permissions.bulkSetAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
+      actions.permissions.getAssetPermissions.completed.listen(this.onAssetPermissionsUpdated.bind(this)),
+    )
+  }
+
+  onAssetPermissionsUpdated(permissions) {
+    this.setState({ permissions: permissions })
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
   }
 
   renderQuickLinks() {
