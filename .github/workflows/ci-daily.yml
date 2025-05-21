@@ -61,12 +61,6 @@ jobs:
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
     if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
     steps:
-      - name: Split commit message title
-        id: title
-        env:
-          MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
-        run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
-
       - name: Send a stream message
         uses: zulip/github-actions-zulip/send-message@v1
         with:
@@ -76,4 +70,4 @@ jobs:
           type: "stream"
           to: "Kobo Dev"
           topic: "Github Actions (chromatic)"
-          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at ${{ github.event.workflow_run.head_commit.message }}. View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
+          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed (on `main`). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
