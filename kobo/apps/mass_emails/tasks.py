@@ -38,25 +38,6 @@ templates_placeholders = {
 PROCESSED_EMAILS_CACHE_KEY = 'mass_emails_{today}_emails'
 
 
-def enqueue_mass_email_records(email_config):
-    """
-    Creates a email job and enqueues email records for users based on query
-    """
-    job = MassEmailJob.objects.create(email_config=email_config)
-    users = get_users_for_config(email_config)
-
-    records = [
-        MassEmailRecord(user=user, email_job=job, status=EmailStatus.ENQUEUED)
-        for user in users
-    ]
-    MassEmailRecord.objects.bulk_create(records)
-
-    logging.info(
-        f'Created {len(records)} MassEmailRecord(s) for {email_config.name} '
-        f'with query {email_config.query}'
-    )
-
-
 @celery_app.task
 def mark_old_enqueued_mass_email_record_as_failed():
     """
@@ -294,17 +275,8 @@ class MassEmailSender:
         record.save()
 
 
-# Default 1 hour limit
-@celery_app.task(
-    time_limit=(getattr(settings, 'MASS_EMAIL_CUSTOM_INTERVAL', None) or 60) * 60
-)
-def send_emails():
-    sender = MassEmailSender()
-    sender.send_day_emails()
-
-
 @celery_app.task(time_limit=3300)  # 55 minutes
-def _send_emails():
+def send_emails():
     """Send the emails for the current day. It schedules the emails if they have not
     been scheduled yet.
 
@@ -352,16 +324,12 @@ def get_users_for_config(email_config):
     return [user for user in users if user.id not in recent_recipients]
 
 
-# @celery_app.task(time_limit=3600)
+@celery_app.task(time_limit=3600)
 def generate_mass_email_user_lists():
     """
     Generates daily user lists for MassEmailConfigs, skipping already processed
     configs and users
     """
-    # ToDo: Scheduling the Celery task for this implementation is postponed for
-    #       future development, as outlined in the project requirements. It has
-    #       been intentionally left out to avoid interference with the existing
-    #       email sending tasks.
 
     today = timezone.now().date()
     cache_key = PROCESSED_EMAILS_CACHE_KEY.format(today=today)
