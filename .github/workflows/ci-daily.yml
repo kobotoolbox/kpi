@@ -1,13 +1,15 @@
 name: Daily Chromatic test
 
-on:
-  schedule:
-    - cron: "0 0 * * *"
+# on:
+#   schedule:
+#     - cron: "0 0 * * *"
+
+on: pull_request
 
 jobs:
-  check_date:
-    runs-on: ubuntu-22.04
+  check-date:
     name: Check latest commit
+    runs-on: ubuntu-22.04
     outputs:
       should_run: ${{ steps.should_run.outputs.should_run }}
     steps:
@@ -22,10 +24,10 @@ jobs:
         run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
 
   chromatic:
-    name: Run Chromatic
+    name: Run Chromatic test
     runs-on: ubuntu-22.04
-    needs: check_date
-    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    needs: check-date
+    if: ${{ needs.check-date.outputs.should_run != 'false' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,3 +51,25 @@ jobs:
           exitZeroOnChanges: false
           buildScriptName: build:storybook
 
+  on-failure:
+    runs-on: ubuntu-22.04
+    needs: chromatic
+    # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
+    if: ${{ always() && (needs.chromatic.code != 0) }}
+    steps:
+    - name: Split commit message title
+      id: title
+      env:
+        MESSAGE: ${{ github.event.commits[0].message }}
+      run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
+
+    - name: Send a stream message
+      uses: zulip/github-actions-zulip/send-message@v1
+      with:
+        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+        email: "github-actions-bot@chat.kobotoolbox.org"
+        organization-url: "https://chat.kobotoolbox.org"
+        type: "stream"
+        to: "Kobo Dev"
+        topic: "Github Actions (chromatic)"
+        content: ":boom: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.buildUrl}}. If you accept all the changes, please re-run the failed job."
