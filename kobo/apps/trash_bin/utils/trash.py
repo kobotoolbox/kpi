@@ -8,6 +8,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from django.db.models.query import QuerySet
 from django.utils import timezone
 from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
@@ -29,18 +30,34 @@ from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kpi.models import Asset
-from ..type_aliases import DeletionCallback, TrashBinModel, TrashBinModelInstance
+from ..type_aliases import (
+    DeletionCallback,
+    TrashBinModel,
+    TrashBinModelInstance,
+    TrashObject
+)
 from ..utils import temporarily_disconnect_signals
+
+
+def get_log_type(related_model):
+    log_type_map = {
+        'user': AuditType.USER_MANAGEMENT,
+        'attachment': AuditType.ATTACHMENT_MANAGEMENT,
+    }
+
+    return log_type_map.get(
+        related_model._meta.model_name, AuditType.ASSET_MANAGEMENT
+    )
 
 
 @transaction.atomic
 def move_to_trash(
     request_author: settings.AUTH_USER_MODEL,
-    objects_list: list[dict],
+    objects_list: list[TrashObject],
     grace_period: int,
     trash_type: str,
     retain_placeholder: bool = True,
-):
+) -> tuple[QuerySet, int]:
     """
     Move the objects listed in `objects_list` to trash and create their associated
     scheduled Celery tasks.
@@ -68,8 +85,17 @@ def move_to_trash(
     primary key and username is retained while all other associated data is deleted.
     """
 
-    (trash_model, fk_field_name, related_model, task, task_name_placeholder) = (
-        _get_settings(trash_type, retain_placeholder)
+    (
+        trash_model,
+        fk_field_name,
+        related_model,
+        unique_identifier,
+        task,
+        task_name_placeholder
+    ) = _get_settings(trash_type, retain_placeholder)
+
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=False
     )
 
     if not retain_placeholder:
@@ -97,11 +123,8 @@ def move_to_trash(
                 **{fk_field_name: obj_dict['pk']},
             )
         )
-        log_type = (
-            AuditType.USER_MANAGEMENT
-            if related_model._meta.model_name == 'user'
-            else AuditType.ASSET_MANAGEMENT
-        )
+
+        log_type = get_log_type(related_model)
         audit_logs.append(
             AuditLog(
                 app_label=related_model._meta.app_label,
@@ -149,6 +172,7 @@ def move_to_trash(
     trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
 
     AuditLog.objects.bulk_create(audit_logs)
+    return updated_items, update_count
 
 
 def process_deletion(
@@ -191,8 +215,10 @@ def process_deletion(
 
 @transaction.atomic()
 def put_back(
-    request_author: settings.AUTH_USER_MODEL, objects_list: list[dict], trash_type: str
-):
+    request_author: settings.AUTH_USER_MODEL,
+    objects_list: list[TrashObject],
+    trash_type: str
+) -> tuple[QuerySet, int]:
     """
     Remove related objects from trash.
 
@@ -213,7 +239,13 @@ def put_back(
         - `'attachment_uid'`
     """
 
-    trash_model, fk_field_name, related_model, *others = _get_settings(trash_type)
+    trash_model, fk_field_name, related_model, unique_identifier, *others = (
+        _get_settings(trash_type)
+    )
+
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=True
+    )
 
     obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
     queryset = trash_model.objects.filter(
@@ -226,11 +258,8 @@ def put_back(
 
     if del_pto_count != len(obj_ids):
         raise TrashTaskInProgressError
-    log_type = (
-        AuditType.USER_MANAGEMENT
-        if related_model._meta.model_name == 'user'
-        else AuditType.ASSET_MANAGEMENT
-    )
+
+    log_type = get_log_type(related_model)
 
     AuditLog.objects.bulk_create(
         [
@@ -250,6 +279,7 @@ def put_back(
 
     with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
+    return updated_items, update_count
 
 
 def trash_bin_task_failure(model: TrashBinModel, **kwargs):
@@ -278,6 +308,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             ProjectTrash,
             'asset_id',
             Asset,
+            'asset_uid',
             'empty_project',
             f'{DELETE_PROJECT_STR_PREFIX} {{asset_name}} ({{asset_uid}})',
         )
@@ -287,6 +318,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             AccountTrash,
             'user_id',
             get_user_model(),
+            'pk',
             'empty_account',
             (
                 f'{DELETE_USER_STR_PREFIX} data ({{username}})'
@@ -300,6 +332,7 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             AttachmentTrash,
             'attachment_id',
             Attachment,
+            'attachment_uid',
             'empty_attachment',
             f'{DELETE_ATTACHMENT_STR_PREFIX} {{attachment_basename}} ({{attachment_uid}})',  # noqa E501
         )

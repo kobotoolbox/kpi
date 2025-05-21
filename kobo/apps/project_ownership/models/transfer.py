@@ -143,7 +143,7 @@ class Transfer(AbstractTimeStampedModel):
                         try:
                             xform = deployment.xform
                         except (InvalidXFormException, MissingXFormException):
-                            id_string = deployment.backend_response.get('id_string')
+                            id_string = deployment.xform_id_string
                             self.status = (
                                 TransferStatusChoices.FAILED,
                                 f'Project `{self.asset.uid}` could not be transferred '
@@ -151,31 +151,30 @@ class Transfer(AbstractTimeStampedModel):
                             )
                             return
 
-                        if XForm.objects.filter(
-                            id_string=xform.id_string,
-                            user_id=new_owner.pk,
-                        ).exists():
-                            self.status = (
-                                TransferStatusChoices.FAILED,
-                                f'Project `{self.asset.uid}` could not be transferred '
-                                f'because XForm IdString `{xform.id_string}`'
-                                f' for new owner (#{new_owner.pk}) already exists.',
-                            )
-                            return
-
                         with deployment.suspend_submissions():
+                            old_id_string = None
+                            if XForm.objects.filter(
+                                id_string=xform.id_string,
+                                user_id=new_owner.pk,
+                            ).exists():
+                                old_id_string = xform.id_string
+                                deployment.reset_backend_response_id_string()
+
                             # Update counters
                             deployment.transfer_counters_ownership(new_owner)
                             previous_owner_username = self.asset.owner.username
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            deployment.rename_enketo_id_key(previous_owner_username)
+                            deployment.rename_enketo_id_key(
+                                previous_owner_username, old_id_string
+                            )
 
                         self._sent_in_app_messages()
 
                     # Update `is_excluded_from_projects_list` flag
                     self._update_project_exclusion_flag()
+
             # Do not delegate anything to Celery before the transaction has
             # been validated. Otherwise, Celery could fetch outdated data.
             transaction.on_commit(lambda: self._start_async_jobs(_rewrite_mongo))

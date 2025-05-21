@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -9,20 +10,16 @@ from django.test import TestCase
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
-from rest_framework import status
 
 from kobo.apps.audit_log.models import AuditAction, AuditLog, AuditType
-from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
+from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 
 from kpi.models import Asset
 from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..models import TrashStatus
 from ..models.account import AccountTrash
-from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..tasks import empty_account, empty_project, task_restarter
 from ..utils import move_to_trash, put_back
@@ -54,7 +51,6 @@ class AccountTrashTestCase(TestCase):
         grace_period = 0
         assert someuser.assets.count() == 2
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -86,13 +82,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now()
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-        after = timezone.now()
-        assert before <= someuser.extra_details.date_removal_requested <= after
-
-        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=someuser,
             objects_list=[
@@ -104,11 +93,19 @@ class AccountTrashTestCase(TestCase):
             grace_period=grace_period,
             trash_type='user',
         )
-        after = timezone.now() + timedelta(days=grace_period)
+        after = timezone.now()
+
+        someuser.refresh_from_db()
+        assert not someuser.is_active
+        assert before <= someuser.extra_details.date_removal_requested <= after
 
         # Ensure someuser is in trash and a periodic task exists and is ready to run
         account_trash = AccountTrash.objects.get(user=someuser)
-        assert before <= account_trash.periodic_task.clocked.clocked_time <= after
+        assert (
+            before + timedelta(days=grace_period)
+            <= account_trash.periodic_task.clocked.clocked_time
+            <= after + timedelta(days=grace_period)
+        )
         assert account_trash.periodic_task.name.startswith(DELETE_USER_STR_PREFIX)
 
         # Ensure action is logged
@@ -140,7 +137,6 @@ class AccountTrashTestCase(TestCase):
             trash_type='user',
         )
 
-        AccountTrash.toggle_statuses([someuser.pk], active=True)
         someuser.refresh_from_db()
         assert someuser.is_active
 
@@ -173,10 +169,6 @@ class AccountTrashTestCase(TestCase):
         assert not AccountTrash.objects.filter(user=someuser).exists()
 
         before = timezone.now() + timedelta(days=grace_period)
-        AccountTrash.toggle_statuses([someuser.pk], active=False)
-        someuser.refresh_from_db()
-        assert not someuser.is_active
-
         move_to_trash(
             request_author=admin,
             objects_list=[
@@ -194,6 +186,7 @@ class AccountTrashTestCase(TestCase):
         after = timezone.now() + timedelta(days=grace_period)
 
         someuser.refresh_from_db()
+        assert not someuser.is_active
         assert someuser.assets.count() == 0
         assert someuser.email == ''
         assert someuser.extra_details.data.get('name') == ''
@@ -285,6 +278,52 @@ class ProjectTrashTestCase(TestCase):
 
     fixtures = ['test_data']
 
+    def _create_asset_and_submission(self):
+        """
+        Helper method to create an asset and its associated submission
+        with attachments
+        """
+        user = User.objects.get(username='someuser')
+        asset = Asset.objects.create(
+            asset_type='survey',
+            content={
+                'survey': [
+                    {'type': 'audio', 'label': 'q1', 'name': 'q1'},
+                    {'type': 'file', 'label': 'q2', 'name': 'q2'}
+                ]
+            },
+            owner=user
+        )
+        asset.save()
+        asset.deploy(backend='mock')
+
+        username = user.username
+        submission = {
+            'q1': 'audio_conversion_test_clip.3gp',
+            'q2': 'audio_conversion_test_image.jpg',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_clip.3gp',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_clip.3gp',
+                    'mimetype': 'video/3gpp',
+                },
+                {
+                    'download_url': f'http://testserver/{username}/audio_conversion_test_image.jpg',  # noqa: E501
+                    'filename': f'{username}/audio_conversion_test_image.jpg',
+                    'mimetype': 'image/jpeg',
+                },
+            ],
+            '_submitted_by': username,
+        }
+        asset.deployment.mock_submissions([submission])
+        asset.deployment.xform.refresh_from_db()
+
+        # Fetch references to the XForm and UserProfile
+        xform = asset.deployment.xform
+        user_profile = UserProfile.objects.get(user=user)
+        return asset, xform, user_profile
+
     def test_move_to_trash(self):
         asset = Asset.objects.get(pk=1)
         asset.save()  # create a version
@@ -302,14 +341,6 @@ class ProjectTrashTestCase(TestCase):
         assert not ProjectTrash.objects.filter(asset=asset).exists()
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=False, toggle_delete=True
-        )
-
-        asset.refresh_from_db()
-        asset.deployment.xform.refresh_from_db()
-        assert asset.pending_delete
-        assert asset.deployment.xform.pending_delete
 
         before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
@@ -325,6 +356,11 @@ class ProjectTrashTestCase(TestCase):
             trash_type='asset',
         )
         after = timezone.now() + timedelta(days=grace_period)
+
+        asset.refresh_from_db()
+        asset.deployment.xform.refresh_from_db()
+        assert asset.pending_delete
+        assert asset.deployment.xform.pending_delete
 
         # Ensure project is in trash and a periodic task exists and is ready to run
         project_trash = ProjectTrash.objects.get(asset=asset)
@@ -364,9 +400,7 @@ class ProjectTrashTestCase(TestCase):
             ],
             trash_type='asset',
         )
-        ProjectTrash.toggle_statuses(
-            [asset.uid], active=True, toggle_delete=True
-        )
+
         asset.refresh_from_db()
         asset.deployment.xform.refresh_from_db()
         assert not asset.pending_delete
@@ -481,92 +515,80 @@ class ProjectTrashTestCase(TestCase):
 
                 assert patched_spawned_task.call_count == restart_count
 
-
-class TestAttachmentTrashStorageCounters(TestBase):
-    """
-    Test that AttachmentTrash.toggle_statuses() correctly updates storage
-    counters and attachment statuses when moving to trash or restoring
-    """
-    def setUp(self):
-        super().setUp()
-        self._create_user_and_login()
-        self._publish_transportation_form()
-        self._submit_transport_instance_w_attachment()
-        self.user_profile = UserProfile.objects.get(user=self.xform.user)
-        self.extra = {
-            'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token
-        }
-
-    def _refresh_all(self):
+    def test_storage_updates_on_project_trash_and_restore(self):
         """
-        Refresh all relevant objects from the database to get updated values.
+        Test that attachment storage counters in XForm and UserProfile are
+        cleared on trash, and restored properly on untrash
         """
-        self.attachment.refresh_from_db()
-        self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
+        asset, xform, user_profile = self._create_asset_and_submission()
 
-    def test_toggle_statuses_updates_storage_counters(self):
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
+
+        # Move the project to trash
+        move_to_trash(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform.attachment_storage_bytes, 0)
+        self.assertEqual(user_profile.attachment_storage_bytes, 0)
+
+        # Restore the project
+        put_back(
+            request_author=asset.owner,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+            ],
+            trash_type='asset',
+        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertGreater(xform.attachment_storage_bytes, 0)
+        self.assertGreater(user_profile.attachment_storage_bytes, 0)
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
+
+    def test_storage_does_not_change_on_archive_unarchive(self):
         """
-        Toggling an attachment to trash should decrease storage counters.
-        Toggling it back should restore them.
+        Test that attachment storage counters in XForm and UserProfile remain
+        unchanged when a project is archived or unarchived
         """
-        # Check initial values
-        self._refresh_all()
-        self.assertIsNotNone(self.attachment.media_file_size)
-        self.assertGreater(self.xform.attachment_storage_bytes, 0)
-        self.assertGreater(self.user_profile.attachment_storage_bytes, 0)
-        original_xform_bytes = self.xform.attachment_storage_bytes
-        original_user_bytes = self.user_profile.attachment_storage_bytes
+        asset, xform, user_profile = self._create_asset_and_submission()
+        xform_storage_init = xform.attachment_storage_bytes
+        user_storage_init = user_profile.attachment_storage_bytes
+        self.assertGreater(xform_storage_init, 0)
+        self.assertGreater(user_storage_init, 0)
 
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
-
-        # Counters should be decremented
-        self.assertEqual(self.xform.attachment_storage_bytes, 0)
-        self.assertEqual(self.user_profile.attachment_storage_bytes, 0)
-        self.assertEqual(
-            self.attachment.delete_status, AttachmentDeleteStatus.PENDING_DELETE
+        # Simulate archiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=False, toggle_delete=False
         )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)
 
-        # Change the status to simulate the restoration from trash
-        AttachmentTrash.toggle_statuses(
-            [self.attachment.uid], active=True
+        # Simulate unarchiving the project by updating the status
+        ProjectTrash.toggle_statuses(
+            [asset.uid], active=True, toggle_delete=False
         )
-        self._refresh_all()
-
-        # Counters should be restored to original values
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, original_xform_bytes
-        )
-        self.assertEqual(
-            self.user_profile.attachment_storage_bytes, original_user_bytes
-        )
-        self.assertIsNone(self.attachment.delete_status)
-
-    def test_deleting_submission_does_not_decrease_counters_twice(self):
-        """
-        Test that storage counters are not decremented twice when an attachment
-        is trashed and its parent submission is later deleted
-        """
-        # Change the status to simulate moving to trash
-        AttachmentTrash.toggle_statuses([self.attachment.uid])
-        self._refresh_all()
-        decremented_xform_bytes = self.xform.attachment_storage_bytes
-        decremented_user_bytes = self.user_profile.attachment_storage_bytes
-
-        # Delete the submission
-        view = DataViewSet.as_view({'delete': 'destroy'})
-        request = self.factory.delete('/', **self.extra)
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        response = view(request, pk=formid, dataid=dataid)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # Verify that the attachment storage counter is not decreased twice
-        self.assertEqual(
-            self.xform.attachment_storage_bytes, decremented_xform_bytes
-        )
-        self.assertEqual(
-            self.user_profile.attachment_storage_bytes, decremented_user_bytes
-        )
+        xform.refresh_from_db()
+        user_profile.refresh_from_db()
+        self.assertEqual(xform_storage_init, xform.attachment_storage_bytes)
+        self.assertEqual(user_storage_init, user_profile.attachment_storage_bytes)

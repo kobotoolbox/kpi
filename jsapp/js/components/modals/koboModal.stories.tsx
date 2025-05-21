@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import Button from '../common/button'
 import KoboModal from './koboModal'
 import KoboModalContent from './koboModalContent'
@@ -11,6 +11,7 @@ const meta: Meta<typeof KoboModal> = {
   argTypes: {
     isOpen: { control: 'boolean' },
   },
+  parameters: { a11y: { test: 'todo' } },
 }
 
 export default meta
