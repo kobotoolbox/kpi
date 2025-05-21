@@ -50,6 +50,8 @@ def get_submission_counts_in_date_range_by_user_id(
 def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
     if limit == inf:
         return None
+    # Limits are calculated as floats because they can potentionally be inf.
+    # Aside from that case, however, they should always be integers
     limit = int(limit)
     return {
         'effective_limit': limit,
