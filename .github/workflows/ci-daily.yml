@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: chromatic
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
-    if: ${{ always() && (needs.chromatic.output.code != 0) }}
+    if: ${{ always() && (needs.chromatic.outputs.code != 0) }}
     steps:
     - name: Split commit message title
       id: title
@@ -72,4 +72,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (chromatic)"
-        content: ":boom: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.output.buildUrl}}. If you accept all the changes, please re-run the failed job."
+        content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.outputs.buildUrl}}. If you accept all the changes, please re-run the failed job."
