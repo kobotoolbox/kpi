@@ -11,23 +11,26 @@ jobs:
     name: Check latest commit
     runs-on: ubuntu-22.04
     outputs:
-      should_run: ${{ steps.should_run.outputs.should_run }}
+      should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
       - uses: actions/checkout@v2
       - name: print latest_commit
         run: echo ${{ github.sha }}
 
-      - id: should_run
+      - id: should-run
         continue-on-error: true
         name: check latest commit is less than a day
         if: ${{ github.event_name == 'schedule' }}
-        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should-run::false"
 
   chromatic:
     name: Run Chromatic test
     runs-on: ubuntu-22.04
     needs: check-date
-    if: ${{ needs.check-date.outputs.should_run != 'false' }}
+    if: ${{ needs.check-date.outputs.should-run != 'false' }}
+    outputs:
+    - chromatic-code: ${{ steps.run-chromatic.outputs.code }}
+    - chromatic-url: ${{ steps.run-chromatic.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,6 +42,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run Chromatic
+        id: run-chromatic
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
@@ -55,7 +59,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: chromatic
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
-    if: ${{ always() && (needs.chromatic.outputs.code != 0) }}
+    if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
     steps:
     - name: Split commit message title
       id: title
@@ -72,4 +76,4 @@ jobs:
         type: "stream"
         to: "Kobo Dev"
         topic: "Github Actions (chromatic)"
-        content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.outputs.buildUrl}}. If you accept all the changes, please re-run the failed job."
+        content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
