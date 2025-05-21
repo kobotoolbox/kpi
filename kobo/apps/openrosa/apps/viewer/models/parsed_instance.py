@@ -6,10 +6,12 @@ from dateutil import parser
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext as t
+from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
 
 from kobo.apps.hook.utils.services import call_services
-from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm
+from kobo.apps.openrosa.apps.logger.models import Instance, Note, XForm, Attachment
+from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import (
     ATTACHMENTS,
@@ -294,7 +296,7 @@ class ParsedInstance(models.Model):
             UUID: self.instance.uuid,
             META_ROOT_UUID: add_uuid_prefix(root_uuid),
             ID: self.instance.id,
-            ATTACHMENTS: _get_attachments_from_instance(self.instance),
+            ATTACHMENTS: _get_attachments_from_instance(self.instance.pk),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
             SUBMISSION_TIME: self.instance.date_created.strftime(
@@ -443,10 +445,34 @@ class ParsedInstance(models.Model):
             notes.append(note)
         return notes
 
+    @staticmethod
+    def bulk_update_attachments(instance_ids: list[int]):
+        """
+        Bulk update the `is_deleted` flag in Mongo's `_attachments` for given
+        instances
+        """
+        if not instance_ids:
+            return
 
-def _get_attachments_from_instance(instance):
+        attachments_to_update = []
+        for inst_id in instance_ids:
+            new_attachments = _get_attachments_from_instance(inst_id)
+            attachments_to_update.append(
+                UpdateOne(
+                    {'_id': inst_id},
+                    {'$set': {'_attachments': new_attachments}},
+                )
+            )
+
+        if attachments_to_update:
+            xform_instances.bulk_write(attachments_to_update)
+
+
+def _get_attachments_from_instance(instance_id):
     attachments = []
-    for a in instance.attachments.all():
+    for a in Attachment.all_objects.filter(
+        instance_id=instance_id
+    ).exclude(delete_status=AttachmentDeleteStatus.SOFT_DELETED):
         attachment = dict()
         attachment['download_url'] = a.secure_url()
         for suffix in settings.THUMB_CONF.keys():
@@ -454,9 +480,12 @@ def _get_attachments_from_instance(instance):
         attachment['mimetype'] = a.mimetype
         attachment['filename'] = a.media_file.name
         attachment['instance'] = a.instance.pk
-        attachment['xform'] = instance.xform.id
+        attachment['xform'] = a.xform.id
         attachment['id'] = a.id
         attachment['uid'] = a.uid
+        attachment['is_deleted'] = a.delete_status in [
+            AttachmentDeleteStatus.PENDING_DELETE, AttachmentDeleteStatus.DELETED
+        ]
         attachments.append(attachment)
 
     return attachments
