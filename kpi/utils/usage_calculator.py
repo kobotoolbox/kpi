@@ -11,7 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
-from kobo.apps.organizations.types import NLPUsage, UsageLimitStatus, UsageLimitStatuses
+from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
 from kobo.apps.organizations.utils import get_billing_dates
 from kobo.apps.stripe.utils import (
     get_current_billing_period_dates_by_org,
@@ -47,7 +47,7 @@ def get_submission_counts_in_date_range_by_user_id(
     return {row['user_id']: row['total'] for row in all_sub_counters}
 
 
-def calculate_usage_limit_status(limit: float, usage: int) -> UsageLimitStatus | None:
+def calculate_usage_balance(limit: float, usage: int) -> UsageBalance | None:
     if limit == inf:
         return None
     limit = int(limit)
@@ -167,7 +167,7 @@ class ServiceUsageCalculator(CachedClass):
         return self._cache_last_updated()
 
     @cached_class_property(key='usage_limits', serializer=dumps, deserializer=loads)
-    def get_usage_limit_statuses(self) -> UsageLimitStatuses:
+    def get_usage_balances(self) -> UsageBalances:
         """
         Gets a dict of limit statuses using effective limits and current usage.
         If a user has unlimited usage for a given usage type, that usage type
@@ -177,19 +177,19 @@ class ServiceUsageCalculator(CachedClass):
         org_limits = limits[self.organization.id]
 
         return {
-            UsageType.SUBMISSION: calculate_usage_limit_status(
+            UsageType.SUBMISSION: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
                 usage=self.get_submission_counters()['current_period'],
             ),
-            UsageType.STORAGE_BYTES: calculate_usage_limit_status(
+            UsageType.STORAGE_BYTES: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.STORAGE_BYTES}_limit'],
                 usage=self.get_storage_usage(),
             ),
-            UsageType.ASR_SECONDS: calculate_usage_limit_status(
+            UsageType.ASR_SECONDS: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.ASR_SECONDS}_limit'],
                 usage=self.get_nlp_usage_by_type(UsageType.ASR_SECONDS),
             ),
-            UsageType.MT_CHARACTERS: calculate_usage_limit_status(
+            UsageType.MT_CHARACTERS: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.MT_CHARACTERS}_limit'],
                 usage=self.get_nlp_usage_by_type(UsageType.MT_CHARACTERS),
             ),

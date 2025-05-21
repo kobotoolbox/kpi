@@ -19,15 +19,15 @@ class NLPUsage(TypedDict):
     mt_characters: int
 
 
-class UsageLimitStatus(TypedDict):
+class UsageBalance(TypedDict):
     effective_limit: int
     balance_value: int
     balance_percent: int
     exceeded: bool
 
 
-class UsageLimitStatuses(TypedDict):
-    storage_bytes: UsageLimitStatus | None
-    submission: UsageLimitStatus | None
-    asr_seconds: UsageLimitStatus | None
-    mt_characters: UsageLimitStatus | None
+class UsageBalances(TypedDict):
+    storage_bytes: UsageBalance | None
+    submission: UsageBalance | None
+    asr_seconds: UsageBalance | None
+    mt_characters: UsageBalance | None
