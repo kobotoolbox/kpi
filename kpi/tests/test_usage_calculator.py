@@ -254,65 +254,6 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert calculator.get_nlp_usage_by_type('mt_characters') == 5473
         assert calculator.get_nlp_usage_by_type('asr_seconds') == 4586
 
-    @pytest.mark.skipif(
-        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
-    )
-    def test_usage_balances_with_stripe(self):
-        from kobo.apps.stripe.tests.utils import generate_plan_subscription
-
-        limit = 100
-        product_metadata = {
-            'mmo_enabled': 'true',
-            'plan_type': 'enterprise',
-            'asr_seconds_limit': limit,
-            'mt_characters_limit': limit,
-            'submission_limit': limit,
-            'storage_bytes_limit': 'unlimited',
-        }
-        self.add_nlp_trackers(50, 150)
-        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
-        organization.add_user(user=self.anotheruser, is_admin=True)
-        organization.add_user(user=self.someuser, is_admin=True)
-        generate_plan_subscription(organization, product_metadata)
-
-        calculator = ServiceUsageCalculator(self.someuser)
-
-        usage_balances = calculator.get_usage_balances()
-
-        assert usage_balances[UsageType.ASR_SECONDS]['effective_limit'] == limit
-        assert usage_balances[UsageType.ASR_SECONDS]['balance_value'] == 50
-        assert usage_balances[UsageType.ASR_SECONDS]['balance_percent'] == 50
-        assert not usage_balances[UsageType.ASR_SECONDS]['exceeded']
-
-        assert usage_balances[UsageType.MT_CHARACTERS]['effective_limit'] == limit
-        assert usage_balances[UsageType.MT_CHARACTERS]['balance_value'] == -50
-        assert usage_balances[UsageType.MT_CHARACTERS]['balance_percent'] == 150
-        assert usage_balances[UsageType.MT_CHARACTERS]['exceeded']
-
-        assert usage_balances[UsageType.SUBMISSION]['effective_limit'] == limit
-        assert usage_balances[UsageType.SUBMISSION]['balance_value'] == 95
-        assert usage_balances[UsageType.SUBMISSION]['balance_percent'] == 5
-        assert not usage_balances[UsageType.SUBMISSION]['exceeded']
-
-        assert usage_balances[UsageType.STORAGE_BYTES] is None
-
-    def test_usage_balances_without_stripe(self):
-        """
-        Ensure usage balance code works when Stripe is not enabled.
-        Balances should not appear if a limit has not been set via
-        Stripe product
-        """
-        self.add_nlp_trackers(50, 150)
-        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
-        organization.add_user(user=self.anotheruser, is_admin=True)
-
-        calculator = ServiceUsageCalculator(self.someuser)
-
-        usage_balances = calculator.get_usage_balances()
-
-        for usage_type, _ in UsageType.choices:
-            assert usage_balances[usage_type] is None
-
     def test_storage_usage_all_users(self):
         asset_2 = self._create_asset(self.someuser)
         asset_3 = self._create_asset(self.someuser)
@@ -495,3 +436,62 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
             )
         assert org_no_owner not in nlp_usage_by_user
         assert org_no_owner not in submissions_by_user
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_usage_balances_with_stripe(self):
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+
+        limit = 100
+        product_metadata = {
+            'mmo_enabled': 'true',
+            'plan_type': 'enterprise',
+            'asr_seconds_limit': limit,
+            'mt_characters_limit': limit,
+            'submission_limit': limit,
+            'storage_bytes_limit': 'unlimited',
+        }
+        self.add_nlp_trackers(50, 150)
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
+        organization.add_user(user=self.anotheruser, is_admin=True)
+        organization.add_user(user=self.someuser, is_admin=True)
+        generate_plan_subscription(organization, product_metadata)
+
+        calculator = ServiceUsageCalculator(self.someuser)
+
+        usage_balances = calculator.get_usage_balances()
+
+        assert usage_balances[UsageType.ASR_SECONDS]['effective_limit'] == limit
+        assert usage_balances[UsageType.ASR_SECONDS]['balance_value'] == 50
+        assert usage_balances[UsageType.ASR_SECONDS]['balance_percent'] == 50
+        assert not usage_balances[UsageType.ASR_SECONDS]['exceeded']
+
+        assert usage_balances[UsageType.MT_CHARACTERS]['effective_limit'] == limit
+        assert usage_balances[UsageType.MT_CHARACTERS]['balance_value'] == -50
+        assert usage_balances[UsageType.MT_CHARACTERS]['balance_percent'] == 150
+        assert usage_balances[UsageType.MT_CHARACTERS]['exceeded']
+
+        assert usage_balances[UsageType.SUBMISSION]['effective_limit'] == limit
+        assert usage_balances[UsageType.SUBMISSION]['balance_value'] == 95
+        assert usage_balances[UsageType.SUBMISSION]['balance_percent'] == 5
+        assert not usage_balances[UsageType.SUBMISSION]['exceeded']
+
+        assert usage_balances[UsageType.STORAGE_BYTES] is None
+
+    def test_usage_balances_without_stripe(self):
+        """
+        Ensure usage balance code works when Stripe is not enabled.
+        Balances should not appear if a limit has not been set via
+        Stripe product
+        """
+        self.add_nlp_trackers(50, 150)
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
+        organization.add_user(user=self.someuser, is_admin=True)
+
+        calculator = ServiceUsageCalculator(self.someuser)
+
+        usage_balances = calculator.get_usage_balances()
+
+        for usage_type, _ in UsageType.choices:
+            assert usage_balances[usage_type] is None
