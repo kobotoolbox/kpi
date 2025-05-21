@@ -7,13 +7,26 @@ name: Daily Chromatic test
 on: pull_request
 
 jobs:
+  get-commit-title:
+    runs-on: ubuntu-22.04
+    outputs:
+      text: ${{ steps.get_head_commit_title.outputs.title }}
+    steps:
+      - name: Get repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - id: get_head_commit_title
+        run: echo "title=$(git log --format=%B -n 1 HEAD | head -n 1)" >> $GITHUB_OUTPUT
+
+
   check-date:
     name: Check latest commit
     runs-on: ubuntu-22.04
     outputs:
       should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: print latest_commit
         run: echo ${{ github.sha }}
 
@@ -57,23 +70,19 @@ jobs:
 
   on-failure:
     runs-on: ubuntu-22.04
-    needs: chromatic
+    needs:
+      - chromatic
+      - get-commit-title
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
     if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
     steps:
-    - name: Split commit message title
-      id: title
-      env:
-        MESSAGE: ${{ github.event.commits[0].message }}
-      run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
-
-    - name: Send a stream message
-      uses: zulip/github-actions-zulip/send-message@v1
-      with:
-        api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
-        email: "github-actions-bot@chat.kobotoolbox.org"
-        organization-url: "https://chat.kobotoolbox.org"
-        type: "stream"
-        to: "Kobo Dev"
-        topic: "Github Actions (chromatic)"
-        content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(steps.title.outputs.fragment) }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
+      - name: Send a stream message
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY_GITHUB_ACTIONS_BOT }}
+          email: "github-actions-bot@chat.kobotoolbox.org"
+          organization-url: "https://chat.kobotoolbox.org"
+          type: "stream"
+          to: "Kobo Dev"
+          topic: "Github Actions (chromatic)"
+          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ needs.get-commit-title.outputs.text }}](${{ github.event.compare }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
