@@ -7,19 +7,32 @@ name: Daily Chromatic test
 on: pull_request
 
 jobs:
+  get-commit-title:
+    name: Get latest commit title
+    runs-on: ubuntu-22.04
+    outputs:
+      title: ${{ steps.get-head-commit-title.outputs.title }}
+      sha: ${{ github.sha }}
+    steps:
+      - name: Get repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - id: get-head-commit-title
+        run: echo "title=$(git log --format=%B -n 1 HEAD | head -n 1)" >> $GITHUB_OUTPUT
+
   check-date:
-    name: Check latest commit
+    name: Check latest commit date
     runs-on: ubuntu-22.04
     outputs:
       should-run: ${{ steps.should-run.outputs.should-run }}
     steps:
       - uses: actions/checkout@v4
-      - name: print latest_commit
+      - name: Print latest commit
         run: echo ${{ github.sha }}
-
       - id: should-run
         continue-on-error: true
-        name: check latest commit is less than a day
+        name: Check if latest commit is less than a day
         if: ${{ github.event_name == 'schedule' }}
         run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should-run::false"
 
@@ -57,10 +70,18 @@ jobs:
 
   on-failure:
     runs-on: ubuntu-22.04
-    needs: chromatic
+    needs:
+      - chromatic
+      - get-commit-title
     # Any code that isn't 0 means some error happening, see https://www.chromatic.com/docs/cli/#exit-codes
     if: ${{ always() && (needs.chromatic.outputs.chromatic-code != 0) }}
     steps:
+      - name: Split commit message title
+        id: title
+        env:
+          MESSAGE: ${{ github.event.workflow_run.head_commit.message }}
+        run: echo "fragment=`echo "${MESSAGE}" | head -1`" >> $GITHUB_OUTPUT
+
       - name: Send a stream message
         uses: zulip/github-actions-zulip/send-message@v1
         with:
@@ -70,4 +91,4 @@ jobs:
           type: "stream"
           to: "Kobo Dev"
           topic: "Github Actions (chromatic)"
-          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed (on `main`). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
+          content: ":framed_picture: @*frontend*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `main` at [${{ toJson(needs.get-commit-title.outputs.title) }}](https://github.com/kobotoolbox/kpi/commit/${{ needs.get-commit-title.outputs.sha }}). View Chromatic build details at ${{needs.chromatic.outputs.chromatic-url}}. If you accept all the changes, please re-run the failed job."
