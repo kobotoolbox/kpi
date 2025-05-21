@@ -1,7 +1,5 @@
 from datetime import datetime
-from typing import TypedDict, Union
-
-from kobo.apps.organizations.constants import UsageType
+from typing import TypedDict
 
 
 class BillingDates(TypedDict):

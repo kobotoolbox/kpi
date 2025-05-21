@@ -52,10 +52,10 @@ def calculate_usage_limit_status(limit: float, usage: int) -> UsageLimitStatus |
         return None
     limit = int(limit)
     return {
-        "effective_limit": limit,
-        "balance_value": limit - usage,
-        "balance_percent": int((usage / limit) * 100),
-        "exceeded": limit - usage < 0,
+        'effective_limit': limit,
+        'balance_value': limit - usage,
+        'balance_percent': int((usage / limit) * 100),
+        'exceeded': limit - usage < 0,
     }
 
 
@@ -179,7 +179,7 @@ class ServiceUsageCalculator(CachedClass):
         return {
             UsageType.SUBMISSION: calculate_usage_limit_status(
                 limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
-                usage=self.get_submission_counters()["current_period"],
+                usage=self.get_submission_counters()['current_period'],
             ),
             UsageType.STORAGE_BYTES: calculate_usage_limit_status(
                 limit=org_limits[f'{UsageType.STORAGE_BYTES}_limit'],
