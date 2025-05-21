@@ -18,12 +18,26 @@ import pageState from '#/pageState.store'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
 import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
 import FormSummaryProjectInfo from './formSummaryProjectInfo'
+import {actions} from '#/actions'
+import {p} from 'msw/lib/core/GraphQLHandler-Pox7fIFM'
 
 class FormSummary extends React.Component {
+
   constructor(props) {
     super(props)
     this.state = {}
     autoBind(this)
+  }
+
+  componentDidMount() {
+    this.listenTo(actions.permissions.bulkSetAssetPermissions, this.blah.bind(this))
+  }
+
+  blah(assetUid, permissions) {
+    this.setState({
+      upddatedPermissions: permissions,
+      ...this.state,
+    })
   }
 
   renderQuickLinks() {
@@ -120,7 +134,14 @@ class FormSummary extends React.Component {
 
   renderTeam() {
     const team = []
-    this.state.permissions?.forEach((perm) => {
+    let permissionsList = []
+    if (this.state.upddatedPermissions) {
+      permissionsList = this.state.upddatedPermissions
+    } else if (this.state.permissions) {
+      permissionsList = this.state.permissions
+    }
+
+    permissionsList.forEach((perm) => {
       let username = null
       if (perm.user) {
         username = getUsernameFromUrl(perm.user)
@@ -130,6 +151,8 @@ class FormSummary extends React.Component {
         team.push(username)
       }
     })
+
+    if (!team.includes(this.state.))
 
     if (team.length < 2) {
       return false
