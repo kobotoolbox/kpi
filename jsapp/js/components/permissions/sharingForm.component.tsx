@@ -272,8 +272,7 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
               />
 
               <UserAssetPermsEditor
-                assetUid={this.props.assetUid}
-                assetType={assetType}
+                asset={this.state.asset}
                 assignablePerms={this.state.assignablePerms}
                 nonOwnerPerms={this.state.nonOwnerPerms}
                 onSubmitEnd={this.onPermissionsEditorSubmitEnd.bind(this)}

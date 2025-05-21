@@ -13,7 +13,7 @@ import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
 import { AssetTypeName, KEY_CODES } from '#/constants'
-import type { PermissionBase, PermissionResponse } from '#/dataInterface'
+import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
@@ -46,8 +46,7 @@ const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma')
 const USERNAMES_SEPARATOR = ','
 
 interface UserAssetPermsEditorProps {
-  assetUid: string
-  assetType: AssetTypeName
+  asset: AssetResponse
   /** Permissions user username (could be empty for new) */
   username?: string
   /** list of permissions (could be empty for new) */
@@ -375,7 +374,7 @@ export default class UserAssetPermsEditor extends React.Component<
       // bulk endpoint needs all other users permissions to be passed
       const otherUserPerms = this.props.nonOwnerPerms.filter((perm) => perm.user !== buildUserUrl(formData.username))
       this.setState({ isSubmitPending: true })
-      actions.permissions.bulkSetAssetPermissions(this.props.assetUid, otherUserPerms.concat(parsedPerms))
+      actions.permissions.bulkSetAssetPermissions(this.props.asset.uid, otherUserPerms.concat(parsedPerms))
     } else {
       // if nothing changes but user submits, just notify parent we're good
       this.notifyParentAboutSubmitEnd(true)
@@ -394,8 +393,8 @@ export default class UserAssetPermsEditor extends React.Component<
     const isDisabled = Boolean(this.state[disabledPropName])
 
     let checkboxLabel = ''
-    if (this.props.assetType !== AssetTypeName.survey) {
-      checkboxLabel = getContextualPermLabel(this.props.assetType, checkboxName)
+    if (this.props.asset.asset_type !== AssetTypeName.survey) {
+      checkboxLabel = getContextualPermLabel(this.props.asset.asset_type, checkboxName)
     } else {
       checkboxLabel = CHECKBOX_LABELS[checkboxName]
     }
@@ -441,7 +440,7 @@ export default class UserAssetPermsEditor extends React.Component<
 
   getQuestionNameSelectOptions(): KoboSelectOption[] {
     const output: KoboSelectOption[] = []
-    const foundAsset = assetStore.getAsset(this.props.assetUid)
+    const foundAsset = assetStore.getAsset(this.props.asset.uid)
     if (foundAsset?.content?.survey) {
       const flatPaths = getSurveyFlatPaths(foundAsset.content?.survey, false, true)
       for (const [, path] of Object.entries(flatPaths)) {

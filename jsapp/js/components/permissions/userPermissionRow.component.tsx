@@ -181,8 +181,7 @@ export default class UserPermissionRow extends React.Component<UserPermissionRow
         {this.state.isEditFormVisible && (
           <bem.UserRow__editor>
             <UserAssetPermsEditor
-              assetUid={this.props.asset.uid}
-              assetType={this.props.asset.asset_type}
+              asset={this.props.asset}
               username={this.props.username}
               permissions={this.props.permissions}
               assignablePerms={this.props.assignablePerms}
