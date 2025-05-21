@@ -12,6 +12,7 @@ from django.utils import timezone
 from model_bakery import baker
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
@@ -96,7 +97,13 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             total_mt_characters=characters,
         )
 
-    def add_standard_nlp_trackers(self):
+    def add_nlp_trackers(
+        self,
+        seconds_current_month=4586,
+        characters_current_month=5473,
+        seconds_last_month=142,
+        characters_last_month=1253,
+    ):
         """
         Add nlp data common across several tests
         """
@@ -106,8 +113,8 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             userid=self.anotheruser.id,
             asset=self.asset,
             date=today,
-            seconds=4586,
-            characters=5473,
+            seconds=seconds_current_month,
+            characters=characters_current_month,
         )
 
         # last month
@@ -116,8 +123,8 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
             userid=self.anotheruser.id,
             asset=self.asset,
             date=last_month,
-            seconds=142,
-            characters=1253,
+            seconds=seconds_last_month,
+            characters=characters_last_month,
         )
 
     def add_submissions(
@@ -182,10 +189,10 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         self.add_submissions(count=5)
 
     def test_disable_cache(self):
-        self.add_standard_nlp_trackers()
+        self.add_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser, disable_cache=True)
         nlp_usage_A = calculator.get_nlp_usage_counters()
-        self.add_standard_nlp_trackers()
+        self.add_nlp_trackers()
         nlp_usage_B = calculator.get_nlp_usage_counters()
         assert (
             2 * nlp_usage_A['asr_seconds_current_period']
@@ -197,7 +204,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         )
 
     def test_nlp_usage_counters(self):
-        self.add_standard_nlp_trackers()
+        self.add_nlp_trackers()
         calculator = ServiceUsageCalculator(self.anotheruser)
         nlp_usage = calculator.get_nlp_usage_counters()
         assert nlp_usage['asr_seconds_current_period'] == 4586
@@ -206,7 +213,7 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
         assert nlp_usage['mt_characters_all_time'] == 6726
 
     def test_no_data(self):
-        self.add_standard_nlp_trackers()
+        self.add_nlp_trackers()
         calculator = ServiceUsageCalculator(self.someuser)
         nlp_usage = calculator.get_nlp_usage_counters()
         submission_counters = calculator.get_submission_counters()
@@ -224,7 +231,8 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
     )
     def test_organization_setup(self):
         from kobo.apps.stripe.tests.utils import generate_mmo_subscription
-        self.add_standard_nlp_trackers()
+
+        self.add_nlp_trackers()
         organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
         organization.add_user(user=self.anotheruser, is_admin=True)
         organization.add_user(user=self.someuser, is_admin=True)
@@ -245,6 +253,66 @@ class ServiceUsageCalculatorTestCase(BaseServiceUsageTestCase):
 
         assert calculator.get_nlp_usage_by_type('mt_characters') == 5473
         assert calculator.get_nlp_usage_by_type('asr_seconds') == 4586
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_usage_limit_statuses_with_stripe(self):
+        from kobo.apps.stripe.tests.utils import generate_plan_subscription
+
+        limit = 100
+        product_metadata = {
+            'mmo_enabled': 'true',
+            'plan_type': 'enterprise',
+            'asr_seconds_limit': limit,
+            'mt_characters_limit': limit,
+            'submission_limit': limit,
+            'storage_bytes_limit': 'unlimited',
+        }
+        self.add_nlp_trackers(50, 150)
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
+        organization.add_user(user=self.anotheruser, is_admin=True)
+        organization.add_user(user=self.someuser, is_admin=True)
+        generate_plan_subscription(organization, product_metadata)
+
+        calculator = ServiceUsageCalculator(self.someuser)
+
+        usage_limits = calculator.get_usage_limit_statuses()
+
+        assert usage_limits[UsageType.ASR_SECONDS]['effective_limit'] == limit
+        assert usage_limits[UsageType.ASR_SECONDS]['balance_value'] == 50
+        assert usage_limits[UsageType.ASR_SECONDS]['balance_percent'] == 50
+        assert not usage_limits[UsageType.ASR_SECONDS]['exceeded']
+
+        assert usage_limits[UsageType.MT_CHARACTERS]['effective_limit'] == limit
+        assert usage_limits[UsageType.MT_CHARACTERS]['balance_value'] == -50
+        assert usage_limits[UsageType.MT_CHARACTERS]['balance_percent'] == 150
+        assert usage_limits[UsageType.MT_CHARACTERS]['exceeded']
+
+        assert usage_limits[UsageType.SUBMISSION]['effective_limit'] == limit
+        assert usage_limits[UsageType.SUBMISSION]['balance_value'] == 95
+        assert usage_limits[UsageType.SUBMISSION]['balance_percent'] == 5
+        assert not usage_limits[UsageType.SUBMISSION]['exceeded']
+
+        assert usage_limits[UsageType.STORAGE_BYTES] is None
+
+    def test_usage_limit_statuses_without_stripe(self):
+        """
+        Ensure usage limit status code works when Stripe is not enabled.
+        Limit statuses should not appear if a limit has not been set via
+        Stripe product
+        """
+        self.add_nlp_trackers(50, 150)
+        organization = baker.make(Organization, id='org_abcd1234', mmo_override=True)
+        organization.add_user(user=self.anotheruser, is_admin=True)
+        organization.add_user(user=self.someuser, is_admin=True)
+
+        calculator = ServiceUsageCalculator(self.someuser)
+
+        usage_limits = calculator.get_usage_limit_statuses()
+
+        for usage_type, _ in UsageType.choices:
+            assert usage_limits[usage_type] is None
 
     def test_storage_usage_all_users(self):
         asset_2 = self._create_asset(self.someuser)
