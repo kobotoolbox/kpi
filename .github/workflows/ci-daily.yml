@@ -49,5 +49,5 @@ jobs:
           # chromatic website), re-run the workflow, and the chromatic job will
           # pass.
           exitZeroOnChanges: false
-          buildScriptName: storybook build
+          buildScriptName: build:storybook
 
