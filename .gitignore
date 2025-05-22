@@ -26,8 +26,6 @@ deployments.json
 jsapp/fonts
 media
 env
-cypress/cypress/videos/*
-cypress/cypress/screenshots/*
 public
 .venv
 storybook-static

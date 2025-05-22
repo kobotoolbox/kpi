@@ -18,12 +18,10 @@ interface KoboTagsInputProps {
   label?: string
   /** optional as default is provided */
   placeholder?: string
-  'data-cy'?: string
 }
 
 interface InnerInputProps {
   placeholder: string
-  'data-cy'?: string
   id?: string
   dir: string
 }
@@ -56,7 +54,6 @@ class KoboTagsInput extends React.Component<KoboTagsInputProps> {
   render() {
     const inputProps: InnerInputProps = {
       placeholder: this.props.placeholder || DEFAULT_PLACEHOLDER,
-      'data-cy': this.props['data-cy'],
       dir: 'auto',
     }
 
