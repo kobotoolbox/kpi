@@ -140,7 +140,7 @@ class Instance(AbstractTimeStampedModel):
             'main', 'UserProfile'
         )  # noqa - Avoid circular imports
         profile, created = UserProfile.objects.get_or_create(user=self.xform.user)
-        if not created and profile.submissions_suspended:
+        if not created and profile.submissions_suspended or self.xform.pending_transfer:
             raise TemporarilyUnavailableError()
 
         if not self.xform.user.is_active:
