@@ -470,14 +470,19 @@ export function getPermLabel(perm: PermissionResponse) {
  *
  * Example: if we are sharing a library collection, the permissions will all say "[View, Edit, Manage] collection"
  *
- * Note: if used with `survey` asset types, this function would do nothing (as the default suffix in CHECKBOX_LABELS is
- * expecting this type anyway)
+ * Note: if used with `survey` asset types, this function returns an "unfriendly" permission label, but it handles it
+ * instead of returning an empty string or worse
  *
  */
 export function getContextualPermLabel(
   assetType: AssetTypeName | undefined,
   checkboxName: CheckboxNameAll | undefined,
 ) {
+  if (!checkboxName) {
+    return ''
+  }
+
+  // All possible library permissions
   if (checkboxName === 'formView' || checkboxName === 'formEdit' || checkboxName === 'formManage') {
     switch (assetType) {
       case AssetTypeName.block:
@@ -488,12 +493,10 @@ export function getContextualPermLabel(
         return CHECKBOX_LABELS_TEMPLATE[checkboxName]
       case AssetTypeName.question:
         return CHECKBOX_LABELS_QUESTION[checkboxName]
-      default:
-        return CHECKBOX_LABELS[checkboxName]
     }
   }
 
-  return ''
+  return CHECKBOX_LABELS[checkboxName]
 }
 
 /**
