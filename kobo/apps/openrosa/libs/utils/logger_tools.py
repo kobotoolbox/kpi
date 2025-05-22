@@ -49,9 +49,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    generate_attachment_filename,
-)
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
@@ -699,18 +696,19 @@ def save_attachments(
     new_attachments = []
 
     for f in media_files:
-        attachment_filename = generate_attachment_filename(
-            instance, os.path.basename(f.name)
-        )
+        media_file_basename = os.path.basename(f.name)
+
+        # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
             instance=instance,
-            media_file=attachment_filename,
-            mimetype=f.content_type,
+            media_file_basename=media_file_basename,
         ).first()
+
         if existing_attachment:
             # We already have this attachment!
             continue
         f.seek(0)
+
         # This is a new attachment; save it!
         new_attachment = Attachment(
             instance=instance, media_file=f, mimetype=f.content_type
