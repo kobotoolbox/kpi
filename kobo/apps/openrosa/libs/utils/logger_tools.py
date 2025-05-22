@@ -699,10 +699,7 @@ def save_attachments(
     new_attachments = []
 
     for f in media_files:
-        attachment_filename = generate_attachment_filename(
-            instance, os.path.basename(f.name)
-        )
-        media_file_basename = os.path.basename(attachment_filename)
+        media_file_basename = os.path.basename(f.name)
 
         # The basename of a (non-deleted) attachment must be unique per instance.
         existing_attachment = Attachment.objects.filter(
