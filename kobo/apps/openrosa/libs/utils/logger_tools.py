@@ -49,9 +49,6 @@ from kobo.apps.openrosa.apps.logger.exceptions import (
     TemporarilyUnavailableError,
 )
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance, XForm
-from kobo.apps.openrosa.apps.logger.models.attachment import (
-    generate_attachment_filename,
-)
 from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
