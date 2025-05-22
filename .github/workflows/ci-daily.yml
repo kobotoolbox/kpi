@@ -73,6 +73,9 @@ jobs:
           # chromatic website), re-run the workflow, and the chromatic job will
           # pass.
           exitZeroOnChanges: false
+          # Chromatic action works by adding some CLI params to the npm script
+          # we provide here. This means we need to ensure the script ends with
+          # `storybook build` being executed.
           buildScriptName: build:storybook
 
   on-failure:
