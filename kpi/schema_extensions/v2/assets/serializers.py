@@ -98,7 +98,7 @@ AssetReportResponse = inline_serializer_class(
 
 
 AssetValidContentResponse = inline_serializer_class(
-    name='ContentResponse',
+    name='AssetValidContentResponse',
     fields={
         'kind': serializers.CharField(),
         'uid': serializers.CharField(),
