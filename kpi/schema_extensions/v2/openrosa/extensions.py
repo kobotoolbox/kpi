@@ -3,6 +3,7 @@ from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from .schema import XFORM_SCHEMA
 
 
 class OpenRosaFormHubFieldExtension(OpenApiSerializerFieldExtension):
@@ -47,47 +48,7 @@ class OpenRosaXFormActionFieldExtension(OpenApiSerializerFieldExtension):
     )
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'head': build_object_type(
-                    properties={
-                        'title': build_basic_type(OpenApiTypes.STR),
-                        'model': build_object_type(
-                            properties={
-                                'instance': build_object_type(
-                                    properties={
-                                        'instanceUuid': build_object_type(
-                                            properties={
-                                                'fieldName': build_basic_type(
-                                                    OpenApiTypes.NONE
-                                                ),
-                                                'meta': build_object_type(
-                                                    properties={
-                                                        'instanceID': build_basic_type(
-                                                            OpenApiTypes.NONE
-                                                        ),
-                                                    }
-                                                ),
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                        ),
-                    },
-                ),
-                'body': build_object_type(
-                    properties={
-                        'input': build_object_type(
-                            properties={
-                                'label': build_basic_type(OpenApiTypes.STR),
-                                'hint': build_basic_type(OpenApiTypes.STR),
-                            },
-                        ),
-                    },
-                ),
-            },
-        )
+        return XFORM_SCHEMA
 
 
 class OpenRosaXFormFieldExtension(OpenApiSerializerFieldExtension):

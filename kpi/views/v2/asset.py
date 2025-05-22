@@ -6,7 +6,10 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from docutils.nodes import description
+from drf_spectacular.openapi import AutoSchema
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, \
+    OpenApiExample
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -42,6 +45,15 @@ from kpi.permissions import (
     get_perm_name,
 )
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.schema_extensions.v2.assets.serializers import (
+    AssetContentResponse,
+    AssetCreateRequest,
+    AssetHashResponse,
+    AssetMetadataResponse,
+    AssetReportResponse,
+    AssetValidContentResponse,
+    AssetXFormResponse, AssetPatchRequest,
+)
 from kpi.serializers.v2.asset import (
     AssetBulkActionsSerializer,
     AssetListSerializer,
@@ -53,12 +65,254 @@ from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.object_permission import get_database_user, get_objects_for_user
+from kpi.utils.schema_extensions.examples import generate_example_from_schema
+from kpi.utils.schema_extensions.markdown import read_md
+from kpi.utils.schema_extensions.response import (
+    open_api_200_ok_response,
+    open_api_204_empty_response, open_api_http_example_response,
+)
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
+class AssetSchema(AutoSchema):
+    """
+    Custom schema used to inject OpenAPI examples for AssetViewSet at runtime.
+
+    We cannot use `@extend_schema(..., examples=...)` or `@extend_schema_view(...)`
+    directly for these examples because the values rely on variables
+    (e.g., `ASSET_URL_SCHEMA`) that trigger Django's URL resolver via `reverse()`.
+    Since those decorators are evaluated at module import time—before the full Django
+    application and URL config are guaranteed to be loaded—this leads to circular
+    import errors.
+
+    By overriding `get_operation()` here, we defer the evaluation of those dynamic
+    values until the OpenAPI schema is being generated (e.g., via `/api/v2/schema/`),
+    when all apps and routes are fully initialized. This ensures a clean, safe injection
+    of complex or reverse-dependent examples.
+
+    This class matches the `operationId` for the `POST /assets/` endpoint
+    to inject multiple request examples, such as referencing an asset or a source.
+    """
+
+    def get_operation(self, *args, **kwargs):
+
+        from kpi.schema_extensions.v2.assets.schema import (
+            ASSET_CLONE_FROM,
+            ASSET_NAME,
+            ASSET_SETTINGS,
+            ASSET_TYPE,
+            ASSET_FIELDS,
+            ASSET_ENABLED,
+            ASSET_CONTENT,
+            BULK_ACTION,
+            BULK_ASSET_UIDS,
+            BULK_CONFIRM,
+        )
+
+        operation = super().get_operation(*args, **kwargs)
+
+        if not operation:
+            return None
+
+        if operation.get('operationId') == 'api_v2_assets_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAsset': {
+                    'value': {
+                        'name': generate_example_from_schema(ASSET_NAME),
+                        'settings': generate_example_from_schema(ASSET_SETTINGS),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE),
+                    },
+                    'summary': 'Creating an asset',
+                },
+                'UsingSource': {
+                    'value': {
+                        'name': generate_example_from_schema(ASSET_NAME),
+                        'clone_from': generate_example_from_schema(ASSET_CLONE_FROM),
+                        'asset_type': generate_example_from_schema(ASSET_TYPE),
+                    },
+                    'summary': 'Cloning an asset',
+                },
+            }
+
+        if operation.get('operationId') == 'api_v2_assets_bulk_create':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'UsingAssets': {
+                    'value': {
+                        'asset_uids': generate_example_from_schema(BULK_ASSET_UIDS),
+                        'action': generate_example_from_schema(BULK_ACTION),
+                    },
+                    'summary': 'Perform action on one or more asset',
+                },
+                'UsingConfirm': {
+                    'value': {
+                        'confirm': generate_example_from_schema(BULK_CONFIRM),
+                        'action': generate_example_from_schema(BULK_ACTION),
+                    },
+                    'summary': 'Perform bulk on ALL asset',
+                },
+            }
+
+        if operation.get('operationId') == 'api_v2_assets_partial_update':
+
+            operation['requestBody']['content']['application/json']['examples'] = {
+                'Updating': {
+                    'value': {
+                        'content': generate_example_from_schema(ASSET_CONTENT),
+                        'name': generate_example_from_schema(ASSET_NAME),
+                    },
+                    'summary': 'Updating an asset',
+                },
+                'ControlSharing': {
+                    'value': {
+                        'enabled': generate_example_from_schema(ASSET_ENABLED),
+                        'fields': generate_example_from_schema(ASSET_FIELDS),
+                    },
+                    'summary': 'Control sharing of the project',
+                },
+            }
+
+        return operation
+
+
 @extend_schema(
-    tags=['asset'],
+    tags=['Asset'],
 )
+@extend_schema_view(
+    bulk=extend_schema(
+        description=read_md('kpi', 'assets/bulk.md'),
+        responses=open_api_200_ok_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    content=extend_schema(
+        description=read_md('kpi', 'assets/content.md'),
+        request={},
+        responses=open_api_200_ok_response(
+            AssetContentResponse(),
+            validate_payload=False,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    create=extend_schema(
+        description=read_md('kpi', 'assets/create.md'),
+        request={'application/json': AssetCreateRequest},
+        responses=open_api_200_ok_response(
+            AssetSerializer(),
+            raise_not_found=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+    destroy=extend_schema(
+        description=read_md('kpi', 'assets/delete.md'),
+        responses=open_api_204_empty_response(
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    deployment=extend_schema(tags=['Deployment']),
+    hash=extend_schema(
+        description=read_md('kpi', 'assets/hash.md'),
+        responses=open_api_200_ok_response(
+            AssetHashResponse,
+            raise_access_forbidden=False,
+            raise_not_found=False,
+            validate_payload=False,
+        ),
+    ),
+    list=extend_schema(
+        description=read_md('kpi', 'assets/list.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer,
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    metadata=extend_schema(
+        description=read_md('kpi', 'assets/metadata.md'),
+        responses=open_api_200_ok_response(
+            AssetMetadataResponse(),
+            require_auth=False,
+            raise_not_found=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    partial_update=extend_schema(
+        description=read_md('kpi', 'assets/patch.md'),
+        request={'application/json': AssetPatchRequest},
+        responses=open_api_200_ok_response(
+            AssetSerializer(),
+            raise_access_forbidden=False,
+        ),
+    ),
+    update=extend_schema(exclude=True),
+    reports=extend_schema(
+        description=read_md('kpi', 'assets/reports.md'),
+        request={},
+        responses=open_api_200_ok_response(
+            AssetReportResponse(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    retrieve=extend_schema(
+        description=read_md('kpi', 'assets/retrieve.md'),
+        responses=open_api_200_ok_response(
+            AssetSerializer(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    table_view=extend_schema(
+        description=read_md('kpi', 'assets/table_view.md'),
+        responses=open_api_200_ok_response(
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    valid_content=extend_schema(
+        description=read_md('kpi', 'assets/valid_content.md'),
+        responses=open_api_200_ok_response(
+            AssetValidContentResponse(),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+    xform=extend_schema(
+        description=read_md('kpi', 'assets/xform.md'),
+        responses=open_api_http_example_response(
+            name='XFORM Example',
+            summary='Expected HTML response',
+            value=read_md('kpi', 'assets/http_examples/xform_example.md'),
+                require_auth=False,
+                raise_access_forbidden=False,
+                validate_payload=False,
+        ),
+    ),
+    xls=extend_schema(
+        description=read_md('kpi', 'assets/xls.md'),
+        responses=open_api_http_example_response(
+            name='XLS Example',
+            summary='Expected HTML response',
+            value=read_md('kpi', 'assets/http_examples/xls_example.md'),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
+)
+
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,
@@ -76,184 +330,6 @@ class AssetViewSet(
 
     Lists the asset endpoints accessible to requesting user, for anonymous access
     a list of public data endpoints is returned.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/
-
-    Search can be made with `q` parameter.
-    Search filters can be returned with results by passing `metadata=on` to querystring.
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?metadata=on
-    >       {
-    >           "count": 0
-    >           "next": ...
-    >           "previous": ...
-    >           "results": []
-    >           "metadata": {
-    >               "languages": [],
-    >               "countries": [],
-    >               "sectors": [],
-    >               "organizations": []
-    >           }
-    >       }
-
-    Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
-    for more details.
-
-    Results can be sorted with `ordering` parameter.
-    Allowed fields are:
-
-    - `asset_type`
-    - `date_modified`
-    - `name`
-    - `owner__username`
-    - `subscribers_count`
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
-
-    _Note: Collections can be displayed first with parameter `collections_first`_
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
-
-    <hr>
-
-    Perform bulk actions on assets
-
-    Actions available:
-
-    - `archive`
-    - `delete`
-    - `unarchive`
-    - `undelete` (superusers only)
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/bulk/
-    </pre>
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/bulk/
-
-    > **Payload to preform bulk actions on one or more assets**
-    >
-    >        {
-    >           "payload": {
-    >               "asset_uids": [{string}, ...],
-    >               "action": {string},
-    >           }
-    >        }
-
-    > **Payload to preform bulk actions on ALL assets for authenticated user**
-    >
-    >       {
-    >           "payload": {
-    >               "confirm": true,
-    >               "action": {string}
-    >           }
-    >       }
-
-
-    <hr>
-
-    Get a hash of all `version_id`s of assets.
-    Useful to detect any changes in assets with only one call to `API`
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/hash/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/hash/
-
-    ## CRUD
-
-    * `uid` - is the unique identifier of a specific asset
-
-    Retrieves current asset
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/
-
-    Creates or clones an asset.
-    <pre class="prettyprint">
-    <b>POST</b> /api/v2/assets/
-    </pre>
-
-
-    > Example
-    >
-    >       curl -X POST https://[kpi]/api/v2/assets/
-
-
-    > **Payload to create a new asset**
-    >
-    >        {
-    >           "name": {string},
-    >           "settings": {
-    >               "description": {string},
-    >               "sector": {string},
-    >               "country": {string},
-    >               "share-metadata": {boolean}
-    >           },
-    >           "asset_type": {string}
-    >        }
-
-    > **Payload to clone an asset**
-    >
-    >       {
-    >           "clone_from": {string},
-    >           "name": {string},
-    >           "asset_type": {string}
-    >       }
-
-    where `asset_type` must be one of these values:
-
-    * block (can be cloned to `block`, `question`, `survey`, `template`)
-    * question (can be cloned to `question`, `survey`, `template`)
-    * survey (can be cloned to `block`, `question`, `survey`, `template`)
-    * template (can be cloned to `survey`, `template`)
-
-    Settings are cloned only when type of assets are `survey` or `template`.
-    In that case, `share-metadata` is not preserved.
-
-    When creating a new `block` or `question` asset, settings are not saved either.
-
-    ### Counts
-
-    Retrieves total and daily counts of submissions
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/counts/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/
-
-    uses the `days` query to get the daily counts from the last x amount of days.
-    Default amount is 30 days
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/counts/?days=7
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7
 
 
     ### Data
@@ -305,67 +381,11 @@ class AssetViewSet(
     >
     >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
 
-    ### Reports
-
-    Returns the submission data for all deployments of a survey.
-    This data is grouped by answers, and does not show the data for individual submissions.
-    The endpoint will return a <b>404 NOT FOUND</b> error if the asset is not deployed and will only return the data for the most recently deployed version.
-
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/reports/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
-
-    ### Data sharing
-
-    Control sharing of submission data from this project to other projects
-
-    <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/{uid}/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/
-    >
-    > **Payload**
-    >
-    >        {
-    >           "data_sharing": {
-    >              "enabled": true,
-    >              "fields": []
-    >           }
-    >        }
-    >
-
-    * `fields`: Optional. List of questions whose responses will be shared. If
-        missing or empty, all responses will be shared. Questions must be
-        identified by full group path separated by slashes, e.g.
-        `group/subgroup/question_name`.
-
-    >
-    > Response
-    >
-    >       HTTP 200 Ok
-    >        {
-    >           ...
-    >           "data_sharing": {
-    >              "enabled": true,
-    >              "fields": []
-    >           }
-    >        }
-    >
-
-
-    ### CURRENT ENDPOINT
     """
 
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
-
+    schema = AssetSchema()
     lookup_field = 'uid'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
@@ -378,13 +398,7 @@ class AssetViewSet(
         SearchFilter,
         AssetOrderingFilter,
     ]
-    renderer_classes = [
-        renderers.BrowsableAPIRenderer,
-        AssetJsonRenderer,
-        SSJsonRenderer,
-        XFormRenderer,
-        XlsRenderer,
-    ]
+    renderer_classes = [AssetJsonRenderer]
     # Terms that can be used to search and filter return values
     # from a query `q`
     search_default_field_lookups = [
@@ -668,6 +682,16 @@ class AssetViewSet(
         """
         assert self.paginator is not None
         return self.paginator.get_paginated_response(data, metadata)
+
+    def get_renderers(self):
+        if self.action == 'retrieve':
+            return [
+                AssetJsonRenderer(),
+                SSJsonRenderer(),
+                XFormRenderer(),
+                XlsRenderer(),
+            ]
+        return super().get_renderers()
 
     def get_serializer_class(self):
         if self.action == 'list':
