@@ -291,12 +291,13 @@ class AssetSchema(AutoSchema):
     ),
     xform=extend_schema(
         description=read_md('kpi', 'assets/xform.md'),
-        responses=open_api_200_ok_response(
-            AssetXFormResponse(),
-            media_type='application/xml',
-            require_auth=False,
-            raise_access_forbidden=False,
-            validate_payload=False,
+        responses=open_api_http_example_response(
+            name='XFORM Example',
+            summary='Expected HTML response',
+            value=read_md('kpi', 'assets/http_examples/xform_example.md'),
+                require_auth=False,
+                raise_access_forbidden=False,
+                validate_payload=False,
         ),
     ),
     xls=extend_schema(
@@ -311,6 +312,7 @@ class AssetSchema(AutoSchema):
         ),
     ),
 )
+
 class AssetViewSet(
     AssetViewSetListMixin,
     ObjectPermissionViewSetMixin,
