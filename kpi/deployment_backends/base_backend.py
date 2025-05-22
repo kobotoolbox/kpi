@@ -530,10 +530,9 @@ class BaseDeploymentBackend(abc.ABC):
     def submission_model(self):
         pass
 
-    @staticmethod
     @abc.abstractmethod
     @contextmanager
-    def suspend_submissions(user_ids: list[int]):
+    def suspend_submissions(self):
         pass
 
     @abc.abstractmethod
