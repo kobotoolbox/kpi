@@ -34,7 +34,8 @@ export const ROOT_URL = (() => {
   let rootPath = ''
   if (rootPathEl === null) {
     // @ts-expect-error: ℹ️ global 'expect' indicates we're in a unit test
-    if (!globalThis.expect) {
+    // `isStorybook` is set within the context of Storybook tests
+    if (!globalThis.expect && !window.isStorybook) {
       console.error('no kpi-root-path meta tag set. defaulting to ""')
     }
   } else {
