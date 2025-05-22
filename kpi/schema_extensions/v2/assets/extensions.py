@@ -296,8 +296,8 @@ class DeploymentSubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
         return build_basic_type(OpenApiTypes.INT)
 
 
-class DeployedVersionFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.DeployedVersionField'
+class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.DeployedVersionsField'
 
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(

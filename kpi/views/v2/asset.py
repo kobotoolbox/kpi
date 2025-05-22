@@ -6,8 +6,10 @@ from operator import itemgetter
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from docutils.nodes import description
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse, \
+    OpenApiExample
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -67,7 +69,7 @@ from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
-    open_api_204_empty_response,
+    open_api_204_empty_response, open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
@@ -299,7 +301,10 @@ class AssetSchema(AutoSchema):
     ),
     xls=extend_schema(
         description=read_md('kpi', 'assets/xls.md'),
-        responses=open_api_200_ok_response(
+        responses=open_api_http_example_response(
+            name='XLS Example',
+            summary='Expected HTML response',
+            value=read_md('kpi', 'assets/http_examples/xls_example.md'),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,

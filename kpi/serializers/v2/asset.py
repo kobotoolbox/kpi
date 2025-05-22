@@ -70,7 +70,7 @@ from ...schema_extensions.v2.assets.fields import (
     ContentField,
     DataSharingField,
     DataURLField,
-    DeployedVersionField,
+    DeployedVersionsField,
     DeploymentActiveField,
     DeploymentDataDownloadLinksField,
     DeploymentLinkField,
@@ -361,7 +361,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     version__content_hash = serializers.CharField(read_only=True)
     has_deployment = HasDeploymentField(read_only=True)
     deployed_version_id = serializers.SerializerMethodField()
-    deployed_versions = DeployedVersionField(
+    deployed_versions = DeployedVersionsField(
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page

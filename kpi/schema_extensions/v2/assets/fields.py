@@ -81,7 +81,7 @@ class DataURLField(serializers.SerializerMethodField):
     pass
 
 
-class DeployedVersionField(PaginatedApiField):
+class DeployedVersionsField(PaginatedApiField):
     pass
 
 
