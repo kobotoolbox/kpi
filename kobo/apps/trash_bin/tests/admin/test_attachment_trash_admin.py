@@ -43,7 +43,6 @@ class AttachmentTrashAdminTestCase(BaseTestCase):
         self.model_admin = AttachmentTrashAdmin(AttachmentTrash, site)
 
     def _move_attachment_to_trash(self, attachment, user):
-        AttachmentTrash.toggle_statuses([attachment.uid])
         move_to_trash(
             request_author=user,
             objects_list=[{
